@@ -1219,6 +1219,70 @@ async fn flows_delete_unbinds_schedule_cron_job() {
 }
 
 #[tokio::test]
+async fn flows_delete_clears_flow_memory_namespace() {
+    use crate::openhuman::memory::{Memory, MemoryCategory, MemoryTaint};
+    use crate::openhuman::memory_store::MemoryClient;
+
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    // A directly-constructed `MemoryClient`, injected via `flows_delete_impl`
+    // below, instead of `memory::global` — that singleton is a single
+    // process-wide `OnceLock` any other test in this binary may rebind to
+    // its own tempdir workspace, which would make this test's pass/fail
+    // depend on run order / thread interleaving rather than its own setup.
+    // See `flows_delete_impl`'s doc comment (mirrors
+    // `bus::FlowRunDigestSubscriber::with_memory`'s injection seam).
+    let memory_client: MemoryClientRef =
+        Arc::new(MemoryClient::from_workspace_dir(config.workspace_dir.clone()).unwrap());
+    let memory = memory_client.memory_handle();
+
+    let created = flows_create(
+        &config,
+        "with-memory".to_string(),
+        trigger_only_graph(),
+        false,
+    )
+    .await
+    .unwrap();
+    let flow_id = created.value.id.clone();
+
+    memory
+        .store_with_taint(
+            &flow_namespace(&flow_id),
+            "sent_item_1",
+            "Sent item 1",
+            MemoryCategory::Core,
+            None,
+            MemoryTaint::ExternalSync,
+        )
+        .await
+        .unwrap();
+    assert!(
+        memory
+            .get(&flow_namespace(&flow_id), "sent_item_1")
+            .await
+            .unwrap()
+            .is_some(),
+        "precondition: flow memory entry was stored (through the SAME client flows_delete_impl \
+         is about to clear)"
+    );
+
+    flows_delete_impl(&config, &flow_id, Some(memory_client))
+        .await
+        .unwrap();
+
+    assert!(
+        memory
+            .get(&flow_namespace(&flow_id), "sent_item_1")
+            .await
+            .unwrap()
+            .is_none(),
+        "flows_delete must clear the flow's own memory namespace"
+    );
+}
+
+#[tokio::test]
 async fn flows_update_rebinds_schedule_cron_job_when_trigger_schedule_changes() {
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);

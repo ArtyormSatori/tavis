@@ -2143,6 +2143,25 @@ fn register_domain_subscribers(
                     "[event_bus] failed to register flows trigger subscriber — bus not initialized"
                 );
             }
+            // Post-run memory digest (issue #5173): on a successful
+            // `FlowRunFinished`, writes a compact summary into the flow's own
+            // private memory namespace so a later run can `flow_memory_recall`
+            // it (e.g. a scheduled digest flow deduping what it already sent).
+            // Registered in the same `group_first_time(DomainGroup::Flows)`
+            // block as the trigger subscriber above — that guard only returns
+            // `true` once per process, so a second, separate call here would
+            // never register.
+            if let Some(handle) = crate::core::event_bus::subscribe_global(Arc::new(
+                crate::openhuman::flows::bus::FlowRunDigestSubscriber::new(Arc::new(
+                    config.clone(),
+                )),
+            )) {
+                std::mem::forget(handle);
+            } else {
+                log::warn!(
+                    "[event_bus] failed to register flows run-digest subscriber — bus not initialized"
+                );
+            }
         }
     } else {
         log::debug!("[event_bus] flows trigger subscriber SKIPPED — Flows domain disabled");
