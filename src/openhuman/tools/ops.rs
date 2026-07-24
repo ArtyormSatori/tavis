@@ -431,6 +431,11 @@ pub fn all_tools_with_runtime(
         // #002: read-only self-diagnosis of the memory pipeline so the agent
         // can explain an empty/stalled wiki + the fix.
         Box::new(MemoryDoctorTool::new(config.clone())),
+        // #5172: read-only access to the compiled persona flavour profiles
+        // (communication/coding_style/stack/workflow/environment/directives/
+        // anti_preferences) that persona ingestion builds but nothing
+        // previously surfaced to the agent loop.
+        Box::new(MemoryFlavourTool::new(config.clone())),
         Box::new(MemoryQueryTool),
         // memory_search tools — vector search, chunk context, hybrid search,
         // and previously unregistered raw store tools.
