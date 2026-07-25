@@ -1,6 +1,5 @@
 import type { User } from '../types/api';
 import type { TeamInvite, TeamMember, TeamWithRole } from '../types/team';
-import type { AccessibilityStatus } from '../utils/tauriCommands/accessibility';
 import type { LocalAiStatus } from '../utils/tauriCommands/localAi';
 import type { ServiceStatus } from '../utils/tauriCommands/service';
 import { callCoreRpc } from './coreRpcClient';
@@ -57,11 +56,7 @@ interface AppStateSnapshotResult {
     keyringConsent?: KeyringConsentPreference | null;
   };
   keyringStatus?: KeyringStatus;
-  runtime: {
-    screenIntelligence: AccessibilityStatus;
-    localAi: LocalAiStatus;
-    service: ServiceStatus;
-  };
+  runtime: { localAi: LocalAiStatus; service: ServiceStatus };
   /**
    * Process + component health, folded into this snapshot (#daemon-poll-fold)
    * so the daemon-health store hydrates from the same poll instead of a second

@@ -101,8 +101,7 @@ Canonical mapping of every product feature to its test source(s). Drives gap-fil
 | ----- | --------------------------- | ----- | -------------------- | ------ | ------------------- |
 | 2.1.1 | Accessibility Permission    | MS    | release-manual-smoke | 🚫     | TCC OS-level prompt |
 | 2.1.2 | Input Monitoring Permission | MS    | release-manual-smoke | 🚫     | TCC OS-level prompt |
-| 2.1.3 | Screen Recording Permission | MS    | release-manual-smoke | 🚫     | TCC OS-level prompt |
-| 2.1.4 | Microphone Permission       | MS    | release-manual-smoke | 🚫     | TCC OS-level prompt |
+| 2.1.3 | Microphone Permission       | MS    | release-manual-smoke | 🚫     | TCC OS-level prompt |
 
 ### 2.2 Permission Lifecycle
 
@@ -226,30 +225,22 @@ End-to-end coverage of the agent harness via the web-chat RPC surface against an
 
 ## 5. Built-in Intelligence Skills
 
-### 5.1 Screen Intelligence
-
-| ID    | Feature            | Layer | Test path(s)                              | Status | Notes |
-| ----- | ------------------ | ----- | ----------------------------------------- | ------ | ----- |
-| 5.1.1 | Screen Capture     | RI    | `tests/screen_intelligence_vision_e2e.rs` | ✅     |       |
-| 5.1.2 | Context Extraction | RI    | `tests/screen_intelligence_vision_e2e.rs` | ✅     |       |
-| 5.1.3 | Memory Injection   | RI    | `tests/memory_graph_sync_e2e.rs`          | ✅     |       |
-
-### 5.3 Voice Intelligence
+### 5.1 Voice Intelligence
 
 | ID    | Feature                   | Layer | Test path(s)                                                                                                                                                       | Status | Notes                                                                                                             |
 | ----- | ------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------- |
-| 5.3.1 | Voice Input Capture       | WD    | `voice-mode.spec.ts`                                                                                                                                               | ✅     |                                                                                                                   |
-| 5.3.2 | Speech-to-Text Processing | WD    | `voice-mode.spec.ts`                                                                                                                                               | ✅     |                                                                                                                   |
-| 5.3.3 | Voice Command Execution   | WD    | `voice-mode.spec.ts`                                                                                                                                               | ✅     |                                                                                                                   |
-| 5.3.4 | Mascot Voice Selection    | VU    | `app/src/store/__tests__/mascotSlice.test.ts`, `app/src/components/settings/panels/__tests__/VoicePanel.test.tsx`, `app/src/features/human/useHumanMascot.test.ts` | ✅     | Slice validation + persist REHYDRATE, Settings picker UI (#1762), `synthesizeSpeech` voiceId override propagation |
+| 5.1.1 | Voice Input Capture       | WD    | `voice-mode.spec.ts`                                                                                                                                               | ✅     |                                                                                                                   |
+| 5.1.2 | Speech-to-Text Processing | WD    | `voice-mode.spec.ts`                                                                                                                                               | ✅     |                                                                                                                   |
+| 5.1.3 | Voice Command Execution   | WD    | `voice-mode.spec.ts`                                                                                                                                               | ✅     |                                                                                                                   |
+| 5.1.4 | Mascot Voice Selection    | VU    | `app/src/store/__tests__/mascotSlice.test.ts`, `app/src/components/settings/panels/__tests__/VoicePanel.test.tsx`, `app/src/features/human/useHumanMascot.test.ts` | ✅     | Slice validation + persist REHYDRATE, Settings picker UI (#1762), `synthesizeSpeech` voiceId override propagation |
 
-### 5.4 Persona
+### 5.2 Persona
 
 | ID    | Feature                    | Layer | Test path(s)                                                                                     | Status | Notes                                                                                        |
 | ----- | -------------------------- | ----- | ------------------------------------------------------------------------------------------------ | ------ | -------------------------------------------------------------------------------------------- |
-| 5.4.1 | Persona Name & Description | VU    | `app/src/store/personaSlice.test.ts`, `app/src/components/settings/panels/PersonaPanel.test.tsx` | ✅     | Slice validation + persist REHYDRATE scrub; Settings identity fields persist on save (#2345) |
-| 5.4.2 | SOUL.md Edit & Reset       | RU+VU | `src/openhuman/workspace/rpc.rs`, `app/src/components/settings/panels/PersonaPanel.test.tsx`     | ✅     | Core read/write/reset with allowlist + size cap; panel loads, saves, resets over RPC (#2345) |
-| 5.4.3 | Persona Settings Surface   | VU    | `app/src/components/settings/panels/PersonaPanel.test.tsx`                                       | ✅     | Bundles identity + SOUL.md + link to Mascot avatar/voice (#2345)                             |
+| 5.2.1 | Persona Name & Description | VU    | `app/src/store/personaSlice.test.ts`, `app/src/components/settings/panels/PersonaPanel.test.tsx` | ✅     | Slice validation + persist REHYDRATE scrub; Settings identity fields persist on save (#2345) |
+| 5.2.2 | SOUL.md Edit & Reset       | RU+VU | `src/openhuman/workspace/rpc.rs`, `app/src/components/settings/panels/PersonaPanel.test.tsx`     | ✅     | Core read/write/reset with allowlist + size cap; panel loads, saves, resets over RPC (#2345) |
+| 5.2.3 | Persona Settings Surface   | VU    | `app/src/components/settings/panels/PersonaPanel.test.tsx`                                       | ✅     | Bundles identity + SOUL.md + link to Mascot avatar/voice (#2345)                             |
 
 ---
 
