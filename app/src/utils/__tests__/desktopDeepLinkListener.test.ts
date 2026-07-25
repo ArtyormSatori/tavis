@@ -125,6 +125,8 @@ describe('desktopDeepLinkListener', () => {
     expect(windowControls.setFocus).toHaveBeenCalledTimes(1);
     expect(getDeepLinkAuthState()).toEqual({
       isProcessing: false,
+      // Literal copy, not a key: only the localized failures carry one.
+      errorMessageKey: null,
       errorMessage:
         'Twitter/X sign-in failed before OpenHuman received authorization. Check the Twitter Developer Portal app settings: OAuth 2.0 must be enabled, callback URL must match the backend redirect URL exactly, and the client ID, client secret, and requested scopes must match the OpenHuman backend configuration.',
       requiresAppDataReset: false,
@@ -287,6 +289,32 @@ describe('desktopDeepLinkListener', () => {
     expect(state.requiresAppDataReset).toBe(false);
     expect(state.errorMessage).toContain('did not respond');
     expect(state.errorMessage).toContain('restart');
+    expect(state.errorMessageKey).toBeNull();
+  });
+
+  // The core cannot read its own config.toml: permanent, host-side, and
+  // identical for every config-dependent RPC. It previously fell through to the
+  // generic "Please try again", which is advice that can never work. The copy is
+  // localized, and this module cannot call useT(), so it hands the rendering
+  // component an i18n key instead of a literal.
+  it('surfaces an unreadable core config as a translatable key, not a retry prompt', async () => {
+    vi.mocked(storeSession).mockRejectedValueOnce(
+      new Error(
+        'Failed to read config file: /home/openhuman/.openhuman/config.toml ' +
+          '[config owner mismatch] (file uid=0 gid=0 mode=0600; process euid=10001 egid=10001): ' +
+          'Permission denied (os error 13)'
+      )
+    );
+
+    vi.mocked(getCurrent).mockResolvedValue([authDeepLinkWithState('token=abc&key=auth')]);
+
+    await setupDesktopDeepLinkListener();
+    await waitForAuthSettled();
+
+    const state = getDeepLinkAuthState();
+    expect(state.errorMessageKey).toBe('welcome.coreConfigUnreadable');
+    expect(state.errorMessage).not.toBe('Sign-in failed. Please try again.');
+    expect(state.requiresAppDataReset).toBe(false);
   });
 
   it('injection #1: store-time /auth/me failure bounces to signin — no session applied, no /home nav', async () => {
@@ -467,6 +495,19 @@ describe('classifyAuthStoreFailure', () => {
     // The bare prefix is still recognized via the auth/me anchor — NOT 'other'.
     expect(classifyAuthStoreFailure(bare)).toBe('auth_me_other');
     expect(classifyAuthStoreFailure(bare)).not.toBe('other');
+  });
+
+  // A core that cannot read its own config.toml fails EVERY config-dependent
+  // RPC the same way. Bucketing it as 'other' surfaced "Sign-in failed. Please
+  // try again." for a fault no amount of retrying clears.
+  it('classifies an unreadable core config as its own permanent kind', () => {
+    const reported =
+      'Failed to read config file: /home/openhuman/.openhuman/config.toml ' +
+      '[config owner mismatch] (file uid=0 gid=0 mode=0600; process euid=10001 egid=10001): ' +
+      'Permission denied (os error 13)';
+
+    expect(classifyAuthStoreFailure(reported)).toBe('config_unreadable');
+    expect(classifyAuthStoreFailure(reported)).not.toBe('other');
   });
 });
 
