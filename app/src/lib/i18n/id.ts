@@ -1707,7 +1707,7 @@ const messages: TranslationMap = {
   'settings.search.menuDesc':
     'Baku bagi OpenHuman- mengatur pencarian atau menghubungkan penyedia anda sendiri dengan kunci API.',
   'settings.search.description':
-    'Pilih mesin pencari yang digunakan agen, atau nonaktifkan alat pencarian sepenuhnya. Managed menggunakan backend OpenHuman (tanpa pengaturan). Parallel, Brave, dan Querit berjalan langsung dari mesin Anda menggunakan kunci API Anda.',
+    'Pilih mesin pencari yang digunakan agen, atau nonaktifkan alat pencarian sepenuhnya. Managed menggunakan backend OpenHuman (tanpa pengaturan). Parallel, Brave, Querit, dan Exa berjalan langsung dari mesin Anda menggunakan kunci API Anda.',
   'settings.search.engineAria': 'Mesin pencari',
   'settings.search.engineDisabledLabel': 'Disabled',
   'settings.search.engineDisabledDesc':
@@ -1716,7 +1716,7 @@ const messages: TranslationMap = {
   'settings.search.engineManagedDesc':
     'Baku. Diarahkan melalui backend OpenHuman, saat ini didukung oleh Exa: tidak diperlukan kunci API.',
   'settings.search.localManagedUnavailable':
-    'Pencarian OpenHuman Managed tidak tersedia untuk pengguna lokal. Tambahkan API key Parallel atau Brave Anda sendiri untuk mengaktifkan pencarian web.',
+    'Pencarian OpenHuman Managed tidak tersedia untuk pengguna lokal. Tambahkan API key Parallel, Brave, Querit, atau Exa Anda sendiri untuk mengaktifkan pencarian web.',
   'settings.search.engineParallelLabel': 'Parallel',
   'settings.search.engineParallelDesc':
     'Parallel Langsung API: pencarian, ekstrak, percakapan, penelitian, perkaya, alat dataset.',
@@ -1726,6 +1726,9 @@ const messages: TranslationMap = {
   'settings.search.engineQueritLabel': 'Querit',
   'settings.search.engineQueritDesc':
     'Querit Langsung API: pencarian web dengan situs, rentang waktu, negara, dan filter bahasa.',
+  'settings.search.engineExaLabel': 'Exa',
+  'settings.search.engineExaDesc':
+    'Pencarian neural yang didukung Exa. Memerlukan API key Exa Anda sendiri. Menambahkan alat pencarian, halaman serupa, dan konten halaman.',
   'settings.search.statusConfigured': 'Dikonfigurasi',
   'settings.search.statusNeedsKey': 'Memerlukan kunci API',
   'settings.search.fallbackToManaged':
@@ -1741,10 +1744,12 @@ const messages: TranslationMap = {
   'settings.search.parallelKeyLabel': 'Parallel API kunci',
   'settings.search.braveKeyLabel': 'Brave Penelusuran API kunci',
   'settings.search.queritKeyLabel': 'kunci Querit API',
+  'settings.search.exaKeyLabel': 'Kunci API Exa',
   'settings.search.placeholderStored': '•••••••• (disimpan)',
   'settings.search.placeholderParallel': 'pk_...',
   'settings.search.placeholderBrave': 'BSA...',
   'settings.search.placeholderQuerit': 'kunci Querit API',
+  'settings.search.placeholderExa': 'Tempelkan kunci API Exa Anda…',
   'settings.search.allowedSitesLabel': 'Situs yang diijinkan',
   'settings.search.allowedSitesHint':
     'Host yang boleh dibuka dan dibaca oleh asisten (melalui pengambilan web dan alat browser) satu per baris, mis. reuters.com. Sebuah host juga mencakup subdomain-nya. Penelusuran web itu sendiri tidak dibatasi oleh daftar ini.',

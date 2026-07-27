@@ -1792,7 +1792,7 @@ const en: TranslationMap = {
   'settings.search.menuDesc':
     'Default to OpenHuman-managed search or wire up your own provider with an API key.',
   'settings.search.description':
-    "Pick the search engine the agent uses, or disable search tools entirely. Managed uses OpenHuman's backend (no setup). Parallel, Brave, and Querit run direct from your machine using your API key.",
+    "Pick the search engine the agent uses, or disable search tools entirely. Managed uses OpenHuman's backend (no setup). Parallel, Brave, Querit, and Exa run direct from your machine using your API key.",
   'settings.search.engineAria': 'Search engine',
   'settings.search.engineDisabledLabel': 'Disabled',
   'settings.search.engineDisabledDesc':
@@ -1801,7 +1801,7 @@ const en: TranslationMap = {
   'settings.search.engineManagedDesc':
     'Default. Routed through the OpenHuman backend, currently powered by Exa: no API key required.',
   'settings.search.localManagedUnavailable':
-    'OpenHuman Managed search is not available for local users. Add your own Parallel, Brave, or Querit API key to enable web search.',
+    'OpenHuman Managed search is not available for local users. Add your own Parallel, Brave, Querit, or Exa API key to enable web search.',
   'settings.search.engineParallelLabel': 'Parallel',
   'settings.search.engineParallelDesc':
     'Direct Parallel API: search, extract, chat, research, enrich, dataset tools.',
@@ -1810,6 +1810,9 @@ const en: TranslationMap = {
   'settings.search.engineQueritLabel': 'Querit',
   'settings.search.engineQueritDesc':
     'Direct Querit API: web search with site, time range, country, and language filters.',
+  'settings.search.engineExaLabel': 'Exa',
+  'settings.search.engineExaDesc':
+    'Neural search powered by Exa. Requires your own Exa API key. Adds search, find similar, and page contents tools.',
   'settings.search.statusConfigured': 'Configured',
   'settings.search.statusNeedsKey': 'Needs API key',
   'settings.search.fallbackToManaged':
@@ -1825,10 +1828,12 @@ const en: TranslationMap = {
   'settings.search.parallelKeyLabel': 'Parallel API key',
   'settings.search.braveKeyLabel': 'Brave Search API key',
   'settings.search.queritKeyLabel': 'Querit API key',
+  'settings.search.exaKeyLabel': 'Exa API key',
   'settings.search.placeholderStored': '•••••••• (stored)',
   'settings.search.placeholderParallel': 'pk_...',
   'settings.search.placeholderBrave': 'BSA...',
   'settings.search.placeholderQuerit': 'Querit API key',
+  'settings.search.placeholderExa': 'Paste your Exa API key…',
   'settings.search.allowedSitesLabel': 'Allowed websites',
   'settings.search.allowedSitesHint':
     'Enter one host per line, such as reuters.com. The assistant may open and read these hosts through web fetch and the browser tool. Each host also covers its subdomains. This list does not restrict web search.',

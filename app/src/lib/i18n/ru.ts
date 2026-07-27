@@ -1712,7 +1712,7 @@ const messages: TranslationMap = {
   'settings.search.menuDesc':
     'По умолчанию используется поиск, управляемый OpenHuman, или подключите собственного провайдера с помощью ключа API.',
   'settings.search.description':
-    'Выберите поисковую систему, которую использует агент, или полностью отключите инструменты поиска. Управляемый режим использует серверную часть OpenHuman (настройка не требуется). Parallel, Brave и Querit работают напрямую с вашего устройства, используя ваш API-ключ.',
+    'Выберите поисковую систему, которую использует агент, или полностью отключите инструменты поиска. Управляемый режим использует серверную часть OpenHuman (настройка не требуется). Parallel, Brave, Querit и Exa работают напрямую с вашего устройства, используя ваш API-ключ.',
   'settings.search.engineAria': 'Поисковая система',
   'settings.search.engineDisabledLabel': 'Disabled',
   'settings.search.engineDisabledDesc':
@@ -1721,7 +1721,7 @@ const messages: TranslationMap = {
   'settings.search.engineManagedDesc':
     'По умолчанию. Маршрутизируется через серверную часть OpenHuman, сейчас на базе Exa: ключ API не требуется.',
   'settings.search.localManagedUnavailable':
-    'Поиск OpenHuman Managed недоступен для локальных пользователей. Добавьте свой ключ API Parallel или Brave, чтобы включить веб-поиск.',
+    'Поиск OpenHuman Managed недоступен для локальных пользователей. Добавьте свой ключ API Parallel, Brave, Querit или Exa, чтобы включить веб-поиск.',
   'settings.search.engineParallelLabel': 'Параллельно',
   'settings.search.engineParallelDesc':
     'Direct Parallel API: инструменты поиска, извлечения, общения, исследования, обогащения и набора данных.',
@@ -1731,6 +1731,9 @@ const messages: TranslationMap = {
   'settings.search.engineQueritLabel': 'Керит',
   'settings.search.engineQueritDesc':
     'Direct Querit API: поиск в Интернете с фильтрами по сайту, временному диапазону, стране и языку.',
+  'settings.search.engineExaLabel': 'Exa',
+  'settings.search.engineExaDesc':
+    'Нейропоиск на базе Exa. Требуется ваш собственный ключ API Exa. Добавляет инструменты поиска, похожих страниц и содержимого страниц.',
   'settings.search.statusConfigured': 'Настроено',
   'settings.search.statusNeedsKey': 'Требуется ключ API',
   'settings.search.fallbackToManaged':
@@ -1746,10 +1749,12 @@ const messages: TranslationMap = {
   'settings.search.parallelKeyLabel': 'Parallel API ключ',
   'settings.search.braveKeyLabel': 'Brave Поиск API ключ',
   'settings.search.queritKeyLabel': 'Запросить ключ API',
+  'settings.search.exaKeyLabel': 'Ключ API Exa',
   'settings.search.placeholderStored': '•••••••• (сохранено)',
   'settings.search.placeholderParallel': 'pk_...',
   'settings.search.placeholderBrave': 'BSA...',
   'settings.search.placeholderQuerit': 'Запросить ключ API',
+  'settings.search.placeholderExa': 'Вставьте ваш ключ API Exa…',
   'settings.search.allowedSitesLabel': 'Разрешенные веб-сайты',
   'settings.search.allowedSitesHint':
     'Хосты, которые ассистент может открывать и читать (через веб-запросы и браузерный инструмент) по одному на строку, например reuters.com. Хост также охватывает все его поддомены. Веб-поиск не ограничивается этим списком.',
