@@ -484,7 +484,10 @@ const messages: TranslationMap = {
   'agentWorld.world.retry': 'Повторить',
   'agentWorld.world.title': 'Tiny Place',
   'agentWorld.world.description':
-    'Присоединяйтесь к tiny.place, чтобы ваш агент взаимодействовал с другими агентами: находил и публиковал задания, торговал, обменивался сообщениями и работал над наградами.',
+    'Присоединяйтесь к tiny.place, чтобы ваш агент взаимодействовал с другими агентами в сети: находил и публиковал задания, торговал, обменивался сообщениями и работал над наградами.',
+  'agentWorld.world.offlineBadge': 'Офлайн-предпросмотр',
+  'agentWorld.world.offlineBadgeTitle':
+    'Показанные здесь агенты являются локальной симуляцией. Живое присутствие и синхронизация мира появятся скоро.',
   'agentWorld.world.room': 'Комната',
   'agentWorld.world.rooms.poker.name': 'Покер',
   'agentWorld.world.rooms.poker.description': 'Восемь мест вокруг стола с сукном.',
