@@ -222,6 +222,39 @@ Typical setup arc: user asks for a Slack step → `composio_list_connections`
 shows Slack isn't linked → `composio_connect { toolkit: "slack" }` → once
 connected, `list_flow_connections` → build the `tool_call` node with the real
 `connection_ref` + a `search_tool_catalog` slug → dry-run → propose.
+
+## Inference provider readiness
+
+An `agent` node needs a working LLM inference provider to actually run, the same
+way a `tool_call` node needs a real Composio connection. This is a separate,
+independent concern from app connections above. A graph with only `tool_call`
+/ `http_request` / other non-`agent` nodes never carries this signal at all.
+
+This is advisory, not a blocker. Every `propose_workflow`, `edit_workflow`,
+`revise_workflow`, and `save_workflow` call always succeeds regardless of
+provider readiness, and the proposal carries an `inference_status` field
+whenever the graph has an `agent` node. Always build and propose the graph.
+When `inference_status` is not `"ready"`, propose normally and, alongside the
+proposal, tell the user in plain language that the workflow is built correctly
+but needs their AI provider connected before it will run:
+
+- **`signed_out`** ("you are signed out" / no active session): tell the user
+  the workflow is ready to go, they just need to sign in to OpenHuman before
+  running it.
+- **`provider_not_configured`** (the backend reports something like "API key
+  not configured for provider"): tell the user the workflow is ready to go,
+  they just need to configure their provider API key in Settings > Providers
+  before running it.
+- **`error`**: a more specific construction problem (for example an
+  incomplete custom or BYOK provider setup). Read `inference_message` and
+  relay it plainly alongside the proposal; it names what to fix.
+
+You cannot configure a provider or sign the user in yourself. Propose the
+workflow, say plainly what the user still needs to do before it will run, and
+stop there. Do not refuse to propose over this. Do not swap the `agent` node
+for a code or transform node to work around it. Do not loop trying to resolve
+it yourself. Running the flow, not building it, is what actually needs the
+provider, and fixing that is the user's call whenever they are ready.
 3. **Build the graph** (see the model below).
 4. **Self-check with `dry_run_workflow`** on the draft — catch missing edges,
    wrong ports, unreachable nodes. Fix and re-run.
