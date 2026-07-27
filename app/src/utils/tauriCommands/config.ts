@@ -153,19 +153,6 @@ export interface BrowserSettingsUpdate {
   backend?: 'agent_browser' | 'playwright' | 'rust_native' | 'computer_use' | 'auto' | null;
 }
 
-export interface ScreenIntelligenceSettingsUpdate {
-  enabled?: boolean | null;
-  capture_policy?: string | null;
-  policy_mode?: 'all_except_blacklist' | 'whitelist_only' | null;
-  baseline_fps?: number | null;
-  vision_enabled?: boolean | null;
-  autocomplete_enabled?: boolean | null;
-  use_vision_model?: boolean | null;
-  keep_screenshots?: boolean | null;
-  allowlist?: string[] | null;
-  denylist?: string[] | null;
-}
-
 export interface LocalAiSettingsUpdate {
   runtime_enabled?: boolean | null;
   /**
@@ -454,18 +441,6 @@ export async function openhumanUpdateBrowserSettings(
   });
 }
 
-export async function openhumanUpdateScreenIntelligenceSettings(
-  update: ScreenIntelligenceSettingsUpdate
-): Promise<CommandResponse<ConfigSnapshot>> {
-  if (!isTauri()) {
-    throw new Error('Not running in Tauri');
-  }
-  return await callCoreRpc<CommandResponse<ConfigSnapshot>>({
-    method: CORE_RPC_METHODS.configUpdateScreenIntelligenceSettings,
-    params: update,
-  });
-}
-
 // ── Agent access mode (autonomy / filesystem permissions) ───────────────────
 
 export type AutonomyLevel = 'readonly' | 'supervised' | 'full';
@@ -489,6 +464,14 @@ export interface AutonomySettings {
   auto_approve: string[];
   /** Require approval before an agent executes a task-board plan. */
   require_task_plan_approval?: boolean;
+  /**
+   * When true, the approval gate auto-approves ALL tool calls without
+   * prompting — a blanket bypass, not just the `auto_approve` allowlist
+   * above. Subconscious-tainted and unlabelled origins are still denied by
+   * the gate regardless of this flag; hard security blocks are unaffected.
+   * Defaults to `false`.
+   */
+  auto_approve_all?: boolean;
 }
 
 /** Partial update — omitted fields are left unchanged. */
@@ -503,6 +486,8 @@ export interface AutonomySettingsUpdate {
   /** Replaces the "Always allow" allowlist wholesale. */
   auto_approve?: string[];
   require_task_plan_approval?: boolean;
+  /** Blanket "auto-approve everything" bypass. See `AutonomySettings`. */
+  auto_approve_all?: boolean;
 }
 
 export async function openhumanGetAutonomySettings(): Promise<CommandResponse<AutonomySettings>> {

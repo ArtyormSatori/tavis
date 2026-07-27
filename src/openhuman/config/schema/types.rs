@@ -152,12 +152,6 @@ pub struct Config {
     pub shell: ShellConfig,
 
     #[serde(default)]
-    pub screen_intelligence: ScreenIntelligenceConfig,
-
-    #[serde(default)]
-    pub autocomplete: AutocompleteConfig,
-
-    #[serde(default)]
     pub reliability: ReliabilityConfig,
 
     #[serde(default)]
@@ -229,6 +223,12 @@ pub struct Config {
 
     #[serde(default)]
     pub heartbeat: HeartbeatConfig,
+
+    /// Subconscious engine selection (local tinyagents graph vs. local
+    /// medulla-serve child). Default `local` — omitting this block preserves
+    /// the historical behavior exactly.
+    #[serde(default)]
+    pub subconscious: crate::openhuman::config::schema::SubconsciousConfig,
 
     #[serde(default)]
     pub cron: CronConfig,
@@ -319,9 +319,6 @@ pub struct Config {
     pub agent_registry: crate::openhuman::agent_registry::types::AgentRegistryConfig,
 
     #[serde(default)]
-    pub computer_control: ComputerControlConfig,
-
-    #[serde(default)]
     pub agents: HashMap<String, DelegateAgentConfig>,
 
     #[serde(default)]
@@ -340,7 +337,7 @@ pub struct Config {
     //                            openhuman, behaves identically to "openhuman"
     //   "openhuman"            → OpenHuman backend (api_url + api_key session JWT)
     //   "openai:<model>"       → look up cloud_providers entry of type=openai;
-    //                            build OpenAiCompatibleProvider with Bearer auth
+    //                            build crate OpenAiModel with Bearer auth
     //   "anthropic:<model>"    → type=anthropic; Bearer auth on the compat endpoint
     //   "openrouter:<model>"   → type=openrouter; Bearer auth
     //   "orcarouter:<model>"   → type=orcarouter; Bearer auth (e.g. "orcarouter:orcarouter/auto")
@@ -408,6 +405,11 @@ pub struct Config {
     /// other Python subprocess integrations).
     #[serde(default)]
     pub runtime_python: RuntimePythonConfig,
+
+    /// Shared language-runtime pool (long-lived `node`/`python` workers reused
+    /// across skill runs and `node_exec` instead of one child per run, #5106).
+    #[serde(default)]
+    pub runtime_pool: RuntimePoolConfig,
 
     /// TokenJuice content-router / compaction configuration.
     #[serde(default)]
@@ -749,8 +751,6 @@ impl Default for Config {
             sandbox: SandboxConfig::default(),
             runtime: RuntimeConfig::default(),
             shell: ShellConfig::default(),
-            screen_intelligence: ScreenIntelligenceConfig::default(),
-            autocomplete: AutocompleteConfig::default(),
             reliability: ReliabilityConfig::default(),
             scheduler: SchedulerConfig::default(),
             scheduler_gate: SchedulerGateConfig::default(),
@@ -764,6 +764,7 @@ impl Default for Config {
             model_routes: Vec::new(),
             embedding_routes: Vec::new(),
             heartbeat: HeartbeatConfig::default(),
+            subconscious: crate::openhuman::config::schema::SubconsciousConfig::default(),
             cron: CronConfig::default(),
             task_sources: TaskSourcesConfig::default(),
             channels_config: ChannelsConfig::default(),
@@ -788,7 +789,6 @@ impl Default for Config {
             cost: CostConfig::default(),
             memory_sources: Vec::new(),
             agent_registry: crate::openhuman::agent_registry::types::AgentRegistryConfig::default(),
-            computer_control: ComputerControlConfig::default(),
             agents: HashMap::new(),
             local_ai: LocalAiConfig::default(),
             claude_agent_sdk: ClaudeAgentSdkConfig::default(),
@@ -806,6 +806,7 @@ impl Default for Config {
             subconscious_provider: None,
             node: NodeConfig::default(),
             runtime_python: RuntimePythonConfig::default(),
+            runtime_pool: RuntimePoolConfig::default(),
             tokenjuice: TokenjuiceConfig::default(),
             voice_server: VoiceServerConfig::default(),
             voice_providers: Vec::new(),
@@ -890,6 +891,25 @@ mod model_pin_tests {
         assert_eq!(
             config.configured_agent_model("code_executor", false),
             Some("qwen/qwen3")
+        );
+    }
+
+    #[test]
+    fn config_ignores_legacy_screen_intelligence_table() {
+        let config: Config = toml::from_str(
+            r#"
+                [screen_intelligence]
+                enabled = true
+                baseline_fps = 30.0
+            "#,
+        )
+        .expect("legacy screen intelligence TOML should be ignored");
+
+        assert!(
+            !toml::to_string(&config)
+                .expect("config should serialize")
+                .contains("screen_intelligence"),
+            "legacy screen intelligence data must not be persisted again"
         );
     }
 

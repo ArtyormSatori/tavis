@@ -69,6 +69,21 @@ const SENSITIVE_KEYS: &[&str] = &[
     "authorization",
     "auth",
     "code",
+    // File-handoff params. A presigned storage link (`storage_get_link`) is a
+    // BEARER CAPABILITY: anyone holding the URL can fetch the file until it
+    // expires. These land in `tool_call` args whenever a flow hands a produced
+    // file to an externally-executed action (a Composio `file_uploadable`
+    // param such as Gmail's `attachment` or Jira's `file_to_upload`). Redacted
+    // args are both rendered on the approval card and persisted with the
+    // approval record, so leaving these clear would leak the capability into
+    // the UI and durable storage.
+    "attachment",
+    "attachments",
+    "file_to_upload",
+    "file_url",
+    "public_url",
+    "signed_url",
+    "presigned_url",
 ];
 
 /// Produce a redacted clone of `args` suitable for persistence /
@@ -124,7 +139,19 @@ fn redact_value(value: &Value) -> Value {
 /// would miss the Windows case in a Unix-built artifact looking at
 /// log payloads that originated on Windows, or vice versa.
 fn scrub_paths(input: &str) -> String {
-    if !input.contains("Users") && !input.contains("home") {
+    // Fast-path bailout: if `input` contains neither "users" nor "home" it holds
+    // no home prefix for `match_home_prefix` to find, so skip the walk. This
+    // guard MUST be case-insensitive to match the matcher below, which folds case
+    // via `eq_ignore_ascii_case`. A case-sensitive check let non-canonical
+    // casings like `c:\users\alice` or `/HOME/alice` short-circuit here and get
+    // returned verbatim, leaking the OS username into the durable approval audit
+    // row instead of redacting it to `<HOME>`. Scan the bytes in place with a
+    // sliding window rather than allocating a full lowercase copy — tool args can
+    // be large (source/file contents), and the common case bails without a match.
+    let bytes = input.as_bytes();
+    let has_users = bytes.windows(5).any(|w| w.eq_ignore_ascii_case(b"users"));
+    let has_home = bytes.windows(4).any(|w| w.eq_ignore_ascii_case(b"home"));
+    if !has_users && !has_home {
         return input.to_string();
     }
     let mut out = String::with_capacity(input.len());
@@ -420,6 +447,47 @@ mod tests {
     }
 
     #[test]
+    fn lowercase_windows_home_path_is_scrubbed() {
+        // Regression: the fast-path guard was case-sensitive while the matcher is
+        // case-insensitive, so a lowercase drive/`users` casing slipped through
+        // unredacted and leaked the username.
+        let args = json!({ "action": "list", "cwd": "c:\\users\\alice\\work" });
+        let red = redact_args(&args);
+        let cwd = red["cwd"].as_str().unwrap();
+        assert!(!cwd.contains("alice"), "got {cwd}");
+        assert!(cwd.contains("<HOME>"));
+        assert!(cwd.ends_with("\\work"));
+    }
+
+    #[test]
+    fn uppercase_linux_home_path_is_scrubbed() {
+        let args = json!({ "action": "list", "cwd": "/HOME/alice/work" });
+        let red = redact_args(&args);
+        let cwd = red["cwd"].as_str().unwrap();
+        assert!(!cwd.contains("alice"), "got {cwd}");
+        assert!(cwd.contains("<HOME>"));
+        assert!(cwd.ends_with("/work"));
+    }
+
+    #[test]
+    fn mixed_case_home_path_is_scrubbed() {
+        let args = json!({ "action": "list", "cwd": "/Home/alice/work" });
+        let red = redact_args(&args);
+        let cwd = red["cwd"].as_str().unwrap();
+        assert!(!cwd.contains("alice"), "got {cwd}");
+        assert!(cwd.contains("<HOME>"));
+        assert!(cwd.ends_with("/work"));
+    }
+
+    #[test]
+    fn non_path_string_without_home_marker_is_unchanged() {
+        // The guard's fast-path must still return unrelated strings verbatim.
+        let args = json!({ "action": "run", "command": "echo hello world" });
+        let red = redact_args(&args);
+        assert_eq!(red["command"].as_str().unwrap(), "echo hello world");
+    }
+
+    #[test]
     fn multiple_home_paths_in_same_string_all_scrubbed() {
         let args = json!({
             "action": "list",
@@ -430,6 +498,41 @@ mod tests {
         assert!(!summary.contains("alice"));
         assert!(!summary.contains("bob"));
         assert_eq!(summary.matches("<HOME>").count(), 2);
+    }
+
+    #[test]
+    fn file_handoff_links_are_redacted() {
+        // A presigned storage link is a bearer capability: anyone holding the
+        // URL can fetch the file until it expires. Redacted args are shown on
+        // the approval card AND persisted, so these must never appear clear.
+        let args = json!({
+            "attachment": "https://files.example.test/f_1?sig=SECRETSIGNATURE",
+            "file_to_upload": "https://files.example.test/f_2?sig=ANOTHERSIG",
+            "file_url": "https://files.example.test/f_3?sig=THIRDSIG",
+            "public_url": "https://files.example.test/f_4?sig=FOURTHSIG",
+            // A bare `url` (e.g. an `http_request` node's destination, or a
+            // Composio action's benign url arg) is NOT a file-handoff key and
+            // MUST stay visible so the human approver can judge the action.
+            "url": "https://webhook.site/VISIBLE-DESTINATION",
+        });
+        let red = redact_args(&args);
+        let blob = red.to_string();
+        for leaked in [
+            "SECRETSIGNATURE",
+            "ANOTHERSIG",
+            "THIRDSIG",
+            "FOURTHSIG",
+            "files.example.test",
+        ] {
+            assert!(
+                !blob.contains(leaked),
+                "presigned link leaked through redaction ({leaked}): {blob}"
+            );
+        }
+        assert!(
+            blob.contains("webhook.site/VISIBLE-DESTINATION"),
+            "a bare `url` (e.g. an http_request destination) must NOT be redacted: {blob}"
+        );
     }
 
     #[test]

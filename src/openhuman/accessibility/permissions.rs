@@ -1,4 +1,4 @@
-//! Platform permission detection and requests for accessibility, screen recording, input monitoring.
+//! Platform permission detection and requests for accessibility, input monitoring, and microphone access.
 
 use super::types::{PermissionKind, PermissionState, PermissionStatus};
 
@@ -20,8 +20,6 @@ extern "C" {
     fn AXIsProcessTrusted() -> bool;
     fn AXIsProcessTrustedWithOptions(options: CFDictionaryRef) -> bool;
     static kAXTrustedCheckOptionPrompt: CFStringRef;
-    fn CGPreflightScreenCaptureAccess() -> bool;
-    fn CGRequestScreenCaptureAccess() -> bool;
 }
 
 #[cfg(target_os = "macos")]
@@ -57,7 +55,6 @@ const IOHID_ACCESS_UNKNOWN: isize = 2;
 
 pub fn permission_to_str(permission: PermissionKind) -> &'static str {
     match permission {
-        PermissionKind::ScreenRecording => "screen_recording",
         PermissionKind::Accessibility => "accessibility",
         PermissionKind::InputMonitoring => "input_monitoring",
         PermissionKind::Microphone => "microphone",
@@ -91,27 +88,9 @@ pub fn request_accessibility_access() {
 }
 
 #[cfg(target_os = "macos")]
-pub fn request_screen_recording_access() {
-    unsafe {
-        let _ = CGRequestScreenCaptureAccess();
-    }
-}
-
-#[cfg(target_os = "macos")]
 pub fn detect_accessibility_permission() -> PermissionState {
     unsafe {
         if AXIsProcessTrusted() {
-            PermissionState::Granted
-        } else {
-            PermissionState::Denied
-        }
-    }
-}
-
-#[cfg(target_os = "macos")]
-pub fn detect_screen_recording_permission() -> PermissionState {
-    unsafe {
-        if CGPreflightScreenCaptureAccess() {
             PermissionState::Granted
         } else {
             PermissionState::Denied
@@ -148,7 +127,7 @@ pub fn detect_input_monitoring_permission() -> PermissionState {
 ///
 /// **Linux** standard desktops don't enforce per-app permissions; Flatpak/Snap
 /// sandboxes are detected separately.
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(all(feature = "inference", any(target_os = "macos", target_os = "windows")))]
 pub fn detect_microphone_permission() -> PermissionState {
     use cpal::traits::HostTrait;
     let host = cpal::default_host();
@@ -168,7 +147,7 @@ pub fn detect_microphone_permission() -> PermissionState {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(all(feature = "inference", target_os = "linux"))]
 pub fn detect_microphone_permission() -> PermissionState {
     // Standard Linux desktops (PulseAudio/PipeWire) don't enforce app-level mic permissions.
     // Detect Flatpak sandbox — if sandboxed, probe CPAL as a permission proxy.
@@ -187,6 +166,21 @@ pub fn detect_microphone_permission() -> PermissionState {
     } else {
         PermissionState::Granted
     }
+}
+
+/// With the `inference` feature off, the `cpal` audio-device probe is compiled
+/// out along with the whisper engine, so the microphone cannot be inspected.
+/// Report `Unknown` on otherwise-supported desktop platforms rather than a
+/// misleading `Granted`/`Denied`.
+#[cfg(all(
+    not(feature = "inference"),
+    any(target_os = "macos", target_os = "windows", target_os = "linux")
+))]
+pub fn detect_microphone_permission() -> PermissionState {
+    log::debug!(
+        "[permissions] microphone probe unavailable (built without the `inference` feature)"
+    );
+    PermissionState::Unknown
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
@@ -256,7 +250,6 @@ pub fn microphone_denied_message() -> String {
 #[cfg(target_os = "macos")]
 pub fn detect_permissions() -> PermissionStatus {
     PermissionStatus {
-        screen_recording: detect_screen_recording_permission(),
         accessibility: detect_accessibility_permission(),
         input_monitoring: detect_input_monitoring_permission(),
         microphone: detect_microphone_permission(),
@@ -266,7 +259,6 @@ pub fn detect_permissions() -> PermissionStatus {
 #[cfg(not(target_os = "macos"))]
 pub fn detect_permissions() -> PermissionStatus {
     PermissionStatus {
-        screen_recording: PermissionState::Unsupported,
         accessibility: PermissionState::Unsupported,
         input_monitoring: PermissionState::Unsupported,
         microphone: detect_microphone_permission(),

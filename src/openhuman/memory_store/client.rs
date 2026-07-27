@@ -17,10 +17,10 @@ use crate::openhuman::memory::ingestion::{
     IngestionJob, IngestionQueue, IngestionState, MemoryIngestionConfig, MemoryIngestionRequest,
     MemoryIngestionResult,
 };
+use crate::openhuman::memory_store::namespace_store::UnifiedMemory;
 use crate::openhuman::memory_store::types::{
     NamespaceDocumentInput, NamespaceMemoryHit, NamespaceRetrievalContext,
 };
-use crate::openhuman::memory_store::unified::UnifiedMemory;
 
 /// Reference-counted handle to a `MemoryClient`.
 pub type MemoryClientRef = Arc<MemoryClient>;
@@ -56,7 +56,7 @@ pub struct MemoryClient {
 impl MemoryClient {
     /// Returns a handle to the underlying SQLite connection for direct
     /// profile-facet writes via
-    /// [`crate::openhuman::memory_store::unified::profile::profile_upsert`].
+    /// [`crate::openhuman::memory_store::namespace_store::profile::profile_upsert`].
     ///
     /// Intentionally `pub(crate)` — external consumers should use the
     /// higher-level `MemoryClient` API; this escape hatch exists so
@@ -158,9 +158,9 @@ impl MemoryClient {
     }
 
     /// Store a document (DB row + markdown file) without vector embedding or
-    /// graph extraction.  Use this for high-frequency, ephemeral writes where
-    /// the full pipeline would be too expensive (e.g. screen-intelligence
-    /// snapshots).  The document is still searchable by metadata/FTS but will
+    /// graph extraction. Use this for high-frequency, ephemeral writes where
+    /// the full pipeline would be too expensive (e.g. transient sync
+    /// checkpoints). The document is still searchable by metadata/FTS but will
     /// not appear in semantic vector queries or the knowledge graph.
     pub async fn put_doc_light(&self, input: NamespaceDocumentInput) -> Result<String, String> {
         self.inner.upsert_document_metadata_only(input).await

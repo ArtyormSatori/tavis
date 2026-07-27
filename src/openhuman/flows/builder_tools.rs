@@ -547,25 +547,28 @@ impl Tool for EditWorkflowTool {
             }
         };
 
-        // Write the applied edit back to the draft (the durable working copy),
-        // so it survives across turns/reloads even if validation/gates below
-        // still flag something to fix next.
-        if let Some(ref draft_id) = write_back_draft {
-            let edited_json = serde_json::to_value(&edited)?;
-            if let Err(e) = ops::flows_draft_update(
-                &self.config,
-                draft_id,
-                Some(name.clone()),
-                Some(edited_json),
-                None,
-            ) {
-                tracing::warn!(target: "flows", %draft_id, error = %e, "[flows] edit_workflow: could not write edit back to draft");
+        let write_edit_to_draft = || -> anyhow::Result<()> {
+            if let Some(ref draft_id) = write_back_draft {
+                let edited_json = serde_json::to_value(&edited)?;
+                if let Err(e) = ops::flows_draft_update(
+                    &self.config,
+                    draft_id,
+                    Some(name.clone()),
+                    Some(edited_json),
+                    None,
+                ) {
+                    tracing::warn!(target: "flows", %draft_id, error = %e, "[flows] edit_workflow: could not write edit back to draft");
+                }
             }
-        }
+            Ok(())
+        };
 
         // Structural validation of the RESULT — surface every problem at once.
         let structural = tinyflows::validate::validate_all(&edited);
         if !structural.is_empty() {
+            // Preserve the longstanding working-copy contract: an applied edit
+            // survives for the next repair turn even when structurally invalid.
+            write_edit_to_draft()?;
             let messages: Vec<String> = structural.iter().map(ToString::to_string).collect();
             tracing::debug!(
                 target: "flows",
@@ -578,6 +581,30 @@ impl Tool for EditWorkflowTool {
                 messages.join("\n")
             )));
         }
+
+        // Engine-incompatible topologies are different from ordinary builder
+        // follow-up errors: persisting one would leave a draft that no current
+        // save/run path can accept. Reject it before advancing the durable
+        // working copy, while preserving the established write-back behavior
+        // for later binding/connection/contract gates.
+        let compatibility = ops::config_aware_engine_compatibility_errors(&self.config, &edited);
+        if !compatibility.is_empty() {
+            tracing::debug!(
+                target: "flows",
+                %name,
+                error_count = compatibility.len(),
+                "[flows] edit_workflow: the edited graph is engine-incompatible"
+            );
+            return Ok(ToolResult::error(format!(
+                "The edited graph is incompatible with the current engine:\n\n{}\n\nFix the ops and call edit_workflow again.",
+                compatibility.join("\n\n")
+            )));
+        }
+
+        // Write the accepted structural edit back to the draft (the durable
+        // working copy), so it survives across turns/reloads even if a later
+        // binding/connection/contract gate flags something to fix next.
+        write_edit_to_draft()?;
 
         // Full builder hard-gate stack + proposal payload (shared with revise).
         // Thread the persistence-state handles so the payload carries draft_id /
@@ -2264,10 +2291,12 @@ impl Tool for ListAgentProfilesTool {
          field (e.g. researcher, code_executor, crypto_agent). Read-only. Returns \
          a JSON array of { id, name, description, model, tools, tags }. Use this to \
          pick a real agent_ref — a coding step should reference the coding agent, a \
-         research step the researcher — instead of guessing an id. Note: an \
-         agent_ref applies that agent's persona/model to the step; its private \
-         tool loop is a follow-up, so a step still gets tools from the node's own \
-         inline `tools` list for now."
+         research step the researcher — instead of guessing an id. Note: setting \
+         agent_ref runs the step as a REAL agent turn (its own `run_single`), with \
+         the selected specialist's full persona, model, tool loop, and iteration \
+         cap — not just a persona-flavored completion. A plain `agent` node with \
+         no agent_ref only gets the default LLM plus its own inline `tools` list; \
+         it cannot run code, search the web, or use any specialist's tools."
     }
 
     fn parameters_schema(&self) -> Value {
@@ -2558,32 +2587,52 @@ impl Tool for GetNodeKindContractTool {
 ///
 /// The common case reports `{ node_id, location, expression }` — a wiring
 /// mistake the agent should fix. But when the null-resolved expression binds to
-/// the output of an upstream Composio `tool_call` node
-/// ([`ops::composio_tool_call_upstream_ref`]), the entry is instead marked
+/// the output of an upstream Composio-or-native `tool_call` node
+/// ([`ops::mock_opaque_tool_call_upstream_ref`]), the entry is instead marked
 /// `unverifiable: true` and carries an honest `suggestion`: the echo sandbox
-/// can NEVER produce a Composio tool's real output fields, so this particular
-/// null is expected here and does NOT prove the binding wrong (WS6 — the
-/// transcript audit where the agent re-wired an already-correct binding three
-/// times chasing this exact false negative). The message points at
-/// `get_tool_contract` / `get_tool_output_sample` as the real disambiguators.
+/// can NEVER produce a tool's real output fields, so this particular null is
+/// expected here and does NOT prove the binding wrong (WS6 — the transcript
+/// audit where the agent re-wired an already-correct binding three times
+/// chasing this exact false negative). The suggestion adapts to the upstream
+/// kind: a Composio upstream points at `get_tool_contract` /
+/// `get_tool_output_sample` and the `.item.json.data.` nesting; a native `oh:`
+/// upstream points at the flat `.item.json.<field>` shape instead.
 fn build_null_resolution_entry(
     node_id: &str,
     diag: &tinyflows::expr::NullResolution,
     graph: &WorkflowGraph,
 ) -> Value {
-    if let Some(upstream) = crate::openhuman::flows::ops::composio_tool_call_upstream_ref(
+    if let Some(upstream) = crate::openhuman::flows::ops::mock_opaque_tool_call_upstream_ref(
         &diag.expression,
         graph,
         node_id,
     ) {
         let field = diag.location.strip_prefix("args.").unwrap_or("args");
-        return json!({
-            "node_id": node_id,
-            "location": diag.location,
-            "expression": diag.expression,
-            "unverifiable": true,
-            "upstream_tool_call": upstream,
-            "suggestion": format!(
+        // The disambiguation advice differs by upstream kind: a native `oh:`
+        // tool's output binds FLAT (`.item.json.<field>`) after
+        // `native_tool_payload`'s unwrap — it has no `.data.` wrapper and no
+        // Composio `get_tool_contract` — whereas a Composio action nests under
+        // `.item.json.data.`. Emitting the Composio advice for a native
+        // upstream would send the agent chasing a `.data.` path that will
+        // never exist.
+        let upstream_is_native = graph
+            .nodes
+            .iter()
+            .find(|n| n.id == upstream)
+            .and_then(|n| n.config.get("slug").and_then(Value::as_str))
+            .is_some_and(|s| s.starts_with("oh:"));
+        let suggestion = if upstream_is_native {
+            format!(
+                "required arg `{field}` binds to the output of native tool_call node \
+                 `{upstream}` — the SANDBOX only echoes tool calls and can never produce \
+                 their real output fields, so this binding is UNVERIFIABLE here (not \
+                 necessarily wrong). A native `oh:` tool's real output binds FLAT at \
+                 `=nodes.{upstream}.item.json.<field>` (no `.data.` wrapper). Confirm the \
+                 field name against that tool's own output shape. It is a real bug only if \
+                 the path doesn't match the tool's actual output."
+            )
+        } else {
+            format!(
                 "required arg `{field}` binds to the output of Composio tool_call node \
                  `{upstream}` — the SANDBOX only echoes tool calls and can never produce \
                  their real output fields, so this binding is UNVERIFIABLE here (not \
@@ -2592,7 +2641,15 @@ fn build_null_resolution_entry(
                  `.item.json.data.`), or get_tool_output_sample {{ slug, args }} for the \
                  real shape. It is a real bug only if the path doesn't match the action's \
                  actual output."
-            ),
+            )
+        };
+        return json!({
+            "node_id": node_id,
+            "location": diag.location,
+            "expression": diag.expression,
+            "unverifiable": true,
+            "upstream_tool_call": upstream,
+            "suggestion": suggestion,
         });
     }
     json!({
@@ -2605,7 +2662,7 @@ fn build_null_resolution_entry(
 /// Every null-resolved `args.*` config expression that landed on a `tool_call`
 /// node, as `null_resolutions` diagnostic entries (see
 /// [`build_null_resolution_entry`] for the shape, including the WS6
-/// `unverifiable` Composio-upstream variant). Shared by the settled-run path
+/// `unverifiable` Composio-or-native-upstream variant). Shared by the settled-run path
 /// (which fails the dry run on these) and the errored-run path (which surfaces
 /// only the `unverifiable` ones so a stop-policy preflight abort explains
 /// itself honestly instead of via the generic required-arg text).

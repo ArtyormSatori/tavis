@@ -39,7 +39,7 @@ export type ToolTimelineEntryStatus =
   | 'awaiting_user'
   | 'cancelled';
 
-export interface InferenceStatus {
+interface InferenceStatus {
   phase: 'thinking' | 'tool_use' | 'subagent';
   iteration: number;
   maxIterations: number;
@@ -364,7 +364,7 @@ export interface SubAgentUsage {
 }
 
 /** Running per-session totals accumulated from `chat:done` events (#703). */
-export interface SessionTokenUsage {
+interface SessionTokenUsage {
   inputTokens: number;
   outputTokens: number;
   turns: number;
@@ -409,7 +409,7 @@ export function emptySessionTokenUsage(): SessionTokenUsage {
 }
 
 /** Payload accepted by `recordChatTurnUsage` (and applied per turn). */
-export interface ChatTurnUsagePayload {
+interface ChatTurnUsagePayload {
   inputTokens: number;
   outputTokens: number;
   cachedTokens?: number;
@@ -546,6 +546,18 @@ export interface WorkflowProposal {
    * message `consumed: true` so the card does not resurrect on reload.
    */
   sourceMessageId?: string;
+  /**
+   * Id of the flow once `WorkflowProposalCard`'s "Save & enable" has fully
+   * persisted AND enabled it (issue B36). Mirrored into Redux (rather than
+   * living only in the card's component state) because the card
+   * deliberately stays mounted showing a "saved" confirmation after success
+   * instead of dispatching `clearWorkflowProposalForThread` right away — so
+   * a thread/route change can remount the card before the user clicks
+   * "View workflow". Without this, the remount would reset local state to
+   * `null`, fall back to the pre-save editable view, and a second "Save &
+   * enable" click would call `createFlow` again and duplicate the flow.
+   */
+  completedFlowId?: string;
 }
 
 /**
@@ -582,14 +594,6 @@ export interface ArtifactSnapshot {
   /** When the snapshot was last updated, milliseconds since epoch. */
   updatedAt: number;
 }
-
-/**
- * Queue behavior when a turn is already in flight for a thread.
- * `parallel` runs an independent concurrent (forked) turn on the same thread
- * instead of interrupting/queueing — its stream is tracked separately (see
- * `parallelStreamsByThread`) so it renders as its own interleaved branch.
- */
-export type QueueMode = 'interrupt' | 'steer' | 'followup' | 'collect' | 'parallel';
 
 /**
  * Per-thread UI state for an in-flight agent turn (socket events while the user
@@ -1182,16 +1186,6 @@ const chatRuntimeSlice = createSlice({
       }
       list.push({ kind, round, seq: list.length, text: delta });
     },
-    /** Record a tool call in the live processing transcript at its position. */
-    recordProcessingTool: (
-      state,
-      action: PayloadAction<{ threadId: string; round: number; callId: string }>
-    ) => {
-      const { threadId, round, callId } = action.payload;
-      const list = (state.processingByThread[threadId] ??= []);
-      if (list.some(i => i.kind === 'toolCall' && i.callId === callId)) return;
-      list.push({ kind: 'toolCall', round, seq: list.length, callId });
-    },
     /**
      * Reducer-side merge for a `tool_call` socket event (Phase 3 — replaces the
      * provider's `getState()` + find-row + full-array-rebuild). Upserts the row
@@ -1749,6 +1743,23 @@ const chatRuntimeSlice = createSlice({
       delete state.pendingWorkflowProposalsByThread[action.payload.threadId];
     },
     /**
+     * Record that a pending workflow proposal's flow finished saving AND
+     * enabling (issue B36), so `WorkflowProposalCard`'s terminal "saved"
+     * state survives a remount (thread switch, route change) while the
+     * proposal is still sitting in `pendingWorkflowProposalsByThread` — see
+     * `WorkflowProposal.completedFlowId`. No-op if the proposal was already
+     * cleared (e.g. a race with `clearWorkflowProposalForThread`).
+     */
+    markWorkflowProposalCompleted: (
+      state,
+      action: PayloadAction<{ threadId: string; flowId: string }>
+    ) => {
+      const proposal = state.pendingWorkflowProposalsByThread[action.payload.threadId];
+      if (proposal) {
+        proposal.completedFlowId = action.payload.flowId;
+      }
+    },
+    /**
      * Mark a producer-tool call as in-flight so the `ArtifactCard` can
      * render a spinner before any ready/failed event arrives. Caller
      * usually fires this off the corresponding `ChatToolCallEvent`
@@ -2273,7 +2284,6 @@ export const {
   toolResultReceived,
   clearProcessingForThread,
   appendProcessingProse,
-  recordProcessingTool,
   markSubagentCancelled,
   appendSubagentStreamDelta,
   recordSubagentTranscriptTool,
@@ -2286,6 +2296,7 @@ export const {
   clearPendingPlanReviewForThread,
   setWorkflowProposalForThread,
   clearWorkflowProposalForThread,
+  markWorkflowProposalCompleted,
   upsertArtifactInProgressForThread,
   upsertArtifactReadyForThread,
   upsertArtifactFailedForThread,
@@ -2409,8 +2420,7 @@ export const fetchAndHydrateTurnHistory = createAsyncThunk(
 /**
  * Initial derived-transcript page size. Sized generously (the core clamps to
  * 500) so a reopened thread's visible turns all carry their process trail
- * without a second round-trip. Older turns beyond this window load lazily via
- * {@link loadOlderDerivedTranscript}.
+ * without a second round-trip.
  */
 const DERIVED_TRANSCRIPT_INITIAL_LIMIT = 500;
 
@@ -2516,60 +2526,7 @@ export const fetchAndHydrateDerivedTranscript = createAsyncThunk(
       page.hasMore
     );
     dispatch(setTurnTimelinesForThread({ threadId, timelines, transcripts }));
-    // TODO(pagination): when `page.hasMore`, an insights "load older" affordance
-    // should call `loadOlderDerivedTranscript` with `page.nextCursor`. No UI
-    // surfaces older past-turn trails yet, so the first (generous) page is all
-    // we hydrate today.
     return { timelines, transcripts, nextCursor: page.nextCursor ?? null, hasMore: page.hasMore };
-  }
-);
-
-/**
- * Load-older hook (Phase C, pagination): fetch the next (older) derived page
- * for a thread by `cursor` and MERGE its trails into the already-hydrated
- * {@link ChatRuntimeState.turnTimelinesByThread} / `turnTranscriptsByThread`
- * (existing turns win — the newer page is authoritative). Wired but currently
- * uncalled: no UI exposes a "load older insights" affordance yet.
- */
-export const loadOlderDerivedTranscript = createAsyncThunk(
-  'chatRuntime/loadOlderDerivedTranscript',
-  async (arg: { threadId: string; cursor: string }, { dispatch, getState }) => {
-    if (!DERIVED_TRANSCRIPT_ENABLED) return null;
-    const { threadId, cursor } = arg;
-    let page: DerivedTranscriptPage;
-    try {
-      page = await threadApi.getDerivedTranscript(threadId, {
-        cursor,
-        limit: DERIVED_TRANSCRIPT_INITIAL_LIMIT,
-      });
-    } catch (error) {
-      derivedLog('load-older rpc failed thread=%s err=%O', threadId, error);
-      return null;
-    }
-    if (!page.hasTranscript) return null;
-    const skipRequestIds = liveRequestIdsToSkip(getState(), threadId, page.items);
-    const { timelines, transcripts } = mapDisplayItems(page.items, { skipRequestIds });
-    const runtime = readChatRuntimeState(getState());
-    const mergedTimelines = { ...timelines, ...(runtime?.turnTimelinesByThread[threadId] ?? {}) };
-    const mergedTranscripts = {
-      ...transcripts,
-      ...(runtime?.turnTranscriptsByThread[threadId] ?? {}),
-    };
-    derivedLog(
-      'load-older merged thread=%s added_timelines=%d added_transcripts=%d hasMore=%s',
-      threadId,
-      Object.keys(timelines).length,
-      Object.keys(transcripts).length,
-      page.hasMore
-    );
-    dispatch(
-      setTurnTimelinesForThread({
-        threadId,
-        timelines: mergedTimelines,
-        transcripts: mergedTranscripts,
-      })
-    );
-    return { nextCursor: page.nextCursor ?? null, hasMore: page.hasMore };
   }
 );
 

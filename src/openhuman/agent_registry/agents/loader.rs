@@ -138,12 +138,6 @@ pub const BUILTINS: &[BuiltinAgent] = &[
         graph_fn: None,
     },
     BuiltinAgent {
-        id: "screen_awareness_agent",
-        toml: include_str!("screen_awareness_agent/agent.toml"),
-        prompt_fn: super::screen_awareness_agent::prompt::build,
-        graph_fn: None,
-    },
-    BuiltinAgent {
         id: "scheduler_agent",
         toml: include_str!("scheduler_agent/agent.toml"),
         prompt_fn: super::scheduler_agent::prompt::build,
@@ -153,12 +147,6 @@ pub const BUILTINS: &[BuiltinAgent] = &[
         id: "presentation_agent",
         toml: include_str!("presentation_agent/agent.toml"),
         prompt_fn: super::presentation_agent::prompt::build,
-        graph_fn: None,
-    },
-    BuiltinAgent {
-        id: "desktop_control_agent",
-        toml: include_str!("desktop_control_agent/agent.toml"),
-        prompt_fn: super::desktop_control_agent::prompt::build,
         graph_fn: None,
     },
     BuiltinAgent {
@@ -340,10 +328,30 @@ pub const BUILTINS: &[BuiltinAgent] = &[
 /// baked into the binary and therefore must always be valid. Unit tests
 /// below keep that invariant honest.
 pub fn load_builtins() -> Result<Vec<AgentDefinition>> {
-    let defs: Vec<AgentDefinition> = BUILTINS.iter().map(parse_builtin).collect::<Result<_>>()?;
+    let defs: Vec<AgentDefinition> = BUILTINS
+        .iter()
+        .filter(|b| builtin_enabled(b))
+        .map(parse_builtin)
+        .collect::<Result<_>>()?;
     validate_tier_hierarchy(&defs)
         .context("built-in agents violate the spawn-hierarchy contract")?;
     Ok(defs)
+}
+
+/// Compile-time gate for built-ins whose deck/document tool is feature-gated.
+///
+/// `presentation_agent` delegates deck creation to `generate_presentation`,
+/// which only registers under the `documents` feature (see `tools::ops`). In a
+/// slim build without `documents`, the agent would still be advertised as
+/// `make_presentation` while its filtered tool surface no longer contains any
+/// tool able to produce a deck, so it is dropped from the registry in lockstep
+/// with its tool.
+fn builtin_enabled(_b: &BuiltinAgent) -> bool {
+    #[cfg(not(feature = "documents"))]
+    if _b.id == "presentation_agent" {
+        return false;
+    }
+    true
 }
 
 /// Validate the cross-agent spawn-hierarchy contract documented on
@@ -464,7 +472,35 @@ mod tests {
     #[test]
     fn all_builtins_parse() {
         let defs = load_builtins().expect("built-in TOML must parse");
-        assert_eq!(defs.len(), BUILTINS.len());
+        // `load_builtins` filters feature-gated built-ins (e.g. `presentation_agent`
+        // when `documents` is off), so compare against the same filtered count
+        // rather than the raw `BUILTINS` length.
+        let expected = BUILTINS.iter().filter(|b| builtin_enabled(b)).count();
+        assert_eq!(defs.len(), expected);
+    }
+
+    /// Pins the `presentation_agent` compile-time gate, both directions: it is
+    /// registered under the `documents` feature (its `generate_presentation`
+    /// deck tool lives there) and filtered out of the registry without it, so
+    /// slim builds never advertise `make_presentation` with no tool to fulfil it.
+    #[cfg(feature = "documents")]
+    #[test]
+    fn presentation_agent_registered_when_documents_on() {
+        let defs = load_builtins().expect("built-in TOML must parse");
+        assert!(
+            defs.iter().any(|d| d.id == "presentation_agent"),
+            "presentation_agent must register when the `documents` feature is on"
+        );
+    }
+
+    #[cfg(not(feature = "documents"))]
+    #[test]
+    fn presentation_agent_absent_when_documents_off() {
+        let defs = load_builtins().expect("built-in TOML must parse");
+        assert!(
+            !defs.iter().any(|d| d.id == "presentation_agent"),
+            "presentation_agent must be filtered from the registry when `documents` is off"
+        );
     }
 
     #[test]
@@ -683,6 +719,38 @@ mod tests {
                 .any(|s| matches!(s, SubagentEntry::AgentId(id) if id == "vision_agent")),
             "orchestrator must list vision_agent in its subagents allowlist"
         );
+
+        assert!(
+            !BUILTINS
+                .iter()
+                .any(|builtin| builtin.id == "screen_awareness_agent"),
+            "screen_awareness_agent must not remain a discoverable built-in"
+        );
+        assert!(
+            !orchestrator
+                .subagents
+                .iter()
+                .any(|entry| matches!(entry, SubagentEntry::AgentId(id) if id == "screen_awareness_agent")),
+            "orchestrator must not expose a screen_awareness_agent delegate"
+        );
+        assert!(
+            load_builtins()
+                .expect("built-in TOML must parse")
+                .iter()
+                .all(|definition| definition.id != "screen_awareness_agent"),
+            "screen_awareness_agent must not load into the built-in registry"
+        );
+
+        match def.tools {
+            ToolScope::Named(ref tools) => assert_eq!(
+                tools,
+                &vec!["file_read".to_string(), "image_info".to_string()],
+                "vision_agent must only inspect user-provided attached or on-disk images"
+            ),
+            ToolScope::Wildcard => {
+                panic!("vision_agent must keep a narrow user-image tool allowlist")
+            }
+        }
     }
 
     #[test]
@@ -1305,34 +1373,24 @@ mod tests {
             other => panic!("scheduler_agent must use Named tool scope, got {other:?}"),
         }
 
-        let presentation = find("presentation_agent");
-        match &presentation.tools {
-            ToolScope::Named(names) => {
-                assert!(names.iter().any(|name| name == "generate_presentation"));
-                assert!(!names.iter().any(|name| name == "call_memory_agent"));
-                assert!(names.iter().any(|name| name == "web_search_tool"));
-            }
-            other => panic!("presentation_agent must use Named tool scope, got {other:?}"),
-        }
-        // Memory pre-fetch is no longer eager; `omit_memory_context = false`
-        // still gives the deck builder the cheap per-turn recall.
-        assert_eq!(presentation.trigger_memory_agent, TriggerMemoryAgent::Never);
-
-        let desktop = find("desktop_control_agent");
-        match &desktop.tools {
-            ToolScope::Named(names) => {
-                for required in [
-                    "launch_app",
-                    "ax_interact",
-                    "automate",
-                    "screenshot",
-                    "mouse",
-                    "keyboard",
-                ] {
-                    assert!(names.iter().any(|name| name == required));
+        // `presentation_agent` is only registered under the `documents` feature
+        // (its deck tool `generate_presentation` is gated there and the agent is
+        // filtered from the registry in lockstep — see `builtin_enabled`), so
+        // skip its assertions in slim builds where it is intentionally absent.
+        #[cfg(feature = "documents")]
+        {
+            let presentation = find("presentation_agent");
+            match &presentation.tools {
+                ToolScope::Named(names) => {
+                    assert!(names.iter().any(|name| name == "generate_presentation"));
+                    assert!(!names.iter().any(|name| name == "call_memory_agent"));
+                    assert!(names.iter().any(|name| name == "web_search_tool"));
                 }
+                other => panic!("presentation_agent must use Named tool scope, got {other:?}"),
             }
-            other => panic!("desktop_control_agent must use Named tool scope, got {other:?}"),
+            // Memory pre-fetch is no longer eager; `omit_memory_context = false`
+            // still gives the deck builder the cheap per-turn recall.
+            assert_eq!(presentation.trigger_memory_agent, TriggerMemoryAgent::Never);
         }
     }
 
@@ -2046,7 +2104,6 @@ mod tests {
             "settings_agent",
             "profile_memory_agent",
             "account_admin_agent",
-            "screen_awareness_agent",
         ] {
             assert!(
                 subagents.contains(expected),
@@ -2064,7 +2121,6 @@ mod tests {
             "settings_agent",
             "profile_memory_agent",
             "account_admin_agent",
-            "screen_awareness_agent",
         ] {
             let def = find(expected);
             assert_eq!(def.agent_tier, AgentTier::Worker);

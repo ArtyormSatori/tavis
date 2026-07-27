@@ -47,12 +47,10 @@ use tokio::sync::mpsc;
 /// `chat_provider` routing and unconditionally build a cloud chain, so
 /// Telegram (and other channels) never honored a user's local-Ollama /
 /// BYOK selection. `resolve_chat_workload` inspects the resolved chat
-/// workload string and chooses between preserving the legacy
-/// `create_intelligent_routing_provider` chain (Cloud) and dispatching
-/// to the unified workload factory (Workload).
+/// workload string and chooses between the managed-cloud selection (Cloud)
+/// and dispatching to the unified workload factory (Workload).
 pub(super) enum ChatWorkloadResolution {
-    /// Preserve the existing cloud chain (`ReliableProvider` +
-    /// `IntelligentRoutingProvider`) and `config.default_model`.
+    /// Preserve the managed-cloud selection and `config.default_model`.
     Cloud,
     /// Build the channel provider via `create_chat_provider("chat", config)`.
     Workload {
@@ -156,7 +154,6 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
     let bus = event_bus::init_global(DEFAULT_CAPACITY);
     let _tracing_handle = bus.subscribe(Arc::new(TracingSubscriber));
     crate::openhuman::health::bus::register_health_subscriber();
-    crate::openhuman::skills::bus::register_workflow_cleanup_subscriber();
     crate::openhuman::memory_conversations::register_conversation_persistence_subscriber(
         config.workspace_dir.clone(),
     );
@@ -276,17 +273,12 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         config.workspace_dir.clone(),
         config.action_dir.clone(),
     );
-    // Seed the live tool-execution timeout from the persisted `[agent]` config so
-    // a user-configured value (Settings → Agent OS access → Action timeout) is in
-    // effect from the first tool call. `OPENHUMAN_TOOL_TIMEOUT_SECS`, when set,
-    // still overrides this inside `set_tool_timeout_secs`.
-    let effective_timeout =
-        crate::openhuman::tool_timeout::set_tool_timeout_secs(config.agent.agent_timeout_secs);
-    tracing::debug!(
-        configured = config.agent.agent_timeout_secs,
-        effective = effective_timeout,
-        "[startup] seeded tool-execution timeout from config"
-    );
+    // NOTE: the live tool-execution timeout seed is done in
+    // `core::jsonrpc::register_domain_subscribers` (unconditional core boot), NOT
+    // here — `start_channels` is skipped when no channel is configured or
+    // `OPENHUMAN_DISABLE_CHANNEL_LISTENERS` is set, which would otherwise leave
+    // channel-less / web-chat-only cores running the default timeout instead of the
+    // user-configured `[agent].agent_timeout_secs` (#5027).
     // Phase 1 of #1401: audit logger is wired with defaults so emission paths
     // are exercised at runtime. A follow-up promotes `SecurityConfig` (and
     // therefore the `audit` knob) onto the runtime `Config` schema so users
@@ -349,6 +341,9 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         &config.action_dir,
         &config.agents,
         &config,
+        None,
+        None,
+        None,
         None,
         None,
     ));
@@ -836,7 +831,7 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
 
     let runtime_ctx = Arc::new(ChannelRuntimeContext {
         channels_by_name,
-        provider: None,
+        turn_model_source: None,
         default_provider: Arc::new(provider_name),
         memory: Arc::clone(&mem),
         tools_registry: Arc::clone(&tools_registry),
@@ -847,7 +842,7 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         max_tool_iterations: config.agent.max_tool_iterations,
         min_relevance_score: config.memory.min_relevance_score,
         conversation_histories: Arc::new(Mutex::new(HashMap::new())),
-        provider_cache: Arc::new(Mutex::new(HashMap::new())),
+        turn_model_source_cache: Arc::new(Mutex::new(HashMap::new())),
         route_overrides: Arc::new(Mutex::new(HashMap::new())),
         api_url: config.api_url.clone(),
         inference_url: config.inference_url.clone(),

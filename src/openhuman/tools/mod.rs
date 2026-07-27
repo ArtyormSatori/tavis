@@ -1,5 +1,4 @@
 pub mod generated;
-pub mod local_cli;
 pub mod ops;
 pub mod orchestrator_tools;
 pub mod policy;
@@ -18,7 +17,6 @@ pub use crate::openhuman::artifacts::tools::*;
 #[cfg(feature = "voice")]
 pub use crate::openhuman::audio_toolkit::tools::*;
 pub use crate::openhuman::billing::tools::*;
-pub use crate::openhuman::codegraph::tools::*;
 pub use crate::openhuman::composio::tools::*;
 pub use crate::openhuman::config::tools::*;
 pub use crate::openhuman::cost::tools::*;
@@ -30,6 +28,8 @@ pub use crate::openhuman::doctor::tools::*;
 pub use crate::openhuman::flows::builder_tools::*;
 #[cfg(feature = "flows")]
 pub use crate::openhuman::flows::discovery_tools::*;
+#[cfg(feature = "flows")]
+pub use crate::openhuman::flows::memory_tools::*;
 #[cfg(feature = "flows")]
 pub use crate::openhuman::flows::tools::*;
 pub use crate::openhuman::health::tools::*;
@@ -47,7 +47,6 @@ pub use crate::openhuman::people::tools::*;
 pub use crate::openhuman::referral::tools::*;
 #[cfg(feature = "flows")]
 pub use crate::openhuman::rhai_workflows::tools::*;
-pub use crate::openhuman::screen_intelligence::tools::*;
 pub use crate::openhuman::search::tools::*;
 pub use crate::openhuman::security::tools::*;
 pub use crate::openhuman::service::tools::*;
@@ -64,6 +63,7 @@ pub use crate::openhuman::tinyplace::tools::*;
 pub use crate::openhuman::todos::tools::*;
 #[cfg(feature = "web3")]
 pub use crate::openhuman::wallet::tools::*;
+#[cfg(feature = "channels")]
 pub use crate::openhuman::whatsapp_data::tools::*;
 pub use crate::openhuman::workspace::tools::*;
 pub use implementations::*;
@@ -79,4 +79,4 @@ pub use traits::{
     PermissionLevel, Tool, ToolCallOptions, ToolCategory, ToolContent, ToolResult, ToolScope,
     ToolSpec,
 };
-pub(crate) use user_filter::{enables_app_ui_control_mutations, filter_tools_by_user_preference};
+pub(crate) use user_filter::filter_tools_by_user_preference;

@@ -1457,6 +1457,21 @@ async fn load_and_resolve_api_url_returns_api_url_in_response() {
     }
 }
 
+#[test]
+fn resolve_api_url_keeps_inference_overrides_away_from_backend_credentials() {
+    let mut config = Config::default();
+
+    for inference_url in ["http://localhost:11434/v1", "https://openrouter.ai/api/v1"] {
+        config.api_url = Some(inference_url.to_string());
+        let resolved = resolve_backend_api_url(&config);
+        assert_ne!(resolved, inference_url);
+        assert!(
+            resolved.contains("tinyhumans.ai"),
+            "expected hosted backend fallback, got {resolved}"
+        );
+    }
+}
+
 #[tokio::test]
 async fn workspace_onboarding_flag_resolve_rejects_invalid_and_defaults() {
     let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
@@ -1581,34 +1596,6 @@ async fn apply_model_settings_trims_and_clears_optional_provider_fields() {
     assert!(cfg.heartbeat_provider.is_none());
     assert!(cfg.learning_provider.is_none());
     assert!(cfg.subconscious_provider.is_none());
-}
-
-#[tokio::test]
-async fn apply_screen_intelligence_settings_clamps_baseline_fps() {
-    let tmp = tempdir().unwrap();
-    let mut cfg = tmp_config(&tmp);
-
-    apply_screen_intelligence_settings(
-        &mut cfg,
-        ScreenIntelligenceSettingsPatch {
-            baseline_fps: Some(99.0),
-            ..Default::default()
-        },
-    )
-    .await
-    .expect("high clamp");
-    assert!((cfg.screen_intelligence.baseline_fps - 30.0).abs() < f32::EPSILON);
-
-    apply_screen_intelligence_settings(
-        &mut cfg,
-        ScreenIntelligenceSettingsPatch {
-            baseline_fps: Some(0.01),
-            ..Default::default()
-        },
-    )
-    .await
-    .expect("low clamp");
-    assert!((cfg.screen_intelligence.baseline_fps - 0.2).abs() < f32::EPSILON);
 }
 
 // ── apply_autonomy_settings ────────────────────────────────────
@@ -1745,6 +1732,67 @@ async fn apply_autonomy_settings_replaces_auto_approve() {
     assert!(
         on_disk.contains("auto_approve") && on_disk.contains("shell") && on_disk.contains("curl"),
         "auto_approve allowlist should round-trip to TOML, got:\n{on_disk}"
+    );
+}
+
+#[tokio::test]
+async fn autonomy_auto_approve_all_defaults_false() {
+    let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let tmp = tempdir().unwrap();
+    let cfg = tmp_config(&tmp);
+    assert!(
+        !cfg.autonomy.auto_approve_all,
+        "fresh AutonomyConfig must default auto_approve_all to false"
+    );
+}
+
+#[tokio::test]
+async fn autonomy_auto_approve_all_persists() {
+    // ENV_LOCK serializes the `live_policy::reload_from` triggered by
+    // `apply_autonomy_settings` against other live-policy-touching tests.
+    let _g = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let tmp = tempdir().unwrap();
+    let mut cfg = tmp_config(&tmp);
+
+    apply_autonomy_settings(
+        &mut cfg,
+        AutonomySettingsPatch {
+            auto_approve_all: Some(true),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("apply auto_approve_all=true");
+    assert!(cfg.autonomy.auto_approve_all);
+    let on_disk = tokio::fs::read_to_string(&cfg.config_path).await.unwrap();
+    assert!(
+        on_disk.contains("auto_approve_all = true"),
+        "expected TOML to persist auto_approve_all = true, got:\n{on_disk}"
+    );
+
+    // Parse the saved TOML directly (rather than `load_config_with_timeout`,
+    // which resolves the workspace from `OPENHUMAN_WORKSPACE`/discovery and
+    // `tmp_config` doesn't point that at `tmp`) to confirm the value survives
+    // a fresh deserialize, then flip it back off and confirm that round-trips
+    // too.
+    let on_disk_cfg: crate::openhuman::config::Config =
+        toml::from_str(&on_disk).expect("parse saved TOML");
+    assert!(on_disk_cfg.autonomy.auto_approve_all);
+
+    apply_autonomy_settings(
+        &mut cfg,
+        AutonomySettingsPatch {
+            auto_approve_all: Some(false),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("apply auto_approve_all=false");
+    assert!(!cfg.autonomy.auto_approve_all);
+    let on_disk_after = tokio::fs::read_to_string(&cfg.config_path).await.unwrap();
+    assert!(
+        on_disk_after.contains("auto_approve_all = false"),
+        "expected TOML to persist auto_approve_all = false, got:\n{on_disk_after}"
     );
 }
 

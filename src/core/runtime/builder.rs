@@ -57,6 +57,12 @@ pub struct ServiceSet {
     pub skill_catalog_refresh: bool,
     /// Boot installed MCP servers and supervise reconnects during runtime bootstrap.
     pub mcp_boot: bool,
+    /// Composio integration sync: periodic connection sync + one-shot memory-source reconcile.
+    pub integrations: bool,
+    /// Workspace memory-source periodic sync — repos, folders, RSS, web pages.
+    pub memory_sync: bool,
+    /// Orchestration relay-mailbox drain supervisor.
+    pub orchestration: bool,
 }
 
 impl ServiceSet {
@@ -73,6 +79,9 @@ impl ServiceSet {
             harness_init: true,
             skill_catalog_refresh: true,
             mcp_boot: true,
+            integrations: true,
+            memory_sync: true,
+            orchestration: true,
         }
     }
 
@@ -90,6 +99,9 @@ impl ServiceSet {
             harness_init: false,
             skill_catalog_refresh: false,
             mcp_boot: false,
+            integrations: false,
+            memory_sync: false,
+            orchestration: false,
         }
     }
 
@@ -107,6 +119,9 @@ impl ServiceSet {
             harness_init: false,
             skill_catalog_refresh: false,
             mcp_boot: false,
+            integrations: false,
+            memory_sync: false,
+            orchestration: false,
         }
     }
 }
@@ -382,6 +397,12 @@ impl CoreRuntime {
     /// When `rpc_http` is not selected this returns immediately (a harness-only
     /// embedder has no transport to run); background services selected in the
     /// [`ServiceSet`] are still spawned.
+    ///
+    /// In a slim build compiled without the `http-server` feature an `rpc_http`
+    /// request cannot be honoured — the axum / Socket.IO transport is compiled
+    /// out — so `serve` returns a build-feature `Err` rather than binding no
+    /// listener and reporting success. The no-transport (`!rpc_http`) path above
+    /// is unaffected and still returns `Ok(())`.
     pub async fn serve(
         &self,
         ready_tx: Option<tokio::sync::oneshot::Sender<EmbeddedReadySignal>>,
@@ -390,10 +411,59 @@ impl CoreRuntime {
         if !self.services.rpc_http {
             // No transport: just spawn the selected background services and
             // return. The caller owns the process lifetime.
-            self.start_selected_services();
+            self.start_selected_services().await;
             return Ok(());
         }
 
+        // Transport compiled out (#5048): run the selected background services
+        // and return without binding an HTTP/Socket.IO listener — same shape as
+        // the no-`rpc_http` guard above. The desktop shell always ships
+        // `http-server`; this keeps slim / headless-embedding builds linkable.
+        #[cfg(not(feature = "http-server"))]
+        {
+            // `rpc_http` was requested (we passed the guard above) but the HTTP +
+            // Socket.IO transport is compiled out of this slim build. Fail loudly
+            // rather than returning Ok with no listener bound — a supervisor / CLI
+            // (`openhuman run`, `serve`, `--headless-api`) would otherwise observe
+            // a clean start while the requested API is unavailable. Embedders that
+            // genuinely want no transport leave `ServiceSet::rpc_http` unset, which
+            // is handled by the early return above.
+            //
+            // The bind inputs are only read by the compiled-out `serve_http`; touch
+            // them so they don't read as dead fields in the slim build.
+            let _ = (
+                ready_tx,
+                shutdown_token,
+                self.has_operator_token,
+                self.host.as_ref(),
+                self.port,
+            );
+            anyhow::bail!(
+                "rpc_http transport was requested but this build was compiled \
+                 without the `http-server` feature; rebuild with the default \
+                 `http-server` feature, or use an embedding that does not set \
+                 `ServiceSet::rpc_http`"
+            );
+        }
+
+        #[cfg(feature = "http-server")]
+        {
+            self.serve_http(ready_tx, shutdown_token).await
+        }
+    }
+
+    /// HTTP + Socket.IO transport body of [`Self::serve`].
+    ///
+    /// Compiled only under the `http-server` feature (#5048): builds the axum
+    /// router, binds the listener, starts the selected background services, and
+    /// serves until shutdown. With the feature off, [`serve`](Self::serve) runs
+    /// background services and returns without binding (see the arms above).
+    #[cfg(feature = "http-server")]
+    async fn serve_http(
+        &self,
+        ready_tx: Option<tokio::sync::oneshot::Sender<EmbeddedReadySignal>>,
+        shutdown_token: Option<CancellationToken>,
+    ) -> anyhow::Result<()> {
         // --- Host / port resolution ---
         let (resolved_port, port_source) = match self.port {
             Some(p) => (p, "builder port"),
@@ -491,6 +561,10 @@ impl CoreRuntime {
             ),
         );
 
+        // Await startup migrations before publishing readiness or allowing
+        // background writers to touch their crate-backed stores.
+        self.start_selected_services().await;
+
         log::info!(
             "[core] OpenHuman core is ready — listening on http://{bind_addr} (version {})",
             env!("CARGO_PKG_VERSION")
@@ -508,9 +582,6 @@ impl CoreRuntime {
                 fallback_from: pick.fallback_from,
             });
         }
-
-        // Background services — gated by the ServiceSet.
-        self.start_selected_services();
 
         if let Some(shutdown_token) = shutdown_token {
             log::info!(
@@ -552,9 +623,9 @@ impl CoreRuntime {
 
     /// Spawn each selected background service. Selection is by [`ServiceSet`];
     /// each service keeps its own runtime config gate.
-    fn start_selected_services(&self) {
+    async fn start_selected_services(&self) {
         use crate::core::runtime::services;
-        jsonrpc::start_core_runtime_services(self.services, self.config.as_ref());
+        jsonrpc::start_core_runtime_services(self.services, self.config.as_ref()).await;
 
         if self.services.heartbeat {
             services::spawn_login_gated_services(self.ctx.host_kind().is_desktop_shell());
@@ -564,6 +635,12 @@ impl CoreRuntime {
         }
         if self.services.cron {
             services::spawn_cron_service();
+        }
+        // Flow-run boot reconciliation is selected by the flows *domain*, not by
+        // a background service — runs can be started without cron in the
+        // ServiceSet, so their orphans must be reconcilable without it too.
+        if self.ctx.domains().flows {
+            services::spawn_flows_boot_reconcile();
         }
         if self.services.channels {
             services::spawn_channels_service();
@@ -661,11 +738,23 @@ mod tests {
         assert!(!custom.harness_init);
         assert!(!custom.skill_catalog_refresh);
         assert!(!custom.mcp_boot);
+        assert!(!custom.integrations);
+        assert!(!custom.memory_sync);
+        assert!(!custom.orchestration);
 
         let desktop = ServiceSet::desktop();
         assert!(desktop.memory_queue);
         assert!(desktop.harness_init);
         assert!(desktop.skill_catalog_refresh);
         assert!(desktop.mcp_boot);
+        assert!(desktop.integrations);
+        assert!(desktop.memory_sync);
+        assert!(desktop.orchestration);
+
+        // headless_api() runs no bootstrap jobs either.
+        let headless = ServiceSet::headless_api();
+        assert!(!headless.integrations);
+        assert!(!headless.memory_sync);
+        assert!(!headless.orchestration);
     }
 }

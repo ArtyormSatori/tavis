@@ -22,6 +22,8 @@ import {
 import { useT } from '../../lib/i18n/I18nContext';
 import { fetchWalletStatus } from '../../services/walletApi';
 import { apiClient } from '../AgentWorldShell';
+import StatusBlock from '../components/StatusBlock';
+import TransferHandleModal from '../components/TransferHandleModal';
 
 const log = debug('agentworld:profile');
 
@@ -348,6 +350,8 @@ function AgentProfileCard({ data, onSwitched }: { data: ProfileData; onSwitched?
   // Handle currently being promoted to primary (in-flight), and any error.
   const [switchingHandle, setSwitchingHandle] = useState<string | null>(null);
   const [switchError, setSwitchError] = useState<string | null>(null);
+  // The owned handle whose transfer modal is open (without @), or null.
+  const [transferHandle, setTransferHandle] = useState<string | null>(null);
 
   // ── Extract display fields from either data source ─────────────────────────
   const isGraphql = data.source === 'graphql';
@@ -568,6 +572,29 @@ function AgentProfileCard({ data, onSwitched }: { data: ProfileData; onSwitched?
                         : 'Make active'}
                     </Button>
                   )}
+                  {/* Transfer is destructive/irreversible — the modal confirms
+                      intent and fails closed. A primary (active) handle is
+                      locked from sale/transfer server-side, so it renders
+                      disabled with an explanation of the path out (make another
+                      handle active first) rather than silently vanishing (#4998
+                      M3). Only an explicit non-primary handle is transferable. */}
+                  {id.primary === false && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setTransferHandle(id.username.replace(/^@+/, ''))}>
+                      {t('agentWorld.transferHandle.action')}
+                    </Button>
+                  )}
+                  {id.primary === true && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled
+                      title={t('agentWorld.transferHandle.primaryLocked')}>
+                      {t('agentWorld.transferHandle.action')}
+                    </Button>
+                  )}
                   <span className="text-[10px] uppercase tracking-wide text-content-faint">
                     {id.status}
                   </span>
@@ -579,6 +606,14 @@ function AgentProfileCard({ data, onSwitched }: { data: ProfileData; onSwitched?
             <p className="mt-2 text-xs text-red-600 dark:text-red-400">{switchError}</p>
           )}
         </div>
+      )}
+
+      {transferHandle && (
+        <TransferHandleModal
+          handle={transferHandle}
+          onClose={() => setTransferHandle(null)}
+          onTransferred={() => onSwitched?.()}
+        />
       )}
 
       {followStats && (
@@ -626,16 +661,6 @@ function AgentProfileCard({ data, onSwitched }: { data: ProfileData; onSwitched?
   );
 }
 
-/** Centered status message used for loading / wallet / error states. */
-function StatusBlock({ tone, title, body }: { tone: string; title: string; body?: string }) {
-  return (
-    <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
-      <p className={`text-base font-medium ${tone}`}>{title}</p>
-      {body && <p className="max-w-md text-sm text-content-muted">{body}</p>}
-    </div>
-  );
-}
-
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export default function ProfilesSection() {
@@ -653,7 +678,7 @@ export default function ProfilesSection() {
   } else if (state.status === 'wallet_locked') {
     body = (
       <StatusBlock
-        tone="text-content-secondary"
+        tone="neutral"
         title="Unlock your wallet to use Agent World"
         body="Agent World uses your wallet identity. Import your recovery phrase in Settings to continue."
       />
@@ -661,7 +686,7 @@ export default function ProfilesSection() {
   } else if (state.status === 'no_handle') {
     body = (
       <StatusBlock
-        tone="text-content-secondary"
+        tone="neutral"
         title="No handle registered yet"
         body={`Your wallet (${truncateCryptoId(state.cryptoId)}) doesn't own a @handle yet. Register one in the Identities tab to claim your profile.`}
       />
@@ -669,19 +694,13 @@ export default function ProfilesSection() {
   } else if (state.status === 'payment_required') {
     body = (
       <StatusBlock
-        tone="text-amber-600 dark:text-amber-400"
+        tone="warning"
         title="Access requires payment"
         body="Your wallet will be used to fulfill the x402 payment challenge."
       />
     );
   } else if (state.status === 'error') {
-    body = (
-      <StatusBlock
-        tone="text-red-600 dark:text-red-400"
-        title="Failed to load profile"
-        body={state.message}
-      />
-    );
+    body = <StatusBlock tone="danger" title="Failed to load profile" body={state.message} />;
   } else {
     // Render the wallet's own profile with either rich GraphQL data or bare
     // directory.reverse identity. AgentProfileCard handles both shapes internally.

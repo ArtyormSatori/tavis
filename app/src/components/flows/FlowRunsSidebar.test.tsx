@@ -19,10 +19,22 @@ import { store } from '../../store';
 import FlowRunsSidebar from './FlowRunsSidebar';
 
 const listFlowRuns = vi.hoisted(() => vi.fn());
-vi.mock('../../services/api/flowsApi', () => ({ listFlowRuns }));
+vi.mock('../../services/api/flowsApi', () => ({ listFlowRuns, listAllFlowRuns: vi.fn() }));
 
 const fetchPendingApprovals = vi.hoisted(() => vi.fn());
 vi.mock('../../services/api/approvalApi', () => ({ fetchPendingApprovals }));
+
+// Stub the run-started hook (issue B35) so tests can trigger its `onStart`
+// callback directly, without standing up a real socket subscription — its own
+// match/filter/teardown behavior is covered by useFlowRunStarted.test.ts.
+const flowRunStartedCalls = vi.hoisted(
+  () => [] as Array<{ onStart: () => void; flowId?: string | null }>
+);
+vi.mock('../../hooks/useFlowRunStarted', () => ({
+  useFlowRunStarted: (onStart: () => void, flowId?: string | null) => {
+    flowRunStartedCalls.push({ onStart, flowId });
+  },
+}));
 
 // Capture the props handed to the drawer so "Fix with agent" can be invoked
 // directly without standing up the drawer's own run-polling machinery
@@ -31,30 +43,6 @@ const inspectorDrawerProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
 }));
 vi.mock('./FlowRunInspectorDrawer', () => ({
-  FLOW_RUN_STATUS_ACCENT: {
-    running: '',
-    completed: '',
-    completed_with_warnings: '',
-    pending_approval: '',
-    failed: '',
-    cancelled: '',
-  },
-  FLOW_RUN_STATUS_DOT: {
-    running: '',
-    completed: '',
-    completed_with_warnings: '',
-    pending_approval: '',
-    failed: '',
-    cancelled: '',
-  },
-  FLOW_RUN_STATUS_KEY: {
-    running: 'flowRuns.status.running',
-    completed: 'flowRuns.status.completed',
-    completed_with_warnings: 'flowRuns.status.completed_with_warnings',
-    pending_approval: 'flowRuns.status.pending_approval',
-    failed: 'flowRuns.status.failed',
-    cancelled: 'flowRuns.status.cancelled',
-  },
   FlowRunInspectorDrawer: (props: Record<string, unknown>) => {
     inspectorDrawerProps.current = props;
     return props.runId ? (
@@ -100,6 +88,7 @@ describe('FlowRunsSidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     inspectorDrawerProps.current = null;
+    flowRunStartedCalls.length = 0;
     fetchPendingApprovals.mockResolvedValue([]);
   });
 
@@ -113,6 +102,15 @@ describe('FlowRunsSidebar', () => {
     fireEvent.click(row);
 
     expect(screen.getByTestId('flow-run-inspector-drawer-stub')).toHaveTextContent('run-1');
+  });
+
+  it('uses an important padding override for the compact status badge', async () => {
+    listFlowRuns.mockResolvedValue([makeRun()]);
+    renderSidebar();
+
+    const badge = await screen.findByText('Failed');
+    expect(badge).toHaveClass('!px-1.5');
+    expect(badge).not.toHaveClass('px-1.5');
   });
 
   it('passes onFixWithAgent through to the run inspector drawer', async () => {
@@ -202,6 +200,11 @@ describe('FlowRunsSidebar', () => {
 
     const runRow = await screen.findByTestId('flow-runs-sidebar-run-run-1');
     await waitFor(() => expect(runRow).toHaveTextContent('Awaiting approval'));
+    expect(runRow.querySelector('[aria-hidden="true"]')).toHaveClass(
+      'bg-amber-500',
+      'animate-pulse'
+    );
+    expect(screen.getByText('Awaiting approval')).toHaveClass('bg-amber-50');
   });
 
   it('leaves a running run without a matching approval labeled "Running"', async () => {
@@ -211,5 +214,40 @@ describe('FlowRunsSidebar', () => {
 
     const runRow = await screen.findByTestId('flow-runs-sidebar-run-run-1');
     await waitFor(() => expect(runRow).toHaveTextContent('Running'));
+  });
+
+  it('registers useFlowRunStarted scoped to this flow and refetches when it fires (B35)', async () => {
+    listFlowRuns.mockResolvedValue([]);
+    renderSidebar('flow-1');
+
+    await screen.findByTestId('flow-runs-sidebar-empty');
+    // The hook is called (with the same args) on every render — assert the
+    // most recent registration is scoped to this flow.
+    const latestCall = flowRunStartedCalls.at(-1);
+    expect(latestCall?.flowId).toBe('flow-1');
+    expect(listFlowRuns).toHaveBeenCalledTimes(1);
+
+    listFlowRuns.mockResolvedValue([makeRun({ status: 'running' })]);
+    act(() => {
+      latestCall?.onStart();
+    });
+
+    await waitFor(() => expect(listFlowRuns.mock.calls.length).toBeGreaterThanOrEqual(2));
+    expect(await screen.findByTestId('flow-runs-sidebar-run-run-1')).toHaveTextContent('Running');
+    expect(screen.queryByTestId('flow-runs-sidebar-empty')).not.toBeInTheDocument();
+  });
+
+  it('shows runs once a run starts even though the list began empty (B35)', async () => {
+    listFlowRuns.mockResolvedValue([]);
+    renderSidebar();
+
+    expect(await screen.findByTestId('flow-runs-sidebar-empty')).toBeInTheDocument();
+
+    listFlowRuns.mockResolvedValue([makeRun({ status: 'running' })]);
+    act(() => {
+      flowRunStartedCalls.at(-1)?.onStart();
+    });
+
+    expect(await screen.findByTestId('flow-runs-sidebar-run-run-1')).toBeInTheDocument();
   });
 });

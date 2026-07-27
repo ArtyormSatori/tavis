@@ -256,13 +256,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Mcp,
         crate::openhuman::mcp_registry::all_mcp_registry_registered_controllers(),
     );
-    // Webview APIs bridge — proxies connector calls (Gmail, …) through
-    // a WebSocket to the Tauri shell so curl reaches the live webview.
-    push(
-        &mut controllers,
-        DomainGroup::Channels,
-        crate::openhuman::webview_apis::all_webview_apis_registered_controllers(),
-    );
     // Agent definition and prompt inspection
     push(
         &mut controllers,
@@ -354,7 +347,10 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Platform,
         crate::openhuman::heartbeat::all_heartbeat_registered_controllers(),
     );
-    // Ad-hoc static directory HTTP hosting for local file sharing / previews
+    // Ad-hoc static directory HTTP hosting for local file sharing / previews.
+    // Gated with the `http-server` feature (#5048): the domain is an axum server,
+    // so a slim build has no `http_host.*` controllers to register.
+    #[cfg(feature = "http-server")]
     push(
         &mut controllers,
         DomainGroup::Platform,
@@ -372,18 +368,17 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Web3,
         crate::openhuman::x402::all_x402_registered_controllers(),
     );
-    // Inline autocomplete settings
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::autocomplete::all_autocomplete_registered_controllers(),
-    );
     // External messaging channels (Web, Telegram, etc.)
     push(
         &mut controllers,
         DomainGroup::Channels,
         crate::openhuman::web_chat::all_web_channel_registered_controllers(),
     );
+    // External messaging channels (Telegram, Discord, Slack, …).
+    // Gated behind the `channels` feature. NOTE: the web_chat push above stays
+    // ungated — the in-app chat is core product surface (decoupled in #5002),
+    // even though its runtime tag is DomainGroup::Channels.
+    #[cfg(feature = "channels")]
     push(
         &mut controllers,
         DomainGroup::Channels,
@@ -419,18 +414,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Platform,
         crate::openhuman::migration::all_migration_registered_controllers(),
     );
-    // Saved council definitions for the desktop Model Council surface.
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::council_registry::all_council_registry_registered_controllers(),
-    );
-    // Model Council: multi-model deliberation (parallel members + chair synthesis)
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::model_council::all_model_council_registered_controllers(),
-    );
     // Background command monitors for agent-scoped event sources
     push(
         &mut controllers,
@@ -461,12 +444,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Platform,
         crate::openhuman::people::all_people_registered_controllers(),
     );
-    // Screen capture and UI analysis
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::screen_intelligence::all_screen_intelligence_registered_controllers(),
-    );
     // Sandbox execution backends (Docker, local jail, policy, cleanup)
     push(
         &mut controllers,
@@ -484,6 +461,16 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         &mut controllers,
         DomainGroup::Platform,
         crate::openhuman::javascript::all_javascript_registered_controllers(),
+    );
+    // Local Medulla brain (plan Flavor A, §3.1–§3.2): status/instruct against a
+    // supervised `medulla-serve` child. Registration-site gate, like `flows` —
+    // with the feature off the `medulla_local.*` methods are simply absent
+    // (unknown-method), not a runtime error.
+    #[cfg(feature = "medulla-local")]
+    push(
+        &mut controllers,
+        DomainGroup::Agent,
+        crate::openhuman::medulla_local::all_medulla_local_registered_controllers(),
     );
     // Discovered SKILL.md skills and their bundled resources
     push(
@@ -575,12 +562,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Memory,
         crate::openhuman::memory_diff::all_memory_diff_registered_controllers(),
     );
-    // Link shortener for long tracking URLs — saves LLM tokens
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::redirect_links::all_redirect_links_registered_controllers(),
-    );
     // Referral and growth tracking
     push(
         &mut controllers,
@@ -632,12 +613,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         &mut controllers,
         DomainGroup::Platform,
         crate::openhuman::provider_surfaces::all_provider_surfaces_registered_controllers(),
-    );
-    // OS-level text input interactions
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::text_input::all_text_input_registered_controllers(),
     );
     // Voice transcription and synthesis (gated behind the `voice` feature).
     #[cfg(feature = "voice")]
@@ -702,12 +677,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Threads,
         crate::openhuman::todos::all_todos_registered_controllers(),
     );
-    // Embedded webview native notifications
-    push(
-        &mut controllers,
-        DomainGroup::Channels,
-        crate::openhuman::webview_notifications::all_webview_notifications_registered_controllers(),
-    );
     // Integration notification ingest, triage, and per-provider settings
     push(
         &mut controllers,
@@ -738,21 +707,11 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Meet,
         crate::openhuman::meet_agent::all_meet_agent_registered_controllers(),
     );
-    // Desktop companion — Clicky-style interaction loop.
-    push(
-        &mut controllers,
-        DomainGroup::Platform,
-        crate::openhuman::desktop_companion::all_desktop_companion_registered_controllers(),
-    );
-    // Structured WhatsApp Web data — agent-facing read-only controllers (list/search).
-    // The write-path ingest controller is registered separately in build_internal_only_controllers.
-    // Classified Channels (WhatsApp Web messaging surface) — not enumerated in the
-    // spec Platform list; grouped with the other channel/webview domains.
-    push(
-        &mut controllers,
-        DomainGroup::Channels,
-        crate::openhuman::whatsapp_data::all_whatsapp_data_registered_controllers(),
-    );
+    // Structured WhatsApp Web data has NO core RPC controllers: the SQLite
+    // store + ingest + list/search moved to the Tauri shell
+    // (`app/src-tauri/src/whatsapp_data/`). The agent's read-only query tools
+    // live in `openhuman::whatsapp_data::tools` and reach the shell store via
+    // the in-process native request bus, not the controller registry.
     // Mobile device pairing and management
     push(
         &mut controllers,
@@ -810,13 +769,8 @@ fn build_registered_controllers() -> Vec<GroupedController> {
 /// (e.g. the Tauri scanner ingest path) that should not appear in agent tool listings.
 fn build_internal_only_controllers() -> Vec<GroupedController> {
     let mut controllers = Vec::new();
-    // whatsapp_data ingest: scanner-side write path.  Callable over RPC by the
-    // Tauri scanner but excluded from agent-facing schema discovery.
-    push(
-        &mut controllers,
-        DomainGroup::Channels,
-        crate::openhuman::whatsapp_data::all_whatsapp_data_internal_controllers(),
-    );
+    // (whatsapp_data ingest is no longer a core RPC path — the scanner writes
+    // the shell-side store directly over the in-process native request bus.)
     // MCP write audit list: internal-only so the desktop UI/CLI can inspect
     // local write history without exposing cross-client history as an MCP tool.
     push(
@@ -894,7 +848,6 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         "app_state" => Some("Expose core-owned app shell state for frontend polling."),
         "auth" => Some("Manage app session and provider credentials."),
         "agent_experience" => Some("Local procedural experience capture and retrieval for agents."),
-        "autocomplete" => Some("Inline autocomplete engine controls and style settings."),
         "channels" => Some("Channel definitions, connections, and lifecycle management."),
         "composio" => Some(
             "Composio OAuth integrations proxied via the backend — toolkits, connections, tools, and actions."
@@ -921,8 +874,8 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         "inference" => Some("Connect to configured text, vision, and embedding inference runtimes."),
         "migrate" => Some("Data migration utilities."),
         "javascript" => Some("First-class JavaScript runtime bridge for listing and dispatching tools."),
+        "medulla_local" => Some("Supervised local medulla-serve brain: status of the child and instruct enqueue (Flavor A draft)."),
         "monitor" => Some("Start, inspect, read, and stop bounded background command monitors."),
-        "screen_intelligence" => Some("Screen capture, permissions, and accessibility automation."),
         "security" => Some("Security policy and autonomy guardrail metadata."),
         "service" => Some("Desktop service lifecycle management."),
         "session_import" => {
@@ -950,9 +903,6 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         ),
         "memory_diff" => Some(
             "Snapshot-based change tracking for memory sources — capture state, compute diffs, and surface changes to agents.",
-        ),
-        "redirect_links" => Some(
-            "Shorten long tracking URLs to `openhuman://link/<id>` placeholders (SQLite-backed) to save tokens in prompts, with round-trip rewrite helpers.",
         ),
         "referral" => Some("Referral codes, stats, and apply flows via the hosted backend API."),
         "run_ledger" => Some(
@@ -996,13 +946,9 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         "subconscious_triggers" => {
             Some("Event-driven trigger pipeline feeding the background orchestrator.")
         }
-        "text_input" => Some("Read, insert, and preview text in the OS-focused input field."),
         "webhooks" => {
             Some("Webhook tunnel registrations and captured request/response debug logs.")
         }
-        "webview_apis" => Some(
-            "Typed connector APIs (Gmail, …) proxied over a loopback WebSocket to the Tauri shell so core-side JSON-RPC reaches live-webview CDP operations.",
-        ),
         "update" => {
             Some("Self-update: check GitHub Releases for newer core binary and stage updates.")
         }
@@ -1034,12 +980,6 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         ),
         "devices" => Some(
             "Paired mobile device management — pairing channel creation, listing, and revocation.",
-        ),
-        "whatsapp_data" => Some(
-            "Structured WhatsApp conversation and message store — list chats, read messages, and search across WhatsApp Web data.",
-        ),
-        "companion" => Some(
-            "Desktop companion — Clicky-style hotkey-driven interaction loop with STT, LLM, TTS, and visual pointing.",
         ),
         "tinyplace" => Some(
             "tiny.place A2A social-network integration: directory, explorer, and search over the agent network.",
@@ -1227,7 +1167,7 @@ fn check_type(value: &Value, ty: &crate::core::TypeSchema) -> Result<(), &'stati
 /// Attempts to invoke a registered RPC method by name.
 ///
 /// Checks both the agent-facing controller registry and the internal-only registry,
-/// so scanner-side write paths (e.g. `openhuman.whatsapp_data_ingest`) are routable
+/// so internal-only write paths (e.g. the MCP write-audit list) are routable
 /// even though they are not included in agent tool listings.
 ///
 /// Returns `None` if the method is not found in either registry.

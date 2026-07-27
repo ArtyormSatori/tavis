@@ -3,14 +3,18 @@
 //! `schemas.rs`'s `handle_*` RPC/CLI handlers, mirroring
 //! `src/openhuman/cron/ops.rs`.
 
-use std::sync::Arc;
+use std::collections::HashSet;
+use std::sync::{Arc, LazyLock};
 
 use chrono::Utc;
 use serde_json::{json, Value};
 use tinyflows::model::{NodeKind, TriggerKind, WorkflowGraph};
 
 use crate::openhuman::agent::turn_origin::{with_origin, AgentTurnOrigin, TrustedAutomationSource};
-use crate::openhuman::approval::{FlowRunContext, APPROVAL_FLOW_RUN_CONTEXT};
+use crate::openhuman::approval::{
+    ApprovalChatContext, FlowRunContext, APPROVAL_CHAT_CONTEXT, APPROVAL_COPILOT_STREAM_CONTEXT,
+    APPROVAL_FLOW_RUN_CONTEXT,
+};
 use crate::openhuman::config::Config;
 use crate::openhuman::flows::bus;
 use crate::openhuman::flows::draft_store;
@@ -19,7 +23,8 @@ use crate::openhuman::flows::store;
 use crate::openhuman::flows::types::{
     FlowConnection, FlowRunStep, FlowRunTrigger, FlowSuggestion, SuggestionStatus,
 };
-use crate::openhuman::flows::{Flow, FlowRun};
+use crate::openhuman::flows::{flow_namespace, Flow, FlowRun};
+use crate::openhuman::memory_store::MemoryClientRef;
 use crate::rpc::RpcOutcome;
 
 /// Overall safety bound on a single `flows_run` / `flows_resume`. Individual
@@ -36,6 +41,11 @@ const FLOW_RUN_TIMEOUT_SECS: u64 = 600;
 /// `TrustedAutomation { Workflow }`, which the tool-call gate lets through), so
 /// this is a dedicated flows-side TTL, not a reuse of the approval store's.
 const FLOW_PARKED_TTL_SECS: i64 = 600;
+
+/// Stable host-validation code for a topology that the currently vendored
+/// TinyFlows/TinyAgents barrier-relief implementation cannot execute safely.
+const UNSUPPORTED_NESTED_CONDITIONAL_FAN_IN: &str = "unsupported_nested_conditional_fan_in";
+const UNSUPPORTED_MAIN_PORT_CONDITIONAL_FAN_IN: &str = "unsupported_main_port_conditional_fan_in";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 2 — autonomy-tier gating of acting flow nodes
@@ -90,7 +100,303 @@ const FLOW_PARKED_TTL_SECS: i64 = 600;
 pub(crate) fn validate_and_migrate_graph(graph_json: Value) -> Result<WorkflowGraph, String> {
     let graph = migrate_and_deserialize_graph(graph_json)?;
     tinyflows::validate::validate(&graph).map_err(|e| e.to_string())?;
+    ensure_engine_compatible(&graph)?;
     Ok(graph)
+}
+
+/// Detects fan-in predecessors controlled by more than one branching decision.
+///
+/// TinyFlows lowers every fan-in edge as a waiting edge and registers a
+/// barrier relief for conditional predecessors. The current lowering chooses
+/// only the first upstream brancher, while TinyAgents cannot prove reachability
+/// through a second brancher. Depending on node declaration order, that can
+/// either relieve the barrier before the real predecessor runs (silently
+/// dropping its data) or leave the fan-in unfired. Fail closed until the
+/// vendored engine models nested decisions directly.
+///
+/// This intentionally mirrors TinyFlows' topology classification rather than
+/// limiting the check to `merge` nodes: any node with multiple incoming edges
+/// is lowered as a fan-in barrier. A predecessor reachable from the trigger by
+/// `main`-only edges is unconditional and needs no relief, so it is safe.
+pub(crate) fn engine_compatibility_errors(
+    graph: &WorkflowGraph,
+) -> Vec<crate::openhuman::flows::FlowValidationError> {
+    let mut errors = Vec::new();
+    collect_engine_compatibility_errors(graph, 0, &mut errors);
+    errors
+}
+
+fn collect_engine_compatibility_errors(
+    graph: &WorkflowGraph,
+    depth: u64,
+    errors: &mut Vec<crate::openhuman::flows::FlowValidationError>,
+) {
+    errors.extend(graph_engine_compatibility_errors(graph));
+    if depth >= tinyflows::engine::MAX_SUB_WORKFLOW_DEPTH {
+        return;
+    }
+
+    for node in &graph.nodes {
+        if node.kind != NodeKind::SubWorkflow {
+            continue;
+        }
+        let Some(inline) = node.config.get("workflow") else {
+            continue;
+        };
+        let Ok(child) = serde_json::from_value::<WorkflowGraph>(inline.clone()) else {
+            // TinyFlows reports malformed inline children as capability errors;
+            // this gate is specifically for otherwise-deserializable unsafe
+            // topologies.
+            continue;
+        };
+        let first_child_error = errors.len();
+        collect_engine_compatibility_errors(&child, depth + 1, errors);
+        for error in &mut errors[first_child_error..] {
+            error.message = format!("Inline sub_workflow node '{}': {}", node.id, error.message);
+        }
+    }
+}
+
+fn graph_engine_compatibility_errors(
+    graph: &WorkflowGraph,
+) -> Vec<crate::openhuman::flows::FlowValidationError> {
+    let Some(trigger) = graph.trigger() else {
+        return Vec::new();
+    };
+    let mut errors = Vec::new();
+
+    for fan_in in &graph.nodes {
+        let incoming: Vec<&str> = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.to_node == fan_in.id)
+            .map(|edge| edge.from_node.as_str())
+            .collect();
+        if incoming.len() <= 1 {
+            continue;
+        }
+
+        for predecessor in incoming {
+            // Reaching a router itself unconditionally does not make the edge
+            // it selects into the fan-in unconditional. Let router
+            // predecessors reach the port-aware analysis below.
+            if !is_branching_node(graph, predecessor)
+                && reaches_on_main_edges(graph, &trigger.id, predecessor, &fan_in.id)
+            {
+                continue;
+            }
+
+            let mut controlling_branchers = 0usize;
+            let mut controlled_via_main_port = false;
+            for candidate in &graph.nodes {
+                let is_router = matches!(candidate.kind, NodeKind::Condition | NodeKind::Switch);
+                let ports: HashSet<&str> = graph
+                    .edges
+                    .iter()
+                    .filter(|edge| edge.from_node == candidate.id)
+                    .map(|edge| edge.from_port.as_str())
+                    .collect();
+                if ports.len() < 2 && !is_router {
+                    continue;
+                }
+                // When the router is itself the incoming predecessor, its
+                // branch edge must be tested against the fan-in (asking whether
+                // that edge reaches the router again can never succeed).
+                let controlled_target = if candidate.id == predecessor {
+                    fan_in.id.as_str()
+                } else {
+                    predecessor
+                };
+                let reaches_from_port = |port: &str| {
+                    reaches_via_port(graph, &candidate.id, port, controlled_target, &fan_in.id)
+                };
+                let any_port_reaches = ports.iter().any(|port| reaches_from_port(port));
+                // A router with one wired output still has unwired runtime
+                // choices that emit no successor, so that sole edge cannot
+                // prove unconditional reachability. Router reconvergence is
+                // only deterministic when every runtime choice is wired:
+                // both condition outcomes, or a switch fallback. Generic
+                // multi-port nodes retain their existing all-port behavior.
+                let routing_choices_are_exhaustive = match candidate.kind {
+                    NodeKind::Condition => ports.contains("true") && ports.contains("false"),
+                    NodeKind::Switch => ports.contains("default"),
+                    _ => true,
+                };
+                let can_prove_all_routing_choices = if is_router {
+                    routing_choices_are_exhaustive
+                } else {
+                    ports.len() >= 2
+                };
+                let every_port_deterministically_reaches = can_prove_all_routing_choices
+                    && ports.iter().all(|port| {
+                        reaches_deterministically_via_port(
+                            graph,
+                            &candidate.id,
+                            port,
+                            controlled_target,
+                            &fan_in.id,
+                        )
+                    });
+                // A multi-port node only controls this predecessor when the
+                // predecessor is reachable from it but not guaranteed by a
+                // deterministic path on every routing choice. This matches
+                // TinyAgents' relief proof, which stops at another router.
+                if any_port_reaches && !every_port_deterministically_reaches {
+                    controlling_branchers += 1;
+                    controlled_via_main_port |= ports.contains("main") && reaches_from_port("main");
+                }
+            }
+
+            let (code, routing_kind) = if controlled_via_main_port {
+                (
+                    UNSUPPORTED_MAIN_PORT_CONDITIONAL_FAN_IN,
+                    "a conditional branch labelled 'main'",
+                )
+            } else if controlling_branchers >= 2 {
+                (
+                    UNSUPPORTED_NESTED_CONDITIONAL_FAN_IN,
+                    "nested conditional routing",
+                )
+            } else {
+                continue;
+            };
+            errors.push(crate::openhuman::flows::FlowValidationError {
+                code: code.to_string(),
+                message: format!(
+                    "Fan-in node '{}' has predecessor '{}' behind {routing_kind}; \
+                     this topology is temporarily unsupported because it can silently lose \
+                     merged data. Flatten the conditional branch or join it before this fan-in.",
+                    fan_in.id, predecessor
+                ),
+                node_id: Some(fan_in.id.clone()),
+                field: None,
+            });
+        }
+    }
+
+    errors
+}
+
+fn ensure_engine_compatible(graph: &WorkflowGraph) -> Result<(), String> {
+    match engine_compatibility_errors(graph).into_iter().next() {
+        Some(error) => Err(format!("{}: {}", error.code, error.message)),
+        None => Ok(()),
+    }
+}
+
+/// Host-aware compatibility check, including saved descendants that graph-only
+/// validation cannot inspect. Authoring boundaries use it before persistence;
+/// execution boundaries use it before compiling a root run/resume or returning
+/// a resolver graph, so an unsafe descendant cannot run after earlier effects.
+fn ensure_config_aware_engine_compatible(
+    config: &Config,
+    graph: &WorkflowGraph,
+) -> Result<(), String> {
+    match config_aware_engine_compatibility_errors(config, graph)
+        .into_iter()
+        .next()
+    {
+        Some(error) => Err(error),
+        None => Ok(()),
+    }
+}
+
+fn reaches_on_main_edges(graph: &WorkflowGraph, from: &str, to: &str, stop: &str) -> bool {
+    if from == to {
+        return true;
+    }
+    let mut stack: Vec<&str> = if is_branching_node(graph, from) {
+        Vec::new()
+    } else {
+        graph
+            .edges
+            .iter()
+            .filter(|edge| edge.from_node == from && edge.from_port == "main")
+            .map(|edge| edge.to_node.as_str())
+            .collect()
+    };
+    let mut seen = HashSet::new();
+    while let Some(node) = stack.pop() {
+        if node == to {
+            return true;
+        }
+        if node == stop || !seen.insert(node) {
+            continue;
+        }
+        // Port labels are arbitrary. A node with multiple distinct output
+        // ports is runtime-selective even when one label happens to be `main`,
+        // so nothing beyond it is unconditionally reachable.
+        if is_branching_node(graph, node) {
+            continue;
+        }
+        stack.extend(
+            graph
+                .edges
+                .iter()
+                .filter(|edge| edge.from_node == node && edge.from_port == "main")
+                .map(|edge| edge.to_node.as_str()),
+        );
+    }
+    false
+}
+
+fn is_branching_node(graph: &WorkflowGraph, node_id: &str) -> bool {
+    graph.nodes.iter().any(|node| {
+        node.id == node_id && matches!(node.kind, NodeKind::Condition | NodeKind::Switch)
+    }) || graph
+        .edges
+        .iter()
+        .filter(|edge| edge.from_node == node_id)
+        .map(|edge| edge.from_port.as_str())
+        .collect::<HashSet<_>>()
+        .len()
+        >= 2
+}
+
+fn reaches_via_port(
+    graph: &WorkflowGraph,
+    brancher: &str,
+    port: &str,
+    target: &str,
+    stop: &str,
+) -> bool {
+    let mut stack: Vec<&str> = graph
+        .edges
+        .iter()
+        .filter(|edge| edge.from_node == brancher && edge.from_port == port)
+        .map(|edge| edge.to_node.as_str())
+        .collect();
+    let mut seen = HashSet::new();
+    while let Some(node) = stack.pop() {
+        if node == target {
+            return true;
+        }
+        if node == stop || !seen.insert(node) {
+            continue;
+        }
+        stack.extend(
+            graph
+                .edges
+                .iter()
+                .filter(|edge| edge.from_node == node)
+                .map(|edge| edge.to_node.as_str()),
+        );
+    }
+    false
+}
+
+fn reaches_deterministically_via_port(
+    graph: &WorkflowGraph,
+    brancher: &str,
+    port: &str,
+    target: &str,
+    stop: &str,
+) -> bool {
+    graph
+        .edges
+        .iter()
+        .filter(|edge| edge.from_node == brancher && edge.from_port == port)
+        .any(|edge| reaches_on_main_edges(graph, &edge.to_node, target, stop))
 }
 
 /// Runs a raw graph JSON value through migration + deserialization **without**
@@ -120,9 +426,10 @@ pub(crate) fn to_flow_validation_error(
     }
 }
 
-/// The single canonical definition of the builder hard-gate stack: the three
+/// The single canonical definition of the builder hard-gate stack: the
 /// author-time gates that reject (not warn) a graph an agent must not propose
-/// or persist — binding-resolvability, tool-contract, and required-arg
+/// or persist — engine compatibility, binding-resolvability, agent-ref
+/// resolvability, connection-ref, tool-contract, and required-arg
 /// resolvability, in increasing cost order.
 ///
 /// Returns an empty `Vec` when the graph passes; otherwise the first failing
@@ -136,11 +443,82 @@ pub(crate) fn to_flow_validation_error(
 /// Assumes `graph` is already structurally valid (run
 /// `validate_and_migrate_graph` / `validate_all` first) — these gates check
 /// resolvability/contracts on a compilable graph.
+///
+/// Author-gate for `oh:storage_upload_file`: its literal `path` arg must be
+/// workspace-relative. Uploads are confined to the agent workspace by the
+/// runtime `resolve_upload_path` (a canonicalized path that escapes `action_dir`
+/// is rejected), so an absolute path like `/tmp/report.html` or one climbing out
+/// with `..` cannot work — it fails mid-run at the upload step. The prompt tells
+/// the builder to use a relative path, but the model reliably ignores that and
+/// copies an absolute path from a prior flow's example, so this enforces it in
+/// code (a hard, actionable author-gate) rather than trusting the prose.
+///
+/// Only LITERAL paths are checked: a `=`-expression resolves from upstream data
+/// at runtime and is out of scope here (the runtime check still applies). An
+/// absent `path` is left to the required-arg gate.
+pub(crate) fn validate_upload_paths(graph: &WorkflowGraph) -> Vec<String> {
+    const UPLOAD_SLUG: &str = "oh:storage_upload_file";
+    let mut errors = Vec::new();
+    for node in &graph.nodes {
+        if node.kind != NodeKind::ToolCall {
+            continue;
+        }
+        if node.config.get("slug").and_then(Value::as_str) != Some(UPLOAD_SLUG) {
+            continue;
+        }
+        let Some(raw) = node
+            .config
+            .get("args")
+            .and_then(|a| a.get("path"))
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        let path = raw.trim();
+        // Dynamic (resolved at runtime) or absent — not a literal we can check here.
+        if path.is_empty() || path.starts_with('=') {
+            continue;
+        }
+        let escapes_via_parent = path.split(['/', '\\']).any(|seg| seg == "..");
+        if std::path::Path::new(path).is_absolute() || escapes_via_parent {
+            errors.push(format!(
+                "Node '{}': `oh:storage_upload_file` path `{path}` must be workspace-relative \
+                 (e.g. `report.html`). Uploads are confined to the agent workspace, so an \
+                 absolute path (`/tmp/...`, `/Users/...`) or one escaping with `..` is rejected \
+                 at run time. Use a relative path, and have the producing node write the file to \
+                 that same relative path.",
+                node.id
+            ));
+        }
+    }
+    errors
+}
+
 pub(crate) async fn run_builder_gates(config: &Config, graph: &WorkflowGraph) -> Vec<String> {
+    let compatibility_errors = config_aware_engine_compatibility_errors(config, graph);
+    if !compatibility_errors.is_empty() {
+        return compatibility_errors;
+    }
     // Cheap, sync: a binding guaranteed to resolve null / wrong at runtime.
     let binding_errors = validate_binding_resolvability(graph);
     if !binding_errors.is_empty() {
         return binding_errors;
+    }
+    // Cheap, sync: an `oh:storage_upload_file` literal `path` that is absolute or
+    // escapes the workspace. The runtime `resolve_upload_path` rejects it, but the
+    // model reliably ignores the prompt's "use a workspace-relative path" rule and
+    // copies an absolute `/tmp/...` path from prior flows, so enforce it in code.
+    let upload_path_errors = validate_upload_paths(graph);
+    if !upload_path_errors.is_empty() {
+        return upload_path_errors;
+    }
+    // Cheap: an `agent` node's `agent_ref` that would hit the runtime's
+    // `RegistryFallback` "unknown agent_ref" hard error mid-run. Almost always a
+    // pure in-memory harness-registry lookup; only a ref that ISN'T a harness
+    // definition falls through to a local config read (custom agent registry).
+    let agent_ref_errors = validate_agent_refs(config, graph).await;
+    if !agent_ref_errors.is_empty() {
+        return agent_ref_errors;
     }
     // Async, live connection list: a tool_call whose `connection_ref` names the
     // wrong toolkit for its slug, or a connection id the user doesn't actually
@@ -160,6 +538,106 @@ pub(crate) async fn run_builder_gates(config: &Config, graph: &WorkflowGraph) ->
     // Async, sandbox run: a required outbound arg that looks wired but resolves
     // null in a mock execution.
     validate_required_arg_resolvability(graph).await
+}
+
+/// Checks literal `workflow_id` children reachable from an authoring candidate.
+///
+/// Pure graph validation can recurse through inline children, but resolving a
+/// saved child requires the host store. Keep that lookup in the config-aware
+/// builder gate so strict RPC and agent-authored proposals/saves cannot bless a
+/// parent that is already known to fail at execution. Dynamic `=` expressions,
+/// missing ids, and store failures retain their existing runtime diagnostics;
+/// this gate only rejects a saved graph whose topology is demonstrably unsafe.
+fn referenced_workflow_compatibility_errors(config: &Config, graph: &WorkflowGraph) -> Vec<String> {
+    let mut pending = vec![(graph.clone(), 0_u64, Vec::<String>::new())];
+    // Record the shallowest visit, not just whether an id was seen. The same
+    // child can be referenced by multiple branches; a deep DFS visit must not
+    // suppress a later shallower visit that has more depth budget remaining.
+    let mut visited_depths = std::collections::HashMap::<String, u64>::new();
+
+    while let Some((current, depth, path)) = pending.pop() {
+        if depth >= tinyflows::engine::MAX_SUB_WORKFLOW_DEPTH {
+            continue;
+        }
+
+        for node in &current.nodes {
+            if node.kind != NodeKind::SubWorkflow {
+                continue;
+            }
+
+            let mut child_path = path.clone();
+            child_path.push(node.id.clone());
+
+            let inline = node.config.get("workflow");
+            let configured_workflow_id = node
+                .config
+                .get("workflow_id")
+                .and_then(Value::as_str)
+                .map(str::trim)
+                .filter(|id| !id.is_empty());
+            // Structural validation requires exactly one source and runs before
+            // this helper. Retain that precedence defensively if a future caller
+            // passes an invalid graph directly: do not inspect either source as
+            // though TinyFlows could choose between them at runtime.
+            if inline.is_some() && configured_workflow_id.is_some() {
+                continue;
+            }
+
+            if let Some(inline) = inline {
+                if let Ok(child) = serde_json::from_value::<WorkflowGraph>(inline.clone()) {
+                    pending.push((child, depth + 1, child_path.clone()));
+                }
+                continue;
+            }
+
+            let Some(workflow_id) = configured_workflow_id.filter(|id| !id.starts_with('=')) else {
+                continue;
+            };
+            let child_depth = depth + 1;
+            if visited_depths
+                .get(workflow_id)
+                .is_some_and(|seen_depth| *seen_depth <= child_depth)
+            {
+                continue;
+            }
+            visited_depths.insert(workflow_id.to_string(), child_depth);
+
+            let Ok(Some(child)) = load_flow_graph(config, workflow_id) else {
+                continue;
+            };
+            if let Some(error) = engine_compatibility_errors(&child).into_iter().next() {
+                return vec![format!(
+                    "Sub_workflow path '{}' references workflow_id '{}' with an unsupported \
+                     engine topology: {}: {}",
+                    child_path.join(" -> "),
+                    workflow_id,
+                    error.code,
+                    error.message
+                )];
+            }
+            pending.push((child, child_depth, child_path));
+        }
+    }
+
+    Vec::new()
+}
+
+/// Returns the complete engine-topology gate for a graph in its host context.
+/// The graph-only half covers inline descendants; the config-aware half follows
+/// literal saved-workflow references. Authoring and execution boundaries share
+/// this helper so neither can accept a graph the other must reject.
+pub(crate) fn config_aware_engine_compatibility_errors(
+    config: &Config,
+    graph: &WorkflowGraph,
+) -> Vec<String> {
+    let direct = engine_compatibility_errors(graph);
+    if !direct.is_empty() {
+        return direct
+            .into_iter()
+            .map(|error| format!("{}: {}", error.code, error.message))
+            .collect();
+    }
+    referenced_workflow_compatibility_errors(config, graph)
 }
 
 /// Strict-mode gate for the create/update RPC path (audit F3): validates
@@ -195,8 +673,9 @@ pub(crate) async fn strict_gate(config: &Config, graph_json: &Value) -> Result<(
 /// `graph` and, if it passes, builds the `workflow_proposal` payload the
 /// propose/revise/edit tools all return.
 ///
-/// The single home for the gate sequence (binding-resolvability →
-/// tool-contract → required-arg resolvability) plus summary/warning assembly,
+/// The single home for the gate sequence (engine compatibility →
+/// binding-resolvability → tool-contract → required-arg resolvability) plus
+/// summary/warning assembly,
 /// so `revise_workflow` and `edit_workflow` cannot drift. `retry_tool` names
 /// the tool in the "fix … and call `<tool>` again" guidance so each caller's
 /// error text points the agent back at the right tool.
@@ -1162,6 +1641,174 @@ pub(crate) fn validate_binding_resolvability(graph: &WorkflowGraph) -> Vec<Strin
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Agent-ref resolvability gate: an `agent` node's `agent_ref` must name a
+// real agent, not the runtime's `RegistryFallback` "unknown agent_ref" case
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// `run_via_registry_fallback` (`tinyflows/caps.rs`) hard-errors mid-run with
+// "unknown agent_ref '…'" the moment an `agent` node's `config.agent_ref`
+// doesn't resolve to either a harness `AgentDefinition` or a custom agent
+// registry entry. Today that is the FIRST time an author finds out — the
+// graph proposes, saves, and even passes every other builder gate, then
+// fails on the very node whose whole job was to run. This gate moves that
+// same check to propose/edit/save time so a broken `agent_ref` is rejected
+// before it's ever persisted, using the exact resolution the runtime uses
+// (`route_for_agent_ref` + `agent_registry::get_agent`) rather than
+// re-implementing it.
+//
+// A plain `agent` node with NO `agent_ref` is unaffected (and must stay
+// that way) — it runs on the default LLM completion (`caps.llm`), never
+// touches `OpenHumanAgentRunner`'s routing at all, so there is nothing to
+// resolve.
+
+/// Rejects an `agent` node whose `config.agent_ref` would hit the runtime's
+/// `RegistryFallback` "unknown agent_ref" hard error mid-run
+/// (`run_via_registry_fallback` in `tinyflows/caps.rs`) — a real ref is one
+/// that resolves via [`crate::openhuman::tinyflows::caps::route_for_agent_ref`]
+/// to a harness [`AgentDefinition`](crate::openhuman::agent::harness::definition::AgentDefinition)
+/// (`AgentRoute::Harness`), OR — when it routes to `AgentRoute::RegistryFallback`
+/// — resolves to an *enabled*
+/// [`AgentRegistryEntry`](crate::openhuman::agent_registry::AgentRegistryEntry)
+/// via [`crate::openhuman::agent_registry::get_agent`]. Both are exactly the
+/// checks `OpenHumanAgentRunner::run_agent` performs at run time, reused here
+/// rather than duplicated so the two planes cannot drift.
+///
+/// A node with no `agent_ref` (or a blank one) is a plain agent node — it
+/// runs on the default LLM completion, never reaches this routing at all —
+/// and is skipped, not rejected. A registry lookup failure (e.g. config
+/// unavailable) fails OPEN (skipped, logged) like the sibling
+/// `validate_connection_refs` gate: this gate must never false-reject a
+/// graph because of a transient local read.
+///
+/// Takes `config` for two reasons. First (CodeRabbit/Codex review on #5114):
+/// one-shot contexts — the generic `openhuman <namespace> <function>` CLI
+/// dispatcher (`default_state()`, no bootstrap), cron, tests — may reach this
+/// gate before the full server bootstrap has called
+/// [`AgentDefinitionRegistry::init_global`]. Without it, `route_for_agent_ref`
+/// sees an empty global registry and routes EVERY ref — including a real
+/// workspace-TOML harness definition — to `RegistryFallback`, which then only
+/// checks the custom agent registry and would reject a valid harness agent
+/// as unknown. So this gate defensively (re-)initialises the harness registry
+/// itself, same idempotent (`OnceLock`) idiom as
+/// `memory_goals::enrich::enrich`, before resolving any ref — the two planes
+/// (author-time gate and `OpenHumanAgentRunner::run_agent` at actual run
+/// time) then always see the same registry state. Second, it threads through
+/// to `agent_registry::get_agent`'s underlying config load.
+///
+/// Also lazily caches the custom agent registry snapshot on the first
+/// `RegistryFallback` node (CodeRabbit nitpick): a graph with several
+/// non-harness `agent_ref`s previously triggered one `config_rpc::
+/// load_config_with_timeout` per node; an all-`Harness`/no-custom-ref graph
+/// still never reads it at all.
+pub(crate) async fn validate_agent_refs(config: &Config, graph: &WorkflowGraph) -> Vec<String> {
+    use crate::openhuman::agent::harness::AgentDefinitionRegistry;
+    use crate::openhuman::agent_registry::AgentRegistryEntry;
+    use crate::openhuman::tinyflows::caps::{route_for_agent_ref, AgentRoute};
+
+    let mut errors = Vec::new();
+    let mut harness_registry_init_attempted = false;
+    let mut custom_registry: Option<Result<Vec<AgentRegistryEntry>, String>> = None;
+
+    for node in &graph.nodes {
+        if node.kind != NodeKind::Agent {
+            continue;
+        }
+        let Some(agent_ref) = node.config.get("agent_ref").and_then(Value::as_str) else {
+            continue;
+        };
+        let agent_ref = agent_ref.trim();
+        if agent_ref.is_empty() {
+            continue;
+        }
+
+        if !harness_registry_init_attempted && AgentDefinitionRegistry::global().is_none() {
+            harness_registry_init_attempted = true;
+            if let Err(e) = AgentDefinitionRegistry::init_global(&config.workspace_dir) {
+                tracing::debug!(
+                    target: "flows",
+                    error = %e,
+                    "[flows] agent-ref check: harness registry init failed — falling through \
+                     to route resolution with whatever state is available"
+                );
+            }
+        }
+
+        match route_for_agent_ref(agent_ref) {
+            AgentRoute::Harness => {
+                tracing::debug!(
+                    target: "flows",
+                    node = %node.id,
+                    %agent_ref,
+                    "[flows] agent-ref check: resolves to a harness agent definition"
+                );
+            }
+            AgentRoute::RegistryFallback => {
+                if custom_registry.is_none() {
+                    custom_registry =
+                        Some(crate::openhuman::agent_registry::list_agents(true).await);
+                }
+                match custom_registry.as_ref().expect("just populated") {
+                    Ok(entries) => match entries.iter().find(|entry| entry.id == agent_ref) {
+                        Some(entry) if entry.enabled => {
+                            tracing::debug!(
+                                target: "flows",
+                                node = %node.id,
+                                %agent_ref,
+                                "[flows] agent-ref check: resolves to an enabled custom agent \
+                                 registry entry"
+                            );
+                        }
+                        Some(_disabled) => {
+                            tracing::warn!(
+                                target: "flows",
+                                node = %node.id,
+                                %agent_ref,
+                                "[flows] agent-ref check: agent_ref is registered but disabled — \
+                                 rejecting"
+                            );
+                            errors.push(format!(
+                                "Node '{}': `agent_ref` `{agent_ref}` is registered but currently \
+                                 disabled — enable it (or pick another agent_ref via \
+                                 list_agent_profiles) before this node can run.",
+                                node.id
+                            ));
+                        }
+                        None => {
+                            tracing::warn!(
+                                target: "flows",
+                                node = %node.id,
+                                %agent_ref,
+                                "[flows] agent-ref check: unknown agent_ref — neither a harness \
+                                 definition nor a custom agent registry entry — rejecting"
+                            );
+                            errors.push(format!(
+                                "Node '{}': `agent_ref` `{agent_ref}` is not a real agent — it \
+                                 names neither a built-in agent definition nor a custom agent \
+                                 registry entry, and would fail at run time with an \"unknown \
+                                 agent_ref\" error. Call list_agent_profiles to see the real, \
+                                 selectable agent_ref values.",
+                                node.id
+                            ));
+                        }
+                    },
+                    Err(e) => {
+                        tracing::debug!(
+                            target: "flows",
+                            node = %node.id,
+                            %agent_ref,
+                            error = %e,
+                            "[flows] agent-ref check: custom agent registry lookup unavailable — \
+                             skipping (fail-open)"
+                        );
+                    }
+                }
+            }
+        }
+    }
+    errors
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tool-contract enforcement gate (systemic tool-contract fix, Part 2)
 // ─────────────────────────────────────────────────────────────────────────────
 //
@@ -1784,19 +2431,21 @@ pub(crate) async fn validate_required_arg_resolvability(graph: &WorkflowGraph) -
                 );
                 continue;
             }
-            // A null bound to the OUTPUT of an upstream Composio `tool_call`
-            // node is UNVERIFIABLE in this echo sandbox — the mock renders a
-            // Composio `tool_call` as `{tool, args, connection}` and can NEVER
-            // produce its real output fields (`.item.json.data.<field>`), so a
-            // downstream binding to one resolves `null` here even when the
-            // wiring is perfectly correct. Hard-rejecting it (WS6) would block
-            // a possibly-correct graph from ever being proposed — the exact
-            // false-negative the transcript audit caught. Downgrade to a
-            // debug-logged skip; `dry_run_workflow` remains the surface that
-            // reports it (as an `unverifiable` diagnostic the agent can act on
-            // via get_tool_contract / get_tool_output_sample).
+            // A null bound to the OUTPUT of an upstream Composio-or-native
+            // `tool_call` node is UNVERIFIABLE in this echo sandbox — the mock
+            // renders BOTH a Composio and a native `oh:` `tool_call` as
+            // `{tool, args, connection}` and can NEVER produce their real output
+            // fields (`.item.json.data.<field>` for Composio, `.item.json.<field>`
+            // for a native tool), so a downstream binding to one resolves `null`
+            // here even when the wiring is perfectly correct. Hard-rejecting it
+            // (WS6) would block a possibly-correct graph from ever being proposed
+            // — the exact false-negative the transcript audit caught, and the one
+            // that made this gate reject #5148's own native-attachment chain.
+            // Downgrade to a debug-logged skip; `dry_run_workflow` remains the
+            // surface that reports it (as an `unverifiable` diagnostic the agent
+            // can act on via get_tool_contract / get_tool_output_sample).
             if let Some(upstream) =
-                composio_tool_call_upstream_ref(&diag.expression, graph, &step.node_id)
+                mock_opaque_tool_call_upstream_ref(&diag.expression, graph, &step.node_id)
             {
                 tracing::debug!(
                     target: "flows",
@@ -1805,7 +2454,7 @@ pub(crate) async fn validate_required_arg_resolvability(graph: &WorkflowGraph) -
                     %field,
                     upstream = %upstream,
                     expression = %diag.expression,
-                    "[flows] required-arg resolvability check: arg binds to a Composio \
+                    "[flows] required-arg resolvability check: arg binds to a Composio-or-native \
                      tool_call's output — UNVERIFIABLE in the echo sandbox (the mock cannot \
                      produce real tool output fields), not rejecting; dry_run_workflow \
                      reports it instead"
@@ -1928,18 +2577,25 @@ fn is_trigger_scoped_expression(
 }
 
 /// If a null-resolved config expression on `node_id` is bound to the OUTPUT of
-/// an upstream **Composio `tool_call`** node (a `tool_call` whose `slug` is a
-/// real Composio action — not `=`-derived, not native `oh:`), returns that
-/// upstream node's id; otherwise `None`.
+/// an upstream **`tool_call`** node whose sandbox output is an opaque echo — a
+/// Composio curated action OR a native `oh:` tool (anything but a `=`-derived
+/// dynamic slug) — returns that upstream node's id; otherwise `None`.
 ///
-/// The dry-run / gate sandbox renders a Composio `tool_call` as a deterministic
-/// echo (`{tool, args, connection}`) and can NEVER produce its real output
-/// fields, so a downstream binding to `.item.json.data.<field>` off such a node
-/// resolves `null` in the sandbox **even when the wiring is correct** — the
-/// binding is UNVERIFIABLE here, not necessarily broken. Callers use this to
-/// tell that honest-uncertainty case apart from a genuinely broken binding
-/// (one wired to an `agent` / `transform` / `code` / trigger upstream, whose
-/// real output the sandbox DOES produce, so a null there IS a real bug).
+/// The dry-run / gate sandbox renders BOTH a Composio `tool_call` and a native
+/// `oh:` `tool_call` as a deterministic echo (`{tool, args, connection}`) and
+/// can NEVER produce their real output fields, so a downstream binding off such
+/// a node (`.item.json.data.<field>` for Composio, or `.item.json.<field>` for
+/// a native tool after `native_tool_payload`'s unwrap) resolves `null` in the
+/// sandbox **even when the wiring is correct** — the binding is UNVERIFIABLE
+/// here, not necessarily broken. Callers use this to tell that honest-
+/// uncertainty case apart from a genuinely broken binding (one wired to an
+/// `agent` / `transform` / `code` / trigger upstream, whose real output the
+/// sandbox DOES produce, so a null there IS a real bug).
+///
+/// The native `oh:` case is why this exists beyond Composio: #5148's guidance
+/// prescribes a `produce -> oh:storage_upload_file -> oh:storage_get_link ->
+/// send` chain where the send binds `=nodes.get_link.item.json.url`; excluding
+/// native upstreams here made the gate hard-reject that exact (correct) chain.
 ///
 /// Handles both addressing forms the engine can trace:
 /// - explicit `=nodes.<id>...` / `=.nodes["<id>"]...` (parsed via
@@ -1949,9 +2605,9 @@ fn is_trigger_scoped_expression(
 ///   ambiguous fan-in is never mis-attributed to a single upstream node.
 ///
 /// Anything else (a `=run...` trigger reference, a jq expression not rooted at
-/// one of the above, or a reference to a non-`tool_call` / native / dynamic
-/// node) returns `None`.
-pub(crate) fn composio_tool_call_upstream_ref<'a>(
+/// one of the above, or a reference to a non-`tool_call` / `=`-dynamic node)
+/// returns `None`.
+pub(crate) fn mock_opaque_tool_call_upstream_ref<'a>(
     expr: &str,
     graph: &'a WorkflowGraph,
     node_id: &str,
@@ -1987,7 +2643,11 @@ pub(crate) fn composio_tool_call_upstream_ref<'a>(
         return None;
     }
     let slug = node.config.get("slug").and_then(Value::as_str)?;
-    if slug.starts_with('=') || slug.starts_with("oh:") {
+    // A `=`-derived slug is a dynamic runtime slug we can't reason about. But a
+    // native `oh:` tool_call IS opaque-echoed by the mock exactly like a
+    // Composio one, so its downstream null is equally unverifiable, not broken —
+    // do NOT exclude it (that exclusion made the gate reject #5148's own chain).
+    if slug.starts_with('=') {
         return None;
     }
     Some(node.id.as_str())
@@ -2038,6 +2698,28 @@ pub fn flows_validate(graph_json: Value) -> RpcOutcome<crate::openhuman::flows::
             target: "flows",
             error_count = errors.len(),
             "[flows] flows_validate: graph is structurally invalid"
+        );
+        return RpcOutcome::single_log(
+            FlowValidation {
+                valid: false,
+                errors,
+                error_details,
+                warnings: Vec::new(),
+            },
+            "flow validation failed",
+        );
+    }
+
+    let error_details = engine_compatibility_errors(&graph);
+    if !error_details.is_empty() {
+        let errors = error_details
+            .iter()
+            .map(|error| error.message.clone())
+            .collect();
+        tracing::debug!(
+            target: "flows",
+            error_count = error_details.len(),
+            "[flows] flows_validate: graph uses an unsupported engine topology"
         );
         return RpcOutcome::single_log(
             FlowValidation {
@@ -2193,6 +2875,7 @@ pub async fn flows_create(
     require_approval: bool,
 ) -> Result<RpcOutcome<Flow>, String> {
     let graph = validate_and_migrate_graph(graph_json)?;
+    ensure_config_aware_engine_compatible(config, &graph)?;
 
     // Rule 1: automatic triggers create DISABLED — the user must arm them
     // explicitly.
@@ -2304,6 +2987,21 @@ pub fn load_flow_graph(config: &Config, id: &str) -> Result<Option<WorkflowGraph
         found = graph.is_some(),
         "[flows] load_flow_graph: resolver lookup complete"
     );
+    Ok(graph)
+}
+
+/// Resolver-only saved-graph lookup. Authoring tools use [`load_flow_graph`]
+/// so a legacy draft can still be opened and repaired; execution resolves only
+/// graphs the current engine can run safely.
+pub(crate) fn load_engine_compatible_flow_graph(
+    config: &Config,
+    id: &str,
+) -> Result<Option<WorkflowGraph>, String> {
+    let graph = load_flow_graph(config, id)?;
+    if let Some(graph) = graph.as_ref() {
+        ensure_config_aware_engine_compatible(config, graph)
+            .map_err(|error| format!("workflow_id '{id}' is engine-incompatible: {error}"))?;
+    }
     Ok(graph)
 }
 
@@ -2629,13 +3327,16 @@ pub async fn flows_update(
     let new_require_approval = require_approval.unwrap_or(existing.require_approval);
     let graph_changed = graph_json.is_some();
     let graph = match graph_json {
-        Some(raw) => validate_and_migrate_graph(raw)?,
+        Some(raw) => {
+            let graph = validate_and_migrate_graph(raw)?;
+            ensure_config_aware_engine_compatible(config, &graph)?;
+            graph
+        }
         None => {
             tinyflows::validate::validate(&existing.graph).map_err(|e| e.to_string())?;
             existing.graph.clone()
         }
     };
-
     // B29 Rule 1 analogue: disarm every manual/none → automatic trigger
     // transition, unconditionally — see the doc comment above for why this
     // must NOT gate on the (possibly stale) `existing.enabled` read.
@@ -2792,6 +3493,24 @@ pub async fn flows_rollback(
 /// itself — `store::remove_flow` below still errors clearly if `id` doesn't
 /// exist.
 pub async fn flows_delete(config: &Config, id: &str) -> Result<RpcOutcome<Value>, String> {
+    flows_delete_impl(config, id, None).await
+}
+
+/// Backs [`flows_delete`]. `memory_client_override`, when `Some`, is used in
+/// place of the process-global memory client for the namespace-clear step
+/// below — mirrors `bus::FlowRunDigestSubscriber`'s `with_memory` seam.
+///
+/// The process-global client (`memory::global`) is a single shared `OnceLock`
+/// that any test in the binary may rebind to its own tempdir workspace, so a
+/// test asserting this clear step deterministically must not depend on it —
+/// injecting a directly-constructed [`MemoryClientRef`] lets the test seed
+/// and read back through the SAME instance `flows_delete` itself writes to,
+/// with no race against the global.
+async fn flows_delete_impl(
+    config: &Config,
+    id: &str,
+    memory_client_override: Option<MemoryClientRef>,
+) -> Result<RpcOutcome<Value>, String> {
     match store::get_flow(config, id) {
         Ok(Some(flow)) => unbind_trigger(config, &flow),
         Ok(None) => {}
@@ -2802,6 +3521,27 @@ pub async fn flows_delete(config: &Config, id: &str) -> Result<RpcOutcome<Value>
 
     store::remove_flow(config, id).map_err(|e| e.to_string())?;
     tracing::debug!(target: "flows", flow_id = %id, "[flows] flows_delete: removed");
+
+    // Best-effort: clear this flow's private memory namespace along with its
+    // row — a deleted flow must not leave stray `flow_memory_remember`
+    // entries or run digests behind. Never fails the delete itself: the flow
+    // row is already gone by this point regardless of what happens here.
+    let memory_namespace = flow_namespace(id);
+    let client_result = match memory_client_override {
+        Some(client) => Ok(client),
+        None => crate::openhuman::memory::ops::helpers::active_memory_client().await,
+    };
+    match client_result {
+        Ok(client) => {
+            if let Err(e) = client.clear_namespace(&memory_namespace).await {
+                tracing::warn!(target: "flows", flow_id = %id, namespace = %memory_namespace, error = %e, "[flows] flows_delete: failed to clear flow memory namespace");
+            }
+        }
+        Err(e) => {
+            tracing::warn!(target: "flows", flow_id = %id, namespace = %memory_namespace, error = %e, "[flows] flows_delete: memory client unavailable — could not clear flow memory namespace");
+        }
+    }
+
     publish_flow_changed(id, "deleted", "system");
     Ok(RpcOutcome::new(
         json!({ "id": id, "removed": true }),
@@ -3077,6 +3817,133 @@ pub async fn flows_run(
     input: Value,
     trigger: FlowRunTrigger,
 ) -> Result<RpcOutcome<Value>, String> {
+    // Prep synchronously (validate + compile-check + mint the run id), insert
+    // the initial `running` row, and announce it, then hand off to the shared
+    // run body. Both the synchronous "Run" RPC path (this fn) and the detached
+    // agent path ([`flows_run_detached`]) reuse `run_flow_body` so a single
+    // [`RunRowFinalizer`] guards the row on every exit — bug B42.
+    let prepared = prepare_flow_run(config, flow_id)?;
+    let thread_id = prepared.thread_id.clone();
+    let no_actionable_nodes = prepared.no_actionable_nodes;
+
+    // Register BEFORE the row exists, so a `flows_cancel_run` can never observe
+    // a `running` row that no live run owns (see [`run_flow_body`]'s doc).
+    let (cancel_token, run_guard) = run_registry::register(&thread_id);
+    start_flow_run_row(config, &thread_id, flow_id);
+    publish_flow_run_started(flow_id, &thread_id);
+
+    run_flow_body(
+        Arc::new(config.clone()),
+        prepared.flow,
+        flow_id.to_string(),
+        thread_id,
+        input,
+        trigger,
+        no_actionable_nodes,
+        cancel_token,
+        run_guard,
+    )
+    .await
+}
+
+/// Agent-initiated `run_flow` entry point (bug B41). Unlike [`flows_run`], this
+/// does NOT block on the engine: the tinyagents harness caps a single tool call
+/// at 120s, but any flow whose first real node is a live-research agent node
+/// (`web_search` + `web_fetch` + `parallel_research`) inherently runs longer
+/// than that, so a blocking `run_flow` tool call could *never* succeed for a
+/// realistic flow — it died at exactly 120s, orphaning the run row (bug B42).
+///
+/// Instead this validates + compile-checks the flow synchronously (so a broken
+/// flow still returns an immediate, actionable error to the agent), inserts the
+/// `running` row, publishes `FlowRunStarted`, then spawns [`run_flow_body`] on a
+/// background task and returns `{ run_id, status: "running", detached: true }`
+/// in well under 120s. The copilot already polls `get_flow_run(run_id)` (seen
+/// in live traces), so it observes the run settle to a terminal state on its
+/// own cadence. Mirrors how the UI "Run" control and the trigger bus
+/// (`flows::bus::spawn_run`) already fire runs fire-and-forget. Combined with
+/// B42's finalizer + boot sweep, a detached run ALWAYS settles to a terminal
+/// row even if the process dies mid-run.
+pub async fn flows_run_detached(
+    config: &Config,
+    flow_id: &str,
+    input: Value,
+    trigger: FlowRunTrigger,
+) -> Result<RpcOutcome<Value>, String> {
+    let prepared = prepare_flow_run(config, flow_id)?;
+    let thread_id = prepared.thread_id.clone();
+    let no_actionable_nodes = prepared.no_actionable_nodes;
+
+    // Register BEFORE the `run_id` becomes observable to the agent. The spawned
+    // task below may not be polled for some time, so registering inside it
+    // would leave a window where a `flows_cancel_run` on the returned `run_id`
+    // sees no in-flight run, settles the row `cancelled` + drops the
+    // checkpoint, and the background run then executes the flow's real side
+    // effects anyway and overwrites that terminal status. Registering here
+    // means such a cancel always takes the signalled branch and this run's own
+    // cancellation arm unwinds it. See [`run_flow_body`]'s doc.
+    let (cancel_token, run_guard) = run_registry::register(&thread_id);
+    start_flow_run_row(config, &thread_id, flow_id);
+    publish_flow_run_started(flow_id, &thread_id);
+
+    tracing::info!(
+        target: "flows",
+        flow_id = %flow_id,
+        run_id = %thread_id,
+        "[flows] flows_run_detached: registered + spawning background run; returning run_id immediately"
+    );
+
+    let config_arc = Arc::new(config.clone());
+    let flow = prepared.flow;
+    let flow_id_owned = flow_id.to_string();
+    let body_thread_id = thread_id.clone();
+    tokio::spawn(async move {
+        if let Err(e) = run_flow_body(
+            config_arc,
+            flow,
+            flow_id_owned,
+            body_thread_id,
+            input,
+            trigger,
+            no_actionable_nodes,
+            cancel_token,
+            run_guard,
+        )
+        .await
+        {
+            // The row is already reconciled by the body's terminal write /
+            // finalizer — this only logs that the detached run ended in error.
+            tracing::warn!(target: "flows", error = %e, "[flows] flows_run_detached: background run ended with error (row already reconciled)");
+        }
+    });
+
+    let result = json!({
+        "run_id": thread_id,
+        "flow_id": flow_id,
+        "status": "running",
+        "detached": true,
+    });
+    Ok(RpcOutcome::single_log(
+        result,
+        format!("flow run started (detached): {thread_id}"),
+    ))
+}
+
+/// A validated, ready-to-execute flow run: the loaded [`Flow`], the freshly
+/// minted `thread_id` (== run id / checkpointer key), and whether the graph has
+/// no actionable nodes. Produced by [`prepare_flow_run`] and consumed by both
+/// `flows_run` entry points.
+struct PreparedFlowRun {
+    flow: Flow,
+    thread_id: String,
+    no_actionable_nodes: bool,
+}
+
+/// Synchronous prep shared by [`flows_run`] and [`flows_run_detached`]: loads
+/// the flow, warns on an actionless graph, rejects an engine-incompatible
+/// topology, compile-checks the graph so a broken flow fails fast *before* any
+/// `running` row is inserted, and mints the run's `thread_id`. Returns an error
+/// (never a wedged row) if the flow can't run at all.
+fn prepare_flow_run(config: &Config, flow_id: &str) -> Result<PreparedFlowRun, String> {
     let flow = store::get_flow(config, flow_id)
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("flow '{flow_id}' not found"))?;
@@ -3102,30 +3969,218 @@ pub async fn flows_run(
     // `store::get_flow` already ran the stored `graph_json` through
     // `tinyflows::migrate::migrate` before deserializing, so `flow.graph` is
     // always on the current schema here.
-    let compiled = tinyflows::compiler::compile(&flow.graph).map_err(|e| e.to_string())?;
+    //
+    // Author-time validation cannot protect definitions persisted by an older
+    // OpenHuman build. Re-check immediately before compilation so an upgrade
+    // fails explicitly instead of silently committing incomplete merge data.
+    if let Err(error) = ensure_config_aware_engine_compatible(config, &flow.graph) {
+        tracing::warn!(
+            target: "flows",
+            flow_id = %flow_id,
+            %error,
+            "[flows] flows_run: rejected — unsupported engine topology"
+        );
+        return Err(error);
+    }
+    // Compile-check up front so a structurally broken graph fails the caller
+    // immediately, before a `running` row exists. `run_flow_body` recompiles
+    // (cheap) to actually execute.
+    tinyflows::compiler::compile(&flow.graph).map_err(|e| e.to_string())?;
 
-    let config_arc = Arc::new(config.clone());
-    // Scope the state store per-flow so two flows never collide on a state key.
-    let caps =
-        crate::openhuman::tinyflows::build_capabilities(config_arc, format!("flow:{flow_id}"));
-    let checkpointer =
-        crate::openhuman::tinyflows::open_flow_checkpointer(config).map_err(|e| e.to_string())?;
     let thread_id = format!("flow:{flow_id}:{}", uuid::Uuid::new_v4());
-
     tracing::debug!(
         target: "flows",
         flow_id = %flow_id,
         thread_id = %thread_id,
         require_approval = flow.require_approval,
-        "[flows] flows_run: starting checkpointed run"
+        "[flows] flows_run: prepared checkpointed run"
     );
 
-    start_flow_run_row(config, &thread_id, flow_id);
+    Ok(PreparedFlowRun {
+        flow,
+        thread_id,
+        no_actionable_nodes,
+    })
+}
 
-    // Register this run as in-flight (issue G4) so a concurrent
-    // `flows_cancel_run` can signal it to abort. The guard deregisters on any
-    // exit from this fn (including the early returns below).
-    let (cancel_token, _run_guard) = run_registry::register(&thread_id);
+/// Announces a freshly-started run on the global event bus so the frontend run
+/// list flips to `running` immediately. Factored out of [`flows_run`] so both
+/// entry points publish identically.
+fn publish_flow_run_started(flow_id: &str, thread_id: &str) {
+    tracing::debug!(
+        target: "flows",
+        flow_id = %flow_id,
+        run_id = %thread_id,
+        "[flows] flows_run: publishing FlowRunStarted"
+    );
+    crate::core::event_bus::publish_global(crate::core::event_bus::DomainEvent::FlowRunStarted {
+        flow_id: flow_id.to_string(),
+        run_id: thread_id.to_string(),
+    });
+}
+
+/// Human-readable reason stamped on a run row that the [`RunRowFinalizer`]
+/// drop-guard reconciles because its run future was dropped mid-flight (harness
+/// tool abort, chat turn end, runtime shutdown, panic) before any terminal
+/// write landed. Surfaced verbatim in the run-details sidebar (bug B42c) so a
+/// cancelled/timed-out run reads as interrupted rather than a blank spinner.
+const INTERRUPTED_DROP_REASON: &str =
+    "Run interrupted before completion — it was cancelled, timed out, or the app shut down mid-run.";
+
+/// Cancellation-safe finalizer for a live `flow_runs` row (bug B42).
+///
+/// While a run's engine future is awaiting, dropping that future — the harness
+/// 120s tool abort, a chat turn ending, tokio runtime shutdown, or a panic —
+/// would otherwise leave the row wedged at `status="running"`, `error=NULL`,
+/// `steps=[]` forever, which the run-details sidebar renders as a perpetual
+/// blank spinner. Held across the await, this guard writes a terminal
+/// `"interrupted"` status + human reason on `Drop` UNLESS it has been
+/// explicitly [`disarm`](Self::disarm)ed after a real terminal write. The
+/// `armed` flag is a single-task `Cell` (the guard never crosses tasks by
+/// reference), so the type stays `Send` for `tokio::spawn`.
+struct RunRowFinalizer {
+    config: Arc<Config>,
+    thread_id: String,
+    flow_id: String,
+    armed: std::cell::Cell<bool>,
+}
+
+impl RunRowFinalizer {
+    fn new(config: Arc<Config>, thread_id: &str, flow_id: &str) -> Self {
+        Self {
+            config,
+            thread_id: thread_id.to_string(),
+            flow_id: flow_id.to_string(),
+            armed: std::cell::Cell::new(true),
+        }
+    }
+
+    /// Disarm the guard after a real terminal write (success/failure/cancel/
+    /// pause) has already finalized the row, so `Drop` becomes a no-op.
+    fn disarm(&self) {
+        self.armed.set(false);
+    }
+}
+
+impl Drop for RunRowFinalizer {
+    fn drop(&mut self) {
+        if !self.armed.get() {
+            return;
+        }
+        tracing::warn!(
+            target: "flows",
+            flow_id = %self.flow_id,
+            thread_id = %self.thread_id,
+            "[flows] RunRowFinalizer: run future dropped before settling — reconciling orphaned 'running' row to 'interrupted'"
+        );
+        // Preserve whatever steps the live observer already persisted.
+        let observed = current_persisted_steps(&self.config, &self.thread_id);
+        finish_flow_run_row(
+            &self.config,
+            &self.thread_id,
+            &self.flow_id,
+            "interrupted",
+            &observed,
+            &[],
+            Some(INTERRUPTED_DROP_REASON),
+        );
+        // Keep the flow-definition summary in step with the row, exactly as the
+        // success/failure/cancel arms and the boot sweep do — otherwise the
+        // runs list keeps advertising the *previous* run's `last_status` /
+        // `last_run_at` for a flow whose latest run was interrupted.
+        // `record_run` is synchronous, so it is safe in `Drop`.
+        if let Err(e) = store::record_run(&self.config, &self.flow_id, "interrupted") {
+            tracing::warn!(
+                target: "flows",
+                flow_id = %self.flow_id,
+                thread_id = %self.thread_id,
+                error = %e,
+                "[flows] RunRowFinalizer: failed to update flow summary for interrupted run"
+            );
+        }
+    }
+}
+
+/// Executes an already-prepared, already-`running`-row-inserted flow run to a
+/// terminal state, finalizing the `flow_runs` row on every exit path.
+///
+/// Split out of [`flows_run`] (bugs B41/B42) so the synchronous and detached
+/// entry points share ONE run body — and so a single [`RunRowFinalizer`]
+/// reconciles the row to `"interrupted"` if this future is dropped mid-await
+/// before any terminal write lands. The caller MUST have already
+/// [`run_registry::register`]ed `thread_id` (handing the token + guard in
+/// here), inserted the initial `running` row ([`start_flow_run_row`]) and
+/// published `FlowRunStarted`.
+///
+/// **Registration is the caller's job on purpose.** It used to happen here, but
+/// on the detached path that left a window: `flows_run_detached` returned the
+/// `run_id` to the agent before the spawned task had registered, so a
+/// `flows_cancel_run` landing in that gap saw `is_in_flight == false`, took the
+/// "parked/stale" branch, wrote a terminal `cancelled` row and dropped the
+/// checkpoint — while this body then started and executed the flow's real
+/// side effects anyway, finally overwriting `cancelled` with its own terminal
+/// status. Registering before the `run_id` is observable makes the cancel
+/// always take the signalled branch instead. `_run_guard` is held for the whole
+/// body and deregisters on any exit, including the early returns below.
+async fn run_flow_body(
+    config_arc: Arc<Config>,
+    flow: Flow,
+    flow_id: String,
+    thread_id: String,
+    input: Value,
+    trigger: FlowRunTrigger,
+    no_actionable_nodes: bool,
+    cancel_token: tokio_util::sync::CancellationToken,
+    _run_guard: run_registry::RunGuard,
+) -> Result<RpcOutcome<Value>, String> {
+    let config: &Config = config_arc.as_ref();
+    let flow_id: &str = flow_id.as_str();
+
+    // Recompile to execute — the entry point already compile-checked to fail
+    // fast before the running row existed. A failure *now* (after the row was
+    // inserted) must finalize the row as failed, never orphan it.
+    let compiled = match tinyflows::compiler::compile(&flow.graph) {
+        Ok(compiled) => compiled,
+        Err(e) => {
+            let msg = e.to_string();
+            tracing::warn!(target: "flows", flow_id, error = %msg, "[flows] run_flow_body: compile failed after start row inserted");
+            let observed = current_persisted_steps(config, &thread_id);
+            finish_flow_run_row(
+                config,
+                &thread_id,
+                flow_id,
+                "failed",
+                &observed,
+                &[],
+                Some(&msg),
+            );
+            return Err(msg);
+        }
+    };
+
+    // Scope the state store per-flow so two flows never collide on a state key.
+    let caps = crate::openhuman::tinyflows::build_capabilities(
+        config_arc.clone(),
+        format!("flow:{flow_id}"),
+    );
+    let checkpointer = match crate::openhuman::tinyflows::open_flow_checkpointer(config) {
+        Ok(checkpointer) => checkpointer,
+        Err(e) => {
+            let msg = e.to_string();
+            tracing::warn!(target: "flows", flow_id, error = %msg, "[flows] run_flow_body: checkpointer open failed after start row inserted");
+            let observed = current_persisted_steps(config, &thread_id);
+            finish_flow_run_row(
+                config,
+                &thread_id,
+                flow_id,
+                "failed",
+                &observed,
+                &[],
+                Some(&msg),
+            );
+            return Err(msg);
+        }
+    };
 
     // Record a failed attempt so `last_run_at`/`last_status` reflect reality
     // (a stop-policy engine/capability failure or a timeout) rather than
@@ -3141,7 +4196,15 @@ pub async fn flows_run(
             );
         }
         let observed = current_persisted_steps(config, &thread_id);
-        finish_flow_run_row(config, &thread_id, "failed", &observed, &[], Some(error));
+        finish_flow_run_row(
+            config,
+            &thread_id,
+            flow_id,
+            "failed",
+            &observed,
+            &[],
+            Some(error),
+        );
     };
 
     let origin = workflow_origin(flow_id, flow.require_approval);
@@ -3185,6 +4248,11 @@ pub async fn flows_run(
     );
     let timed = tokio::time::timeout(std::time::Duration::from_secs(FLOW_RUN_TIMEOUT_SECS), run);
     tokio::pin!(timed);
+    // B42 drop-guard: armed for the whole awaiting region below. If this future
+    // is dropped before any terminal write (harness abort, turn end, runtime
+    // shutdown, panic), its `Drop` reconciles the orphaned `running` row to
+    // `interrupted`. Every settled path disarms it after its own terminal write.
+    let finalizer = RunRowFinalizer::new(config_arc.clone(), &thread_id, flow_id);
     // Race the run against a cancellation signal (issue G4). `biased` checks the
     // cancel arm first so a `flows_cancel_run` that lands right as the run
     // settles still wins deterministically.
@@ -3196,7 +4264,16 @@ pub async fn flows_run(
                 tracing::warn!(target: "flows", flow_id = %flow_id, error = %e, "[flows] flows_run: failed to record cancelled run");
             }
             let observed = current_persisted_steps(config, &thread_id);
-            finish_flow_run_row(config, &thread_id, "cancelled", &observed, &[], Some("run cancelled"));
+            finish_flow_run_row(
+                config,
+                &thread_id,
+                flow_id,
+                "cancelled",
+                &observed,
+                &[],
+                Some("run cancelled"),
+            );
+            finalizer.disarm();
             drop_checkpoint(config, &thread_id).await;
             return Ok(RpcOutcome::single_log(
                 json!({
@@ -3212,12 +4289,14 @@ pub async fn flows_run(
             Ok(Ok(journaled)) => journaled,
             Ok(Err(e)) => {
                 record_failed(&e.to_string());
+                finalizer.disarm();
                 tracing::warn!(target: "flows", flow_id = %flow_id, error = %e, "[flows] flows_run: run failed");
                 return Err(e.to_string());
             }
             Err(_elapsed) => {
                 let msg = format!("flow run timed out after {FLOW_RUN_TIMEOUT_SECS}s");
                 record_failed(&msg);
+                finalizer.disarm();
                 tracing::warn!(target: "flows", flow_id = %flow_id, timeout_secs = FLOW_RUN_TIMEOUT_SECS, "[flows] flows_run: run timed out");
                 return Err(msg);
             }
@@ -3227,15 +4306,23 @@ pub async fn flows_run(
 
     let settled = settle_steps(config, &thread_id, &outcome.output);
     let (status, error) = finalize_terminal_status(&settled, &outcome.pending_approvals);
-    store::record_run(config, flow_id, status).map_err(|e| e.to_string())?;
+    // Finalize the run row (and disarm the drop-guard) BEFORE the flow-summary
+    // write, so a `record_run` failure can never leave the row wedged at
+    // `running` — the row's terminal state is the correctness-critical write;
+    // the summary is best-effort observability (see `start_flow_run_row`).
     finish_flow_run_row(
         config,
         &thread_id,
+        flow_id,
         status,
         &settled,
         &outcome.pending_approvals,
         error.as_deref(),
     );
+    finalizer.disarm();
+    if let Err(e) = store::record_run(config, flow_id, status) {
+        tracing::warn!(target: "flows", flow_id = %flow_id, status, error = %e, "[flows] flows_run: failed to record run summary (run row already finalized)");
+    }
     export_run_to_langfuse(
         config,
         &flow.name,
@@ -3354,6 +4441,37 @@ pub async fn flows_resume(
         ));
     }
 
+    // A pending checkpoint may have been created before this compatibility
+    // gate shipped, so resume is an independent authoritative boundary.
+    if let Err(error) = ensure_config_aware_engine_compatible(config, &flow.graph) {
+        if let Err(rec_err) = store::record_run(config, flow_id, "failed") {
+            tracing::warn!(
+                target: "flows",
+                flow_id = %flow_id,
+                %thread_id,
+                error = %rec_err,
+                "[flows] flows_resume: failed to record compatibility rejection"
+            );
+        }
+        let observed = current_persisted_steps(config, thread_id);
+        finish_flow_run_row(
+            config,
+            thread_id,
+            flow_id,
+            "failed",
+            &observed,
+            &[],
+            Some(&error),
+        );
+        tracing::warn!(
+            target: "flows",
+            flow_id = %flow_id,
+            %thread_id,
+            %error,
+            "[flows] flows_resume: rejected — unsupported engine topology"
+        );
+        return Err(error);
+    }
     let compiled = tinyflows::compiler::compile(&flow.graph).map_err(|e| e.to_string())?;
     let config_arc = Arc::new(config.clone());
     let caps =
@@ -3424,6 +4542,7 @@ pub async fn flows_resume(
             finish_flow_run_row(
                 config,
                 thread_id,
+                flow_id,
                 "failed",
                 &observed,
                 &[],
@@ -3436,7 +4555,15 @@ pub async fn flows_resume(
             let msg = format!("flow resume timed out after {FLOW_RUN_TIMEOUT_SECS}s");
             let _ = store::record_run(config, flow_id, "failed");
             let observed = current_persisted_steps(config, thread_id);
-            finish_flow_run_row(config, thread_id, "failed", &observed, &[], Some(&msg));
+            finish_flow_run_row(
+                config,
+                thread_id,
+                flow_id,
+                "failed",
+                &observed,
+                &[],
+                Some(&msg),
+            );
             tracing::warn!(target: "flows", flow_id = %flow_id, %thread_id, timeout_secs = FLOW_RUN_TIMEOUT_SECS, "[flows] flows_resume: run timed out");
             return Err(msg);
         }
@@ -3449,6 +4576,7 @@ pub async fn flows_resume(
     finish_flow_run_row(
         config,
         thread_id,
+        flow_id,
         status,
         &settled,
         &outcome.pending_approvals,
@@ -3586,6 +4714,90 @@ pub async fn sweep_expired_parked_runs(config: &Config) -> usize {
     swept.len()
 }
 
+/// Boot-time orphan sweep (bug B42, part b): reconciles every `flow_runs` row
+/// still at `status = 'running'` that has **no live in-process run** to a
+/// terminal `"interrupted"`. A hard crash / SIGKILL / power loss leaves the
+/// [`RunRowFinalizer`] drop-guard no chance to run, so a `running` row from the
+/// prior process would otherwise stay wedged forever, rendering as a perpetual
+/// blank spinner in the run-details sidebar.
+///
+/// Two independent guards keep the sweep off a run that **this** process owns:
+///
+/// 1. **A boot floor.** Only rows whose `started_at` predates
+///    [`PROCESS_RUN_FLOOR`] are candidates at all, so a row this process
+///    inserted is provably out of scope regardless of registration timing —
+///    which is what the sweep is actually for: rows left by a *prior* process.
+///    Sweeping a live run would not merely mislabel it (its own terminal write
+///    would correct that) — it would `drop_checkpoint` it mid-run, and that is
+///    unrecoverable.
+/// 2. **The in-flight registry.** [`run_registry::is_in_flight`] gates each
+///    surviving candidate. Both run entry points now register **before**
+///    inserting the row, so within this process a `running` row is never
+///    unregistered; this guard covers clock skew and rows stamped by a
+///    differently-skewed process.
+///
+/// The two are deliberately redundant: either alone would be sufficient today,
+/// and neither depends on the other's ordering assumption holding.
+///
+/// Each swept run also updates the flow summary, announces a terminal
+/// `FlowRunFinished`, and drops its durable checkpoint (a `running` row is never
+/// resumable — only `pending_approval` is). Best-effort by construction: a store
+/// error is logged and the sweep returns what it managed.
+pub async fn sweep_orphaned_running_runs_on_boot(config: &Config) -> usize {
+    let now_str = Utc::now().to_rfc3339();
+    const REASON: &str =
+        "Run interrupted by an app restart — no live run was executing this row after boot.";
+
+    let floor: &str = PROCESS_RUN_FLOOR.as_str();
+    tracing::debug!(target: "flows", floor, "[flows] boot sweep: reconciling only runs started before this process");
+    let candidates = match store::list_running_run_ids(config, floor) {
+        Ok(candidates) => candidates,
+        Err(e) => {
+            tracing::warn!(target: "flows", error = %e, "[flows] boot sweep: failed to list running runs (skipping)");
+            return 0;
+        }
+    };
+    if candidates.is_empty() {
+        return 0;
+    }
+    tracing::debug!(target: "flows", count = candidates.len(), "[flows] boot sweep: examining running rows for orphans");
+
+    let mut swept = 0usize;
+    for (run_id, flow_id) in candidates {
+        if run_registry::is_in_flight(&run_id) {
+            tracing::debug!(target: "flows", run_id = %run_id, flow_id = %flow_id, "[flows] boot sweep: run is live in-process — leaving it running");
+            continue;
+        }
+        match store::mark_run_interrupted(config, &run_id, &now_str, REASON) {
+            Ok(true) => {
+                swept += 1;
+                if let Err(e) = store::record_run(config, &flow_id, "interrupted") {
+                    tracing::warn!(target: "flows", run_id = %run_id, flow_id = %flow_id, error = %e, "[flows] boot sweep: failed to update flow summary for reconciled run");
+                }
+                crate::core::event_bus::publish_global(
+                    crate::core::event_bus::DomainEvent::FlowRunFinished {
+                        flow_id: flow_id.clone(),
+                        run_id: run_id.clone(),
+                        status: "interrupted".to_string(),
+                    },
+                );
+                drop_checkpoint(config, &run_id).await;
+                tracing::info!(target: "flows", run_id = %run_id, flow_id = %flow_id, "[flows] boot sweep: reconciled orphaned running run to 'interrupted'");
+            }
+            Ok(false) => {
+                tracing::debug!(target: "flows", run_id = %run_id, "[flows] boot sweep: row changed status concurrently — skipped");
+            }
+            Err(e) => {
+                tracing::warn!(target: "flows", run_id = %run_id, error = %e, "[flows] boot sweep: failed to reconcile running run");
+            }
+        }
+    }
+    if swept > 0 {
+        tracing::info!(target: "flows", count = swept, "[flows] boot sweep reconciled orphaned running runs to 'interrupted'");
+    }
+    swept
+}
+
 /// Cancels a flow run (issue G4), settling it to a terminal `"cancelled"`
 /// status and dropping its durable checkpoint so the aborted thread can never
 /// be resumed.
@@ -3600,9 +4812,11 @@ pub async fn sweep_expired_parked_runs(config: &Config) -> usize {
 ///   this settles the row terminally itself and drops the checkpoint.
 ///
 /// A run that is already terminal (`completed` / `completed_with_warnings` /
-/// `failed` / `cancelled`) is a clear error, not a silent no-op — otherwise a
-/// settled warning run could be overwritten as `"cancelled"`, corrupting the
-/// run-honesty status it already recorded.
+/// `failed` / `cancelled` / `interrupted`) is a clear error, not a silent
+/// no-op — otherwise a settled warning run could be overwritten as
+/// `"cancelled"`, corrupting the run-honesty status it already recorded, and an
+/// already-`interrupted` run (reconciled by the drop-guard / boot sweep, bug
+/// B42) could be clobbered back to `"cancelled"`.
 pub async fn flows_cancel_run(config: &Config, run_id: &str) -> Result<RpcOutcome<Value>, String> {
     let run = store::get_flow_run(config, run_id)
         .map_err(|e| e.to_string())?
@@ -3610,7 +4824,7 @@ pub async fn flows_cancel_run(config: &Config, run_id: &str) -> Result<RpcOutcom
 
     if matches!(
         run.status.as_str(),
-        "completed" | "completed_with_warnings" | "failed" | "cancelled"
+        "completed" | "completed_with_warnings" | "failed" | "cancelled" | "interrupted"
     ) {
         return Err(format!(
             "flow run '{run_id}' is already terminal (status: {}) — nothing to cancel",
@@ -3646,6 +4860,7 @@ pub async fn flows_cancel_run(config: &Config, run_id: &str) -> Result<RpcOutcom
     finish_flow_run_row(
         config,
         run_id,
+        &run.flow_id,
         "cancelled",
         &observed,
         &[],
@@ -3691,10 +4906,35 @@ fn workflow_origin(flow_id: &str, require_approval: bool) -> AgentTurnOrigin {
     }
 }
 
+/// RFC3339 instant at which THIS process first entered the flow-run lifecycle —
+/// the floor the boot orphan sweep (bug B42) uses to bound its candidate set.
+///
+/// Initialized on first touch by whichever comes first: [`start_flow_run_row`]
+/// (which forces it *before* stamping the row it is about to insert) or
+/// [`sweep_orphaned_running_runs_on_boot`]. Either ordering yields the same
+/// invariant — **every `flow_runs` row this process inserts has
+/// `started_at >= *PROCESS_RUN_FLOOR`** — so a sweep restricted to
+/// `started_at < *PROCESS_RUN_FLOOR` provably only ever sees rows left behind by
+/// a *prior* process.
+///
+/// The floor makes that guarantee structural rather than a consequence of
+/// registration ordering. `run_registry::is_in_flight` alone once left a window
+/// — the entry points used to insert the `running` row before `run_flow_body`
+/// registered, so a live run was briefly `running`-but-not-in-flight, and
+/// sweeping it there would `drop_checkpoint` it mid-run (unrecoverable, unlike
+/// the status, which the live run's own terminal write would fix). Registration
+/// has since moved ahead of the insert, closing that window at the source too;
+/// the floor stays because it holds regardless of what future callers do with
+/// that ordering.
+static PROCESS_RUN_FLOOR: LazyLock<String> = LazyLock::new(|| Utc::now().to_rfc3339());
+
 /// Best-effort insert of the initial `"running"` `flow_runs` row. Logged,
 /// never fails the run — run-history persistence is an observability aid,
 /// not a correctness requirement of the run itself.
 fn start_flow_run_row(config: &Config, thread_id: &str, flow_id: &str) {
+    // Anchor the boot-sweep floor BEFORE stamping this row, so this row's
+    // `started_at` can never precede it. See [`PROCESS_RUN_FLOOR`].
+    LazyLock::force(&PROCESS_RUN_FLOOR);
     let started_at = Utc::now().to_rfc3339();
     if let Err(e) = store::insert_flow_run(config, thread_id, flow_id, thread_id, &started_at) {
         tracing::warn!(target: "flows", flow_id, thread_id, error = %e, "[flows] failed to persist flow run start");
@@ -3706,6 +4946,7 @@ fn start_flow_run_row(config: &Config, thread_id: &str, flow_id: &str) {
 fn finish_flow_run_row(
     config: &Config,
     thread_id: &str,
+    flow_id: &str,
     status: &str,
     steps: &[FlowRunStep],
     pending_approvals: &[String],
@@ -3723,6 +4964,42 @@ fn finish_flow_run_row(
     ) {
         tracing::warn!(target: "flows", thread_id, status, error = %e, "[flows] failed to persist flow run finish");
     }
+
+    // `status` can be `"pending_approval"` here (see `finalize_terminal_status`)
+    // when the run merely paused at a gate — that isn't a finish. `flows_resume`
+    // later settles under the SAME `thread_id`/`run_id`, and `useFlowRunFinished`
+    // de-dupes delivered events by `${flow_id}:${run_id}` (needed because the
+    // socket bridge re-emits this event under two aliases and must collapse
+    // them into one `onFinish` call). Publishing here for a pause would poison
+    // that dedup cache, so the real completion event after resume would be
+    // dropped as an "alias replay" and the run could stay stale in the runs
+    // list until the 30s poll backstop (Codex review, PR #5115). Gate the
+    // publish to actual terminal statuses; the row itself is still written
+    // above so poll-based fallbacks (list/get RPCs) see the paused state
+    // either way.
+    if status == "pending_approval" {
+        tracing::debug!(
+            target: "flows",
+            flow_id,
+            thread_id,
+            status,
+            "[flows] finish_flow_run_row: run paused for approval — not a finish, skipping FlowRunFinished"
+        );
+        return;
+    }
+
+    tracing::debug!(
+        target: "flows",
+        flow_id,
+        thread_id,
+        status,
+        "[flows] finish_flow_run_row: publishing FlowRunFinished"
+    );
+    crate::core::event_bus::publish_global(crate::core::event_bus::DomainEvent::FlowRunFinished {
+        flow_id: flow_id.to_string(),
+        run_id: thread_id.to_string(),
+        status: status.to_string(),
+    });
 }
 
 /// Reconstructs a lean per-node step list from a settled run's
@@ -4134,7 +5411,7 @@ pub async fn flows_discover(
     );
     let timed = match &stream {
         Some(target) => {
-            crate::openhuman::inference::provider::thread_context::with_thread_id(
+            crate::openhuman::tinyagents::thread_context::with_thread_id(
                 target.thread_id.clone(),
                 run,
             )
@@ -4266,6 +5543,54 @@ fn restrict_builder_toolset(agent: &mut crate::openhuman::agent::Agent) {
     agent.hide_tools(FLOWS_BUILD_HIDDEN_TOOLS);
 }
 
+/// Tools stripped from the `workflow_builder` belt on the STREAMING
+/// (copilot-pane) `flows_build` path — the reduced sibling of
+/// [`FLOWS_BUILD_HIDDEN_TOOLS`] used by [`restrict_builder_toolset`] on the
+/// headless path.
+///
+/// PR3 (flows-copilot-live-run-approval): when a chat thread is attached
+/// (`stream.is_some()`), `flows_build` now runs the builder under
+/// [`AgentTurnOrigin::WebChat`] with [`APPROVAL_CHAT_CONTEXT`] scoped
+/// alongside it — the exact same double-scope the main web-chat delegate uses
+/// (`web_chat::ops::run_turn_under_cancel_and_deadline`). Under that origin
+/// the [`crate::openhuman::approval::ApprovalGate`] no longer auto-allows
+/// `external_effect` tools; it PARKS them for a real human decision, routed
+/// back to this thread via the existing `approval_request` socket event and
+/// rendered with the existing `ApprovalRequestCard` in the copilot panel. So
+/// `run_flow` and `resume_flow_run` — both `external_effect() == true` — no
+/// longer need to be hidden on this path: they are reachable, but gated
+/// behind a real approval, exactly like a main-chat tool call.
+///
+/// `cancel_flow_run` stays HIDDEN on this path, though. It reports
+/// `external_effect() == false`, so `ApprovalSecurityMiddleware` would not park
+/// it behind the approval surface — and the tool cancels an arbitrary run id
+/// (e.g. one read from `list_flow_runs`) with no ownership check. An unhidden
+/// `cancel_flow_run` would therefore let a streaming copilot turn cancel ANY
+/// in-flight or approval-parked run, unapproved — far broader than the "stop a
+/// run the copilot itself started" companion use it was meant for. Until it
+/// gains an ownership/approval guard it is kept hidden here (a user can still
+/// cancel from the Runs rail). (codex review, #5090.)
+///
+/// `run_workflow` (the unrelated legacy skills-workflow runner sharing this
+/// belt) stays hidden on BOTH paths — belt-and-braces against a re-rename or
+/// the name ever leaking back onto the `workflow_builder` toolset; `hide_tools`
+/// no-ops on a name that isn't present.
+const FLOWS_BUILD_COPILOT_HIDDEN_TOOLS: &[&str] = &["run_workflow", "cancel_flow_run"];
+
+/// Strip only [`FLOWS_BUILD_COPILOT_HIDDEN_TOOLS`] from `agent`'s callable set
+/// on the streaming `flows_build` path (copilot pane with a real approval
+/// surface) — see that constant's doc for the full safety rationale.
+fn restrict_builder_toolset_for_copilot(agent: &mut crate::openhuman::agent::Agent) {
+    tracing::info!(
+        target: "flows",
+        hidden = ?FLOWS_BUILD_COPILOT_HIDDEN_TOOLS,
+        "[flows] flows_build: streaming copilot turn — run_flow/resume_flow_run stay visible \
+         (gated behind the WebChat approval surface); run_workflow + cancel_flow_run hidden \
+         (cancel_flow_run has no external_effect to park and no run-ownership guard)"
+    );
+    agent.hide_tools(FLOWS_BUILD_COPILOT_HIDDEN_TOOLS);
+}
+
 /// Runs the `workflow_builder` agent for one authoring turn and returns its
 /// proposal, invoking it as a first-class backend agent (exactly like the Flow
 /// Scout `flows_discover`) rather than routing a hand-crafted delegate prompt
@@ -4316,13 +5641,35 @@ pub async fn flows_build(
         .map_err(|e| format!("failed to build workflow_builder agent: {e:#}"))?;
     agent.set_agent_definition_name("workflow_builder".to_string());
 
-    // Strip the live-run tool(s) from the belt on this direct RPC path: under
-    // the `AgentTurnOrigin::Cli` origin below the approval gate auto-allows
-    // every external_effect tool, so `run_flow` could execute a live saved flow
-    // with no HITL confirmation (issue #4593). Restricting the visible set makes
-    // it `Deny` at the tool-call boundary; the authoring tools are untouched so
-    // the turn still runs headless without fail-closing.
-    restrict_builder_toolset(&mut agent);
+    // Restrict the visible run-advancing tools per path (PR3:
+    // flows-copilot-live-run-approval). Streaming (copilot pane, real approval
+    // surface below) only hides the always-hidden `run_workflow`; headless
+    // (CLI / tests / no chat thread) keeps the full historical hide-list
+    // (issue #4593 / #4881) since there is no routable approval surface there.
+    //
+    // The reduced (copilot) hide-list is safe ONLY when the process-global
+    // `ApprovalGate` is actually installed to park the unhidden
+    // `run_flow`/`resume_flow_run`. `flows_build` is a public RPC and the gate
+    // can be opted out (`OPENHUMAN_APPROVAL_GATE=0` on CLI/docker leaves
+    // `ApprovalGate::try_global()` == `None`; desktop always installs it) — and
+    // `ApprovalSecurityMiddleware` skips interception entirely when the gate is
+    // absent, so the WebChat origin below would NOT park and the unhidden
+    // live-run tools would execute unapproved. Fall back to the full hide-list
+    // whenever the gate is not installed, regardless of `stream`. (codex #5090)
+    let approval_gate_active = crate::openhuman::approval::ApprovalGate::try_global().is_some();
+    if stream.is_some() && approval_gate_active {
+        restrict_builder_toolset_for_copilot(&mut agent);
+    } else {
+        if stream.is_some() {
+            tracing::warn!(
+                target: "flows",
+                "[flows] flows_build: streaming turn but no ApprovalGate installed \
+                 (OPENHUMAN_APPROVAL_GATE off / headless) — keeping the full live-run \
+                 hide-list so run_flow/resume_flow_run cannot execute unapproved"
+            );
+        }
+        restrict_builder_toolset(&mut agent);
+    }
 
     // When a chat thread is attached (the copilot pane), stream the builder turn
     // into it exactly like an interactive turn — text/tool deltas and the
@@ -4332,21 +5679,76 @@ pub async fn flows_build(
         attach_flow_progress_bridge(&mut agent, target, "flows_build", config);
     }
 
-    // Run to completion under a CLI origin (internal, user-initiated — the
-    // approval gate must not fail-closed), bounded by a wall-clock timeout. When
-    // streaming, wrap the run in the thread-id scope so descendant turns tag
-    // their trace + socket events with this thread.
-    let run = with_origin(AgentTurnOrigin::Cli, agent.run_single(&prompt));
-    let run = tokio::time::timeout(std::time::Duration::from_secs(FLOW_BUILD_TIMEOUT_SECS), run);
+    // Run to completion, bounded by a wall-clock timeout. PR3
+    // (flows-copilot-live-run-approval): the origin now depends on whether a
+    // chat thread is attached.
+    //
+    // - Streaming (copilot pane): run under `AgentTurnOrigin::WebChat` with
+    //   `APPROVAL_CHAT_CONTEXT` scoped alongside it — the identical
+    //   double-scope pattern `web_chat::ops::run_turn_under_cancel_and_deadline`
+    //   uses for a real interactive chat turn. The approval gate then PARKS
+    //   (rather than auto-allows) any `external_effect` tool call instead of
+    //   failing closed, and the resulting `ApprovalRequested` event routes back
+    //   to this thread (`client_id: "system"` — every client auto-joins that
+    //   broadcast room, matching the progress bridge above) for the existing
+    //   `ApprovalRequestCard` to render. The run is additionally wrapped in the
+    //   thread-id scope so descendant turns tag their trace + socket events
+    //   with this thread.
+    // - Headless (CLI / tests / no chat thread): unchanged `AgentTurnOrigin::Cli`
+    //   — the gate auto-allows `external_effect` tools under that origin, which
+    //   is why `restrict_builder_toolset` above must keep the full hide-list on
+    //   this path; there is no routable approval surface here to park against.
     let timed = match &stream {
         Some(target) => {
-            crate::openhuman::inference::provider::thread_context::with_thread_id(
+            let origin = AgentTurnOrigin::WebChat {
+                thread_id: target.thread_id.clone(),
+                client_id: "system".to_string(),
+                request_id: Some(target.request_id.clone()),
+            };
+            let chat_ctx = ApprovalChatContext {
+                thread_id: target.thread_id.clone(),
+                client_id: "system".to_string(),
+            };
+            tracing::info!(
+                target: "flows",
+                thread_id = %target.thread_id,
+                request_id = %target.request_id,
+                "[flows] flows_build: streaming copilot turn — WebChat origin + \
+                 APPROVAL_CHAT_CONTEXT scoped, live-run tools park for approval instead \
+                 of auto-allowing (shortened to COPILOT_APPROVAL_TTL via \
+                 APPROVAL_COPILOT_STREAM_CONTEXT)"
+            );
+            // `APPROVAL_COPILOT_STREAM_CONTEXT` scopes alongside the existing
+            // chat context so any `run_flow`/`resume_flow_run` park raised by
+            // this turn is clamped to the shorter `COPILOT_APPROVAL_TTL`
+            // instead of the gate's full ten-minute default — a stale park on
+            // a copilot pane the user may have already navigated away from
+            // shouldn't idle that long. Main-chat turns never scope this, so
+            // they are unaffected.
+            let run = with_origin(
+                origin,
+                APPROVAL_CHAT_CONTEXT.scope(
+                    chat_ctx,
+                    APPROVAL_COPILOT_STREAM_CONTEXT.scope((), agent.run_single(&prompt)),
+                ),
+            );
+            let run =
+                tokio::time::timeout(std::time::Duration::from_secs(FLOW_BUILD_TIMEOUT_SECS), run);
+            crate::openhuman::tinyagents::thread_context::with_thread_id(
                 target.thread_id.clone(),
                 run,
             )
             .await
         }
-        None => run.await,
+        None => {
+            tracing::debug!(
+                target: "flows",
+                "[flows] flows_build: headless/CLI turn — Cli origin, approval gate \
+                 auto-allows external_effect tools (run-advancing tools stay hidden)"
+            );
+            let run = with_origin(AgentTurnOrigin::Cli, agent.run_single(&prompt));
+            tokio::time::timeout(std::time::Duration::from_secs(FLOW_BUILD_TIMEOUT_SECS), run).await
+        }
     };
     let (assistant_text, run_error) = match timed {
         Ok(Ok(text)) => (text, None),
@@ -4655,7 +6057,7 @@ const TRAIL_OFF_BLOCKER_TOOLS: &[&str] = &[
 /// blocker is found (the model may have simply stopped with nothing to point
 /// to).
 fn build_trail_off_fallback(
-    history: &[crate::openhuman::inference::provider::ConversationMessage],
+    history: &[crate::openhuman::agent::messages::ConversationMessage],
 ) -> String {
     match last_builder_tool_blocker(history) {
         Some(blocker) => format!(
@@ -4695,9 +6097,9 @@ fn combine_trail_off_fallback(fallback: &str, original: &str) -> String {
 /// misattributes an unrelated read-only tool's plain-text output as a
 /// blocker.
 fn last_builder_tool_blocker(
-    history: &[crate::openhuman::inference::provider::ConversationMessage],
+    history: &[crate::openhuman::agent::messages::ConversationMessage],
 ) -> Option<String> {
-    use crate::openhuman::inference::provider::ConversationMessage;
+    use crate::openhuman::agent::messages::ConversationMessage;
 
     let mut call_names: std::collections::HashMap<String, String> =
         std::collections::HashMap::new();
@@ -4768,9 +6170,9 @@ fn describe_tool_result_blocker(content: &str) -> Option<String> {
 /// their tool result, so we match on that (the same gate the frontend uses) and
 /// return the LAST one — the most recent proposal in the turn.
 fn extract_workflow_proposal(
-    history: &[crate::openhuman::inference::provider::ConversationMessage],
+    history: &[crate::openhuman::agent::messages::ConversationMessage],
 ) -> Option<Value> {
-    use crate::openhuman::inference::provider::ConversationMessage;
+    use crate::openhuman::agent::messages::ConversationMessage;
     let mut latest = None;
     for message in history {
         if let ConversationMessage::ToolResults(results) = message {

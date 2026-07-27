@@ -35,7 +35,6 @@ const TOOL_DISPLAY_NAMES: Record<string, string> = {
   git_operations: 'Git operation',
   browser: 'Browsing',
   browser_open: 'Opening browser',
-  screenshot: 'Taking screenshot',
   image_info: 'Analyzing image',
   install_tool: 'Installing tool',
   lsp: 'Code intelligence',
@@ -115,7 +114,6 @@ const CLIENT_KNOWN_TOOLS = new Set<string>([
   'git_operations',
   'browser',
   'browser_open',
-  'screenshot',
   'image_info',
   'install_tool',
   'lsp',
@@ -189,7 +187,6 @@ const TOOL_CATEGORIES: Record<string, ToolCategory> = {
   curl: 'fetch',
   browser: 'browse',
   browser_open: 'browse',
-  screenshot: 'browse',
 };
 
 /** Categorize a (possibly `subagent:`-prefixed) tool name for grouping/icons. */
@@ -333,7 +330,7 @@ export function formatTimelineEntry(entry: ToolTimelineEntry): { title: string; 
  * tool rows under a Hermes-style summary. {@link buildProcessingBlocks}
  * derives an ordered list of these from the interleaved transcript.
  */
-export type ProcessingBlock =
+type ProcessingBlock =
   | { kind: 'narration'; key: string; text: string }
   | { kind: 'thinking'; key: string; text: string }
   | { kind: 'toolGroup'; key: string; summary: string; entries: ToolTimelineEntry[] };
@@ -545,9 +542,6 @@ function formatToolDetail(
       return { title: host ? `Browsing ${host}` : 'Browsing' };
     }
 
-    case 'screenshot':
-      return { title: 'Taking screenshot' };
-
     case 'image_info':
       return { title: 'Analyzing image' };
 
@@ -582,7 +576,7 @@ function formatToolDetail(
 const KNOWN_TOOLKIT_RE =
   /^(gmail|notion|github|slack|discord|linear|jira|google_calendar|google_drive|calendar)$/i;
 
-export function inferIntegrationName(input?: string): string | undefined {
+function inferIntegrationName(input?: string): string | undefined {
   if (!input) return undefined;
 
   const delegateMatch = input.match(/^delegate_(.+)$/);
