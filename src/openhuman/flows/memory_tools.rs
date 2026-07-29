@@ -114,6 +114,55 @@ pub fn flow_namespace(flow_id: &str) -> String {
 /// independent of whether the two ever need to diverge in the future.
 const FLOW_MEMORY_NAMESPACE_LISTED_PREFIX: &str = FLOW_MEMORY_NAMESPACE_PREFIX;
 
+/// Read-only recall merged across **every** flow's own `flow_<id>` memory
+/// namespace — never the user's personal/global memory, and never any
+/// namespace outside the `flow_*` prefix.
+///
+/// Shared by [`FlowMemoryRecallTool`]'s `scope: "flows"` arm and the
+/// tinyflows `memory` node's `scope: "flows"` (`OpenHumanMemory::recall` in
+/// `crate::openhuman::tinyflows::memory_adapter`) — both surfaces must see
+/// identical cross-flow results, so this is the one place that walks
+/// [`Memory::namespace_summaries`] and filters to `flow_*`. A per-namespace
+/// recall failure is logged and skipped rather than failing the whole call,
+/// so one corrupt/unavailable flow namespace can't blank out every other
+/// flow's results.
+pub async fn cross_flow_recall(
+    memory: &Arc<dyn Memory>,
+    query: &str,
+    limit: usize,
+    min_score: Option<f64>,
+) -> anyhow::Result<Vec<MemoryEntry>> {
+    let summaries = memory.namespace_summaries().await?;
+    let mut merged: Vec<MemoryEntry> = Vec::new();
+    for summary in summaries
+        .iter()
+        .filter(|s| s.namespace.starts_with(FLOW_MEMORY_NAMESPACE_LISTED_PREFIX))
+    {
+        let opts = RecallOpts {
+            namespace: Some(summary.namespace.as_str()),
+            min_score,
+            ..RecallOpts::default()
+        };
+        match memory.recall(query, limit, opts).await {
+            Ok(entries) => merged.extend(entries),
+            Err(e) => {
+                log::warn!(
+                    "[flows:memory] cross_flow_recall failed for namespace={}: {e}",
+                    summary.namespace
+                );
+            }
+        }
+    }
+    merged.sort_by(|a, b| {
+        b.score
+            .unwrap_or(0.0)
+            .partial_cmp(&a.score.unwrap_or(0.0))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    merged.truncate(limit);
+    Ok(merged)
+}
+
 /// Read-only recall over a flow's own memory namespace, or (with
 /// `scope: "flows"`) across every flow's namespace.
 ///
@@ -255,44 +304,12 @@ impl Tool for FlowMemoryRecallTool {
                     Err(e) => Ok(ToolResult::error(format!("Flow memory recall failed: {e}"))),
                 }
             }
-            "flows" => {
-                let summaries = match self.memory.namespace_summaries().await {
-                    Ok(summaries) => summaries,
-                    Err(e) => {
-                        return Ok(ToolResult::error(format!(
-                            "Failed to list flow memory namespaces: {e}"
-                        )))
-                    }
-                };
-
-                let mut merged: Vec<MemoryEntry> = Vec::new();
-                for summary in summaries
-                    .iter()
-                    .filter(|s| s.namespace.starts_with(FLOW_MEMORY_NAMESPACE_LISTED_PREFIX))
-                {
-                    let opts = RecallOpts {
-                        namespace: Some(summary.namespace.as_str()),
-                        ..RecallOpts::default()
-                    };
-                    match self.memory.recall(query, limit, opts).await {
-                        Ok(entries) => merged.extend(entries),
-                        Err(e) => {
-                            log::warn!(
-                                "[flows:memory] flow_memory_recall scope=flows failed for namespace={}: {e}",
-                                summary.namespace
-                            );
-                        }
-                    }
-                }
-                merged.sort_by(|a, b| {
-                    b.score
-                        .unwrap_or(0.0)
-                        .partial_cmp(&a.score.unwrap_or(0.0))
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                });
-                merged.truncate(limit);
-                Ok(ToolResult::success(render_entries(&merged)))
-            }
+            "flows" => match cross_flow_recall(&self.memory, query, limit, None).await {
+                Ok(merged) => Ok(ToolResult::success(render_entries(&merged))),
+                Err(e) => Ok(ToolResult::error(format!(
+                    "Failed to list flow memory namespaces: {e}"
+                ))),
+            },
             other => Ok(ToolResult::error(format!(
                 "Unknown scope '{other}': expected 'flow' or 'flows'"
             ))),

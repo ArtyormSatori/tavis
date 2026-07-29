@@ -367,7 +367,7 @@ pub fn all_tools_with_runtime(
         // toolkits a flow still needs (Phase 5, item 19). Read-only.
         #[cfg(feature = "flows")]
         Box::new(ListConnectableToolkitsTool::new(config.clone())),
-        // Queryable DSL schema (F2): enumerate the 12 node kinds and fetch one
+        // Queryable DSL schema (F2): enumerate the 13 node kinds and fetch one
         // kind's full config-field/port/example/gotcha contract — the DSL
         // analogue of search_tool_catalog + get_tool_contract, so an agent need
         // not rely on prompt prose or memory for node config shapes. Read-only.

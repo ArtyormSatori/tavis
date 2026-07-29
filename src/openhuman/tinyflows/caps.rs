@@ -99,7 +99,13 @@ fn model_response_to_completion_value(
 /// would otherwise silently override the tier's `Prompt` decision). The error
 /// is prefixed with [`POLICY_BLOCKED_MARKER`] so the harness's repeated-failure
 /// middleware recognizes it as a permanent, don't-retry refusal.
-fn enforce_node_tier_gate(
+///
+/// `pub(crate)` (not `http_request`/`code`-private): the `memory` node's
+/// [`OpenHumanMemory`](super::memory_adapter::OpenHumanMemory) adapter reuses
+/// this exact function — `CommandClass::Read` for recall/search/flavour/people,
+/// `CommandClass::Write` for remember/forget — rather than growing a second
+/// permission path for the new node kind.
+pub(crate) fn enforce_node_tier_gate(
     security: &SecurityPolicy,
     class: CommandClass,
     node: &str,
@@ -152,7 +158,7 @@ fn enforce_node_tier_gate(
 /// call only* `Workflow { require_approval: true }` origin around
 /// `intercept_audited`, forcing the real parking/HITL flow. `GateDecision::Allow`
 /// (and any other origin shape) passes through unchanged — existing behavior.
-async fn gate_call_for_tier(
+pub(crate) async fn gate_call_for_tier(
     tier_decision: GateDecision,
     tool_name: &str,
     action_summary: &str,
@@ -3553,13 +3559,18 @@ impl WorkflowResolver for OpenHumanWorkflowResolver {
     }
 }
 
-/// Builds the [`Capabilities`] bundle for one run, wiring each of the six
-/// host-injected traits to a real OpenHuman adapter (see each adapter above for
-/// its contract).
+/// Builds the [`Capabilities`] bundle for one run, wiring each of the seven
+/// host-injected traits to a real OpenHuman adapter (see each adapter above,
+/// and [`super::memory_adapter::OpenHumanMemory`] for `memory`, for its
+/// contract).
 ///
 /// `state_namespace` scopes the [`FlowStateStore`] KV so two saved flows that
 /// use the same state key never read or overwrite each other — callers pass a
-/// per-flow namespace (e.g. `"flow:<id>"`).
+/// per-flow namespace (e.g. `"flow:<id>"`). Note this is **not** the same
+/// namespace `OpenHumanMemory` writes flow-scoped memory under — that one is
+/// derived independently from the run's trusted origin via
+/// `flows::flow_namespace`, so the two never need to agree on separator
+/// conventions.
 pub fn build_capabilities(config: Arc<Config>, state_namespace: impl Into<String>) -> Capabilities {
     let security = Arc::new(SecurityPolicy::from_config(
         &config.autonomy,
@@ -3584,7 +3595,7 @@ pub fn build_capabilities(config: Arc<Config>, state_namespace: impl Into<String
         }),
         code: Arc::new(OpenHumanCode {
             config: config.clone(),
-            security,
+            security: security.clone(),
         }),
         state: Arc::new(FlowStateStore {
             config: config.clone(),
@@ -3592,6 +3603,10 @@ pub fn build_capabilities(config: Arc<Config>, state_namespace: impl Into<String
         }),
         agent: Some(Arc::new(OpenHumanAgentRunner {
             config: config.clone(),
+        })),
+        memory: Some(Arc::new(super::memory_adapter::OpenHumanMemory {
+            config: config.clone(),
+            security,
         })),
         resolver: Arc::new(OpenHumanWorkflowResolver { config }),
     }

@@ -1512,6 +1512,23 @@ pub(super) const CAPABILITIES: &[Capability] = &[
         privacy: DERIVED_TO_BACKEND,
     },
     Capability {
+        id: "automation.flow_memory_node",
+        name: "Memory Node (Flows)",
+        domain: "flows",
+        category: CapabilityCategory::Automation,
+        description: "A `memory` node inside a saved workflow graph, giving the flow direct, \
+                      in-graph memory access with no agent turn involved. It can recall/search/ \
+                      read style-flavour/look up people from your durable, cross-flow memory \
+                      (read-only — a flow can never write there) or from other flows' own \
+                      memory (also read-only), and can remember/forget entries in its OWN \
+                      private, flow-scoped memory namespace — never the user's personal memory, \
+                      never another flow's. Every operation is gated by the flow's autonomy \
+                      tier; a flow-scoped write can require human approval.",
+        how_to: "Flows editor > add a `memory` node; set `config.operation` and `config.scope`.",
+        status: CapabilityStatus::Beta,
+        privacy: LOCAL_RAW,
+    },
+    Capability {
         id: "automation.view_cron_jobs",
         name: "View Cron Jobs",
         domain: "automation",

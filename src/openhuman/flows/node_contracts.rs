@@ -73,11 +73,20 @@ fn apply_host_overlay(contract: NodeKindContract) -> NodeKindContract {
              default the path to \"json.data\" (that targets the whole payload container and \
              yields one item) — probe the real array path with get_tool_output_sample instead.",
         ),
+        "memory" => contract.with_note(
+            "scope: \"flow\" reads/writes the SAME per-flow memory namespace the \
+             flow_memory_recall / flow_memory_remember agent tools use — a memory[remember] \
+             node and a flow_memory_remember tool call inside an agent node on the same flow \
+             see each other's writes. Exact \"process each item once\" dedup is NOT reliably \
+             expressible via semantic recall (results are similarity-ranked, not an exact \
+             membership check) — that is deferred to a dedicated primitive; don't improvise a \
+             recall→condition dedupe graph.",
+        ),
         _ => contract,
     }
 }
 
-/// All 12 node-kind contracts with this host's overlay applied, in
+/// All 13 node-kind contracts with this host's overlay applied, in
 /// [`NODE_KINDS`] order.
 pub fn all_node_kind_contracts() -> Vec<NodeKindContract> {
     tinyflows::catalog::all_contracts()
@@ -87,7 +96,7 @@ pub fn all_node_kind_contracts() -> Vec<NodeKindContract> {
 }
 
 /// The overlaid contract for one node kind, or `None` if `kind` is not one of
-/// the 12.
+/// the 13.
 pub fn node_kind_contract(kind: &str) -> Option<NodeKindContract> {
     tinyflows::catalog::contract_for(kind).map(apply_host_overlay)
 }
@@ -137,12 +146,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn overlay_preserves_all_12_kinds() {
-        assert_eq!(all_node_kind_contracts().len(), 12);
+    fn overlay_preserves_all_13_kinds() {
+        assert_eq!(all_node_kind_contracts().len(), 13);
         for kind in NODE_KINDS {
             assert!(node_kind_contract(kind).is_some(), "missing {kind}");
         }
         assert!(node_kind_contract("not_a_kind").is_none());
+    }
+
+    #[test]
+    fn memory_overlay_adds_flow_memory_coherence_facts() {
+        let c = node_kind_contract("memory").unwrap();
+        let notes = c.notes.join("\n");
+        assert!(notes.contains("flow_memory_recall"), "{notes}");
+        assert!(notes.contains("flow_memory_remember"), "{notes}");
+        assert!(notes.contains("SAME per-flow memory namespace"), "{notes}");
+        // The dedup recipe was removed (P1 review fix): semantic recall
+        // cannot express exact "have I seen this key" membership, so the
+        // overlay must not teach a recall→condition dedupe pattern.
+        assert!(!notes.contains("Canonical dedupe pattern"), "{notes}");
+        assert!(!notes.contains("item.json.found"), "{notes}");
     }
 
     #[test]

@@ -830,21 +830,25 @@ mod tests {
         );
     }
 
-    /// The three mechanisms that DO reach memory from inside a running flow
+    /// The four mechanisms that DO reach memory from inside a running flow
     /// must all be taught, with the correct binding path for the
-    /// deterministic one. A native `oh:` tool result is a `ToolResult` —
-    /// `{ content: [{ type, text }], is_error }` — so a downstream binding
-    /// dereferences `.item.json.content[0].text`, not the bare
-    /// `.item.json.<field>` an agent/`http_request` output would use. Getting
-    /// that path wrong is the same class of silent-null failure the
+    /// deterministic `tool_call` one. A native `oh:` tool result is a
+    /// `ToolResult` — `{ content: [{ type, text }], is_error }` — so a
+    /// downstream binding dereferences `.item.json.content[0].text`, not the
+    /// bare `.item.json.<field>` an agent/`http_request` output would use.
+    /// Getting that path wrong is the same class of silent-null failure the
     /// `=`-binding rules exist to stop. #5204 added `flow_memory_agent` as
-    /// the third (and now PREFERRED general) route alongside the
-    /// deterministic `tool_call` reads and `context_scout`'s narrower niche.
+    /// the PREFERRED general route alongside the deterministic `tool_call`
+    /// reads and `context_scout`'s narrower niche; the memory-node feature
+    /// (issue #5226) then added the `memory` node itself as the preferred
+    /// choice specifically for a non-reasoning node (`condition`/`switch`)
+    /// that needs to branch on a recalled value.
     #[test]
-    fn standing_prompt_teaches_the_three_working_memory_read_paths() {
+    fn standing_prompt_teaches_the_four_working_memory_read_paths() {
         const STANDING_PROMPT: &str = include_str!("prompt.md");
 
         for rule in [
+            "A `memory` node",
             "oh:memory_recall",
             "oh:memory_hybrid_search",
             "flow_memory_agent",
@@ -853,7 +857,7 @@ mod tests {
         ] {
             assert!(
                 STANDING_PROMPT.contains(rule),
-                "standing prompt must teach `{rule}` — it is one of the only three \
+                "standing prompt must teach `{rule}` — it is one of the four \
                  mechanisms that actually read memory at flow run time, or the \
                  binding path needed to consume one"
             );
@@ -861,23 +865,31 @@ mod tests {
     }
 
     /// Flows run on trigger data a third party can influence (an inbound
-    /// email, a webhook payload), so writing that into the user's personal
-    /// memory is deliberately not offered. `agent_memory` is NOT an escape
-    /// hatch here despite being a registered, `read_only` builtin: its
+    /// email, a webhook payload), so writing to the user's PERSONAL memory is
+    /// deliberately never offered — that guarantee must survive the
+    /// memory-node feature (issue #5226) verbatim. `agent_memory` is NOT an
+    /// escape hatch here despite being a registered, `read_only` builtin: its
     /// `memory_tree` tool inherits the trait-default `PermissionLevel::ReadOnly`
     /// while dispatching an `ingest_document` WRITE mode, so it survives the
     /// read-only tool filter in `session/builder/factory.rs` (which consults
     /// the argless `permission_level()`). Steering the builder there would
     /// hand prompt-injected trigger content a memory-write foothold — exactly
     /// the hole `context_scout`'s own agent.toml documents refusing.
+    ///
+    /// What DID change with #5226: a flow can now write its OWN private,
+    /// flow-scoped memory (`memory` node, `scope: "flow"`) — the prompt must
+    /// teach that too, with the "remember after the action, not before" rule,
+    /// so the builder stops telling users memory writes are unavailable
+    /// entirely and instead reaches for the real mechanism.
     #[test]
-    fn standing_prompt_states_flows_cannot_write_memory_and_avoids_agent_memory() {
+    fn standing_prompt_states_flows_cannot_write_user_memory_but_can_write_flow_memory() {
         const STANDING_PROMPT: &str = include_str!("prompt.md");
 
         assert!(
             STANDING_PROMPT.contains("can never WRITE the user's memory"),
             "standing prompt must state plainly that a workflow cannot write the \
-             user's memory, so the builder stops authoring remember/store steps"
+             user's PERSONAL memory, so the builder never targets scope \"user\" \
+             on a remember/forget memory node"
         );
         assert!(
             !STANDING_PROMPT.contains("agent_memory"),
@@ -885,6 +897,19 @@ mod tests {
              flow agent_ref: its `memory_tree` tool declares ReadOnly but exposes \
              an ingest_document write mode, so it would give prompt-injectable \
              trigger data a memory-write path"
+        );
+        assert!(
+            STANDING_PROMPT.contains("scope: \"flow\""),
+            "standing prompt must teach that a workflow CAN write its own \
+             flow-scoped memory via a `memory` node (scope: \"flow\") — this is \
+             the real mechanism for a flow that \"remembers\" across runs, \
+             replacing the old blanket \"memory writes are not available\" advice"
+        );
+        assert!(
+            STANDING_PROMPT.contains("Always place the `remember` AFTER the real action"),
+            "standing prompt must teach commit-on-success ordering: remember AFTER \
+             the action it's recording, never before, so a failed action doesn't \
+             get silently marked done"
         );
     }
 

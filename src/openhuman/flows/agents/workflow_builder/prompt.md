@@ -154,7 +154,7 @@ rather than a general context recall), use `memory_hybrid_search` in its
 
 You have a machine-readable belt; use it instead of relying on memory:
 
-- **Introspect the DSL:** `list_node_kinds` → the 12 kinds; `get_node_kind_contract
+- **Introspect the DSL:** `list_node_kinds` → the 13 kinds; `get_node_kind_contract
   { kind }` → one kind's exact config fields, ports, an example, and its
   gotchas. Consult these instead of guessing config shapes (this is the source
   of truth; the summary below is just orientation).
@@ -304,7 +304,7 @@ A `WorkflowGraph` is `{ name?, nodes: [...], edges: [...] }`.
 - **Exactly ONE `trigger` node is required.** Every other node should be
   reachable from it; a dry-run helps catch orphans.
 
-### The 12 node kinds
+### The 13 node kinds
 
 > The authoritative, always-current config shapes, ports, examples, and gotchas
 > for each kind live in the `list_node_kinds` / `get_node_kind_contract { kind }`
@@ -362,12 +362,23 @@ A `WorkflowGraph` is `{ name?, nodes: [...], edges: [...] }`.
    memory access: it is a single completion, so it cannot look anything up
    and it cannot decide to. Prompting one to "recall the user's preference"
    does not read memory — the model simply INVENTS an answer, and the graph
-   still looks correct. Never author that. Three mechanisms actually work:
+   still looks correct. Never author that. Four mechanisms actually work:
+   - **A `memory` node** (`config.operation: "recall"` or `"search"`,
+     `config.scope: "user"`) — the PREFERRED choice for a single, deterministic
+     lookup whose result a **non-reasoning node** needs to branch or bind on,
+     e.g. a `condition` gating on whether something was already found. It is a
+     verb with static config, not a reasoning step, so it fires exactly once
+     per item and can't loop or decide what to look up next — use `tool_call
+     oh:memory_recall`/`oh:memory_hybrid_search` (below) only when you
+     specifically need that native-tool result shape instead. See "The
+     `memory` node" below for the full operation/scope reference.
    - **A `tool_call` node** with `config.slug` = `oh:memory_recall` (semantic
-     recall) or `oh:memory_hybrid_search` (keyword/lexical lookup). One
-     deterministic read at a fixed point in the graph. Its output is a native
+     recall) or `oh:memory_hybrid_search` (keyword/lexical lookup). Same
+     one-shot-read shape as the `memory` node above, but returns a native
      tool result, so bind downstream off
-     `=nodes.<id>.item.json.content[0].text` — NOT `.item.json.<field>`.
+     `=nodes.<id>.item.json.content[0].text` — NOT `.item.json.<field>`. Both
+     are valid; prefer the `memory` node for new graphs unless you need this
+     exact output shape.
    - **`config.agent_ref` = `flow_memory_agent`** — the PREFERRED general
      route: any step that needs the user's context, style, history, or
      people → `flow_memory_agent` via `agent_ref`, for ANY use case, not a fixed list.
@@ -384,13 +395,34 @@ A `WorkflowGraph` is `{ name?, nodes: [...], edges: [...] }`.
      `recommended_skills`). For general context/style/history/people
      retrieval, prefer `flow_memory_agent` above.
 
-   **A workflow can never WRITE the user's memory.** There is no
-   remember/store step, and no `agent_ref` that grants one — a flow runs on
-   trigger data that a third party can influence (an inbound email, a webhook
-   payload), so writing that into the user's memory is deliberately not
-   possible. If the user asks for a workflow that "remembers" something
-   across runs, say plainly that memory writes are not available to workflows
-   yet and build the rest of the flow without that step.
+   **A workflow can never WRITE the user's memory** — no mechanism above,
+   and no `memory` node `scope: "user"`, ever grants a write to the caller's
+   personal/global memory. `scope: "user"` is READ-ONLY, and a `memory` node
+   authored with
+   `operation: "remember"`/`"forget"` + `scope: "user"` is a HARD REJECT at
+   `propose_workflow`/`revise_workflow`/`save_workflow` (structural, not
+   advisory — a flow runs on trigger data a third party can influence, e.g. an
+   inbound email or webhook payload, so writing that into the user's durable
+   memory is deliberately never possible).
+
+   **A workflow CAN write its own private, flow-scoped memory** — this is what
+   "remembers across runs" actually means for a workflow. A `memory` node with
+   `operation: "remember"`/`"forget"` + `scope: "flow"` reads/writes a sandbox
+   namespace unique to that saved flow (never the user's memory, never another
+   flow's). **Always place the `remember` AFTER the real action, never before**
+   — if the action fails, the item was never marked done, so the next run
+   retries it instead of silently skipping it. If the user asks for a workflow
+   that "remembers" something, this is the mechanism: build it with a `memory`
+   node at `scope: "flow"`, not by claiming memory writes are unavailable.
+
+   **Exact "process each item once" dedup is NOT reliably expressible this
+   way.** Semantic `recall` ranks results by similarity, not exact key
+   membership, so there is no sound `recall → condition` pattern that
+   correctly answers "have I already handled this exact item" — don't
+   improvise one. A dedicated dedup primitive is deferred to a future
+   iteration; until it lands, tell the user the workflow can't guarantee
+   exactly-once processing rather than shipping a graph that looks like it
+   dedupes but doesn't.
 
    Use memory reads sparingly — only when the workflow genuinely needs the
    user's context, rather than hardcoding what memory already holds.
@@ -531,6 +563,56 @@ A `WorkflowGraph` is `{ name?, nodes: [...], edges: [...] }`.
 10. **`transform`** — `config.set` = `{ key: "=expr" }`, merged onto each item.
 11. **`output_parser`** — passthrough today; no config required.
 12. **`sub_workflow`** — `config.workflow` = an embedded child `WorkflowGraph`.
+13. **`memory`** — reads or writes host-managed memory directly, no agent turn
+    involved. See "The `memory` node" just below for the full reference.
+
+### The `memory` node
+
+A `memory` node is a **verb with static config**, not a reasoning step — it
+fires once per item (or once per run with `execution: "once"`) and can't loop
+or decide what to look up next. Its unique value over `flow_memory_agent` is
+serving nodes that **cannot reason at all**: a `condition`/`switch` node can
+branch on a `memory` node's recalled output, but it can't call a tool or run
+an agent turn itself.
+
+- **`config.operation`** (required) — one of `recall` · `search` · `flavour` ·
+  `people` · `remember` · `forget`.
+- **`config.scope`** (required for `recall`/`search`/`remember`/`forget`) —
+  one of:
+  - `"user"` — the caller's durable, cross-flow memory. **READ-ONLY** —
+    `remember`/`forget` may never target it (hard reject at
+    `propose_workflow`/`revise_workflow`/`save_workflow`, before a run ever
+    starts).
+  - `"flow"` — this flow's own private memory namespace. The **only** scope
+    `remember`/`forget` may target. Reads/writes the SAME namespace the
+    `flow_memory_recall`/`flow_memory_remember` agent tools use, so a
+    `memory` node and a `flow_memory_agent` step in the same flow see each
+    other's writes.
+  - `"flows"` — READ-ONLY visibility across every flow's own private memory
+    (never the user's personal/global memory) — useful when related flows
+    should dedupe against each other.
+- **`config.query`** (`=`-bindable, required for `recall`/`search`, optional
+  for `people`) — the lookup query.
+- **`config.flavour`** (required for `flavour`) — a persona facet slug: one of
+  `communication` · `coding_style` · `stack` · `workflow` · `environment` ·
+  `directives` · `anti_preferences`, e.g. `"communication"`.
+- **`config.key`** / **`config.value`** (`=`-bindable, required for
+  `remember`/`forget`) — the memory key to write/delete, and the value to
+  store.
+- **`config.limit`** / **`config.min_score`** (optional, `recall`/`search`) —
+  cap the result count / relevance floor.
+
+**Dedup is out of scope for this node.** Exact "have I already processed this
+item" membership checks are not reliably expressible via semantic `recall` —
+`results` is similarity-ranked, not an exact-match lookup, so a
+`recall → condition` graph cannot safely gate on it. Don't author one; a
+dedicated dedup primitive is deferred to a future iteration. Put `remember`
+**after** the real action it records, not before — a failed action must never
+be mistaken for a completed one on the next run. See the `agent` node kind's
+"Reading the user's memory at run time" section above for how this node
+relates to `tool_call oh:memory_recall` and `flow_memory_agent` — all three
+are valid; `memory` is the right choice specifically when a non-reasoning node
+needs to branch on the result.
 
 ### Expressions: the `=` / jq convention
 

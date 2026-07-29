@@ -1945,15 +1945,16 @@ async fn save_workflow_accepts_correctly_schemad_graph() {
 }
 
 #[tokio::test]
-async fn list_node_kinds_tool_returns_all_twelve() {
+async fn list_node_kinds_tool_returns_all_thirteen() {
     let tool = ListNodeKindsTool::new();
     let result = tool.execute(json!({})).await.unwrap();
     assert!(!result.is_error, "{}", result.output());
     let parsed: Value = serde_json::from_str(&result.output()).unwrap();
     let kinds = parsed["node_kinds"].as_array().unwrap();
-    assert_eq!(kinds.len(), 12);
+    assert_eq!(kinds.len(), 13);
     // Each entry carries a kind + summary + the config-field name lists.
     assert!(kinds.iter().any(|k| k["kind"] == "tool_call"));
+    assert!(kinds.iter().any(|k| k["kind"] == "memory"));
     assert!(kinds.iter().all(|k| k.get("summary").is_some()));
 }
 
