@@ -6348,10 +6348,14 @@ const FLOW_BUILD_TIMEOUT_SECS: u64 = 600;
 /// confirmation — the exact HITL hole #4593 closed, reopened by #4881
 /// widening the belt.
 ///
-/// `cancel_flow_run` fires no new outbound effect
-/// (`external_effect() == false`), so it isn't a gate-bypass concern the same
-/// way — but an authoring turn still has no business tearing down a run the
-/// *user* started, so it is hidden alongside the two above out of caution.
+/// `cancel_flow_run` ([`builder_tools::CancelFlowRunTool`]) is now
+/// `external_effect() == true` and ownership-checks the run against a
+/// caller-named `flow_id` (T-M3 fix) — but that gate is exactly the one this
+/// `Cli`-origin path auto-allows, same as `resume_flow_run` above, so the
+/// ownership check alone is not a substitute for a human decision here. An
+/// authoring turn still has no business tearing down a run the *user*
+/// started with zero confirmation, so it stays hidden alongside the two
+/// above out of caution.
 ///
 /// `create_workflow` / `duplicate_flow` are deliberately **left visible**:
 /// both are hard-forced **born disabled** (see [`builder_tools::CreateWorkflowTool`]
@@ -6400,20 +6404,31 @@ fn restrict_builder_toolset(agent: &mut crate::openhuman::agent::Agent) {
 /// longer need to be hidden on this path: they are reachable, but gated
 /// behind a real approval, exactly like a main-chat tool call.
 ///
-/// `cancel_flow_run` stays HIDDEN on this path, though. It reports
-/// `external_effect() == false`, so `ApprovalSecurityMiddleware` would not park
-/// it behind the approval surface — and the tool cancels an arbitrary run id
-/// (e.g. one read from `list_flow_runs`) with no ownership check. An unhidden
-/// `cancel_flow_run` would therefore let a streaming copilot turn cancel ANY
-/// in-flight or approval-parked run, unapproved — far broader than the "stop a
-/// run the copilot itself started" companion use it was meant for. Until it
-/// gains an ownership/approval guard it is kept hidden here (a user can still
-/// cancel from the Runs rail). (codex review, #5090.)
+/// `cancel_flow_run` stays HIDDEN on this path (codex review, #5090) — but for
+/// a narrower reason than before. The original justification was that it
+/// reported `external_effect() == false`, so `ApprovalSecurityMiddleware`
+/// would not park it behind the approval surface, and that it cancelled an
+/// arbitrary run id (e.g. one read from `list_flow_runs`) with no ownership
+/// check: an unhidden call would have let a streaming copilot turn cancel ANY
+/// in-flight or approval-parked run, unapproved. **The T-M3 fix closed both of
+/// those gaps** — [`builder_tools::CancelFlowRunTool`] is now
+/// `external_effect() == true` (so it would park behind the same real
+/// `WebChat` approval card as `run_flow`/`resume_flow_run` on this path) AND
+/// verifies the target run actually belongs to the caller-named `flow_id`
+/// before touching it.
+///
+/// It is nonetheless kept hidden **deliberately**. Unhiding it would be a
+/// capability expansion, not a security fix: it newly lets an authoring turn
+/// tear down a run the *user* started, which is a product decision nobody has
+/// taken — and hardening the tool is not a reason to take it implicitly. A
+/// user can still cancel from the Runs rail. Dropping this entry is now safe
+/// from a gating standpoint whenever that decision is made; that safety is
+/// what the T-M3 fix bought.
 ///
 /// `run_workflow` (the unrelated legacy skills-workflow runner sharing this
-/// belt) stays hidden on BOTH paths — belt-and-braces against a re-rename or
-/// the name ever leaking back onto the `workflow_builder` toolset; `hide_tools`
-/// no-ops on a name that isn't present.
+/// belt) stays hidden — belt-and-braces against a re-rename or the name ever
+/// leaking back onto the `workflow_builder` toolset; `hide_tools` no-ops on a
+/// name that isn't present.
 const FLOWS_BUILD_COPILOT_HIDDEN_TOOLS: &[&str] = &["run_workflow", "cancel_flow_run"];
 
 /// Strip only [`FLOWS_BUILD_COPILOT_HIDDEN_TOOLS`] from `agent`'s callable set
@@ -6423,9 +6438,10 @@ fn restrict_builder_toolset_for_copilot(agent: &mut crate::openhuman::agent::Age
     tracing::info!(
         target: "flows",
         hidden = ?FLOWS_BUILD_COPILOT_HIDDEN_TOOLS,
-        "[flows] flows_build: streaming copilot turn — run_flow/resume_flow_run stay visible \
-         (gated behind the WebChat approval surface); run_workflow + cancel_flow_run hidden \
-         (cancel_flow_run has no external_effect to park and no run-ownership guard)"
+        "[flows] flows_build: streaming copilot turn — run_flow/resume_flow_run/cancel_flow_run \
+         stay visible (all three gated behind the WebChat approval surface; cancel_flow_run also \
+         ownership-checks the target run's flow_id — T-M3 fix); only the unrelated legacy \
+         run_workflow is hidden"
     );
     agent.hide_tools(FLOWS_BUILD_COPILOT_HIDDEN_TOOLS);
 }

@@ -5739,6 +5739,15 @@ async fn flows_build_hides_the_live_run_tool_from_the_builder_belt() {
         "resume_flow_run advances a real run's outbound effects, so it must be \
          external-effect for the same #4593/#4881 concern to apply"
     );
+    let canceller = crate::openhuman::flows::builder_tools::CancelFlowRunTool::new(
+        std::sync::Arc::new(config.clone()),
+    );
+    assert!(
+        canceller.external_effect(),
+        "cancel_flow_run is external-effect since the T-M3 fix — it stays hidden on THIS \
+         (Cli-origin, auto-allow) path regardless, because that gate is exactly what this \
+         origin bypasses; see restrict_builder_toolset's doc"
+    );
 
     crate::openhuman::agent::harness::AgentDefinitionRegistry::init_global(&config.workspace_dir)
         .expect("agent registry init");
@@ -5803,10 +5812,11 @@ fn flows_build_hide_lists_have_the_expected_contents() {
         FLOWS_BUILD_COPILOT_HIDDEN_TOOLS,
         ["run_workflow", "cancel_flow_run"],
         "the streaming (copilot) hide-list must hide the legacy `run_workflow` AND \
-         `cancel_flow_run` — the latter has no external_effect to park and no \
-         run-ownership guard (codex #5090), so it must NOT be exposed unapproved; \
-         only `run_flow`/`resume_flow_run` stay visible, gated by the WebChat \
-         approval surface"
+         `cancel_flow_run`. The T-M3 fix DID give the latter `external_effect() == true` \
+         plus a run-ownership guard, so it would now park safely here — but unhiding it \
+         is a capability expansion (letting an authoring turn tear down a user-started \
+         run), not a security fix, and that product decision has not been taken. Only \
+         `run_flow`/`resume_flow_run` stay visible, gated by the WebChat approval surface"
     );
     for tool in [
         "run_workflow",
@@ -5825,9 +5835,11 @@ fn flows_build_hide_lists_have_the_expected_contents() {
 /// Streaming (copilot) path: `restrict_builder_toolset_for_copilot` leaves
 /// `run_flow` / `resume_flow_run` visible on the builder's belt — they're gated
 /// by the WebChat approval surface, not hidden — while hiding the unrelated
-/// legacy `run_workflow` AND `cancel_flow_run` (the latter can't be parked and
-/// has no run-ownership guard — codex #5090) and keeping every authoring tool
-/// reachable (PR3: flows-copilot-live-run-approval).
+/// legacy `run_workflow` AND `cancel_flow_run`, and keeping every authoring
+/// tool reachable (PR3: flows-copilot-live-run-approval). The T-M3 fix made
+/// `cancel_flow_run` safe to unhide (external_effect + run-ownership guard),
+/// but doing so would newly let an authoring turn tear down a user-started
+/// run — a product decision, deliberately not taken here.
 #[tokio::test]
 async fn flows_build_copilot_toolset_unhides_the_live_run_tools() {
     let tmp = TempDir::new().unwrap();
@@ -5853,8 +5865,9 @@ async fn flows_build_copilot_toolset_unhides_the_live_run_tools() {
     for hidden in ["run_workflow", "cancel_flow_run"] {
         assert!(
             !visible.contains(hidden),
-            "`{hidden}` must stay hidden on the copilot path (legacy runner / \
-             unparkable-and-unguarded cancel — codex #5090); visible = {visible:?}"
+            "`{hidden}` must stay hidden on the copilot path (unrelated legacy runner / \
+             a cancel that is now safe to unhide but deliberately still gated behind a \
+             product decision); visible = {visible:?}"
         );
     }
     for keep in [

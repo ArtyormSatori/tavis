@@ -399,10 +399,14 @@ pub fn all_tools_with_runtime(
         // Per-flow sandboxed memory (issue #5173): lets a running flow
         // (e.g. a scheduled newsletter-digest) remember what it already did
         // — dedupe across runs — without ever touching the user's own
-        // memory. Namespace is derived internally from `flow_id`; there is
-        // no code path by which either tool can address a namespace other
-        // than the calling flow's own (`flow_memory_recall`'s `scope:
-        // "flows"` is read-only cross-flow visibility, not a write path).
+        // memory. Namespace is derived internally from `flow_id`.
+        // `flow_memory_remember` (write) only resolves that `flow_id` from
+        // the run's own trusted `TrustedAutomation { Workflow }` turn origin
+        // (T-M2 fix) — a chat/orchestrator turn with no trusted run origin
+        // is refused outright, never routed to a model-supplied `flow_id`.
+        // `flow_memory_recall`'s `scope: "flows"` is a deliberate read-only
+        // cross-flow exception — it can see every flow's namespace by
+        // design, but can never be used to write outside a flow's own.
         #[cfg(feature = "flows")]
         Box::new(FlowMemoryRecallTool::new(memory.clone())),
         #[cfg(feature = "flows")]

@@ -2643,6 +2643,9 @@ fn phase4_write_tools_have_the_right_permissions() {
         CancelFlowRunTool::new(config.clone()).permission_level(),
         PermissionLevel::Write
     );
+    // T-M3 fix: cancel_flow_run now parks for approval like every other
+    // write-class flow-run control tool.
+    assert!(CancelFlowRunTool::new(config.clone()).external_effect());
     assert_eq!(
         ResumeFlowRunTool::new(config.clone()).permission_level(),
         PermissionLevel::Execute
@@ -2650,6 +2653,154 @@ fn phase4_write_tools_have_the_right_permissions() {
     assert_eq!(
         ListFlowRunsTool::new(config.clone()).permission_level(),
         PermissionLevel::None
+    );
+}
+
+// ── cancel_flow_run ownership check (T-M3) ────────────────────────────────
+
+/// A graph that pauses at a `pending_approval` gate, so the run it produces
+/// stays non-terminal (cancellable) — mirrors `ops_tests::approval_gated_graph`.
+fn cancel_test_approval_gated_graph() -> Value {
+    json!({
+        "name": "approval-gated",
+        "nodes": [
+            { "id": "t", "kind": "trigger", "name": "Trigger" },
+            { "id": "gate", "kind": "output_parser", "name": "Gate", "config": { "requires_approval": true } },
+            { "id": "downstream", "kind": "output_parser", "name": "Downstream" }
+        ],
+        "edges": [
+            { "from_node": "t", "to_node": "gate" },
+            { "from_node": "gate", "to_node": "downstream" }
+        ]
+    })
+}
+
+/// SECURITY (T-M3): the tool must refuse to cancel a run that belongs to a
+/// DIFFERENT flow than the one the caller named — closing the "arbitrary
+/// run_id, no ownership check" gap the tool's own doc used to admit.
+#[tokio::test]
+async fn cancel_flow_run_refuses_a_run_the_caller_does_not_own() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let owner_flow = ops::flows_create(
+        &config,
+        "owner".to_string(),
+        cancel_test_approval_gated_graph(),
+        false,
+    )
+    .await
+    .unwrap()
+    .value;
+    let other_flow = ops::flows_create(
+        &config,
+        "other".to_string(),
+        cancel_test_approval_gated_graph(),
+        false,
+    )
+    .await
+    .unwrap()
+    .value;
+
+    let run = ops::flows_run(
+        &config,
+        &owner_flow.id,
+        json!({}),
+        crate::openhuman::flows::FlowRunTrigger::Rpc,
+    )
+    .await
+    .unwrap();
+    let run_id = run.value["thread_id"].as_str().unwrap().to_string();
+    assert_eq!(
+        ops::flows_get_run(&config, &run_id)
+            .await
+            .unwrap()
+            .value
+            .status,
+        "pending_approval"
+    );
+
+    let tool = CancelFlowRunTool::new(config.clone());
+    let result = tool
+        .execute(json!({ "flow_id": other_flow.id, "run_id": run_id.clone() }))
+        .await
+        .unwrap();
+    assert!(result.is_error);
+    assert!(
+        result.output().contains("belongs to flow"),
+        "{}",
+        result.output()
+    );
+
+    // The refused attempt must not have touched the run at all.
+    let run_row = ops::flows_get_run(&config, &run_id).await.unwrap().value;
+    assert_eq!(run_row.status, "pending_approval");
+}
+
+/// No-regression companion: cancelling with the CORRECT owning flow_id must
+/// still work exactly as before the T-M3 fix.
+#[tokio::test]
+async fn cancel_flow_run_cancels_when_flow_id_matches_the_owner() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let flow = ops::flows_create(
+        &config,
+        "F".to_string(),
+        cancel_test_approval_gated_graph(),
+        false,
+    )
+    .await
+    .unwrap()
+    .value;
+    let run = ops::flows_run(
+        &config,
+        &flow.id,
+        json!({}),
+        crate::openhuman::flows::FlowRunTrigger::Rpc,
+    )
+    .await
+    .unwrap();
+    let run_id = run.value["thread_id"].as_str().unwrap().to_string();
+
+    let tool = CancelFlowRunTool::new(config.clone());
+    let result = tool
+        .execute(json!({ "flow_id": flow.id, "run_id": run_id.clone() }))
+        .await
+        .unwrap();
+    assert!(!result.is_error, "{}", result.output());
+
+    let run_row = ops::flows_get_run(&config, &run_id).await.unwrap().value;
+    assert_eq!(run_row.status, "cancelled");
+}
+
+#[tokio::test]
+async fn cancel_flow_run_missing_flow_id_errs() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let tool = CancelFlowRunTool::new(config);
+    let result = tool.execute(json!({ "run_id": "some-run" })).await.unwrap();
+    assert!(result.is_error);
+    assert!(result.output().contains("flow_id"));
+}
+
+/// T-M3 (part b): the approval gate routes any `external_effect() == true`
+/// tool through `ApprovalGate` before `execute()` runs
+/// (`ApprovalSecurityMiddleware::has_external_effect` in
+/// `tinyagents::middleware`, keyed purely off `external_effect_with_args`).
+/// `cancel_flow_run` now reports `external_effect() == true`
+/// (`phase4_write_tools_have_the_right_permissions` above pins the flag
+/// itself), so it parks on any surface with a live gate — exactly like
+/// `resume_flow_run` — instead of executing unapproved.
+#[test]
+fn cancel_flow_run_is_external_effect_so_the_middleware_parks_it() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let tool = CancelFlowRunTool::new(config);
+    assert!(
+        tool.external_effect(),
+        "cancel_flow_run must be external_effect so ApprovalSecurityMiddleware routes it \
+         through ApprovalGate::intercept_audited before execute() runs"
     );
 }
 

@@ -1113,6 +1113,21 @@ impl Tool for ResumeFlowRunTool {
 
 /// `cancel_flow_run`: stop an in-flight or parked run. Write-class — it changes
 /// run state but fires no new outbound effect.
+///
+/// **T-M3 fix.** This tool used to cancel an arbitrary `run_id` with no
+/// ownership check at all — combined with `external_effect() == false` (so
+/// the approval gate never parked it) and hiding that only covered the two
+/// `flows_build` copilot/headless paths (`FLOWS_BUILD_COPILOT_HIDDEN_TOOLS`,
+/// not the orchestrator-delegation or main-chat paths that also carry this
+/// tool), a prompt-injected turn could cancel ANY user's in-flight or
+/// approval-parked automation, unapproved. Two independent closes now apply:
+/// 1. **Ownership check** — the caller must name the `flow_id` it believes
+///    owns the run (mirrors [`ResumeFlowRunTool`]'s existing `{ flow_id,
+///    run_id }` shape); the run row's *actual* `flow_id` is resolved and
+///    compared, and a mismatch is refused rather than silently cancelling a
+///    run scoped to a different flow.
+/// 2. **`external_effect() == true`** — parks for approval on any surface
+///    that has a gate, same as `resume_flow_run`.
 pub struct CancelFlowRunTool {
     config: Arc<Config>,
 }
@@ -1131,16 +1146,19 @@ impl Tool for CancelFlowRunTool {
 
     fn description(&self) -> &str {
         "Cancel an in-flight or approval-parked flow run by its run_id (from list_flow_runs). \
-         Stops a runaway or stuck run; fires no new outbound effect. Params: { run_id }."
+         Stops a runaway or stuck run; fires no new outbound effect. The run_id must belong to \
+         the given flow_id — cancelling a run that belongs to a different flow is refused. \
+         Approval-gated. Params: { flow_id, run_id }."
     }
 
     fn parameters_schema(&self) -> Value {
         json!({
             "type": "object",
             "properties": {
+                "flow_id": { "type": "string", "description": "The flow that owns the run being cancelled (from list_flow_runs)." },
                 "run_id": { "type": "string", "description": "The run (thread) id to cancel." }
             },
-            "required": ["run_id"],
+            "required": ["flow_id", "run_id"],
             "additionalProperties": false
         })
     }
@@ -1150,15 +1168,44 @@ impl Tool for CancelFlowRunTool {
     }
 
     fn external_effect(&self) -> bool {
-        false
+        true
     }
 
     async fn execute(&self, args: Value) -> anyhow::Result<ToolResult> {
+        let flow_id = match args.get("flow_id").and_then(Value::as_str).map(str::trim) {
+            Some(id) if !id.is_empty() => id.to_string(),
+            _ => return Ok(ToolResult::error("Missing 'flow_id' parameter".to_string())),
+        };
         let run_id = match args.get("run_id").and_then(Value::as_str).map(str::trim) {
             Some(id) if !id.is_empty() => id.to_string(),
             _ => return Ok(ToolResult::error("Missing 'run_id' parameter".to_string())),
         };
-        tracing::debug!(target: "flows", %run_id, "[flows] cancel_flow_run: cancelling run");
+
+        // SECURITY (T-M3 fix): verify the run actually belongs to the
+        // caller-named flow before cancelling anything — mirrors
+        // `resume_flow_run` (`ops::flows_resume`)'s existing `run_record.flow_id
+        // != flow_id` guard. Without this, any run_id (guessed, enumerated, or
+        // named by a prompt-injected turn that never called list_flow_runs)
+        // could cancel a run scoped to a completely different flow.
+        let run = match ops::flows_get_run(&self.config, &run_id).await {
+            Ok(outcome) => outcome.value,
+            Err(e) => return Ok(ToolResult::error(format!("Could not cancel run: {e}"))),
+        };
+        if run.flow_id != flow_id {
+            tracing::warn!(
+                target: "flows",
+                %flow_id,
+                %run_id,
+                actual_flow_id = %run.flow_id,
+                "[flows] cancel_flow_run: refused — run belongs to a different flow than the one named"
+            );
+            return Ok(ToolResult::error(format!(
+                "run '{run_id}' belongs to flow '{}', not '{flow_id}' — refusing to cancel",
+                run.flow_id
+            )));
+        }
+
+        tracing::debug!(target: "flows", %flow_id, %run_id, "[flows] cancel_flow_run: cancelling run");
         match ops::flows_cancel_run(&self.config, &run_id).await {
             Ok(outcome) => Ok(ToolResult::success(serde_json::to_string_pretty(
                 &outcome.value,
