@@ -1,32 +1,50 @@
 //! Agent tool belt for the `workflow-builder` specialist (Phase 5b).
 //!
 //! These tools give the `workflow-builder` agent (see
-//! `agent_registry/agents/workflow_builder/`) a **deliberately narrow**,
-//! propose-or-read surface for authoring tinyflows [`WorkflowGraph`]s in chat:
+//! `agent_registry/agents/workflow_builder/`) its full authoring surface for
+//! tinyflows [`WorkflowGraph`]s in chat — 22 tools spanning propose-only
+//! validation, in-place draft mutation, live reads, one bounded real Composio
+//! call, run control, and persistence:
 //!
-//! | Tool                    | Permission              | Effect                                    |
-//! | ----------------------- | ----------------------- | ----------------------------------------- |
-//! | [`ReviseWorkflowTool`]  | `None`                  | validate a revised draft → proposal       |
-//! | [`ListFlowsTool`]       | `None`                  | read: list saved flows                    |
-//! | [`GetFlowTool`]         | `None`                  | read: fetch a saved flow's graph          |
-//! | [`GetFlowRunTool`]      | `None`                  | read: fetch a run's steps                 |
-//! | [`ListFlowConnectionsTool`] | `None`              | read: connection refs (ids/names only)    |
-//! | [`SearchToolCatalogTool`]   | `None`              | read: real Composio tool slugs (live catalog) |
-//! | [`GetToolContractTool`]     | `None`              | read: one action's FULL live contract     |
-//! | [`GetToolOutputSampleTool`] | `ReadOnly`          | ONE bounded real Composio call (Read-scope only, connected toolkit only) |
-//! | [`ListAgentProfilesTool`]   | `None`              | read: selectable agent kinds (`agent_ref`)|
-//! | [`DryRunWorkflowTool`]  | `Execute` (tier-gated)  | run a *draft* against MOCK capabilities   |
-//! | [`SaveWorkflowTool`]    | `Write`                 | persist a graph onto an EXISTING flow     |
+//! | Tool                             | Permission | Effect                                                        |
+//! | --------------------------------- | ---------- | ---------------------------------------------------------------- |
+//! | [`ReviseWorkflowTool`]            | `None`     | validate a revised draft → proposal (never persists)              |
+//! | [`EditWorkflowTool`]              | `None`     | mutate a draft in place (`add_node`/`remove_edge`/…) — never saves |
+//! | [`ValidateWorkflowTool`]          | `None`     | read: run the full gate stack without emitting a proposal card    |
+//! | [`GetFlowHistoryTool`]            | `None`     | read: a saved flow's prior graph snapshots                        |
+//! | [`ListFlowRunsTool`]              | `None`     | read: a flow's run history                                        |
+//! | [`ResumeFlowRunTool`]             | `Execute`  | advance a run parked on approval — approved nodes fire for real   |
+//! | [`CancelFlowRunTool`]             | `Write`    | stop an in-flight/parked run; fires no new outbound effect        |
+//! | [`CreateWorkflowTool`]            | `Write`    | persist a NEW flow — always born **DISABLED**                     |
+//! | [`DuplicateFlowTool`]             | `Write`    | clone a saved flow — the copy is always born **DISABLED**         |
+//! | [`ListConnectableToolkitsTool`]   | `None`     | read: which toolkits are already connected                        |
+//! | [`ListFlowsTool`]                 | `None`     | read: list saved flows                                            |
+//! | [`GetFlowTool`]                   | `None`     | read: fetch a saved flow's graph                                  |
+//! | [`GetFlowRunTool`]                | `None`     | read: fetch a run's steps                                         |
+//! | [`ListFlowConnectionsTool`]       | `None`     | read: connection refs (ids/names only)                            |
+//! | [`SearchToolCatalogTool`]         | `None`     | read: real Composio tool slugs (live catalog)                     |
+//! | [`GetToolContractTool`]           | `None`     | read: one action's FULL live contract                             |
+//! | [`GetToolOutputSampleTool`]       | `ReadOnly` | ONE bounded real Composio call (Read-scope only, connected toolkit only) |
+//! | [`ListAgentProfilesTool`]         | `None`     | read: selectable agent kinds (`agent_ref`)                        |
+//! | [`ListNodeKindsTool`]             | `None`     | read: the DSL's node kinds                                        |
+//! | [`GetNodeKindContractTool`]       | `None`     | read: one node kind's config/port/example/gotcha contract         |
+//! | [`DryRunWorkflowTool`]            | `None`     | run a *draft* against MOCK capabilities — not tier-gated (F7)     |
+//! | [`SaveWorkflowTool`]              | `Write`    | persist a graph onto an EXISTING flow                              |
 //!
-//! **Human-in-the-loop invariant (shared with [`super::tools::ProposeWorkflowTool`]),
-//! with one deliberate carve-out:** `revise_workflow` only validates and
-//! returns a proposal payload (identical contract to `propose_workflow`); the
-//! read tools are pure reads; `dry_run_workflow` executes against `tinyflows`'
-//! deterministic **mock** capabilities so no real LLM / tool / HTTP / code side
-//! effect can fire. The carve-out is [`SaveWorkflowTool`]: it persists a graph
-//! onto a flow that ALREADY exists (the Flows prompt bar's instant-create path
-//! makes the flow first and hands the agent its id) — but the agent still
-//! cannot *create* a flow, and never touches `enabled`/`require_approval`.
+//! **Human-in-the-loop invariant.** Enabling a flow is not a tool this agent
+//! has, by design, no matter which tool above it reaches for:
+//! [`CreateWorkflowTool`] and [`DuplicateFlowTool`] always produce a
+//! **DISABLED** flow, and [`SaveWorkflowTool`] never sets
+//! `enabled`/`require_approval` (it CAN auto-disable an already-enabled flow
+//! when the graph's trigger transitions from manual to automatic — see its
+//! own doc). `revise_workflow` / `edit_workflow` / `validate_workflow` only
+//! validate or mutate a draft and never persist. `dry_run_workflow` executes
+//! only against `tinyflows`' deterministic **mock** capabilities, so no real
+//! LLM / tool / HTTP / code side effect can fire from it regardless of tier
+//! (F7 — it is deliberately NOT tier-gated; see its own doc).
+//! [`ResumeFlowRunTool`] is the one place a non-persistence tool can cause a
+//! real effect: resuming a parked run lets its already-approved nodes fire,
+//! which is why it is `Execute`-gated rather than `None`/`Write`.
 //!
 //! The agent's full tool scope (see `agent_registry/agents/workflow_builder/
 //! agent.toml`) also grants the Composio **discovery/connect** tools —
@@ -56,7 +74,6 @@ use crate::openhuman::config::Config;
 use crate::openhuman::flows::ops;
 use crate::openhuman::flows::ops::validate_and_migrate_graph;
 use crate::openhuman::flows::tools;
-use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
 
 /// Wall-clock bound on a single `dry_run_workflow` mock execution. A malformed
@@ -2496,7 +2513,7 @@ impl Tool for GetNodeKindContractTool {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// dry_run_workflow — execute a DRAFT against MOCK capabilities (tier-gated)
+// dry_run_workflow — execute a DRAFT against MOCK capabilities (ungated, F7)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// `dry_run_workflow`: compile a **draft** graph and run it against tinyflows'
@@ -2508,9 +2525,16 @@ impl Tool for GetNodeKindContractTool {
 /// capabilities are echo stubs, so nothing external ever fires regardless of
 /// the graph. The output is explicitly labeled `sandbox: true`.
 ///
-/// Autonomy-tier gated (issue: Phase 2 node gating): read-only tier refuses,
-/// mirroring the `SecurityPolicy` contract that a read-only session cannot
-/// exercise executable capability even in simulation.
+/// **Not autonomy-tier gated (F7):** `permission_level()` returns
+/// [`PermissionLevel::None`], so this tool runs on EVERY tier, read-only
+/// included — a read-only agent must be able to self-verify its own proposal.
+/// This is intentional, not an oversight: the mock capabilities never touch a
+/// real integration, so there is nothing for a tier gate to protect. See
+/// `dry_run_allowed_under_readonly_tier` in `builder_tools_tests.rs` for the
+/// pinned regression (an earlier draft of this tool *was* tier-gated via an
+/// unused `SecurityPolicy` field; the field was dead code by the time it
+/// shipped and was removed rather than wired up, since side-effect-free
+/// simulation has no tier to gate against).
 ///
 /// **Wiring preflight:** the mock tool invoker is wrapped in the host's
 /// [`PreflightToolInvoker`](crate::openhuman::tinyflows::caps::PreflightToolInvoker),
@@ -2684,13 +2708,12 @@ fn tool_call_arg_null_entries(
 }
 
 pub struct DryRunWorkflowTool {
-    security: Arc<SecurityPolicy>,
     config: Arc<Config>,
 }
 
 impl DryRunWorkflowTool {
-    pub fn new(security: Arc<SecurityPolicy>, config: Arc<Config>) -> Self {
-        Self { security, config }
+    pub fn new(config: Arc<Config>) -> Self {
+        Self { config }
     }
 }
 
@@ -3272,16 +3295,24 @@ impl CapturingObserver {
 /// an **existing, already-saved** flow via [`ops::flows_update`] — the same
 /// validate-and-migrate path the UI's Save uses.
 ///
-/// This is the deliberate, narrow exception to the belt's original
-/// "propose, never persist" invariant (added for the Flows prompt bar's
-/// instant-create path, where the host creates the flow *before* delegating and
-/// hands the agent its `flow_id`). The boundaries that remain:
+/// It was originally added as a narrow, deliberate exception to the belt's
+/// "propose, never persist" invariant (for the Flows prompt bar's
+/// instant-create path, where the host creates the flow *before* delegating
+/// and hands the agent its `flow_id`) — before [`CreateWorkflowTool`] and
+/// [`DuplicateFlowTool`] existed, this was the belt's only write. Both now
+/// exist, so `save_workflow` is one of three persistence tools, not the sole
+/// one. Its own remaining boundaries:
 ///
-/// - **Update-only.** It requires an existing `flow_id`; there is still no tool
-///   to *create* a flow, so the agent can only write where the host (or user)
-///   already made a flow.
+/// - **Update-only.** It requires an existing `flow_id`; it never fabricates
+///   one. Creating a flow is [`CreateWorkflowTool`]/[`DuplicateFlowTool`]'s
+///   job — `save_workflow` can only write onto a flow that already exists
+///   (whether the host, the user, or an earlier `create_workflow`/
+///   `duplicate_flow` call made it).
 /// - **Never touches enablement or the approval gate.** `enabled` and
-///   `require_approval` are not parameters; whatever the user set stays.
+///   `require_approval` are not parameters; whatever the user set stays —
+///   except that saving a graph whose trigger just transitioned from manual
+///   to automatic on an already-enabled flow auto-disables it (see
+///   [`ops::flows_update`]'s own doc for that guard).
 /// - **Real persistence, real consequences.** Saving a `schedule`/`app_event`
 ///   trigger onto an ENABLED flow arms it (the trigger binds and will fire on
 ///   its own) — hence `PermissionLevel::Write`. The description tells the agent

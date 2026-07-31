@@ -1,6 +1,5 @@
 use super::*;
 use crate::openhuman::config::Config;
-use crate::openhuman::security::{AutonomyLevel, SecurityPolicy};
 use serde_json::json;
 use tempfile::TempDir;
 
@@ -13,13 +12,6 @@ fn test_config(tmp: &TempDir) -> Arc<Config> {
     };
     std::fs::create_dir_all(&config.workspace_dir).unwrap();
     Arc::new(config)
-}
-
-fn policy(level: AutonomyLevel) -> Arc<SecurityPolicy> {
-    Arc::new(SecurityPolicy {
-        autonomy: level,
-        ..SecurityPolicy::default()
-    })
 }
 
 fn valid_graph() -> Value {
@@ -820,10 +812,7 @@ async fn get_tool_output_sample_refuses_an_unconnected_toolkit() {
 
 #[test]
 fn dry_run_is_side_effect_free_and_ungated() {
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     assert_eq!(tool.name(), "dry_run_workflow");
     // Mock-only + side-effect-free → PermissionLevel::None, available on every
     // tier including read-only (audit F7).
@@ -835,10 +824,7 @@ fn dry_run_is_side_effect_free_and_ungated() {
 async fn dry_run_allowed_under_readonly_tier() {
     // F7: dry_run is mock-only and side-effect-free, so a read-only agent must
     // be able to self-verify its own proposal (previously refused).
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::ReadOnly),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     assert_eq!(tool.permission_level(), PermissionLevel::None);
     let result = tool
         .execute(json!({ "graph": valid_graph() }))
@@ -851,10 +837,7 @@ async fn dry_run_allowed_under_readonly_tier() {
 
 #[tokio::test]
 async fn dry_run_supervised_runs_against_mock_and_labels_sandbox() {
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let result = tool
         .execute(json!({ "graph": valid_graph(), "input": { "x": 1 } }))
         .await
@@ -878,10 +861,7 @@ async fn dry_run_exercises_agent_ref_node_via_mock_agent_runner() {
     // capability; now `mock_capabilities_with_agent(MockAgentRunner)` echoes the
     // ref and the dry run goes green — proving the builder can self-test drafts
     // that use agent-kind nodes.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -913,10 +893,7 @@ async fn dry_run_plain_agent_with_output_parser_schema_is_green() {
     // validation after auto-fix: missing required property ...`, sinking a
     // correctly-built graph. Now the mock LLM synthesizes a schema-valid object,
     // and a downstream node binds the typed placeholders (non-null).
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Schedule",
@@ -977,10 +954,7 @@ async fn dry_run_plain_agent_with_output_parser_schema_is_green() {
 
 #[tokio::test]
 async fn dry_run_invalid_graph_is_error() {
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Full),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let result = tool
         .execute(json!({ "graph": { "nodes": [], "edges": [] } }))
         .await
@@ -997,7 +971,7 @@ async fn dry_run_catches_unwired_required_composio_arg() {
     seed_live_catalog_cache("gmail", vec![seeded_gmail_send_contract()]);
 
     let tmp = TempDir::new().unwrap();
-    let tool = DryRunWorkflowTool::new(policy(AutonomyLevel::Supervised), test_config(&tmp));
+    let tool = DryRunWorkflowTool::new(test_config(&tmp));
 
     let graph_with = |args: Value| {
         json!({
@@ -1049,10 +1023,7 @@ async fn dry_run_flags_tool_call_arg_null_resolved_from_unschemad_agent() {
     // The `summarize` agent has no `output_parser.schema`, so (via the
     // schema-aware mock agent) its structured output has no `channel` field —
     // the exact "builds but does nothing" shape this check exists to catch.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1116,10 +1087,7 @@ async fn dry_run_flags_composio_upstream_binding_as_unverifiable_not_a_wiring_bu
     // process-global catalog cache other tests seed for gmail/slack/etc.
     seed_live_catalog_cache("ws6up", vec![seeded_ws6_contract("WS6UP_LOOKUP", "ws6up")]);
     seed_live_catalog_cache("ws6dl", vec![seeded_ws6_contract("WS6DL_SEND", "ws6dl")]);
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1166,10 +1134,7 @@ async fn dry_run_keeps_generic_null_text_for_a_non_tool_call_upstream_binding() 
     // `unverifiable` flag — so the honest-uncertainty treatment doesn't leak
     // onto real mistakes.
     seed_live_catalog_cache("ws6dl", vec![seeded_ws6_contract("WS6DL_SEND", "ws6dl")]);
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1213,10 +1178,7 @@ async fn dry_run_passes_when_agent_schema_matches_tool_call_binding() {
     // always echoes `{ agent, request, connection }` regardless of schema)
     // this would incorrectly fail — proving the mock is what makes the check
     // accurate rather than perpetually red for correctly-built graphs.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1252,10 +1214,7 @@ async fn dry_run_passes_when_agent_schema_matches_tool_call_binding() {
 async fn dry_run_passes_when_tool_call_binds_to_upstream_tool_output() {
     // A `tool_call` binding to another `tool_call`'s real output (not an
     // agent at all) must not be affected by the agent-schema machinery above.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1301,10 +1260,7 @@ async fn dry_run_flags_tool_call_error_when_on_error_is_route() {
     // `dry_run_passes_when_tool_call_binds_to_upstream_tool_output` above.
     seed_live_catalog_cache("gmail", vec![seeded_gmail_send_contract()]);
 
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1347,10 +1303,7 @@ async fn dry_run_flags_tool_call_error_when_on_error_is_continue() {
     // converts a node failure into routed data instead of failing the run.
     seed_live_catalog_cache("gmail", vec![seeded_gmail_send_contract()]);
 
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1384,10 +1337,7 @@ async fn dry_run_passes_when_agent_enum_schema_binds_to_tool_call() {
     // must synthesize an ALLOWED value (not a generic `""` placeholder, which
     // would fail the vendored validator's `enum` check) so a correctly-built
     // graph using an enum schema dry-runs green instead of false-positiving.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1426,10 +1376,7 @@ async fn dry_run_flags_null_resolved_agent_prompt() {
     // vendored engine's own `resolve_traced` records it as a null resolution
     // at `location: "prompt"`, meaning the agent would run with an EMPTY
     // prompt. Unlike other agent-config nulls, this one must fail the dry run.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1477,10 +1424,7 @@ async fn dry_run_flags_null_resolved_agent_input_context() {
     // since #4590, so a null-resolved `input_context` is just as
     // execution-breaking as a null `prompt` — the agent runs with no
     // upstream data at all. Must fail the dry run the same way.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1518,10 +1462,7 @@ async fn dry_run_passes_when_agent_uses_input_context_instead_of_prompt_expressi
     // The FALSE-POSITIVE-PREVENTION case: the same data need, wired the
     // correct way — `input_context` carries the upstream item, `prompt`
     // stays a plain instruction with no leading `=`. This must dry-run green.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1560,10 +1501,7 @@ async fn dry_run_warns_on_unexercised_agent_after_condition() {
     // could easily carry `active: true` and take the other branch, so the
     // dry run must still surface this as a warning even though `ok` stays
     // `true` — there's nothing here that flips it to a hard reject.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -1604,10 +1542,7 @@ async fn dry_run_warns_on_unexercised_agent_after_condition() {
 async fn dry_run_no_routing_divergence_warning_when_every_node_executes() {
     // FALSE-POSITIVE-PREVENTION: a condition whose taken branch under the
     // default mock input DOES reach the downstream agent must not warn.
-    let tool = DryRunWorkflowTool::new(
-        policy(AutonomyLevel::Supervised),
-        test_config(&TempDir::new().unwrap()),
-    );
+    let tool = DryRunWorkflowTool::new(test_config(&TempDir::new().unwrap()));
     let graph = json!({
         "nodes": [
             { "id": "t", "kind": "trigger", "name": "Manual" },
@@ -2658,7 +2593,7 @@ async fn dry_run_workflow_by_flow_id_runs_the_saved_flow_graph() {
         .await
         .unwrap()
         .value;
-    let tool = DryRunWorkflowTool::new(policy(AutonomyLevel::Supervised), config.clone());
+    let tool = DryRunWorkflowTool::new(config.clone());
     let result = tool.execute(json!({ "flow_id": flow.id })).await.unwrap();
     assert!(!result.is_error, "{}", result.output());
     let parsed: Value = serde_json::from_str(&result.output()).unwrap();
@@ -2731,4 +2666,63 @@ async fn revise_workflow_proposal_is_marked_unpersisted() {
     assert!(!result.is_error, "{}", result.output());
     let parsed: Value = serde_json::from_str(&result.output()).unwrap();
     assert_eq!(parsed["persisted"], false);
+}
+
+/// Docs-drift guard (T-m2): the top-of-file module doc table went stale
+/// enough to list 11 of ~22 tools, mis-describe `DryRunWorkflowTool`'s
+/// permission, and claim a `create_workflow`-adjacent invariant the code
+/// didn't hold — all silently, because nothing checked the table against the
+/// actual `impl Tool for` list. This mirrors the pattern
+/// `propose_workflow_description_matches_typed_node_contracts`
+/// (`tools_tests.rs`) established for node-kind contracts: derive the ground
+/// truth from the SAME source file rather than hardcoding a second list here
+/// (a hardcoded list would just be a new place to go stale), and fail loudly
+/// in both directions — a real tool missing from the table, or a table entry
+/// naming a tool that no longer exists.
+#[test]
+fn module_doc_tool_table_matches_registered_tools() {
+    const SOURCE: &str = include_str!("builder_tools.rs");
+
+    let module_doc: String = SOURCE
+        .lines()
+        .filter(|line| line.trim_start().starts_with("//!"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        !module_doc.is_empty(),
+        "sanity: expected builder_tools.rs to carry a top-of-file `//!` module doc"
+    );
+
+    let impl_re = regex::Regex::new(r"impl Tool for (\w+)\s*\{").expect("valid regex");
+    let registered: std::collections::BTreeSet<String> = impl_re
+        .captures_iter(SOURCE)
+        .map(|c| c[1].to_string())
+        .collect();
+    assert!(
+        !registered.is_empty(),
+        "sanity: expected at least one `impl Tool for` in builder_tools.rs"
+    );
+
+    for tool in &registered {
+        assert!(
+            module_doc.contains(tool.as_str()),
+            "module doc table is missing `{tool}` — every `impl Tool for` in this file \
+             must be listed in the top-of-file doc table (T-m2)"
+        );
+    }
+
+    // The reverse direction: every `[`FooTool`]` reference in the doc must
+    // name a tool that actually still exists, so a removed/renamed tool
+    // can't leave a stale row behind.
+    let doc_ref_re = regex::Regex::new(r"\[`(\w+)`\]").expect("valid regex");
+    for cap in doc_ref_re.captures_iter(&module_doc) {
+        let name: &str = &cap[1];
+        if name.ends_with("Tool") {
+            assert!(
+                registered.contains(name),
+                "module doc table references `{name}`, but no `impl Tool for {name}` exists \
+                 in this file — the doc table has a stale entry"
+            );
+        }
+    }
 }

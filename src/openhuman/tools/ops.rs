@@ -376,7 +376,7 @@ pub fn all_tools_with_runtime(
         #[cfg(feature = "flows")]
         Box::new(GetNodeKindContractTool::new()),
         #[cfg(feature = "flows")]
-        Box::new(DryRunWorkflowTool::new(security.clone(), config.clone())),
+        Box::new(DryRunWorkflowTool::new(config.clone())),
         // Real end-to-end test run of a SAVED flow (Write / external-effect). The
         // workflow-builder prompt requires it to ask the user for confirmation
         // first, and the flow's own approval gate still pauses outbound nodes.

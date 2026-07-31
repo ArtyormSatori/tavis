@@ -1506,10 +1506,16 @@ pub(crate) fn composio_connection_id(conn: &str) -> Option<&str> {
     (!id.is_empty()).then_some(id)
 }
 
-/// Parses a `"http_cred:<name>"` `connection_ref` for [`OpenHumanHttp`]. No
-/// host-side HTTP credential store exists yet — this only extracts the name
-/// so the adapter can log a clear, actionable warning instead of silently
-/// ignoring the reference. See [`OpenHumanHttp::request`]'s doc.
+/// Parses a `"http_cred:<name>"` `connection_ref` for [`OpenHumanHttp`],
+/// returning the trailing credential name. The host-side
+/// [`HttpCredentialsStore`] (encrypted-at-rest bearer/basic/header
+/// templates) is real and load-bearing — [`resolve_http_credential`] looks
+/// the extracted name up in it and injects the resolved auth header
+/// server-side. This function only does the parse; a malformed or missing
+/// name (`None`) is what lets the caller fail the request closed instead of
+/// silently sending it unauthenticated. See [`OpenHumanHttp::request`]'s doc
+/// and the "Phase 2" note on the [`OpenHumanHttp`] struct for the full
+/// resolution flow.
 pub(crate) fn http_cred_name(conn: &str) -> Option<&str> {
     let name = conn.strip_prefix("http_cred:")?.trim();
     (!name.is_empty()).then_some(name)

@@ -681,11 +681,14 @@ pub fn insert_flow_run(
 }
 
 /// Prunes a flow's run history down to at most `keep` of its most-recent runs,
-/// deleting only **terminal** rows (`completed` / `failed` / `cancelled`) that
-/// fall outside the newest-`keep` window. Non-terminal runs (`running`,
-/// `pending_approval`) are never deleted — a parked `pending_approval` run must
-/// never be pruned out from under a pending `flows_resume`, and a `running` row
-/// belongs to a live task. Returns the number of rows deleted.
+/// deleting any row outside the newest-`keep` window whose `status` is NOT
+/// `running` or `pending_approval` — that is every terminal status this store
+/// can hold (`completed`, `completed_with_warnings`, `failed`, `cancelled`,
+/// `interrupted`, and any future status this host doesn't recognize yet), not
+/// just the `completed`/`failed`/`cancelled` trio. The two excluded statuses
+/// are the only ones that are never deleted — a parked `pending_approval` run
+/// must never be pruned out from under a pending `flows_resume`, and a
+/// `running` row belongs to a live task. Returns the number of rows deleted.
 ///
 /// `keep` is clamped to at least 1. Exposed for the manual `flows_prune_runs`
 /// sweep; the new-run insert path calls the connection-scoped helper directly.
