@@ -176,6 +176,7 @@ fn run_json_emits_epoch_millis_and_omits_what_it_cannot_read() {
         steps: Vec::new(),
         pending_approvals: Vec::new(),
         error: None,
+        graph_hash: None,
     };
     let value = run_json(&run);
     assert_eq!(value["id"], "r1");

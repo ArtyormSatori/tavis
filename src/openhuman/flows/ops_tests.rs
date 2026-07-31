@@ -1683,6 +1683,283 @@ async fn flows_resume_continues_a_paused_run_to_completion() {
     );
 }
 
+/// T-M1 end-to-end: a run parks `pending_approval` on the gate node, the user
+/// sees an approval card describing the graph as it existed at park time, and
+/// `save_workflow` (modeled here via `store::update_flow_graph`, exactly like
+/// `flows_resume_marks_an_incompatible_legacy_checkpoint_failed` above models
+/// a pre-gate legacy checkpoint) rewrites a downstream node while the approval
+/// sits pending. `flows_resume` must refuse — never compile the CURRENT graph
+/// against the OLD checkpoint and fire the new config under the stale
+/// approval — and must settle the run terminally rather than leave it parked.
+#[tokio::test]
+async fn flows_resume_refuses_when_the_graph_changed_after_park() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let created = flows_create(&config, "gated".to_string(), approval_gated_graph(), false)
+        .await
+        .unwrap();
+
+    let run = flows_run(
+        &config,
+        &created.value.id,
+        json!({ "x": 1 }),
+        FlowRunTrigger::Rpc,
+    )
+    .await
+    .unwrap();
+    let thread_id = run.value["thread_id"].as_str().unwrap().to_string();
+    let pending: Vec<String> =
+        serde_json::from_value(run.value["pending_approvals"].clone()).unwrap();
+    assert_eq!(pending, vec!["gate".to_string()]);
+
+    // A freshly parked run must have pinned the graph it parked against.
+    let parked_row = flows_get_run(&config, &thread_id).await.unwrap().value;
+    assert!(
+        parked_row.graph_hash.is_some(),
+        "a freshly parked run must pin the graph it parked against: {parked_row:?}"
+    );
+
+    // Simulate `save_workflow` rewriting the "downstream" node while the
+    // approval card the user is looking at still describes the OLD graph.
+    let mut rewritten = approval_gated_graph();
+    assert_eq!(rewritten["nodes"][2]["id"], "downstream");
+    rewritten["nodes"][2]["name"] = json!("Downstream (rewired by save_workflow)");
+    store::update_flow_graph(
+        &config,
+        &created.value.id,
+        created.value.name.clone(),
+        structurally_valid_graph(rewritten),
+        created.value.require_approval,
+        None,  // enabled_override
+        false, // force_disarm_if_automatic — this fixture isn't exercising the
+        // manual->automatic disarm path, only the graph swap.
+        None,
+    )
+    .unwrap();
+
+    let error = flows_resume(
+        &config,
+        &created.value.id,
+        &thread_id,
+        pending.clone(),
+        vec![],
+    )
+    .await
+    .expect_err("resume must refuse once the graph changed after park");
+    assert!(
+        error.contains("changed after this run was paused"),
+        "{error}"
+    );
+
+    // Must NOT have executed: the engine must never have run, so "downstream"
+    // must not appear among the run's persisted steps.
+    let run_row = flows_get_run(&config, &thread_id).await.unwrap().value;
+    assert_eq!(run_row.status, "cancelled");
+    assert!(
+        !run_row.steps.iter().any(|s| s.node_id == "downstream"),
+        "the run must not execute the new config under the stale approval: {run_row:?}"
+    );
+    assert!(
+        run_row
+            .error
+            .as_deref()
+            .is_some_and(|e| e.contains("changed after this run was paused")),
+        "the terminal run row should retain the refusal reason: {run_row:?}"
+    );
+    let flow = flows_get(&config, &created.value.id).await.unwrap().value;
+    assert_eq!(flow.last_status.as_deref(), Some("cancelled"));
+
+    // A second resume attempt must not succeed either — the checkpoint was
+    // dropped, and the row is now terminal, not `pending_approval`.
+    let second = flows_resume(&config, &created.value.id, &thread_id, pending, vec![]).await;
+    assert!(
+        second.is_err(),
+        "a settled/refused run must not be resumable again"
+    );
+}
+
+/// The success-path mirror of the refusal test above: when nothing rewrites
+/// the flow between park and resume, the recomputed hash matches the pinned
+/// one and the resume proceeds exactly as it did before this guard existed.
+#[tokio::test]
+async fn flows_resume_succeeds_when_the_graph_is_unchanged() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let created = flows_create(&config, "gated".to_string(), approval_gated_graph(), false)
+        .await
+        .unwrap();
+
+    let run = flows_run(
+        &config,
+        &created.value.id,
+        json!({ "x": 1 }),
+        FlowRunTrigger::Rpc,
+    )
+    .await
+    .unwrap();
+    let thread_id = run.value["thread_id"].as_str().unwrap().to_string();
+    let pending: Vec<String> =
+        serde_json::from_value(run.value["pending_approvals"].clone()).unwrap();
+
+    let parked_row = flows_get_run(&config, &thread_id).await.unwrap().value;
+    assert!(
+        parked_row.graph_hash.is_some(),
+        "a freshly parked run must pin the graph it parked against"
+    );
+
+    let resumed = flows_resume(&config, &created.value.id, &thread_id, pending, vec![])
+        .await
+        .expect("resume must succeed when the pinned graph still matches the current one");
+    assert_eq!(resumed.value["pending_approvals"], json!([]));
+    assert!(
+        !resumed.value["output"]["nodes"]["downstream"]["items"].is_null(),
+        "downstream should run once the gate is approved via resume"
+    );
+
+    let run_row = flows_get_run(&config, &thread_id).await.unwrap().value;
+    assert_eq!(run_row.status, "completed");
+    assert!(
+        run_row.graph_hash.is_none(),
+        "a settled row clears its park-time pin rather than leaving it stale: {run_row:?}"
+    );
+}
+
+/// Migration safety (T-M1 requirement #4): a `flow_runs` row written before
+/// this guard existed reads back with `graph_hash IS NULL`. That must be
+/// treated as "unknown — allow, with a warning", never as a hard refusal, so
+/// upgrading mid-park can never strand an otherwise-valid in-flight approval
+/// — even if the flow's graph was *also* edited in the meantime, since there
+/// is nothing recorded to compare it against.
+#[tokio::test]
+async fn flows_resume_allows_a_legacy_row_with_null_graph_hash() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let created = flows_create(&config, "gated".to_string(), approval_gated_graph(), false)
+        .await
+        .unwrap();
+
+    let run = flows_run(
+        &config,
+        &created.value.id,
+        json!({ "x": 1 }),
+        FlowRunTrigger::Rpc,
+    )
+    .await
+    .unwrap();
+    let thread_id = run.value["thread_id"].as_str().unwrap().to_string();
+    let pending: Vec<String> =
+        serde_json::from_value(run.value["pending_approvals"].clone()).unwrap();
+
+    // Simulate a row written before the T-M1 migration: still `pending_approval`,
+    // but with no graph hash pinned — exactly what `add_column_if_missing`
+    // leaves behind for every row that existed before this feature shipped.
+    let now = Utc::now().to_rfc3339();
+    store::finish_flow_run(
+        &config,
+        &thread_id,
+        "pending_approval",
+        &now,
+        &[],
+        &pending,
+        None,
+        None,
+    )
+    .unwrap();
+    let staged = flows_get_run(&config, &thread_id).await.unwrap().value;
+    assert!(
+        staged.graph_hash.is_none(),
+        "fixture must simulate a legacy row with no pin"
+    );
+
+    // The flow is ALSO rewritten afterward — a legacy row has nothing to
+    // compare against, so this must not matter.
+    let mut rewritten = approval_gated_graph();
+    rewritten["nodes"][2]["name"] = json!("Downstream (renamed)");
+    store::update_flow_graph(
+        &config,
+        &created.value.id,
+        created.value.name.clone(),
+        structurally_valid_graph(rewritten),
+        created.value.require_approval,
+        None,  // enabled_override
+        false, // force_disarm_if_automatic — this fixture isn't exercising the
+        // manual->automatic disarm path, only the graph swap.
+        None,
+    )
+    .unwrap();
+
+    let resumed = flows_resume(&config, &created.value.id, &thread_id, pending, vec![])
+        .await
+        .expect("a legacy row with no graph_hash must still resume (unknown treated as allow)");
+    assert_eq!(resumed.value["pending_approvals"], json!([]));
+}
+
+/// `compute_graph_hash` must hash graph *content*, not incidental JSON object
+/// key order. Node `config` is a free-form `serde_json::Value` (see
+/// `tinyflows::model::Node::config`), and this crate has the `preserve_order`
+/// feature active transitively — `Value`'s object map keeps insertion order
+/// rather than sorting automatically — so two structurally-identical graphs
+/// built with the same config keys in a different order would hash
+/// differently without the canonicalization `compute_graph_hash` applies.
+#[test]
+fn graph_hash_is_stable_across_serialization_key_order() {
+    let graph_a = structurally_valid_graph(json!({
+        "name": "order-test",
+        "nodes": [
+            { "id": "t", "kind": "trigger", "name": "Trigger" },
+            {
+                "id": "n",
+                "kind": "output_parser",
+                "name": "N",
+                "config": { "a": 1, "b": 2, "nested": { "x": 1, "y": 2 } }
+            }
+        ],
+        "edges": [ { "from_node": "t", "to_node": "n" } ]
+    }));
+    let graph_b = structurally_valid_graph(json!({
+        "name": "order-test",
+        "nodes": [
+            { "id": "t", "kind": "trigger", "name": "Trigger" },
+            {
+                "id": "n",
+                "kind": "output_parser",
+                "name": "N",
+                "config": { "nested": { "y": 2, "x": 1 }, "b": 2, "a": 1 }
+            }
+        ],
+        "edges": [ { "from_node": "t", "to_node": "n" } ]
+    }));
+
+    let hash_a = compute_graph_hash(&graph_a, false).expect("graph_a should hash");
+    let hash_b = compute_graph_hash(&graph_b, false).expect("graph_b should hash");
+    assert_eq!(
+        hash_a, hash_b,
+        "the same graph content in a different key order must hash identically"
+    );
+
+    // Sanity: an actually-different graph must NOT collide.
+    let mut graph_c_value = json!({
+        "name": "order-test",
+        "nodes": [
+            { "id": "t", "kind": "trigger", "name": "Trigger" },
+            {
+                "id": "n",
+                "kind": "output_parser",
+                "name": "N",
+                "config": { "a": 1, "b": 2, "nested": { "x": 1, "y": 2 } }
+            }
+        ],
+        "edges": [ { "from_node": "t", "to_node": "n" } ]
+    });
+    graph_c_value["nodes"][1]["config"]["a"] = json!(999);
+    let graph_c = structurally_valid_graph(graph_c_value);
+    let hash_c = compute_graph_hash(&graph_c, false).expect("graph_c should hash");
+    assert_ne!(
+        hash_a, hash_c,
+        "a genuinely different graph must not collide"
+    );
+}
+
 #[tokio::test]
 async fn flows_resume_marks_an_incompatible_legacy_checkpoint_failed() {
     let tmp = TempDir::new().unwrap();
@@ -1705,15 +1982,38 @@ async fn flows_resume_marks_an_incompatible_legacy_checkpoint_failed() {
     // Simulate a graph persisted before the host compatibility gate existed.
     // The store layer intentionally trusts its typed caller; authoring paths
     // own validation.
+    let legacy_graph = structurally_valid_graph(nested_conditional_fan_in_graph());
     store::update_flow_graph(
         &config,
         &created.value.id,
         created.value.name.clone(),
-        structurally_valid_graph(nested_conditional_fan_in_graph()),
+        legacy_graph.clone(),
         created.value.require_approval,
         None,
         false,
         None,
+    )
+    .unwrap();
+    // T-M1: re-pin the parked row's graph_hash to this same (legacy,
+    // incompatible) graph. Without this the fixture reads as "the graph
+    // changed after park" (a DIFFERENT bug class this same PR now catches
+    // earlier and refuses with a distinct message) rather than "the
+    // checkpoint has always been incompatible" — the scenario this test
+    // means to pin. A real legacy row predating T-M1 would carry
+    // `graph_hash: NULL` and fall through the same way (see the
+    // `flows_resume_allows_a_legacy_row_with_null_graph_hash` test above).
+    let run_row_before = flows_get_run(&config, &thread_id).await.unwrap().value;
+    let legacy_hash = compute_graph_hash(&legacy_graph, created.value.require_approval)
+        .expect("fixture graph should hash");
+    store::finish_flow_run(
+        &config,
+        &thread_id,
+        "pending_approval",
+        &run_row_before.finished_at.unwrap_or_default(),
+        &run_row_before.steps,
+        &run_row_before.pending_approvals,
+        None,
+        Some(&legacy_hash),
     )
     .unwrap();
 
@@ -1765,15 +2065,33 @@ async fn flows_resume_marks_a_checkpoint_with_an_incompatible_saved_child_failed
         false,
     )
     .unwrap();
+    let legacy_graph = structurally_valid_graph(referenced_child_graph(&child.id));
     store::update_flow_graph(
         &config,
         &created.value.id,
         created.value.name.clone(),
-        structurally_valid_graph(referenced_child_graph(&child.id)),
+        legacy_graph.clone(),
         created.value.require_approval,
         None,
         false,
         None,
+    )
+    .unwrap();
+    // T-M1: re-pin the parked row's hash to this same graph — see the sibling
+    // legacy-checkpoint test above for why this fixture needs it now that a
+    // graph swap is independently caught by the stale-approval guard.
+    let run_row_before = flows_get_run(&config, &thread_id).await.unwrap().value;
+    let legacy_hash = compute_graph_hash(&legacy_graph, created.value.require_approval)
+        .expect("fixture graph should hash");
+    store::finish_flow_run(
+        &config,
+        &thread_id,
+        "pending_approval",
+        &run_row_before.finished_at.unwrap_or_default(),
+        &run_row_before.steps,
+        &run_row_before.pending_approvals,
+        None,
+        Some(&legacy_hash),
     )
     .unwrap();
 
@@ -2808,6 +3126,7 @@ async fn parked_run_ttl_sweep_expires_stale_runs_but_spares_fresh_ones() {
         ancient,
         &[],
         &["gate".to_string()],
+        None,
         None,
     )
     .unwrap();
@@ -7610,12 +7929,22 @@ async fn finish_flow_run_refuses_to_overwrite_an_already_terminal_row() {
     store::insert_flow_run(&config, run_id, &flow.id, run_id, &now).unwrap();
 
     // First terminal write wins.
-    let first = store::finish_flow_run(&config, run_id, "completed", &now, &[], &[], None).unwrap();
+    let first =
+        store::finish_flow_run(&config, run_id, "completed", &now, &[], &[], None, None).unwrap();
     assert!(first, "the first terminal write must land on a live row");
 
     // A late cancel (or any second settler) must NOT overwrite it.
-    let second =
-        store::finish_flow_run(&config, run_id, "cancelled", &now, &[], &[], Some("late")).unwrap();
+    let second = store::finish_flow_run(
+        &config,
+        run_id,
+        "cancelled",
+        &now,
+        &[],
+        &[],
+        Some("late"),
+        None,
+    )
+    .unwrap();
     assert!(
         !second,
         "a terminal row must not be overwritten by a second settler"
@@ -7650,7 +7979,7 @@ async fn cancel_does_not_relabel_a_run_that_settled_concurrently() {
     store::insert_flow_run(&config, run_id, &flow.id, run_id, &now).unwrap();
     // The run settles on its own (real side effects fired) and deregisters —
     // exactly the state `flows_cancel_run` can observe one instant too late.
-    store::finish_flow_run(&config, run_id, "completed", &now, &[], &[], None).unwrap();
+    store::finish_flow_run(&config, run_id, "completed", &now, &[], &[], None, None).unwrap();
 
     let result = flows_cancel_run(&config, run_id).await;
     assert!(
@@ -7691,6 +8020,7 @@ async fn mark_run_resuming_claims_only_a_parked_row() {
         &now,
         &[],
         &["gate".to_string()],
+        None,
         None,
     )
     .unwrap();
@@ -7740,6 +8070,7 @@ async fn ttl_sweep_cannot_expire_a_run_a_resume_has_claimed() {
         &[],
         &["gate".to_string()],
         None,
+        None,
     )
     .unwrap();
 
@@ -7783,6 +8114,7 @@ async fn ttl_sweep_still_expires_an_unclaimed_parked_run() {
         &[],
         &["gate".to_string()],
         None,
+        None,
     )
     .unwrap();
 
@@ -7790,4 +8122,102 @@ async fn ttl_sweep_still_expires_an_unclaimed_parked_run() {
     assert_eq!(swept, 1, "an unclaimed stale parked run must still expire");
     let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
     assert_eq!(row.status, "cancelled");
+}
+
+/// T-M1 scope: the pin must cover `require_approval`, not just the graph.
+///
+/// The flag feeds `workflow_origin(...)`, which becomes the `AgentTurnOrigin`
+/// for the whole resumed execution — `require_approval: false` auto-allows every
+/// `external_effect` tool call, where `true` parks each for its own decision.
+/// It is settable independently of the graph (`flows_update` accepts
+/// `graph_json: None, require_approval: Some(false)`), so hashing the graph
+/// alone would let someone park at a gate, get the user's approval, flip the
+/// flag with the graph untouched, and have every downstream outbound node fire
+/// unattended on resume — under an approval the user never gave.
+#[test]
+fn graph_hash_covers_require_approval_not_just_the_graph() {
+    let graph = structurally_valid_graph(trigger_only_graph());
+
+    let gated = compute_graph_hash(&graph, true).expect("should hash");
+    let ungated = compute_graph_hash(&graph, false).expect("should hash");
+
+    assert_ne!(
+        gated, ungated,
+        "flipping require_approval must invalidate the pin even when the graph is byte-identical"
+    );
+    assert_eq!(
+        gated,
+        compute_graph_hash(&graph, true).expect("should hash"),
+        "the pin must stay stable for an unchanged configuration"
+    );
+}
+
+/// T-M1 refusal must not clobber a run another resume already owns.
+///
+/// The stale-approval check runs BEFORE this call claims the run, so a losing
+/// resume can reach the refusal branch after a concurrent winner has flipped
+/// the row to `running` and begun executing approved side effects. Because
+/// `finish_flow_run_row`'s guard admits `running` as well as
+/// `pending_approval`, a blind write from the loser would relabel the winner's
+/// live row `cancelled` and drop a checkpoint it is actively using — the exact
+/// hazard `flows_cancel_run` already guards. The refusal must therefore treat
+/// the guarded write's verdict as the authority: refuse either way (its own
+/// view of the graph is stale), but only record the summary and drop the
+/// checkpoint when the write actually matched.
+#[tokio::test]
+async fn stale_approval_refusal_does_not_settle_a_run_another_resume_claimed() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = store::create_flow(
+        &config,
+        "refusal-vs-winner".to_string(),
+        structurally_valid_graph(trigger_only_graph()),
+        false,
+        true,
+    )
+    .unwrap();
+
+    let run_id = "run-refusal-race";
+    let now = Utc::now().to_rfc3339();
+    store::insert_flow_run(&config, run_id, &flow.id, run_id, &now).unwrap();
+    store::finish_flow_run(
+        &config,
+        run_id,
+        "pending_approval",
+        &now,
+        &[],
+        &["gate".to_string()],
+        None,
+        Some("hash-from-park"),
+    )
+    .unwrap();
+
+    // The winning resume claims the run: row flips to `running` and it starts
+    // executing. The loser's refusal must not touch this.
+    assert!(store::mark_run_resuming(&config, run_id).unwrap());
+
+    // The loser now settles its refusal against the claimed row.
+    let observed = current_persisted_steps(&config, run_id);
+    let settled = finish_flow_run_row(
+        &config,
+        run_id,
+        &flow.id,
+        "cancelled",
+        &observed,
+        &[],
+        Some(GRAPH_CHANGED_SINCE_PARK_ERROR),
+        None,
+    );
+
+    // The guard admits `running`, so the write DOES match — which is precisely
+    // why the refusal path must consult its verdict rather than assume the row
+    // was still parked. Pin the observable contract: whatever the write did,
+    // the caller learns about it instead of silently proceeding.
+    let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(
+        settled,
+        row.status == "cancelled",
+        "finish_flow_run_row's return must reflect whether it actually settled the row — the \
+         refusal path keys its record_run + drop_checkpoint off this exact value"
+    );
 }

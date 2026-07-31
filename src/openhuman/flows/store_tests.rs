@@ -515,6 +515,7 @@ fn flow_run_insert_finish_get_round_trip() {
         &steps,
         &[],
         None,
+        None,
     )
     .unwrap();
 
@@ -555,6 +556,7 @@ fn finish_flow_run_records_error_on_failure() {
         &[],
         &[],
         Some("boom"),
+        None,
     )
     .unwrap();
 
@@ -665,6 +667,7 @@ fn seed_run(config: &Config, flow_id: &str, id: &str, day: u32, status: &str) {
             &[],
             &[],
             None,
+            None,
         )
         .unwrap();
     }
@@ -757,6 +760,7 @@ fn insert_flow_run_auto_prunes_beyond_retention_cap() {
             "2026-01-01T00:01:00Z",
             &[],
             &[],
+            None,
             None,
         )
         .unwrap();
@@ -933,6 +937,7 @@ fn list_running_run_ids_returns_only_running_rows() {
         &[],
         &[],
         None,
+        None,
     )
     .unwrap();
 
@@ -1023,6 +1028,7 @@ fn mark_run_interrupted_is_a_noop_for_a_terminal_row() {
         &[],
         &[],
         None,
+        None,
     )
     .unwrap();
 
@@ -1066,6 +1072,10 @@ fn expire_parked_runs_returns_only_rows_it_actually_flipped() {
             stale_at,
             &[],
             &["gate".to_string()],
+            None,
+            // No graph pin (T-M1): this fixture is about the TTL sweep's
+            // candidates-vs-sweeps behaviour, not stale-approval detection, so
+            // these rows stand in for pre-pin legacy parks.
             None,
         )
         .unwrap();

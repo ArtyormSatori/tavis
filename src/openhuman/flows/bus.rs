@@ -1153,6 +1153,7 @@ mod tests {
             &[],
             &[],
             Some("boom"),
+            None,
         )
         .unwrap();
 
@@ -1197,6 +1198,7 @@ mod tests {
             "2026-01-01T00:05:00Z",
             &[],
             &[],
+            None,
             None,
         )
         .unwrap();
@@ -1248,6 +1250,7 @@ mod tests {
             &[step],
             &[],
             None,
+            None,
         )
         .unwrap();
 
@@ -1294,6 +1297,7 @@ mod tests {
             "2026-01-01T00:05:00Z",
             &[],
             &[],
+            None,
             None,
         )
         .unwrap();
@@ -1343,6 +1347,7 @@ mod tests {
             }],
             pending_approvals: Vec::new(),
             error: None,
+            graph_hash: None,
         };
         let digest = render_run_digest("My Flow", &run);
         assert!(digest.contains("My Flow"));

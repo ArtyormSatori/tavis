@@ -8,6 +8,7 @@ use std::sync::{Arc, LazyLock};
 
 use chrono::Utc;
 use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 use tinyflows::model::{NodeKind, TriggerKind, WorkflowGraph};
 use tokio_util::sync::CancellationToken;
 
@@ -48,6 +49,15 @@ const FLOW_PARKED_TTL_SECS: i64 = 600;
 /// TinyFlows/TinyAgents barrier-relief implementation cannot execute safely.
 const UNSUPPORTED_NESTED_CONDITIONAL_FAN_IN: &str = "unsupported_nested_conditional_fan_in";
 const UNSUPPORTED_MAIN_PORT_CONDITIONAL_FAN_IN: &str = "unsupported_main_port_conditional_fan_in";
+
+/// T-M1 fail-closed refusal: the graph hash pinned when this run parked no
+/// longer matches the flow's current graph (`save_workflow` rewrote it while
+/// the approval sat pending). Distinct wording from every other
+/// `flows_resume` rejection so the UI/agent can tell a stale-approval refusal
+/// apart from an ordinary invalid-resume error and explain it plainly rather
+/// than surfacing a generic "resume failed".
+const GRAPH_CHANGED_SINCE_PARK_ERROR: &str = "the workflow changed after this run was paused — \
+     the pending approval no longer matches the current graph";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 2 — autonomy-tier gating of acting flow nodes
@@ -4692,6 +4702,7 @@ impl Drop for RunRowFinalizer {
             &observed,
             &[],
             Some(INTERRUPTED_DROP_REASON),
+            None,
         );
         // Keep the flow-definition summary in step with the row, exactly as the
         // success/failure/cancel arms and the boot sweep do — otherwise the
@@ -4803,6 +4814,7 @@ async fn run_flow_body(
             &observed,
             &[],
             Some(&msg),
+            None,
         );
         finalizer.disarm();
         return Err(msg);
@@ -4825,6 +4837,7 @@ async fn run_flow_body(
                 &observed,
                 &[],
                 Some(&msg),
+                None,
             );
             finalizer.disarm();
             return Err(msg);
@@ -4850,6 +4863,7 @@ async fn run_flow_body(
                 &observed,
                 &[],
                 Some(&msg),
+                None,
             );
             finalizer.disarm();
             return Err(msg);
@@ -4878,6 +4892,7 @@ async fn run_flow_body(
             &observed,
             &[],
             Some(error),
+            None,
         );
     };
 
@@ -4943,6 +4958,7 @@ async fn run_flow_body(
                 &observed,
                 &[],
                 Some("run cancelled"),
+                None,
             );
             finalizer.disarm();
             drop_checkpoint(config, &thread_id).await;
@@ -4977,6 +4993,13 @@ async fn run_flow_body(
 
     let settled = settle_steps(config, &thread_id, &outcome.output);
     let (status, error) = finalize_terminal_status(&settled, &outcome.pending_approvals);
+    // T-M1: pin the graph this run just executed only on the write that parks
+    // it — `flows_resume` recomputes and compares this hash against the
+    // *current* flow graph before it will honour the approval. See
+    // `compute_graph_hash`'s doc.
+    let graph_hash = (status == "pending_approval")
+        .then(|| compute_graph_hash(&flow.graph, flow.require_approval))
+        .flatten();
     // Finalize the run row (and disarm the drop-guard) BEFORE the flow-summary
     // write, so a `record_run` failure can never leave the row wedged at
     // `running` — the row's terminal state is the correctness-critical write;
@@ -4989,6 +5012,7 @@ async fn run_flow_body(
         &settled,
         &outcome.pending_approvals,
         error.as_deref(),
+        graph_hash.as_deref(),
     );
     finalizer.disarm();
     if let Err(e) = store::record_run(config, flow_id, status) {
@@ -5112,6 +5136,102 @@ pub async fn flows_resume(
         ));
     }
 
+    // T-M1 — stale-approval graph pin. The approval card the user acted on
+    // described the graph as it existed at park time. If `save_workflow` (or
+    // any other `flows_update`) rewrote the flow's graph while the run sat
+    // `pending_approval`, resuming would compile the CURRENT graph against
+    // the OLD checkpoint and fire whatever the *new* config of the approved
+    // node id now does — under an approval the user never actually saw.
+    // `flows_update` deliberately has no in-flight/pending-run guard (that
+    // would let a stale park hold a flow hostage for the whole TTL), so this
+    // is the fail-closed boundary instead: refuse and settle the run rather
+    // than execute. A `None` pin (a legacy row from before this guard
+    // existed, or a graph that failed to hash at park time) is treated as
+    // "unknown — allow, with a warning" so upgrading mid-park can never
+    // strand an otherwise-valid in-flight approval.
+    match run_record.graph_hash.as_deref() {
+        Some(expected_hash) => {
+            let current_hash = compute_graph_hash(&flow.graph, flow.require_approval);
+            if current_hash.as_deref() != Some(expected_hash) {
+                tracing::warn!(
+                    target: "flows",
+                    flow_id = %flow_id,
+                    %thread_id,
+                    expected_hash,
+                    current_hash = ?current_hash,
+                    "[flows] flows_resume: refusing — the flow's graph changed after this run \
+                     parked (T-M1 stale-approval guard)"
+                );
+                // Settle the row FIRST and treat the guarded write as the
+                // authority, exactly as `flows_cancel_run` does (see its
+                // ORDER MATTERS note) — this refusal runs BEFORE this call
+                // claims the run, so a concurrent resume can legitimately own
+                // it by now:
+                //
+                //   1. Resume B reads the flow and computes a matching hash.
+                //   2. `flows_update` rewrites the flow.
+                //   3. Resume A reads it, computes a MISMATCH, and lands here.
+                //   4. Resume B wins `mark_run_resuming`, flips the row to
+                //      `running`, and starts executing approved side effects.
+                //
+                // `finish_flow_run_row`'s guard admits `running` as well as
+                // `pending_approval`, so a blind write from A would relabel
+                // B's live row `cancelled`, overwrite `last_status`, and drop
+                // a checkpoint B is actively using. Acting only when the write
+                // actually matched keeps A's refusal from touching B's run.
+                //
+                // A is refused either way: its own view of the graph is stale,
+                // so it must never proceed regardless of who owns the row.
+                let observed = current_persisted_steps(config, thread_id);
+                let settled_by_us = finish_flow_run_row(
+                    config,
+                    thread_id,
+                    flow_id,
+                    "cancelled",
+                    &observed,
+                    &[],
+                    Some(GRAPH_CHANGED_SINCE_PARK_ERROR),
+                    None,
+                );
+                if settled_by_us {
+                    if let Err(e) = store::record_run(config, flow_id, "cancelled") {
+                        tracing::warn!(
+                            target: "flows",
+                            flow_id = %flow_id,
+                            %thread_id,
+                            error = %e,
+                            "[flows] flows_resume: failed to record run summary (stale-approval refusal)"
+                        );
+                    }
+                    // The checkpoint is for a graph that no longer exists as
+                    // approved; drop it rather than leave it resumable against
+                    // a future graph edit that happens to hash back to the
+                    // same value.
+                    drop_checkpoint(config, thread_id).await;
+                } else {
+                    tracing::info!(
+                        target: "flows",
+                        flow_id = %flow_id,
+                        %thread_id,
+                        "[flows] flows_resume: stale-approval refusal did not settle the row — another \
+                         resume or cancel owns it now; leaving its status and checkpoint untouched"
+                    );
+                }
+                return Err(GRAPH_CHANGED_SINCE_PARK_ERROR.to_string());
+            }
+        }
+        None => {
+            tracing::warn!(
+                target: "flows",
+                flow_id = %flow_id,
+                %thread_id,
+                "[flows] flows_resume: no graph_hash pinned for this parked run (legacy row \
+                 predating the T-M1 guard, or the graph failed to hash at park time) — allowing \
+                 the resume without a graph-pin check"
+            );
+        }
+    }
+
     // A pending checkpoint may have been created before this compatibility
     // gate shipped, so resume is an independent authoritative boundary.
     if let Err(error) = ensure_config_aware_engine_compatible(config, &flow.graph) {
@@ -5133,6 +5253,7 @@ pub async fn flows_resume(
             &observed,
             &[],
             Some(&error),
+            None,
         );
         tracing::warn!(
             target: "flows",
@@ -5265,6 +5386,7 @@ pub async fn flows_resume(
             &observed,
             &[],
             Some(msg),
+            None,
         );
         if let Err(e) = store::record_run(config, flow_id, "failed") {
             tracing::warn!(
@@ -5295,6 +5417,7 @@ pub async fn flows_resume(
                 &observed,
                 &[],
                 Some("run cancelled"),
+                None,
             );
             finalizer.disarm();
             if let Err(e) = store::record_run(config, flow_id, "cancelled") {
@@ -5332,6 +5455,12 @@ pub async fn flows_resume(
 
     let settled = settle_steps(config, thread_id, &outcome.output);
     let (status, error) = finalize_terminal_status(&settled, &outcome.pending_approvals);
+    // T-M1: a resumed run can itself re-park at a further gate — pin the
+    // (already-verified-current, see the graph-hash check above) graph again
+    // so a *second* stale-approval window is guarded exactly like the first.
+    let graph_hash = (status == "pending_approval")
+        .then(|| compute_graph_hash(&flow.graph, flow.require_approval))
+        .flatten();
     // Finalize the run row (and disarm the drop-guard) BEFORE the flow-summary
     // write, matching `flows_run` (R-M3). This used to be inverted here, with
     // `record_run` propagating via `?`: a concurrent flow delete made the
@@ -5348,6 +5477,7 @@ pub async fn flows_resume(
         &settled,
         &outcome.pending_approvals,
         error.as_deref(),
+        graph_hash.as_deref(),
     );
     finalizer.disarm();
     if let Err(e) = store::record_run(config, flow_id, status) {
@@ -5670,6 +5800,7 @@ pub async fn flows_cancel_run(config: &Config, run_id: &str) -> Result<RpcOutcom
         &observed,
         &[],
         Some("run cancelled"),
+        None,
     );
     if !settled_by_us {
         tracing::info!(
@@ -5764,6 +5895,11 @@ fn start_flow_run_row(config: &Config, thread_id: &str, flow_id: &str) {
 
 /// Best-effort finalization of a `flow_runs` row. Logged, never fails the
 /// run (see [`start_flow_run_row`]).
+///
+/// `graph_hash` (T-M1) should be `Some(hash)` only on the write that parks the
+/// row (`status == "pending_approval"`) — every other caller passes `None`,
+/// which clears any stale pin now that the row is leaving (or never entered)
+/// `pending_approval`. See [`compute_graph_hash`] and `store::finish_flow_run`.
 fn finish_flow_run_row(
     config: &Config,
     thread_id: &str,
@@ -5772,6 +5908,7 @@ fn finish_flow_run_row(
     steps: &[FlowRunStep],
     pending_approvals: &[String],
     error: Option<&str>,
+    graph_hash: Option<&str>,
 ) -> bool {
     let finished_at = Utc::now().to_rfc3339();
     match store::finish_flow_run(
@@ -5782,6 +5919,7 @@ fn finish_flow_run_row(
         steps,
         pending_approvals,
         error,
+        graph_hash,
     ) {
         Err(e) => {
             tracing::warn!(target: "flows", thread_id, status, error = %e, "[flows] failed to persist flow run finish");
@@ -5841,6 +5979,92 @@ fn finish_flow_run_row(
         status: status.to_string(),
     });
     true
+}
+
+/// Computes a stable content hash of the flow configuration a run was approved
+/// against — the T-M1 stale-approval guard (see `flows_resume`'s doc).
+/// Persisted on a run row the moment it parks at `pending_approval`, and
+/// recompared against the **current** flow before a resume is allowed to
+/// execute, so a rewrite between park and resume is detected instead of
+/// silently firing the new configuration under the old approval.
+///
+/// Covers the graph **and `require_approval`**. The flag is not cosmetic: it
+/// feeds `workflow_origin(...)`, which becomes the `AgentTurnOrigin` for the
+/// whole resumed execution, and `TrustedAutomationSource::Workflow {
+/// require_approval: false }` **auto-allows every `external_effect` tool call**
+/// where `true` parks each one for its own human decision. It is also settable
+/// independently of the graph — `flows_update(.., graph_json: None,
+/// require_approval: Some(false), ..)` leaves `.graph` byte-identical. Hashing
+/// the graph alone would therefore leave the exact hole this guard exists to
+/// close: park at a gate, user approves, the flag is flipped to `false` with the
+/// graph untouched (pin still matches), and on resume every downstream
+/// outbound node that would have parked now fires unattended.
+///
+/// Hashes a *canonicalized* JSON serialization — `serde_json::Value`'s object
+/// map preserves insertion order in this crate (the `preserve_order` feature
+/// is enabled transitively via other dependencies), so the same logical graph
+/// serialized through two different code paths is not guaranteed to emit its
+/// object keys in the same order. [`canonicalize_json`] recursively sorts
+/// every object's keys before hashing so the hash depends only on graph
+/// content, never on incidental key order. Returns `None` (never panics) if
+/// the graph somehow fails to serialize.
+///
+/// **`None` means different things on the two sides, and the resume side fails
+/// CLOSED.** At park time `None` simply stores no pin, so that run later takes
+/// the legacy "unknown — allow, with a warning" path. At resume time the
+/// comparison is `Some(expected) != None`, which is *true*, so a hash failure
+/// is treated as a mismatch: the run is refused, settled terminally, and its
+/// checkpoint dropped. That is the safer direction — a run whose current graph
+/// cannot be hashed is a run whose approval cannot be verified — but it is the
+/// opposite of fail-open, so do not read this as a guarantee that a serialize
+/// failure leaves a resumable run resumable.
+fn compute_graph_hash(graph: &WorkflowGraph, require_approval: bool) -> Option<String> {
+    let raw = match serde_json::to_value(graph) {
+        Ok(v) => v,
+        Err(e) => {
+            tracing::warn!(
+                target: "flows",
+                error = %e,
+                "[flows] compute_graph_hash: failed to serialize graph to JSON — proceeding without a graph pin"
+            );
+            return None;
+        }
+    };
+    let raw = serde_json::json!({ "graph": raw, "require_approval": require_approval });
+    let canonical = canonicalize_json(&raw);
+    let serialized = match serde_json::to_string(&canonical) {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!(
+                target: "flows",
+                error = %e,
+                "[flows] compute_graph_hash: failed to serialize canonicalized graph — proceeding without a graph pin"
+            );
+            return None;
+        }
+    };
+    let digest = Sha256::digest(serialized.as_bytes());
+    Some(hex::encode(digest))
+}
+
+/// Recursively rewrites every JSON object's keys into sorted order, leaving
+/// arrays (whose element order is semantically meaningful) and scalars
+/// unchanged. See [`compute_graph_hash`] for why this is needed before
+/// hashing rather than trusting `serde_json`'s default map order.
+fn canonicalize_json(value: &Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let mut keys: Vec<&String> = map.keys().collect();
+            keys.sort();
+            let mut sorted = serde_json::Map::new();
+            for key in keys {
+                sorted.insert(key.clone(), canonicalize_json(&map[key]));
+            }
+            Value::Object(sorted)
+        }
+        Value::Array(items) => Value::Array(items.iter().map(canonicalize_json).collect()),
+        other => other.clone(),
+    }
 }
 
 /// Reconstructs a lean per-node step list from a settled run's

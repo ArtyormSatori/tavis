@@ -138,6 +138,7 @@ fn init_schema(conn: &Connection) -> Result<()> {
             steps_json              TEXT NOT NULL DEFAULT '[]',
             pending_approvals_json  TEXT NOT NULL DEFAULT '[]',
             error                   TEXT,
+            graph_hash              TEXT,
             FOREIGN KEY (flow_id) REFERENCES flow_definitions(id) ON DELETE CASCADE
          );
          CREATE INDEX IF NOT EXISTS idx_flow_runs_flow_id ON flow_runs(flow_id);
@@ -183,6 +184,14 @@ fn init_schema(conn: &Connection) -> Result<()> {
         "require_approval",
         "INTEGER NOT NULL DEFAULT 0",
     )?;
+
+    // T-M1 — added post-hoc so a workspace whose `flows.db` predates the
+    // stale-approval graph pin still opens cleanly. A row written before this
+    // migration reads back as `graph_hash IS NULL`, which `flows_resume`
+    // treats as "unknown — allow, with a warning log" (see its doc), never as
+    // a hard refusal, so upgrading mid-park cannot strand an in-flight
+    // approval.
+    add_column_if_missing(conn, "flow_runs", "graph_hash", "TEXT")?;
 
     Ok(())
 }
@@ -799,7 +808,7 @@ pub fn kv_delete(config: &Config, namespace: &str, key: &str) -> Result<()> {
 /// Shared column list for every `flow_runs` SELECT — keeps
 /// [`map_flow_run_row`]'s positional `row.get(N)` calls in sync.
 const FLOW_RUN_COLUMNS: &str = "id, flow_id, thread_id, status, started_at, finished_at, \
-     steps_json, pending_approvals_json, error";
+     steps_json, pending_approvals_json, error, graph_hash";
 
 /// Default per-flow run-history retention cap: how many of the most-recent runs
 /// a single flow keeps before older *terminal* runs are pruned on the next
@@ -901,6 +910,13 @@ fn prune_flow_runs_conn(conn: &Connection, flow_id: &str, keep: usize) -> Result
 /// "not in flight" branch then relabels a fully-completed run (whose real side
 /// effects fired) as `cancelled`. Returns whether a row was actually updated so
 /// callers can log the no-op instead of silently believing the write landed.
+///
+/// `graph_hash` (T-M1) is `Some(hash)` only when this write is the one that
+/// *parks* the row (`status == "pending_approval"`) — it pins the content hash
+/// of the graph the checkpoint was taken against, so a later `flows_resume`
+/// can refuse if `save_workflow` rewrote the flow in the meantime. Every other
+/// write passes `None`, which clears any stale pin once the row leaves
+/// `pending_approval` (a settled row has no further use for it).
 pub fn finish_flow_run(
     config: &Config,
     id: &str,
@@ -909,6 +925,7 @@ pub fn finish_flow_run(
     steps: &[FlowRunStep],
     pending_approvals: &[String],
     error: Option<&str>,
+    graph_hash: Option<&str>,
 ) -> Result<bool> {
     let steps_json = serde_json::to_string(steps).context("Failed to serialize flow run steps")?;
     let pending_json = serde_json::to_string(pending_approvals)
@@ -917,9 +934,17 @@ pub fn finish_flow_run(
         let updated = conn
             .execute(
                 "UPDATE flow_runs SET status = ?1, finished_at = ?2, steps_json = ?3, \
-                 pending_approvals_json = ?4, error = ?5 \
-                 WHERE id = ?6 AND status IN ('running', 'pending_approval')",
-                params![status, finished_at, steps_json, pending_json, error, id],
+                 pending_approvals_json = ?4, error = ?5, graph_hash = ?6 \
+                 WHERE id = ?7 AND status IN ('running', 'pending_approval')",
+                params![
+                    status,
+                    finished_at,
+                    steps_json,
+                    pending_json,
+                    error,
+                    graph_hash,
+                    id
+                ],
             )
             .context("Failed to finish flow run")?;
         Ok(updated > 0)
@@ -1297,6 +1322,7 @@ fn map_flow_run_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<FlowRun> {
         steps,
         pending_approvals,
         error: row.get(8)?,
+        graph_hash: row.get(9)?,
     })
 }
 
