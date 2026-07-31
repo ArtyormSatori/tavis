@@ -58,7 +58,7 @@ function portPillClass(port: string): string {
 }
 
 function FlowNodeComponent({ id, data, selected }: NodeProps<FlowNode>) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const actions = useCanvasActions();
   const baseMeta = nodeKindMeta(data.kind);
   // A native "Tool" node (provider=openhuman / oh: slug) reads differently from
@@ -70,7 +70,7 @@ function FlowNodeComponent({ id, data, selected }: NodeProps<FlowNode>) {
   const meta = isNativeTool ? { ...baseMeta, emoji: '🛠️', color: 'primary' as const } : baseMeta;
   const colors = COLOR_CLASSES[meta.color];
   const kindLabel = t(`flows.nodeKind.${data.kind}`, data.kind);
-  const summary = describeNode(data.kind, data.config ?? {}, data.outputPorts);
+  const summary = describeNode(data.kind, data.config ?? {}, data.outputPorts, t, locale);
 
   // Only label ports when there's something to disambiguate: more than one port,
   // or a single explicitly-named (non-`main`) port. A lone implicit `main` shows

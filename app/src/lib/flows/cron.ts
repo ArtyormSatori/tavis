@@ -11,6 +11,14 @@
  * weekdays. Any other cron string round-trips untouched through the advanced
  * text field; {@link parseCron} returns `null` for it (→ advanced mode) and
  * {@link describeCron} falls back to a generic label.
+ *
+ * `describeCron` / `describeEveryMs` / `describeSchedule` take `t` (and,
+ * where a weekday name is rendered, `locale`) as parameters rather than
+ * calling `useT()` themselves — mirroring `runStepSummary.ts` — so this stays
+ * a plain, dependency-light module that's trivially unit-testable. Weekday
+ * names come from `Intl.DateTimeFormat` against the active locale instead of
+ * a hand-translated array, so they're correctly ordered/named per locale
+ * without adding translation surface.
  */
 
 /** How often the schedule fires. */
@@ -29,10 +37,11 @@ export interface CronSpec {
   weekdays: number[];
 }
 
-/** Short weekday names indexed 0=Sun … 6=Sat. */
-export const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
-/** Single-letter weekday initials for compact toggles (Sun-first). */
-export const WEEKDAY_INITIAL = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
+/** A `t` function from `useT()`, threaded in rather than imported here. */
+export type Translate = (key: string, fallback?: string) => string;
+
+/** Weekdays 0=Sun … 6=Sat, in that fixed order — for iterating UI controls. */
+export const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6] as const;
 
 export const DEFAULT_CRON_SPEC: CronSpec = {
   freq: 'daily',
@@ -137,13 +146,40 @@ export function formatTime(hour: number, minute: number): string {
   return `${String(clamp(hour, 0, 23)).padStart(2, '0')}:${String(clamp(minute, 0, 59)).padStart(2, '0')}`;
 }
 
-/** Human phrase for a weekday set: "every day" / "weekdays" / "weekends" / "Mon, Wed". */
-function describeWeekdays(days: number[]): string {
+// 2023-01-01T00:00:00Z was a Sunday, so `WEEKDAYS[d]` maps onto UTC day `1 + d`
+// of that month — a fixed reference date lets us ask `Intl.DateTimeFormat` for
+// a locale-correct weekday name without maintaining a translated name table.
+const WEEKDAY_REFERENCE_YEAR = 2023;
+
+function weekdayName(day: number, locale: string, style: 'short' | 'narrow'): string {
+  const date = new Date(Date.UTC(WEEKDAY_REFERENCE_YEAR, 0, 1 + day));
+  const options: Intl.DateTimeFormatOptions = { weekday: style, timeZone: 'UTC' };
+  try {
+    return new Intl.DateTimeFormat(locale, options).format(date);
+  } catch {
+    // An unsupported/malformed locale tag falls back to English rather than
+    // throwing — the schedule field must still render.
+    return new Intl.DateTimeFormat('en', options).format(date);
+  }
+}
+
+/** Locale-aware short weekday label ("Wed"), for a11y labels / titles. */
+export function weekdayShortLabel(day: number, locale: string): string {
+  return weekdayName(day, locale, 'short');
+}
+
+/** Locale-aware single-glyph weekday label ("W"), for compact toggle buttons. */
+export function weekdayNarrowLabel(day: number, locale: string): string {
+  return weekdayName(day, locale, 'narrow');
+}
+
+/** Human phrase for a weekday set: "weekdays" / "weekends" / "Mon, Wed" — the
+ * caller handles the "every day" case itself (see {@link describeCron}). */
+function weekdaysPhrase(days: number[], t: Translate, locale: string): string {
   const norm = normalizeWeekdays(days);
-  if (norm.length === 0 || norm.length === 7) return 'every day';
-  if (norm.join(',') === '1,2,3,4,5') return 'weekdays';
-  if (norm.join(',') === '0,6') return 'weekends';
-  return norm.map(d => WEEKDAY_SHORT[d]).join(', ');
+  if (norm.join(',') === '1,2,3,4,5') return t('flows.cron.weekdays');
+  if (norm.join(',') === '0,6') return t('flows.cron.weekends');
+  return norm.map(d => weekdayShortLabel(d, locale)).join(', ');
 }
 
 /**
@@ -152,25 +188,47 @@ function describeWeekdays(days: number[]): string {
  * builder doesn't model, so an advanced user's custom cron still gets a
  * (non-misleading) description.
  */
-export function describeCron(expr: string): string {
+export function describeCron(expr: string, t: Translate, locale: string): string {
   const spec = parseCron(expr);
   if (!spec) {
-    return expr.trim() ? `Custom schedule (${expr.trim()})` : 'No schedule set';
+    return expr.trim()
+      ? t('flows.cron.customSchedule').replace('{expr}', expr.trim())
+      : t('flows.cron.noScheduleSet');
   }
-  const daysPhrase = describeWeekdays(spec.weekdays);
-  const onDays = daysPhrase === 'every day' ? '' : ` on ${daysPhrase}`;
+
+  const norm = normalizeWeekdays(spec.weekdays);
+  const everyDay = norm.length === 0 || norm.length === 7;
+  const days = everyDay ? '' : weekdaysPhrase(spec.weekdays, t, locale);
 
   if (spec.freq === 'minutes') {
-    const unit = spec.interval === 1 ? 'minute' : `${spec.interval} minutes`;
-    return `Every ${unit}${onDays}`;
+    if (spec.interval === 1) {
+      return everyDay
+        ? t('flows.cron.everyMinute')
+        : t('flows.cron.everyMinuteOnDays').replace('{days}', days);
+    }
+    return everyDay
+      ? t('flows.cron.everyNMinutes').replace('{n}', String(spec.interval))
+      : t('flows.cron.everyNMinutesOnDays')
+          .replace('{n}', String(spec.interval))
+          .replace('{days}', days);
   }
   if (spec.freq === 'hours') {
-    const unit = spec.interval === 1 ? 'hour' : `${spec.interval} hours`;
-    return `Every ${unit}${onDays}`;
+    if (spec.interval === 1) {
+      return everyDay
+        ? t('flows.cron.everyHour')
+        : t('flows.cron.everyHourOnDays').replace('{days}', days);
+    }
+    return everyDay
+      ? t('flows.cron.everyNHours').replace('{n}', String(spec.interval))
+      : t('flows.cron.everyNHoursOnDays')
+          .replace('{n}', String(spec.interval))
+          .replace('{days}', days);
   }
   // daily / weekly
   const time = formatTime(spec.hour, spec.minute);
-  return daysPhrase === 'every day' ? `Every day at ${time}` : `At ${time} on ${daysPhrase}`;
+  return everyDay
+    ? t('flows.cron.everyDayAtTime').replace('{time}', time)
+    : t('flows.cron.atTimeOnDays').replace('{time}', time).replace('{days}', days);
 }
 
 /**
@@ -196,22 +254,30 @@ const DAY_MS = 86_400_000;
  * millisecond count into minutes/hours/days, whichever divides evenly
  * ("Every 30m", "Every hour", "Daily (every 24h)"). Falls back to seconds for
  * anything finer-grained than a minute. */
-export function describeEveryMs(everyMs: number): string {
-  if (!Number.isFinite(everyMs) || everyMs <= 0) return 'Invalid interval';
+export function describeEveryMs(everyMs: number, t: Translate): string {
+  if (!Number.isFinite(everyMs) || everyMs <= 0) return t('flows.cron.invalidInterval');
   if (everyMs % DAY_MS === 0) {
     const days = everyMs / DAY_MS;
-    return days === 1 ? 'Daily (every 24h)' : `Every ${days} days`;
+    return days === 1
+      ? t('flows.cron.dailyEvery24h')
+      : t('flows.cron.everyNDays').replace('{n}', String(days));
   }
   if (everyMs % HOUR_MS === 0) {
     const hours = everyMs / HOUR_MS;
-    return hours === 1 ? 'Every hour' : `Every ${hours}h`;
+    return hours === 1
+      ? t('flows.cron.everyHour')
+      : t('flows.cron.everyNHoursShort').replace('{n}', String(hours));
   }
   if (everyMs % MINUTE_MS === 0) {
     const minutes = everyMs / MINUTE_MS;
-    return minutes === 1 ? 'Every minute' : `Every ${minutes}m`;
+    return minutes === 1
+      ? t('flows.cron.everyMinute')
+      : t('flows.cron.everyNMinutesShort').replace('{n}', String(minutes));
   }
   const seconds = Math.round(everyMs / 1000);
-  return seconds === 1 ? 'Every second' : `Every ${seconds}s`;
+  return seconds === 1
+    ? t('flows.cron.everySecond')
+    : t('flows.cron.everyNSeconds').replace('{n}', String(seconds));
 }
 
 /**
@@ -221,23 +287,23 @@ export function describeEveryMs(everyMs: number): string {
  * should never re-derive it from just the cron string, or a valid `every`/`at`
  * schedule reads as unset (the canvas trigger-node bug this guards against).
  */
-export function describeSchedule(value: unknown): string {
-  if (typeof value === 'string') return describeCron(value);
+export function describeSchedule(value: unknown, t: Translate, locale: string): string {
+  if (typeof value === 'string') return describeCron(value, t, locale);
   if (value && typeof value === 'object') {
     const obj = value as Record<string, unknown>;
     const kind = typeof obj.kind === 'string' ? obj.kind : undefined;
 
     if (kind === 'every' && typeof obj.every_ms === 'number') {
-      return describeEveryMs(obj.every_ms);
+      return describeEveryMs(obj.every_ms, t);
     }
     if (kind === 'at' && typeof obj.at === 'string') {
       const date = new Date(obj.at);
       return Number.isNaN(date.getTime())
-        ? `Once at ${obj.at}`
-        : `Once at ${date.toLocaleString()}`;
+        ? t('flows.cron.onceAtRaw').replace('{at}', obj.at)
+        : t('flows.cron.onceAt').replace('{at}', date.toLocaleString(locale));
     }
     // `{kind:"cron", expr}` (or an untagged object that merely carries `expr`).
-    if (typeof obj.expr === 'string') return describeCron(obj.expr);
+    if (typeof obj.expr === 'string') return describeCron(obj.expr, t, locale);
   }
-  return describeCron(''); // 'No schedule set'
+  return describeCron('', t, locale); // 'No schedule set'
 }

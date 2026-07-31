@@ -137,7 +137,7 @@ function NodeConfigDrawer({
   nodeLabelById = {},
   onRemoveEdge = () => {},
 }: NodeConfigDrawerProps) {
-  const { t } = useT();
+  const { t, locale } = useT();
 
   useEscapeKey(() => {
     log('escape: closing');
@@ -157,7 +157,13 @@ function NodeConfigDrawer({
   const kindLabel = t(`flows.nodeKind.${node.data.kind}`, node.data.kind);
   // Dynamic "what this node will do", derived from the live config — updates as
   // the fields below are edited (same summary shown on the node card).
-  const summary = describeNode(node.data.kind, node.data.config ?? {}, node.data.outputPorts);
+  const summary = describeNode(
+    node.data.kind,
+    node.data.config ?? {},
+    node.data.outputPorts,
+    t,
+    locale
+  );
 
   return (
     // `pointer-events-none` wrapper so the drawer floats over the canvas

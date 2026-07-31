@@ -3,6 +3,12 @@
  * the three supported shapes (minutes / hours / daily, with and without
  * weekday restrictions), plaintext descriptions, and the graceful fallbacks for
  * cron strings the visual builder doesn't model.
+ *
+ * `describeCron` / `describeEveryMs` / `describeSchedule` take a `t` stub
+ * (rather than calling `useT()`) — see the module doc in `cron.ts` — mirroring
+ * `runStepSummary.test.ts`. The stub mirrors the real `flows.cron.*` strings
+ * in `lib/i18n/en.ts` so these tests double as a check that the keys exist
+ * and interpolate correctly.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -15,7 +21,38 @@ import {
   describeSchedule,
   parseCron,
   scheduleCronExpr,
+  type Translate,
+  weekdayNarrowLabel,
+  weekdayShortLabel,
 } from './cron';
+
+const STRINGS: Record<string, string> = {
+  'flows.cron.customSchedule': 'Custom schedule ({expr})',
+  'flows.cron.noScheduleSet': 'No schedule set',
+  'flows.cron.weekdays': 'weekdays',
+  'flows.cron.weekends': 'weekends',
+  'flows.cron.everyMinute': 'Every minute',
+  'flows.cron.everyMinuteOnDays': 'Every minute on {days}',
+  'flows.cron.everyNMinutes': 'Every {n} minutes',
+  'flows.cron.everyNMinutesOnDays': 'Every {n} minutes on {days}',
+  'flows.cron.everyHour': 'Every hour',
+  'flows.cron.everyHourOnDays': 'Every hour on {days}',
+  'flows.cron.everyNHours': 'Every {n} hours',
+  'flows.cron.everyNHoursOnDays': 'Every {n} hours on {days}',
+  'flows.cron.everyDayAtTime': 'Every day at {time}',
+  'flows.cron.atTimeOnDays': 'At {time} on {days}',
+  'flows.cron.invalidInterval': 'Invalid interval',
+  'flows.cron.dailyEvery24h': 'Daily (every 24h)',
+  'flows.cron.everyNDays': 'Every {n} days',
+  'flows.cron.everyNHoursShort': 'Every {n}h',
+  'flows.cron.everyNMinutesShort': 'Every {n}m',
+  'flows.cron.everySecond': 'Every second',
+  'flows.cron.everyNSeconds': 'Every {n}s',
+  'flows.cron.onceAtRaw': 'Once at {at}',
+  'flows.cron.onceAt': 'Once at {at}',
+};
+const t: Translate = key => STRINGS[key] ?? key;
+const locale = 'en';
 
 function spec(overrides: Partial<CronSpec>): CronSpec {
   return { ...DEFAULT_CRON_SPEC, ...overrides };
@@ -78,46 +115,62 @@ describe('parseCron', () => {
   });
 });
 
+describe('weekdayShortLabel / weekdayNarrowLabel', () => {
+  it('names English weekdays via Intl.DateTimeFormat against a fixed reference date', () => {
+    expect(weekdayShortLabel(0, 'en')).toBe('Sun');
+    expect(weekdayShortLabel(3, 'en')).toBe('Wed');
+    expect(weekdayShortLabel(6, 'en')).toBe('Sat');
+  });
+
+  it('produces a single-glyph label for compact toggles', () => {
+    expect(weekdayNarrowLabel(1, 'en')).toBe('M');
+  });
+
+  it('falls back to English for an unsupported locale tag rather than throwing', () => {
+    expect(() => weekdayShortLabel(0, 'not-a-real-locale')).not.toThrow();
+  });
+});
+
 describe('describeCron', () => {
   it('describes the common shapes in plain language', () => {
-    expect(describeCron('*/5 * * * *')).toBe('Every 5 minutes');
-    expect(describeCron('*/1 * * * *')).toBe('Every minute');
-    expect(describeCron('*/5 * * * 3')).toBe('Every 5 minutes on Wed');
-    expect(describeCron('0 */2 * * *')).toBe('Every 2 hours');
-    expect(describeCron('30 9 * * *')).toBe('Every day at 09:30');
-    expect(describeCron('0 14 * * 1,3,5')).toBe('At 14:00 on Mon, Wed, Fri');
+    expect(describeCron('*/5 * * * *', t, locale)).toBe('Every 5 minutes');
+    expect(describeCron('*/1 * * * *', t, locale)).toBe('Every minute');
+    expect(describeCron('*/5 * * * 3', t, locale)).toBe('Every 5 minutes on Wed');
+    expect(describeCron('0 */2 * * *', t, locale)).toBe('Every 2 hours');
+    expect(describeCron('30 9 * * *', t, locale)).toBe('Every day at 09:30');
+    expect(describeCron('0 14 * * 1,3,5', t, locale)).toBe('At 14:00 on Mon, Wed, Fri');
   });
 
   it('collapses full weekday sets to friendly phrases', () => {
-    expect(describeCron('0 9 * * 1,2,3,4,5')).toBe('At 09:00 on weekdays');
-    expect(describeCron('0 9 * * 0,6')).toBe('At 09:00 on weekends');
-    expect(describeCron('0 9 * * 0,1,2,3,4,5,6')).toBe('Every day at 09:00');
+    expect(describeCron('0 9 * * 1,2,3,4,5', t, locale)).toBe('At 09:00 on weekdays');
+    expect(describeCron('0 9 * * 0,6', t, locale)).toBe('At 09:00 on weekends');
+    expect(describeCron('0 9 * * 0,1,2,3,4,5,6', t, locale)).toBe('Every day at 09:00');
   });
 
   it('falls back for custom / empty expressions', () => {
-    expect(describeCron('0 9 1 * *')).toBe('Custom schedule (0 9 1 * *)');
-    expect(describeCron('')).toBe('No schedule set');
+    expect(describeCron('0 9 1 * *', t, locale)).toBe('Custom schedule (0 9 1 * *)');
+    expect(describeCron('', t, locale)).toBe('No schedule set');
   });
 });
 
 describe('describeEveryMs', () => {
   it('formats even day/hour/minute intervals', () => {
-    expect(describeEveryMs(86_400_000)).toContain('24h');
-    expect(describeEveryMs(86_400_000)).toContain('Daily');
-    expect(describeEveryMs(2 * 86_400_000)).toBe('Every 2 days');
-    expect(describeEveryMs(3_600_000)).toBe('Every hour');
-    expect(describeEveryMs(4 * 3_600_000)).toBe('Every 4h');
-    expect(describeEveryMs(30 * 60_000)).toBe('Every 30m');
-    expect(describeEveryMs(60_000)).toBe('Every minute');
+    expect(describeEveryMs(86_400_000, t)).toContain('24h');
+    expect(describeEveryMs(86_400_000, t)).toContain('Daily');
+    expect(describeEveryMs(2 * 86_400_000, t)).toBe('Every 2 days');
+    expect(describeEveryMs(3_600_000, t)).toBe('Every hour');
+    expect(describeEveryMs(4 * 3_600_000, t)).toBe('Every 4h');
+    expect(describeEveryMs(30 * 60_000, t)).toBe('Every 30m');
+    expect(describeEveryMs(60_000, t)).toBe('Every minute');
   });
 
   it('falls back to seconds for sub-minute intervals', () => {
-    expect(describeEveryMs(15_000)).toBe('Every 15s');
+    expect(describeEveryMs(15_000, t)).toBe('Every 15s');
   });
 
   it('reports an invalid interval for non-positive values', () => {
-    expect(describeEveryMs(0)).toBe('Invalid interval');
-    expect(describeEveryMs(-5)).toBe('Invalid interval');
+    expect(describeEveryMs(0, t)).toBe('Invalid interval');
+    expect(describeEveryMs(-5, t)).toBe('Invalid interval');
   });
 });
 
@@ -140,25 +193,27 @@ describe('scheduleCronExpr', () => {
 
 describe('describeSchedule', () => {
   it('describes a bare cron string the same as describeCron', () => {
-    expect(describeSchedule('*/5 * * * 3')).toBe('Every 5 minutes on Wed');
+    expect(describeSchedule('*/5 * * * 3', t, locale)).toBe('Every 5 minutes on Wed');
   });
 
   it('describes a tagged cron schedule object', () => {
-    expect(describeSchedule({ kind: 'cron', expr: '30 9 * * *' })).toBe('Every day at 09:30');
+    expect(describeSchedule({ kind: 'cron', expr: '30 9 * * *' }, t, locale)).toBe(
+      'Every day at 09:30'
+    );
   });
 
   it('describes an "every" schedule — the shape that used to render as unset', () => {
-    expect(describeSchedule({ kind: 'every', every_ms: 86_400_000 })).toContain('24h');
+    expect(describeSchedule({ kind: 'every', every_ms: 86_400_000 }, t, locale)).toContain('24h');
   });
 
   it('describes an "at" schedule', () => {
-    const result = describeSchedule({ kind: 'at', at: '2026-01-01T09:00:00Z' });
+    const result = describeSchedule({ kind: 'at', at: '2026-01-01T09:00:00Z' }, t, locale);
     expect(result).toContain('Once at');
   });
 
   it('falls back to "No schedule set" for unset/unrecognized schedules', () => {
-    expect(describeSchedule(undefined)).toBe('No schedule set');
-    expect(describeSchedule(null)).toBe('No schedule set');
-    expect(describeSchedule({})).toBe('No schedule set');
+    expect(describeSchedule(undefined, t, locale)).toBe('No schedule set');
+    expect(describeSchedule(null, t, locale)).toBe('No schedule set');
+    expect(describeSchedule({}, t, locale)).toBe('No schedule set');
   });
 });
