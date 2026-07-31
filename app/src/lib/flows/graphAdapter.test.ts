@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   autoLayout,
+  connectionEdgeId,
   createFlowNode,
   edgeId,
   type FlowEdge,
@@ -400,6 +401,50 @@ describe('graphAdapter', () => {
         edgeId({ ...base, to_port: 'other' }),
       ]);
       expect(ids.size).toBe(5);
+    });
+  });
+
+  describe('connectionEdgeId', () => {
+    it('matches edgeId for the same 4-tuple (editor-created edges match adapter-created ones)', () => {
+      const connection = { source: 'x', sourceHandle: 'p1', target: 'y', targetHandle: 'p2' };
+      expect(connectionEdgeId(connection)).toBe(
+        edgeId({ from_node: 'x', from_port: 'p1', to_node: 'y', to_port: 'p2' })
+      );
+    });
+
+    it('does not collide on the same "-" boundary-shift case edgeId guards against (F-m6)', () => {
+      // Same colliding node/port tuples as the `edgeId` test above, but coming
+      // in as onConnect's live `Connection` shape (nullable handles) rather
+      // than an already-resolved WorkflowEdge.
+      const first = connectionEdgeId({
+        source: 'a-b',
+        sourceHandle: 'c',
+        target: 'd',
+        targetHandle: 'e',
+      });
+      const second = connectionEdgeId({
+        source: 'a',
+        sourceHandle: 'b-c',
+        target: 'd',
+        targetHandle: 'e',
+      });
+      expect(first).not.toBe(second);
+    });
+
+    it('defaults null/undefined handles to the "main" port, matching isValidFlowConnection', () => {
+      const withNullHandles = connectionEdgeId({
+        source: 'a',
+        sourceHandle: null,
+        target: 'b',
+        targetHandle: null,
+      });
+      const withExplicitMain = connectionEdgeId({
+        source: 'a',
+        sourceHandle: 'main',
+        target: 'b',
+        targetHandle: 'main',
+      });
+      expect(withNullHandles).toBe(withExplicitMain);
     });
   });
 

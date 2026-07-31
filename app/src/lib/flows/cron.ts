@@ -88,10 +88,31 @@ function parseWeekdayField(field: string): number[] | null {
   const nums: number[] = [];
   for (const p of parts) {
     if (!/^\d+$/.test(p)) return null; // named days (MON) etc. → advanced
-    nums.push(Number(p));
+    const n = Number(p);
+    // Cron's valid day-of-week range is 0-7 (7 aliases Sunday). A value
+    // outside that — e.g. a hand-written `1,8` — would otherwise be silently
+    // dropped by normalizeWeekdays below rather than rejected outright,
+    // which is the same "narrow it and move on" data loss this function
+    // exists to avoid: the next unrelated ScheduleField edit recompiles
+    // through buildCron() and the out-of-range day quietly vanishes from the
+    // stored expression. Bail to null (→ advanced/opaque) instead.
+    if (n < 0 || n > 7) return null;
+    nums.push(n);
   }
   const norm = normalizeWeekdays(nums);
   return norm.length > 0 ? norm : null;
+}
+
+/** Parse a plain digit field, returning it only if it's within the range
+ * {@link buildCron} clamps that position to (`min` 0-59, `hour` 0-23).
+ * Returns `null` for non-digit fields (advanced named/step forms) and for
+ * in-range-looking values that actually fall outside the clamp — the latter
+ * is what makes an out-of-range `minute`/`hour` field unparseable rather than
+ * silently accepted and narrowed on the next unrelated edit. */
+function parseBoundedInt(field: string, max: number): number | null {
+  if (!/^\d+$/.test(field)) return null;
+  const n = Number(field);
+  return n <= max ? n : null;
 }
 
 /**
@@ -99,6 +120,19 @@ function parseWeekdayField(field: string): number[] | null {
  * the builder's covered shapes (→ the caller falls back to the advanced text
  * field). Only recognizes the exact forms {@link buildCron} emits: a `*`
  * day-of-month and month, with a stepped minute/hour and a numeric weekday list.
+ *
+ * Every field {@link buildCron} clamps must also fall inside the range it
+ * clamps to — step counts (1–59 minutes, 1–23 hours), the `minute` field
+ * (0–59) wherever it appears, the `hour` field (0–23), and each numeric
+ * weekday (0–7). A value outside its range (e.g. a hand-written "every 90
+ * minutes" star-slash-90 minute field, or an hourly expression with an
+ * out-of-range minute) is deliberately treated as unparseable rather than
+ * accepted and silently narrowed: accepting it here would let the visual
+ * editor's next unrelated `patch()` (e.g. toggling a weekday) recompile the
+ * spec through {@link buildCron}'s clamp and rewrite the stored expression
+ * to a clamped-down step or field value without the user ever touching it.
+ * Returning `null` instead routes it to the advanced text field, where it
+ * round-trips untouched like any other cron the builder doesn't model.
  */
 export function parseCron(expr: string): CronSpec | null {
   const fields = expr.trim().split(/\s+/);
@@ -111,31 +145,28 @@ export function parseCron(expr: string): CronSpec | null {
 
   // Every N minutes: `*/N * * * dow`
   const minStep = parseStep(min);
-  if (minStep && hour === '*') {
+  if (minStep && hour === '*' && minStep.step >= 1 && minStep.step <= 59) {
     return { ...DEFAULT_CRON_SPEC, freq: 'minutes', interval: minStep.step, weekdays };
   }
 
   // Every N hours: `M */N * * dow`
   const hourStep = parseStep(hour);
-  if (hourStep && /^\d+$/.test(min)) {
+  const hourlyMinute = parseBoundedInt(min, 59);
+  if (hourStep && hourlyMinute !== null && hourStep.step >= 1 && hourStep.step <= 23) {
     return {
       ...DEFAULT_CRON_SPEC,
       freq: 'hours',
       interval: hourStep.step,
-      minute: Number(min),
+      minute: hourlyMinute,
       weekdays,
     };
   }
 
   // Daily / weekly at a time: `M H * * dow`
-  if (/^\d+$/.test(min) && /^\d+$/.test(hour)) {
-    return {
-      ...DEFAULT_CRON_SPEC,
-      freq: 'daily',
-      hour: Number(hour),
-      minute: Number(min),
-      weekdays,
-    };
+  const dailyMinute = parseBoundedInt(min, 59);
+  const dailyHour = parseBoundedInt(hour, 23);
+  if (dailyMinute !== null && dailyHour !== null) {
+    return { ...DEFAULT_CRON_SPEC, freq: 'daily', hour: dailyHour, minute: dailyMinute, weekdays };
   }
 
   return null;

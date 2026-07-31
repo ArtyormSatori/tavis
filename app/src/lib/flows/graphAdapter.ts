@@ -227,6 +227,30 @@ export function isValidFlowConnection(
 }
 
 /**
+ * Stable {@link edgeId} for a live React Flow `Connection` candidate (what
+ * `onConnect` receives once {@link isValidFlowConnection} has approved it),
+ * applying the same `main` port default used throughout this module.
+ *
+ * `EditableFlowCanvas`'s `onConnect` must pass this to `addEdge` explicitly —
+ * left to its own default, `addEdge` mints React Flow's built-in
+ * `${source}${sourceHandle}-${target}${targetHandle}` id, which is exactly
+ * the plain-concatenation scheme {@link edgeId} exists to avoid (see its
+ * doc). Without this, an edge created by drawing a connection on the canvas
+ * gets a different id than the same edge would get after a reload (which
+ * goes through {@link workflowGraphToXyflow} → {@link edgeId}), and two
+ * connections that collide under plain concatenation would produce duplicate
+ * React keys.
+ */
+export function connectionEdgeId(connection: FlowConnectionCandidate): string {
+  return edgeId({
+    from_node: connection.source ?? '',
+    from_port: connection.sourceHandle || DEFAULT_PORT,
+    to_node: connection.target ?? '',
+    to_port: connection.targetHandle || DEFAULT_PORT,
+  });
+}
+
+/**
  * Declared output `ports` a freshly-added node of `kind` needs at creation
  * time, for kinds whose runtime routing is fixed and NOT derivable from
  * config or wired edges. A `condition` node always routes through `true`/

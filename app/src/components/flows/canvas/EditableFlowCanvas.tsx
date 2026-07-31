@@ -48,6 +48,7 @@ import {
 import { FLOW_RUN_NODE_STATUS_CLASS, useFlowRunProgress } from '../../../hooks/useFlowRunProgress';
 import { erroredNodeIds } from '../../../lib/flows/flowValidation';
 import {
+  connectionEdgeId,
   createFlowNode,
   FLOW_NODE_TYPE,
   type FlowEdge,
@@ -502,7 +503,10 @@ function EditableFlowCanvas(
       }
       log('onConnect: accepted %o', connection);
       pushHistory('structural');
-      setEdges(current => addEdge(connection, current));
+      // Use the adapter's collision-free id (matches what a reload would
+      // assign via workflowGraphToXyflow → edgeId), not React Flow's default
+      // concatenated id — see connectionEdgeId's doc.
+      setEdges(current => addEdge({ ...connection, id: connectionEdgeId(connection) }, current));
     },
     [nodes, edges, setEdges, onInvalidConnection, pushHistory]
   );

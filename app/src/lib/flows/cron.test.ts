@@ -113,6 +113,105 @@ describe('parseCron', () => {
     expect(parseCron('not a cron')).toBeNull();
     expect(parseCron('0 9 * *')).toBeNull(); // wrong field count
   });
+
+  // F-m7: a step outside buildCron's clamp range (1-59 minutes, 1-23 hours)
+  // must be treated as unparseable, not silently accepted and later narrowed.
+  // Accepting it here would let the visual editor's next unrelated patch()
+  // (see ScheduleField) recompile the spec through buildCron's clamp and
+  // rewrite the stored expression without the user touching the interval.
+  it('returns null for an out-of-range minute step, routing it to the advanced/opaque path', () => {
+    expect(parseCron('*/90 * * * *')).toBeNull();
+    expect(parseCron('*/60 * * * *')).toBeNull();
+    expect(parseCron('*/0 * * * *')).toBeNull();
+  });
+
+  it('returns null for an out-of-range hour step', () => {
+    expect(parseCron('0 */24 * * *')).toBeNull();
+    expect(parseCron('0 */100 * * *')).toBeNull();
+  });
+
+  it('accepts the boundary values buildCron itself clamps to', () => {
+    expect(parseCron('*/59 * * * *')).not.toBeNull();
+    expect(parseCron('*/1 * * * *')).not.toBeNull();
+    expect(parseCron('0 */23 * * *')).not.toBeNull();
+    expect(parseCron('0 */1 * * *')).not.toBeNull();
+  });
+
+  it('out-of-range custom cron round-trips unchanged through describeCron (opaque, not rewritten)', () => {
+    const outOfRange = '*/90 * * * *';
+    expect(parseCron(outOfRange)).toBeNull();
+    // describeCron falls back to the generic "custom schedule" label instead
+    // of mis-describing it as a 59-minute interval, and — critically — never
+    // calls buildCron on it, so the stored expression is never touched.
+    expect(describeCron(outOfRange, t, locale)).toBe(`Custom schedule (${outOfRange})`);
+  });
+
+  // Same data-loss class as the step-value fix above, but for the `minute`
+  // field of the hourly shape: `90 */2 * * *` still "looks like" hours (a
+  // stepped hour field with a plain minute), so without this guard it would
+  // parse to `minute: 90` and the next unrelated ScheduleField edit would
+  // silently rewrite the stored expression to `59 */2 * * *`.
+  it('returns null for an out-of-range hourly minute', () => {
+    expect(parseCron('90 */2 * * *')).toBeNull();
+    expect(parseCron('60 */2 * * *')).toBeNull();
+  });
+
+  // The daily/weekly shape clamps both `minute` and `hour` in buildCron, so
+  // both need the same guard — an out-of-range value in either field must
+  // not be silently narrowed on the next edit.
+  it('returns null for an out-of-range daily minute or hour', () => {
+    expect(parseCron('75 9 * * *')).toBeNull(); // minute out of range
+    expect(parseCron('30 25 * * *')).toBeNull(); // hour out of range
+    expect(parseCron('90 90 * * *')).toBeNull(); // both out of range
+  });
+
+  // Cron's day-of-week field is valid for 0-7; a value outside that (e.g. an
+  // `8` mixed into a list) must reject the whole field rather than being
+  // silently dropped by weekday normalization, which would otherwise let the
+  // next unrelated edit rewrite `1,8` down to `1`.
+  it('returns null for an out-of-range weekday, even mixed into a valid list', () => {
+    expect(parseCron('0 9 * * 8')).toBeNull();
+    expect(parseCron('0 9 * * 1,8')).toBeNull();
+    expect(parseCron('0 9 * * 99')).toBeNull();
+  });
+
+  it('accepts the minute/hour/weekday boundary values buildCron itself clamps to', () => {
+    expect(parseCron('59 */2 * * *')).not.toBeNull(); // hourly minute upper bound
+    expect(parseCron('0 */2 * * *')).not.toBeNull(); // hourly minute lower bound
+    expect(parseCron('59 23 * * *')).not.toBeNull(); // daily minute+hour upper bound
+    expect(parseCron('0 0 * * *')).not.toBeNull(); // daily minute+hour lower bound
+    expect(parseCron('0 9 * * 7')).not.toBeNull(); // weekday alias upper bound (Sun)
+  });
+
+  it('leaves in-range hourly and daily crons completely unaffected', () => {
+    for (const expr of [
+      '30 */2 * * *',
+      '0 */6 * * *',
+      '45 9 * * *',
+      '0 0 * * *',
+      '15 14 * * 1,3,5',
+    ]) {
+      const parsed = parseCron(expr);
+      expect(parsed).not.toBeNull();
+      expect(buildCron(parsed!)).toBe(expr);
+    }
+  });
+});
+
+describe('weekdayShortLabel / weekdayNarrowLabel', () => {
+  it('names English weekdays via Intl.DateTimeFormat against a fixed reference date', () => {
+    expect(weekdayShortLabel(0, 'en')).toBe('Sun');
+    expect(weekdayShortLabel(3, 'en')).toBe('Wed');
+    expect(weekdayShortLabel(6, 'en')).toBe('Sat');
+  });
+
+  it('produces a single-glyph label for compact toggles', () => {
+    expect(weekdayNarrowLabel(1, 'en')).toBe('M');
+  });
+
+  it('falls back to English for an unsupported locale tag rather than throwing', () => {
+    expect(() => weekdayShortLabel(0, 'not-a-real-locale')).not.toThrow();
+  });
 });
 
 describe('weekdayShortLabel / weekdayNarrowLabel', () => {
