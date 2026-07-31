@@ -607,7 +607,7 @@ async fn flows_create_rejects_an_incompatible_saved_child_before_persisting() {
         "{error}"
     );
     assert!(error.contains(&child.id), "{error}");
-    let flows = store::list_flows(&config).unwrap();
+    let (flows, _skipped) = store::list_flows(&config).unwrap();
     assert_eq!(flows.len(), 1, "the rejected parent must not be persisted");
     assert_eq!(flows[0].id, child.id);
 }
@@ -1215,6 +1215,70 @@ async fn flows_delete_unbinds_schedule_cron_job() {
             .is_none(),
         "deleting a flow must remove its schedule-trigger cron job — it lives in a separate \
          cron.db that flow_definitions' ON DELETE CASCADE cannot reach"
+    );
+}
+
+#[tokio::test]
+async fn reconcile_schedule_triggers_on_boot_survives_a_corrupt_row() {
+    // R-M4: `reconcile_schedule_triggers_on_boot` is driven by
+    // `list_enabled_flows`, which used to hard-fail its entire query on the
+    // first corrupt/unmigratable `graph_json` row. One bad enabled flow must
+    // not prevent every OTHER enabled schedule-trigger flow from having its
+    // cron job re-registered on boot.
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let good = flows_create(
+        &config,
+        "good-scheduled".to_string(),
+        schedule_trigger_graph("0 9 * * *"),
+        false,
+    )
+    .await
+    .unwrap();
+    flows_set_enabled(&config, &good.value.id, true)
+        .await
+        .unwrap();
+
+    let bad = flows_create(
+        &config,
+        "bad-scheduled".to_string(),
+        schedule_trigger_graph("0 10 * * *"),
+        false,
+    )
+    .await
+    .unwrap();
+    flows_set_enabled(&config, &bad.value.id, true)
+        .await
+        .unwrap();
+    store::force_corrupt_graph_json_for_test(&config, &bad.value.id, "{ not valid json").unwrap();
+
+    // Remove the cron job `flows_set_enabled` already bound for the good flow
+    // above, so the post-reconcile assertion proves
+    // `reconcile_schedule_triggers_on_boot` itself re-registered it (rather
+    // than the earlier `flows_set_enabled` call, which would pass this
+    // assertion even if the boot reconcile silently did nothing).
+    let good_job = crate::openhuman::cron::find_flow_schedule_job(&config, &good.value.id)
+        .unwrap()
+        .expect("precondition: good flow's cron job bound on enable");
+    crate::openhuman::cron::remove_job(&config, &good_job.id).unwrap();
+    assert!(
+        crate::openhuman::cron::find_flow_schedule_job(&config, &good.value.id)
+            .unwrap()
+            .is_none(),
+        "precondition: good flow's cron job removed before reconcile"
+    );
+
+    reconcile_schedule_triggers_on_boot(&config)
+        .await
+        .expect("boot reconciliation must not fail because of one corrupt sibling row");
+
+    assert!(
+        crate::openhuman::cron::find_flow_schedule_job(&config, &good.value.id)
+            .unwrap()
+            .is_some(),
+        "the good flow's cron job must be re-registered by boot reconcile despite the \
+         corrupt sibling row"
     );
 }
 

@@ -134,13 +134,18 @@ impl FlowTriggerSubscriber {
     /// dispatches each match with the event payload as the run input
     /// (seeded into `run.trigger`, per the node-catalog contract).
     async fn handle_app_event(&self, toolkit: &str, trigger_slug: &str, payload: &Value) {
-        let flows = match store::list_enabled_flows(&self.config) {
-            Ok(flows) => flows,
+        let (flows, skipped) = match store::list_enabled_flows(&self.config) {
+            Ok(result) => result,
             Err(e) => {
                 tracing::warn!(target: "flows", %toolkit, %trigger_slug, error = %e, "[flows] failed to list enabled flows for app_event dispatch");
                 return;
             }
         };
+        if skipped > 0 {
+            // R-M4: one corrupt/unmigratable flow row must not blackhole
+            // app_event dispatch for every other enabled flow.
+            tracing::warn!(target: "flows", %toolkit, %trigger_slug, skipped, "[flows] handle_app_event: skipped corrupt/unmigratable flow rows while matching trigger");
+        }
 
         let mut matched = 0usize;
         for flow in flows {
@@ -1039,8 +1044,10 @@ mod tests {
         // `list_enabled_flows` must not surface the disabled flow at all —
         // proves the subscriber's dispatch source already excludes it,
         // rather than asserting on a spawned background task's side effect.
-        let enabled = crate::openhuman::flows::store::list_enabled_flows(&config).unwrap();
+        let (enabled, skipped) =
+            crate::openhuman::flows::store::list_enabled_flows(&config).unwrap();
         assert!(enabled.is_empty());
+        assert_eq!(skipped, 0);
     }
 
     #[tokio::test]

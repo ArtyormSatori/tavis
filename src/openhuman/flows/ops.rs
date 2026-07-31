@@ -3498,9 +3498,32 @@ pub(crate) fn load_engine_compatible_flow_graph(
 }
 
 /// Lists every saved flow.
+///
+/// A corrupt or newer-schema-than-this-build `graph_json` row is skipped
+/// rather than failing the whole list (R-M4 — see `store::list_flow_rows`);
+/// when that happens it must not be silent, so a skip is both logged
+/// (`[flows]`-prefixed, id + error only — never row content) and surfaced in
+/// the RPC's `logs` so the UI can tell the user "N workflows could not be
+/// loaded" instead of silently rendering a shorter list than actually exists.
 pub async fn flows_list(config: &Config) -> Result<RpcOutcome<Vec<Flow>>, String> {
-    let flows = store::list_flows(config).map_err(|e| e.to_string())?;
-    Ok(RpcOutcome::single_log(flows, "flows listed"))
+    let (flows, skipped) = store::list_flows(config).map_err(|e| e.to_string())?;
+    if skipped > 0 {
+        tracing::warn!(
+            target: "flows",
+            skipped,
+            loaded = flows.len(),
+            "[flows] flows_list: skipped corrupt/unmigratable flow_definitions rows"
+        );
+        Ok(RpcOutcome::new(
+            flows,
+            vec![format!(
+                "flows listed ({skipped} workflow{} could not be loaded and were skipped)",
+                if skipped == 1 { "" } else { "s" }
+            )],
+        ))
+    } else {
+        Ok(RpcOutcome::single_log(flows, "flows listed"))
+    }
 }
 
 /// Lists the connection sources a flow node's `connection_ref` can attach to:
@@ -4301,7 +4324,13 @@ fn log_webhook_trigger_deferred(flow: &Flow, enabled: bool) {
 /// was lost some other way) gets its schedule re-registered on the next
 /// boot without the user having to toggle it off and on.
 pub async fn reconcile_schedule_triggers_on_boot(config: &Config) -> Result<(), String> {
-    let flows = store::list_enabled_flows(config).map_err(|e| e.to_string())?;
+    let (flows, skipped) = store::list_enabled_flows(config).map_err(|e| e.to_string())?;
+    if skipped > 0 {
+        // R-M4: a corrupt/unmigratable row must not abort boot reconciliation
+        // for every other enabled flow — skipped rows are logged loudly
+        // (never their content) so the gap is diagnosable.
+        tracing::warn!(target: "flows", skipped, "[flows] reconcile_schedule_triggers_on_boot: skipped corrupt/unmigratable flow rows");
+    }
     let mut reconciled = 0usize;
     for flow in &flows {
         if matches!(bus::extract_trigger_kind(flow), Some(TriggerKind::Schedule)) {
@@ -4309,7 +4338,7 @@ pub async fn reconcile_schedule_triggers_on_boot(config: &Config) -> Result<(), 
             reconciled += 1;
         }
     }
-    tracing::debug!(target: "flows", scanned = flows.len(), reconciled, "[flows] boot reconciliation of schedule-trigger cron jobs complete");
+    tracing::debug!(target: "flows", scanned = flows.len(), reconciled, skipped, "[flows] boot reconciliation of schedule-trigger cron jobs complete");
     Ok(())
 }
 

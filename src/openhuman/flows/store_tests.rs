@@ -60,13 +60,14 @@ fn create_get_list_delete_roundtrip() {
     assert_eq!(fetched.id, flow.id);
     assert_eq!(fetched.graph, flow.graph);
 
-    let listed = list_flows(&config).unwrap();
+    let (listed, skipped) = list_flows(&config).unwrap();
     assert_eq!(listed.len(), 1);
     assert_eq!(listed[0].id, flow.id);
+    assert_eq!(skipped, 0);
 
     remove_flow(&config, &flow.id).unwrap();
     assert!(get_flow(&config, &flow.id).unwrap().is_none());
-    assert!(list_flows(&config).unwrap().is_empty());
+    assert!(list_flows(&config).unwrap().0.is_empty());
 }
 
 #[test]
@@ -426,9 +427,11 @@ fn update_flow_graph_can_change_require_approval() {
 
 #[test]
 fn legacy_flow_definitions_row_without_require_approval_column_defaults_false() {
-    // A row inserted before the `require_approval` column existed (the
-    // `add_column_if_missing` ALTER runs on every `with_connection` call, so
-    // this simulates a workspace opened once on an older build).
+    // A row inserted before the `require_approval` column existed. Schema
+    // init (including the `add_column_if_missing` ALTER) runs once per
+    // process per database file (R-m8) — since this test opens a fresh
+    // per-`TempDir` database, that one-time init still runs here, simulating
+    // a workspace opened once on an older build.
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
 
@@ -467,9 +470,10 @@ fn list_enabled_flows_excludes_disabled() {
     .unwrap();
     set_enabled(&config, &disabled_flow.id, false).unwrap();
 
-    let enabled = list_enabled_flows(&config).unwrap();
+    let (enabled, skipped) = list_enabled_flows(&config).unwrap();
     assert_eq!(enabled.len(), 1);
     assert_eq!(enabled[0].id, enabled_flow.id);
+    assert_eq!(skipped, 0);
 }
 
 // ── flow_runs CRUD ────────────────────────────────────────────────────────
@@ -644,7 +648,7 @@ fn insert_duplicate_flow_makes_a_disabled_copy_with_new_id_and_same_graph() {
     let reloaded = get_flow(&config, &copy.id).unwrap().unwrap();
     assert!(!reloaded.enabled);
     assert_eq!(reloaded.graph, source.graph);
-    assert_eq!(list_flows(&config).unwrap().len(), 2);
+    assert_eq!(list_flows(&config).unwrap().0.len(), 2);
 }
 
 // ── prune_flow_runs ───────────────────────────────────────────────────────
@@ -1100,4 +1104,342 @@ fn expire_parked_runs_returns_only_rows_it_actually_flipped() {
             .status,
         "cancelled"
     );
+}
+
+// ── R-M4: corrupt/unmigratable graph_json rows must not brick a list ────────
+
+#[test]
+fn list_flows_skips_a_corrupt_row_and_reports_the_count() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let good_a = create_flow(&config, "good-a".to_string(), trigger_graph(), false, true).unwrap();
+    let bad = create_flow(&config, "bad".to_string(), trigger_graph(), false, true).unwrap();
+    let good_b = create_flow(&config, "good-b".to_string(), trigger_graph(), false, true).unwrap();
+    force_corrupt_graph_json_for_test(&config, &bad.id, "{ not even valid json").unwrap();
+
+    let (flows, skipped) = list_flows(&config).unwrap();
+    assert_eq!(
+        skipped, 1,
+        "exactly the one corrupt row must be counted as skipped"
+    );
+    let ids: Vec<&str> = flows.iter().map(|f| f.id.as_str()).collect();
+    assert_eq!(
+        flows.len(),
+        2,
+        "the two good rows must still be returned: {ids:?}"
+    );
+    assert!(ids.contains(&good_a.id.as_str()));
+    assert!(ids.contains(&good_b.id.as_str()));
+    assert!(!ids.contains(&bad.id.as_str()));
+}
+
+#[test]
+fn list_flows_skips_a_row_whose_schema_version_is_newer_than_this_build_supports() {
+    // The real-world R-M4 scenario: a user ran a newer build that persisted a
+    // graph at a `schema_version` this build's `tinyflows::migrate::migrate`
+    // cannot step backward from, then downgraded.
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let good = create_flow(&config, "good".to_string(), trigger_graph(), false, true).unwrap();
+    let too_new =
+        create_flow(&config, "too-new".to_string(), trigger_graph(), false, true).unwrap();
+    let newer_schema_json = serde_json::json!({
+        "schema_version": 999,
+        "name": "from-the-future",
+        "nodes": [],
+        "edges": []
+    })
+    .to_string();
+    force_corrupt_graph_json_for_test(&config, &too_new.id, &newer_schema_json).unwrap();
+
+    let (flows, skipped) = list_flows(&config).unwrap();
+    assert_eq!(skipped, 1);
+    assert_eq!(flows.len(), 1);
+    assert_eq!(flows[0].id, good.id);
+}
+
+#[test]
+fn list_enabled_flows_still_returns_the_good_rows_when_one_is_corrupt() {
+    // This is the blast-radius scenario R-M4 flags for `bus.rs::handle_app_event`:
+    // `list_enabled_flows` backs ALL `app_event` trigger dispatch, so one
+    // corrupt enabled flow must not blackhole matching for every other one.
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let good = create_flow(&config, "good".to_string(), trigger_graph(), false, true).unwrap();
+    let bad = create_flow(&config, "bad".to_string(), trigger_graph(), false, true).unwrap();
+    force_corrupt_graph_json_for_test(&config, &bad.id, "not json at all").unwrap();
+
+    let (enabled, skipped) = list_enabled_flows(&config).unwrap();
+    assert_eq!(skipped, 1);
+    assert_eq!(enabled.len(), 1);
+    assert_eq!(enabled[0].id, good.id);
+}
+
+#[test]
+fn list_enabled_flows_excludes_a_corrupt_disabled_row_without_counting_it_as_skipped() {
+    // A corrupt row that was never enabled must not even be attempted for
+    // decode by `list_enabled_flows` (the WHERE clause filters it out at the
+    // SQL layer before `map_flow_row` ever runs) — it is neither returned nor
+    // counted as skipped by this particular listing.
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let good = create_flow(&config, "good".to_string(), trigger_graph(), false, true).unwrap();
+    let disabled_and_corrupt = create_flow(
+        &config,
+        "disabled-bad".to_string(),
+        trigger_graph(),
+        false,
+        true,
+    )
+    .unwrap();
+    set_enabled(&config, &disabled_and_corrupt.id, false).unwrap();
+    force_corrupt_graph_json_for_test(&config, &disabled_and_corrupt.id, "{{{").unwrap();
+
+    let (enabled, skipped) = list_enabled_flows(&config).unwrap();
+    assert_eq!(skipped, 0);
+    assert_eq!(enabled.len(), 1);
+    assert_eq!(enabled[0].id, good.id);
+}
+
+// ── R-m1: concurrent step upserts must not lose a step ──────────────────────
+
+#[test]
+fn concurrent_step_upserts_do_not_lose_a_step() {
+    // Two observer callbacks for parallel branch nodes of the same run,
+    // racing to persist their step. Before the `BEGIN IMMEDIATE` fix this was
+    // a classic untransacted read-modify-write: both threads could read the
+    // same pre-write `steps_json`, and whichever `UPDATE` landed last would
+    // silently discard the other thread's step — permanently, since the
+    // post-hoc `settle_steps` reconstruction only refills a missing node with
+    // `status: None`, not its real outcome.
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = create_flow(&config, "demo".to_string(), trigger_graph(), false, true).unwrap();
+    let run_id = "run-concurrent";
+    insert_flow_run(&config, run_id, &flow.id, run_id, "2026-01-01T00:00:00Z").unwrap();
+
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(2));
+
+    let config_a = config.clone();
+    let barrier_a = barrier.clone();
+    let handle_a = std::thread::spawn(move || {
+        barrier_a.wait();
+        upsert_flow_run_step(
+            &config_a,
+            run_id,
+            &FlowRunStep {
+                node_id: "branch-a".to_string(),
+                output: serde_json::json!([{"json": {"a": 1}}]),
+                status: Some("success".to_string()),
+                ..Default::default()
+            },
+        )
+    });
+
+    let config_b = config.clone();
+    let barrier_b = barrier.clone();
+    let handle_b = std::thread::spawn(move || {
+        barrier_b.wait();
+        upsert_flow_run_step(
+            &config_b,
+            run_id,
+            &FlowRunStep {
+                node_id: "branch-b".to_string(),
+                output: serde_json::json!([{"json": {"b": 1}}]),
+                status: Some("success".to_string()),
+                ..Default::default()
+            },
+        )
+    });
+
+    handle_a.join().unwrap().unwrap();
+    handle_b.join().unwrap().unwrap();
+
+    let row = get_flow_run(&config, run_id).unwrap().unwrap();
+    let node_ids: std::collections::HashSet<&str> =
+        row.steps.iter().map(|s| s.node_id.as_str()).collect();
+    assert_eq!(
+        row.steps.len(),
+        2,
+        "both concurrent steps must survive, none silently dropped: {:?}",
+        row.steps
+    );
+    assert!(node_ids.contains("branch-a"));
+    assert!(node_ids.contains("branch-b"));
+}
+
+#[test]
+fn concurrent_upserts_to_the_same_node_id_do_not_corrupt_the_step_list() {
+    // Same run, same node_id, racing "replace" writes — the transaction must
+    // still leave exactly one entry for that node (whichever write wins the
+    // serialization order), never a torn/duplicated list.
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = create_flow(&config, "demo".to_string(), trigger_graph(), false, true).unwrap();
+    let run_id = "run-same-node";
+    insert_flow_run(&config, run_id, &flow.id, run_id, "2026-01-01T00:00:00Z").unwrap();
+
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(2));
+    let mut handles = Vec::new();
+    for i in 0..2 {
+        let config = config.clone();
+        let barrier = barrier.clone();
+        handles.push(std::thread::spawn(move || {
+            barrier.wait();
+            upsert_flow_run_step(
+                &config,
+                run_id,
+                &FlowRunStep {
+                    node_id: "same-node".to_string(),
+                    output: serde_json::json!([{"json": {"attempt": i}}]),
+                    status: Some("success".to_string()),
+                    ..Default::default()
+                },
+            )
+        }));
+    }
+    for h in handles {
+        h.join().unwrap().unwrap();
+    }
+
+    let row = get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(
+        row.steps.len(),
+        1,
+        "a re-upsert of the same node_id must replace, not duplicate: {:?}",
+        row.steps
+    );
+    assert_eq!(row.steps[0].node_id, "same-node");
+}
+
+// ── R-m8: schema init is gated to once per process per database path ───────
+
+#[test]
+fn schema_initializes_correctly_on_a_fresh_database_and_is_idempotent_across_calls() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    // First-ever call against this database file in the process: exercises
+    // the full schema DDL (CREATE TABLE batch + indexes) plus the
+    // `require_approval` `add_column_if_missing` migration on a database that
+    // has never been opened before.
+    let flow = create_flow(
+        &config,
+        "fresh-db".to_string(),
+        trigger_graph(),
+        true, // require_approval
+        true,
+    )
+    .unwrap();
+    assert!(
+        flow.require_approval,
+        "the post-hoc require_approval column must exist and be writable on a brand-new db"
+    );
+
+    // Repeat calls against the SAME path must not need (or re-run) DDL —
+    // proves the cached "already initialized" state doesn't break ordinary
+    // reads/writes on reuse.
+    let (listed, skipped) = list_flows(&config).unwrap();
+    assert_eq!(skipped, 0);
+    assert_eq!(listed.len(), 1);
+    assert!(listed[0].require_approval);
+
+    let reloaded = get_flow(&config, &flow.id).unwrap().unwrap();
+    assert!(reloaded.require_approval);
+
+    let run_id = "run-schema-check";
+    insert_flow_run(&config, run_id, &flow.id, run_id, "2026-01-01T00:00:00Z").unwrap();
+    assert!(get_flow_run(&config, run_id).unwrap().is_some());
+}
+
+#[test]
+fn schema_initializes_independently_for_each_distinct_database_path() {
+    // Regression guard for the once-per-process cache: if it were keyed by a
+    // single process-wide flag instead of by database path, opening a SECOND
+    // independent workspace after the first would silently skip schema
+    // creation and every write against it would fail with "no such table".
+    let tmp_a = TempDir::new().unwrap();
+    let config_a = test_config(&tmp_a);
+    let flow_a = create_flow(&config_a, "a".to_string(), trigger_graph(), false, true).unwrap();
+
+    let tmp_b = TempDir::new().unwrap();
+    let config_b = test_config(&tmp_b);
+    let flow_b = create_flow(&config_b, "b".to_string(), trigger_graph(), false, true).unwrap();
+
+    assert_eq!(list_flows(&config_a).unwrap().0.len(), 1);
+    assert_eq!(list_flows(&config_b).unwrap().0.len(), 1);
+    assert_eq!(
+        get_flow(&config_a, &flow_a.id).unwrap().unwrap().id,
+        flow_a.id
+    );
+    assert_eq!(
+        get_flow(&config_b, &flow_b.id).unwrap().unwrap().id,
+        flow_b.id
+    );
+}
+
+/// R-m8 regression: gating the DDL behind a per-path "already initialized" set
+/// must not cost the store its self-healing.
+///
+/// Before the gate existed, the DDL ran on every `with_connection` call, so a
+/// database deleted or replaced at runtime (workspace reset, manual deletion,
+/// a restore) recovered on the very next call — `Connection::open` creates a
+/// fresh empty file and `CREATE TABLE IF NOT EXISTS` repopulates it. With a
+/// naive cache the set still reports "initialized" while the file behind it is
+/// empty, and every query afterwards fails `no such table: flow_definitions`
+/// until the process restarts. This pins the verify-on-hit that restores it.
+#[test]
+fn schema_reinitializes_when_the_database_file_is_deleted_at_runtime() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    // First use populates the per-path cache and creates the schema.
+    let flow = create_flow(
+        &config,
+        "before-deletion".to_string(),
+        trigger_graph(),
+        false,
+        true,
+    )
+    .unwrap();
+    let (flows, _skipped) = list_flows(&config).unwrap();
+    assert_eq!(flows.len(), 1, "sanity: the flow was persisted");
+
+    // Simulate a workspace reset / manual deletion while the process lives on.
+    let db_path = config.workspace_dir.join("flows").join("flows.db");
+    assert!(
+        db_path.exists(),
+        "sanity: the flows db exists before deletion"
+    );
+    std::fs::remove_file(&db_path).unwrap();
+    // WAL sidecars must go too, or SQLite can resurrect pages from them.
+    let _ = std::fs::remove_file(db_path.with_extension("db-wal"));
+    let _ = std::fs::remove_file(db_path.with_extension("db-shm"));
+
+    // The cache still says this path is initialized. Without the verify-on-hit
+    // this errors with `no such table: flow_definitions`.
+    let (flows_after, skipped_after) = list_flows(&config)
+        .expect("a deleted database must be re-initialized, not left wedged at 'no such table'");
+    assert!(
+        flows_after.is_empty(),
+        "the recreated database starts empty — the prior flow is genuinely gone"
+    );
+    assert_eq!(skipped_after, 0, "an empty database skips nothing");
+
+    // And the store is fully usable again, not merely readable.
+    let recreated = create_flow(
+        &config,
+        "after-deletion".to_string(),
+        trigger_graph(),
+        false,
+        true,
+    )
+    .expect("writes must work against the re-initialized schema");
+    assert_ne!(recreated.id, flow.id);
+    let (flows_final, _) = list_flows(&config).unwrap();
+    assert_eq!(flows_final.len(), 1);
 }

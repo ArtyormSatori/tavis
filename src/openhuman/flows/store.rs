@@ -22,29 +22,93 @@ use crate::openhuman::flows::Flow;
 use anyhow::{Context, Result};
 use chrono::Utc;
 use rusqlite::{params, Connection};
+use std::collections::HashSet;
+use std::path::{Path, PathBuf};
+use std::sync::{Mutex, OnceLock};
 use uuid::Uuid;
 
-/// Opens (creating/migrating as needed) the flows SQLite database and runs `f`
-/// against the connection.
-fn with_connection<T>(config: &Config, f: impl FnOnce(&Connection) -> Result<T>) -> Result<T> {
-    let db_path = config.workspace_dir.join("flows").join("flows.db");
-    if let Some(parent) = db_path.parent() {
-        std::fs::create_dir_all(parent)
-            .with_context(|| format!("Failed to create flows directory: {}", parent.display()))?;
+/// Tracks which flows database files have already had their schema DDL (the
+/// `CREATE TABLE`/`CREATE INDEX` batch, `PRAGMA journal_mode = WAL`, and the
+/// `add_column_if_missing` migration probe) run against them in this process
+/// (R-m8). `with_connection` deliberately keeps opening a fresh, lightweight
+/// `rusqlite::Connection` per call — `Connection` is `!Sync`, so caching a
+/// single shared one would need a process-wide mutex that serializes every
+/// caller, including the concurrent-writer scenario [`upsert_flow_run_step`]'s
+/// `BEGIN IMMEDIATE` fix (R-m1) depends on being able to run from independent
+/// connections. What actually repeats needlessly on every open is the DDL
+/// batch itself — including once per node per live run via
+/// `upsert_flow_run_step`. Gating just that batch behind a per-path
+/// "already initialized" set keeps it to one execution per process per
+/// database file while every call still gets its own connection.
+///
+/// Keyed by path rather than a single flag: tests each open an independent
+/// per-`TempDir` workspace within the same test binary, and a bare
+/// `OnceLock<()>` would silently skip schema creation for every database path
+/// after the first test to run in the process.
+static INITIALIZED_SCHEMAS: OnceLock<Mutex<HashSet<PathBuf>>> = OnceLock::new();
+
+/// Runs the one-time schema DDL + migrations against `conn` unless `db_path`
+/// has already been initialized in this process (see [`INITIALIZED_SCHEMAS`]).
+/// Only marks `db_path` as initialized *after* [`init_schema`] succeeds, so a
+/// transient failure (e.g. disk I/O) is retried on the next call rather than
+/// permanently wedging the store into believing a schema exists that was
+/// never created.
+///
+/// **Trust, but verify.** A cache hit is confirmed against the file actually on
+/// disk before it is honoured. Before this gating existed, the DDL ran on every
+/// `with_connection` call, so a database deleted or replaced at runtime — a
+/// workspace reset, a manual deletion, a disk-recovery restore — self-healed on
+/// the very next call: `Connection::open` silently creates a fresh empty file,
+/// and `CREATE TABLE IF NOT EXISTS` immediately repopulated it. Caching removes
+/// that safety net: the set still says "initialized" while the file behind it is
+/// empty, so every subsequent query fails with `no such table` until the process
+/// restarts. One indexed `sqlite_master` lookup is far cheaper than the ~11
+/// statement DDL batch and restores the self-healing, so it is paid on each hit
+/// rather than trusting a cache entry that the filesystem may have invalidated.
+fn ensure_schema_initialized(conn: &Connection, db_path: &Path) -> Result<()> {
+    use rusqlite::OptionalExtension;
+
+    let initialized = INITIALIZED_SCHEMAS.get_or_init(|| Mutex::new(HashSet::new()));
+    {
+        let guard = initialized
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if guard.contains(db_path) {
+            let schema_present: bool = conn
+                .query_row(
+                    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'flow_definitions'",
+                    [],
+                    |_| Ok(true),
+                )
+                .optional()
+                .context("Failed to probe flows schema presence")?
+                .unwrap_or(false);
+            if schema_present {
+                return Ok(());
+            }
+            tracing::warn!(
+                target: "flows",
+                db = %db_path.display(),
+                "[flows] schema cached as initialized but the database has no tables (deleted or replaced at runtime?) — re-running schema init"
+            );
+        }
     }
+    init_schema(conn)?;
+    let mut guard = initialized
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    guard.insert(db_path.to_path_buf());
+    Ok(())
+}
 
-    let conn = Connection::open(&db_path)
-        .with_context(|| format!("Failed to open flows DB: {}", db_path.display()))?;
-
+/// The actual schema DDL: 5 `CREATE TABLE IF NOT EXISTS` + 6 `CREATE INDEX IF
+/// NOT EXISTS` + `PRAGMA journal_mode = WAL` (a persistent db-file setting,
+/// not per-connection — safe, and now guaranteed, to run only once) plus the
+/// `require_approval` post-hoc column migration. Split out of
+/// `with_connection` so [`ensure_schema_initialized`] can gate it (R-m8).
+fn init_schema(conn: &Connection) -> Result<()> {
     conn.execute_batch(
-        // `busy_timeout` retries (rather than immediately erroring
-        // `SQLITE_BUSY`) when a concurrent run/state write holds the lock; WAL
-        // lets readers and a writer proceed together. Both are safe to re-issue
-        // on every open (WAL is a persistent db-file setting; busy_timeout is
-        // per-connection).
-        "PRAGMA busy_timeout = 5000;
-         PRAGMA journal_mode = WAL;
-         PRAGMA foreign_keys = ON;
+        "PRAGMA journal_mode = WAL;
          CREATE TABLE IF NOT EXISTS flow_definitions (
             id          TEXT PRIMARY KEY,
             name        TEXT NOT NULL,
@@ -114,11 +178,39 @@ fn with_connection<T>(config: &Config, f: impl FnOnce(&Connection) -> Result<T>)
     // before this column existed still opens cleanly. Mirrors
     // `cron::store`'s `add_column_if_missing` idiom.
     add_column_if_missing(
-        &conn,
+        conn,
         "flow_definitions",
         "require_approval",
         "INTEGER NOT NULL DEFAULT 0",
     )?;
+
+    Ok(())
+}
+
+/// Opens (creating/migrating as needed — once per process per database file,
+/// see [`ensure_schema_initialized`]) the flows SQLite database and runs `f`
+/// against the connection.
+fn with_connection<T>(config: &Config, f: impl FnOnce(&Connection) -> Result<T>) -> Result<T> {
+    let db_path = config.workspace_dir.join("flows").join("flows.db");
+    if let Some(parent) = db_path.parent() {
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("Failed to create flows directory: {}", parent.display()))?;
+    }
+
+    let conn = Connection::open(&db_path)
+        .with_context(|| format!("Failed to open flows DB: {}", db_path.display()))?;
+
+    // Per-connection pragmas: NOT persisted in the database file, so these
+    // must be reapplied on every open regardless of the schema-init cache
+    // below. `busy_timeout` retries (rather than immediately erroring
+    // `SQLITE_BUSY`) when a concurrent writer holds the lock — including this
+    // store's own `BEGIN IMMEDIATE` step upsert (R-m1); `foreign_keys` is
+    // required on every connection for the `ON DELETE CASCADE` FKs to be
+    // enforced.
+    conn.execute_batch("PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;")
+        .context("Failed to set flows DB connection pragmas")?;
+
+    ensure_schema_initialized(&conn, &db_path)?;
 
     tracing::debug!(db = %db_path.display(), "[flows] store opened");
 
@@ -270,19 +362,58 @@ pub fn get_flow(config: &Config, id: &str) -> Result<Option<Flow>> {
     })
 }
 
-/// Lists all saved flows, migrating each graph on read (see [`get_flow`]).
-pub fn list_flows(config: &Config) -> Result<Vec<Flow>> {
-    with_connection(config, |conn| {
-        let mut stmt = conn.prepare(&format!(
-            "SELECT {FLOW_DEFINITION_COLUMNS} FROM flow_definitions ORDER BY created_at ASC"
-        ))?;
-        let rows = stmt.query_map([], map_flow_row)?;
-        let mut flows = Vec::new();
-        for row in rows {
-            flows.push(row?);
+/// Runs a `flow_definitions` SELECT and splits its rows into successfully
+/// decoded [`Flow`]s and a count of rows that failed to parse/migrate
+/// (R-M4).
+///
+/// **Skip-and-log, not fail-the-whole-query.** Before this, `list_flows` /
+/// `list_enabled_flows` did `flows.push(row?)`, so a single corrupt or
+/// newer-schema-than-this-build `graph_json` (e.g. a user downgrades after
+/// running a newer build that persisted a graph `tinyflows::migrate::migrate`
+/// cannot step backward) hard-failed the *entire* query — bricking every
+/// `flows_list`, every `app_event` trigger dispatch (which is driven by
+/// `list_enabled_flows`, see `bus.rs::handle_app_event`), and the boot
+/// `reconcile_schedule_triggers_on_boot` sweep, all because of one bad row.
+/// Mirrors the posture `draft_store::list_drafts` already uses. The returned
+/// skip count is **not** swallowed here — it is the caller's job to log/
+/// surface it loudly (a silently short flow list is its own failure mode) —
+/// but this function itself does log each skip at `warn` with the row's `id`
+/// and the parse/migrate error, never the `graph_json` payload.
+fn list_flow_rows(conn: &Connection, where_clause: &str) -> Result<(Vec<Flow>, usize)> {
+    let mut stmt = conn.prepare(&format!(
+        "SELECT {FLOW_DEFINITION_COLUMNS} FROM flow_definitions {where_clause} \
+         ORDER BY created_at ASC"
+    ))?;
+    let mut rows = stmt.query([])?;
+    let mut flows = Vec::new();
+    let mut skipped = 0usize;
+    while let Some(row) = rows.next()? {
+        match map_flow_row(row) {
+            Ok(flow) => flows.push(flow),
+            Err(e) => {
+                skipped += 1;
+                let id: String = row.get(0).unwrap_or_else(|_| "<unknown>".to_string());
+                tracing::warn!(
+                    target: "flows",
+                    flow_id = %id,
+                    error = %e,
+                    "[flows] skipping corrupt or unmigratable flow_definitions row \
+                     (graph_json failed to parse/migrate)"
+                );
+            }
         }
-        Ok(flows)
-    })
+    }
+    Ok((flows, skipped))
+}
+
+/// Lists all saved flows, migrating each graph on read (see [`get_flow`]).
+///
+/// Returns `(flows, skipped)` — `skipped` is the number of rows that could
+/// not be decoded and were left out of `flows` (R-M4). Callers must not treat
+/// a non-zero `skipped` as a reason to fail; they must surface it loudly
+/// instead (see [`list_flow_rows`]).
+pub fn list_flows(config: &Config) -> Result<(Vec<Flow>, usize)> {
+    with_connection(config, |conn| list_flow_rows(conn, ""))
 }
 
 /// Lists only enabled flows, migrating each graph on read (see [`get_flow`]).
@@ -292,19 +423,11 @@ pub fn list_flows(config: &Config) -> Result<Vec<Flow>> {
 /// scanning the (small) enabled set once per event is simpler and cheap
 /// enough at expected flow counts; a dedicated toolkit/trigger_slug index is
 /// a later optimization if this ever shows up as a bottleneck.
-pub fn list_enabled_flows(config: &Config) -> Result<Vec<Flow>> {
-    with_connection(config, |conn| {
-        let mut stmt = conn.prepare(&format!(
-            "SELECT {FLOW_DEFINITION_COLUMNS} FROM flow_definitions WHERE enabled = 1 \
-             ORDER BY created_at ASC"
-        ))?;
-        let rows = stmt.query_map([], map_flow_row)?;
-        let mut flows = Vec::new();
-        for row in rows {
-            flows.push(row?);
-        }
-        Ok(flows)
-    })
+///
+/// Returns `(flows, skipped)` — see [`list_flows`]. A corrupt row here must
+/// not take down `app_event` dispatch for every *other* enabled flow (R-M4).
+pub fn list_enabled_flows(config: &Config) -> Result<(Vec<Flow>, usize)> {
+    with_connection(config, |conn| list_flow_rows(conn, "WHERE enabled = 1"))
 }
 
 /// Deletes a flow by id. Returns an error if no such flow exists.
@@ -809,44 +932,88 @@ pub fn finish_flow_run(
 /// it finishes** (issue G2, live run observation) rather than only rebuilding
 /// the whole step list at settle.
 ///
-/// Read-modify-write under a single connection (the WAL + `busy_timeout=5000`
-/// this store opens with tolerates the concurrent settle write). A re-run of
-/// the same `node_id` (a retry, or a resumed run re-touching a node) replaces
-/// its prior entry rather than duplicating it, so the persisted list stays one
-/// entry per node. No-op if the run's start row hasn't been inserted yet
-/// (nothing to update) — mirrors the best-effort contract of the run-row
-/// writers in `flows::ops`.
+/// **`BEGIN IMMEDIATE`-guarded read-modify-write (R-m1).** Each call opens its
+/// own connection (see `with_connection`), so without an explicit transaction
+/// two observer callbacks firing for parallel branch nodes of the *same* run
+/// can interleave: both read `steps_json = [A]`, one writes `[A,B]`, the other
+/// writes `[A,C]` — B is silently lost from the live view, and lost for good,
+/// since the post-hoc `settle_steps` reconstruction only refills a missing
+/// node with `status: None` rather than recovering the real outcome/duration.
+/// `BEGIN IMMEDIATE` takes SQLite's write lock up front (rather than only at
+/// the final `UPDATE`, which is what a plain autocommit read-then-write would
+/// do), so a concurrent upsert either waits (covered by this store's
+/// `busy_timeout = 5000` connection pragma — see `with_connection`) or is
+/// serialized behind it; there is no window in which both readers can observe
+/// the same pre-write `steps_json`. Kept deliberately minimal (one SELECT, one
+/// UPDATE) to bound how long the write lock is held.
+///
+/// A re-run of the same `node_id` (a retry, or a resumed run re-touching a
+/// node) replaces its prior entry rather than duplicating it, so the
+/// persisted list stays one entry per node. No-op if the run's start row
+/// hasn't been inserted yet (nothing to update) — mirrors the best-effort
+/// contract of the run-row writers in `flows::ops`.
 pub fn upsert_flow_run_step(config: &Config, run_id: &str, step: &FlowRunStep) -> Result<()> {
     use rusqlite::OptionalExtension;
     with_connection(config, |conn| {
-        let existing: Option<String> = conn
-            .query_row(
-                "SELECT steps_json FROM flow_runs WHERE id = ?1",
-                params![run_id],
-                |row| row.get(0),
+        with_immediate_transaction(conn, |conn| {
+            let existing: Option<String> = conn
+                .query_row(
+                    "SELECT steps_json FROM flow_runs WHERE id = ?1",
+                    params![run_id],
+                    |row| row.get(0),
+                )
+                .optional()
+                .context("Failed to read flow run steps for incremental upsert")?;
+            let Some(raw) = existing else {
+                tracing::debug!(target: "flows", run_id, node = %step.node_id, "[flows] upsert_flow_run_step: no run row yet — skipping incremental step persist");
+                return Ok(());
+            };
+            let mut steps: Vec<FlowRunStep> = serde_json::from_str(&raw)
+                .context("Failed to deserialize existing flow run steps")?;
+            match steps.iter_mut().find(|s| s.node_id == step.node_id) {
+                Some(slot) => *slot = step.clone(),
+                None => steps.push(step.clone()),
+            }
+            let steps_json =
+                serde_json::to_string(&steps).context("Failed to serialize flow run steps")?;
+            conn.execute(
+                "UPDATE flow_runs SET steps_json = ?1 WHERE id = ?2",
+                params![steps_json, run_id],
             )
-            .optional()
-            .context("Failed to read flow run steps for incremental upsert")?;
-        let Some(raw) = existing else {
-            tracing::debug!(target: "flows", run_id, node = %step.node_id, "[flows] upsert_flow_run_step: no run row yet — skipping incremental step persist");
-            return Ok(());
-        };
-        let mut steps: Vec<FlowRunStep> =
-            serde_json::from_str(&raw).context("Failed to deserialize existing flow run steps")?;
-        match steps.iter_mut().find(|s| s.node_id == step.node_id) {
-            Some(slot) => *slot = step.clone(),
-            None => steps.push(step.clone()),
-        }
-        let steps_json =
-            serde_json::to_string(&steps).context("Failed to serialize flow run steps")?;
-        conn.execute(
-            "UPDATE flow_runs SET steps_json = ?1 WHERE id = ?2",
-            params![steps_json, run_id],
-        )
-        .context("Failed to persist incremental flow run step")?;
-        tracing::debug!(target: "flows", run_id, node = %step.node_id, step_count = steps.len(), "[flows] persisted incremental flow run step");
-        Ok(())
+            .context("Failed to persist incremental flow run step")?;
+            tracing::debug!(target: "flows", run_id, node = %step.node_id, step_count = steps.len(), "[flows] persisted incremental flow run step");
+            Ok(())
+        })
     })
+}
+
+/// Runs `f` inside a `BEGIN IMMEDIATE` / `COMMIT` transaction on `conn`,
+/// rolling back on error. `BEGIN IMMEDIATE` (rather than the default deferred
+/// `BEGIN`) acquires SQLite's write lock immediately instead of only at the
+/// first write statement, which is what closes the read-then-write race
+/// [`upsert_flow_run_step`] needs closed (R-m1). Issued as raw SQL via
+/// `execute_batch` rather than `rusqlite::Connection::transaction` (which
+/// needs `&mut Connection`) so this can compose with `with_connection`'s
+/// `&Connection` closure signature used by every other store function.
+fn with_immediate_transaction<T>(
+    conn: &Connection,
+    f: impl FnOnce(&Connection) -> Result<T>,
+) -> Result<T> {
+    conn.execute_batch("BEGIN IMMEDIATE")
+        .context("Failed to begin immediate transaction")?;
+    match f(conn) {
+        Ok(value) => {
+            conn.execute_batch("COMMIT")
+                .context("Failed to commit transaction")?;
+            Ok(value)
+        }
+        Err(e) => {
+            if let Err(rollback_err) = conn.execute_batch("ROLLBACK") {
+                tracing::warn!(target: "flows", error = %rollback_err, "[flows] failed to roll back transaction after error");
+            }
+            Err(e)
+        }
+    }
 }
 
 /// Expires every parked `pending_approval` run whose "parked since" timestamp
@@ -980,6 +1147,33 @@ pub fn force_run_status_for_test(
             params![status, error, id],
         )
         .context("Failed to force flow run status (test fixture)")?;
+        Ok(())
+    })
+}
+
+/// Test-only fixture door: overwrites an existing flow row's `graph_json`
+/// with arbitrary text, bypassing the normal `Flow`/`WorkflowGraph`-typed
+/// write path entirely. Used to stage the corrupt-or-newer-schema-row
+/// scenario `list_flows` / `list_enabled_flows` / boot reconciliation must
+/// survive (R-M4) — same "staging is a fixture concern, so it gets a
+/// fixture-only door" rationale as [`force_run_status_for_test`]. Real
+/// production writes can never produce a row `map_flow_row` can't decode
+/// (every write path serializes a validated `WorkflowGraph`), so there is no
+/// non-test way to reach this state other than a cross-version downgrade.
+#[cfg(test)]
+pub fn force_corrupt_graph_json_for_test(
+    config: &Config,
+    flow_id: &str,
+    raw_graph_json: &str,
+) -> Result<()> {
+    with_connection(config, |conn| {
+        let changed = conn
+            .execute(
+                "UPDATE flow_definitions SET graph_json = ?1 WHERE id = ?2",
+                params![raw_graph_json, flow_id],
+            )
+            .context("Failed to force corrupt graph_json (test fixture)")?;
+        anyhow::ensure!(changed > 0, "flow '{flow_id}' not found (test fixture)");
         Ok(())
     })
 }
