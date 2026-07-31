@@ -222,6 +222,38 @@ fn run_output_fields() -> Vec<FieldSchema> {
     ]
 }
 
+fn run_detached_output_fields() -> Vec<FieldSchema> {
+    vec![
+        FieldSchema {
+            name: "run_id",
+            ty: TypeSchema::String,
+            comment: "Durable checkpoint thread id for this run (same identifier `flows_get_run` \
+                      / `flows_cancel_run` / `flows_resume` expect).",
+            required: true,
+        },
+        FieldSchema {
+            name: "flow_id",
+            ty: TypeSchema::String,
+            comment: "Identifier of the flow that was started.",
+            required: true,
+        },
+        FieldSchema {
+            name: "status",
+            ty: TypeSchema::String,
+            comment: "Always `\"running\"` at the moment this call returns; poll `flows_get_run` \
+                      or subscribe to `flow:run_progress` for the terminal state.",
+            required: true,
+        },
+        FieldSchema {
+            name: "detached",
+            ty: TypeSchema::Bool,
+            comment: "Always `true` — marks this response as the immediate, non-blocking shape, \
+                      distinct from `run`'s completed-run payload.",
+            required: true,
+        },
+    ]
+}
+
 /// Field schema for one `FlowConnection` element of `flows_list_connections`'s
 /// output. Kept in one place so the schema mirrors
 /// `flows::types::FlowConnection` exactly — and documents that no secret field
@@ -287,6 +319,7 @@ pub fn all_controller_schemas() -> Vec<ControllerSchema> {
         schemas("delete"),
         schemas("set_enabled"),
         schemas("run"),
+        schemas("run_detached"),
         schemas("resume"),
         schemas("cancel_run"),
         schemas("list_runs"),
@@ -359,6 +392,10 @@ pub fn all_registered_controllers() -> Vec<RegisteredController> {
         RegisteredController {
             schema: schemas("run"),
             handler: handle_run,
+        },
+        RegisteredController {
+            schema: schemas("run_detached"),
+            handler: handle_run_detached,
         },
         RegisteredController {
             schema: schemas("resume"),
@@ -698,6 +735,35 @@ pub fn schemas(function: &str) -> ControllerSchema {
                     fields: run_output_fields(),
                 },
                 comment: "Run outcome payload.",
+                required: true,
+            }],
+        },
+        "run_detached" => ControllerSchema {
+            namespace: "flows",
+            function: "run_detached",
+            description: "Start a saved flow WITHOUT waiting for it to finish: validates + \
+                          compile-checks the flow, registers the run, inserts its `running` row, \
+                          and returns the run id immediately. Use this from any UI that wants to \
+                          show live per-node progress (`flow:run_progress`) or that must not block \
+                          on a run that can take minutes — poll `flows_get_run(run_id)` or the \
+                          progress event stream for completion. `run` remains available for callers \
+                          that genuinely want to await the final result.",
+            inputs: vec![
+                id_input("Identifier of the flow to run."),
+                FieldSchema {
+                    name: "input",
+                    ty: TypeSchema::Option(Box::new(TypeSchema::Json)),
+                    comment: "Trigger payload seeded into the run; defaults to null.",
+                    required: false,
+                },
+            ],
+            outputs: vec![FieldSchema {
+                name: "result",
+                ty: TypeSchema::Object {
+                    fields: run_detached_output_fields(),
+                },
+                comment: "Immediate start-of-run payload — returned as soon as the run is \
+                          registered, without waiting for it to finish.",
                 required: true,
             }],
         },
@@ -1483,6 +1549,23 @@ fn handle_run(params: Map<String, Value>) -> ControllerFuture {
     })
 }
 
+fn handle_run_detached(params: Map<String, Value>) -> ControllerFuture {
+    Box::pin(async move {
+        let config = config_rpc::load_config_with_timeout().await?;
+        let id = read_required::<String>(&params, "id")?;
+        let input = params.get("input").cloned().unwrap_or(Value::Null);
+        to_json(
+            ops::flows_run_detached(
+                &config,
+                id.trim(),
+                input,
+                crate::openhuman::flows::FlowRunTrigger::Rpc,
+            )
+            .await?,
+        )
+    })
+}
+
 fn handle_resume(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
         let config = config_rpc::load_config_with_timeout().await?;
@@ -1862,6 +1945,7 @@ mod tests {
                 "delete",
                 "set_enabled",
                 "run",
+                "run_detached",
                 "resume",
                 "cancel_run",
                 "list_runs",
@@ -1893,7 +1977,7 @@ mod tests {
     #[test]
     fn all_registered_controllers_has_handler_per_schema() {
         let controllers = all_registered_controllers();
-        assert_eq!(controllers.len(), 35);
+        assert_eq!(controllers.len(), 36);
         let names: Vec<_> = controllers.iter().map(|c| c.schema.function).collect();
         assert_eq!(
             names,
@@ -1909,6 +1993,7 @@ mod tests {
                 "delete",
                 "set_enabled",
                 "run",
+                "run_detached",
                 "resume",
                 "cancel_run",
                 "list_runs",

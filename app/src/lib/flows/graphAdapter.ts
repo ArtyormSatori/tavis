@@ -326,6 +326,30 @@ export function xyflowToWorkflowGraph(
 }
 
 /**
+ * Round-trips `graph` through {@link workflowGraphToXyflow} /
+ * {@link xyflowToWorkflowGraph} — the exact conversion the editable canvas
+ * itself performs on mount — so a caller comparing `graph` against a LATER
+ * canvas serialization (to decide "is this dirty?") compares like with like.
+ *
+ * F-m3 fix: a graph saved without per-node `position` (e.g. authored by the
+ * agent, which never sets one) gets concrete auto-layout coordinates baked in
+ * the moment the canvas mounts it (`workflowGraphToXyflow`'s `autoLayout`
+ * fallback) — `EditableFlowCanvas`'s mount-time `onGraphChange` reports that
+ * position-filled graph immediately. A dirty check that diffs the canvas's
+ * report against the RAW, positionless server graph reads that fill-in as an
+ * edit and shows "Unsaved" with zero real changes. Normalizing the baseline
+ * through this same round-trip before comparing eliminates that false
+ * positive, since both sides then agree on where every node landed.
+ */
+export function normalizeWorkflowGraphForDirtyCheck(
+  graph: WorkflowGraph,
+  meta: WorkflowGraphMeta
+): WorkflowGraph {
+  const { nodes, edges } = workflowGraphToXyflow(graph);
+  return xyflowToWorkflowGraph(nodes, edges, meta);
+}
+
+/**
  * Assigns a `{x, y}` position to every node in `nodes`, via a simple BFS
  * layering over `edges`: `y = depth * 160`, `x = column * 280` where
  * `column` is the node's index within its depth layer (assigned in

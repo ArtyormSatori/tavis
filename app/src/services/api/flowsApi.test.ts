@@ -16,6 +16,7 @@ import {
   markSuggestionBuilt,
   resumeFlow,
   runFlow,
+  runFlowDetached,
   setFlowEnabled,
 } from './flowsApi';
 
@@ -357,6 +358,77 @@ describe('flowsApi', () => {
       mockCallCoreRpc.mockRejectedValue(new Error('flow disabled'));
 
       await expect(runFlow('flow-1')).rejects.toThrow('flow disabled');
+    });
+  });
+
+  // F-M1/F-M2: `flows_run_detached` registers the run and returns immediately
+  // — it must NOT share `runFlow`'s extended `FLOW_RESUME_TIMEOUT_MS` budget,
+  // since (unlike `runFlow`) it never waits for the engine.
+  describe('runFlowDetached', () => {
+    it('calls openhuman.flows_run_detached with id/input and the DEFAULT timeout (no timeoutMs override)', async () => {
+      mockCallCoreRpc.mockResolvedValue(
+        cliEnvelope({
+          run_id: 'flow:flow-1:t1',
+          flow_id: 'flow-1',
+          status: 'running',
+          detached: true,
+        })
+      );
+
+      const result = await runFlowDetached('flow-1');
+
+      expect(mockCallCoreRpc).toHaveBeenCalledWith({
+        method: 'openhuman.flows_run_detached',
+        params: { id: 'flow-1', input: null },
+      });
+      // No `timeoutMs` key at all — asserted structurally above via
+      // `toHaveBeenCalledWith` (an object with an extra `timeoutMs` key would
+      // NOT match), rather than a brittle `not.toHaveProperty` on the mock
+      // call args.
+      expect(result).toEqual({
+        run_id: 'flow:flow-1:t1',
+        flow_id: 'flow-1',
+        status: 'running',
+        detached: true,
+      });
+    });
+
+    it('passes a supplied input payload through', async () => {
+      mockCallCoreRpc.mockResolvedValue(
+        cliEnvelope({
+          run_id: 'flow:flow-1:t2',
+          flow_id: 'flow-1',
+          status: 'running',
+          detached: true,
+        })
+      );
+
+      await runFlowDetached('flow-1', { trigger: 'manual' });
+
+      expect(mockCallCoreRpc).toHaveBeenCalledWith({
+        method: 'openhuman.flows_run_detached',
+        params: { id: 'flow-1', input: { trigger: 'manual' } },
+      });
+    });
+
+    it('unwraps the { result, logs } envelope', async () => {
+      const payload = {
+        run_id: 'flow:flow-1:t3',
+        flow_id: 'flow-1',
+        status: 'running',
+        detached: true,
+      };
+      mockCallCoreRpc.mockResolvedValue(cliEnvelope(payload));
+
+      const result = await runFlowDetached('flow-1');
+
+      expect(result).toEqual(payload);
+    });
+
+    it('propagates rejection from callCoreRpc', async () => {
+      mockCallCoreRpc.mockRejectedValue(new Error('flow disabled'));
+
+      await expect(runFlowDetached('flow-1')).rejects.toThrow('flow disabled');
     });
   });
 

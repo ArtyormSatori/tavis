@@ -7,6 +7,7 @@ import {
   type FlowEdge,
   type FlowNode,
   isValidFlowConnection,
+  normalizeWorkflowGraphForDirtyCheck,
   workflowGraphToXyflow,
   xyflowToWorkflowGraph,
 } from './graphAdapter';
@@ -258,6 +259,74 @@ describe('graphAdapter', () => {
       const result = xyflowToWorkflowGraph([], [], { schema_version: 1, id: undefined, name: '' });
       expect(result.nodes).toEqual([]);
       expect(result.edges).toEqual([]);
+    });
+  });
+
+  describe('normalizeWorkflowGraphForDirtyCheck (F-m3)', () => {
+    it('backfills auto-layout positions on a graph saved without them', () => {
+      const withoutPositions = graph({
+        nodes: [
+          node({ id: 't', kind: 'trigger', name: 'Trigger' }),
+          node({ id: 'a', name: 'Agent' }),
+        ],
+        edges: [edge({ from_node: 't', to_node: 'a' })],
+      });
+      const meta = { schema_version: 1, id: 'wf_1', name: 'demo' };
+
+      const normalized = normalizeWorkflowGraphForDirtyCheck(withoutPositions, meta);
+
+      // Every node has a concrete position — exactly what the canvas's own
+      // mount-time `onGraphChange` would report back.
+      for (const n of normalized.nodes) {
+        expect(n.position).toBeDefined();
+        expect(typeof n.position?.x).toBe('number');
+        expect(typeof n.position?.y).toBe('number');
+      }
+      // And it's deterministic: normalizing again is a no-op (idempotent),
+      // which is what lets a REMOUNTED canvas's `editorGraph` (already
+      // normalized once) compare equal to `persistedGraphRef.current`
+      // normalized fresh — the two happen at different points in time but
+      // must still match.
+      expect(normalizeWorkflowGraphForDirtyCheck(normalized, meta)).toEqual(normalized);
+    });
+
+    it('is a no-op (beyond re-stamping meta) for a graph that already carries positions', () => {
+      const withPositions = graph({
+        nodes: [
+          node({ id: 't', kind: 'trigger', name: 'Trigger', position: { x: 40, y: 80 } }),
+          node({ id: 'a', name: 'Agent', position: { x: 320, y: 80 } }),
+        ],
+        edges: [edge({ from_node: 't', to_node: 'a' })],
+      });
+      const meta = { schema_version: 1, id: 'wf_1', name: 'demo' };
+
+      const normalized = normalizeWorkflowGraphForDirtyCheck(withPositions, meta);
+
+      expect(normalized.nodes[0].position).toEqual({ x: 40, y: 80 });
+      expect(normalized.nodes[1].position).toEqual({ x: 320, y: 80 });
+    });
+
+    it('lets a position-less graph and its own canvas-reported (positioned) copy compare equal once both are normalized', () => {
+      // This is the exact F-m3 scenario: the server graph has no positions,
+      // but the canvas always reports one back (via `workflowGraphToXyflow` +
+      // `xyflowToWorkflowGraph`) the moment it mounts.
+      const serverGraph = graph({
+        nodes: [
+          node({ id: 't', kind: 'trigger', name: 'Trigger' }),
+          node({ id: 'a', name: 'Agent' }),
+        ],
+        edges: [edge({ from_node: 't', to_node: 'a' })],
+      });
+      const meta = { schema_version: 1, id: 'wf_1', name: 'demo' };
+      const { nodes, edges } = workflowGraphToXyflow(serverGraph);
+      const canvasReported = xyflowToWorkflowGraph(nodes, edges, meta);
+
+      expect(JSON.stringify(normalizeWorkflowGraphForDirtyCheck(serverGraph, meta))).toBe(
+        JSON.stringify(normalizeWorkflowGraphForDirtyCheck(canvasReported, meta))
+      );
+      // Without normalizing the server side, they would NOT compare equal —
+      // pinning that this test is actually exercising the fix, not a tautology.
+      expect(JSON.stringify(serverGraph)).not.toBe(JSON.stringify(canvasReported));
     });
   });
 

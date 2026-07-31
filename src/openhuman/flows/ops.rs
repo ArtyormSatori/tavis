@@ -4466,10 +4466,12 @@ pub async fn flows_run(
 /// background task and returns `{ run_id, status: "running", detached: true }`
 /// in well under 120s. The copilot already polls `get_flow_run(run_id)` (seen
 /// in live traces), so it observes the run settle to a terminal state on its
-/// own cadence. Mirrors how the UI "Run" control and the trigger bus
-/// (`flows::bus::spawn_run`) already fire runs fire-and-forget. Combined with
-/// B42's finalizer + boot sweep, a detached run ALWAYS settles to a terminal
-/// row even if the process dies mid-run.
+/// own cadence. Also exposed over RPC as `flows.run_detached` (see
+/// `schemas::handle_run_detached`) — the UI "Run" control (canvas + Workflows
+/// list) calls that entry point directly, and the trigger bus
+/// (`flows::bus::spawn_run`) fires runs the same fire-and-forget way. Combined
+/// with B42's finalizer + boot sweep, a detached run ALWAYS settles to a
+/// terminal row even if the process dies mid-run.
 pub async fn flows_run_detached(
     config: &Config,
     flow_id: &str,

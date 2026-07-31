@@ -9,8 +9,17 @@
  *    {@link EditableFlowCanvas}, which lifts nodes/edges into controlled state
  *    and wires drag/connect/add/delete/save on top.
  *
- * The `editable` prop defaults to `false` so every existing read-only consumer
- * (the `/flows/:id` viewer) keeps its exact behavior — only the builder opts in.
+ * The `editable` prop defaults to `false`, but as of the F-m5 audit
+ * (`my_docs/flows_review_2026-07-30.md`) there is exactly one production
+ * consumer — `FlowCanvasPage.tsx` — and it always passes `editable`. The
+ * `/flows/:id` route this doc block used to claim as the read-only viewer's
+ * consumer IS `FlowCanvasPage`, and it is NOT read-only. `ReadonlyFlowCanvas`
+ * below is therefore currently unreachable in the shipped app; it's kept
+ * (rather than deleted) because it's small, self-contained, and covered by
+ * its own smoke tests (`__tests__/FlowCanvas.test.tsx`) — a future
+ * share/embed/public-viewer surface is a plausible reason to want a
+ * non-editable render path again. Delete both it and its tests together if
+ * no such consumer materializes.
  */
 import {
   Background,
