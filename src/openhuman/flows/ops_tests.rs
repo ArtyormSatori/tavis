@@ -2651,16 +2651,11 @@ async fn flows_cancel_run_of_a_completed_with_warnings_run_errors() {
 
     // Force the settled row to the warning status directly — an end-to-end
     // null-binding graph isn't needed to exercise this guard.
-    store::finish_flow_run(
-        &config,
-        &thread_id,
-        "completed_with_warnings",
-        &chrono::Utc::now().to_rfc3339(),
-        &[],
-        &[],
-        None,
-    )
-    .unwrap();
+    // Fixture-only forcing write: the run above already settled `completed`, so
+    // `finish_flow_run`'s liveness guard (correctly) refuses a terminal →
+    // terminal transition. Staging a row at an arbitrary terminal status is a
+    // test concern, not a production one.
+    store::force_run_status_for_test(&config, &thread_id, "completed_with_warnings", None).unwrap();
 
     let err = flows_cancel_run(&config, &thread_id)
         .await
@@ -2690,13 +2685,13 @@ async fn flows_cancel_run_of_an_interrupted_run_errors() {
     let thread_id = run.value["thread_id"].as_str().unwrap().to_string();
 
     // Force the settled row to `interrupted` directly.
-    store::finish_flow_run(
+    // Fixture-only forcing write — see the sibling test above: the run has
+    // already settled, and `finish_flow_run` now (correctly) refuses a
+    // terminal -> terminal transition.
+    store::force_run_status_for_test(
         &config,
         &thread_id,
         "interrupted",
-        &chrono::Utc::now().to_rfc3339(),
-        &[],
-        &[],
         Some("interrupted mid-flight"),
     )
     .unwrap();
@@ -7501,4 +7496,217 @@ async fn approval_manifest_discloses_agent_ref_nodes_only() {
         agent_rows[0].get("node_id").and_then(Value::as_str),
         Some("harness")
     );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Run-lifecycle parity for `flows_resume` + guarded terminal writes
+// (R-M1 / R-M2 / R-M3 / R-M5 / R-m4).
+//
+// `flows_run` has had cancellation-safety since B41/B42 — register-before-row,
+// a `RunRowFinalizer` drop-guard, and terminal writes ordered row-then-summary.
+// `flows_resume` had none of it despite executing the flow's real approved side
+// effects for up to `FLOW_RUN_TIMEOUT_SECS`. These pin the mechanisms that
+// close that gap.
+
+/// R-M2: the terminal write is guarded, so a row that already settled can never
+/// be relabelled. Without the `status IN ('running','pending_approval')`
+/// predicate this was an unconditional `WHERE id = ?`.
+#[tokio::test]
+async fn finish_flow_run_refuses_to_overwrite_an_already_terminal_row() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = store::create_flow(
+        &config,
+        "guarded-finish".to_string(),
+        structurally_valid_graph(trigger_only_graph()),
+        false,
+        true,
+    )
+    .unwrap();
+
+    let run_id = "run-guarded-1";
+    let now = Utc::now().to_rfc3339();
+    store::insert_flow_run(&config, run_id, &flow.id, run_id, &now).unwrap();
+
+    // First terminal write wins.
+    let first = store::finish_flow_run(&config, run_id, "completed", &now, &[], &[], None).unwrap();
+    assert!(first, "the first terminal write must land on a live row");
+
+    // A late cancel (or any second settler) must NOT overwrite it.
+    let second =
+        store::finish_flow_run(&config, run_id, "cancelled", &now, &[], &[], Some("late")).unwrap();
+    assert!(
+        !second,
+        "a terminal row must not be overwritten by a second settler"
+    );
+
+    let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(
+        row.status, "completed",
+        "the run's real outcome must survive a losing concurrent cancel"
+    );
+}
+
+/// R-M2 end-to-end: `flows_cancel_run` reads the status and consults the
+/// registry as two separate observations. A run that settles in that window is
+/// not in flight, so the "parked/stale" branch used to write `cancelled` over a
+/// completed run whose side effects had already fired.
+#[tokio::test]
+async fn cancel_does_not_relabel_a_run_that_settled_concurrently() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = store::create_flow(
+        &config,
+        "cancel-toctou".to_string(),
+        structurally_valid_graph(trigger_only_graph()),
+        false,
+        true,
+    )
+    .unwrap();
+
+    let run_id = "run-toctou-1";
+    let now = Utc::now().to_rfc3339();
+    store::insert_flow_run(&config, run_id, &flow.id, run_id, &now).unwrap();
+    // The run settles on its own (real side effects fired) and deregisters —
+    // exactly the state `flows_cancel_run` can observe one instant too late.
+    store::finish_flow_run(&config, run_id, "completed", &now, &[], &[], None).unwrap();
+
+    let result = flows_cancel_run(&config, run_id).await;
+    assert!(
+        result.is_err(),
+        "cancelling an already-settled run must report the conflict, not silently rewrite it"
+    );
+
+    let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(
+        row.status, "completed",
+        "a completed run must never be recorded as cancelled"
+    );
+}
+
+/// R-M1 (store half): claiming a parked run for a resume is a guarded flip, so
+/// a run cancelled or TTL-expired in the meantime can never be revived.
+#[tokio::test]
+async fn mark_run_resuming_claims_only_a_parked_row() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = store::create_flow(
+        &config,
+        "resume-claim".to_string(),
+        structurally_valid_graph(trigger_only_graph()),
+        false,
+        true,
+    )
+    .unwrap();
+
+    let run_id = "run-claim-1";
+    let now = Utc::now().to_rfc3339();
+    store::insert_flow_run(&config, run_id, &flow.id, run_id, &now).unwrap();
+    // Park it.
+    store::finish_flow_run(
+        &config,
+        run_id,
+        "pending_approval",
+        &now,
+        &[],
+        &["gate".to_string()],
+        None,
+    )
+    .unwrap();
+
+    assert!(
+        store::mark_run_resuming(&config, run_id).unwrap(),
+        "a parked run must be claimable for resume"
+    );
+    let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(row.status, "running");
+
+    // Claiming twice must not succeed — the second resume would execute the
+    // same approved side effects again.
+    assert!(
+        !store::mark_run_resuming(&config, run_id).unwrap(),
+        "a run already claimed (or cancelled/expired) must not be claimable again"
+    );
+}
+
+/// R-M1 (the race that mattered): a run approved just before its TTL used to be
+/// swept to `cancelled` — and have its durable checkpoint dropped — WHILE the
+/// resume was actively executing approved outbound nodes, because the row sat
+/// at `pending_approval` for the whole resume. Claiming it as `running` moves it
+/// out of the sweep's predicate.
+#[tokio::test]
+async fn ttl_sweep_cannot_expire_a_run_a_resume_has_claimed() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = store::create_flow(
+        &config,
+        "resume-vs-ttl".to_string(),
+        structurally_valid_graph(trigger_only_graph()),
+        false,
+        true,
+    )
+    .unwrap();
+
+    // A run parked well past the TTL — the sweep would expire it right now.
+    let stale = (Utc::now() - chrono::Duration::seconds(FLOW_PARKED_TTL_SECS * 4)).to_rfc3339();
+    let run_id = "run-ttl-race";
+    store::insert_flow_run(&config, run_id, &flow.id, run_id, &stale).unwrap();
+    store::finish_flow_run(
+        &config,
+        run_id,
+        "pending_approval",
+        &stale,
+        &[],
+        &["gate".to_string()],
+        None,
+    )
+    .unwrap();
+
+    // The user approves in the nick of time and the resume claims the run.
+    assert!(store::mark_run_resuming(&config, run_id).unwrap());
+
+    // Any read-path sweep that now fires must leave the in-flight resume alone.
+    sweep_expired_parked_runs(&config).await;
+
+    let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(
+        row.status, "running",
+        "a claimed resume must survive the parked-run TTL sweep — expiring it would drop the \
+         checkpoint out from under a run that is executing real side effects"
+    );
+}
+
+/// A genuinely stale parked run (never claimed) must still be swept — the guard
+/// above must not have disabled the TTL sweep wholesale.
+#[tokio::test]
+async fn ttl_sweep_still_expires_an_unclaimed_parked_run() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = store::create_flow(
+        &config,
+        "ttl-still-works".to_string(),
+        structurally_valid_graph(trigger_only_graph()),
+        false,
+        true,
+    )
+    .unwrap();
+
+    let stale = (Utc::now() - chrono::Duration::seconds(FLOW_PARKED_TTL_SECS * 4)).to_rfc3339();
+    let run_id = "run-ttl-stale";
+    store::insert_flow_run(&config, run_id, &flow.id, run_id, &stale).unwrap();
+    store::finish_flow_run(
+        &config,
+        run_id,
+        "pending_approval",
+        &stale,
+        &[],
+        &["gate".to_string()],
+        None,
+    )
+    .unwrap();
+
+    let swept = sweep_expired_parked_runs(&config).await;
+    assert_eq!(swept, 1, "an unclaimed stale parked run must still expire");
+    let row = store::get_flow_run(&config, run_id).unwrap().unwrap();
+    assert_eq!(row.status, "cancelled");
 }

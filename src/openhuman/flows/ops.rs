@@ -4707,6 +4707,20 @@ async fn run_flow_body(
     let config: &Config = config_arc.as_ref();
     let flow_id: &str = flow_id.as_str();
 
+    // B42 drop-guard, armed BEFORE the first `.await` in this body (R-M5).
+    //
+    // The caller has already inserted the `running` row, so every await from
+    // here on is a window in which dropping this future would strand that row.
+    // The guard used to be constructed ~150 lines below, immediately around the
+    // engine call — which left the inference-readiness preflight directly below
+    // (a real network probe on a cache miss) unguarded: a client disconnect or
+    // an aborted detached task during that probe dropped the future before any
+    // finalizer existed, and the row stayed a perpetual `running` spinner until
+    // the NEXT process boot sweep (the in-process one had already run). Arming
+    // it here covers the whole awaiting region; every settled path below still
+    // disarms it after its own terminal write.
+    let finalizer = RunRowFinalizer::new(config_arc.clone(), &thread_id, flow_id);
+
     // B45 run-time preflight (design correction — see the "Inference-readiness
     // check" module doc above): an `agent` node needs a working LLM provider
     // to run at all, but that is no longer enforced as an author-time gate —
@@ -4752,6 +4766,7 @@ async fn run_flow_body(
             &[],
             Some(&msg),
         );
+        finalizer.disarm();
         return Err(msg);
     }
 
@@ -4773,6 +4788,7 @@ async fn run_flow_body(
                 &[],
                 Some(&msg),
             );
+            finalizer.disarm();
             return Err(msg);
         }
     };
@@ -4797,6 +4813,7 @@ async fn run_flow_body(
                 &[],
                 Some(&msg),
             );
+            finalizer.disarm();
             return Err(msg);
         }
     };
@@ -4867,11 +4884,8 @@ async fn run_flow_body(
     );
     let timed = tokio::time::timeout(std::time::Duration::from_secs(FLOW_RUN_TIMEOUT_SECS), run);
     tokio::pin!(timed);
-    // B42 drop-guard: armed for the whole awaiting region below. If this future
-    // is dropped before any terminal write (harness abort, turn end, runtime
-    // shutdown, panic), its `Drop` reconciles the orphaned `running` row to
-    // `interrupted`. Every settled path disarms it after its own terminal write.
-    let finalizer = RunRowFinalizer::new(config_arc.clone(), &thread_id, flow_id);
+    // (The B42 drop-guard is armed near the top of this fn, before the first
+    // `.await` — see `finalizer` there.)
     // Race the run against a cancellation signal (issue G4). `biased` checks the
     // cancel arm first so a `flows_cancel_run` that lands right as the run
     // settles still wins deterministically.
@@ -5093,10 +5107,63 @@ pub async fn flows_resume(
     }
     let compiled = tinyflows::compiler::compile(&flow.graph).map_err(|e| e.to_string())?;
     let config_arc = Arc::new(config.clone());
-    let caps =
-        crate::openhuman::tinyflows::build_capabilities(config_arc, format!("flow:{flow_id}"));
+    let caps = crate::openhuman::tinyflows::build_capabilities(
+        config_arc.clone(),
+        format!("flow:{flow_id}"),
+    );
     let checkpointer =
         crate::openhuman::tinyflows::open_flow_checkpointer(config).map_err(|e| e.to_string())?;
+
+    // Run-lifecycle parity with `flows_run` (R-M1). A resume executes the flow's
+    // real approved side effects for up to `FLOW_RUN_TIMEOUT_SECS`, so it needs
+    // the same three guards the run path has had since B41/B42 — it had none:
+    //
+    //  1. `run_registry::register` — without an entry, `flows_cancel_run` saw
+    //     `is_in_flight == false`, took its "parked/stale" branch, wrote a
+    //     terminal `cancelled` row and dropped the checkpoint out from under
+    //     this still-executing resume. Registering makes the cancel take the
+    //     signalled branch, which this fn now honours in the `select!` below.
+    //  2. `mark_run_resuming` — flips the row off `pending_approval` so the
+    //     parked-run TTL sweep stops matching a resume that is actively
+    //     running.
+    //  3. `RunRowFinalizer` — if this future is dropped mid-await (client
+    //     disconnect during the long await), the row is reconciled to
+    //     `interrupted` instead of being stranded at its old status.
+    //
+    // Register BEFORE the status flip for the same reason `flows_run` registers
+    // before inserting its row: never let a cancel observe a live-looking row
+    // that no registered run owns.
+    let (cancel_token, _run_guard) = run_registry::register(thread_id);
+    match store::mark_run_resuming(config, thread_id) {
+        Ok(true) => {}
+        Ok(false) => {
+            // The guarded flip matched nothing: the run was cancelled or
+            // TTL-expired between the status check above and here. Refuse
+            // rather than executing approved side effects for a run that is no
+            // longer live.
+            tracing::warn!(
+                target: "flows",
+                flow_id = %flow_id,
+                %thread_id,
+                "[flows] flows_resume: run left 'pending_approval' before the resume could claim it — refusing"
+            );
+            return Err(format!(
+                "no paused run to resume: run '{thread_id}' was cancelled or expired before the \
+                 resume could start"
+            ));
+        }
+        Err(e) => {
+            tracing::warn!(
+                target: "flows",
+                flow_id = %flow_id,
+                %thread_id,
+                error = %e,
+                "[flows] flows_resume: failed to mark run as resuming"
+            );
+            return Err(e.to_string());
+        }
+    }
+    let finalizer = RunRowFinalizer::new(config_arc, thread_id, flow_id);
 
     tracing::debug!(
         target: "flows",
@@ -5148,50 +5215,93 @@ pub async fn flows_resume(
         ),
     );
 
-    let journaled = match tokio::time::timeout(
-        std::time::Duration::from_secs(FLOW_RUN_TIMEOUT_SECS),
-        run,
-    )
-    .await
-    {
-        Ok(Ok(journaled)) => journaled,
-        Ok(Err(e)) => {
-            let _ = store::record_run(config, flow_id, "failed");
+    // Terminal-write helper for the two failure arms. Row FIRST, then the
+    // best-effort summary — see the settle path below for why the order matters.
+    let record_failed = |msg: &str| {
+        let observed = current_persisted_steps(config, thread_id);
+        finish_flow_run_row(
+            config,
+            thread_id,
+            flow_id,
+            "failed",
+            &observed,
+            &[],
+            Some(msg),
+        );
+        if let Err(e) = store::record_run(config, flow_id, "failed") {
+            tracing::warn!(
+                target: "flows",
+                flow_id = %flow_id,
+                %thread_id,
+                error = %e,
+                "[flows] flows_resume: failed to record run summary (run row already finalized)"
+            );
+        }
+    };
+
+    let timed = tokio::time::timeout(std::time::Duration::from_secs(FLOW_RUN_TIMEOUT_SECS), run);
+    tokio::pin!(timed);
+    // Race the resume against a cancellation signal, exactly as `run_flow_body`
+    // does. `biased` checks the cancel arm first so a `flows_cancel_run` landing
+    // as the resume settles still wins deterministically.
+    let journaled = tokio::select! {
+        biased;
+        _ = cancel_token.cancelled() => {
+            tracing::info!(target: "flows", flow_id = %flow_id, %thread_id, "[flows] flows_resume: cancelled mid-resume");
             let observed = current_persisted_steps(config, thread_id);
             finish_flow_run_row(
                 config,
                 thread_id,
                 flow_id,
-                "failed",
+                "cancelled",
                 &observed,
                 &[],
-                Some(&e.to_string()),
+                Some("run cancelled"),
             );
-            tracing::warn!(target: "flows", flow_id = %flow_id, %thread_id, error = %e, "[flows] flows_resume: run failed");
-            return Err(e.to_string());
+            finalizer.disarm();
+            if let Err(e) = store::record_run(config, flow_id, "cancelled") {
+                tracing::warn!(target: "flows", flow_id = %flow_id, error = %e, "[flows] flows_resume: failed to record cancelled run");
+            }
+            drop_checkpoint(config, thread_id).await;
+            return Ok(RpcOutcome::single_log(
+                json!({
+                    "output": Value::Null,
+                    "pending_approvals": Vec::<String>::new(),
+                    "thread_id": thread_id,
+                    "cancelled": true,
+                }),
+                format!("flow resume cancelled: {thread_id}"),
+            ));
         }
-        Err(_elapsed) => {
-            let msg = format!("flow resume timed out after {FLOW_RUN_TIMEOUT_SECS}s");
-            let _ = store::record_run(config, flow_id, "failed");
-            let observed = current_persisted_steps(config, thread_id);
-            finish_flow_run_row(
-                config,
-                thread_id,
-                flow_id,
-                "failed",
-                &observed,
-                &[],
-                Some(&msg),
-            );
-            tracing::warn!(target: "flows", flow_id = %flow_id, %thread_id, timeout_secs = FLOW_RUN_TIMEOUT_SECS, "[flows] flows_resume: run timed out");
-            return Err(msg);
-        }
+        result = &mut timed => match result {
+            Ok(Ok(journaled)) => journaled,
+            Ok(Err(e)) => {
+                record_failed(&e.to_string());
+                finalizer.disarm();
+                tracing::warn!(target: "flows", flow_id = %flow_id, %thread_id, error = %e, "[flows] flows_resume: run failed");
+                return Err(e.to_string());
+            }
+            Err(_elapsed) => {
+                let msg = format!("flow resume timed out after {FLOW_RUN_TIMEOUT_SECS}s");
+                record_failed(&msg);
+                finalizer.disarm();
+                tracing::warn!(target: "flows", flow_id = %flow_id, %thread_id, timeout_secs = FLOW_RUN_TIMEOUT_SECS, "[flows] flows_resume: run timed out");
+                return Err(msg);
+            }
+        },
     };
     let outcome = journaled.outcome;
 
     let settled = settle_steps(config, thread_id, &outcome.output);
     let (status, error) = finalize_terminal_status(&settled, &outcome.pending_approvals);
-    store::record_run(config, flow_id, status).map_err(|e| e.to_string())?;
+    // Finalize the run row (and disarm the drop-guard) BEFORE the flow-summary
+    // write, matching `flows_run` (R-M3). This used to be inverted here, with
+    // `record_run` propagating via `?`: a concurrent flow delete made the
+    // summary write fail and returned early, leaving the row stranded at
+    // `pending_approval` even though the engine had completed and its side
+    // effects had fired — which the TTL sweep would later relabel `cancelled`.
+    // The row's terminal state is the correctness-critical write; the summary is
+    // best-effort observability.
     finish_flow_run_row(
         config,
         thread_id,
@@ -5201,6 +5311,17 @@ pub async fn flows_resume(
         &outcome.pending_approvals,
         error.as_deref(),
     );
+    finalizer.disarm();
+    if let Err(e) = store::record_run(config, flow_id, status) {
+        tracing::warn!(
+            target: "flows",
+            flow_id = %flow_id,
+            %thread_id,
+            status,
+            error = %e,
+            "[flows] flows_resume: failed to record run summary (run row already finalized)"
+        );
+    }
     export_run_to_langfuse(
         config,
         &flow.name,
@@ -5325,6 +5446,25 @@ pub async fn sweep_expired_parked_runs(config: &Config) -> usize {
         if let Err(e) = store::record_run(config, flow_id, "cancelled") {
             tracing::warn!(target: "flows", run_id, flow_id, error = %e, "[flows] TTL sweep: failed to update flow summary for expired run");
         }
+        // Announce the terminal transition (R-m4). `expire_parked_runs` writes
+        // the row directly rather than going through `finish_flow_run_row`, so
+        // without this the sweep was the one terminal path that emitted no
+        // `FlowRunFinished` — the boot sweep already publishes its own. Purely
+        // event-driven consumers (the runs rail) would otherwise not observe a
+        // TTL-expired run settle until their next poll.
+        tracing::debug!(
+            target: "flows",
+            run_id,
+            flow_id,
+            "[flows] TTL sweep: publishing FlowRunFinished for expired parked run"
+        );
+        crate::core::event_bus::publish_global(
+            crate::core::event_bus::DomainEvent::FlowRunFinished {
+                flow_id: flow_id.to_string(),
+                run_id: run_id.to_string(),
+                status: "cancelled".to_string(),
+            },
+        );
         drop_checkpoint(config, run_id).await;
     }
     if !swept.is_empty() {
@@ -5472,11 +5612,19 @@ pub async fn flows_cancel_run(config: &Config, run_id: &str) -> Result<RpcOutcom
     }
 
     // Not in flight: settle the row terminally and drop the checkpoint here.
-    if let Err(e) = store::record_run(config, &run.flow_id, "cancelled") {
-        tracing::warn!(target: "flows", run_id, flow_id = %run.flow_id, error = %e, "[flows] flows_cancel_run: failed to record cancelled status on flow summary");
-    }
+    //
+    // ORDER MATTERS (R-M2). The status read above and `run_registry::cancel`
+    // are two separate observations, and a live run can settle in the window
+    // between them: it writes its own terminal row and deregisters, so
+    // `cancel` returns `false` and we arrive here believing the run is merely
+    // parked/stale. Writing `cancelled` unconditionally would then relabel a
+    // fully-completed run — whose real side effects already fired — and drop a
+    // checkpoint that is no longer ours to drop. So attempt the guarded row
+    // write FIRST and treat it as the authority: it only matches a still-live
+    // row, so `false` means the run settled underneath us. Only once it has
+    // won do we record the flow summary and drop the checkpoint.
     let observed = current_persisted_steps(config, run_id);
-    finish_flow_run_row(
+    let settled_by_us = finish_flow_run_row(
         config,
         run_id,
         &run.flow_id,
@@ -5485,6 +5633,22 @@ pub async fn flows_cancel_run(config: &Config, run_id: &str) -> Result<RpcOutcom
         &[],
         Some("run cancelled"),
     );
+    if !settled_by_us {
+        tracing::info!(
+            target: "flows",
+            run_id,
+            flow_id = %run.flow_id,
+            prior_status = %run.status,
+            "[flows] flows_cancel_run: run settled concurrently — leaving its terminal status intact"
+        );
+        return Err(format!(
+            "flow run '{run_id}' settled before it could be cancelled — its recorded outcome was \
+             left untouched"
+        ));
+    }
+    if let Err(e) = store::record_run(config, &run.flow_id, "cancelled") {
+        tracing::warn!(target: "flows", run_id, flow_id = %run.flow_id, error = %e, "[flows] flows_cancel_run: failed to record cancelled status on flow summary");
+    }
     drop_checkpoint(config, run_id).await;
 
     Ok(RpcOutcome::single_log(
@@ -5570,9 +5734,9 @@ fn finish_flow_run_row(
     steps: &[FlowRunStep],
     pending_approvals: &[String],
     error: Option<&str>,
-) {
+) -> bool {
     let finished_at = Utc::now().to_rfc3339();
-    if let Err(e) = store::finish_flow_run(
+    match store::finish_flow_run(
         config,
         thread_id,
         status,
@@ -5581,7 +5745,26 @@ fn finish_flow_run_row(
         pending_approvals,
         error,
     ) {
-        tracing::warn!(target: "flows", thread_id, status, error = %e, "[flows] failed to persist flow run finish");
+        Err(e) => {
+            tracing::warn!(target: "flows", thread_id, status, error = %e, "[flows] failed to persist flow run finish");
+            return false;
+        }
+        // The guarded UPDATE (R-M2) matched nothing: the row had already
+        // settled to a terminal status before this write. Whoever settled it
+        // first also published `FlowRunFinished`, so publishing again here
+        // would emit a second terminal event for one run. Report the no-op
+        // instead of pretending the write landed.
+        Ok(false) => {
+            tracing::warn!(
+                target: "flows",
+                flow_id,
+                thread_id,
+                attempted_status = status,
+                "[flows] finish_flow_run_row: row already terminal — refusing to overwrite a settled run"
+            );
+            return false;
+        }
+        Ok(true) => {}
     }
 
     // `status` can be `"pending_approval"` here (see `finalize_terminal_status`)
@@ -5604,7 +5787,7 @@ fn finish_flow_run_row(
             status,
             "[flows] finish_flow_run_row: run paused for approval — not a finish, skipping FlowRunFinished"
         );
-        return;
+        return true;
     }
 
     tracing::debug!(
@@ -5619,6 +5802,7 @@ fn finish_flow_run_row(
         run_id: thread_id.to_string(),
         status: status.to_string(),
     });
+    true
 }
 
 /// Reconstructs a lean per-node step list from a settled run's

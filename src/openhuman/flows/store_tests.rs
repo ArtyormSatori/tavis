@@ -928,3 +928,70 @@ fn mark_run_interrupted_is_a_noop_for_a_terminal_row() {
     assert_eq!(row.status, "completed");
     assert!(row.error.is_none());
 }
+
+/// `expire_parked_runs` must return only the runs it ACTUALLY flipped, not the
+/// candidates its `SELECT` saw.
+///
+/// The `SELECT` and each row's guarded `UPDATE` are separate statements on an
+/// autocommit connection, so a concurrent `mark_run_resuming` can claim a row in
+/// between. The per-row `WHERE status = 'pending_approval'` keeps that row safe,
+/// but returning the unfiltered candidate list would let the caller act on a run
+/// it never expired — dropping the checkpoint out from under a live resume and
+/// publishing a terminal `FlowRunFinished` for a run still executing. That false
+/// event is the worse half: the frontend de-dupes terminal events per
+/// `flow_id:run_id`, so the run's real completion would later be discarded.
+#[test]
+fn expire_parked_runs_returns_only_rows_it_actually_flipped() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = create_flow(&config, "ttl".to_string(), trigger_graph(), false, true).unwrap();
+
+    let stale_at = "2000-01-01T00:00:00+00:00";
+    for id in ["claimed-run", "genuinely-stale-run"] {
+        insert_flow_run(&config, id, &flow.id, id, stale_at).unwrap();
+        finish_flow_run(
+            &config,
+            id,
+            "pending_approval",
+            stale_at,
+            &[],
+            &["gate".to_string()],
+            None,
+        )
+        .unwrap();
+    }
+
+    // Simulate the race: one candidate is claimed by a resume after the sweep's
+    // SELECT would have seen it, but before its UPDATE lands.
+    assert!(mark_run_resuming(&config, "claimed-run").unwrap());
+
+    let swept = expire_parked_runs(
+        &config,
+        "2099-01-01T00:00:00+00:00",
+        "2026-01-01T00:00:00+00:00",
+        "expired",
+    )
+    .unwrap();
+
+    let swept_ids: Vec<&str> = swept.iter().map(|(id, _)| id.as_str()).collect();
+    assert_eq!(
+        swept_ids,
+        vec!["genuinely-stale-run"],
+        "only the row whose guarded UPDATE matched may be reported as swept"
+    );
+    assert_eq!(
+        get_flow_run(&config, "claimed-run")
+            .unwrap()
+            .unwrap()
+            .status,
+        "running",
+        "the claimed run must keep executing, untouched by the sweep"
+    );
+    assert_eq!(
+        get_flow_run(&config, "genuinely-stale-run")
+            .unwrap()
+            .unwrap()
+            .status,
+        "cancelled"
+    );
+}

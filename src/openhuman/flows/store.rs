@@ -723,6 +723,17 @@ fn prune_flow_runs_conn(conn: &Connection, flow_id: &str, keep: usize) -> Result
 /// Called once a `flows_run` / `flows_resume` invocation settles — including
 /// the timeout / capability-error paths, so a row never gets stuck at
 /// `"running"` when the process is still up.
+///
+/// **Guarded write (R-M2).** The `UPDATE` only matches a row that is still
+/// live — `status IN ('running','pending_approval')` — mirroring the same
+/// re-check [`expire_parked_runs`] and [`mark_run_interrupted`] already do.
+/// Without it this was an unconditional `WHERE id = ?`, so a caller that read a
+/// non-terminal status and then lost a race could overwrite a row that had
+/// meanwhile settled: `flows_cancel_run` reads `running`, the live run finishes
+/// `completed` and deregisters, `run_registry::cancel` returns `false`, and the
+/// "not in flight" branch then relabels a fully-completed run (whose real side
+/// effects fired) as `cancelled`. Returns whether a row was actually updated so
+/// callers can log the no-op instead of silently believing the write landed.
 pub fn finish_flow_run(
     config: &Config,
     id: &str,
@@ -731,18 +742,20 @@ pub fn finish_flow_run(
     steps: &[FlowRunStep],
     pending_approvals: &[String],
     error: Option<&str>,
-) -> Result<()> {
+) -> Result<bool> {
     let steps_json = serde_json::to_string(steps).context("Failed to serialize flow run steps")?;
     let pending_json = serde_json::to_string(pending_approvals)
         .context("Failed to serialize flow run pending approvals")?;
     with_connection(config, |conn| {
-        conn.execute(
-            "UPDATE flow_runs SET status = ?1, finished_at = ?2, steps_json = ?3, \
-             pending_approvals_json = ?4, error = ?5 WHERE id = ?6",
-            params![status, finished_at, steps_json, pending_json, error, id],
-        )
-        .context("Failed to finish flow run")?;
-        Ok(())
+        let updated = conn
+            .execute(
+                "UPDATE flow_runs SET status = ?1, finished_at = ?2, steps_json = ?3, \
+                 pending_approvals_json = ?4, error = ?5 \
+                 WHERE id = ?6 AND status IN ('running', 'pending_approval')",
+                params![status, finished_at, steps_json, pending_json, error, id],
+            )
+            .context("Failed to finish flow run")?;
+        Ok(updated > 0)
     })
 }
 
@@ -796,9 +809,25 @@ pub fn upsert_flow_run_step(config: &Config, run_id: &str, step: &FlowRunStep) -
 /// (`COALESCE(finished_at, started_at)` — a run's `finished_at` is stamped when
 /// it pauses at a gate) is strictly older than `cutoff` (an RFC3339 instant),
 /// transitioning it to a terminal `"cancelled"` status stamped `now` with
-/// `error_msg`. Returns the `(run_id, flow_id)` of each swept run so the caller
-/// can update the flow summary + drop the durable checkpoint (issue G4 —
-/// parked-run TTL).
+/// `error_msg`. Returns the `(run_id, flow_id)` of the runs **actually flipped**
+/// so the caller can update the flow summary, publish `FlowRunFinished`, and
+/// drop the durable checkpoint (issue G4 — parked-run TTL) for real settles
+/// only.
+///
+/// **Candidates are not sweeps.** The `SELECT` and each row's guarded `UPDATE`
+/// are separate statements on an autocommit connection (`with_connection` opens
+/// a fresh connection per call, not a transaction spanning this function), so a
+/// concurrent `mark_run_resuming` on another connection can land in between: the
+/// row was `pending_approval` at `SELECT` time and no longer is when its own
+/// `UPDATE` runs. The per-row `WHERE status = 'pending_approval'` re-check keeps
+/// that row's data safe — but returning the unfiltered candidate list would let
+/// the caller act on a run it never actually expired: dropping the checkpoint out
+/// from under a resume that just claimed it, and publishing a terminal
+/// `FlowRunFinished` for a run still executing. That false event is the worse
+/// half, because the frontend de-dupes terminal events by `${flow_id}:${run_id}`
+/// — so the run's real completion would later be discarded as an alias replay,
+/// leaving a successful run displayed as cancelled. Only rows whose `UPDATE`
+/// reports `changed > 0` are returned.
 ///
 /// RFC3339 timestamps produced by `chrono::Utc::…to_rfc3339()` all carry the
 /// same `+00:00` offset, so a lexicographic `<` is a valid chronological
@@ -821,20 +850,32 @@ pub fn expire_parked_runs(
             .collect::<rusqlite::Result<_>>()?;
         drop(stmt);
 
-        for (run_id, _flow_id) in &stale {
+        let mut swept = Vec::with_capacity(stale.len());
+        for (run_id, flow_id) in stale {
             // Re-check the status in the WHERE so a run resumed/cancelled
-            // between the SELECT and here is not clobbered.
-            conn.execute(
-                "UPDATE flow_runs SET status = 'cancelled', finished_at = ?1, error = ?2 \
-                 WHERE id = ?3 AND status = 'pending_approval'",
-                params![now, error_msg, run_id],
-            )
-            .context("Failed to expire parked flow run")?;
+            // between the SELECT and here is not clobbered, and keep only the
+            // rows this sweep genuinely flipped — see the fn doc.
+            let changed = conn
+                .execute(
+                    "UPDATE flow_runs SET status = 'cancelled', finished_at = ?1, error = ?2 \
+                     WHERE id = ?3 AND status = 'pending_approval'",
+                    params![now, error_msg, &run_id],
+                )
+                .context("Failed to expire parked flow run")?;
+            if changed > 0 {
+                swept.push((run_id, flow_id));
+            } else {
+                tracing::debug!(
+                    target: "flows",
+                    run_id = %run_id,
+                    "[flows] TTL sweep: run left 'pending_approval' concurrently — not expiring it"
+                );
+            }
         }
-        if !stale.is_empty() {
-            tracing::info!(target: "flows", swept = stale.len(), "[flows] expired parked pending_approval runs past TTL");
+        if !swept.is_empty() {
+            tracing::info!(target: "flows", swept = swept.len(), "[flows] expired parked pending_approval runs past TTL");
         }
-        Ok(stale)
+        Ok(swept)
     })
 }
 
@@ -868,6 +909,64 @@ pub fn list_running_run_ids(
             })?
             .collect::<rusqlite::Result<_>>()?;
         Ok(rows)
+    })
+}
+
+/// Test-only unconditional status write, bypassing the
+/// [`finish_flow_run`] liveness guard.
+///
+/// Production code must never do a terminal → terminal transition — that is the
+/// corruption [`finish_flow_run`]'s `status IN ('running','pending_approval')`
+/// predicate exists to prevent. But a couple of tests legitimately need to
+/// *stage* a row at an arbitrary terminal status (`completed_with_warnings`,
+/// `interrupted`) to exercise the guards that read it, and they previously did
+/// so by calling `finish_flow_run` twice — which the guard now correctly
+/// refuses. Staging is a fixture concern, so it gets a fixture-only door rather
+/// than a weaker production write.
+#[cfg(test)]
+pub fn force_run_status_for_test(
+    config: &Config,
+    id: &str,
+    status: &str,
+    error: Option<&str>,
+) -> Result<()> {
+    with_connection(config, |conn| {
+        conn.execute(
+            "UPDATE flow_runs SET status = ?1, error = ?2 WHERE id = ?3",
+            params![status, error, id],
+        )
+        .context("Failed to force flow run status (test fixture)")?;
+        Ok(())
+    })
+}
+
+/// Flips a parked `'pending_approval'` row to `'running'` for the duration of a
+/// [`crate::openhuman::flows::ops::flows_resume`], guarded by a
+/// `status = 'pending_approval'` predicate so a run cancelled or expired
+/// concurrently is never revived. Returns `true` when a row was actually
+/// flipped.
+///
+/// Without this flip the row stays `pending_approval` for the whole (up to
+/// `FLOW_RUN_TIMEOUT_SECS`) resume, so
+/// [`expire_parked_runs`]' TTL sweep still matches it: a run approved just
+/// before its TTL would be relabelled `cancelled` and have its durable
+/// checkpoint dropped **while the resume was actively executing approved
+/// outbound nodes** (R-M1). Marking it `running` moves it out of the sweep's
+/// predicate and into the same lifecycle state a `flows_run` occupies, which is
+/// also what the boot orphan sweep already knows how to reconcile.
+pub fn mark_run_resuming(config: &Config, id: &str) -> Result<bool> {
+    with_connection(config, |conn| {
+        let changed = conn
+            .execute(
+                "UPDATE flow_runs SET status = 'running', finished_at = NULL, error = NULL \
+                 WHERE id = ?1 AND status = 'pending_approval'",
+                params![id],
+            )
+            .context("Failed to mark parked flow run as resuming")?;
+        if changed > 0 {
+            tracing::debug!(target: "flows", run_id = id, "[flows] marked parked run 'running' for the duration of the resume");
+        }
+        Ok(changed > 0)
     })
 }
 
