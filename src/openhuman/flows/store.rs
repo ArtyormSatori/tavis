@@ -377,12 +377,25 @@ impl std::fmt::Display for FlowUpdateError {
 ///
 /// `enabled_override`, when `Some`, forces the persisted `enabled` flag to
 /// that value in the *same* guarded `UPDATE` as the graph/name/
-/// `require_approval` write — used by `ops::flows_update`'s B29 Rule 1
-/// analogue (auto-disarming a flow whose trigger just changed from manual to
-/// automatic) so the disarm can never race a concurrent read/write of
-/// `enabled` (a separate `set_enabled` call after this one would leave a
-/// TOCTOU window). `None` leaves `enabled` untouched, matching the previous
-/// behaviour for every other caller.
+/// `require_approval` write. `None` leaves `enabled` untouched (falls back to
+/// the freshly re-read `current.enabled`), matching the previous behaviour
+/// for every other caller.
+///
+/// `force_disarm_if_automatic`, when `true`, unconditionally disarms
+/// (`enabled: false`) if the resulting graph (`graph`) has an automatic
+/// trigger — used by `ops::flows_update_disarming_automatic` for remote
+/// authoring surfaces.
+///
+/// **R-m2:** independent of `force_disarm_if_automatic`, this ALWAYS disarms
+/// on a manual/none → automatic trigger transition (the B29 Rule 1 analogue)
+/// — computed here, against the row this call just re-read
+/// (`current.graph`), rather than trusting a transition flag the caller
+/// derived from an earlier, possibly-stale read. `update_flow_graph`'s own
+/// guarded `UPDATE` below keys its `WHERE` clause on this exact `current`
+/// row, so this is the only read of "was it automatic before" that can't
+/// have gone stale between computing the decision and writing it. An
+/// `enabled_override` supplied by the caller can never re-arm a graph this
+/// check disarms — the disarm always wins.
 pub fn update_flow_graph(
     config: &Config,
     id: &str,
@@ -390,6 +403,7 @@ pub fn update_flow_graph(
     graph: tinyflows::model::WorkflowGraph,
     require_approval: bool,
     enabled_override: Option<bool>,
+    force_disarm_if_automatic: bool,
     expected_updated_at: Option<&str>,
 ) -> std::result::Result<Flow, FlowUpdateError> {
     let current = get_flow(config, id)
@@ -404,13 +418,40 @@ pub fn update_flow_graph(
         }
     }
 
+    // R-m2: `was_auto` MUST come from `current` (just re-read above, right
+    // before the guarded UPDATE below), never from a caller-observed
+    // snapshot — a concurrent write between an ops-level read and this call
+    // would otherwise let a manual→automatic transition slip past
+    // undetected and persist `enabled: true` on an automatic-trigger graph.
+    let now_auto = super::ops::trigger_is_automatic(&graph);
+    let was_auto = super::ops::trigger_is_automatic(&current.graph);
+    let is_manual_to_auto_transition = now_auto && !was_auto;
+    let forced_automatic_disarm = force_disarm_if_automatic && now_auto;
+    let auto_disarm = is_manual_to_auto_transition || forced_automatic_disarm;
+    if auto_disarm {
+        tracing::debug!(
+            target: "flows",
+            flow_id = %id,
+            was_auto,
+            now_auto,
+            is_manual_to_auto_transition,
+            forced_automatic_disarm,
+            "[flows] update_flow_graph: disarming — automatic-trigger transition detected \
+             against the freshly re-read row (R-m2)"
+        );
+    }
+
     let graph_json = serde_json::to_string(&graph)
         .context("Failed to serialize graph")
         .map_err(FlowUpdateError::Store)?;
     let prior_graph_json =
         serde_json::to_string(&current.graph).unwrap_or_else(|_| "null".to_string());
     let now = Utc::now().to_rfc3339();
-    let new_enabled = enabled_override.unwrap_or(current.enabled);
+    let new_enabled = if auto_disarm {
+        false
+    } else {
+        enabled_override.unwrap_or(current.enabled)
+    };
 
     with_connection(config, |conn| {
         // Guarded UPDATE keyed on the observed updated_at (race-safe even

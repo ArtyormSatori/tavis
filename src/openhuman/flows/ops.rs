@@ -3886,30 +3886,26 @@ async fn flows_update_inner(
         }
     };
     // B29 Rule 1 analogue: disarm every manual/none → automatic trigger
-    // transition, unconditionally — see the doc comment above for why this
-    // must NOT gate on the (possibly stale) `existing.enabled` read.
-    let was_auto = trigger_is_automatic(&existing.graph);
+    // transition, unconditionally. `now_auto` is safe to compute here (it
+    // only depends on `graph`, THIS call's own incoming graph — never
+    // stale). The "was it automatic before" half of the transition,
+    // however, is NOT decided here: R-m2 found that gating on the
+    // ops-level `existing.graph` read let a concurrent write race this
+    // call and slip an automatic-trigger graph through with `enabled: true`
+    // — `existing` can be arbitrarily stale by the time
+    // `store::update_flow_graph` actually performs its guarded write. That
+    // decision now lives inside `update_flow_graph`, computed against the
+    // row it just re-read there (see its doc comment).
     let now_auto = trigger_is_automatic(&graph);
-    let is_manual_to_auto_transition = now_auto && !was_auto;
     let forced_automatic_disarm = disarm_automatic && now_auto;
-    let enabled_override =
-        (is_manual_to_auto_transition || forced_automatic_disarm).then_some(false);
-    // Best-effort flag for the info log / result message below: whether the
-    // flow *appeared* live going into this update. Not used for the
-    // override decision itself (that's unconditional, see above) — only to
-    // avoid telling the user "flow was auto-disabled" when it was already
-    // disabled going in.
-    let should_disarm = enabled_override == Some(false) && existing.enabled;
     tracing::debug!(
         target: "flows",
         flow_id = %id,
-        was_auto,
         now_auto,
         currently_enabled = existing.enabled,
-        is_manual_to_auto_transition,
         forced_automatic_disarm,
-        should_disarm,
-        "[flows] flows_update: auto-trigger disarm decision inputs"
+        "[flows] flows_update: auto-trigger disarm decision inputs (transition itself decided \
+         store-side against a fresh read, see update_flow_graph)"
     );
 
     // Rule 2 analogue (compound-bypass closure): re-apply the same outbound
@@ -3937,21 +3933,32 @@ async fn flows_update_inner(
         side_effect_forced,
         "[flows] flows_update: persisting changes"
     );
-    // `enabled_override` is threaded into the same guarded UPDATE as the
-    // graph/name/require_approval write (see `store::update_flow_graph`)
-    // rather than a follow-up `flows_set_enabled` call, so the disarm can
-    // never race a concurrent read/write of `enabled`.
+    // The auto-disarm decision (both the unconditional manual→automatic
+    // transition and `disarm_automatic`'s forced-remote-authoring variant)
+    // is made INSIDE `update_flow_graph`, against the row it re-reads right
+    // before its guarded UPDATE — see R-m2 above and that function's doc
+    // comment. `enabled_override: None` here means "no explicit force from
+    // this caller"; the disarm, if any, still applies on top of that.
     let updated = store::update_flow_graph(
         config,
         id,
         new_name,
         graph,
         effective_require_approval,
-        enabled_override,
+        None,
+        disarm_automatic,
         expected_version.as_deref(),
     )
     .map_err(map_flow_update_error)?;
 
+    // Best-effort, POST-write: did the flow actually transition from
+    // enabled to disabled as part of this update? Derived from the real
+    // before/after state (`existing.enabled` vs `updated.enabled`) rather
+    // than re-predicting the decision — the decision itself already
+    // happened store-side against a fresh read, so this is purely for the
+    // info log / result message wording below and can't desync from what
+    // was actually persisted.
+    let should_disarm = now_auto && existing.enabled && !updated.enabled;
     if should_disarm {
         tracing::info!(
             target: "flows",

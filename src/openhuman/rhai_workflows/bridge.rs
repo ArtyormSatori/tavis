@@ -380,6 +380,30 @@ impl TaTool<()> for RhaiToolAdapter {
 /// Runs an openhuman tool for a `.ragsh` `tool_call`, routing any external-effect
 /// tool through the [`ApprovalGate`] first (fail-closed on denial) since the
 /// repl bridge sits outside the harness approval middleware.
+///
+/// **E-m4: a Supervised-tier park from inside a cell is practically
+/// unanswerable.** This calls [`ApprovalGate::intercept_audited`] — the
+/// UNBOUNDED variant, which awaits up to the gate's own TTL (10 minutes by
+/// default, `DEFAULT_APPROVAL_TTL` in `approval/gate.rs`) — from inside a
+/// Rhai cell whose own wall-clock deadline is `rhai_workflows::policy`'s
+/// `DEFAULT_RHAI_TIMEOUT_SECS` (300s, i.e. 5 minutes) unless the caller
+/// passed a longer `timeout_secs`. With the default cell timeout, the cell
+/// times out and is torn down at 5 minutes — well before a human could
+/// plausibly see, read, and act on the approval card — so in practice a
+/// Supervised-tier `tool_call`/`code`/native-tool capability invoked from a
+/// cell either gets approved within the cell's own timeout window (a very
+/// fast human response) or the cell dies waiting, and the approval decision
+/// (if it eventually comes) lands on a session and cell that no longer
+/// exist. Compounding this: per E-M1/E-M2's session-timeout-ordering bugs,
+/// a cell that times out this way can also lose the whole Rhai session's
+/// bindings, not just this one call.
+///
+/// [`ApprovalGate::intercept_audited_bounded`] exists precisely to cap the
+/// park window below a caller's own deadline — this bridge does not use it,
+/// which is the gap this comment documents rather than fixes (bounding the
+/// park to the cell's remaining timeout, or refusing to park at all from
+/// inside a cell, is tracked as follow-up, not applied in this doc-only
+/// pass).
 async fn gated_execute(
     tool: &dyn OhTool,
     call: TaToolCall,

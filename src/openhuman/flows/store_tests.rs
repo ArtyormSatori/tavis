@@ -29,6 +29,24 @@ fn trigger_graph() -> WorkflowGraph {
     }
 }
 
+/// An automatic-trigger (`schedule`) graph — `trigger_is_automatic` returns
+/// `true` for this, unlike [`trigger_graph`]'s manual (no `trigger_kind`)
+/// trigger.
+fn automatic_schedule_graph() -> WorkflowGraph {
+    WorkflowGraph {
+        nodes: vec![Node {
+            id: "t".to_string(),
+            kind: NodeKind::Trigger,
+            type_version: 1,
+            name: "Trigger".to_string(),
+            config: serde_json::json!({ "trigger_kind": "schedule", "schedule": "0 9 * * *" }),
+            ports: Vec::new(),
+            position: None,
+        }],
+        ..Default::default()
+    }
+}
+
 #[test]
 fn create_get_list_delete_roundtrip() {
     let tmp = TempDir::new().unwrap();
@@ -98,6 +116,7 @@ fn update_flow_graph_bumps_updated_at_and_preserves_created_at() {
         new_graph,
         false,
         None,
+        false,
         None,
     )
     .unwrap();
@@ -124,7 +143,8 @@ fn update_flow_graph_with_none_override_preserves_current_enabled_column() {
         flow.name.clone(),
         trigger_graph(),
         false,
-        None, // enabled_override
+        None,  // enabled_override
+        false, // force_disarm_if_automatic
         None,
     )
     .unwrap();
@@ -155,6 +175,7 @@ fn update_flow_graph_with_some_false_override_forces_disabled() {
         trigger_graph(),
         false,
         Some(false), // enabled_override
+        false,       // force_disarm_if_automatic
         None,
     )
     .unwrap();
@@ -199,6 +220,7 @@ fn update_flow_graph_override_wins_over_concurrently_enabled_row() {
         trigger_graph(),
         false,
         Some(false), // the unconditional disarm override
+        false,       // force_disarm_if_automatic
         None,
     )
     .unwrap();
@@ -209,6 +231,89 @@ fn update_flow_graph_override_wins_over_concurrently_enabled_row() {
     );
     let reloaded = get_flow(&config, &flow.id).unwrap().unwrap();
     assert!(!reloaded.enabled);
+}
+
+/// R-m2 regression: the manual→automatic disarm decision must be computed
+/// against the row `update_flow_graph` JUST re-read (`current`), never a
+/// caller-supplied belief about the flow's prior state. Before the fix,
+/// `ops::flows_update` computed this transition from an OUTER `existing`
+/// read taken before calling into the store — a concurrent write between
+/// that read and this call could make the transition invisible to the
+/// caller, letting an automatic-trigger graph persist `enabled: true`.
+///
+/// Proven here without needing to fake a race: the disarm must fire from
+/// `current.graph` (MANUAL) vs the new `graph` (automatic) alone, and must
+/// WIN over an `enabled_override` that explicitly asks to stay enabled —
+/// exactly the shape of override a stale caller-side decision could
+/// otherwise have smuggled through.
+#[test]
+fn update_flow_graph_disarms_transition_from_the_fresh_row_even_when_override_asks_to_stay_enabled()
+{
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = create_flow(&config, "demo".to_string(), trigger_graph(), false, true).unwrap();
+    assert!(flow.enabled, "flow created enabled");
+
+    let updated = update_flow_graph(
+        &config,
+        &flow.id,
+        flow.name.clone(),
+        automatic_schedule_graph(),
+        false,
+        Some(true), // caller explicitly asks to stay enabled
+        false,      // force_disarm_if_automatic (the remote-authoring flag) OFF —
+        // proving the unconditional Rule 1 transition-disarm fires on its own
+        None,
+    )
+    .unwrap();
+
+    assert!(
+        !updated.enabled,
+        "a manual->automatic transition must disarm even when enabled_override asks to stay \
+         enabled — the disarm always wins (R-m2)"
+    );
+    let reloaded = get_flow(&config, &flow.id).unwrap().unwrap();
+    assert!(!reloaded.enabled);
+}
+
+/// Sibling of the above: when there is NO transition (the row was already
+/// automatic before this call, matching what's actually in the DB right
+/// now), an ordinary `enabled_override` is honoured normally — the fix must
+/// not over-disarm every automatic-trigger update, only genuine
+/// manual/none → automatic transitions (unless `force_disarm_if_automatic`
+/// is also set).
+#[test]
+fn update_flow_graph_does_not_disarm_an_automatic_to_automatic_update() {
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+    let flow = create_flow(
+        &config,
+        "demo".to_string(),
+        automatic_schedule_graph(),
+        false,
+        false,
+    )
+    .unwrap();
+    assert!(!flow.enabled, "born disabled — armed explicitly next");
+    let armed = set_enabled(&config, &flow.id, true).unwrap();
+    assert!(armed.enabled);
+
+    let updated = update_flow_graph(
+        &config,
+        &flow.id,
+        flow.name.clone(),
+        automatic_schedule_graph(),
+        false,
+        None,  // no explicit override — preserve current.enabled
+        false, // force_disarm_if_automatic OFF
+        None,
+    )
+    .unwrap();
+
+    assert!(
+        updated.enabled,
+        "an automatic->automatic update (no transition) must not be auto-disarmed"
+    );
 }
 
 #[test]
@@ -309,6 +414,7 @@ fn update_flow_graph_can_change_require_approval() {
         trigger_graph(),
         true,
         None,
+        false,
         None,
     )
     .unwrap();

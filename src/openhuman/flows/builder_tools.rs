@@ -283,7 +283,10 @@ impl Tool for EditWorkflowTool {
          saved flow; or an inline graph) plus ops[]: a list of edits applied in \
          order. Op shapes (each is { \"op\": <type>, ... }): add_node {node}, update_node_config \
          {id, config} (JSON merge-patch — a null value deletes that config key), set_node_name \
-         {id, name}, rename_node {id, new_id} (rewires edges), remove_node {id} (drops its edges), \
+         {id, name}, rename_node {id, new_id} (rewires EDGES onto the new id, but does NOT rewrite \
+         `=nodes.<old_id>...` binding expressions inside OTHER nodes' config — re-point those \
+         yourself, or validate_workflow will catch the dangling reference), remove_node {id} \
+         (drops its edges), \
          add_edge {edge}, remove_edge {from_node, to_node, from_port?, to_port?}, set_node_position \
          {id, position}. PERSISTENCE: the applied edit is written to a DRAFT, never onto the saved \
          flow — this tool NEVER saves. Editing a flow_id SEEDS A NEW DRAFT from that flow's graph \
@@ -564,9 +567,13 @@ impl Tool for EditWorkflowTool {
             }
         };
 
-        let write_edit_to_draft = || -> anyhow::Result<()> {
+        // T-m6: returns `Err` (rather than only `warn!`-logging) when the
+        // draft write-back itself fails, so callers can surface the failure
+        // instead of telling the agent "Edits live on draft {id}" when the
+        // draft still holds the PREVIOUS graph.
+        let write_edit_to_draft = || -> Result<(), String> {
             if let Some(ref draft_id) = write_back_draft {
-                let edited_json = serde_json::to_value(&edited)?;
+                let edited_json = serde_json::to_value(&edited).map_err(|e| e.to_string())?;
                 if let Err(e) = ops::flows_draft_update(
                     &self.config,
                     draft_id,
@@ -575,6 +582,7 @@ impl Tool for EditWorkflowTool {
                     None,
                 ) {
                     tracing::warn!(target: "flows", %draft_id, error = %e, "[flows] edit_workflow: could not write edit back to draft");
+                    return Err(e);
                 }
             }
             Ok(())
@@ -585,7 +593,16 @@ impl Tool for EditWorkflowTool {
         if !structural.is_empty() {
             // Preserve the longstanding working-copy contract: an applied edit
             // survives for the next repair turn even when structurally invalid.
-            write_edit_to_draft()?;
+            // T-m6: surface (not just log) a write-back failure here too, so the
+            // agent knows the draft may still hold the PREVIOUS graph rather than
+            // this attempted (invalid) edit.
+            let write_back_note = match write_edit_to_draft() {
+                Ok(()) => String::new(),
+                Err(e) => format!(
+                    "\n\nNote: the edit could also NOT be written back to the draft ({e}) — the \
+                     draft still holds the PREVIOUS graph, not this attempted edit."
+                ),
+            };
             let messages: Vec<String> = structural.iter().map(ToString::to_string).collect();
             tracing::debug!(
                 target: "flows",
@@ -594,7 +611,7 @@ impl Tool for EditWorkflowTool {
                 "[flows] edit_workflow: the edited graph is structurally invalid"
             );
             return Ok(ToolResult::error(format!(
-                "The edited graph is invalid:\n\n{}\n\nFix the ops and call edit_workflow again.",
+                "The edited graph is invalid:\n\n{}\n\nFix the ops and call edit_workflow again.{write_back_note}",
                 messages.join("\n")
             )));
         }
@@ -621,7 +638,28 @@ impl Tool for EditWorkflowTool {
         // Write the accepted structural edit back to the draft (the durable
         // working copy), so it survives across turns/reloads even if a later
         // binding/connection/contract gate flags something to fix next.
-        write_edit_to_draft()?;
+        //
+        // T-m6: a failure here MUST short-circuit rather than fall through to
+        // the proposal payload below — that payload's `next` text tells the
+        // agent "Edits live on draft {id}", which would be false if the write
+        // never landed, leaving the next turn silently iterating on a stale
+        // draft.
+        if let Some(draft_id) = write_back_draft.as_deref() {
+            if let Err(e) = write_edit_to_draft() {
+                tracing::warn!(
+                    target: "flows",
+                    %name,
+                    %draft_id,
+                    error = %e,
+                    "[flows] edit_workflow: draft write-back failed after validation passed"
+                );
+                return Ok(ToolResult::error(format!(
+                    "The edit passed validation, but could NOT be written back to draft \
+                     {draft_id}: {e}\n\nThe draft still holds the PREVIOUS graph, not this edit. \
+                     Retry edit_workflow."
+                )));
+            }
+        }
 
         // Full builder hard-gate stack + proposal payload (shared with revise).
         // Thread the persistence-state handles so the payload carries draft_id /
@@ -800,16 +838,35 @@ impl Tool for ValidateWorkflowTool {
         let validation = ops::flows_validate(graph_json.clone()).value;
 
         // Only run the (expensive) hard gates on a structurally-valid graph.
-        let gate_errors = if validation.valid {
+        // A migrate/deserialize error here must fail CLOSED: `validation.valid`
+        // only proves the graph passed structural checks, not that the hard
+        // gates (unresolvable bindings, unreal tool slugs, unwired required
+        // args) ran. Treating the empty `gate_errors` from a caught `Err` as
+        // "gates passed" previously reported `ok: true` while silently
+        // skipping every hard gate.
+        let (gate_errors, gate_check_failed) = if validation.valid {
             match ops::migrate_and_deserialize_graph(graph_json) {
-                Ok(graph) => ops::run_builder_gates(&self.config, &graph).await,
-                Err(_) => Vec::new(),
+                Ok(graph) => (ops::run_builder_gates(&self.config, &graph).await, false),
+                Err(e) => {
+                    tracing::warn!(
+                        target: "flows",
+                        error = %e,
+                        "[flows] validate_workflow: graph passed structural validation but \
+                         failed to migrate/deserialize for gate checks; failing closed"
+                    );
+                    (
+                        vec![format!(
+                            "hard gates could not run: graph failed to migrate/deserialize ({e})"
+                        )],
+                        true,
+                    )
+                }
             }
         } else {
-            Vec::new()
+            (Vec::new(), false)
         };
 
-        let ok = validation.valid && gate_errors.is_empty();
+        let ok = validate_workflow_report_is_ok(validation.valid, &gate_errors, gate_check_failed);
         let report = json!({
             "ok": ok,
             "structurally_valid": validation.valid,
@@ -820,6 +877,21 @@ impl Tool for ValidateWorkflowTool {
         });
         Ok(ToolResult::success(serde_json::to_string_pretty(&report)?))
     }
+}
+
+/// `validate_workflow`'s aggregate verdict (T-m4): `ok` must be true only when
+/// the graph is structurally valid, every hard gate ran, AND every hard gate
+/// passed. Pulled out as a pure function so the fail-closed invariant — a
+/// gate-check failure (e.g. a migrate/deserialize error) must never be
+/// reported as `ok: true` — is unit-testable independent of the async gate
+/// execution and the (currently unreachable, pending future per-node schema
+/// migrations) path that produces `gate_check_failed`.
+fn validate_workflow_report_is_ok(
+    structurally_valid: bool,
+    gate_errors: &[String],
+    gate_check_failed: bool,
+) -> bool {
+    structurally_valid && gate_errors.is_empty() && !gate_check_failed
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1181,22 +1253,66 @@ impl Tool for CreateWorkflowTool {
         };
 
         // Force born-disabled: enable stays human-only, even for a manual-trigger
-        // graph that flows_create would otherwise create enabled.
+        // graph that flows_create would otherwise create enabled. `flows_create`
+        // and this force-disable are two separate writes — not one transaction —
+        // so there is necessarily a brief window between them where the row is
+        // persisted `enabled: true` before this call disables it. This fix does
+        // not close that window; it only stops MISREPORTING the outcome when the
+        // disable itself fails.
+        //
+        // T-m3: `flows_set_enabled(.., false)` can fail (store error, flow
+        // deleted concurrently, …). That used to be only `warn!`-logged while
+        // the response unconditionally claimed `"enabled": false` — so a
+        // manual-trigger flow that flows_create left enabled would stay
+        // enabled while the agent told the user it was disabled. Track the
+        // real post-attempt state and report THAT.
+        let mut disable_succeeded = true;
         if flow.enabled {
-            if let Err(e) = ops::flows_set_enabled(&self.config, &flow.id, false).await {
-                tracing::warn!(target: "flows", flow_id = %flow.id, error = %e, "[flows] create_workflow: could not force-disable the new flow");
+            match ops::flows_set_enabled(&self.config, &flow.id, false).await {
+                Ok(_) => {}
+                Err(e) => {
+                    disable_succeeded = false;
+                    tracing::warn!(
+                        target: "flows",
+                        flow_id = %flow.id,
+                        error = %e,
+                        "[flows] create_workflow: could not force-disable the new flow — it \
+                         remains ENABLED; reporting the true state, not the intended one"
+                    );
+                }
             }
         }
+        let (enabled, note) = create_workflow_report(flow.enabled, disable_succeeded);
 
         Ok(ToolResult::success(serde_json::to_string_pretty(&json!({
             "type": "workflow_created",
             "flow_id": flow.id,
             "name": flow.name,
-            "enabled": false,
+            "enabled": enabled,
             "require_approval": flow.require_approval,
-            "note": "Flow created DISABLED. The user must enable it explicitly before it can run.",
+            "note": note,
         }))?))
     }
+}
+
+/// `create_workflow`'s reported `enabled` state + note (T-m3): derived from
+/// whether the flow was born enabled (`born_enabled`, from `flows_create`'s
+/// Rule 1) and whether the subsequent force-disable attempt succeeded
+/// (`disable_succeeded`, ignored when no attempt was made). Pulled out as a
+/// pure function so the fail-HONEST invariant — the response must reflect
+/// the flow's real post-attempt state, not the intended one — is
+/// unit-testable without forcing a genuine concurrent store failure between
+/// `flows_create` and `flows_set_enabled`.
+fn create_workflow_report(born_enabled: bool, disable_succeeded: bool) -> (bool, &'static str) {
+    let enabled = born_enabled && !disable_succeeded;
+    let note = if enabled {
+        "Flow created, but it could NOT be force-disabled (see the tool result for the \
+         underlying error) — it is currently ENABLED. Tell the user and ask them to disable it \
+         manually if that was not intended."
+    } else {
+        "Flow created DISABLED. The user must enable it explicitly before it can run."
+    };
+    (enabled, note)
 }
 
 /// `duplicate_flow`: create an independent, DISABLED copy of a saved flow — the
@@ -2229,6 +2345,20 @@ impl Tool for GetToolOutputSampleTool {
         PermissionLevel::ReadOnly
     }
 
+    // T-m8: this DOES perform a real outbound Composio network call (see the
+    // struct doc's B12 carve-out) despite declaring `external_effect() ==
+    // false` — that is deliberate, not an oversight, and it never parks for
+    // approval as a result. `external_effect` gates on WORLD-MUTATING
+    // effects (a message sent, a record created/updated/deleted) that the
+    // approval system exists to keep a human in the loop for; a probe here
+    // is hard-restricted, independent of the approval gate, to Read-scope
+    // actions only (`probe_tool_output_sample`'s own scope check, which
+    // ignores the user's toggled write/admin scope preference) against a
+    // toolkit the user has ALREADY connected — so there is nothing for a
+    // human to approve: no side effect this call could possibly produce is
+    // one the user hasn't already consented to by connecting the toolkit.
+    // "Real network call" and "external_effect" are answering different
+    // questions here on purpose.
     fn external_effect(&self) -> bool {
         false
     }

@@ -2395,6 +2395,35 @@ async fn validate_workflow_requires_a_base() {
     assert!(result.output().contains("flow_id"));
 }
 
+// T-m4: a gate-check failure (e.g. a migrate/deserialize error surfaced after
+// structural validation passed) must fail CLOSED — `ok` must never be true
+// when the hard gates did not actually run. Regression test for the bug
+// where `Err(_) => Vec::new()` let an empty `gate_errors` masquerade as
+// "gates passed".
+#[test]
+fn validate_workflow_report_fails_closed_when_gate_check_errors() {
+    assert!(!validate_workflow_report_is_ok(true, &[], true));
+}
+
+#[test]
+fn validate_workflow_report_ok_when_structurally_valid_and_gates_pass() {
+    assert!(validate_workflow_report_is_ok(true, &[], false));
+}
+
+#[test]
+fn validate_workflow_report_not_ok_when_structurally_invalid() {
+    assert!(!validate_workflow_report_is_ok(false, &[], false));
+}
+
+#[test]
+fn validate_workflow_report_not_ok_when_gate_errors_present() {
+    assert!(!validate_workflow_report_is_ok(
+        true,
+        &["unresolvable binding".to_string()],
+        false
+    ));
+}
+
 #[tokio::test]
 async fn edit_workflow_edits_a_draft_and_writes_back() {
     use crate::openhuman::flows::DraftOrigin;
@@ -2430,6 +2459,74 @@ async fn edit_workflow_edits_a_draft_and_writes_back() {
     assert_eq!(reloaded.graph["nodes"].as_array().unwrap().len(), 3);
 }
 
+// T-m6: when the draft write-back itself fails (here: a genuine permission
+// denial on the drafts dir, not a mock), the response must surface the
+// failure instead of claiming "Edits live on draft {id}" — the exact
+// wording that used to ship regardless of whether the write actually landed.
+#[cfg(unix)]
+#[tokio::test]
+async fn edit_workflow_surfaces_draft_write_back_failure() {
+    use crate::openhuman::flows::DraftOrigin;
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    let config = test_config(&tmp);
+
+    let draft = ops::flows_draft_create(
+        &config,
+        None,
+        "Draft flow".to_string(),
+        valid_graph(),
+        DraftOrigin::Chat,
+    )
+    .unwrap()
+    .value;
+
+    // Force the final `flows_draft_update` write to genuinely fail: strip
+    // write permission from the drafts dir after the draft file already
+    // exists in it (create_dir_all is a no-op; the write of the new tmp
+    // file inside it is what fails).
+    let drafts_dir = config.workspace_dir.join("flows").join("drafts");
+    std::fs::set_permissions(&drafts_dir, std::fs::Permissions::from_mode(0o555)).unwrap();
+    let probe = drafts_dir.join(".write_probe");
+    let write_is_blocked = std::fs::write(&probe, b"x").is_err();
+    let _ = std::fs::remove_file(&probe);
+    if !write_is_blocked {
+        // Running as root — permissions are ignored, assertion is moot.
+        std::fs::set_permissions(&drafts_dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+        return;
+    }
+
+    let tool = EditWorkflowTool::new(config.clone());
+    let result = tool
+        .execute(json!({
+            "draft_id": draft.id,
+            "ops": [ { "op": "add_node", "node": { "id": "b", "kind": "merge", "name": "Join" } } ]
+        }))
+        .await
+        .unwrap();
+
+    // Restore so the tempdir can be cleaned up.
+    std::fs::set_permissions(&drafts_dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+    assert!(result.is_error, "{}", result.output());
+    assert!(
+        !result.output().contains("Edits live on draft"),
+        "must not claim the edit landed on the draft when the write-back failed: {}",
+        result.output()
+    );
+    assert!(
+        result.output().contains("PREVIOUS graph"),
+        "{}",
+        result.output()
+    );
+
+    // The draft on disk still holds the original (pre-edit) graph — the
+    // write genuinely never landed.
+    let reloaded = ops::flows_draft_get(&config, &draft.id).unwrap().value;
+    assert_eq!(reloaded.graph["nodes"].as_array().unwrap().len(), 2);
+}
+
 // ── Phase 4: gated create / duplicate / debug loop (F4) ──────────────────────
 
 #[tokio::test]
@@ -2451,6 +2548,38 @@ async fn create_workflow_creates_a_disabled_flow() {
     let flow_id = parsed["flow_id"].as_str().unwrap();
     let flow = ops::flows_get(&config, flow_id).await.unwrap().value;
     assert!(!flow.enabled, "agent-created flows are born disabled");
+}
+
+// T-m3: when the force-disable write itself fails, the response must
+// report the flow's REAL state (still enabled) rather than unconditionally
+// claiming "enabled": false. Exercised directly on the pure decision
+// function `create_workflow_report` — reaching the true failure via a
+// genuine concurrent store error would need a test-only seam inside
+// `execute()` that production code shouldn't carry.
+#[test]
+fn create_workflow_report_is_honest_when_force_disable_fails() {
+    let (enabled, note) = create_workflow_report(true, false);
+    assert!(enabled, "must report the flow as still enabled");
+    assert!(
+        note.contains("ENABLED"),
+        "note must surface the real state, not the intended DISABLED one: {note}"
+    );
+}
+
+#[test]
+fn create_workflow_report_reports_disabled_on_success() {
+    let (enabled, note) = create_workflow_report(true, true);
+    assert!(!enabled);
+    assert!(note.contains("DISABLED"));
+}
+
+#[test]
+fn create_workflow_report_never_attempted_disable_stays_disabled() {
+    // born_enabled = false: flows_create already created it disabled
+    // (e.g. an automatic-trigger graph), so no force-disable is attempted.
+    let (enabled, note) = create_workflow_report(false, true);
+    assert!(!enabled);
+    assert!(note.contains("DISABLED"));
 }
 
 #[tokio::test]

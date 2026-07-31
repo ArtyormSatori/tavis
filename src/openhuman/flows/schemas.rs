@@ -1759,9 +1759,7 @@ fn handle_draft_update(params: Map<String, Value>) -> ControllerFuture {
             .map_err(|e| format!("invalid 'name': {e}"))?;
         let graph = params.get("graph").filter(|v| !v.is_null()).cloned();
         // A present `flow_id` (even null) re-links the draft; absent leaves it.
-        let flow_id = params
-            .get("flow_id")
-            .map(|v| v.as_str().filter(|s| !s.is_empty()).map(str::to_string));
+        let flow_id = parse_draft_update_flow_id(&params)?;
         to_json(ops::flows_draft_update(
             &config,
             id.trim(),
@@ -1806,6 +1804,38 @@ fn read_required<T: DeserializeOwned>(params: &Map<String, Value>, key: &str) ->
 
 fn to_json<T: serde::Serialize>(outcome: RpcOutcome<T>) -> Result<Value, String> {
     outcome.into_cli_compatible_json()
+}
+
+/// Parses `draft_update`'s `flow_id` param (R-m7). The outer `Option`
+/// mirrors `ops::flows_draft_update`'s "present vs absent" contract — absent
+/// leaves the draft's existing link untouched; the inner `Option` is the new
+/// link (`None` unlinks).
+///
+/// A present-but-non-string `flow_id` (a number, or an object from a buggy
+/// client) is REJECTED rather than silently coerced into `Some(None)` via
+/// `Value::as_str()` returning `None` on a type mismatch — that shape used
+/// to be indistinguishable from an explicit `flow_id: null` unlink, and
+/// `update_draft` treats `Some(None)` as exactly that: unlinking the draft
+/// from its flow. A later `draft_promote` then creates a brand-new flow
+/// instead of updating the one the caller actually meant.
+fn parse_draft_update_flow_id(
+    params: &Map<String, Value>,
+) -> Result<Option<Option<String>>, String> {
+    match params.get("flow_id") {
+        None => Ok(None),
+        Some(Value::Null) => Ok(Some(None)),
+        Some(Value::String(s)) => {
+            let s = s.trim();
+            Ok(Some(if s.is_empty() {
+                None
+            } else {
+                Some(s.to_string())
+            }))
+        }
+        Some(other) => Err(format!(
+            "invalid 'flow_id': expected a string or null, got {other}"
+        )),
+    }
 }
 
 #[cfg(test)]
@@ -2148,5 +2178,56 @@ mod tests {
         let params = Map::new();
         let err = read_required::<String>(&params, "id").unwrap_err();
         assert!(err.contains("missing required param 'id'"));
+    }
+
+    // ── R-m7: parse_draft_update_flow_id ─────────────────────────────────────
+
+    #[test]
+    fn parse_draft_update_flow_id_absent_leaves_link_untouched() {
+        let params = Map::new();
+        assert_eq!(parse_draft_update_flow_id(&params).unwrap(), None);
+    }
+
+    #[test]
+    fn parse_draft_update_flow_id_null_is_an_explicit_unlink() {
+        let mut params = Map::new();
+        params.insert("flow_id".to_string(), Value::Null);
+        assert_eq!(parse_draft_update_flow_id(&params).unwrap(), Some(None));
+    }
+
+    #[test]
+    fn parse_draft_update_flow_id_string_links_to_that_flow() {
+        let mut params = Map::new();
+        params.insert("flow_id".to_string(), Value::String("flow-123".to_string()));
+        assert_eq!(
+            parse_draft_update_flow_id(&params).unwrap(),
+            Some(Some("flow-123".to_string()))
+        );
+    }
+
+    #[test]
+    fn parse_draft_update_flow_id_empty_string_is_an_explicit_unlink() {
+        let mut params = Map::new();
+        params.insert("flow_id".to_string(), Value::String("   ".to_string()));
+        assert_eq!(parse_draft_update_flow_id(&params).unwrap(), Some(None));
+    }
+
+    // Regression for R-m7: a number must be REJECTED, not silently coerced
+    // into `Some(None)` (an explicit unlink) the way `Value::as_str()`
+    // returning `None` on a type mismatch used to produce.
+    #[test]
+    fn parse_draft_update_flow_id_rejects_a_number() {
+        let mut params = Map::new();
+        params.insert("flow_id".to_string(), Value::from(42));
+        let err = parse_draft_update_flow_id(&params).unwrap_err();
+        assert!(err.contains("invalid 'flow_id'"), "{err}");
+    }
+
+    #[test]
+    fn parse_draft_update_flow_id_rejects_an_object() {
+        let mut params = Map::new();
+        params.insert("flow_id".to_string(), serde_json::json!({ "id": "flow-1" }));
+        let err = parse_draft_update_flow_id(&params).unwrap_err();
+        assert!(err.contains("invalid 'flow_id'"), "{err}");
     }
 }

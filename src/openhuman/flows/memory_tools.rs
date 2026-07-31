@@ -247,13 +247,18 @@ impl Tool for FlowMemoryRecallTool {
     }
 
     async fn execute(&self, args: serde_json::Value) -> anyhow::Result<ToolResult> {
-        let query = args
-            .get("query")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Missing 'query' parameter"))?
-            .trim();
+        // T-m5: input-validation problems report via `ToolResult::error`
+        // uniformly (never `Err(anyhow!)`) — matching every other tool on
+        // this belt (recall's own scope-error arms below, remember's
+        // flow_id/key checks). An `Err` return surfaces to the model as a
+        // hard tool-invocation failure rather than a normal tool result the
+        // agent can read and react to in-turn.
+        let query = match args.get("query").and_then(|v| v.as_str()) {
+            Some(q) => q.trim(),
+            None => return Ok(ToolResult::error("Missing 'query' parameter".to_string())),
+        };
         if query.is_empty() {
-            return Err(anyhow::anyhow!("query cannot be empty"));
+            return Ok(ToolResult::error("query cannot be empty".to_string()));
         }
 
         let flow_id_arg = args.get("flow_id").and_then(|v| v.as_str()).map(str::trim);
@@ -275,10 +280,11 @@ impl Tool for FlowMemoryRecallTool {
                 trusted_id.clone()
             }
             None => {
-                let arg =
-                    flow_id_arg.ok_or_else(|| anyhow::anyhow!("Missing 'flow_id' parameter"))?;
+                let Some(arg) = flow_id_arg else {
+                    return Ok(ToolResult::error("Missing 'flow_id' parameter".to_string()));
+                };
                 if arg.is_empty() {
-                    return Err(anyhow::anyhow!("flow_id cannot be empty"));
+                    return Ok(ToolResult::error("flow_id cannot be empty".to_string()));
                 }
                 arg.to_string()
             }
@@ -382,15 +388,15 @@ impl Tool for FlowMemoryRememberTool {
     }
 
     async fn execute(&self, args: serde_json::Value) -> anyhow::Result<ToolResult> {
+        // T-m5: uniform `ToolResult::error` for input-validation problems —
+        // see the matching note on `FlowMemoryRecallTool::execute`.
         let flow_id_arg = args.get("flow_id").and_then(|v| v.as_str());
-        let key = args
-            .get("key")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Missing 'key' parameter"))?;
-        let content = args
-            .get("content")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Missing 'content' parameter"))?;
+        let Some(key) = args.get("key").and_then(|v| v.as_str()) else {
+            return Ok(ToolResult::error("Missing 'key' parameter".to_string()));
+        };
+        let Some(content) = args.get("content").and_then(|v| v.as_str()) else {
+            return Ok(ToolResult::error("Missing 'content' parameter".to_string()));
+        };
 
         let category = match args.get("category").and_then(|v| v.as_str()) {
             Some("core") | None => MemoryCategory::Core,
@@ -429,8 +435,9 @@ impl Tool for FlowMemoryRememberTool {
                 trusted_id.clone()
             }
             None => {
-                let arg =
-                    flow_id_arg.ok_or_else(|| anyhow::anyhow!("Missing 'flow_id' parameter"))?;
+                let Some(arg) = flow_id_arg else {
+                    return Ok(ToolResult::error("Missing 'flow_id' parameter".to_string()));
+                };
                 let trimmed = arg.trim();
                 if trimmed.is_empty() {
                     return Ok(ToolResult::error("flow_id cannot be empty".to_string()));
@@ -633,20 +640,27 @@ mod tests {
         assert!(result.output().contains("Found 2"));
     }
 
+    // T-m5: a missing/invalid input param reports via `ToolResult::error`
+    // (an `Ok(..)` the model can read and react to in-turn), never
+    // `Err(anyhow!)` (a hard tool-invocation failure) — matching every other
+    // input-validation problem on this belt (see the scope/empty-value
+    // tests above, which already used this channel before the fix).
     #[tokio::test]
     async fn recall_missing_query_errs() {
         let (_tmp, mem) = test_mem();
         let tool = FlowMemoryRecallTool::new(mem);
-        let result = tool.execute(json!({"flow_id": "f1"})).await;
-        assert!(result.is_err());
+        let result = tool.execute(json!({"flow_id": "f1"})).await.unwrap();
+        assert!(result.is_error);
+        assert!(result.output().contains("Missing 'query'"));
     }
 
     #[tokio::test]
     async fn recall_missing_flow_id_errs() {
         let (_tmp, mem) = test_mem();
         let tool = FlowMemoryRecallTool::new(mem);
-        let result = tool.execute(json!({"query": "anything"})).await;
-        assert!(result.is_err());
+        let result = tool.execute(json!({"query": "anything"})).await.unwrap();
+        assert!(result.is_error);
+        assert!(result.output().contains("Missing 'flow_id'"));
     }
 
     // ── FlowMemoryRememberTool ──────────────────────────────────────
@@ -784,19 +798,41 @@ mod tests {
             .is_none());
     }
 
+    // T-m5: same channel-consistency fix as recall's missing-param tests
+    // above.
     #[tokio::test]
     async fn remember_missing_flow_id_errs() {
         let (_tmp, mem) = test_mem();
         let tool = FlowMemoryRememberTool::new(mem, test_security());
-        let result = tool.execute(json!({"key": "k", "content": "c"})).await;
-        assert!(result.is_err());
+        let result = tool
+            .execute(json!({"key": "k", "content": "c"}))
+            .await
+            .unwrap();
+        assert!(result.is_error);
+        assert!(result.output().contains("Missing 'flow_id'"));
+    }
+
+    #[tokio::test]
+    async fn remember_missing_key_errs() {
+        let (_tmp, mem) = test_mem();
+        let tool = FlowMemoryRememberTool::new(mem, test_security());
+        let result = tool
+            .execute(json!({"flow_id": "f1", "content": "c"}))
+            .await
+            .unwrap();
+        assert!(result.is_error);
+        assert!(result.output().contains("Missing 'key'"));
     }
 
     #[tokio::test]
     async fn remember_missing_content_errs() {
         let (_tmp, mem) = test_mem();
         let tool = FlowMemoryRememberTool::new(mem, test_security());
-        let result = tool.execute(json!({"flow_id": "f1", "key": "k"})).await;
-        assert!(result.is_err());
+        let result = tool
+            .execute(json!({"flow_id": "f1", "key": "k"}))
+            .await
+            .unwrap();
+        assert!(result.is_error);
+        assert!(result.output().contains("Missing 'content'"));
     }
 }

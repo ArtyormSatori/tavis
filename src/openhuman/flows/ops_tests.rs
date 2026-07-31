@@ -1648,6 +1648,7 @@ async fn flows_resume_marks_an_incompatible_legacy_checkpoint_failed() {
         structurally_valid_graph(nested_conditional_fan_in_graph()),
         created.value.require_approval,
         None,
+        false,
         None,
     )
     .unwrap();
@@ -1707,6 +1708,7 @@ async fn flows_resume_marks_a_checkpoint_with_an_incompatible_saved_child_failed
         structurally_valid_graph(referenced_child_graph(&child.id)),
         created.value.require_approval,
         None,
+        false,
         None,
     )
     .unwrap();
@@ -6482,6 +6484,7 @@ fn referenced_child_compatibility_stops_at_saved_workflow_cycles() {
         structurally_valid_graph(referenced_child_graph(&flow_b.id)),
         false,
         None,
+        false,
         None,
     )
     .unwrap();
@@ -6492,6 +6495,7 @@ fn referenced_child_compatibility_stops_at_saved_workflow_cycles() {
         structurally_valid_graph(referenced_child_graph(&flow_a.id)),
         false,
         None,
+        false,
         None,
     )
     .unwrap();
