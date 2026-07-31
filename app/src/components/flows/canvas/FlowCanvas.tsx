@@ -36,6 +36,7 @@ import {
   FLOW_NODE_TYPE,
   type FlowEdge,
   type FlowNode,
+  stepNumbersForFlow,
   type WorkflowGraphMeta,
 } from '../../../lib/flows/graphAdapter';
 import type { WorkflowGraph } from '../../../lib/flows/types';
@@ -45,6 +46,7 @@ import EditableFlowCanvas, {
 } from './EditableFlowCanvas';
 import './flowCanvasStyles.css';
 import FlowNodeComponent from './FlowNodeComponent';
+import { StepNumberContext } from './stepNumbers';
 
 interface FlowCanvasProps {
   nodes: FlowNode[];
@@ -115,20 +117,26 @@ function ReadonlyFlowCanvas({ nodes, edges }: { nodes: FlowNode[]; edges: FlowEd
     []
   );
 
+  // Same derivation as the editable canvas, so a read-only graph numbers its
+  // cards identically. See `stepNumbers.ts` for why this is not node `data`.
+  const stepNumberMap = useMemo(() => stepNumbersForFlow(nodes, edges), [nodes, edges]);
+
   return (
     <div className="flow-canvas h-full w-full" data-testid="flow-canvas">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={NODE_TYPES}
-        fitView
-        panOnScroll
-        zoomOnScroll
-        {...interactionProps}>
-        <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
-        <MiniMap pannable zoomable />
-        <Controls showInteractive={false} />
-      </ReactFlow>
+      <StepNumberContext.Provider value={stepNumberMap}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={NODE_TYPES}
+          fitView
+          panOnScroll
+          zoomOnScroll
+          {...interactionProps}>
+          <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+          <MiniMap pannable zoomable />
+          <Controls showInteractive={false} />
+        </ReactFlow>
+      </StepNumberContext.Provider>
     </div>
   );
 }
