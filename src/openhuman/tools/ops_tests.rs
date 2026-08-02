@@ -101,6 +101,19 @@ fn find_tool<'a>(tools: &'a [Box<dyn Tool>], name: &str) -> &'a dyn Tool {
 }
 
 #[test]
+fn polymarket_runtime_tool_registration_follows_feature_gate() {
+    let tmp = TempDir::new().unwrap();
+    let mut cfg = test_config(&tmp);
+    cfg.integrations.polymarket.enabled = true;
+    let names = tool_names(&integration_tools_for_config(&tmp, &cfg));
+    assert_eq!(
+        names.iter().any(|name| name == "polymarket"),
+        cfg!(feature = "prediction-markets"),
+        "the Polymarket runtime tool must be absent when prediction-markets is compiled out"
+    );
+}
+
+#[test]
 fn default_tools_has_three() {
     let security = Arc::new(SecurityPolicy::default());
     let tools = default_tools(security);
@@ -657,64 +670,68 @@ fn all_tools_default_registry_contains_expected_baseline_surface() {
     );
     let names = tool_names(&tools);
 
-    assert_contains_all(
-        &names,
-        &[
-            "shell",
-            "file_read",
-            "file_write",
-            "grep",
-            "glob",
-            "list",
-            "edit",
-            "apply_patch",
-            "csv_export",
-            "spawn_subagent",
-            "spawn_async_subagent",
-            "spawn_parallel_agents",
-            "ask_user_clarification",
-            "read_workspace_state",
-            "wait",
-            "wait_loop",
-            "todo",
-            "plan_exit",
-            "current_time",
-            "resolve_time",
-            "cron_add",
-            "cron_list",
-            "cron_remove",
-            "cron_update",
-            "cron_run",
-            "cron_runs",
-            "memory_store",
-            "memory_recall",
-            "memory_forget",
-            "memory_tree",
-            "monitor",
-            "monitor_list",
-            "monitor_stop",
-            "monitor_read",
+    let mut expected = vec![
+        "shell",
+        "file_read",
+        "file_write",
+        "grep",
+        "glob",
+        "list",
+        "edit",
+        "apply_patch",
+        "csv_export",
+        "spawn_subagent",
+        "spawn_async_subagent",
+        "spawn_parallel_agents",
+        "ask_user_clarification",
+        "read_workspace_state",
+        "wait",
+        "wait_loop",
+        "todo",
+        "plan_exit",
+        "current_time",
+        "resolve_time",
+        "cron_add",
+        "cron_list",
+        "cron_remove",
+        "cron_update",
+        "cron_run",
+        "cron_runs",
+        "memory_store",
+        "memory_recall",
+        "memory_forget",
+        "memory_tree",
+        "monitor",
+        "monitor_list",
+        "monitor_stop",
+        "monitor_read",
+        "schedule",
+        "proxy_config",
+        "update_check",
+        "update_apply",
+        "git_operations",
+        "pushover",
+        "gmail_unsubscribe",
+        "http_request",
+        "web_fetch",
+        "curl",
+        "gitbooks_search",
+        "gitbooks_get_page",
+        "web_search_tool",
+        "node_exec",
+        "npm_exec",
+        "image_info",
+    ];
+    // WhatsApp tools are only registered when channels feature is on
+    if cfg!(feature = "channels") {
+        expected.extend(&[
             "whatsapp_data_list_chats",
             "whatsapp_data_list_messages",
             "whatsapp_data_search_messages",
-            "schedule",
-            "proxy_config",
-            "update_check",
-            "update_apply",
-            "git_operations",
-            "pushover",
-            "gmail_unsubscribe",
-            "http_request",
-            "web_fetch",
-            "curl",
-            "gitbooks_search",
-            "gitbooks_get_page",
-            "web_search_tool",
-            "node_exec",
-            "npm_exec",
-            "image_info",
-        ],
-    );
+        ]);
+    }
+
+    assert_contains_all(&names, &expected);
 }
 
 #[test]
@@ -1966,39 +1983,132 @@ const KNOWLEDGE_TOOLS: &[&str] = &[
     "learning_enrich_profile",
 ];
 
-const KNOWLEDGE_DEFAULT_OFF: &[&str] = &[
-    "people_refresh_address_book",
-    "create_skill",
-    "install_workflow_from_url",
-    "uninstall_workflow",
-    "thread_delete",
-    "thread_purge_all",
-    "learning_update_facet",
-    "learning_pin_facet",
-    "learning_unpin_facet",
-    "learning_forget_facet",
-    "learning_rebuild_cache",
-    "learning_reset_cache",
-    "learning_save_profile",
-    "learning_enrich_profile",
-];
+fn knowledge_default_off() -> Vec<&'static str> {
+    let mut tools = vec![
+        "people_refresh_address_book",
+        "thread_delete",
+        "thread_purge_all",
+        "learning_update_facet",
+        "learning_pin_facet",
+        "learning_unpin_facet",
+        "learning_forget_facet",
+        "learning_rebuild_cache",
+        "learning_reset_cache",
+        "learning_save_profile",
+        "learning_enrich_profile",
+    ];
+    // These tools exist only when their feature gates are on. All of
+    // create_skill / install_workflow_from_url / uninstall_workflow are
+    // registered under `#[cfg(feature = "skills")]` in ops.rs — none of
+    // them are behind `flows`.
+    if cfg!(feature = "skills") {
+        tools.push("create_skill");
+        tools.push("install_workflow_from_url");
+        tools.push("uninstall_workflow");
+    }
+    tools
+}
 
-const KNOWLEDGE_ALWAYS_ON: &[&str] = &[
-    "people_list",
-    "people_resolve",
-    "list_workflows",
-    "list_workflow_runs",
-    "thread_list",
-    "thread_create",
-    "learning_list_facets",
-    "learning_cache_stats",
-];
+fn knowledge_always_on() -> Vec<&'static str> {
+    let mut tools = vec![
+        "people_list",
+        "people_resolve",
+        "thread_list",
+        "thread_create",
+        "learning_list_facets",
+        "learning_cache_stats",
+    ];
+    // These tools exist only when the skills feature is on (`WorkflowListTool`
+    // / `WorkflowRecentRunsTool` — both `#[cfg(feature = "skills")]`).
+    if cfg!(feature = "skills") {
+        tools.extend(&["list_workflows", "list_workflow_runs"]);
+    }
+    tools
+}
 
 #[test]
 fn knowledge_tools_are_registered() {
     let tmp = TempDir::new().unwrap();
     let names = tool_names(&expansion_tools_for(&tmp));
-    assert_contains_all(&names, KNOWLEDGE_TOOLS);
+
+    // Base knowledge tools that are always present
+    let mut expected_tools = vec![
+        "people_list",
+        "people_resolve",
+        "people_score",
+        "people_get",
+        "people_add_alias",
+        "people_record_interaction",
+        "people_refresh_address_book",
+        "thread_list",
+        "thread_read",
+        "thread_create",
+        "thread_update_title",
+        "thread_update_labels",
+        "thread_message_list",
+        "thread_message_append",
+        "thread_message_update",
+        "thread_title_generate",
+        "thread_turn_state_get",
+        "thread_turn_state_list",
+        "thread_turn_state_clear",
+        "thread_task_board_read",
+        "thread_task_board_write",
+        "thread_delete",
+        "thread_purge_all",
+        "learning_list_facets",
+        "learning_get_facet",
+        "learning_cache_stats",
+        "learning_update_facet",
+        "learning_pin_facet",
+        "learning_unpin_facet",
+        "learning_forget_facet",
+        "learning_rebuild_cache",
+        "learning_reset_cache",
+        "learning_save_profile",
+        "learning_enrich_profile",
+    ];
+
+    // Add gated tools only when their feature is enabled. All of these —
+    // list/describe/read_resource/recent_runs/read_run_log,
+    // install_workflow_from_url, uninstall_workflow, and create_skill — are
+    // registered under `#[cfg(feature = "skills")]` in ops.rs (skill/workflow
+    // metadata + registry tools), not `flows`.
+    if cfg!(feature = "skills") {
+        expected_tools.extend(&[
+            "list_workflows",
+            "describe_workflow",
+            "read_workflow_resource",
+            "list_workflow_runs",
+            "read_workflow_run_log",
+            "install_workflow_from_url",
+            "uninstall_workflow",
+            "create_skill",
+        ]);
+    }
+
+    assert_contains_all(&names, &expected_tools);
+
+    // Verify that gated tools are absent when their feature is off
+    if !cfg!(feature = "skills") {
+        let skill_tools = [
+            "create_skill",
+            "list_workflows",
+            "describe_workflow",
+            "read_workflow_resource",
+            "list_workflow_runs",
+            "read_workflow_run_log",
+            "install_workflow_from_url",
+            "uninstall_workflow",
+        ];
+        for tool in &skill_tools {
+            assert!(
+                !names.iter().any(|n| n == tool),
+                "{} should be absent when skills feature is off",
+                tool
+            );
+        }
+    }
 }
 
 #[test]
@@ -2007,13 +2117,15 @@ fn knowledge_default_off_tools_are_filtered_when_not_opted_in() {
     let mut tools = expansion_tools_for(&tmp);
     filter_tools_by_user_preference(&mut tools, &["file_read".to_string()]);
     let names = tool_names(&tools);
-    for off in KNOWLEDGE_DEFAULT_OFF {
+    let off_tools = knowledge_default_off();
+    for off in &off_tools {
         assert!(
             !names.iter().any(|n| n == off),
             "default-off tool `{off}` must be filtered out when not opted in; got: {names:?}"
         );
     }
-    for on in KNOWLEDGE_ALWAYS_ON {
+    let on_tools = knowledge_always_on();
+    for on in &on_tools {
         assert!(
             names.iter().any(|n| n == on),
             "always-on tool `{on}` must be retained regardless of preferences"
@@ -2035,7 +2147,8 @@ fn knowledge_default_off_tools_retained_when_opted_in() {
         ],
     );
     let names = tool_names(&tools);
-    for on in KNOWLEDGE_DEFAULT_OFF {
+    let off_tools = knowledge_default_off();
+    for on in &off_tools {
         assert!(
             names.iter().any(|n| n == on),
             "opted-in tool `{on}` must be retained; got: {names:?}"

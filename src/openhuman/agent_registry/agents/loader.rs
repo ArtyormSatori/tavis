@@ -114,6 +114,18 @@ pub const BUILTINS: &[BuiltinAgent] = &[
         prompt_fn: super::flow_memory_agent::prompt::build,
         graph_fn: None,
     },
+    // `markets_agent`'s only implemented venue tool is `polymarket`
+    // (`kalshi` is named in its allowlist but has no
+    // `src/openhuman/tools/impl/network/kalshi.rs` implementation yet). With
+    // `prediction-markets` compiled out, `polymarket` is unregistered
+    // (`all_web3_agent_tools` / `tools/ops.rs`), so an unconditional
+    // markets_agent would be a dead delegation surface — the orchestrator
+    // would route `do_prediction_markets` to a worker with zero working
+    // venue tools. Gate it like the other tool-backed specialists
+    // (`crypto_agent` is intentionally NOT gated behind `web3` because its
+    // wallet-status/read tools degrade gracefully via the web3 stub;
+    // markets_agent has no such stub path, so absence is correct here).
+    #[cfg(feature = "prediction-markets")]
     BuiltinAgent {
         id: "markets_agent",
         toml: include_str!("markets_agent/agent.toml"),
@@ -917,15 +929,22 @@ mod tests {
     /// drops `resolve_time`, this test fails loudly.
     #[test]
     fn time_sensitive_agents_expose_resolve_time() {
-        for id in [
+        let mut ids = vec![
             "orchestrator",
             "integrations_agent",
             "scheduler_agent",
             "task_manager_agent",
             "crypto_agent",
-            "markets_agent",
             "tinyplace_agent",
-        ] {
+        ];
+        // `markets_agent` is compiled out when `prediction-markets` is off
+        // (its only implemented venue tool, `polymarket`, disappears with
+        // it) — see the `#[cfg(feature = "prediction-markets")]` on its
+        // `BuiltinAgent` entry.
+        if cfg!(feature = "prediction-markets") {
+            ids.push("markets_agent");
+        }
+        for id in ids {
             let def = find(id);
             match def.tools {
                 ToolScope::Named(tools) => assert!(
@@ -1876,6 +1895,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "prediction-markets")]
     fn markets_agent_has_narrow_prediction_market_tools_and_safety_on() {
         let def = find("markets_agent");
         // Hint must be agentic — the agent reasons about market shape vs.
@@ -1984,6 +2004,45 @@ mod tests {
             listed,
             "orchestrator.subagents must list `markets_agent` so the \
              routing layer can synthesise `delegate_do_prediction_markets`"
+        );
+    }
+
+    /// Companion to the above, asserting the real gated shape: with
+    /// `prediction-markets` compiled out, `markets_agent` is genuinely absent
+    /// from the loaded set — its only implemented venue tool (`polymarket`)
+    /// is gone too — while the orchestrator's `agent.toml` (DATA, can't be
+    /// `#[cfg]`'d) still lists it. `load_builtins` (which runs
+    /// `validate_tier_hierarchy` internally, already proven tolerant of an
+    /// unresolvable subagent id by `orchestrator_tolerates_unresolvable_subagent_id`)
+    /// must still succeed — i.e. the core boots. Mirrors
+    /// `orchestrator_tolerates_absent_mcp_agent`.
+    #[test]
+    #[cfg(not(feature = "prediction-markets"))]
+    fn orchestrator_tolerates_absent_markets_agent() {
+        use crate::openhuman::agent::harness::definition::SubagentEntry;
+
+        let defs = load_builtins().expect(
+            "load_builtins must succeed with `prediction-markets` compiled out — the \
+             orchestrator's dangling `markets_agent` subagent reference must not fail the boot",
+        );
+
+        assert!(
+            !defs.iter().any(|d| d.id == "markets_agent"),
+            "`markets_agent` must be compiled out when the `prediction-markets` feature is off \
+             — its only implemented venue tool (`polymarket`) is gone too"
+        );
+
+        let orchestrator = defs
+            .iter()
+            .find(|d| d.id == "orchestrator")
+            .expect("orchestrator must still load");
+        assert!(
+            orchestrator.subagents.iter().any(|e| matches!(
+                e,
+                SubagentEntry::AgentId(id) if id == "markets_agent"
+            )),
+            "orchestrator.agent.toml is data and still lists `markets_agent` — this dangling \
+             reference must resolve to nothing rather than fail the boot"
         );
     }
 

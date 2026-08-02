@@ -440,7 +440,36 @@ jobs:
         run: |
           bash scripts/ci-cancel-aware.sh cargo test --manifest-path Cargo.toml \
             --no-default-features --features tokenjuice-treesitter --lib -- \
-            core::all:: core::cli:: core::jsonrpc:: core::legacy_aliases:: core::runtime:: agent_registry::agents::loader::
+            core::all:: core::cli:: core::jsonrpc:: core::legacy_aliases:: core::runtime:: agent_registry::agents::loader:: tools::schemas:: tools::ops::tests::
+          bash scripts/ci-cancel-aware.sh cargo test --manifest-path Cargo.toml \
+            --no-default-features --features tokenjuice-treesitter,mcp --lib -- \
+            mcp_server::resources::
+
+      - name: Guard — the kernel dependency floor may not grow
+        # The `--no-default-features --features flows` profile is the surface a
+        # second host would embed, and left unmeasured it grows: seven heavy
+        # dependencies (git2/vendored-libgit2, rusqlite/bundled, enigo, arboard,
+        # ethers-*, tokio-tungstenite) are unconditional today, and none of them
+        # would likely have landed that way had a number moved in CI when they
+        # did. This lane is that number.
+        #
+        # The ratchet is bidirectional on purpose: it fails on growth AND on a
+        # shed that was not written back into scripts/kernel-floor.limits, since
+        # an unratcheted improvement silently grows back. Lower the limit in the
+        # same PR that sheds the crates.
+        run: bash scripts/check-kernel-floor.sh --verbose
+
+      - name: Guard — the removal simulator still agrees with cargo
+        # scripts/dep-sim.py projects the effect of cutting a dependency cohort,
+        # and every gating decision in the kernelization program is sized with
+        # it. It parses `cargo tree` precisely so it cannot drift from cargo's
+        # own feature resolution — an earlier version walked `cargo metadata`'s
+        # resolve graph instead and over-reported by 36 crates, counting
+        # dev-dependencies and unenabled target-specific edges.
+        #
+        # This asserts the calibration still holds. If it fails, every
+        # projection built on the simulator is suspect until it is fixed.
+        run: python3 scripts/dep-sim.py --cut-nothing --expect-names 285
 
       - name: Guard — new feature-gated test modules must be acknowledged
         # Self-maintaining coverage: the set of source files that #[cfg]-gate a test on
@@ -454,6 +483,7 @@ jobs:
           EXPECTED=$(cat <<'EOF'
           core/all_tests.rs
           core/cli_tests.rs
+          core/dispatch.rs
           core/jsonrpc_tests.rs
           core/legacy_aliases.rs
           core/runtime/services.rs
@@ -462,19 +492,21 @@ jobs:
           openhuman/agent/harness/session/tests.rs
           openhuman/agent/harness/subagent_runner/tool_prep.rs
           openhuman/agent_registry/agents/loader.rs
-          openhuman/composio/action_tool.rs
           openhuman/inference/local/mod.rs
+          openhuman/mcp_server/resources.rs
           openhuman/socket/ops.rs
+          openhuman/tinyplace/manifest.rs
           openhuman/tool_registry/ops_tests.rs
           openhuman/tool_registry/schemas.rs
           openhuman/tools/ops_tests.rs
+          openhuman/tools/schemas.rs
           openhuman/voice/compile_status.rs
           openhuman/wallet/stub.rs
           openhuman/web3/stub.rs
           openhuman/x402/stub.rs
           EOF
           )
-          ACTUAL=$(grep -rlE '#\[cfg\((not\()?feature = "(voice|media|web3|meet|mcp|skills|flows|channels)"' src --include='*.rs' \
+          ACTUAL=$(grep -rlE '#\[cfg\((not\()?feature = "(voice|media|web3|meet|mcp|skills|flows|channels|prediction-markets)"' src --include='*.rs' \
             | xargs grep -lE '#\[test\]|#\[tokio::test\]|fn .*_test' 2>/dev/null | sed 's|^src/||' | sort -u)
           if ! diff <(echo "$EXPECTED" | sed 's/^ *//' | sort -u) <(echo "$ACTUAL"); then
             echo "::error::Gated-test file set changed. Update the EXPECTED allowlist in the rust-feature-gate-smoke lane, and extend the scoped 'cargo test' filter if the new module can carry an ungated-assert regression (see #5022)."

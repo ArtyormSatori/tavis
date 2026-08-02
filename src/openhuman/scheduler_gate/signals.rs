@@ -56,27 +56,63 @@ fn sample_power() -> (bool, Option<f32>) {
         return (ac, Some(c));
     }
 
-    match probe_battery() {
-        Ok(probe) => (
+    resolve_power(env_on_ac, env_charge, battery_probe())
+}
+
+fn resolve_power(
+    env_on_ac: Option<bool>,
+    env_charge: Option<f32>,
+    probe: Option<BatteryProbe>,
+) -> (bool, Option<f32>) {
+    match probe {
+        Some(probe) => (
             env_on_ac.unwrap_or(probe.on_ac),
             env_charge.or(probe.charge),
         ),
-        Err(err) => {
-            // Probe failure on Linux often just means no /sys/class/power_supply
-            // entries (server, container) — treat as "plugged in, no battery"
-            // which yields Normal/Aggressive, not Throttled. Log once at debug
-            // because this fires every 30s on the sampler tick.
-            log::debug!("[scheduler_gate] battery probe failed: {err:#}");
-            (env_on_ac.unwrap_or(true), env_charge)
-        }
+        // No probe answer — either it failed, or the `scheduler-gate` feature is
+        // compiled out. Treat as "plugged in, no battery", which yields
+        // Normal/Aggressive rather than Throttled. Erring the other way would
+        // throttle every server and container, where a battery probe never
+        // succeeds anyway.
+        None => (env_on_ac.unwrap_or(true), env_charge),
     }
 }
 
+/// The two facts the scheduler cares about. Both primitives, deliberately: the
+/// type stays ungated so `sample_power` needs no `#[cfg]` around its `match`.
 struct BatteryProbe {
     on_ac: bool,
     charge: Option<f32>,
 }
 
+/// The real probe, when `scheduler-gate` is compiled in.
+#[cfg(feature = "scheduler-gate")]
+fn battery_probe() -> Option<BatteryProbe> {
+    match probe_battery() {
+        Ok(probe) => Some(probe),
+        Err(err) => {
+            // Probe failure on Linux often just means no /sys/class/power_supply
+            // entries (server, container). Log once at debug because this fires
+            // every 30s on the sampler tick.
+            log::debug!("[scheduler_gate] battery probe failed: {err:#}");
+            None
+        }
+    }
+}
+
+/// Off-state: no hardware probe at all.
+///
+/// Deliberately the same answer the real probe gives on a machine with no
+/// battery, so the throttle path behaves identically to running on a server —
+/// a configuration this code already handles — rather than down a new branch.
+/// The visible consequence is that `require_ac_power` and `battery_floor` stop
+/// being enforced; CPU throttling and server-mode detection are unaffected.
+#[cfg(not(feature = "scheduler-gate"))]
+fn battery_probe() -> Option<BatteryProbe> {
+    None
+}
+
+#[cfg(feature = "scheduler-gate")]
 fn probe_battery() -> Result<BatteryProbe, starship_battery::Error> {
     let manager = starship_battery::Manager::new()?;
     let mut any = false;
@@ -92,8 +128,7 @@ fn probe_battery() -> Result<BatteryProbe, starship_battery::Error> {
         if matches!(battery.state(), starship_battery::State::Discharging) {
             on_ac = false;
         }
-        total += battery.state_of_charge().value;
-        count += 1.0;
+        include_charge_sample(&mut total, &mut count, battery.state_of_charge().value);
     }
     let charge = if any && count > 0.0 {
         Some((total / count).clamp(0.0, 1.0))
@@ -101,6 +136,13 @@ fn probe_battery() -> Result<BatteryProbe, starship_battery::Error> {
         None
     };
     Ok(BatteryProbe { on_ac, charge })
+}
+
+fn include_charge_sample(total: &mut f32, count: &mut f32, charge: f32) {
+    if charge.is_finite() {
+        *total += charge;
+        *count += 1.0;
+    }
 }
 
 // ---- cpu -----------------------------------------------------------------
@@ -200,5 +242,40 @@ mod tests {
         if let Some(charge) = s.battery_charge {
             assert!((0.0..=1.0).contains(&charge));
         }
+    }
+
+    #[test]
+    fn missing_battery_probe_falls_back_to_ac_without_charge() {
+        assert_eq!(resolve_power(None, None, None), (true, None));
+    }
+
+    #[test]
+    fn non_finite_battery_readings_are_ignored() {
+        let mut total = 0.0;
+        let mut count = 0.0;
+        include_charge_sample(&mut total, &mut count, f32::NAN);
+        include_charge_sample(&mut total, &mut count, f32::INFINITY);
+        include_charge_sample(&mut total, &mut count, 0.75);
+        assert_eq!((total, count), (0.75, 1.0));
+    }
+
+    #[test]
+    fn power_env_overrides_apply_independently() {
+        let probe = || BatteryProbe {
+            on_ac: false,
+            charge: Some(0.25),
+        };
+        assert_eq!(
+            resolve_power(Some(true), None, Some(probe())),
+            (true, Some(0.25))
+        );
+        assert_eq!(
+            resolve_power(None, Some(0.8), Some(probe())),
+            (false, Some(0.8))
+        );
+        assert_eq!(
+            resolve_power(Some(false), Some(0.4), None),
+            (false, Some(0.4))
+        );
     }
 }

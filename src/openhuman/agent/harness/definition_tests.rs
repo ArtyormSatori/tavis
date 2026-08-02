@@ -404,6 +404,9 @@ fn all_builtin_agent_definitions_have_expected_effective_max_iterations() {
         ("goals_agent", 5),
         ("help", 6),
         ("image_agent", 8),
+        // Compiled out with the `prediction-markets` gate — the Polymarket
+        // tools it fronts live behind it, so the agent is not registered.
+        #[cfg(feature = "prediction-markets")]
         ("markets_agent", 8),
         ("morning_briefing", 8),
         ("profile_memory_agent", 8),
@@ -415,7 +418,8 @@ fn all_builtin_agent_definitions_have_expected_effective_max_iterations() {
         ("trigger_triage", 2),
         ("video_agent", 8),
         ("vision_agent", 6),
-        // Unchanged.
+        // Compiled out with the `documents` gate — see `openhuman::agent_registry::agents::loader::builtin_enabled`.
+        #[cfg(feature = "documents")]
         ("presentation_agent", 10),
         // Compiled out with the `skills` gate — see `openhuman::skills::stub`.
         #[cfg(feature = "skills")]

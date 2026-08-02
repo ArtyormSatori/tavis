@@ -265,6 +265,44 @@ GGML_NATIVE=OFF cargo check --manifest-path Cargo.toml \
   --no-default-features --features tokenjuice-treesitter
 ```
 
+#### The kernel profile, and the floor ratchet that protects it
+
+`--no-default-features --features flows` is the **kernel profile**: the surface a
+second host would embed to get workflow execution and nothing else. It is measured
+and ratcheted, because unmeasured it grows — three heavy dependencies remain
+unconditional today (`git2`/vendored-libgit2, `rusqlite`/bundled, and
+`tokio-tungstenite`), and none would likely have
+landed that way had a number moved in CI when they did.
+
+```bash
+scripts/kernel-floor.sh flows        # CI Linux: 312 packages / 285 names / 6 native
+scripts/kernel-floor.sh flows --json
+scripts/check-kernel-floor.sh        # the CI ratchet (Rust Feature-Gate Smoke lane)
+scripts/dep-sim.py --cut-nothing     # calibration: must equal kernel-floor.sh
+scripts/dep-sim.py --cut arboard,enigo,rdev   # project a cohort before doing it
+```
+
+**CI Linux baseline 2026-08-02: 312 packages / 285 unique names / 6 native builds**
+(`aws-lc-sys`, `libgit2-sys`, `libsqlite3-sys`, `libz-sys`, `lzma-sys`, `ring`).
+On macOS the same target-specific graph currently resolves to 319 packages / 292
+names / 6 native builds; the CI ratchet is intentionally calibrated on Linux.
+Limits live in `scripts/kernel-floor.limits`; the ratchet fails on growth **and** on
+a shed that was not written back, since an unratcheted improvement grows back
+unnoticed.
+
+**Size a cohort with `dep-sim.py`, never by adding up `cargo tree -i` results.**
+Per-dependency arithmetic over-counts shared subtrees and misses crates that only
+become droppable once a *sibling* is cut — it is how an earlier estimate of ~167
+was produced, and that number is wrong. The simulator parses `cargo tree` (not
+`cargo metadata`, whose resolve graph is maximal and over-reports by ~36 crates
+here, counting dev-dependencies and unenabled target-specific edges), so it agrees
+with cargo's feature resolution by construction. CI asserts that calibration.
+
+**49 of 84 direct dependencies contribute zero exclusive crates.** "Make dep X
+optional" usually saves nothing on its own — `git2`, `rusqlite`, `reqwest`,
+`tokio` and `tokio-tungstenite` have multiple parents. Gate the
+whole cohort or expect a delta of 0.
+
 | Feature | Default | Gates | Drops deps |
 | ------- | ------- | ----- | ---------- |
 | `voice` | ON | `openhuman::voice` + `openhuman::audio_toolkit` domains — STT/TTS providers, dictation server, always-on listening, podcast audio + email | `hound`, `lettre` |
@@ -275,13 +313,21 @@ GGML_NATIVE=OFF cargo check --manifest-path Cargo.toml \
 | `flows` | ON | `openhuman::flows` (saved automation graphs — create/run/schedule, the `workflow_builder` + `flow_discovery` agents), `openhuman::tinyflows` (engine seam), `openhuman::rhai_workflows` (`.ragsh` language-workflow tool) | `tinyflows`, `jaq-core`, `jaq-std`, `jaq-json`, `rhai` |
 | `mcp` | ON | `openhuman::mcp_server` (the `openhuman mcp` stdio/HTTP server), `openhuman::mcp_registry` (dynamic Smithery installs — `mcp_clients` RPC namespace, SQLite, boot spawn, supervisor, OAuth), `openhuman::mcp_audit` (write-audit log), and the static config-declared server set in `openhuman::mcp_client`. ~19 agent tools, ~20k LOC | **none** (see scope note) |
 | `tui` | ON | `openhuman::tui` — the tabbed ratatui/crossterm CLI UI (Logs, Chat, Config, Settings), auto-opened by bare `openhuman` on interactive non-container hosts and forced with `openhuman tui` (alias `chat`). Runs the core in-process. No controllers, no agent tools. **Intentionally NOT forwarded to the desktop shell** (allowlisted in `check-feature-forwarding.mjs`). | `ratatui`, `crossterm` |
-| `channels` | ON | `openhuman::channels` (external-messaging providers — Telegram/Discord/Slack/Signal/WhatsApp/iMessage/IRC/… — plus the channel runtime, controllers, host, proactive messaging + inbound dispatch) and the `webview_accounts` / `webview_apis` / `webview_notifications` / `whatsapp_data` webview-bridge domains (incl. the 3 `whatsapp_data_*` agent tools). **Carve-outs `channels::{traits, cli}` stay ungated.** | **none** (`tinychannels` is load-bearing) |
+| `channels` | ON | `openhuman::channels` (external-messaging providers — Telegram/Discord/Slack/Signal/WhatsApp/iMessage/IRC/… — plus the channel runtime, controllers, host, proactive messaging + inbound dispatch) and the `webview_accounts` / `webview_apis` / `webview_notifications` / `whatsapp_data` webview-bridge domains (incl. the 3 `whatsapp_data_*` agent tools). **Carve-outs `channels::{traits, cli}` stay ungated.** | **28** via `tinychannels/{email,lark}` — the crate itself stays (load-bearing), its two heavy providers do not |
 
 **Facade pattern (pathfinder for the other gates).** `pub mod voice;` is **always compiled** as a facade: the real submodules are `#[cfg(feature = "voice")]`, and a `#[cfg(not(feature = "voice"))] mod stub;` (`src/openhuman/voice/stub.rs`) re-exposes the same public surface that always-on / other-gated callers use (`server`, `dictation_listener`, `streaming`, `reply_speech`, `cloud_transcribe`, `cli`, `create_stt_provider`, `effective_stt_provider`, `publish_ptt_transcript_committed`) with no-op / `None` / disabled-error bodies. Callers therefore do **not** need per-call `#[cfg]`. When voice is off: the voice/audio controllers are unregistered (unknown-method over `/rpc`, absent from `/schema`), the `audio_generate_podcast` agent tools are absent, and `openhuman voice` returns a "voice disabled" error. Stub signatures must match the real ones exactly — the disabled build (`--no-default-features --features tokenjuice-treesitter`) is the **only** thing that catches drift, so run it before pushing any change to the voice surface.
 
 **Scope note:** the `voice` gate does **not** drop `whisper-rs` / `llama` / `cpal`. Those live in the inference domain (`src/openhuman/inference/local/service/whisper_engine.rs`; `cpal` is shared with accessibility) and await a separate future `inference` gate. The issue-level DoD line claiming whisper is dropped is superseded by this scope correction.
 
-**`web3` gate — first gate that sheds real crypto deps.** Same facade pattern: `pub mod wallet;` / `pub mod web3;` / `pub mod x402;` stay always-compiled, real submodules are `#[cfg(feature = "web3")]`, and each domain's `stub.rs` re-exposes the always-on caller surface with disabled-error / empty bodies. When off, the wallet/web3/x402 controllers are unregistered, the web3 swap/bridge/dapp agent tools are absent (via `all_web3_agent_tools()` → empty), and the exclusive `bitcoin` (BTC P2WPKH PSBT) + `curve25519-dalek` (Solana off-curve ATA) deps are dropped. **tinyplace on-chain payments + Polymarket writes degrade to graceful "wallet disabled" errors** (the tinyplace comms path and the core itself are unaffected — `tinyplace::signer` still works via ed25519). The stubs cover `WALLET_NOT_CONFIGURED_MESSAGE`, `status`, `secret_material`, `WalletChain`, `prepare_transfer`/`execute_prepared` (+ param/result types), `solana_cluster`/`SolanaCluster`/`tinyplace_solana_rpc_endpoints`, `tinyplace_signer_seed`, `wallet::rpc::{redact_rpc_url, with_tinyplace_solana_endpoints}`, and the `all_*_registered_controllers`/`all_*_controller_schemas`/`all_web3_agent_tools` entry points. Two caller families still need per-call `#[cfg(feature = "web3")]` because they name concrete gated types rather than a stubbable aggregator: the six `Wallet*Tool` + `X402RequestTool` registrations in `tools/ops.rs`, the `wallet::tools::*` glob in `tools/mod.rs`, and the x402 402-retry path in `tools/impl/network/http_request.rs` (with the feature off a 402 returns to the caller unpaid). **Does NOT drop `ethers-core` / `ethers-signers` / `coins-bip39` / `bs58` / `ed25519-dalek` / `ripemd`** — those are shared with the Polymarket tools (`tools/impl/network/polymarket*`, `clob_auth`) + tinyplace + orchestration and stay always-on. Run the disabled build (`--no-default-features --features tokenjuice-treesitter`) before pushing any change to the wallet/web3/x402 surface — it is the only drift catcher.
+**`web3` gate — first gate that sheds real crypto deps.** Same facade pattern: `pub mod wallet;` / `pub mod web3;` / `pub mod x402;` stay always-compiled, real submodules are `#[cfg(feature = "web3")]`, and each domain's `stub.rs` re-exposes the always-on caller surface with disabled-error / empty bodies. When off, the wallet/web3/x402 controllers are unregistered, the web3 swap/bridge/dapp agent tools are absent (via `all_web3_agent_tools()` → empty), and the exclusive `bitcoin` (BTC P2WPKH PSBT) dep is dropped. `curve25519-dalek` (used for Solana off-curve ATA here) is **not** among them — see the correction below: it stays enabled transitively through the always-on `ed25519-dalek`. **tinyplace on-chain payments + Polymarket writes degrade to graceful "wallet disabled" errors** (the tinyplace comms path and the core itself are unaffected — `tinyplace::signer` still works via ed25519). The stubs cover `WALLET_NOT_CONFIGURED_MESSAGE`, `status`, `secret_material`, `WalletChain`, `prepare_transfer`/`execute_prepared` (+ param/result types), `solana_cluster`/`SolanaCluster`/`tinyplace_solana_rpc_endpoints`, `tinyplace_signer_seed`, `wallet::rpc::{redact_rpc_url, with_tinyplace_solana_endpoints}`, and the `all_*_registered_controllers`/`all_*_controller_schemas`/`all_web3_agent_tools` entry points. Two caller families still need per-call `#[cfg(feature = "web3")]` because they name concrete gated types rather than a stubbable aggregator: the six `Wallet*Tool` + `X402RequestTool` registrations in `tools/ops.rs`, the `wallet::tools::*` glob in `tools/mod.rs`, and the x402 402-retry path in `tools/impl/network/http_request.rs` (with the feature off a 402 returns to the caller unpaid). **Now DOES drop `ethers-core` / `ethers-signers` / `coins-bip39` / `ripemd`** — the largest single shed in the kernelization work, **−67 crates** (375 → 308). This paragraph previously said the opposite, and the reason it was true is worth keeping: the Polymarket tools (`tools/impl/network/polymarket*`, `clob_auth`) consumed the same EVM/mnemonic stack while living *outside* the wallet/web3/x402 domains, so gating `web3` left them — and therefore the crates — behind.
+
+The fix was a second gate rather than a bigger one: **`prediction-markets` implies `web3`** and owns the Polymarket surface (the two `mod` declarations + `clob_auth`, the `PolymarketTool` re-export, the registration in `tools/ops.rs`, and the `tools.polymarket_execute` RPC controller in `tools/schemas.rs`). Both are default-ON and both are forwarded to the shell — `check-feature-forwarding.mjs` does literal set membership with **no transitive resolution**, so `prediction-markets` needs its own line even though it implies `web3`.
+
+**`bs58` and `ed25519-dalek` still do NOT drop, deliberately.** `orchestration/ingest` and `tinyplace/payment` use them for agent-network identity, which is unrelated to the wallet. `curve25519-dalek` also survives now, beneath `ed25519-dalek`. Measured: excluding all three from the cohort costs **0**, because tinyplace pulls them in regardless — so there is nothing to gain by chasing them.
+
+`tools/schemas.rs`'s two aggregators build a `Vec` and conditionally `push` rather than using a `vec![]` literal, because an element of a `vec![]` cannot carry `#[cfg]`. Same shape as the `flows` registration in `core/all.rs`.
+
+Run the disabled build (`--no-default-features --features tokenjuice-treesitter`) before pushing any change to the wallet/web3/x402/Polymarket surface — it is the only drift catcher. Prove a claimed shed with `scripts/assert-shed.sh`, **not** `cargo tree -i`: the latter exits non-zero when a crate is absent and reports dev-dependency-only survivors as present.
 
 **Leaf-gate variant (`media`, #4804).** Unlike `voice`, the `media` gate needs **no** stub facade: `media_generation` has a single caller (the `build_media_tools` call in `src/openhuman/tools/ops.rs`, itself `#[cfg(feature = "media")]`) and `openhuman::image` is unwired scaffold (#2997), so both modules are simply `#[cfg(feature = "media")] pub mod …`. It is a **surface-only** gate: media generation is backend-proxied (`reqwest`, shared) and the `image` crate is shared with channel upload, so no exclusive deps are shed — the issue's "sheds media processing dependencies" / "controllers unregistered" DoD lines are superseded (Media is agent-tools-only; no controller/store/subscriber is tagged `Media`). When a gated domain is a true leaf, prefer this over the facade+stub.
 **`meet` gate (#4800)** — uses all three module patterns, one per domain, chosen by the rule *"does always-compiled code reach a non-registration symbol in here?"*:
@@ -352,7 +398,15 @@ Drops the exclusive `ratatui` + `crossterm` deps when off. Verify with `cargo tr
 
 Leaf-gate pattern with **two ungated carve-outs and no stub file** — the reach-map put every gated symbol at a *registration/leaf* call site, so absence (unknown-method / omitted tool), not a disabled-error stub, is the correct off-state (same rationale as `flows` / `meet`).
 
-- **Sheds ZERO dependencies — do NOT re-litigate.** `tinychannels` stays always-compiled regardless of the gate: `config/schema/channels.rs` re-exports its config types, `event_bus/events.rs`'s `DomainEvent` embeds `tinychannels::ChannelInboundEnvelope`, and `security/pairing.rs` re-exports its pairing helpers. The `channels = []` feature list is intentionally empty. The gate's value is compile-time surface + binary size. (`whatsapp-web` is a **refinement inside** the gate — `whatsapp-web = ["channels", "tinychannels/whatsapp-web"]`.)
+- **Now sheds 28 crates** — `channels = ["tinychannels/email", "tinychannels/lark"]`. This bullet previously read "Sheds ZERO dependencies — do NOT re-litigate", and the premise behind it is still true and still worth knowing: **`tinychannels` itself can never be gated out.** `config/schema/channels.rs` re-exports its config types, `event_bus/events.rs`'s `DomainEvent` embeds `tinychannels::ChannelInboundEnvelope` in an always-on enum, and `security/pairing.rs` re-exports its pairing helpers.
+
+  What was wrong was the conclusion, not the premise. The heavy crates do not belong to *tinychannels*, they belong to two of its **providers** — `providers::email_channel` (lettre + async-imap + mail-parser, 18 crates) and `providers::lark` (axum + prost, 9). Both are exclusively reachable through it, so gating them **inside the vendored crate** sheds them while the envelope, config, and pairing types stay compiled. Nothing needed stubbing.
+
+  That mattered: gating the crate out would have required stubbing ~28 items, among them `constant_time_eq`/`hash_token` (a wrong stub is a security bug) and `build_session_key_for_inbound_envelope`, which derives a **persisted** conversation key that `memory_conversations/bus.rs` writes — silent data regrouping if it ever drifted. Gate the providers, never the crate.
+
+  Two couplings to keep in mind when touching this: **`voice` also requires `tinychannels/email`**, because `audio_toolkit::ops` delivers generated podcasts through `EmailChannel` — a voice-enabled, channels-less build still needs the provider. And `providers/discord/api_tests.rs` uses `axum` for a mock server unrelated to Lark, so axum is dual-declared as a dev-dependency in tinychannels and must stay that way.
+
+  (`whatsapp-web` is a **refinement inside** the gate — `whatsapp-web = ["channels", "tinychannels/whatsapp-web"]`.)
 - **Two ungated carve-outs.** `pub mod traits;` (a one-line `tinychannels` `Channel`/`SendMessage` re-export) and `pub mod cli;` (`CliChannel`, a dependency-free local stdin/stdout REPL) stay compiled in **all** builds — both are reached by the always-on agent-harness interactive loop (`agent::harness::session::runtime::run_interactive`). Same shape as the `meet_agent::wav` carve-out. `channels::mod.rs` `#[cfg(feature = "channels")]`s everything else; nothing inside the gated submodules changes.
 - **The in-app web chat is NOT gated.** `openhuman::web_chat` (RPC namespace `channel`, decoupled from `channels/` in #5002 + #5003 which also moved `learning` out) is core product surface and stays always-compiled even though its runtime tag is `DomainGroup::Channels`. Its registration push in `src/core/all.rs` is deliberately left ungated; the both-ways test pins `channel` present with the feature OFF.
 - **Three mis-housed imports were retargeted to `tinychannels` (no stub needed).** `cron/bus.rs` (`Channel`/`SendMessage`/`ChannelMessage`), `memory_conversations/bus.rs` (`ChannelMessage` + `context::conversation_history_key`), and `audio_toolkit/ops.rs` (`providers::email_channel::EmailChannel`) reached the gated domain only to pick up symbols that actually live in `tinychannels`; pointing them straight at the crate removes the always-on → gated edge (and the voice→channels cross-gate edge). The old `channels::` paths were 1-line delegations / `pub use` re-exports of exactly these.
