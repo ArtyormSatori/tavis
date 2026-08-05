@@ -7341,8 +7341,12 @@ const messages: TranslationMap = {
   'userErrors.apiKeyMissing.title': 'Clé API requise',
   'userErrors.apiKeyMissing.body':
     "Aucune clé API n'est définie pour votre fournisseur d'IA. Ajoutez-en une dans les paramètres du fournisseur pour continuer.",
+  'userErrors.localModelUnavailable.title': 'Modèle local indisponible',
+  'userErrors.localModelUnavailable.body':
+    "Ollama n'est pas joignable sur le point de terminaison configuré, ou le modèle requis n'y est pas installé. Lancez Ollama et téléchargez le modèle sur ce point de terminaison, ou basculez cette charge de travail vers un fournisseur cloud.",
   'userErrors.scope.chat': 'Chat',
   'userErrors.scope.cron': 'Tâche planifiée',
+  'userErrors.scope.memory': 'Mémoire',
   // Agent World: Identity trading (confirm-before-spend + balance gate)
   'agentWorld.trading.amountLabel': 'Montant',
   'agentWorld.trading.networkLabel': 'Réseau',

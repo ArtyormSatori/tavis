@@ -7277,8 +7277,12 @@ const messages: TranslationMap = {
   'userErrors.apiKeyMissing.title': 'Chave de API necessária',
   'userErrors.apiKeyMissing.body':
     'Seu provedor de IA não tem uma chave de API definida. Adicione uma nas configurações do provedor para continuar.',
+  'userErrors.localModelUnavailable.title': 'Modelo local indisponível',
+  'userErrors.localModelUnavailable.body':
+    'O Ollama não está acessível no endpoint configurado, ou o modelo necessário não está instalado nele. Inicie o Ollama e baixe o modelo nesse endpoint, ou mude este trabalho para um provedor na nuvem.',
   'userErrors.scope.chat': 'Chat',
   'userErrors.scope.cron': 'Tarefa agendada',
+  'userErrors.scope.memory': 'Memória',
   // Agent World: Identity trading (confirm-before-spend + balance gate)
   'agentWorld.trading.amountLabel': 'Valor',
   'agentWorld.trading.networkLabel': 'Rede',

@@ -7558,8 +7558,12 @@ const en: TranslationMap = {
   'userErrors.apiKeyMissing.title': 'API key required',
   'userErrors.apiKeyMissing.body':
     'Your AI provider has no API key set. Add one in provider settings to continue.',
+  'userErrors.localModelUnavailable.title': 'Local model unavailable',
+  'userErrors.localModelUnavailable.body':
+    'Ollama is not reachable at the configured endpoint, or the required model is not installed there. Start Ollama and pull the model at that endpoint, or switch this workload to a cloud provider.',
   'userErrors.scope.chat': 'Chat',
   'userErrors.scope.cron': 'Scheduled job',
+  'userErrors.scope.memory': 'Memory',
   'memorySources.codingSessions.title': 'Coding-agent sessions',
   'memorySources.codingSessions.description':
     'Turn your Codex and Claude Code decisions and corrections into private persona memory.',

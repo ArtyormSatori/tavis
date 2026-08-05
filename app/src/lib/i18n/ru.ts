@@ -7239,8 +7239,12 @@ const messages: TranslationMap = {
   'userErrors.apiKeyMissing.title': 'Требуется ключ API',
   'userErrors.apiKeyMissing.body':
     'У провайдера ИИ не задан ключ API. Добавьте его в настройках провайдера.',
+  'userErrors.localModelUnavailable.title': 'Локальная модель недоступна',
+  'userErrors.localModelUnavailable.body':
+    'Ollama недоступен по настроенному адресу, либо нужная модель там не установлена. Запустите Ollama и загрузите модель по этому адресу или переведите эту работу на облачного провайдера.',
   'userErrors.scope.chat': 'Чат',
   'userErrors.scope.cron': 'Запланированная задача',
+  'userErrors.scope.memory': 'Память',
   // Agent World: Identity trading (confirm-before-spend + balance gate)
   'agentWorld.trading.amountLabel': 'Сумма',
   'agentWorld.trading.networkLabel': 'Сеть',

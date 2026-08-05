@@ -7266,8 +7266,12 @@ const messages: TranslationMap = {
   'userErrors.apiKeyMissing.title': 'Wymagany klucz API',
   'userErrors.apiKeyMissing.body':
     'Twój dostawca AI nie ma ustawionego klucza API. Dodaj go w ustawieniach dostawcy, aby kontynuować.',
+  'userErrors.localModelUnavailable.title': 'Model lokalny niedostępny',
+  'userErrors.localModelUnavailable.body':
+    'Ollama jest nieosiągalna pod skonfigurowanym punktem końcowym albo wymagany model nie jest tam zainstalowany. Uruchom Ollamę i pobierz model w tym punkcie końcowym lub przenieś tę pracę do dostawcy w chmurze.',
   'userErrors.scope.chat': 'Czat',
   'userErrors.scope.cron': 'Zaplanowane zadanie',
+  'userErrors.scope.memory': 'Pamięć',
   // Agent World: Identity trading (confirm-before-spend + balance gate)
   'agentWorld.trading.amountLabel': 'Kwota',
   'agentWorld.trading.networkLabel': 'Sieć',

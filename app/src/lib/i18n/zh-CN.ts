@@ -6775,8 +6775,12 @@ const messages: TranslationMap = {
   'userErrors.insufficientCredits.body': '提供商额度已用完，请充值或更新 API 密钥。',
   'userErrors.apiKeyMissing.title': '需要 API 密钥',
   'userErrors.apiKeyMissing.body': '您的 AI 提供商未设置 API 密钥，请在提供商设置中添加以继续。',
+  'userErrors.localModelUnavailable.title': '本地模型不可用',
+  'userErrors.localModelUnavailable.body':
+    '无法在配置的端点连接 Ollama，或所需模型未安装在该端点。请启动 Ollama 并在该端点拉取模型，或将此工作切换到云端提供商。',
   'userErrors.scope.chat': '聊天',
   'userErrors.scope.cron': '定时任务',
+  'userErrors.scope.memory': '记忆',
   // Agent World：Identity trading (confirm-before-spend + balance gate)
   'agentWorld.trading.amountLabel': '金额',
   'agentWorld.trading.networkLabel': '网络',

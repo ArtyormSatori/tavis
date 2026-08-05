@@ -7002,8 +7002,12 @@ const messages: TranslationMap = {
   'userErrors.apiKeyMissing.title': 'مطلوب مفتاح API',
   'userErrors.apiKeyMissing.body':
     'لا يوجد مفتاح API لمزوّد الذكاء الاصطناعي. أضِفه في إعدادات المزوّد للمتابعة.',
+  'userErrors.localModelUnavailable.title': 'النموذج المحلي غير متاح',
+  'userErrors.localModelUnavailable.body':
+    'لا يمكن الوصول إلى Ollama على النقطة الطرفية المُهيأة، أو أن النموذج المطلوب غير مثبّت عليها. شغّل Ollama ونزّل النموذج على تلك النقطة الطرفية، أو حوّل هذا العمل إلى مزوّد سحابي.',
   'userErrors.scope.chat': 'الدردشة',
   'userErrors.scope.cron': 'مهمة مجدوَلة',
+  'userErrors.scope.memory': 'الذاكرة',
   // Agent World: Identity trading (confirm-before-spend + balance gate)
   'agentWorld.trading.amountLabel': 'المبلغ',
   'agentWorld.trading.networkLabel': 'الشبكة',
