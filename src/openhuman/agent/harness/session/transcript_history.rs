@@ -350,8 +350,7 @@ impl ChatHistory for SessionTranscriptHistory {
     /// session's history from its thread. A no-op on an absent transcript, per
     /// the trait contract.
     async fn clear(&self, _thread_id: &str) -> TaResult<()> {
-        let path = self.path()?;
-        if !path.exists() {
+        if !self.path.exists() {
             return Ok(());
         }
         self.write_logical_set(&[])
