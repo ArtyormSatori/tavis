@@ -387,6 +387,181 @@ fn tool_failure_metadata_round_trips_write_to_display_line() {
     assert_eq!(failed.failure_detail.as_deref(), Some("boom: exit 1"));
 }
 
+/// The **golden test for the turn path's write call site**.
+///
+/// Every other test in this file hand-writes JSONL string literals, so they pin
+/// the reader/projector but say nothing about the writer the live turn loop
+/// actually calls. `tool_failure_metadata_round_trips_write_to_display_line`
+/// goes through `write_transcript`, not `append_transcript_turn`. That left the
+/// seam this test covers — `append_transcript_turn` → `read_transcript_display`
+/// → `project_thread` — with no coverage at all, which is exactly the seam the
+/// tinyagents `ChatHistory` migration touches.
+///
+/// It fails loudly if a write ever drops `request_id` or `turn_usage`: without
+/// `request_id` there is no `DisplayItem::TurnBoundary` (project.rs
+/// `maybe_emit_turn_boundary`) and `turn_segments` goes empty, unanchoring every
+/// sub-agent; without `turn_usage` every `DisplayItem::ToolCall` disappears
+/// (tool calls are read off `turn_usage.tool_calls`), `Reasoning` vanishes, and
+/// `AssistantMessage.{model,iteration,interim}` collapse to `None`/`false`.
+///
+/// All timestamps are fixed literals so nothing here is clock-dependent.
+#[test]
+fn append_transcript_turn_projects_full_display_shape() {
+    let dir = TempDir::new().unwrap();
+    let now = "2026-07-21T09:00:00Z".to_string();
+    let meta = transcript::TranscriptMeta {
+        agent_name: "orchestrator".into(),
+        agent_id: Some("orchestrator".into()),
+        agent_type: Some("root".into()),
+        dispatcher: "native".into(),
+        provider: Some("anthropic".into()),
+        model: Some("claude-x".into()),
+        created: now.clone(),
+        updated: now,
+        turn_count: 1,
+        input_tokens: 30,
+        output_tokens: 13,
+        cached_input_tokens: 0,
+        charged_amount_usd: 0.003,
+        thread_id: Some("thr_golden".into()),
+        task_id: None,
+    };
+
+    let turn_usage = transcript::TurnUsage {
+        provider: "anthropic".into(),
+        model: "claude-x".into(),
+        usage: transcript::MessageUsage {
+            input: 20,
+            output: 8,
+            cached_input: 0,
+            context_window: 200_000,
+            cost_usd: 0.002,
+        },
+        ts: "2026-07-21T09:00:02Z".into(),
+        reasoning_content: Some("I should call the weather tool.".into()),
+        tool_calls: vec![crate::openhuman::inference::provider::ToolCall {
+            id: "call-1".into(),
+            name: "get_weather".into(),
+            arguments: r#"{"city":"NYC"}"#.into(),
+            extra_content: None,
+        }],
+        iteration: 2,
+    };
+
+    let messages = vec![
+        ChatMessage {
+            id: None,
+            role: "user".into(),
+            content: "What's the weather in NYC?".into(),
+            extra_metadata: None,
+        },
+        ChatMessage {
+            id: Some("call-1".into()),
+            role: "tool".into(),
+            content: "72F and sunny".into(),
+            extra_metadata: None,
+        },
+        ChatMessage {
+            id: None,
+            role: "assistant".into(),
+            content: "It's 72F and sunny in NYC.".into(),
+            extra_metadata: None,
+        },
+    ];
+
+    let path = transcript::resolve_keyed_transcript_path(dir.path(), "900_orchestrator").unwrap();
+    transcript::append_transcript_turn(
+        &path,
+        &[],
+        &messages,
+        &meta,
+        Some(&turn_usage),
+        Some("req-1"),
+    )
+    .unwrap();
+
+    let display = read_transcript_display(&path).unwrap();
+    let items = project_records(&display.records);
+
+    // A turn boundary must be emitted from the stamped request_id.
+    let boundary = items
+        .iter()
+        .find_map(|i| match i {
+            DisplayItem::TurnBoundary { request_id } => Some(request_id.clone()),
+            _ => None,
+        })
+        .expect("turnBoundary projected from request_id");
+    assert_eq!(boundary, "req-1");
+
+    // Reasoning comes off turn_usage.reasoning_content.
+    let reasoning = items
+        .iter()
+        .find_map(|i| match i {
+            DisplayItem::Reasoning { text } => Some(text.clone()),
+            _ => None,
+        })
+        .expect("reasoning projected from turn_usage");
+    assert_eq!(reasoning, "I should call the weather tool.");
+
+    // The tool call itself is read off turn_usage.tool_calls, and pairs with the
+    // role:"tool" line by id.
+    let tool = items
+        .iter()
+        .find_map(|i| match i {
+            DisplayItem::ToolCall {
+                call_id,
+                name,
+                args,
+                result,
+                status,
+                ..
+            } => Some((
+                call_id.clone(),
+                name.clone(),
+                args.clone(),
+                result.clone(),
+                *status,
+            )),
+            _ => None,
+        })
+        .expect("toolCall projected from turn_usage.tool_calls");
+    assert_eq!(tool.0, "call-1");
+    assert_eq!(tool.1, "get_weather");
+    assert_eq!(
+        tool.2
+            .as_ref()
+            .and_then(|v| v.get("city"))
+            .and_then(|v| v.as_str()),
+        Some("NYC")
+    );
+    assert_eq!(tool.3.as_deref(), Some("72F and sunny"));
+    assert_eq!(tool.4, ToolCallStatus::Success);
+
+    // Model/iteration/request_id land on the assistant item.
+    let assistant = items
+        .iter()
+        .find_map(|i| match i {
+            DisplayItem::AssistantMessage {
+                content,
+                model,
+                iteration,
+                request_id,
+                ..
+            } => Some((
+                content.clone(),
+                model.clone(),
+                *iteration,
+                request_id.clone(),
+            )),
+            _ => None,
+        })
+        .expect("assistantMessage projected");
+    assert_eq!(assistant.0, "It's 72F and sunny in NYC.");
+    assert_eq!(assistant.1.as_deref(), Some("claude-x"));
+    assert_eq!(assistant.2, Some(2));
+    assert_eq!(assistant.3.as_deref(), Some("req-1"));
+}
+
 #[test]
 fn subagent_anchors_to_parent_turn_by_spawn_timestamp() {
     let dir = TempDir::new().unwrap();
