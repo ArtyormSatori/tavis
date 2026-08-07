@@ -72,7 +72,12 @@ impl MemoryClient {
     /// want to build on top of the `Memory` trait (e.g. the
     /// tool-scoped memory layer) without depending on the concrete
     /// `MemoryClient` type or holding a reference to it.
-    pub fn memory_handle(&self) -> Arc<dyn crate::openhuman::memory::Memory> {
+    ///
+    /// Intentionally `pub(crate)` — handing a raw `Arc<dyn Memory>` to an
+    /// external consumer bypasses any policy decorator wrapped around the
+    /// `MemoryClient` API, so the escape hatch stays in-crate. Mirrors
+    /// [`Self::profile_conn`].
+    pub(crate) fn memory_handle(&self) -> Arc<dyn crate::openhuman::memory::Memory> {
         Arc::clone(&self.inner) as Arc<dyn crate::openhuman::memory::Memory>
     }
 

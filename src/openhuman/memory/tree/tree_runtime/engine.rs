@@ -13,12 +13,9 @@ use tinycortex::memory::tree::runtime::{
 
 use crate::core::event_bus::{publish_global, DomainEvent};
 use crate::openhuman::config::Config;
+use crate::openhuman::memory::tinycortex::engine_config;
 
 const SUMMARIZATION_TEMP: f64 = 0.3;
-
-fn engine_config(config: &Config) -> tinycortex::memory::MemoryConfig {
-    crate::openhuman::memory::tinycortex::memory_config_from(config, config.workspace_dir.clone())
-}
 
 struct ChatSummariser<'a>(&'a dyn ChatModel<()>);
 
