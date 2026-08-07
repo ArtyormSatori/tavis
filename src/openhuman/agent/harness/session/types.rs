@@ -167,6 +167,19 @@ pub struct Agent {
     /// Set on first write, reused for subsequent **appends** within the
     /// same session.
     pub(super) session_transcript_path: Option<PathBuf>,
+    /// The transcript-write seam for this session, bound to the same file as
+    /// `session_transcript_path` on first write.
+    ///
+    /// This is the S4 indirection: the turn path appends through
+    /// [`SessionHistory::append_turn`][super::transcript_history::SessionHistory::append_turn]
+    /// rather than calling the format's free function directly. It is
+    /// `Arc<dyn …>` (not the concrete handle) so a host can substitute a
+    /// different backing store without the turn loop knowing.
+    ///
+    /// `session_transcript_path` stays alongside it rather than being folded
+    /// into the handle: the dual-write mirror needs the concrete `&Path` for
+    /// `file_stem()`, and several tests assert on it directly.
+    pub(super) session_history: Option<std::sync::Arc<dyn super::transcript_history::SessionHistory>>,
     /// The logical message set most recently persisted to
     /// `session_transcript_path`, tracked in memory so the append-only writer
     /// can diff each turn's messages against it (pure extension → append tail;
