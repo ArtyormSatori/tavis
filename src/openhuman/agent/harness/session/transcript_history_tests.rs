@@ -98,7 +98,7 @@ async fn messages_replays_compaction_rather_than_returning_raw_lines() {
     // ...while the file itself still carries the superseded lines, proving the
     // reduction was a compaction record and not a rewrite.
     let path = h.path();
-    let display = read_transcript_display(&path).unwrap();
+    let display = read_transcript_display(path).unwrap();
     let rendered = format!("{display:?}");
     assert!(
         rendered.contains("first") && rendered.contains("second"),
@@ -108,7 +108,7 @@ async fn messages_replays_compaction_rather_than_returning_raw_lines() {
     // And the seam agrees with the format's own model-context reader.
     assert_eq!(
         texts(&h.messages("thread-1").await.unwrap()),
-        read_transcript(&path)
+        read_transcript(path)
             .unwrap()
             .messages
             .iter()
@@ -131,13 +131,13 @@ async fn replace_appends_a_compaction_record_and_never_shrinks_the_file() {
     h.append("thread-1", user("beta")).await.unwrap();
 
     let path = h.path();
-    let before = std::fs::read_to_string(&path).unwrap();
+    let before = std::fs::read_to_string(path).unwrap();
 
     h.replace("thread-1", vec![user("condensed")])
         .await
         .unwrap();
 
-    let after = std::fs::read_to_string(&path).unwrap();
+    let after = std::fs::read_to_string(path).unwrap();
     assert!(
         after.starts_with(&before),
         "replace must append; earlier bytes were modified"
@@ -156,14 +156,14 @@ async fn clear_empties_the_context_but_preserves_the_file() {
 
     h.append("thread-1", user("kept on disk")).await.unwrap();
     let path = h.path();
-    let before = std::fs::read_to_string(&path).unwrap();
+    let before = std::fs::read_to_string(path).unwrap();
 
     h.clear("thread-1").await.unwrap();
 
     assert!(h.messages("thread-1").await.unwrap().is_empty());
     assert!(path.exists(), "clear must not delete the transcript");
 
-    let after = std::fs::read_to_string(&path).unwrap();
+    let after = std::fs::read_to_string(path).unwrap();
     assert!(
         after.starts_with(&before),
         "clear must append, not truncate"
