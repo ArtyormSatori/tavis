@@ -327,7 +327,16 @@ export function AppShellDesktop() {
           {chromeless ? (
             content
           ) : (
-            <RootShellLayout sidebar={<AppSidebar />}>{content}</RootShellLayout>
+            // A live provider webview forces the content surface edge-to-edge:
+            // WebviewHost hands the Rust side a plain rectangle and CEF
+            // composites that child view above the entire HTML layer, so a
+            // rounded card underneath would show four square corners punching
+            // through the radius. Nothing in CSS can mask it.
+            <RootShellLayout
+              sidebar={<AppSidebar />}
+              unframed={Boolean(activeProviderAccount && !accountsOverlayOpen)}>
+              {content}
+            </RootShellLayout>
           )}
         </div>
         {/* Desktop Settings modal — mounted over whatever page is rendered

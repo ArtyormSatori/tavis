@@ -47,10 +47,10 @@ function FooterNavButton({
       onClick={onClick}
       title={label}
       aria-current={active ? 'page' : undefined}
-      className={`group flex flex-shrink-0 items-center justify-center gap-2 border-t border-line/70 px-3 py-1 text-[11px] transition-colors cursor-pointer dark:border-line/70 ${
+      className={`group flex flex-shrink-0 items-center justify-center gap-2 px-3 py-1 text-[11px] transition-colors cursor-pointer ${
         active
-          ? 'bg-surface text-content font-medium'
-          : 'text-content-muted hover:bg-surface-strong/70 hover:text-content-secondary dark:hover:bg-surface-muted/60'
+          ? 'bg-surface/70 text-content font-medium'
+          : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
       }`}>
       <NavIcon id={iconId} className="h-3.5 w-3.5 flex-shrink-0" />
       <span className="min-w-0 truncate">{label}</span>
@@ -126,8 +126,16 @@ export default function AppSidebar() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-surface">
-      <div className="flex-shrink-0 border-b border-line/70" data-tauri-drag-region>
+    // Sits directly on the window chrome with no fill of its own, so the
+    // sidebar and the frame around the content card are one continuous surface.
+    // The legibility scrim lives on the shell root ({@link RootShellLayout}) and
+    // deliberately NOT here — scrimming only this column would tint it
+    // differently from the chrome beside the card, which is the seam the
+    // two-layer look exists to remove. Regions below are separated by spacing
+    // alone; the hairline seams the old opaque panel needed would draw lines
+    // across the chrome.
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex-shrink-0" data-tauri-drag-region>
         <SidebarHeader />
       </div>
       <div className="flex-shrink-0">
@@ -136,10 +144,10 @@ export default function AppSidebar() {
       {/* Persistent app switcher — sticks across routes so the agent + connected
           apps are always one click away. Selecting one routes to /chat where the
           provider webview / agent chat actually render. */}
-      <div className="flex-shrink-0 border-t border-line/70">
+      <div className="flex-shrink-0">
         <SidebarAppRail />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-line/70">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {/* Flex column so routes that project more than one region (e.g. Chat's
             app rail above its thread list) can order them via Tailwind `order-*`. */}
         <SidebarSlotOutlet className="flex h-full flex-col" />
@@ -164,7 +172,7 @@ export default function AppSidebar() {
       />
       {/* App-wide footer: connectivity status + build/version, pinned to the
           bottom of the sidebar. */}
-      <div className="flex flex-shrink-0 flex-wrap items-center justify-center gap-x-2 gap-y-0.5 border-t border-line px-2 py-0.5">
+      <div className="flex flex-shrink-0 flex-wrap items-center justify-center gap-x-2 gap-y-0.5 border-t border-line-chrome/40 px-2 py-0.5">
         <ConnectionIndicator />
         &middot;
         <span className="text-[10px] text-content-faint">

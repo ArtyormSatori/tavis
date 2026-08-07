@@ -65,8 +65,8 @@ export default function CollapsedNavRail() {
           aria-current={homeActive ? 'page' : undefined}
           className={`${RAIL_BTN} ${
             homeActive
-              ? 'bg-surface text-content shadow-sm'
-              : 'text-content-muted hover:bg-surface-hover hover:text-content-secondary'
+              ? 'bg-surface/70 text-content'
+              : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
           }`}>
           <NavIcon id="home" className="h-5 w-5" />
         </button>
@@ -99,8 +99,8 @@ export default function CollapsedNavRail() {
               aria-current={active ? 'page' : undefined}
               className={`${RAIL_BTN} ${
                 active
-                  ? 'bg-surface text-content shadow-sm'
-                  : 'text-content-muted hover:bg-surface-hover hover:text-content-secondary'
+                  ? 'bg-surface/70 text-content'
+                  : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
               }`}>
               <NavIcon id={tab.id} className="h-5 w-5" />
               {showBadge && (
@@ -124,8 +124,8 @@ export default function CollapsedNavRail() {
         data-analytics-id="collapsed-rail-settings"
         className={`${RAIL_BTN} ${
           settingsActive
-            ? 'bg-surface text-content shadow-sm'
-            : 'text-content-muted hover:bg-surface-hover hover:text-content-secondary'
+            ? 'bg-surface/70 text-content'
+            : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
         }`}>
         <NavIcon id="settings" className="h-5 w-5" />
       </button>
