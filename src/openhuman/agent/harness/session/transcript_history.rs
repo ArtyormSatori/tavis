@@ -288,8 +288,8 @@ impl SessionHistory for SessionTranscriptHistory {
             turn.prev,
             turn.next,
             turn.meta,
-            turn.turn_usage,
-            turn.request_id,
+            None,
+            None,
         )
     }
 
