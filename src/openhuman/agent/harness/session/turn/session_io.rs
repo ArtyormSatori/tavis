@@ -557,15 +557,10 @@ impl Agent {
             // `new` — because `new` hardcodes `{workspace}/session_raw/`, and a
             // dedicated-memory profile's sessions live in `session_raw-<id>/`;
             // using it here would silently write this session into the shared
-            // profile's directory. The seed meta is only consulted when the
-            // file is absent, and the turn path always passes its own
-            // freshly-computed meta, so it never actually takes effect here —
-            // it is supplied for completeness of the handle.
-            match SessionTranscriptHistory::new_in_dir(
-                &session_raw_dir,
-                &stem,
-                self.seed_transcript_meta(),
-            ) {
+            // profile's directory. The seed meta only matters when the file is
+            // absent and the caller supplies none; the turn path always passes
+            // its own freshly-computed meta below, so it never takes effect.
+            match SessionTranscriptHistory::new_in_dir(&session_raw_dir, &stem, meta.clone()) {
                 Ok(history) => {
                     self.session_history = Some(std::sync::Arc::new(history));
                 }
@@ -577,33 +572,12 @@ impl Agent {
             }
         }
 
-        let path = self.session_transcript_path.as_ref().unwrap();
-        let now = chrono::Utc::now().to_rfc3339();
-
-        let meta = transcript::TranscriptMeta {
-            agent_name: self.agent_definition_name.clone(),
-            agent_id: Some(self.agent_definition_id.clone()),
-            agent_type: Some(if self.session_parent_prefix.is_some() {
-                "subagent".to_string()
-            } else {
-                "root".to_string()
-            }),
-            dispatcher: if self.tool_dispatcher.should_send_tool_specs() {
-                "native".into()
-            } else {
-                "xml".into()
-            },
-            provider: turn_usage.map(|usage| usage.provider.clone()),
-            model: turn_usage.map(|usage| usage.model.clone()),
-            created: now.clone(),
-            updated: now,
-            turn_count: self.context.stats().session_memory_current_turn as usize,
-            input_tokens,
-            output_tokens,
-            cached_input_tokens,
-            charged_amount_usd,
-            thread_id: crate::openhuman::agent::tinyagents::thread_context::current_thread_id(),
-            task_id: None,
+        let path = self.session_transcript_path.clone().unwrap();
+        // Cloned out of `self` before the write so the later `&mut self`
+        // dual-write does not conflict with a live borrow of the handle.
+        let Some(history) = self.session_history.clone() else {
+            log::warn!("[transcript] no session history bound; skipping append");
+            return;
         };
 
         // Append-only write (Phase A, transcript-derived view): diff this turn's
@@ -612,16 +586,23 @@ impl Agent {
         // reduction appends a `compaction` record. The file is never rewritten,
         // so pre-compaction history survives on disk for the display projection.
         // `request_id` (web-chat only) stamps a turn boundary on each line.
+        //
+        // This goes through `SessionHistory::append_turn` rather than
+        // `transcript::append_transcript_turn` directly (S4). The handle is a
+        // pure forwarder of exactly these six values — it must be, because the
+        // crate's `ChatHistory` methods carry no channel for `request_id`,
+        // `turn_usage` or a caller-computed `TranscriptMeta`, and dropping any
+        // of them silently guts the transcript-view projection. See the header
+        // of `transcript_history.rs` for the full argument.
         let prev = std::mem::take(&mut self.persisted_transcript_messages);
         let request_id = crate::openhuman::agent::turn_origin::current_request_id();
-        match transcript::append_transcript_turn(
-            path,
-            &prev,
-            messages,
-            &meta,
+        match history.append_turn(TranscriptTurn {
+            prev: &prev,
+            next: messages,
+            meta: &meta,
             turn_usage,
-            request_id.as_deref(),
-        ) {
+            request_id: request_id.as_deref(),
+        }) {
             Ok(()) => {
                 // Track the new persisted logical set for the next turn's diff.
                 self.persisted_transcript_messages = messages.to_vec();
