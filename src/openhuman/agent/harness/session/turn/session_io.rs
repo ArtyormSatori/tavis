@@ -521,6 +521,29 @@ impl Agent {
                     return;
                 }
             }
+
+            // Bind the write seam to the same file. `new_in_dir` — never
+            // `new` — because `new` hardcodes `{workspace}/session_raw/`, and a
+            // dedicated-memory profile's sessions live in `session_raw-<id>/`;
+            // using it here would silently write this session into the shared
+            // profile's directory. The seed meta is only consulted when the
+            // file is absent, and the turn path always passes its own
+            // freshly-computed meta, so it never actually takes effect here —
+            // it is supplied for completeness of the handle.
+            match SessionTranscriptHistory::new_in_dir(
+                &session_raw_dir,
+                &stem,
+                self.seed_transcript_meta(),
+            ) {
+                Ok(history) => {
+                    self.session_history = Some(std::sync::Arc::new(history));
+                }
+                Err(err) => {
+                    log::warn!("[transcript] failed to bind session history: {err:#}");
+                    self.session_transcript_path = None;
+                    return;
+                }
+            }
         }
 
         let path = self.session_transcript_path.as_ref().unwrap();
