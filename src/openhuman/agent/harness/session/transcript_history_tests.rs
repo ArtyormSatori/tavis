@@ -43,34 +43,15 @@ fn history(dir: &TempDir) -> SessionTranscriptHistory {
 
 fn user(text: &str) -> Message {
     Message::User(tinyagents::harness::message::UserMessage {
-        content: vec![tinyagents::harness::message::ContentBlock::Text {
-            text: text.to_string(),
-        }],
+        content: vec![tinyagents::harness::message::ContentBlock::Text(
+            text.to_string(),
+        )],
     })
 }
 
-/// Text of each message, for order-sensitive assertions.
+/// Visible text of each message, for order-sensitive assertions.
 fn texts(messages: &[Message]) -> Vec<String> {
-    messages
-        .iter()
-        .map(|m| match m {
-            Message::User(u) => block_text(&u.content),
-            Message::Assistant(a) => block_text(&a.content),
-            Message::System(s) => s.content.clone(),
-            Message::Tool(t) => t.content.clone(),
-        })
-        .collect()
-}
-
-fn block_text(blocks: &[tinyagents::harness::message::ContentBlock]) -> String {
-    blocks
-        .iter()
-        .filter_map(|b| match b {
-            tinyagents::harness::message::ContentBlock::Text { text } => Some(text.clone()),
-            _ => None,
-        })
-        .collect::<Vec<_>>()
-        .join("")
+    messages.iter().map(Message::text).collect()
 }
 
 #[tokio::test]
