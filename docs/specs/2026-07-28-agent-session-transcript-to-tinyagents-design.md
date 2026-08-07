@@ -383,12 +383,80 @@ byte-identity assertion against the pre-change reader passes.
 
 ### S4 — Route the harness through the trait
 
-The turn path takes `Arc<dyn ChatHistory>` instead of calling transcript free
+The turn path takes `Arc<dyn SessionHistory>` instead of calling transcript free
 functions. The 24 consumers that need display records, usage rollups, or path
 resolution keep using the concrete type — that is correct, not debt.
 
 **Exit:** `agent_harness_e2e` + `scripts/test-rust-with-mock.sh` green;
 `threads/transcript_view` projection output unchanged (golden test).
+
+#### Landed as `SessionHistory: ChatHistory`, not `ChatHistory` — and why
+
+S4's two halves as originally written contradict each other. `ChatHistory`
+(`vendor/tinyagents/src/harness/memory/types.rs`) has four methods, each
+carrying only a `thread_id: &str` plus `Message` / `Vec<Message>`. The turn
+path's write carries three things none of them can express:
+
+- **`request_id`**, stamped on every line. Drives `DisplayItem::TurnBoundary`
+  and the `(request_id, ts)` root-turn segments that anchor every
+  `DisplayItem::Subagent` in `threads/transcript_view/project.rs`.
+- **`turn_usage`**, attributed to the turn's last assistant row. Carries
+  `model`, `iteration`, `ts`, `reasoning_content` and the native `tool_calls`.
+  The projection reads **every** `DisplayItem::ToolCall` off
+  `turn_usage.tool_calls`, so losing it deletes the tool rows outright (each
+  following `role:"tool"` line then falls to the orphan branch), along with
+  `Reasoning`, `AssistantMessage.{model,iteration}` and `interim`.
+- **`TranscriptMeta`'s cumulative fields** — `turn_count` plus the four
+  token/cost rollups `read_thread_usage_summary` reports. The turn path computes
+  these fresh each turn; the trait path can only re-read the file's existing
+  `_meta`, which would freeze them at the previous turn's values.
+
+A literal `Arc<dyn ChatHistory>` write would therefore have failed S4's own exit
+criterion while looking complete. The criterion wins: what landed is
+`pub(crate) trait SessionHistory: ChatHistory`, declared in
+`agent/harness/session/transcript_history.rs`, whose single `append_turn` method
+forwards the same six arguments `append_transcript_turn` already takes. The
+indirection is real, `ChatHistory` stays in the bound so S2/S3 are not orphaned,
+and the on-disk bytes are unchanged by construction —
+`append_turn_is_byte_identical_to_the_free_function` writes one turn both ways
+and compares the files byte for byte.
+
+The **read** path stays on the concrete free functions by design, and this is
+not deferred work. Both resume readers *discover* a path — by
+`(workspace, session_raw_subdir, agent name)` or by `_meta.thread_id` — and
+neither key is a stem, the only thing a handle can be bound to. Worse,
+`ChatHistory::messages()` returns `Vec<Message>`, and converting back flattens
+`Assistant.tool_calls` into plain text, which is exactly what
+`bound_cached_transcript_messages`' TAURI-RUST-7 trailing strip inspects and
+what native providers reject with `400 assistant message with 'tool_calls' must
+be followed by tool messages`. `maybe_shadow_read_session_store` additionally
+needs the whole `SessionTranscript`, `_meta` included, which the trait cannot
+return.
+
+**Widening `ChatHistory` upstream is REJECTED, not deferred.** S0's rationale
+notes this question has already been re-opened twice, so the finding is recorded
+here to stop a third round: the crate's `Usage` has no `cost_usd` /
+`context_window`; `TranscriptMeta` is a cumulative *file header*, not turn
+provenance; and the per-message tool-failure `extra_metadata` that
+`message_to_chat_message` drops is untouchable by any turn-level record. You
+would pay a tinyagents release and still need a `serde_json::Value` escape
+hatch — for a trait that has no consumer inside the vendored crate outside
+`harness/memory/`.
+
+One live defect was fixed on the way in: the handle resolved its path through
+`resolve_keyed_transcript_path`, which hardcodes `{workspace}/session_raw/`. A
+dedicated-memory profile's sessions live in `session_raw-<id>/`, so wiring the
+handle into the turn path as-written would have silently cross-written profile
+sessions into the shared profile's directory. `new_in_dir` takes the raw dir
+explicitly and is what the turn path uses.
+
+Deliberately **not** relocated: `persisted_transcript_messages` and
+`session_transcript_path` stay on `Agent`. The former is the in-memory diff
+cache the append-only writer needs; substituting the handle's disk re-read is
+lossy against `common_prefix_len` (`read_transcript` lifts `failure` /
+`failure_detail` out of `extra_metadata` and hoists turn-usage to top-level line
+fields), so the writer would emit a full compaction record every turn. The
+latter is what `maybe_dual_write_session_store` needs a concrete `&Path` for.
 
 ### S5 — Shadow soak, then remove the parallel path
 
