@@ -162,11 +162,16 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
     // The chrome layer. One legibility scrim across the WHOLE shell — the
     // sidebar column and the frame around the content card — so the two read as
     // a single continuous surface. Scrimming per-pane would tint them
-    // differently and reintroduce the very seam this layout removes. It is
-    // partial-alpha on purpose: the themed AppBackground behind it (animated
-    // mesh gradient, flat canvas, or an arbitrary user image) still carries the
-    // theme's hue, while chrome-level text stays readable over all three.
-    <div className="relative flex h-full w-full min-h-0 overflow-hidden bg-surface-chrome/70 backdrop-blur-xl">
+    // differently and reintroduce the very seam this layout removes.
+    //
+    // The alpha is deliberately light: the themed AppBackground behind it is an
+    // *animated* WebGL mesh gradient, and the content card above is opaque, so
+    // the chrome is the only place that motion is visible at all. A heavier
+    // scrim (or a backdrop blur, which also smears the 18px dotted canvas)
+    // flattens it back into paint and leaves the shader burning GPU for nothing.
+    // /30 is the legibility knob — raise it if sidebar labels wash out, which is
+    // most likely under a `backdrop: image` theme rather than the mesh.
+    <div className="relative flex h-full w-full min-h-0 overflow-hidden bg-surface-chrome/30">
       {isOpen && (
         <>
           <div
