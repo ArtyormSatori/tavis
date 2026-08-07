@@ -7,12 +7,12 @@ const log = debugFactory('shell:content-surface');
 const BASE = 'relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-surface';
 
 /**
- * Inset, rounded card floating on the window chrome. Asymmetric margins on
- * purpose: 1px against the sidebar and the top drag strip (where the chrome is
- * only a seam) and 8px on the free right/bottom edges (where the chrome reads
- * as a frame).
+ * Inset, rounded card floating on the window chrome. Even 12px margin on all
+ * four sides so the chrome reads as a deliberate frame rather than a seam. The
+ * top gap lands larger than 12px in practice because the window-drag band
+ * ({@link WindowDragBar}) sits above the card inside the same column.
  */
-const FRAMED = `${BASE} mt-px ml-px mr-2 mb-2 rounded-2xl shadow-content-edge`;
+const FRAMED = `${BASE} m-3 rounded-2xl shadow-content-edge`;
 
 interface ContentSurfaceProps {
   children: ReactNode;

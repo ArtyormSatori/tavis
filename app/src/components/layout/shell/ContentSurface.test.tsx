@@ -20,11 +20,8 @@ describe('ContentSurface', () => {
     const surface = screen.getByTestId('app-content-surface');
     expect(surface.className).toContain('rounded-2xl');
     expect(surface.className).toContain('shadow-content-edge');
-    // Asymmetric insets: hairline against the sidebar/top, 8px on free edges.
-    expect(surface.className).toContain('mt-px');
-    expect(surface.className).toContain('ml-px');
-    expect(surface.className).toContain('mr-2');
-    expect(surface.className).toContain('mb-2');
+    // Even inset on all four sides so the chrome frames the card.
+    expect(surface.className).toContain('m-3');
     expect(surface.dataset.unframed).toBeUndefined();
   });
 
@@ -35,7 +32,7 @@ describe('ContentSurface', () => {
     // radius here would leave four square corners poking through the card.
     expect(surface.className).not.toContain('rounded-2xl');
     expect(surface.className).not.toContain('shadow-content-edge');
-    expect(surface.className).not.toContain('mr-2');
+    expect(surface.className).not.toContain('m-3');
     expect(surface.dataset.unframed).toBe('true');
   });
 
