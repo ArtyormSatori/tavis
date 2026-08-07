@@ -179,7 +179,8 @@ pub struct Agent {
     /// `session_transcript_path` stays alongside it rather than being folded
     /// into the handle: the dual-write mirror needs the concrete `&Path` for
     /// `file_stem()`, and several tests assert on it directly.
-    pub(super) session_history: Option<std::sync::Arc<dyn super::transcript_history::SessionHistory>>,
+    pub(super) session_history:
+        Option<std::sync::Arc<dyn super::transcript_history::SessionHistory>>,
     /// The logical message set most recently persisted to
     /// `session_transcript_path`, tracked in memory so the append-only writer
     /// can diff each turn's messages against it (pure extension → append tail;

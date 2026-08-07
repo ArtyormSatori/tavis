@@ -325,7 +325,10 @@ fn new_in_dir_writes_into_the_profile_scoped_directory() {
     );
     assert!(h.path().exists());
     assert!(
-        !dir.path().join("session_raw").join(format!("{STEM}.jsonl")).exists(),
+        !dir.path()
+            .join("session_raw")
+            .join(format!("{STEM}.jsonl"))
+            .exists(),
         "nothing may be written into the shared profile's session_raw/"
     );
     assert_eq!(
