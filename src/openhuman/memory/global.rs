@@ -16,7 +16,8 @@
 //! client.put_doc(input).await?;
 //! ```
 
-use std::path::PathBuf;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock, RwLock};
 
 use crate::openhuman::memory::store::{MemoryClient, MemoryClientRef};
