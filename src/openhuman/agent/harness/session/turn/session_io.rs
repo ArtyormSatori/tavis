@@ -21,6 +21,34 @@ impl Agent {
     /// Try to load a previous session transcript for KV cache resume.
     ///
     /// Best-effort: failures are logged and silently ignored.
+    ///
+    /// # Why this stays on the concrete `transcript::` functions (S4)
+    ///
+    /// The write path now goes through
+    /// [`SessionHistory`][super::super::transcript_history::SessionHistory];
+    /// the read path deliberately does not, for three independent reasons:
+    ///
+    /// 1. **It discovers a path, it is not given one.** A history handle is
+    ///    bound to a *stem* at construction. This function's key is
+    ///    `(workspace, session_raw_subdir, agent name)` and it takes the newest
+    ///    match, with a legacy `session_raw/DDMMYYYY/` fallback; the cold-boot
+    ///    web-chat sibling
+    ///    [`seed_resume_from_thread_transcript`][Agent::seed_resume_from_thread_transcript]
+    ///    keys off `_meta.thread_id`. Neither key is a stem. Note also that the
+    ///    handle owns the file **this** process writes, while resume targets the
+    ///    *previous* session's file — different stems, deliberately.
+    /// 2. **`ChatHistory::messages()` is lossy in exactly the wrong direction.**
+    ///    It returns `Vec<Message>`, and converting back with
+    ///    `message_to_chat_message` flattens `Assistant.tool_calls` into plain
+    ///    text. That is precisely what
+    ///    [`bound_cached_transcript_messages`][Agent::bound_cached_transcript_messages]'
+    ///    TAURI-RUST-7 trailing strip inspects, and re-sending a flattened
+    ///    prefix to a native provider is the `400 assistant message with
+    ///    'tool_calls' must be followed by tool messages` failure that strip
+    ///    exists to prevent.
+    /// 3. **`_meta` is not reachable through the trait.**
+    ///    [`maybe_shadow_read_session_store`][Agent::maybe_shadow_read_session_store]
+    ///    needs the whole `SessionTranscript`, header included.
     pub(in super::super) fn try_load_session_transcript(&mut self) {
         match transcript::find_latest_transcript_in_subdir(
             &self.workspace_dir,
