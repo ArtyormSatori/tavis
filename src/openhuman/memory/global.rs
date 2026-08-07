@@ -149,6 +149,70 @@ fn client_from(slot: &GlobalClientSlot) -> Result<MemoryClientRef, String> {
         })
 }
 
+/// Per-workspace client cache used by [`client_for_workspace`].
+///
+/// A *map*, not a slot, for the same reason
+/// [`crate::openhuman::memory::binding`] caches bindings in a map: a subsystem
+/// driver is resolved per workspace and must never be handed another
+/// workspace's handle.
+static WORKSPACE_CLIENTS: OnceLock<RwLock<HashMap<PathBuf, MemoryClientRef>>> = OnceLock::new();
+
+/// The `MemoryClient` for `workspace_dir`, **reusing the process-global client
+/// when it already owns that workspace**.
+///
+/// Exists for the embedded memory driver
+/// ([`crate::openhuman::memory::driver::embedded`]), which is constructed
+/// synchronously at bind time and must resolve its client lazily on the first
+/// contract call.
+///
+/// The reuse check is load-bearing, not an optimisation: [`MemoryClient`] owns
+/// a `UnifiedMemory` handle *and* spawns a background ingestion worker, so two
+/// clients over one workspace means two workers doing duplicate graph
+/// extraction and duplicate embedding work against the same SQLite file.
+///
+/// # Errors
+///
+/// Lock poisoning, or any failure constructing a fresh
+/// [`MemoryClient::from_workspace_dir`] (directory creation, store open).
+pub(crate) fn client_for_workspace(workspace_dir: &Path) -> Result<MemoryClientRef, String> {
+    if let Some(existing) = global_slot()
+        .read()
+        .map_err(|e| format!("[memory:global] read lock poisoned: {e}"))?
+        .as_ref()
+    {
+        if existing.workspace_dir == workspace_dir {
+            return Ok(Arc::clone(&existing.client));
+        }
+    }
+
+    let cache = WORKSPACE_CLIENTS.get_or_init(Default::default);
+    if let Some(existing) = cache
+        .read()
+        .map_err(|e| format!("[memory:global] workspace cache read lock poisoned: {e}"))?
+        .get(workspace_dir)
+    {
+        return Ok(Arc::clone(existing));
+    }
+
+    log::info!(
+        "[memory:global] building workspace-scoped MemoryClient workspace={}",
+        workspace_dir.display()
+    );
+    let client: MemoryClientRef =
+        Arc::new(MemoryClient::from_workspace_dir(workspace_dir.to_path_buf())?);
+
+    let mut guard = cache
+        .write()
+        .map_err(|e| format!("[memory:global] workspace cache write lock poisoned: {e}"))?;
+    // Re-check under the write lock: a racing caller may have built the same
+    // workspace's client while we were constructing ours. Theirs wins so the
+    // "one worker per workspace" property holds.
+    let entry = guard
+        .entry(workspace_dir.to_path_buf())
+        .or_insert_with(|| Arc::clone(&client));
+    Ok(Arc::clone(entry))
+}
+
 /// Returns the global client if already initialised, without lazy init.
 pub fn client_if_ready() -> Option<MemoryClientRef> {
     global_slot()
