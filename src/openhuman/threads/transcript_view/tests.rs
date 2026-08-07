@@ -557,29 +557,41 @@ fn append_transcript_turn_projects_full_display_shape() {
     assert_eq!(tool.3.as_deref(), Some("72F and sunny"));
     assert_eq!(tool.4, ToolCallStatus::Success);
 
-    // Model/iteration/request_id land on the assistant item.
-    let assistant = items
+    // Model / iteration / request_id / interim all come off the persisted
+    // `turn_usage` + `request_id`; each is `None`/`false` if either is dropped.
+    let assistants: Vec<_> = items
         .iter()
-        .find_map(|i| match i {
+        .filter_map(|i| match i {
             DisplayItem::AssistantMessage {
                 content,
                 model,
                 iteration,
                 request_id,
+                interim,
                 ..
             } => Some((
                 content.clone(),
                 model.clone(),
                 *iteration,
                 request_id.clone(),
+                *interim,
             )),
             _ => None,
         })
-        .expect("assistantMessage projected");
-    assert_eq!(assistant.0, "It's 72F and sunny in NYC.");
-    assert_eq!(assistant.1.as_deref(), Some("claude-x"));
-    assert_eq!(assistant.2, Some(2));
-    assert_eq!(assistant.3.as_deref(), Some("req-1"));
+        .collect();
+    assert_eq!(assistants.len(), 2, "unexpected items: {items:#?}");
+
+    assert_eq!(assistants[0].0, "Let me check.");
+    assert_eq!(assistants[0].1.as_deref(), Some("claude-x"));
+    assert_eq!(assistants[0].2, Some(1));
+    assert_eq!(assistants[0].3.as_deref(), Some("req-1"));
+    assert!(assistants[0].4, "tool-calling step is interim");
+
+    assert_eq!(assistants[1].0, "It's 72F and sunny in NYC.");
+    assert_eq!(assistants[1].1.as_deref(), Some("claude-x"));
+    assert_eq!(assistants[1].2, Some(2));
+    assert_eq!(assistants[1].3.as_deref(), Some("req-1"));
+    assert!(!assistants[1].4, "final answer is not interim");
 }
 
 #[test]
