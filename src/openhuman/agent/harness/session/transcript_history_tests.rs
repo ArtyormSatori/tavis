@@ -38,7 +38,7 @@ fn meta() -> TranscriptMeta {
 }
 
 fn history(dir: &TempDir) -> SessionTranscriptHistory {
-    SessionTranscriptHistory::new(dir.path(), STEM, meta())
+    SessionTranscriptHistory::new(dir.path(), STEM, meta()).unwrap()
 }
 
 fn user(text: &str) -> Message {
