@@ -1954,12 +1954,19 @@ const Conversations = ({
         pendingSendActive={selectedThreadId ? pendingSendingThreadIds.has(selectedThreadId) : false}
       />
 
-      {/* Full-width fade so messages dissolve into the background (black/white
-          per theme) behind the floating composer. Page variant only. */}
+      {/* Full-width fade so messages dissolve into the page behind the floating
+          composer. Page variant only.
+
+          Fades to `surface` — the token the content card actually paints — not
+          a hardcoded white/black pair. Those matched only while the page was a
+          transparent window onto the app canvas (`--surface-canvas`, pure black
+          in dark); on the inset card (`--surface`, neutral-900) they fade to a
+          colour the card never reaches and leave a visible band. The token also
+          keeps this correct for custom themes, which the literals never were. */}
       {!isSidebar && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-black dark:via-black/90"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-surface via-surface/90 to-transparent"
         />
       )}
 
@@ -2519,7 +2526,14 @@ const Conversations = ({
       className={
         isSidebar
           ? 'h-full relative z-10 flex overflow-hidden'
-          : 'h-full relative z-10 flex justify-center overflow-hidden bg-surface/70 dark:bg-black/40'
+          : // No background of its own. The old `bg-surface/70 dark:bg-black/40`
+            // was a translucent tint over the app canvas, which composed to pure
+            // black in dark — the colour the composer fade below hardcoded. On
+            // the opaque content card it instead composes to an un-tokened
+            // ~#0e0e0e that nothing else in the app can name or match, so the
+            // fade could never line up. The page now simply *is* the card's
+            // surface, and the fade matches by construction.
+            'h-full relative z-10 flex justify-center overflow-hidden'
       }>
       {isSidebar ? (
         <>
