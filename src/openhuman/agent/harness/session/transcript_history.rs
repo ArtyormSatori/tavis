@@ -211,40 +211,90 @@ impl SessionTranscriptHistory {
     /// Reads the current transcript, or `None` when no file exists yet.
     ///
     /// A missing transcript is the normal first-turn state, not an error.
-    fn read(&self, path: &Path) -> TaResult<Option<SessionTranscript>> {
-        if !path.exists() {
+    fn read(&self) -> TaResult<Option<SessionTranscript>> {
+        if !self.path.exists() {
             return Ok(None);
         }
-        read_transcript(path).map(Some).map_err(memory_err)
+        read_transcript(&self.path).map(Some).map_err(memory_err)
     }
 
     /// The logical (model-context) message set currently on disk.
     ///
     /// Routes through [`read_transcript`], so compaction records have already
     /// replaced the accumulator and `interrupted: true` partials are skipped.
-    fn persisted(&self, path: &Path) -> TaResult<Vec<ChatMessage>> {
-        Ok(self.read(path)?.map(|t| t.messages).unwrap_or_default())
+    fn persisted(&self) -> TaResult<Vec<ChatMessage>> {
+        Ok(self.read()?.map(|t| t.messages).unwrap_or_default())
     }
 
     /// The `_meta` to write: the file's own cumulative meta when it exists,
     /// otherwise this handle's seed.
-    fn meta_for_write(&self, path: &Path) -> TaResult<TranscriptMeta> {
+    ///
+    /// Correct for the generic `ChatHistory` path, which has no channel for a
+    /// caller-computed meta. The **turn path must never route through here** —
+    /// it computes `turn_count` and the four token/cost rollups fresh each turn,
+    /// and re-reading the file's `_meta` would freeze them at the previous
+    /// turn's values, silently breaking `read_thread_usage_summary`.
+    fn meta_for_write(&self) -> TaResult<TranscriptMeta> {
         Ok(self
-            .read(path)?
+            .read()?
             .map(|t| t.meta)
             .unwrap_or_else(|| self.seed_meta.clone()))
     }
 
     /// Writes `next` as the new logical set, diffing against what is persisted.
     ///
-    /// Delegates the extension-vs-compaction decision to
-    /// [`append_transcript_turn`] rather than deciding here, so this seam
-    /// cannot drift from the format's own rule.
+    /// Routes through [`SessionHistory::append_turn`] so every write in this
+    /// module — trait-driven and turn-path alike — funnels through one call to
+    /// [`append_transcript_turn`], and the extension-vs-compaction decision
+    /// stays with the format owner rather than drifting here.
+    ///
+    /// The `self.persisted()` disk re-read is what the generic trait path has
+    /// to do, and is deliberately **not** what the turn path does.
+    /// [`read_transcript`] reconstructs `ChatMessage`s from line records: the
+    /// `failure` / `failure_detail` fields have been lifted out of
+    /// `extra_metadata` and turn-usage fields hoisted to top-level line fields.
+    /// Feeding that back in as `prev` would make `common_prefix_len` mismatch
+    /// at the first such message, so the writer would emit a full compaction
+    /// record — re-appending the entire message set — on every single turn.
     fn write_logical_set(&self, next: &[ChatMessage]) -> TaResult<()> {
-        let path = self.path()?;
-        let prev = self.persisted(&path)?;
-        let meta = self.meta_for_write(&path)?;
-        append_transcript_turn(&path, &prev, next, &meta, None, None).map_err(memory_err)
+        let prev = self.persisted()?;
+        let meta = self.meta_for_write()?;
+        self.append_turn(TranscriptTurn {
+            prev: &prev,
+            next,
+            meta: &meta,
+            turn_usage: None,
+            request_id: None,
+        })
+        .map_err(memory_err)
+    }
+}
+
+impl SessionHistory for SessionTranscriptHistory {
+    /// Pure forwarder: every argument reaches [`append_transcript_turn`]
+    /// untouched, so the bytes this writes are identical to what the free
+    /// function would have written at the call site.
+    fn append_turn(&self, turn: TranscriptTurn<'_>) -> anyhow::Result<()> {
+        log::debug!(
+            "[transcript-history] append_turn prev={} next={} usage={} request_id={:?} path={}",
+            turn.prev.len(),
+            turn.next.len(),
+            turn.turn_usage.is_some(),
+            turn.request_id,
+            self.path.display()
+        );
+        append_transcript_turn(
+            &self.path,
+            turn.prev,
+            turn.next,
+            turn.meta,
+            turn.turn_usage,
+            turn.request_id,
+        )
+    }
+
+    fn transcript_path(&self) -> &Path {
+        &self.path
     }
 }
 
