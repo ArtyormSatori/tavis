@@ -359,8 +359,8 @@ async fn trait_path_loses_the_provenance_that_append_turn_preserves() {
     })
     .unwrap();
     let seam_line = first_display_message(seam.path());
-    assert_eq!(seam_line.message.request_id.as_deref(), Some("req-1"));
-    let seam_usage = seam_line.message.turn_usage.expect("turn_usage persisted");
+    assert_eq!(seam_line.request_id.as_deref(), Some("req-1"));
+    let seam_usage = seam_line.turn_usage.expect("turn_usage persisted");
     assert_eq!(seam_usage.model, "claude-x");
     assert_eq!(seam_usage.iteration, 2);
     assert_eq!(seam_usage.tool_calls.len(), 1);
@@ -373,10 +373,12 @@ async fn trait_path_loses_the_provenance_that_append_turn_preserves() {
             "thread-1",
             vec![Message::Assistant(
                 tinyagents::harness::message::AssistantMessage {
+                    id: None,
                     content: vec![tinyagents::harness::message::ContentBlock::Text(
                         "72F and sunny.".into(),
                     )],
                     tool_calls: vec![],
+                    usage: None,
                 },
             )],
         )
@@ -384,11 +386,11 @@ async fn trait_path_loses_the_provenance_that_append_turn_preserves() {
         .unwrap();
     let trait_line = first_display_message(trait_history.path());
     assert!(
-        trait_line.message.request_id.is_none(),
+        trait_line.request_id.is_none(),
         "ChatHistory has no channel for request_id — no turn boundary"
     );
     assert!(
-        trait_line.message.turn_usage.is_none(),
+        trait_line.turn_usage.is_none(),
         "ChatHistory has no channel for turn_usage — no model/iteration/tool calls"
     );
 }
