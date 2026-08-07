@@ -311,8 +311,7 @@ impl ChatHistory for SessionTranscriptHistory {
     ///
     /// An absent transcript yields an empty `Vec`, per the trait contract.
     async fn messages(&self, _thread_id: &str) -> TaResult<Vec<Message>> {
-        let path = self.path()?;
-        Ok(history_to_messages(&self.persisted(&path)?))
+        Ok(history_to_messages(&self.persisted()?))
     }
 
     /// Appends one message to the end of the transcript.
