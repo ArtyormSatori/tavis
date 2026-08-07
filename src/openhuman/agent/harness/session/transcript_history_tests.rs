@@ -97,7 +97,7 @@ async fn messages_replays_compaction_rather_than_returning_raw_lines() {
 
     // ...while the file itself still carries the superseded lines, proving the
     // reduction was a compaction record and not a rewrite.
-    let path = h.path().unwrap();
+    let path = h.path();
     let display = read_transcript_display(&path).unwrap();
     let rendered = format!("{display:?}");
     assert!(
@@ -130,7 +130,7 @@ async fn replace_appends_a_compaction_record_and_never_shrinks_the_file() {
     h.append("thread-1", user("alpha")).await.unwrap();
     h.append("thread-1", user("beta")).await.unwrap();
 
-    let path = h.path().unwrap();
+    let path = h.path();
     let before = std::fs::read_to_string(&path).unwrap();
 
     h.replace("thread-1", vec![user("condensed")])
@@ -155,7 +155,7 @@ async fn clear_empties_the_context_but_preserves_the_file() {
     let h = history(&dir);
 
     h.append("thread-1", user("kept on disk")).await.unwrap();
-    let path = h.path().unwrap();
+    let path = h.path();
     let before = std::fs::read_to_string(&path).unwrap();
 
     h.clear("thread-1").await.unwrap();
@@ -207,10 +207,10 @@ async fn existing_meta_is_preferred_over_the_seed() {
     let mut stale_seed = meta();
     stale_seed.turn_count = 999;
     stale_seed.agent_name = "wrong".into();
-    let reopened = SessionTranscriptHistory::new(dir.path(), STEM, stale_seed);
+    let reopened = SessionTranscriptHistory::new(dir.path(), STEM, stale_seed).unwrap();
     reopened.append("thread-1", user("two")).await.unwrap();
 
-    let persisted = read_transcript(&reopened.path().unwrap()).unwrap();
+    let persisted = read_transcript(reopened.path()).unwrap();
     assert_eq!(persisted.meta.agent_name, "tester");
     assert_ne!(persisted.meta.turn_count, 999);
 }
