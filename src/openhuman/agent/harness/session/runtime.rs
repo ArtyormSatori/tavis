@@ -485,6 +485,14 @@ impl Agent {
     /// user message is appended later by [`Self::run_single`] / `turn`, so it is
     /// intentionally absent from the loaded prefix — no dedup is needed here (the
     /// on-disk transcript ends at the previous completed turn).
+    ///
+    /// Stays on the concrete `transcript::` free functions for the same reasons
+    /// as `try_load_session_transcript` (see its doc comment), and one more
+    /// specific to this path: it resolves by `_meta.thread_id` across *root*
+    /// transcripts only, a disambiguation a stem-bound
+    /// [`SessionTranscriptHistory`][super::transcript_history::SessionTranscriptHistory]
+    /// explicitly declines to make — several transcripts share one thread id
+    /// (every sub-agent spawned within it does).
     pub fn seed_resume_from_thread_transcript(&mut self, thread_id: &str) -> bool {
         if !self.history.is_empty() || self.cached_transcript_messages.is_some() {
             log::debug!(
