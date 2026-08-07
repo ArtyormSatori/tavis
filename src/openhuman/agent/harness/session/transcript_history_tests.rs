@@ -232,7 +232,7 @@ fn turn_usage() -> TurnUsage {
     TurnUsage {
         provider: "anthropic".into(),
         model: "claude-x".into(),
-        usage: super::transcript::MessageUsage {
+        usage: crate::openhuman::agent::harness::session::transcript::MessageUsage {
             input: 20,
             output: 8,
             cached_input: 0,
