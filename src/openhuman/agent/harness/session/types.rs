@@ -172,9 +172,16 @@ pub struct Agent {
     ///
     /// This is the S4 indirection: the turn path appends through
     /// [`SessionHistory::append_turn`][super::transcript_history::SessionHistory::append_turn]
-    /// rather than calling the format's free function directly. It is
-    /// `Arc<dyn …>` (not the concrete handle) so a host can substitute a
-    /// different backing store without the turn loop knowing.
+    /// rather than calling the format's free function directly.
+    ///
+    /// It is `Arc<dyn …>` rather than the concrete handle so the turn loop is
+    /// written against the seam instead of the implementation. Note there is
+    /// **no injection point today**: the field is `pub(super)`, the builder
+    /// always starts it `None`, and the first write constructs a concrete
+    /// [`SessionTranscriptHistory`][super::transcript_history::SessionTranscriptHistory].
+    /// Substituting a different backing store is therefore a *possible* next
+    /// step, not a capability this field currently provides — adding one means
+    /// a builder setter, and nothing needs it yet.
     ///
     /// `session_transcript_path` stays alongside it rather than being folded
     /// into the handle: the dual-write mirror needs the concrete `&Path` for
