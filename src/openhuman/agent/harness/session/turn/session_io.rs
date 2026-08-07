@@ -611,7 +611,7 @@ impl Agent {
                 // (`OPENHUMAN_SESSION_DUAL_WRITE` is a kill switch). Only runs
                 // after the legacy JSONL append above succeeds; the legacy path
                 // is primary and untouched (issue #4249, 04.1).
-                self.maybe_dual_write_session_store(path, messages, &meta, turn_usage);
+                self.maybe_dual_write_session_store(&path, messages, &meta, turn_usage);
             }
             Err(err) => {
                 // Restore the tracked state so a transient failure doesn't make
