@@ -318,8 +318,7 @@ impl ChatHistory for SessionTranscriptHistory {
     ///
     /// Extending the persisted set writes only the new tail line.
     async fn append(&self, _thread_id: &str, message: Message) -> TaResult<()> {
-        let path = self.path()?;
-        let mut next = self.persisted(&path)?;
+        let mut next = self.persisted()?;
         next.push(message_to_chat_message(&message));
         self.write_logical_set(&next)
     }
