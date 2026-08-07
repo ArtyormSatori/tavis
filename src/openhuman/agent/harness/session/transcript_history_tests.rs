@@ -90,7 +90,10 @@ async fn messages_replays_compaction_rather_than_returning_raw_lines() {
     h.replace("thread-1", vec![user("summary")]).await.unwrap();
 
     // The model-context read sees only the replacement.
-    assert_eq!(texts(&h.messages("thread-1").await.unwrap()), vec!["summary"]);
+    assert_eq!(
+        texts(&h.messages("thread-1").await.unwrap()),
+        vec!["summary"]
+    );
 
     // ...while the file itself still carries the superseded lines, proving the
     // reduction was a compaction record and not a rewrite.
@@ -130,7 +133,9 @@ async fn replace_appends_a_compaction_record_and_never_shrinks_the_file() {
     let path = h.path().unwrap();
     let before = std::fs::read_to_string(&path).unwrap();
 
-    h.replace("thread-1", vec![user("condensed")]).await.unwrap();
+    h.replace("thread-1", vec![user("condensed")])
+        .await
+        .unwrap();
 
     let after = std::fs::read_to_string(&path).unwrap();
     assert!(
@@ -159,7 +164,10 @@ async fn clear_empties_the_context_but_preserves_the_file() {
     assert!(path.exists(), "clear must not delete the transcript");
 
     let after = std::fs::read_to_string(&path).unwrap();
-    assert!(after.starts_with(&before), "clear must append, not truncate");
+    assert!(
+        after.starts_with(&before),
+        "clear must append, not truncate"
+    );
     assert!(
         after.contains("kept on disk"),
         "clear must preserve prior lines for the display read"
