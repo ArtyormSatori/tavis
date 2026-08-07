@@ -11,6 +11,7 @@
 //! - [`kv_graph`] — key-value and knowledge-graph schemas + handlers.
 //! - [`sync`] — `sync_channel`, `sync_all`, `ingestion_status`.
 //! - [`learn`] — `learn_all`.
+//! - [`provider`] — `provider_status` (the bound memory driver).
 //! - [`files`] — file-based memory schemas + handlers.
 
 use serde::de::DeserializeOwned;
@@ -24,6 +25,7 @@ mod documents;
 mod files;
 mod kv_graph;
 mod learn;
+mod provider;
 mod sync;
 mod tool_memory;
 
@@ -39,6 +41,7 @@ pub fn all_controller_schemas() -> Vec<ControllerSchema> {
     out.extend(kv_graph::FUNCTIONS.iter().map(|f| schemas(f)));
     out.extend(sync::FUNCTIONS.iter().map(|f| schemas(f)));
     out.extend(learn::FUNCTIONS.iter().map(|f| schemas(f)));
+    out.extend(provider::FUNCTIONS.iter().map(|f| schemas(f)));
     out.extend(tool_memory::FUNCTIONS.iter().map(|f| schemas(f)));
     out
 }
@@ -51,6 +54,7 @@ pub fn all_registered_controllers() -> Vec<RegisteredController> {
     out.extend(kv_graph::controllers());
     out.extend(sync::controllers());
     out.extend(learn::controllers());
+    out.extend(provider::controllers());
     out.extend(tool_memory::controllers());
     out
 }
@@ -70,6 +74,9 @@ pub fn schemas(function: &str) -> ControllerSchema {
         return schema;
     }
     if let Some(schema) = learn::schema(function) {
+        return schema;
+    }
+    if let Some(schema) = provider::schema(function) {
         return schema;
     }
     if let Some(schema) = tool_memory::schema(function) {

@@ -122,6 +122,7 @@ fn namespace_description_known_namespaces() {
     assert!(namespace_description("billing").is_some());
     assert!(namespace_description("config").is_some());
     assert!(namespace_description("health").is_some());
+    assert!(namespace_description("subsystems").is_some());
     assert!(namespace_description("security").is_some());
     assert!(namespace_description("tool_registry").is_some());
     assert!(namespace_description("voice").is_some());
@@ -805,6 +806,14 @@ fn group_for_namespace(ns: &str) -> Option<DomainGroup> {
 }
 
 #[test]
+fn subsystems_namespace_is_registered_under_platform() {
+    assert_eq!(
+        group_for_namespace("subsystems"),
+        Some(DomainGroup::Platform)
+    );
+}
+
+#[test]
 fn full_registration_is_byte_identical() {
     // With no ambient CoreContext (⇒ full, no filter), the public
     // `all_registered_controllers()` must equal the raw grouped registry — same
@@ -861,7 +870,7 @@ async fn harness_excludes_gated_namespaces() {
     #[cfg(feature = "channels")]
     assert!(full_ns.contains("channels"), "full() must expose channels");
 
-    let ctx = CoreContext::for_test(DomainSet::harness(), None);
+    let ctx = CoreContext::for_test(DomainSet::harness(), None, None);
     let harness_ns: BTreeSet<&'static str> =
         CoreContext::scope(ctx, async { all_controller_schemas() })
             .await
@@ -886,6 +895,11 @@ async fn harness_excludes_gated_namespaces() {
         "channels",
         "mcp_clients",
         "health",
+        // The subsystem status surface is Platform-tagged for the same reason
+        // `health` is: it is kernel operator surface with no family. An
+        // embedded harness host reads driver capabilities through
+        // `memory.provider_status`, which stays reachable.
+        "subsystems",
     ] {
         assert!(
             !harness_ns.contains(absent),
@@ -914,7 +928,7 @@ async fn dispatch_returns_none_for_gated_method() {
         .map(|c| c.rpc_method_name())
         .expect("a flows.* method exists in the full registry");
 
-    let ctx = CoreContext::for_test(DomainSet::harness(), None);
+    let ctx = CoreContext::for_test(DomainSet::harness(), None, None);
     let out = CoreContext::scope(ctx, try_invoke_registered_rpc(&gated_method, Map::new())).await;
     assert!(
         out.is_none(),
@@ -923,7 +937,7 @@ async fn dispatch_returns_none_for_gated_method() {
 
     // A harness-family method still routes (Some) — security.policy_info needs
     // no workspace, so it is a clean positive control.
-    let ctx = CoreContext::for_test(DomainSet::harness(), None);
+    let ctx = CoreContext::for_test(DomainSet::harness(), None, None);
     let out = CoreContext::scope(
         ctx,
         try_invoke_registered_rpc("openhuman.security_policy_info", Map::new()),
@@ -959,7 +973,7 @@ async fn schema_lookup_is_gated_in_lockstep_with_dispatch() {
         "under full() the schema for `{gated_method}` must resolve"
     );
 
-    let ctx = CoreContext::for_test(DomainSet::harness(), None);
+    let ctx = CoreContext::for_test(DomainSet::harness(), None, None);
     let gated_schema =
         CoreContext::scope(ctx, async { schema_for_rpc_method(&gated_method) }).await;
     assert!(
@@ -967,7 +981,7 @@ async fn schema_lookup_is_gated_in_lockstep_with_dispatch() {
         "schema lookup for gated `{gated_method}` must be None under harness() (no param validation, no surface leak)"
     );
 
-    let ctx = CoreContext::for_test(DomainSet::harness(), None);
+    let ctx = CoreContext::for_test(DomainSet::harness(), None, None);
     let kept_schema = CoreContext::scope(ctx, async {
         schema_for_rpc_method("openhuman.security_policy_info")
     })

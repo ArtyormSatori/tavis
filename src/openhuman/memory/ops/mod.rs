@@ -17,6 +17,7 @@
 //! - [`kv_graph`] — key-value and knowledge-graph handlers.
 //! - [`sync`] — `memory_sync_*` and `memory_ingestion_status`.
 //! - [`learn`] — `memory_learn_all`.
+//! - [`provider`] — `memory_provider_status` (the bound memory driver).
 //! - [`files`] — `ai_*_memory_file` handlers (use `tokio::fs`).
 
 pub mod documents;
@@ -25,6 +26,7 @@ pub mod files;
 pub mod helpers;
 pub mod kv_graph;
 pub mod learn;
+pub mod provider;
 pub mod sync;
 pub mod tool_memory;
 
@@ -45,6 +47,7 @@ pub use kv_graph::{
     GraphUpsertParams, KvGetDeleteParams, KvSetParams,
 };
 pub use learn::{memory_learn_all, LearnAllParams, LearnAllResult, NamespaceLearnResult};
+pub use provider::{memory_provider_status, memory_subsystem_status};
 pub use sync::{
     memory_ingestion_status, memory_sync_all, memory_sync_channel, IngestionStatusResult,
     SyncAllResult, SyncChannelParams, SyncChannelResult,

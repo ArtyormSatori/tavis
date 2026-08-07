@@ -297,10 +297,19 @@ fn cli_adapters() -> &'static [RegisteredCliAdapter] {
         // feature: with the feature off, `voice::cli::run_standalone_subcommand`
         // resolves to the facade stub, which returns a "voice disabled" error so
         // `openhuman voice` fails gracefully instead of the subcommand vanishing.
-        vec![RegisteredCliAdapter {
-            namespace: "voice",
-            handler: crate::openhuman::voice::cli::run_standalone_subcommand,
-        }]
+        vec![
+            RegisteredCliAdapter {
+                namespace: "voice",
+                handler: crate::openhuman::voice::cli::run_standalone_subcommand,
+            },
+            // Bare `openhuman subsystems` prints the slot table; `openhuman
+            // subsystems status` still routes through the generic namespace
+            // dispatcher and prints JSON.
+            RegisteredCliAdapter {
+                namespace: "subsystems",
+                handler: crate::core::subsystems_cli::run_subsystems_command,
+            },
+        ]
     })
 }
 
@@ -419,6 +428,19 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         &mut controllers,
         DomainGroup::Platform,
         crate::openhuman::platform::health::all_health_registered_controllers(),
+    );
+    // Kernel subsystem/driver bindings: slot, bound driver, class, health,
+    // contract version, capabilities (docs/specs/kernel.md §6 item 6). The one
+    // controller registered from `src/core/` — it is a kernel binding table
+    // with no `src/openhuman/` family of its own, so it is tagged `Platform`
+    // rather than earning a `DomainGroup` variant for a single read-only
+    // function. Consequence: like `health`, it is absent under
+    // `DomainSet::harness()`, while `memory.provider_status` (a `Memory`
+    // family method) stays reachable there.
+    push(
+        &mut controllers,
+        DomainGroup::Platform,
+        crate::core::subsystem::all_subsystems_registered_controllers(),
     );
     // One-time first-run initialization (Python/spaCy/Node provisioning)
     push(
@@ -1112,6 +1134,9 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         ),
         "devices" => Some(
             "Paired mobile device management — pairing channel creation, listing, and revocation.",
+        ),
+        "subsystems" => Some(
+            "Kernel subsystem slots and their bound drivers: class, health, contract version, and advertised capabilities.",
         ),
         "tinyplace" => Some(
             "tiny.place A2A social-network integration: directory, explorer, and search over the agent network.",

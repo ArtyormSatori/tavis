@@ -254,6 +254,21 @@ pub enum DomainEvent {
     },
     /// A memory recall query completed.
     MemoryRecalled { query: String, hit_count: usize },
+    /// The configured memory driver could not be bound, and the kernel fell
+    /// back to the placeholder. Never silent — `docs/specs/kernel.md` §3.7.
+    ///
+    /// Carries driver *ids* and an operator-facing reason only: never an
+    /// endpoint, a `credential_ref`, or user memory content. See
+    /// `MemoryDriverConfig`'s manual redacting `Debug` impl for the same rule
+    /// on the config side.
+    MemoryDriverBindFailed {
+        /// The driver id asked for in `[subsystems.memory] driver`.
+        configured_driver: String,
+        /// What was bound instead (today always `"null"`).
+        bound_driver: String,
+        /// Why the configured driver was refused.
+        reason: String,
+    },
     /// A memory sync was requested for a specific channel or all channels.
     ///
     /// Published by `openhuman.memory_sync_channel` (channel_id = Some(...)) and
@@ -1386,6 +1401,7 @@ impl DomainEvent {
             Self::EmbeddingModelUnhealthy { .. }
             | Self::MemoryStored { .. }
             | Self::MemoryRecalled { .. }
+            | Self::MemoryDriverBindFailed { .. }
             | Self::MemorySyncRequested { .. }
             | Self::MemorySyncStageChanged { .. }
             | Self::MemoryIngestionStarted { .. }
@@ -1551,6 +1567,7 @@ impl DomainEvent {
             Self::MonitorLine { .. } => "MonitorLine",
             Self::MemoryStored { .. } => "MemoryStored",
             Self::MemoryRecalled { .. } => "MemoryRecalled",
+            Self::MemoryDriverBindFailed { .. } => "MemoryDriverBindFailed",
             Self::MemorySyncRequested { .. } => "MemorySyncRequested",
             Self::MemorySyncStageChanged { .. } => "MemorySyncStageChanged",
             Self::MemoryIngestionStarted { .. } => "MemoryIngestionStarted",

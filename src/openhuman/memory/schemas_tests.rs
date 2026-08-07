@@ -33,6 +33,8 @@ const ALL_FUNCTIONS: &[&str] = &[
     "sync_all",
     "learn_all",
     "ingestion_status",
+    // The bound memory driver (kernel.md §6 item 6, plan-memory.md §5)
+    "provider_status",
     // Tool-scoped memory (#1400)
     "tool_rule_put",
     "tool_rule_get",
