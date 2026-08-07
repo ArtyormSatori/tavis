@@ -140,9 +140,6 @@ pub struct TranscriptTurn<'a> {
 pub(crate) trait SessionHistory: ChatHistory {
     /// Appends one turn, forwarding every argument to the format owner.
     fn append_turn(&self, turn: TranscriptTurn<'_>) -> anyhow::Result<()>;
-
-    /// The transcript file this handle owns.
-    fn transcript_path(&self) -> &Path;
 }
 
 /// A [`ChatHistory`] backed by one `session_raw/{stem}.jsonl` transcript.
@@ -291,10 +288,6 @@ impl SessionHistory for SessionTranscriptHistory {
             turn.turn_usage,
             turn.request_id,
         )
-    }
-
-    fn transcript_path(&self) -> &Path {
-        &self.path
     }
 }
 
