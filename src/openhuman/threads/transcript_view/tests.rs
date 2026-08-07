@@ -427,17 +427,22 @@ fn append_transcript_turn_projects_full_display_shape() {
         task_id: None,
     };
 
-    let turn_usage = transcript::TurnUsage {
+    let usage = |cost: f64| transcript::MessageUsage {
+        input: 20,
+        output: 8,
+        cached_input: 0,
+        context_window: 200_000,
+        cost_usd: cost,
+    };
+
+    // Iteration 1 of the turn: the model reasons and emits a native tool call.
+    // `turn_usage` attaches to the last assistant row of the written slice, so
+    // this one lands on the interim assistant.
+    let interim_usage = transcript::TurnUsage {
         provider: "anthropic".into(),
         model: "claude-x".into(),
-        usage: transcript::MessageUsage {
-            input: 20,
-            output: 8,
-            cached_input: 0,
-            context_window: 200_000,
-            cost_usd: 0.002,
-        },
-        ts: "2026-07-21T09:00:02Z".into(),
+        usage: usage(0.001),
+        ts: "2026-07-21T09:00:01Z".into(),
         reasoning_content: Some("I should call the weather tool.".into()),
         tool_calls: vec![crate::openhuman::inference::provider::ToolCall {
             id: "call-1".into(),
@@ -445,37 +450,52 @@ fn append_transcript_turn_projects_full_display_shape() {
             arguments: r#"{"city":"NYC"}"#.into(),
             extra_content: None,
         }],
+        iteration: 1,
+    };
+    // Iteration 2: the final answer, no further tool calls.
+    let final_usage = transcript::TurnUsage {
+        provider: "anthropic".into(),
+        model: "claude-x".into(),
+        usage: usage(0.002),
+        ts: "2026-07-21T09:00:02Z".into(),
+        reasoning_content: None,
+        tool_calls: vec![],
         iteration: 2,
     };
 
-    let messages = vec![
-        ChatMessage {
-            id: None,
-            role: "user".into(),
-            content: "What's the weather in NYC?".into(),
-            extra_metadata: None,
-        },
-        ChatMessage {
-            id: Some("call-1".into()),
-            role: "tool".into(),
-            content: "72F and sunny".into(),
-            extra_metadata: None,
-        },
-        ChatMessage {
-            id: None,
-            role: "assistant".into(),
-            content: "It's 72F and sunny in NYC.".into(),
-            extra_metadata: None,
-        },
+    let msg = |id: Option<&str>, role: &str, content: &str| ChatMessage {
+        id: id.map(str::to_string),
+        role: role.into(),
+        content: content.into(),
+        extra_metadata: None,
+    };
+
+    let first = vec![
+        msg(None, "user", "What's the weather in NYC?"),
+        msg(None, "assistant", "Let me check."),
     ];
+    let mut second = first.clone();
+    second.push(msg(Some("call-1"), "tool", "72F and sunny"));
+    second.push(msg(None, "assistant", "It's 72F and sunny in NYC."));
 
     let path = transcript::resolve_keyed_transcript_path(dir.path(), "900_orchestrator").unwrap();
+    // First write creates the file (meta + all lines); the second is a pure
+    // extension appending only the new tail — both are the real turn-path shape.
     transcript::append_transcript_turn(
         &path,
         &[],
-        &messages,
+        &first,
         &meta,
-        Some(&turn_usage),
+        Some(&interim_usage),
+        Some("req-1"),
+    )
+    .unwrap();
+    transcript::append_transcript_turn(
+        &path,
+        &first,
+        &second,
+        &meta,
+        Some(&final_usage),
         Some("req-1"),
     )
     .unwrap();
