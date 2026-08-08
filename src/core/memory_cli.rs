@@ -38,6 +38,38 @@ pub fn run_memory_command(args: &[String]) -> Result<()> {
     }
 }
 
+/// Each `openhuman memory <sub>` subcommand and the registered RPC controller
+/// whose surface it duplicates.
+///
+/// The CAPABILITY is deliberately NOT written here — it is read from the
+/// controller registry via [`crate::core::all::capability_for_parts`], so the
+/// single decision recorded at the `push_cap` site in `src/core/all.rs` governs
+/// both the RPC surface and this CLI. A second hand-maintained table would
+/// drift the first time a family tag moves.
+const SUBCOMMAND_CONTROLLER: &[(&str, &str)] = &[
+    // Full synchronous ingestion — the driver owns chunking and embedding.
+    ("ingest", "doc_ingest"),
+    // Mandatory core/recall surface: ungated, listed so the table is total.
+    ("docs", "list_documents"),
+    ("list", "list_documents"),
+    ("graph", "graph_query"),
+    ("graph-query", "graph_query"),
+    ("query", "query_namespace"),
+    ("namespaces", "list_namespaces"),
+    ("ns", "list_namespaces"),
+    ("clear", "clear_namespace"),
+];
+
+/// The capability `openhuman memory <sub>` needs, if any. Resolved from the
+/// controller registry, never from a local table.
+fn required_capability(subcommand: &str) -> Option<tinycortex_api::capabilities::Capability> {
+    let function = SUBCOMMAND_CONTROLLER
+        .iter()
+        .find(|(sub, _)| *sub == subcommand)
+        .map(|(_, function)| *function)?;
+    crate::core::all::capability_for_parts("memory", function).flatten()
+}
+
 // ---------------------------------------------------------------------------
 // Subcommands
 // ---------------------------------------------------------------------------
