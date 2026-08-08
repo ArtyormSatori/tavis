@@ -143,6 +143,12 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "global::client_if_ready(",
         "standalone backfill binary; boots its own client, no CoreContext",
     ),
+    // ── Metadata-only reads: driver identity, never memory content ──
+    (
+        "src/core/cli_capability.rs",
+        "binding::for_workspace(",
+        "reads driver_id + advertised capabilities only (what memory.provider_status already reports); no CoreContext exists on a CLI invocation, so there is no guard to route through",
+    ),
     // ── The bind site itself: it produces the guard ──
     (
         "src/core/runtime/context.rs",
