@@ -689,7 +689,7 @@ mod render_skill_toml_tests {
     fn create_workflow_inner_emits_workflows_changed() {
         use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
-        use tokio::sync::broadcast::error::TryRecvError;
+        use tinybus::TryRecvError;
 
         crate::core::bus::init().await.expect("bus init");
         let mut rx = crate::core::bus::BUS.get().expect("event bus should be initialized")

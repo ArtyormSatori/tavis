@@ -1354,12 +1354,9 @@ use crate::core::events::DomainEvent;
                 {
                     return descriptor;
                 }
-                Ok(_) => continue,
+                Some(_) => continue,
                 None => panic!("the bus closed before the expected event arrived"),
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    panic!("event bus closed before ExternalTransferPending arrived")
-                }
-            }
+}
         }
     })
     .await;

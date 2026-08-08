@@ -3359,19 +3359,16 @@ mod tests {
     ) -> (String, String, String) {
         loop {
             match rx.recv().await {
-                Ok(crate::core::events::DomainEvent::FlowApprovalRequested {
+                Some(crate::core::events::DomainEvent::FlowApprovalRequested {
                     request_id,
                     flow_id,
                     run_id,
                     tool_name,
                     ..
                 }) if flow_id == expected_flow_id => return (request_id, run_id, tool_name),
-                Ok(_) => continue,
+                Some(_) => continue,
                 None => panic!("the bus closed before the expected event arrived"),
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    panic!("event bus closed before FlowApprovalRequested arrived")
-                }
-            }
+}
         }
     }
 
@@ -3389,12 +3386,9 @@ mod tests {
         loop {
             match rx.recv().await {
                 Ok(event) if event.id == expected_id => return event,
-                Ok(_) => continue,
+                Some(_) => continue,
                 None => panic!("the bus closed before the expected event arrived"),
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    panic!("notification bus closed before the flow-gate-approval notification arrived")
-                }
-            }
+}
         }
     }
 }

@@ -551,7 +551,7 @@ pub fn register_email_signature_subscriber() -> Option<SubscriptionHandle> {
 /// Register the email signature subscriber with isolated test dependencies.
 #[cfg(test)]
 pub(crate) fn register_email_signature_subscriber_on(
-    bus: &tinybus::EventBus,
+    bus: &tinybus::EventBus<crate::core::events::DomainEvent>,
     buffer: &'static Buffer,
 ) -> SubscriptionHandle {
     bus.subscribe(Arc::new(EmailSignatureSubscriber::new(buffer)))

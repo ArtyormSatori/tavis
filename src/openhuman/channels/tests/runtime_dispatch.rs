@@ -425,10 +425,7 @@ async fn channel_processed_event_records_resolved_agent_route() {
         let event = match event {
             Ok(event) => event,
             None => panic!("the bus closed before the expected event arrived"),
-            Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                panic!("event receiver should stay open")
-            }
-        };
+};
 
         if let DomainEvent::ChannelMessageProcessed {
             message_id,

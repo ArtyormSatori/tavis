@@ -23,12 +23,9 @@ async fn find_pending(
                 thread_id,
                 client_id,
             }) if descriptor.service == marker => return (descriptor, thread_id, client_id),
-            Ok(_) => continue,
+            Some(_) => continue,
             None => panic!("the bus closed before the expected event arrived"),
-            Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                panic!("event bus closed before ExternalTransferPending arrived")
-            }
-        }
+}
     }
 }
 
@@ -74,12 +71,9 @@ async fn local_transfer_does_not_publish() {
                     break; // reached the sentinel without seeing the local marker
                 }
             }
-            Ok(_) => continue,
+            Some(_) => continue,
             None => panic!("the bus closed before the expected event arrived"),
-            Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                panic!("bus closed before sentinel arrived")
-            }
-        }
+}
     }
 }
 
@@ -143,12 +137,9 @@ async fn dedup_turn_scope_collapses_repeat_destination() {
                     break;
                 }
             }
-            Ok(_) => continue,
+            Some(_) => continue,
             None => panic!("the bus closed before the expected event arrived"),
-            Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                panic!("bus closed before sentinel arrived")
-            }
-        }
+}
     }
     assert_eq!(
         dup_count, 1,
@@ -185,12 +176,9 @@ async fn dedup_absent_outside_scope_publishes_each_time() {
                     break;
                 }
             }
-            Ok(_) => continue,
+            Some(_) => continue,
             None => panic!("the bus closed before the expected event arrived"),
-            Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                panic!("bus closed before sentinel arrived")
-            }
-        }
+}
     }
     assert_eq!(
         count, 2,

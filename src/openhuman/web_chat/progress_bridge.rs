@@ -1681,7 +1681,7 @@ mod tests {
                     Ok(ev) if ev.thread_id == "thread-out" && ev.event == "tool_result" => {
                         return ev;
                     }
-                    Ok(_) => continue,
+                    Some(_) => continue,
                     None => panic!("the bus closed before the expected event arrived"),
                     Err(err) => panic!("bus closed: {err}"),
                 }
@@ -1742,7 +1742,7 @@ mod tests {
         loop {
             match rx.recv().await {
                 Ok(ev) if ev.thread_id == thread_id => return ev,
-                Ok(_) => continue,
+                Some(_) => continue,
                 None => panic!("the bus closed before the expected event arrived"),
                 Err(err) => panic!("web-channel bus closed before event: {err}"),
             }
