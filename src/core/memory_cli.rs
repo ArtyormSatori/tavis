@@ -466,19 +466,27 @@ fn read_input(path: &str) -> Result<String> {
 }
 
 /// Resolve the memory client for a subcommand, refusing first when the bound
-/// driver does not advertise the family that subcommand needs.
+/// driver cannot serve it.
 ///
-/// The refusal is a *config fact* naming the driver and the family, not silent
-/// absence: `docs/specs/kernel.md` §3.3 makes the CLI its one exception, because
-/// a human reads silence as a typo. Same reasoning as the retained `mcp` / `tui`
-/// arms in `src/core/cli.rs`.
+/// Two gates run here, both *config facts* naming the driver rather than silent
+/// absence (`docs/specs/kernel.md` §3.3 makes the CLI its one exception, because
+/// a human reads silence as a typo — same reasoning as the retained `mcp` /
+/// `tui` arms in `src/core/cli.rs`):
 ///
-/// The gate is default-OPEN when the binding cannot be resolved, mirroring
+/// 1. **Capability gate** — when the subcommand maps to a gated controller, the
+///    bound driver must advertise that family.
+/// 2. **Legacy-client gate** — every subcommand below operates on the embedded
+///    store directly (via `memory::global::init`), so the bound driver must be
+///    the embedded engine. This is what makes `driver = "null"` (or a fallback)
+///    actually disable `openhuman memory clear` / `docs` / `query` /
+///    `namespaces`, which have no gated capability to refuse on.
+///
+/// Both gates are default-OPEN when the binding cannot be resolved, mirroring
 /// [`crate::core::all::capability_allowed`]: denying is only ever correct after
 /// a driver has actually answered `capabilities()`.
 ///
 /// This is the single chokepoint every subcommand already funnels through, and
-/// it already loads config, so the gate costs no extra config read.
+/// it already loads config, so the gates cost no extra config read.
 async fn create_memory_client(
     subcommand: &str,
 ) -> Result<crate::openhuman::memory::store::MemoryClientRef> {
@@ -486,20 +494,24 @@ async fn create_memory_client(
         .await
         .unwrap_or_default();
 
-    if let Some(required) = required_capability(subcommand) {
-        // Resolved through `cli_capability` rather than `binding::for_workspace`
-        // here, so the memory-guard bypass ratchet carries ONE allowlisted line
-        // for the whole CLI layer instead of one per entry point. Default-OPEN
-        // when the binding cannot be resolved.
-        if let Some((driver_id, advertised)) = crate::core::cli_capability::bound_memory_driver_for(
+    // Resolved through `cli_capability` rather than `binding::for_workspace`
+    // here, so the memory-guard bypass ratchet carries ONE allowlisted line
+    // for the whole CLI layer instead of one per entry point. Default-OPEN
+    // when the binding cannot be resolved.
+    let invocation = format!("openhuman memory {subcommand}");
+    if let Some((driver_id, class, advertised)) =
+        crate::core::cli_capability::bound_memory_driver_for(
             &config.workspace_dir,
             &config.subsystems.memory,
-        ) {
+        )
+    {
+        crate::core::cli_capability::legacy_client_verdict(&driver_id, class, &invocation)?;
+        if let Some(required) = required_capability(subcommand) {
             crate::core::cli_capability::capability_verdict(
                 &driver_id,
                 advertised,
                 Some(required),
-                &format!("openhuman memory {subcommand}"),
+                &invocation,
             )?;
         }
     }
