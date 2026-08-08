@@ -1619,3 +1619,15 @@ fn memory_controllers_form_one_contiguous_run_in_aggregator_order() {
         "registry order for memory.* diverges from the memory schemas aggregator"
     );
 }
+
+#[test]
+fn zzz_dump_memory_caps() {
+    for g in registry().iter().chain(internal_registry().iter()) {
+        if g.group == DomainGroup::Memory {
+            println!(
+                "DUMP\t{}\t{}\t{:?}",
+                g.controller.schema.namespace, g.controller.schema.function, g.capability
+            );
+        }
+    }
+}
