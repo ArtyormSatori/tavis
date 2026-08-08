@@ -34,14 +34,24 @@
 //! redefined here precisely because it is a *host* fact about how a driver was
 //! bound, identical for every subsystem.
 //!
-//! ## Scope of this step (M2b)
+//! ## Scope of this step (M3d)
 //!
-//! Every admitted driver binds [`NullMemoryProvider`] — this step proves the
-//! plumbing, not the storage. M3 replaces exactly one thing: the
-//! [`DriverClass::Embedded`] arm of [`build`]. Note the consequence: until M3
-//! lands, a *booted* process advertises only the three mandatory capability
-//! families, so nothing may gate its RPC/tool surface on
-//! `memory_capabilities()` yet.
+//! The [`DriverClass::Embedded`] arm of [`build`] binds the real
+//! [`EmbeddedMemoryProvider`], which wraps the in-process tinycortex engine.
+//! [`DriverClass::Null`] still binds [`NullMemoryProvider`] — an operator who
+//! wrote `driver = "null"` asked for `/dev/null` and must get it — and so does
+//! every fallback.
+//!
+//! The embedded driver now implements **all thirteen** families, so a bound
+//! context and an unbound one advertise the same set. That was the whole point
+//! of M3: before it, binding *narrowed* the advertised set from thirteen
+//! families to the null placeholder's three, which made gating anything on
+//! `memory_capabilities()` actively dangerous. It is now safe, and M4 is where
+//! that gating lands.
+//!
+//! A fallback binding still advertises only the mandatory three, because a
+//! fallback really is the null placeholder — that is the honest answer, not a
+//! leftover.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -57,6 +67,7 @@ use crate::core::subsystem::{
     BoundDriver, DriverCapabilities, DriverClass, DriverHealth, SubsystemSlot,
 };
 use crate::openhuman::config::schema::MemorySubsystemConfig;
+use crate::openhuman::memory::driver::embedded::EmbeddedMemoryProvider;
 
 /// Why a bind fell back to the placeholder driver.
 ///
@@ -228,10 +239,20 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
 fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
     match admit(cfg) {
         Ok((driver_id, class)) => {
-            // M3 replaces this arm with the real embedded tinycortex driver.
-            // Until then every admitted driver gets the placeholder.
-            let binding =
-                bind_provider(Arc::new(NullMemoryProvider::new()), driver_id, class, None);
+            let provider: Arc<dyn MemoryProvider> = match class {
+                // Construction is deliberately sync and I/O-free: this runs on
+                // `CoreContext::memory_binding`, which ~4000 pre-boot tests
+                // call with no tokio runtime. The driver resolves its client on
+                // first use — see `driver::embedded`'s module docs.
+                DriverClass::Embedded => {
+                    Arc::new(EmbeddedMemoryProvider::new(workspace_dir, cfg.hooks))
+                }
+                DriverClass::Null => Arc::new(NullMemoryProvider::new()),
+                // Unreachable: `admit` refuses every external driver above, so
+                // this arm cannot bind a transport that does not exist yet.
+                DriverClass::External => Arc::new(NullMemoryProvider::new()),
+            };
+            let binding = bind_provider(provider, driver_id, class, None);
             log::info!(
                 "[memory:binding] workspace={} bound driver='{}' class={} capabilities=[{}]",
                 workspace_dir.display(),

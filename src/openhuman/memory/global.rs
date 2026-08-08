@@ -198,8 +198,9 @@ pub(crate) fn client_for_workspace(workspace_dir: &Path) -> Result<MemoryClientR
         "[memory:global] building workspace-scoped MemoryClient workspace={}",
         workspace_dir.display()
     );
-    let client: MemoryClientRef =
-        Arc::new(MemoryClient::from_workspace_dir(workspace_dir.to_path_buf())?);
+    let client: MemoryClientRef = Arc::new(MemoryClient::from_workspace_dir(
+        workspace_dir.to_path_buf(),
+    )?);
 
     let mut guard = cache
         .write()

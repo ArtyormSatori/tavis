@@ -14,6 +14,7 @@ pub mod agent;
 pub mod binding;
 pub mod conversations;
 pub mod diff;
+pub mod driver;
 pub mod global;
 pub mod goals;
 pub mod ingestion;

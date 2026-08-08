@@ -115,7 +115,7 @@ mod tests {
         let status = status_from_binding(&binding).await;
         assert_eq!(status.slot, "memory");
         // The default `[subsystems.memory] driver` is the embedded tinycortex
-        // driver; M2b binds the placeholder provider behind that id.
+        // driver.
         assert_eq!(status.driver, cfg.driver);
         assert_eq!(status.class, "embedded");
         assert_eq!(status.health, "ready");
@@ -123,8 +123,27 @@ mod tests {
             status.contract_version,
             crate::core::subsystem::format_contract_version(tinycortex_api::CONTRACT_VERSION)
         );
-        // The placeholder advertises exactly the mandatory families.
-        assert_eq!(status.capabilities, vec!["core", "portability", "recall"]);
+        // All thirteen families, as of M3d. Spelled out rather than derived
+        // from `Capabilities::all()` on purpose: this is the wire surface the
+        // frontend reads, so the strings themselves are the assertion.
+        assert_eq!(
+            status.capabilities,
+            vec![
+                "core",
+                "diff",
+                "documents",
+                "entities",
+                "goals",
+                "graph",
+                "ingest",
+                "maintenance",
+                "portability",
+                "recall",
+                "sources",
+                "tool_memory",
+                "tree"
+            ]
+        );
         assert_eq!(status.fell_back_from, None);
         assert_eq!(status.last_error, None);
     }

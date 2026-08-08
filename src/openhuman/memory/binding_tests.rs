@@ -137,6 +137,62 @@ fn for_workspace_caches_binding_per_workspace() {
 }
 
 #[test]
+fn embedded_class_binds_the_embedded_driver_not_null() {
+    // Plain `#[test]`: no tokio runtime. Binding must stay synchronous and
+    // I/O-free, which is why the embedded driver resolves its client lazily.
+    let dir = tempfile::tempdir().unwrap();
+    let workspace = dir.path().join("never-created");
+    let binding =
+        for_workspace(&workspace, &MemorySubsystemConfig::default()).expect("default bind");
+
+    assert_eq!(binding.driver_id(), "tinycortex");
+    assert_eq!(binding.class(), DriverClass::Embedded);
+    assert!(binding.fallback().is_none());
+    assert_ne!(binding.provider().driver_id(), NULL_DRIVER_ID);
+    assert!(binding.capabilities().contains(Capability::Core));
+    assert!(binding.capabilities().validate().is_ok());
+    assert!(
+        !workspace.exists(),
+        "binding must not touch the workspace on disk"
+    );
+}
+
+#[test]
+fn embedded_binding_advertises_every_family() {
+    // Widened once per M3 step; M3d is the last one. The interesting assertion
+    // is the second: a *bound* context and an *unbound* one now agree, which
+    // they did not for the whole of M2/M3a-c.
+    let dir = tempfile::tempdir().unwrap();
+    let binding =
+        for_workspace(dir.path(), &MemorySubsystemConfig::default()).expect("default bind");
+    let advertised = binding.capabilities();
+
+    assert!(advertised.contains_all(Capabilities::mandatory()));
+    for family in Capability::ALL {
+        assert!(advertised.contains(family), "{family} must be advertised");
+    }
+    assert_eq!(advertised, Capabilities::all());
+    assert_eq!(advertised, unbound_default_capabilities());
+}
+
+#[test]
+fn null_driver_config_still_binds_the_null_provider() {
+    let dir = tempfile::tempdir().unwrap();
+    let cfg = MemorySubsystemConfig {
+        driver: "null".into(),
+        ..Default::default()
+    };
+    let binding = for_workspace(dir.path(), &cfg).expect("null bind");
+    assert_eq!(binding.driver_id(), NULL_DRIVER_ID);
+    assert_eq!(binding.class(), DriverClass::Null);
+    assert_eq!(binding.provider().driver_id(), NULL_DRIVER_ID);
+    assert!(
+        binding.fallback().is_none(),
+        "an explicitly requested null driver is not a fallback"
+    );
+}
+
+#[test]
 fn refused_driver_falls_back_to_the_null_placeholder() {
     let dir = tempfile::tempdir().unwrap();
     let binding =
