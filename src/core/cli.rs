@@ -502,11 +502,12 @@ fn run_namespace_command(
     // two distinguishable is the point: collapsing them would make real typos
     // harder to diagnose, which is the failure `docs/specs/kernel.md` §3.3
     // carves the CLI out of.
+    crate::core::cli_capability::ensure_capability_blocking(
+        all::capability_for_parts(namespace, function).flatten(),
+        &format!("openhuman {namespace} {function}"),
+    )?;
+
     let Some(schema) = schemas.iter().find(|s| s.function == function).cloned() else {
-        crate::core::cli_capability::ensure_capability_blocking(
-            all::capability_for_parts(namespace, function).flatten(),
-            &format!("openhuman {namespace} {function}"),
-        )?;
         return Err(anyhow::anyhow!(
             "unknown function '{namespace} {function}'. Run `openhuman {namespace} --help`."
         ));
