@@ -487,19 +487,20 @@ async fn create_memory_client(
         .unwrap_or_default();
 
     if let Some(required) = required_capability(subcommand) {
-        match crate::openhuman::memory::binding::for_workspace(
+        // Resolved through `cli_capability` rather than `binding::for_workspace`
+        // here, so the memory-guard bypass ratchet carries ONE allowlisted line
+        // for the whole CLI layer instead of one per entry point. Default-OPEN
+        // when the binding cannot be resolved.
+        if let Some((driver_id, advertised)) = crate::core::cli_capability::bound_memory_driver_for(
             &config.workspace_dir,
             &config.subsystems.memory,
         ) {
-            Ok(binding) => crate::core::cli_capability::capability_verdict(
-                binding.driver_id(),
-                binding.capabilities(),
+            crate::core::cli_capability::capability_verdict(
+                &driver_id,
+                advertised,
                 Some(required),
                 &format!("openhuman memory {subcommand}"),
-            )?,
-            Err(err) => log::debug!(
-                "[memory:cli][capability-gate] bind unresolved ({err}); gate defaults OPEN"
-            ),
+            )?;
         }
     }
 
