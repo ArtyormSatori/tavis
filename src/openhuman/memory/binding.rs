@@ -110,7 +110,20 @@ impl MemoryBinding {
     /// than product code (`memory::ops::provider` is the one production
     /// caller). New call sites want [`Self::guard`] — see
     /// `CoreContext::memory()`.
-    pub fn provider(&self) -> &Arc<dyn MemoryProvider> {
+    ///
+    /// Named `unguarded_provider` rather than `provider` on purpose. The
+    /// enforcement lint in `memory::bypass_allowlist_tests` matches text, and a
+    /// `.provider(` needle would over-match `TaskSourceFilter::provider()` and
+    /// `ModelRef::provider()` — six junk allowlist entries, which is exactly
+    /// the rot `bypass_allowlist_has_no_stale_entries` exists to prevent. A
+    /// distinctive name gives the lint a needle with no false positives, and
+    /// puts the hazard in the reader's face at the call site.
+    ///
+    /// Visibility is narrowed to the memory family so the lint's text match is
+    /// backed by a *compiler*-enforced boundary: even if `MemoryBinding` grows
+    /// another reachable path, no module outside `openhuman::memory` can name
+    /// this accessor at all.
+    pub(in crate::openhuman::memory) fn unguarded_provider(&self) -> &Arc<dyn MemoryProvider> {
         &self.provider
     }
 
