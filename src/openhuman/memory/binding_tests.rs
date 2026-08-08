@@ -95,9 +95,40 @@ fn admit_refuses_an_unregistered_non_null_driver_id() {
 }
 
 #[test]
-fn admit_refuses_unregistered_id_even_when_it_names_a_class_inline() {
-    // Same rule when the id is unregistered but the config writer added an
-    // explicit class line without the drivers entry. An entry is required.
+fn admit_refuses_non_builtin_id_even_with_a_drivers_entry_that_says_no_class() {
+    // Same rule when an entry exists but carries no `class` line: only the two
+    // built-in ids imply a class. An arbitrary id must not silently become
+    // Embedded just because someone registered a placeholder entry.
+    let mut cfg = MemorySubsystemConfig {
+        driver: "custom-mem".into(),
+        ..Default::default()
+    };
+    cfg.drivers.insert(
+        "custom-mem".into(),
+        MemoryDriverConfig {
+            class: None,
+            ..Default::default()
+        },
+    );
+    let refusal = admit(&cfg).expect_err("entry with no class must not admit an arbitrary id");
+    assert_eq!(refusal.configured_driver, "custom-mem");
+    assert!(
+        refusal.reason.contains("custom-mem"),
+        "refusal must name the offending id: {}",
+        refusal.reason
+    );
+    assert!(
+        refusal.reason.contains("class line"),
+        "refusal must point at the missing class line: {}",
+        refusal.reason
+    );
+}
+
+#[test]
+fn admit_accepts_an_explicit_embedded_class_for_a_registered_id() {
+    // A drivers entry that explicitly names the embedded class is a deliberate
+    // declaration — that id genuinely means the in-process engine. Explicit
+    // beats implicit.
     let mut cfg = MemorySubsystemConfig {
         driver: "custom-mem".into(),
         ..Default::default()
@@ -109,12 +140,9 @@ fn admit_refuses_unregistered_id_even_when_it_names_a_class_inline() {
             ..Default::default()
         },
     );
-    let refusal = admit(&cfg).expect_err("unregistered embedded-class id must be refused");
-    assert!(
-        refusal.reason.contains("embedded"),
-        "refusal must echo the class value: {}",
-        refusal.reason
-    );
+    let (id, class) = admit(&cfg).expect("explicit embedded class admits");
+    assert_eq!(id, "custom-mem");
+    assert_eq!(class, DriverClass::Embedded);
 }
 
 #[test]
