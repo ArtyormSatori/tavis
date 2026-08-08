@@ -58,6 +58,66 @@ fn admit_null_driver_binds_null_class() {
 }
 
 #[test]
+fn admit_typo_d_embedded_driver_id_gets_embedded_class() {
+    // Regression for the reviewer finding: before this, any non-null id without
+    // a drivers entry — a typo like "tinycortx", or an external backend that
+    // forgot its table — was silently classified Embedded. Only the two built-in
+    // ids admit implicitly.
+    let cfg = MemorySubsystemConfig {
+        driver: "tinycortex".into(),
+        ..Default::default()
+    };
+    let (id, class) = admit(&cfg).expect("the embedded default id admits");
+    assert_eq!(id, "tinycortex");
+    assert_eq!(class, DriverClass::Embedded);
+}
+
+#[test]
+fn admit_refuses_an_unregistered_non_null_driver_id() {
+    // A typo or an external backend with no `drivers.<id>` entry must not
+    // silently run the embedded engine under an invented driver id.
+    let cfg = MemorySubsystemConfig {
+        driver: "supermemory".into(),
+        ..Default::default()
+    };
+    let refusal = admit(&cfg).expect_err("an unregistered id must be refused");
+    assert_eq!(refusal.configured_driver, "supermemory");
+    assert!(
+        refusal.reason.contains("supermemory"),
+        "refusal must name the offending id: {}",
+        refusal.reason
+    );
+    assert!(
+        refusal.reason.contains("drivers"),
+        "refusal must point at the missing drivers table: {}",
+        refusal.reason
+    );
+}
+
+#[test]
+fn admit_refuses_unregistered_id_even_when_it_names_a_class_inline() {
+    // Same rule when the id is unregistered but the config writer added an
+    // explicit class line without the drivers entry. An entry is required.
+    let mut cfg = MemorySubsystemConfig {
+        driver: "custom-mem".into(),
+        ..Default::default()
+    };
+    cfg.drivers.insert(
+        "custom-mem".into(),
+        MemoryDriverConfig {
+            class: Some("embedded".into()),
+            ..Default::default()
+        },
+    );
+    let refusal = admit(&cfg).expect_err("unregistered embedded-class id must be refused");
+    assert!(
+        refusal.reason.contains("embedded"),
+        "refusal must echo the class value: {}",
+        refusal.reason
+    );
+}
+
+#[test]
 fn admit_refuses_untrusted_external_driver() {
     // The default trust_state is "untrusted" (kernel.md §3.4, fail-closed).
     let cfg = external_driver_cfg(&MemoryDriverConfig::default().trust_state);
