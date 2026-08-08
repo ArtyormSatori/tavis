@@ -106,10 +106,25 @@ pub async fn bound_memory_driver() -> Option<(String, Capabilities)> {
             return None;
         }
     };
-    match crate::openhuman::memory::binding::for_workspace(
-        &config.workspace_dir,
-        &config.subsystems.memory,
-    ) {
+    bound_memory_driver_for(&config.workspace_dir, &config.subsystems.memory)
+}
+
+/// [`bound_memory_driver`] against an already-loaded config.
+///
+/// The **single** place in the CLI layer that resolves a `MemoryBinding`, so the
+/// memory-guard bypass ratchet
+/// (`memory::bypass_allowlist_tests`) carries one allowlisted line rather than
+/// one per CLI entry point. Callers that already hold a `Config` — the
+/// `openhuman memory` adapter does — use this instead of loading it twice.
+///
+/// Nothing here touches memory *data*: only the driver id and the advertised
+/// capability set, both of which are exactly what
+/// `memory.provider_status` already reports over RPC.
+pub fn bound_memory_driver_for(
+    workspace_dir: &std::path::Path,
+    cfg: &crate::openhuman::config::schema::MemorySubsystemConfig,
+) -> Option<(String, Capabilities)> {
+    match crate::openhuman::memory::binding::for_workspace(workspace_dir, cfg) {
         Ok(binding) => {
             log::debug!(
                 "[cli][capability-gate] bound driver='{}' capabilities=[{}]",
