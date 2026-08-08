@@ -1584,3 +1584,38 @@ fn every_domain_group_is_accounted_for_in_subscriber_plan() {
     let none = DomainSubscriberPlan::for_domains(crate::core::runtime::DomainSet::none());
     assert_ne!(full, none, "full() and none() must differ");
 }
+
+/// M5.1 split `memory::all_memory_registered_controllers()` into seven
+/// per-family pairs pushed separately in `build_registered_controllers`. This
+/// pins the observable result: the `memory` namespace still occupies one
+/// contiguous run in the registry, in the aggregator's exact order. A stray
+/// push (wrong place, wrong order, a family dropped) fails here.
+#[test]
+fn memory_controllers_form_one_contiguous_run_in_aggregator_order() {
+    let all = all_registered_controllers();
+    let positions: Vec<usize> = all
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| c.schema.namespace == "memory")
+        .map(|(i, _)| i)
+        .collect();
+
+    assert!(!positions.is_empty(), "no memory controllers registered");
+    let first = positions[0];
+    let expected_run: Vec<usize> = (first..first + positions.len()).collect();
+    assert_eq!(
+        positions, expected_run,
+        "memory controllers are no longer contiguous in the registry"
+    );
+
+    let registered: Vec<&'static str> = positions.iter().map(|&i| all[i].schema.function).collect();
+    let aggregator: Vec<&'static str> =
+        crate::openhuman::memory::all_memory_registered_controllers()
+            .iter()
+            .map(|c| c.schema.function)
+            .collect();
+    assert_eq!(
+        registered, aggregator,
+        "registry order for memory.* diverges from the memory schemas aggregator"
+    );
+}
