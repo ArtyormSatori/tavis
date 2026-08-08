@@ -1627,6 +1627,45 @@ pub(crate) fn derive_profile_workspace_descriptor(
     )
 }
 
+/// Section D, embedder variant — the turn's workspace descriptor from the
+/// per-turn root an embedder scoped via
+/// [`turn_workspace::with_workspace`](crate::openhuman::agent::turn_workspace::with_workspace).
+///
+/// Returns a [`WorkspaceDescriptor`](tinyagents::harness::workspace::WorkspaceDescriptor)
+/// rooted at the scoped directory so this turn's acting tools (shell, file,
+/// git) resolve their default cwd there instead of the shared `action_dir`.
+/// `None` — every caller that scoped nothing — leaves the shared-`action_dir`
+/// behaviour byte-identical.
+///
+/// The root is only honoured when it is an existing directory: binding every
+/// acting tool to a cwd that does not exist would turn a host's stale path into
+/// an unexplained failure in each individual tool, and the shared `action_dir`
+/// is the better fallback (same reasoning as the profile variant's
+/// create-failure path).
+///
+/// The policy id is a fixed label rather than the path: it is surfaced in tool
+/// logs, and a host's checkout path is not something to spread through them.
+fn derive_turn_workspace_descriptor() -> Option<tinyagents::harness::workspace::WorkspaceDescriptor>
+{
+    let root = crate::openhuman::agent::turn_workspace::current()?;
+    if !root.is_dir() {
+        tracing::warn!(
+            root = %root.display(),
+            "[turn_workspace] scoped root is not an existing directory — \
+             falling back to the shared action_dir cwd for this turn"
+        );
+        return None;
+    }
+    tracing::debug!(
+        root = %root.display(),
+        "[turn_workspace] turn bound to the embedder's per-turn root as default cwd"
+    );
+    Some(
+        tinyagents::harness::workspace::WorkspaceDescriptor::new(root)
+            .with_policy_id("turn-workspace"),
+    )
+}
+
 fn build_profile_security(
     config: &crate::openhuman::config::Config,
     profile: Option<&crate::openhuman::agent::profiles::AgentProfile>,
