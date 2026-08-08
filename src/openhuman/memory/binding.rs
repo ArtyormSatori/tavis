@@ -199,22 +199,28 @@ pub fn unbound_default_capabilities() -> Capabilities {
     Capabilities::all()
 }
 
-/// The class a driver id implies with no `[subsystems.memory.drivers.<id>]`
-/// entry and no explicit `class` line. Only the two built-in ids admit: the
-/// embedded default and the null placeholder. Anything else is refused.
+/// The class a driver id implies when nothing says otherwise. Only the two
+/// built-in ids admit: the embedded default and the null placeholder. Anything
+/// else — a typo, or an external backend that forgot its `drivers.<id>` entry —
+/// is refused so the fallback machinery surfaces the mistake in status instead
+/// of mislabelling the bound engine.
+///
+/// `context` names which part of the config was missing; the refusal echoes it
+/// so the operator knows whether to add an entry or a `class` line.
 fn implicit_class<'a>(
     id: &'a str,
     refuse: &impl Fn(&str) -> FallbackReason,
+    context: &str,
 ) -> Result<(String, DriverClass), FallbackReason> {
     if id == NULL_DRIVER_ID {
         Ok((id.to_string(), DriverClass::Null))
     } else if id == EMBEDDED_DRIVER_ID {
         Ok((id.to_string(), DriverClass::Embedded))
     } else {
-        Err(refuse(
-            "unknown driver id: no [subsystems.memory.drivers.<id>] entry, and the \
-             id is neither the embedded default nor \"null\"",
-        ))
+        Err(refuse(&format!(
+            "unknown driver id \"{id}\": {context}, and the id is neither the \
+             embedded default nor \"null\""
+        )))
     }
 }
 
