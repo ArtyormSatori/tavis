@@ -615,6 +615,7 @@ impl AgentBuilder {
             session_raw_subdir,
             session_transcript_path: None,
             session_history: None,
+            session_history_locator: self.session_history_locator,
             persisted_transcript_messages: Vec::new(),
             session_key: {
                 let unix_ts = std::time::SystemTime::now()
