@@ -2496,3 +2496,85 @@ fn zzverify_split_preserved_the_registered_set() {
     expected.sort();
     assert_eq!(in_registry, expected, "the memory namespace's set CHANGED across M5");
 }
+
+/// (b)+(e) STRONGER, non-vacuous: for EVERY capability-gated Memory controller,
+/// under a null-driver context it must be unknown at dispatch AND absent from
+/// both read paths; and for EVERY ungated Memory controller it must survive.
+/// Self-guarding: fails if the gated set is empty or if nothing was removed.
+#[tokio::test]
+async fn zzverify_exhaustive_degradation_under_null_driver() {
+    let all_memory: Vec<(String, Option<Capability>)> = registry()
+        .iter()
+        .filter(|g| g.group == DomainGroup::Memory)
+        .map(|g| (g.controller.rpc_method_name(), g.capability))
+        .collect();
+    let gated: Vec<String> = all_memory
+        .iter()
+        .filter(|(_, c)| c.is_some())
+        .map(|(m, _)| m.clone())
+        .collect();
+    let ungated: Vec<String> = all_memory
+        .iter()
+        .filter(|(_, c)| c.is_none())
+        .map(|(m, _)| m.clone())
+        .collect();
+    assert!(!gated.is_empty(), "NON-VACUITY: no gated Memory controllers at all");
+    assert!(!ungated.is_empty(), "NON-VACUITY: no ungated Memory controllers");
+
+    // Non-vacuity: with no context every one of them dispatches/resolves.
+    for m in &gated {
+        assert!(
+            schema_for_rpc_method(m).is_some(),
+            "NON-VACUITY: {m} does not even exist with no ambient context"
+        );
+    }
+
+    let g2 = gated.clone();
+    let u2 = ungated.clone();
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(std::path::PathBuf::from("/tmp/oh-zzverify-null2")),
+        Some(null_driver_cfg()),
+    );
+    let (still_dispatching, still_in_schema, lost_ungated, catalog_len) =
+        CoreContext::scope(ctx, async move {
+            let catalog: std::collections::BTreeSet<String> =
+                all_controller_schemas().iter().map(rpc_method_name).collect();
+            let mut still_dispatching = Vec::new();
+            let mut still_in_schema = Vec::new();
+            for m in &g2 {
+                if try_invoke_registered_rpc(m, Map::new()).await.is_some() {
+                    still_dispatching.push(m.clone());
+                }
+                if catalog.contains(m) || schema_for_rpc_method(m).is_some() {
+                    still_in_schema.push(m.clone());
+                }
+            }
+            let lost: Vec<String> = u2
+                .iter()
+                .filter(|m| !catalog.contains(*m) || schema_for_rpc_method(m).is_none())
+                .cloned()
+                .collect();
+            (still_dispatching, still_in_schema, lost, catalog.len())
+        })
+        .await;
+
+    assert!(
+        still_dispatching.is_empty(),
+        "these gated methods still DISPATCH under the null driver: {still_dispatching:?}"
+    );
+    assert!(
+        still_in_schema.is_empty(),
+        "these gated methods are still ADVERTISED under the null driver: {still_in_schema:?}"
+    );
+    assert!(
+        lost_ungated.is_empty(),
+        "OVER-GATING: these ungated Memory methods vanished under the null driver: {lost_ungated:?}"
+    );
+    assert!(catalog_len > 100, "sanity: catalog collapsed to {catalog_len}");
+    eprintln!(
+        "[zzverify] removed {} gated / kept {} ungated memory controllers",
+        gated.len(),
+        ungated.len()
+    );
+}
