@@ -1999,8 +1999,8 @@ fn fake_locator_with_no_transcript_leaves_the_agent_cold() {
 /// compaction record and an interrupted partial, through both resume entry
 /// points. Asserts the model context equals the post-compaction set with the
 /// interrupted partial excluded.
-#[test]
-fn adversarial_compacted_transcript_replays_through_both_reads() {
+#[tokio::test]
+async fn adversarial_compacted_transcript_replays_through_both_reads() {
     use super::transcript::{self, TranscriptMeta};
     use crate::openhuman::agent::messages::ChatMessage;
 
