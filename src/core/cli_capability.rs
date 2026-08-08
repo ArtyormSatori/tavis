@@ -190,10 +190,32 @@ pub fn ensure_capability_blocking(required: Option<Capability>, invocation: &str
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
-    let Some((driver_id, advertised)) = rt.block_on(bound_memory_driver()) else {
+    let Some((driver_id, _class, advertised)) = rt.block_on(bound_memory_driver()) else {
         return Ok(());
     };
     capability_verdict(&driver_id, advertised, Some(required), invocation)
+}
+
+/// The pure verdict for the legacy-client gate: does the bound driver class
+/// permit commands that operate on the embedded store directly?
+///
+/// Mirrors [`capability_verdict`]'s default-OPEN posture — `None` from the
+/// caller means "no legacy gate applies", and an unresolvable binding has
+/// already been defaulted-OPEN upstream by the caller skipping this entirely.
+pub fn legacy_client_verdict(
+    driver_id: &str,
+    class: DriverClass,
+    invocation: &str,
+) -> Result<()> {
+    if class == DriverClass::Embedded {
+        return Ok(());
+    }
+    log::warn!(
+        "[cli][legacy-client-gate] rejected invocation='{invocation}' driver='{driver_id}' \
+         class={} — not the embedded engine",
+        class.as_str()
+    );
+    anyhow::bail!(legacy_client_unavailable_message(driver_id, invocation))
 }
 
 #[cfg(test)]
