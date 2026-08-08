@@ -446,10 +446,13 @@ fn native_tool_round() -> Vec<ChatMessage> {
         ChatMessage::assistant(
             serde_json::json!({
                 "content": "calling get_weather",
+                // The flat `{id, name, arguments}` shape
+                // `NativeToolDispatcher::to_provider_messages` persists — the
+                // one `parse_native_assistant_envelope` accepts.
                 "tool_calls": [{
                     "id": "call-1",
-                    "type": "function",
-                    "function": {"name": "get_weather", "arguments": "{\"city\":\"SF\"}"}
+                    "name": "get_weather",
+                    "arguments": "{\"city\":\"SF\"}"
                 }]
             })
             .to_string(),
@@ -524,17 +527,26 @@ fn locator_read_is_equivalent_to_the_free_function() {
     );
     // Guard the fixture itself: an equivalence that compared two empty replays
     // would pass for the wrong reason.
+    let roles_and_text: Vec<(&str, String)> = direct
+        .messages
+        .iter()
+        .map(|m| {
+            // The tool row is JSON, and a serde round trip may reorder its
+            // keys; compare it parsed so the assertion pins content, not
+            // serialisation order.
+            let text = serde_json::from_str::<serde_json::Value>(&m.content)
+                .map(|v| v["content"].as_str().unwrap_or_default().to_string())
+                .unwrap_or_else(|_| m.content.clone());
+            (m.role.as_str(), text)
+        })
+        .collect();
     assert_eq!(
-        direct
-            .messages
-            .iter()
-            .map(|m| m.content.as_str())
-            .collect::<Vec<_>>(),
+        roles_and_text,
         vec![
-            "system prompt",
-            "[summary] asked about weather",
-            "{\"tool_call_id\":\"call-2\",\"content\":\"boom\"}",
-            "Sorry, that failed.",
+            ("system", "system prompt".to_string()),
+            ("assistant", "[summary] asked about weather".to_string()),
+            ("tool", "boom".to_string()),
+            ("assistant", "Sorry, that failed.".to_string()),
         ],
         "the fixture must actually exercise the compaction + interrupted skip"
     );
