@@ -10,6 +10,8 @@ use std::sync::OnceLock;
 
 use serde_json::{Map, Value};
 
+use tinycortex_api::capabilities::{Capabilities, Capability};
+
 use crate::core::ControllerSchema;
 
 /// A pinned, boxed future returned by a controller handler.
