@@ -68,6 +68,8 @@ pub use ops::*;
 pub use rpc_models::*;
 pub use schemas::{
     all_controller_schemas as all_memory_controller_schemas,
+    all_core_recall_controller_schemas as all_memory_core_recall_controller_schemas,
+    all_core_recall_registered_controllers as all_memory_core_recall_registered_controllers,
     all_documents_controller_schemas as all_memory_documents_controller_schemas,
     all_documents_registered_controllers as all_memory_documents_registered_controllers,
     all_files_controller_schemas as all_memory_files_controller_schemas,
