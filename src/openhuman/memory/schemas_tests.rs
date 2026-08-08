@@ -44,6 +44,87 @@ const ALL_FUNCTIONS: &[&str] = &[
     "tool_rules_json",
 ];
 
+/// The exact ordered `memory.*` registration sequence, captured from the
+/// registry **before** the per-family split (M5.1) and pinned here so the
+/// refactor is provably identity-preserving. Order matters: it is the order
+/// `src/core/all.rs` pushes controllers in, which is the order `/schema` and
+/// the CLI catalog advertise them in.
+///
+/// Unlike [`ALL_FUNCTIONS`] — an unordered membership list — this is ordered
+/// and must never be edited to accommodate a code change. If a change makes
+/// this fail, the change is a behaviour change, not a refactor.
+const REGISTRATION_ORDER: &[&str] = &[
+    // documents
+    "init",
+    "list_documents",
+    "list_namespaces",
+    "delete_document",
+    "query_namespace",
+    "recall_context",
+    "recall_memories",
+    "namespace_list",
+    "doc_put",
+    "doc_ingest",
+    "doc_list",
+    "doc_delete",
+    "context_query",
+    "context_recall",
+    "clear_namespace",
+    // files
+    "list_files",
+    "read_file",
+    "write_file",
+    // kv_graph
+    "kv_set",
+    "kv_get",
+    "kv_delete",
+    "kv_list_namespace",
+    "graph_upsert",
+    "graph_query",
+    // sync
+    "sync_channel",
+    "sync_all",
+    "ingestion_status",
+    // learn
+    "learn_all",
+    // provider
+    "provider_status",
+    // tool_memory
+    "tool_rule_put",
+    "tool_rule_get",
+    "tool_rule_list",
+    "tool_rule_delete",
+    "tool_rules_for_prompt",
+    "tool_rules_json",
+];
+
+fn functions_of(controllers: &[RegisteredController]) -> Vec<&'static str> {
+    controllers.iter().map(|c| c.schema.function).collect()
+}
+
+#[test]
+fn registered_controller_order_is_pinned_to_pre_split_snapshot() {
+    assert_eq!(
+        ALL_FUNCTIONS.len(),
+        REGISTRATION_ORDER.len(),
+        "the membership list and the ordered list have drifted apart"
+    );
+    assert_eq!(
+        functions_of(&all_registered_controllers()),
+        REGISTRATION_ORDER,
+        "memory controller registration order changed — this is a behaviour change, not a refactor"
+    );
+}
+
+#[test]
+fn controller_schema_order_is_pinned_to_pre_split_snapshot() {
+    let names: Vec<_> = all_controller_schemas()
+        .into_iter()
+        .map(|s| s.function)
+        .collect();
+    assert_eq!(names, REGISTRATION_ORDER);
+}
+
 #[test]
 fn all_controller_schemas_has_entry_per_supported_function() {
     let names: Vec<_> = all_controller_schemas()
