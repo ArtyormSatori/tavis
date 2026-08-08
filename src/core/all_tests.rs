@@ -30,6 +30,7 @@ fn grouped(controllers: Vec<RegisteredController>) -> Vec<GroupedController> {
         .into_iter()
         .map(|controller| GroupedController {
             group: DomainGroup::Platform,
+            capability: None,
             controller,
         })
         .collect()
