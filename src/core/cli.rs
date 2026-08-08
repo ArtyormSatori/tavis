@@ -482,6 +482,16 @@ fn run_namespace_command(
 
     let function = args[0].as_str();
     let Some(schema) = schemas.iter().find(|s| s.function == function).cloned() else {
+        // Same distinction as the namespace arm above: a function filtered out by
+        // the bound driver's capability set is not a typo and must not read like
+        // one. `capability_for_parts` is `None` when no such controller is
+        // registered anywhere, so a genuine typo falls straight through to the
+        // message below — collapsing the two would make real typos harder to
+        // diagnose.
+        crate::core::cli_capability::ensure_capability_blocking(
+            all::capability_for_parts(namespace, function).flatten(),
+            &format!("openhuman {namespace} {function}"),
+        )?;
         return Err(anyhow::anyhow!(
             "unknown function '{namespace} {function}'. Run `openhuman {namespace} --help`."
         ));
