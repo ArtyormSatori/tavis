@@ -1064,9 +1064,10 @@ fn build_internal_only_controllers() -> Vec<GroupedController> {
 /// omitted. With no active context, or under `DomainSet::full()`, this returns
 /// the complete set (byte-identical to pre-#4796).
 pub fn all_registered_controllers() -> Vec<RegisteredController> {
+    let caps = crate::core::runtime::context::CoreContext::current_memory_capabilities();
     registry()
         .iter()
-        .filter(|g| group_allowed(g.group))
+        .filter(|g| group_allowed(g.group) && capability_allowed_in(caps, g.capability))
         .map(|g| g.controller.clone())
         .collect()
 }
