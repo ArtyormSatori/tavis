@@ -113,7 +113,8 @@ pub fn capability_verdict(
     ))
 }
 
-/// The driver bound for this machine's configured workspace: `(id, advertised)`.
+/// The driver bound for this machine's configured workspace:
+/// `(id, class, advertised)`.
 ///
 /// `None` means "could not resolve" — a missing or unreadable config, or a
 /// workspace that will not bind. **The caller then skips the gate entirely**,
@@ -122,7 +123,7 @@ pub fn capability_verdict(
 /// `capabilities()`. A CLI that refused commands because it could not read
 /// config would be strictly worse than one that lets the command run and fail
 /// on its own terms.
-pub async fn bound_memory_driver() -> Option<(String, Capabilities)> {
+pub async fn bound_memory_driver() -> Option<(String, DriverClass, Capabilities)> {
     let config = match crate::openhuman::config::Config::load_or_init().await {
         Ok(config) => config,
         Err(err) => {
@@ -141,18 +142,19 @@ pub async fn bound_memory_driver() -> Option<(String, Capabilities)> {
 /// one per CLI entry point. Callers that already hold a `Config` — the
 /// `openhuman memory` adapter does — use this instead of loading it twice.
 ///
-/// Nothing here touches memory *data*: only the driver id and the advertised
-/// capability set, both of which are exactly what
-/// `memory.provider_status` already reports over RPC.
+/// Nothing here touches memory *data*: only the driver id, its class, and the
+/// advertised capability set — exactly what `memory.provider_status` already
+/// reports over RPC.
 pub fn bound_memory_driver_for(
     workspace_dir: &std::path::Path,
     cfg: &crate::openhuman::config::schema::MemorySubsystemConfig,
-) -> Option<(String, Capabilities)> {
+) -> Option<(String, DriverClass, Capabilities)> {
     match crate::openhuman::memory::binding::for_workspace(workspace_dir, cfg) {
         Ok(binding) => {
             log::debug!(
-                "[cli][capability-gate] bound driver='{}' capabilities=[{}]",
+                "[cli][capability-gate] bound driver='{}' class={} capabilities=[{}]",
                 binding.driver_id(),
+                binding.class(),
                 binding
                     .capabilities()
                     .iter()
@@ -160,7 +162,11 @@ pub fn bound_memory_driver_for(
                     .collect::<Vec<_>>()
                     .join(",")
             );
-            Some((binding.driver_id().to_string(), binding.capabilities()))
+            Some((
+                binding.driver_id().to_string(),
+                binding.class(),
+                binding.capabilities(),
+            ))
         }
         Err(err) => {
             log::debug!("[cli][capability-gate] bind unresolved ({err}); gate defaults OPEN");
