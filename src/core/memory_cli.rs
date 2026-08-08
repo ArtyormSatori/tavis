@@ -517,6 +517,9 @@ fn print_memory_help() {
     println!("  namespaces          List all namespaces");
     println!("  clear               Clear all data in a namespace");
     println!();
+    println!("Some subcommands need capability families the bound memory driver may not");
+    println!("advertise. Run `openhuman subsystems` to see what is bound.");
+    println!();
     println!("Examples:");
     println!("  openhuman memory ingest notes.md -n my-project -v");
     println!("  echo 'Alice works on ProjectX' | openhuman memory ingest - -n test -v");
