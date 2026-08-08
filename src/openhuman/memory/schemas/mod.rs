@@ -49,7 +49,7 @@ mod tool_memory;
 // below fan these out in a fixed order — core_recall, documents, ingest, files,
 // kv_graph, sync, learn, provider, tool_memory. Do not reorder: `src/core/all.rs`
 // pushes the nine parts in exactly this sequence and
-// `registered_controller_order_is_pinned_to_pre_split_snapshot` in
+// `registered_controller_order_is_pinned_to_the_capability_partition_snapshot` in
 // `schemas_tests.rs` fails if it drifts.
 
 /// Controller schemas for the mandatory core + recall surface. Never

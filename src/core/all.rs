@@ -729,7 +729,7 @@ fn build_registered_controllers() -> Vec<GroupedController> {
     // spans four driver capability families plus two host-only surfaces, so it
     // registers as nine tagged pushes rather than one (M5.2). Order matches
     // `memory::schemas::all_registered_controllers`, which
-    // `registered_controller_order_is_pinned_to_pre_split_snapshot` pins.
+    // `registered_controller_order_is_pinned_to_the_capability_partition_snapshot` pins.
     push_cap(
         &mut controllers,
         DomainGroup::Memory,
