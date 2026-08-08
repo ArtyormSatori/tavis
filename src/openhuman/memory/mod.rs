@@ -68,7 +68,21 @@ pub use ops::*;
 pub use rpc_models::*;
 pub use schemas::{
     all_controller_schemas as all_memory_controller_schemas,
+    all_documents_controller_schemas as all_memory_documents_controller_schemas,
+    all_documents_registered_controllers as all_memory_documents_registered_controllers,
+    all_files_controller_schemas as all_memory_files_controller_schemas,
+    all_files_registered_controllers as all_memory_files_registered_controllers,
+    all_kv_graph_controller_schemas as all_memory_kv_graph_controller_schemas,
+    all_kv_graph_registered_controllers as all_memory_kv_graph_registered_controllers,
+    all_learn_controller_schemas as all_memory_learn_controller_schemas,
+    all_learn_registered_controllers as all_memory_learn_registered_controllers,
+    all_provider_controller_schemas as all_memory_provider_controller_schemas,
+    all_provider_registered_controllers as all_memory_provider_registered_controllers,
     all_registered_controllers as all_memory_registered_controllers,
+    all_sync_controller_schemas as all_memory_sync_controller_schemas,
+    all_sync_registered_controllers as all_memory_sync_registered_controllers,
+    all_tool_memory_controller_schemas as all_memory_tool_memory_controller_schemas,
+    all_tool_memory_registered_controllers as all_memory_tool_memory_registered_controllers,
 };
 pub use traits::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary, RecallOpts};
 
