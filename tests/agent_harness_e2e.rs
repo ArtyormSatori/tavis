@@ -1313,7 +1313,7 @@ fn ensure_approval_gate() {
     // The global event bus must be initialized before registering subscribers.
     // `build_core_http_router` does NOT call `bootstrap_core_runtime`, so the bus
     // is not initialized by boot_stack. Initialize it here (idempotent: OnceLock).
-    event_bus::init_global(event_bus::DEFAULT_CAPACITY);
+    event_bus::crate::core::bus::init().await.expect("bus init");
 
     let mut cfg: openhuman_core::openhuman::config::Config = toml::from_str(
         r#"api_url = "http://127.0.0.1:1"

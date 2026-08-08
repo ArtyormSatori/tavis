@@ -121,7 +121,7 @@ use crate::core::events::DomainEvent;
         crate::core::bus::init().await.expect("bus init");
         let seen = Arc::new(Mutex::new(Vec::<DomainEvent>::new()));
         let seen_handler = Arc::clone(&seen);
-        let _handle = global().unwrap().on("triage-events-test", move |event| {
+        let _handle = crate::core::bus::BUS.get().unwrap().on("triage-events-test", move |event| {
             let seen = Arc::clone(&seen_handler);
             let cloned = event.clone();
             Box::pin(async move {

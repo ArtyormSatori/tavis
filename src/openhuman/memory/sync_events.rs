@@ -304,7 +304,7 @@ mod tests {
         let _guard = test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        init_global(event_bus::DEFAULT_CAPACITY);
+        crate::core::bus::init().await.expect("bus init");
 
         let collector = StageCollector::default();
         let _subscription =
@@ -343,7 +343,7 @@ mod tests {
         let _guard = test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        init_global(event_bus::DEFAULT_CAPACITY);
+        crate::core::bus::init().await.expect("bus init");
 
         let collector = StageCollector::default();
         let _subscription =
@@ -434,7 +434,7 @@ mod tests {
         let _guard = test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        init_global(event_bus::DEFAULT_CAPACITY);
+        crate::core::bus::init().await.expect("bus init");
 
         let collector = StageCollector::default();
         let _subscription =
@@ -482,7 +482,7 @@ mod tests {
         let _guard = test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        init_global(event_bus::DEFAULT_CAPACITY);
+        crate::core::bus::init().await.expect("bus init");
 
         let collector = StageCollector::default();
         let _subscription =
@@ -529,7 +529,7 @@ mod tests {
         let _guard = test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        init_global(event_bus::DEFAULT_CAPACITY);
+        crate::core::bus::init().await.expect("bus init");
 
         let collector = StageCollector::default();
         let _subscription =
@@ -582,7 +582,7 @@ mod tests {
         let _guard = test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        init_global(event_bus::DEFAULT_CAPACITY);
+        crate::core::bus::init().await.expect("bus init");
 
         let collector = StageCollector::default();
         let _subscription =

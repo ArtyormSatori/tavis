@@ -1205,7 +1205,7 @@ use tinybus::EventHandler;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     // Create an isolated bus for this test.
-    let bus = tinybus::crate::core::bus_testing::isolated_bus().await;
+    let bus = crate::core::bus_testing::isolated_bus().await;
 
     let received = Arc::new(AtomicUsize::new(0));
     let received_clone = Arc::clone(&received);
