@@ -74,6 +74,28 @@ pub fn current() -> Option<PathBuf> {
     AGENT_TURN_WORKSPACE.try_with(|root| root.clone()).ok()
 }
 
+/// Carry the workspace scoped **right now** into a future that will run on
+/// another task.
+///
+/// Same contract, and same reason, as
+/// [`turn_origin::propagate`](super::turn_origin::propagate): a detached
+/// sub-agent starts on a fresh task where [`current`] is `None`, so it would
+/// lose the root its parent turn was bound to and have its writes into that
+/// checkout refused. Build the future on the parent task, before `tokio::spawn`
+/// — the root is read when this is called, not when the future is polled.
+///
+/// With no scoped root this is a no-op, which is every caller that never opted
+/// in.
+pub fn propagate<F: std::future::Future>(fut: F) -> impl std::future::Future<Output = F::Output> {
+    let captured = current();
+    async move {
+        match captured {
+            Some(root) => with_workspace(root, fut).await,
+            None => fut.await,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
