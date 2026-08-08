@@ -199,6 +199,25 @@ pub fn unbound_default_capabilities() -> Capabilities {
     Capabilities::all()
 }
 
+/// The class a driver id implies with no `[subsystems.memory.drivers.<id>]`
+/// entry and no explicit `class` line. Only the two built-in ids admit: the
+/// embedded default and the null placeholder. Anything else is refused.
+fn implicit_class<'a>(
+    id: &'a str,
+    refuse: &impl Fn(&str) -> FallbackReason,
+) -> Result<(String, DriverClass), FallbackReason> {
+    if id == NULL_DRIVER_ID {
+        Ok((id.to_string(), DriverClass::Null))
+    } else if id == EMBEDDED_DRIVER_ID {
+        Ok((id.to_string(), DriverClass::Embedded))
+    } else {
+        Err(refuse(
+            "unknown driver id: no [subsystems.memory.drivers.<id>] entry, and the \
+             id is neither the embedded default nor \"null\"",
+        ))
+    }
+}
+
 /// Decide, from config alone, whether the configured driver may bind.
 ///
 /// Pure — no I/O, no globals — so the fail-closed trust rule is unit-testable
