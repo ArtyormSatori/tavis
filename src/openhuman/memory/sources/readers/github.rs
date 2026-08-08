@@ -20,7 +20,6 @@ use crate::openhuman::memory::store::content::raw::RawKind;
 
 use super::SourceReader;
 
-
 /// Cache of issue/PR data populated during `list_items` so `read_item`
 /// doesn't re-fetch each one individually. The paginated list endpoints
 /// already return the full body, state, labels, etc. — caching them
