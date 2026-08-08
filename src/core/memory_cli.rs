@@ -465,10 +465,44 @@ fn read_input(path: &str) -> Result<String> {
     }
 }
 
-async fn create_memory_client() -> Result<crate::openhuman::memory::store::MemoryClientRef> {
+/// Resolve the memory client for a subcommand, refusing first when the bound
+/// driver does not advertise the family that subcommand needs.
+///
+/// The refusal is a *config fact* naming the driver and the family, not silent
+/// absence: `docs/specs/kernel.md` §3.3 makes the CLI its one exception, because
+/// a human reads silence as a typo. Same reasoning as the retained `mcp` / `tui`
+/// arms in `src/core/cli.rs`.
+///
+/// The gate is default-OPEN when the binding cannot be resolved, mirroring
+/// [`crate::core::all::capability_allowed`]: denying is only ever correct after
+/// a driver has actually answered `capabilities()`.
+///
+/// This is the single chokepoint every subcommand already funnels through, and
+/// it already loads config, so the gate costs no extra config read.
+async fn create_memory_client(
+    subcommand: &str,
+) -> Result<crate::openhuman::memory::store::MemoryClientRef> {
     let config = crate::openhuman::config::Config::load_or_init()
         .await
         .unwrap_or_default();
+
+    if let Some(required) = required_capability(subcommand) {
+        match crate::openhuman::memory::binding::for_workspace(
+            &config.workspace_dir,
+            &config.subsystems.memory,
+        ) {
+            Ok(binding) => crate::core::cli_capability::capability_verdict(
+                binding.driver_id(),
+                binding.capabilities(),
+                Some(required),
+                &format!("openhuman memory {subcommand}"),
+            )?,
+            Err(err) => log::debug!(
+                "[memory:cli][capability-gate] bind unresolved ({err}); gate defaults OPEN"
+            ),
+        }
+    }
+
     crate::openhuman::memory::global::init(config.workspace_dir).map_err(anyhow::Error::msg)
 }
 
