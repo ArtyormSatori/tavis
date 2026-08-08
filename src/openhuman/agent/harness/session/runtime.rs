@@ -486,6 +486,14 @@ impl Agent {
     /// user message is appended later by [`Self::run_single`] / `turn`, so it is
     /// intentionally absent from the loaded prefix — no dedup is needed here (the
     /// on-disk transcript ends at the previous completed turn).
+    ///
+    /// Goes through the S4 seam like `try_load_session_transcript` (see its doc
+    /// comment for why the read is `read_session` and not
+    /// `ChatHistory::messages()`), via the locator's `root_for_thread` — the
+    /// lookup that resolves by `_meta.thread_id` across *root* transcripts
+    /// only. That disambiguation is why it is a locator method rather than
+    /// anything a stem-bound handle could offer: several transcripts share one
+    /// thread id (every sub-agent spawned within it does).
     pub fn seed_resume_from_thread_transcript(&mut self, thread_id: &str) -> bool {
         if !self.history.is_empty() || self.cached_transcript_messages.is_some() {
             log::debug!(
@@ -497,16 +505,21 @@ impl Agent {
             return false;
         }
 
-        let session_raw_dir = self.workspace_dir.join(&self.session_raw_subdir);
-        let Some(path) =
-            super::transcript::find_root_transcript_for_thread_in_dir(&session_raw_dir, thread_id)
-        else {
+        // The thread's conversation belongs to the THREAD, not the active
+        // profile: the locator resolves cross-dir, newest-wins across the
+        // shared `session_raw/` and every profile-scoped `session_raw-<id>/`
+        // (#5351), so switching profile mid-thread continues the same
+        // conversation. See `FileTranscriptLocator::root_for_thread` for why
+        // this must not be own-dir-first.
+        let Some(handle) = self.session_locator().root_for_thread(thread_id) else {
             log::debug!(
-                "[web-channel] no root session_raw transcript for thread={thread_id} — \
-                 falling back to conversation-log prose seeding"
+                "[web-channel] no root session_raw transcript for thread={thread_id} in any \
+                 (shared or profile-scoped) session_raw dir — falling back to \
+                 conversation-log prose seeding"
             );
             return false;
         };
+        let path = handle.path().to_path_buf();
 
         log::info!(
             "[web-channel] cold-boot resume — loading full-fidelity transcript for \
@@ -514,8 +527,18 @@ impl Agent {
             path.display()
         );
 
-        match super::transcript::read_transcript(&path) {
-            Ok(session) => {
+        match handle.read_session() {
+            // `Ok(None)` (file vanished between discovery and read) folds into
+            // the same empty-transcript branch, so the prose-seeding fallback
+            // triggers identically.
+            Ok(None) => {
+                log::debug!(
+                    "[web-channel] root transcript for thread={thread_id} is empty — \
+                     falling back to prose seeding"
+                );
+                false
+            }
+            Ok(Some(session)) => {
                 if session.messages.is_empty() {
                     log::debug!(
                         "[web-channel] root transcript for thread={thread_id} is empty — \

@@ -32,10 +32,8 @@ use async_trait::async_trait;
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use tinybus::EventHandler;
-use crate::openhuman::agent::session_db::run_ledger::{
-    transition_agent_run_status, AgentRunStatus,
-};
 use crate::openhuman::config::Config;
+use tinyagents::session::run_ledger::{transition_agent_run_status, AgentRunStatus};
 
 const LOG_PREFIX: &str = "[run_ledger][finalize]";
 
@@ -77,8 +75,14 @@ impl EventHandler<DomainEvent> for RunLedgerFinalizeSubscriber {
         // EventHandler "must not block" contract.
         let config = self.config.clone();
         let result = tokio::task::spawn_blocking(move || {
-            transition_agent_run_status(&config, &task_id, status, error.as_deref(), completed_at)
-                .map(|run| (task_id, run))
+            transition_agent_run_status(
+                &config.workspace_dir,
+                &task_id,
+                status,
+                error.as_deref(),
+                completed_at,
+            )
+            .map(|run| (task_id, run))
         })
         .await;
 
