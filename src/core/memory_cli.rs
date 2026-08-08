@@ -532,7 +532,7 @@ fn print_memory_help() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::cli_capability::{CAPABILITY_UNAVAILABLE_PREFIX, capability_verdict};
+    use crate::core::cli_capability::{capability_verdict, CAPABILITY_UNAVAILABLE_PREFIX};
     use tinycortex_api::capabilities::{Capabilities, Capability};
 
     /// Drift guard: a renamed controller function must break here rather than

@@ -1380,7 +1380,11 @@ pub fn sole_capability_for_namespace(namespace: &str) -> Option<Capability> {
             (Some(_), Some(_)) => return None,
         }
     }
-    if any { found } else { None }
+    if any {
+        found
+    } else {
+        None
+    }
 }
 
 /// Retrieves the schema for a specific RPC method.

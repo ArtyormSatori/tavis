@@ -27,15 +27,13 @@ fn null_cfg() -> MemorySubsystemConfig {
 
 #[test]
 fn verdict_is_ok_for_ungated_surface() {
-    assert!(
-        capability_verdict(
-            "null",
-            Capabilities::mandatory(),
-            None,
-            "openhuman memory docs"
-        )
-        .is_ok()
-    );
+    assert!(capability_verdict(
+        "null",
+        Capabilities::mandatory(),
+        None,
+        "openhuman memory docs"
+    )
+    .is_ok());
 }
 
 #[test]
@@ -70,15 +68,13 @@ fn verdict_error_does_not_read_like_a_typo() {
 
 #[test]
 fn verdict_is_ok_when_the_driver_advertises_the_family() {
-    assert!(
-        capability_verdict(
-            "tinycortex",
-            Capabilities::all(),
-            Some(Capability::Tree),
-            "openhuman memory_tree list_chunks",
-        )
-        .is_ok()
-    );
+    assert!(capability_verdict(
+        "tinycortex",
+        Capabilities::all(),
+        Some(Capability::Tree),
+        "openhuman memory_tree list_chunks",
+    )
+    .is_ok());
 }
 
 /// The message carries a driver id and a capability constant and nothing else —

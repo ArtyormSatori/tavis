@@ -2364,7 +2364,10 @@ fn capability_for_parts_reports_the_registered_family_unfiltered() {
         Some(Some(Capability::Tree))
     );
     // Registered and deliberately ungated — distinct from "not registered".
-    assert_eq!(capability_for_parts("memory", "provider_status"), Some(None));
+    assert_eq!(
+        capability_for_parts("memory", "provider_status"),
+        Some(None)
+    );
 }
 
 /// The lookup that makes the whole distinction possible: it must stay
