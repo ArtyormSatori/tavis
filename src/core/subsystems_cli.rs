@@ -65,48 +65,16 @@ pub fn run_subsystems_command(args: &[String]) -> Result<()> {
 
 /// The slot table for a standalone CLI invocation.
 ///
-/// [`subsystems_status`] resolves memory through `CoreContext::current()`, and a
-/// bare CLI subcommand never builds one — so it would report an unresolved row
-/// (`driver = ""`, null/down) on every invocation, even on a healthy TinyCortex
-/// install. Resolve the configured workspace's memory binding directly, the
-/// same way [`crate::core::cli_capability::bound_memory_driver_for`] does.
-///
-/// Falls back to the ambient [`subsystems_status`] only when the config cannot
-/// be loaded or the workspace will not bind — mirroring the capability gate's
-/// default-OPEN posture: a status command that refuses to render because it
-/// cannot read config would be worse than one that shows the unresolved row.
+/// [`subsystems_status`] resolves memory through [`memory_subsystem_status`],
+/// which now handles the no-`CoreContext` standalone case itself by reading the
+/// on-disk config and binding the configured workspace's driver (see
+/// `memory::ops::provider::standalone_status`) — the same way
+/// `cli_capability::bound_memory_driver_for` does. So the bare table and the
+/// `subsystems status` JSON path both render the same resolved row, on the same
+/// code, and neither reports an unresolved `driver = ""` row on a healthy
+/// install.
 async fn cli_subsystems_status() -> Vec<SubsystemStatus> {
-    let config = match crate::openhuman::config::Config::load_or_init().await {
-        Ok(config) => config,
-        Err(err) => {
-            log::debug!("[subsystems] config unresolved ({err}); falling back to ambient status");
-            return subsystems_status().await;
-        }
-    };
-
-    match crate::openhuman::memory::binding::for_workspace(
-        &config.workspace_dir,
-        &config.subsystems.memory,
-    ) {
-        Ok(binding) => {
-            let memory =
-                crate::openhuman::memory::ops::provider::status_from_binding(&binding).await;
-            log::debug!(
-                "[subsystems] memory driver='{}' class={} health={} capabilities=[{}]",
-                memory.driver,
-                memory.class,
-                memory.health,
-                memory.capabilities.join(",")
-            );
-            vec![memory]
-        }
-        Err(err) => {
-            log::debug!(
-                "[subsystems] memory binding unresolved ({err}); falling back to ambient status"
-            );
-            subsystems_status().await
-        }
-    }
+    subsystems_status().await
 }
 
 fn print_help() {
