@@ -9,7 +9,8 @@ chunks/    SQLite chunk rows (metadata + tags + md path pointer +
            lifecycle status) + the two chunkers that produce them
 entities/  mem_tree_entity_index — every entity occurrence per node
 trees/     summary tree persistence (one table, kind-parameterized)
-vectors/   local vector DB (cosine, brute-force)
+vectors    [tinycortex::memory::store::vectors] — local vector DB
+           (cosine, brute-force), moved into the TinyCortex substrate
 kv/        global + namespace key-value (kv_global, kv_namespace)
 contacts/  [removed] facade over people::store (Person/Handle/Interaction)
 namespace_store/  host-retained namespace documents, graph, episodic/event/
