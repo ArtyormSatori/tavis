@@ -419,6 +419,26 @@ impl SessionTranscriptHistory {
         Ok(Self { path, seed_meta })
     }
 
+    /// Binds a handle to an **already-discovered** transcript file, verbatim.
+    ///
+    /// Deliberately does **not** go through `resolve_keyed_transcript_path*`,
+    /// which the two stem constructors above use. That helper `create_dir_all`s
+    /// its parent and forces a `.jsonl` extension — both wrong for a discovered
+    /// path: `find_latest_transcript_in_subdir` can still return a legacy `.md`
+    /// file (`read_transcript` routes by extension), and re-resolving would
+    /// mangle it into a sibling `.jsonl` that does not exist while creating
+    /// stray directories on a pure read.
+    ///
+    /// Hand the result out as `Arc<dyn SessionTranscriptRead>`, not
+    /// `Arc<dyn SessionHistory>` — see [`SessionTranscriptRead`]'s doc.
+    pub fn opened_at(path: PathBuf, seed_meta: TranscriptMeta) -> Self {
+        log::debug!(
+            "[transcript-history] opened discovered path={}",
+            path.display()
+        );
+        Self { path, seed_meta }
+    }
+
     /// This handle's transcript file.
     pub fn path(&self) -> &Path {
         &self.path
