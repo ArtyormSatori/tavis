@@ -527,3 +527,116 @@ fn print_memory_help() {
     println!("  openhuman memory docs -n my-project");
     println!("  openhuman memory query -n my-project -q 'who works on what?'");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::cli_capability::{CAPABILITY_UNAVAILABLE_PREFIX, capability_verdict};
+    use crate::openhuman::config::schema::MemorySubsystemConfig;
+    use crate::openhuman::memory::binding;
+    use tinycortex_api::capabilities::Capability;
+
+    /// Drift guard: a renamed controller function must break here rather than
+    /// silently un-gate a subcommand (`required_capability` would start
+    /// returning `None` for it).
+    #[test]
+    fn memory_cli_subcommands_mirror_real_controllers() {
+        for (sub, function) in SUBCOMMAND_CONTROLLER {
+            assert!(
+                crate::core::all::rpc_method_from_parts("memory", function).is_some(),
+                "`openhuman memory {sub}` maps to memory.{function}, which is not registered"
+            );
+        }
+    }
+
+    /// Adding a subcommand without recording a capability decision fails here.
+    #[test]
+    fn every_dispatched_subcommand_is_in_the_controller_table() {
+        for sub in [
+            "ingest",
+            "docs",
+            "list",
+            "graph",
+            "graph-query",
+            "query",
+            "namespaces",
+            "ns",
+            "clear",
+        ] {
+            assert!(
+                SUBCOMMAND_CONTROLLER.iter().any(|(s, _)| *s == sub),
+                "`openhuman memory {sub}` is dispatched but has no controller mapping"
+            );
+        }
+    }
+
+    #[test]
+    fn ingest_and_graph_are_the_gated_subcommands() {
+        assert_eq!(required_capability("ingest"), Some(Capability::Ingest));
+        assert_eq!(required_capability("graph"), Some(Capability::Graph));
+        assert_eq!(required_capability("graph-query"), Some(Capability::Graph));
+        // Mandatory core/recall surface — a gate here could never fire.
+        for sub in ["docs", "list", "query", "namespaces", "ns", "clear"] {
+            assert_eq!(required_capability(sub), None, "{sub} must stay ungated");
+        }
+    }
+
+    /// A real typo must never be reported as a capability fact.
+    #[test]
+    fn unknown_memory_subcommand_still_reports_unknown_subcommand() {
+        let err = run_memory_command(&["not_a_subcommand".to_string()])
+            .expect_err("an unknown subcommand must error");
+        let msg = err.to_string();
+        assert!(msg.contains("unknown memory subcommand"), "{msg}");
+        assert!(!msg.contains(CAPABILITY_UNAVAILABLE_PREFIX), "{msg}");
+        assert_eq!(required_capability("not_a_subcommand"), None);
+    }
+
+    fn null_binding(name: &str) -> std::sync::Arc<binding::MemoryBinding> {
+        let dir = std::env::temp_dir().join(format!("oh-memcli-cap-{name}"));
+        binding::for_workspace(
+            &dir,
+            &MemorySubsystemConfig {
+                driver: "null".into(),
+                ..Default::default()
+            },
+        )
+        .expect("binding resolves")
+    }
+
+    #[test]
+    fn gated_subcommand_reports_the_driver_and_capability() {
+        let binding = null_binding("gated");
+        let err = capability_verdict(
+            binding.driver_id(),
+            binding.capabilities(),
+            required_capability("ingest"),
+            "openhuman memory ingest",
+        )
+        .expect_err("the null driver does not advertise `ingest`");
+        let msg = err.to_string();
+        assert!(msg.contains("null"), "{msg}");
+        assert!(msg.contains("ingest"), "{msg}");
+        assert!(!msg.contains("unknown memory subcommand"), "{msg}");
+    }
+
+    /// The default embedded driver advertises every family, so nothing changes.
+    #[test]
+    fn default_embedded_driver_gates_nothing() {
+        let dir = std::env::temp_dir().join("oh-memcli-cap-default");
+        let binding = binding::for_workspace(&dir, &MemorySubsystemConfig::default())
+            .expect("binding resolves");
+        for (sub, _) in SUBCOMMAND_CONTROLLER {
+            assert!(
+                capability_verdict(
+                    binding.driver_id(),
+                    binding.capabilities(),
+                    required_capability(sub),
+                    "openhuman memory <sub>",
+                )
+                .is_ok(),
+                "`openhuman memory {sub}` must stay available under the default driver"
+            );
+        }
+    }
+}
