@@ -115,7 +115,7 @@ fn functions_of(controllers: &[RegisteredController]) -> Vec<&'static str> {
 }
 
 #[test]
-fn registered_controller_order_is_pinned_to_pre_split_snapshot() {
+fn registered_controller_order_is_pinned_to_the_capability_partition_snapshot() {
     assert_eq!(
         ALL_FUNCTIONS.len(),
         REGISTRATION_ORDER.len(),
