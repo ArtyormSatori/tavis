@@ -50,6 +50,7 @@ impl AgentBuilder {
             memory_subdir: None,
             session_raw_subdir: None,
             session_parent_prefix: None,
+            session_history_locator: None,
             omit_profile: None,
             omit_memory_md: None,
             payload_summarizer: None,
