@@ -407,7 +407,7 @@ impl CoreContext {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(workspace_dir),
             domains,
-            memory_subsystem: memory_subsystem.unwrap_or_default(),
+            memory_subsystem: RwLock::new(memory_subsystem.unwrap_or_default()),
         })
     }
 }
