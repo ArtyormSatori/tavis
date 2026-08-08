@@ -405,6 +405,7 @@ pub async fn memory_list_namespaces(
 pub async fn memory_delete_document(
     request: DeleteDocumentRequest,
 ) -> Result<RpcOutcome<ApiEnvelope<DeleteDocumentResponse>>, String> {
+    ensure_embedded_driver("delete_document").await?;
     let client = active_memory_client().await?;
     let raw = client
         .delete_document(&request.namespace, &request.document_id)
