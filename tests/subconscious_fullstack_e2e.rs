@@ -22,7 +22,8 @@ use std::sync::{Arc, Mutex as StdMutex, OnceLock};
 
 use async_trait::async_trait;
 
-use openhuman_core::core::event_bus::{init_global, DomainEvent};
+use openhuman_core::core::bus::BUS;
+use openhuman_core::core::events::DomainEvent;
 use openhuman_core::openhuman::agent::harness::AgentDefinitionRegistry;
 use openhuman_core::openhuman::config::schema::SubconsciousMode;
 use openhuman_core::openhuman::inference::provider::factory::test_provider_override;

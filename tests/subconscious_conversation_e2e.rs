@@ -31,7 +31,8 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 
-use openhuman_core::core::event_bus::{global, init_global, DomainEvent};
+use openhuman_core::core::bus::BUS;
+use openhuman_core::core::events::DomainEvent;
 use openhuman_core::openhuman::subconscious::triggers::types::{
     GateDecision, Trigger, TriggerPriority, TriggerSource,
 };
@@ -230,7 +231,7 @@ struct Harness {
     emit: Emitter,
     notifications: Arc<StdMutex<Vec<String>>>,
     _loop: tokio::task::JoinHandle<()>,
-    _sub: openhuman_core::core::event_bus::SubscriptionHandle,
+    _sub: tinybus::SubscriptionHandle,
     _tmp: tempfile::TempDir,
 }
 

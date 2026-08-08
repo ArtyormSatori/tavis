@@ -1363,7 +1363,7 @@ encrypt = false
 /// drops (end of the first test), the task is cancelled and all subsequent tests in the
 /// same binary lose the bridge silently. This per-test helper avoids the issue by
 /// registering a fresh subscription on each test's own runtime.
-fn register_approval_bridge() -> Option<openhuman_core::core::event_bus::SubscriptionHandle> {
+fn register_approval_bridge() -> Option<tinybus::SubscriptionHandle> {
     openhuman_core::openhuman::web_chat::fresh_approval_surface_subscription()
 }
 

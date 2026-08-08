@@ -19,7 +19,8 @@
 
 use std::sync::{Arc, Mutex as StdMutex, OnceLock};
 
-use openhuman_core::core::event_bus::{global, init_global, DomainEvent};
+use openhuman_core::core::bus::BUS;
+use openhuman_core::core::events::DomainEvent;
 use openhuman_core::openhuman::agent::triage::{TriageAction, TriageDecision};
 use openhuman_core::openhuman::subconscious::triggers::gate::{apply_budget, map_triage_to_gate};
 use openhuman_core::openhuman::subconscious::triggers::{
