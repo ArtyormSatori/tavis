@@ -68,6 +68,24 @@ pub fn capability_unavailable_message(
     )
 }
 
+/// The operator-facing sentence for a legacy CLI command that cannot run under
+/// the bound driver.
+///
+/// `invocation` follows the same static-strings-only rule as
+/// [`capability_unavailable_message`]. This is a distinct diagnostic from the
+/// capability one: a null or external binding does not necessarily lack the
+/// family — the legacy command is unavailable because it operates on the
+/// embedded engine directly, and the bound driver is not that engine.
+pub fn legacy_client_unavailable_message(driver_id: &str, invocation: &str) -> String {
+    format!(
+        "{LEGACY_CLIENT_UNAVAILABLE_PREFIX}`{driver_id}` is not the embedded TinyCortex \
+         driver, so `{invocation}` is unavailable: it operates on the local embedded \
+         store directly, and this configuration bound a different driver. Run \
+         `openhuman subsystems` to see the bound driver, or change \
+         `[subsystems.memory] driver` in your config.",
+    )
+}
+
 /// The pure verdict: given what a driver advertises, is `required` available?
 ///
 /// `required == None` (ungated surface) is always `Ok`. Mirrors
