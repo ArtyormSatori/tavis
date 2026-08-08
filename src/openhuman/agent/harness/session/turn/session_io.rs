@@ -2,7 +2,7 @@
 
 use super::super::transcript;
 use super::super::transcript_history::{
-    FileTranscriptLocator, SessionHistoryLocator, SessionTranscriptRead, TranscriptTurn,
+    FileTranscriptLocator, SessionHistoryLocator, TranscriptTurn,
 };
 use super::super::types::Agent;
 use crate::openhuman::agent::context::ARCHIVIST_EXTRACTION_PROMPT;

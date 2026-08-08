@@ -7,7 +7,6 @@
 //! makes it obvious which methods are cheap getters vs which actually
 //! drive the model.
 
-use super::transcript_history::SessionTranscriptRead;
 use super::types::{Agent, AgentBuilder};
 use crate::core::event_bus::{publish_global, DomainEvent};
 use crate::openhuman::agent::dispatcher::ParsedToolCall;
