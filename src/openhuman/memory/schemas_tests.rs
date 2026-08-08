@@ -138,9 +138,11 @@ fn controller_schema_order_is_pinned_to_pre_split_snapshot() {
 }
 
 #[test]
-fn aggregator_is_exactly_the_seven_families_concatenated_in_order() {
+fn aggregator_is_exactly_the_nine_parts_concatenated_in_order() {
     let mut expected = Vec::new();
+    expected.extend(functions_of(&all_core_recall_registered_controllers()));
     expected.extend(functions_of(&all_documents_registered_controllers()));
+    expected.extend(functions_of(&all_ingest_registered_controllers()));
     expected.extend(functions_of(&all_files_registered_controllers()));
     expected.extend(functions_of(&all_kv_graph_registered_controllers()));
     expected.extend(functions_of(&all_sync_registered_controllers()));
