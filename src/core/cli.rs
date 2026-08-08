@@ -454,6 +454,18 @@ fn run_namespace_command(
     grouped: &BTreeMap<String, Vec<ControllerSchema>>,
 ) -> Result<()> {
     let Some(schemas) = grouped.get(namespace) else {
+        // `grouped` is built from the capability-FILTERED `all_controller_schemas()`,
+        // so a namespace whose every controller is gated on a family the bound
+        // memory driver does not advertise vanishes from it entirely. Consult the
+        // UNFILTERED registry before reporting a typo: silence reads as a mistyped
+        // command and sends the user off debugging their own command line, which is
+        // exactly what `docs/specs/kernel.md` §3.3 carves the CLI out of. Same
+        // reasoning as the retained `mcp` and `tui` arms above. A namespace that
+        // does not exist at all yields `None` here and still reports unknown.
+        crate::core::cli_capability::ensure_capability_blocking(
+            all::sole_capability_for_namespace(namespace),
+            &format!("openhuman {namespace}"),
+        )?;
         return Err(anyhow::anyhow!(
             "unknown namespace '{namespace}'. Run `openhuman --help` to see available namespaces."
         ));
