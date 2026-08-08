@@ -249,6 +249,29 @@ impl CoreContext {
             .unwrap_or_else(|_| crate::openhuman::memory::binding::unbound_default_capabilities())
     }
 
+    /// The **guarded** memory driver for this context's workspace — the handle
+    /// product code should hold (`docs/specs/kernel.md` §3.4).
+    ///
+    /// The guard implements the same `MemoryProvider` contract as the driver it
+    /// wraps, so it is a drop-in for a caller that already speaks the contract,
+    /// and its family accessors hand back guarded handles rather than the raw
+    /// driver's — which is what makes the policy unskippable for anyone holding
+    /// it.
+    ///
+    /// [`Self::memory_binding`] still exists and still exposes the bare
+    /// provider. That is deliberate and narrow: the one production caller is
+    /// the health probe in `memory::ops::provider`, and a liveness probe is not
+    /// product code — routing it through the guard would let an autonomy tier
+    /// break status output. New call sites use this accessor.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::memory_binding`]: only when the workspace dir cannot be
+    /// resolved or the binding cache lock is poisoned.
+    pub fn memory(&self) -> Result<Arc<crate::openhuman::memory::guard::MemoryGuard>, String> {
+        Ok(self.memory_binding()?.guard())
+    }
+
     /// The capability set for the current dispatch, or the open default when
     /// there is no context at all. This is the direct analogue of
     /// `core::all::group_allowed` and is the function a future capability

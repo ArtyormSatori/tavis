@@ -11,6 +11,9 @@
 //!   envelope-style handler.
 //! - [`helpers`] — formatting, default constants, path validators, and the
 //!   active memory-client lookup.
+//! - [`guard`] — the guarded-driver lookup handlers use instead of
+//!   `helpers::active_memory_client` when their operation has a typed contract
+//!   twin (`docs/specs/memory-guard-allowlist.md`).
 //! - [`documents`] — document/namespace direct API and the envelope-style
 //!   façade (`memory_init`, `memory_list_documents`, `memory_query_namespace`,
 //!   recall_*).
@@ -23,6 +26,7 @@
 pub mod documents;
 pub mod envelope;
 pub mod files;
+pub mod guard;
 pub mod helpers;
 pub mod kv_graph;
 pub mod learn;

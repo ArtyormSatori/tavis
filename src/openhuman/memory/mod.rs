@@ -17,6 +17,7 @@ pub mod diff;
 pub mod driver;
 pub mod global;
 pub mod goals;
+pub mod guard;
 pub mod ingestion;
 pub mod ops;
 pub mod people;
@@ -51,6 +52,8 @@ pub mod util;
 pub mod tree_policy;
 pub mod tree_source;
 
+#[cfg(test)]
+mod bypass_allowlist_tests;
 #[cfg(test)]
 mod sync_pipeline_e2e_tests;
 #[cfg(test)]

@@ -66,8 +66,9 @@ use tinycortex_api::CONTRACT_VERSION;
 use crate::core::subsystem::{
     BoundDriver, DriverCapabilities, DriverClass, DriverHealth, SubsystemSlot,
 };
-use crate::openhuman::config::schema::MemorySubsystemConfig;
+use crate::openhuman::config::schema::{MemoryHooksConfig, MemorySubsystemConfig};
 use crate::openhuman::memory::driver::embedded::EmbeddedMemoryProvider;
+use crate::openhuman::memory::guard::{GuardPolicy, MemoryGuard};
 
 /// Why a bind fell back to the placeholder driver.
 ///
@@ -87,6 +88,11 @@ pub struct FallbackReason {
 /// One bound memory driver, for one workspace.
 pub struct MemoryBinding {
     provider: Arc<dyn MemoryProvider>,
+    /// The policy decorator over [`Self::provider`] — the handle product code
+    /// receives, via `CoreContext::memory()`. Built here rather than by each
+    /// caller so "every caller gets a guarded handle" holds by construction,
+    /// the same way `capabilities()` is asked exactly once by construction.
+    guard: Arc<MemoryGuard>,
     driver_id: String,
     class: DriverClass,
     /// Asked **once**, at bind time, and cached here. The contract's
@@ -98,9 +104,20 @@ pub struct MemoryBinding {
 }
 
 impl MemoryBinding {
-    /// The bound driver.
+    /// The bound driver, **unguarded**.
+    ///
+    /// Retained for identity/health/status, which are liveness probes rather
+    /// than product code (`memory::ops::provider` is the one production
+    /// caller). New call sites want [`Self::guard`] — see
+    /// `CoreContext::memory()`.
     pub fn provider(&self) -> &Arc<dyn MemoryProvider> {
         &self.provider
+    }
+
+    /// The guarded driver — the only handle product code should hold
+    /// (`docs/specs/kernel.md` §3.4).
+    pub fn guard(&self) -> Arc<MemoryGuard> {
+        Arc::clone(&self.guard)
     }
 
     /// The id of the driver that actually bound — `"null"` after a fallback,
@@ -252,7 +269,15 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 // this arm cannot bind a transport that does not exist yet.
                 DriverClass::External => Arc::new(NullMemoryProvider::new()),
             };
-            let binding = bind_provider(provider, driver_id, class, None);
+            // The configured trust state for the driver that actually bound.
+            // Absent `[subsystems.memory.drivers.<id>]` entry ⇒ the fail-closed
+            // default, which only ever matters for an external class.
+            let trust_state = cfg
+                .drivers
+                .get(&driver_id)
+                .map(|entry| entry.trust_state.clone())
+                .unwrap_or_else(|| crate::openhuman::memory::guard::policy::TRUSTED.to_string());
+            let binding = bind_provider(provider, driver_id, class, cfg.hooks, trust_state, None);
             log::info!(
                 "[memory:binding] workspace={} bound driver='{}' class={} capabilities=[{}]",
                 workspace_dir.display(),
@@ -288,6 +313,12 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 Arc::new(NullMemoryProvider::new()),
                 NULL_DRIVER_ID.to_string(),
                 DriverClass::Null,
+                cfg.hooks,
+                // The fallback binds the in-process placeholder, so there is no
+                // boundary to cross and nothing to trust-gate. The refused
+                // driver's own trust_state is deliberately NOT carried over —
+                // it describes a binding that did not happen.
+                crate::openhuman::memory::guard::policy::TRUSTED.to_string(),
                 Some(fallback),
             )
         }
@@ -301,11 +332,25 @@ fn bind_provider(
     provider: Arc<dyn MemoryProvider>,
     driver_id: String,
     class: DriverClass,
+    hooks: MemoryHooksConfig,
+    trust_state: String,
     fallback: Option<FallbackReason>,
 ) -> MemoryBinding {
     let capabilities = provider.capabilities();
+    // Built on the same single path, so a binding can never exist without its
+    // guard and no caller has to remember to construct one.
+    let guard = Arc::new(MemoryGuard::new(
+        Arc::clone(&provider),
+        Arc::new(GuardPolicy::new(
+            driver_id.clone(),
+            class,
+            hooks,
+            trust_state,
+        )),
+    ));
     MemoryBinding {
         provider,
+        guard,
         driver_id,
         class,
         capabilities,
@@ -323,7 +368,14 @@ pub(crate) fn bind_provider_for_test(
     class: DriverClass,
 ) -> MemoryBinding {
     let driver_id = provider.driver_id().to_string();
-    bind_provider(provider, driver_id, class, None)
+    bind_provider(
+        provider,
+        driver_id,
+        class,
+        MemoryHooksConfig::default(),
+        crate::openhuman::memory::guard::policy::TRUSTED.to_string(),
+        None,
+    )
 }
 
 /// Per-workspace binding cache. Same shape as

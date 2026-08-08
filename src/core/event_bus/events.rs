@@ -269,6 +269,27 @@ pub enum DomainEvent {
         /// Why the configured driver was refused.
         reason: String,
     },
+    /// The memory policy guard refused a call before it reached the bound
+    /// driver (`docs/specs/kernel.md` §3.4).
+    ///
+    /// Carries the driver id, the contract method, and an operator-facing
+    /// reason — **never** a namespace key, a recall query, or memory content.
+    /// Same rule as [`Self::MemoryDriverBindFailed`] above, and the reason
+    /// [`Self::MemoryRecalled`] (which carries the raw query) is not reused for
+    /// this: the guard sits on the hot path and must not put user text on the
+    /// bus.
+    ///
+    /// Published on refusals only. A guard that published on success would emit
+    /// one event per memory read.
+    MemoryGuardDenied {
+        /// The bound driver the call was headed for.
+        driver_id: String,
+        /// The contract method that was refused, e.g. `"core.store"` or
+        /// `"tree.query_source"`.
+        method: String,
+        /// Why the guard refused it.
+        reason: String,
+    },
     /// A memory sync was requested for a specific channel or all channels.
     ///
     /// Published by `openhuman.memory_sync_channel` (channel_id = Some(...)) and
@@ -1402,6 +1423,7 @@ impl DomainEvent {
             | Self::MemoryStored { .. }
             | Self::MemoryRecalled { .. }
             | Self::MemoryDriverBindFailed { .. }
+            | Self::MemoryGuardDenied { .. }
             | Self::MemorySyncRequested { .. }
             | Self::MemorySyncStageChanged { .. }
             | Self::MemoryIngestionStarted { .. }
@@ -1568,6 +1590,7 @@ impl DomainEvent {
             Self::MemoryStored { .. } => "MemoryStored",
             Self::MemoryRecalled { .. } => "MemoryRecalled",
             Self::MemoryDriverBindFailed { .. } => "MemoryDriverBindFailed",
+            Self::MemoryGuardDenied { .. } => "MemoryGuardDenied",
             Self::MemorySyncRequested { .. } => "MemorySyncRequested",
             Self::MemorySyncStageChanged { .. } => "MemorySyncStageChanged",
             Self::MemoryIngestionStarted { .. } => "MemoryIngestionStarted",

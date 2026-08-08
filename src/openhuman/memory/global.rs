@@ -149,6 +149,23 @@ fn client_from(slot: &GlobalClientSlot) -> Result<MemoryClientRef, String> {
         })
 }
 
+/// The workspace the process-global client is currently bound to, or `None`
+/// when [`init`] has not run yet.
+///
+/// Exists so `memory::ops::guard::active_memory_guard` can resolve *the same*
+/// workspace [`crate::openhuman::memory::ops::helpers::active_memory_client`]
+/// would, in the pre-boot case where there is no ambient `CoreContext` to ask.
+/// Reading the workspace rather than the client keeps the two resolutions
+/// answering about the same store instead of drifting onto whatever
+/// `Config::load_or_init` happens to say.
+pub(crate) fn active_workspace_dir() -> Option<PathBuf> {
+    global_slot()
+        .read()
+        .ok()?
+        .as_ref()
+        .map(|entry| entry.workspace_dir.clone())
+}
+
 /// Per-workspace client cache used by [`client_for_workspace`].
 ///
 /// A *map*, not a slot, for the same reason

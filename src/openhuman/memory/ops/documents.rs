@@ -14,8 +14,10 @@ use crate::openhuman::memory::{
     RecallMemoriesRequest, RecallMemoriesResponse,
 };
 use crate::rpc::RpcOutcome;
+use tinycortex_api::provider::MemoryProvider;
 
 use super::envelope::{envelope, error_envelope, memory_counts};
+use super::guard::active_memory_guard;
 use super::helpers::{
     active_memory_client, build_retrieval_context, current_workspace_dir,
     filter_hits_by_document_ids, format_llm_context_message, maybe_retrieval_context,
@@ -171,10 +173,27 @@ pub async fn namespace_list() -> Result<RpcOutcome<Vec<String>>, String> {
 }
 
 /// Upserts a document into a namespace.
+///
+/// Routed through [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard).
+/// `MemoryDocuments::put_document` on the embedded driver is
+/// `client.put_doc(input)` — deliberately the full pipeline, not the
+/// `put_doc_light` shortcut — so the store, the input type and the background
+/// graph-extraction enqueue are all unchanged. What the guard adds: the tier
+/// check, redaction (a byte-identical pass-through for an embedded driver), and
+/// taint stamping.
+///
+/// The `taint: Internal` literal below stays: the contract says the *caller*
+/// supplies provenance and the driver never assigns it. `GuardPolicy::stamp_taint`
+/// is a monotone raise over that value — it can promote this write to
+/// `ExternalSync` when the turn runs under a source scope, but it can never
+/// launder an `ExternalSync` caller down to `Internal`.
 pub async fn doc_put(params: PutDocParams) -> Result<RpcOutcome<PutDocResult>, String> {
-    let client = active_memory_client().await?;
-    let document_id = client
-        .put_doc(NamespaceDocumentInput {
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let document_id = documents
+        .put_document(NamespaceDocumentInput {
             namespace: params.namespace,
             key: params.key,
             title: params.title,
@@ -191,7 +210,8 @@ pub async fn doc_put(params: PutDocParams) -> Result<RpcOutcome<PutDocResult>, S
             // `store_skill_sync` directly with their own taint label.
             taint: crate::openhuman::memory::MemoryTaint::Internal,
         })
-        .await?;
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(RpcOutcome::single_log(
         PutDocResult { document_id },
         "memory document upserted",
@@ -754,5 +774,50 @@ mod tests {
         .expect("memory_list_documents after clear");
         let after_data = listed_after.value.data.expect("after clear data");
         assert_eq!(after_data.count, 0);
+    }
+
+    /// Same store property as `kv_set_through_the_guard_…`: the guarded
+    /// `doc_put` must be readable by the unguarded client, not merely by the
+    /// sibling handler.
+    ///
+    /// The taint half of this re-point is not asserted here because no read
+    /// path in `MemoryClient` projects the stored taint column back out.
+    /// `GuardPolicy::stamp_taint`'s monotone-raise behaviour is pinned in
+    /// `memory::guard::policy_tests` instead.
+    #[tokio::test]
+    async fn doc_put_through_the_guard_is_visible_to_the_unguarded_client() {
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
+            .lock()
+            .await;
+        let _env = ensure_memory_client();
+        let namespace = unique_namespace("memory-docs-guard");
+        let key = format!(
+            "guarded{}",
+            &uuid::Uuid::new_v4().as_simple().to_string()[..12]
+        );
+
+        let put = doc_put(sample_put(
+            namespace.clone(),
+            key.clone(),
+            "Guarded write",
+            "This document was written through the memory guard.",
+        ))
+        .await
+        .expect("guarded doc_put");
+        assert!(!put.value.document_id.is_empty());
+
+        let client = active_memory_client().await.expect("client");
+        let raw = client
+            .list_documents(Some(namespace.as_str()))
+            .await
+            .expect("unguarded list_documents");
+        let docs = raw
+            .get("documents")
+            .and_then(|v| v.as_array())
+            .expect("documents array");
+        assert!(
+            docs.iter().any(|doc| doc["key"] == key),
+            "the unguarded client must see the guarded write"
+        );
     }
 }
