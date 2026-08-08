@@ -44,17 +44,27 @@ const ALL_FUNCTIONS: &[&str] = &[
     "tool_rules_json",
 ];
 
-/// The exact ordered `memory.*` registration sequence, captured from the
-/// registry **before** the per-family split (M5.1) and pinned here so the
-/// refactor is provably identity-preserving. Order matters: it is the order
-/// `src/core/all.rs` pushes controllers in, which is the order `/schema` and
-/// the CLI catalog advertise them in.
+/// The exact ordered `memory.*` registration sequence. Order matters: it is the
+/// order `src/core/all.rs` pushes controllers in, which is the order `/schema`
+/// and the CLI catalog advertise them in.
 ///
 /// Unlike [`ALL_FUNCTIONS`] — an unordered membership list — this is ordered
-/// and must never be edited to accommodate a code change. If a change makes
-/// this fail, the change is a behaviour change, not a refactor.
+/// and must not be edited to accommodate a refactor. If a refactor makes this
+/// fail, the refactor is a behaviour change.
+///
+/// **Edited once, deliberately, by M5.2.** The `documents` family was split
+/// into three capability partitions (core+recall / documents / ingest) so the
+/// gated ones can be registered independently of the MANDATORY ones — tagging
+/// the whole file `Capability::Documents` would have made `recall_memories`
+/// vanish under a driver that merely lacks the document tier. The only
+/// consequence visible here is that `doc_ingest` moved from between `doc_put`
+/// and `doc_list` to after `doc_delete`, and the three `context_*`/`clear_*`
+/// functions moved ahead of the `doc_*` block. Membership is unchanged, every
+/// method name is unchanged, and registration order within a namespace carries
+/// no wire semantics (dispatch is by method name; `/schema` is a list). This is
+/// the M5.2 change, not licence to re-edit the list for the next refactor.
 const REGISTRATION_ORDER: &[&str] = &[
-    // documents
+    // documents — core + recall partition (mandatory, never capability-gated)
     "init",
     "list_documents",
     "list_namespaces",
@@ -63,13 +73,15 @@ const REGISTRATION_ORDER: &[&str] = &[
     "recall_context",
     "recall_memories",
     "namespace_list",
-    "doc_put",
-    "doc_ingest",
-    "doc_list",
-    "doc_delete",
     "context_query",
     "context_recall",
     "clear_namespace",
+    // documents — namespace-document tier (Capability::Documents)
+    "doc_put",
+    "doc_list",
+    "doc_delete",
+    // documents — driver-owned ingestion (Capability::Ingest)
+    "doc_ingest",
     // files
     "list_files",
     "read_file",
