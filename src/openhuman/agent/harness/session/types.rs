@@ -459,6 +459,12 @@ pub struct AgentBuilder {
     /// flat in `session_raw/DDMMYYYY/{session_key}.jsonl`. Populated
     /// by the sub-agent runner so nested delegations produce a tree.
     pub(super) session_parent_prefix: Option<String>,
+    /// Forwarded to [`Agent::session_history_locator`]. `None` (default) means
+    /// real files; set it with
+    /// [`with_session_history_locator`][super::builder::AgentBuilder::with_session_history_locator]
+    /// to substitute the transcript backing store for the whole turn path.
+    pub(super) session_history_locator:
+        Option<std::sync::Arc<dyn super::transcript_history::SessionHistoryLocator>>,
     /// Forwarded to [`Agent::omit_profile`] at `build()` time. Mirrors the
     /// target definition's `omit_profile` flag; `None` means "fall back
     /// to the safe default" (omit).
