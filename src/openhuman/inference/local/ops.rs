@@ -104,9 +104,14 @@ pub async fn agent_chat(
     let mut agent = Agent::from_config(config).map_err(|e| e.to_string())?;
     // Direct `agent_chat` RPC — invoked by trusted clients (desktop UI,
     // operator CLI). Label as CLI so the approval gate doesn't fail
-    // closed on an unlabelled call site.
+    // closed on an unlabelled call site — *unless* the caller already scoped a
+    // more specific origin around this dispatch, which an in-process embedder
+    // can do (a workflow node labels its turn `TrustedAutomation::Workflow`).
+    // Overwriting that with `Cli` would silently discard the caller's own
+    // trust statement and hand every such turn the blanket CLI allowance
+    // instead of the narrower one it asked for.
     let run = crate::openhuman::agent::turn_origin::with_origin(
-        crate::openhuman::agent::turn_origin::AgentTurnOrigin::Cli,
+        effective_agent_chat_origin(),
         agent.run_single(message),
     );
     let response = match thread_id.as_deref() {
