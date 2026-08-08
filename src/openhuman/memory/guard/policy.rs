@@ -168,20 +168,39 @@ impl GuardPolicy {
         self.enforce(ToolOperation::Read, operation)
     }
 
-    /// Tier check for a **write** operation.
+    /// Tier check for a **write** operation: the `readonly`-tier refusal, and
+    /// deliberately **not** the hourly action budget.
     ///
-    /// Maps onto [`ToolOperation::Act`], which is what makes a `readonly` tier
-    /// refuse it. Note that `Act` also consumes one unit of the hourly action
-    /// budget via `SecurityPolicy::record_action`; that is the same accounting
-    /// every acting tool already goes through, and M4a adds no live call sites,
-    /// so nothing starts spending budget until a caller migrates onto the
-    /// guard.
+    /// M4a routed this through [`ToolOperation::Act`], which is tier *plus*
+    /// `SecurityPolicy::record_action`. That was wrong in two ways, and both
+    /// bite the moment a call site migrates onto the guard (M4b):
+    ///
+    /// - **Double-count.** `memory/tools/store.rs` and `memory/tools/forget.rs`
+    ///   already spend one budget unit each on `ToolOperation::Act`.
+    ///   Re-pointing them at the guard would spend a second for the same call.
+    /// - **Wrong granularity.** The budget is denominated in agent *tool
+    ///   calls*. The guard sits under `MemoryCore::store`, which one bulk
+    ///   ingest or one sync pass calls hundreds of times — enough to exhaust a
+    ///   budget with no agent having acted at all.
+    ///
+    /// So the guard takes the tier half only, via
+    /// [`SecurityPolicy::enforce_write_tier`]. That is the same shape the ~15
+    /// acting tools which gate on bare `can_act()` already use
+    /// (`tools/impl/filesystem/file_write.rs`,
+    /// `tools/impl/system/python_exec.rs`, `cron/scheduler.rs`, …). Budget
+    /// accounting stays where it is denominated: at the tool boundary.
     ///
     /// # Errors
     ///
     /// Whatever the live policy refuses, prefixed with [`GUARD_DENIED_PREFIX`].
     pub fn enforce_write(&self, operation: &str) -> Result<(), MemoryError> {
-        self.enforce(ToolOperation::Act, operation)
+        // Read live, never cached — see the module docs.
+        let Some(policy) = live_policy::current() else {
+            return Ok(());
+        };
+        policy
+            .enforce_write_tier(operation)
+            .map_err(|reason| self.denied(operation, reason))
     }
 
     fn enforce(&self, op: ToolOperation, operation: &str) -> Result<(), MemoryError> {
