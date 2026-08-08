@@ -317,3 +317,87 @@ fn chat_alias_reports_disabled_build_when_gate_off() {
         "the `chat` alias must give the same build-fact diagnostic as `tui`"
     );
 }
+
+// --- the capability gate on the generic namespace path -----------------------
+//
+// Driven through the pure helpers plus a directly-resolved capability set,
+// rather than `run_from_cli_args`: reaching a narrowed set end-to-end needs
+// `driver = "null"` in a real `config.toml` under a process-global
+// `OPENHUMAN_WORKSPACE`, i.e. env mutation plus disk writes. Same reasoning
+// recorded in the M5.4 block of `all_tests.rs`.
+
+use crate::core::all::{capability_for_parts, sole_capability_for_namespace};
+use crate::core::cli_capability::capability_verdict;
+use tinycortex_api::capabilities::Capabilities;
+
+#[test]
+fn capability_gated_namespace_reports_a_config_fact_not_a_typo() {
+    let required = sole_capability_for_namespace("memory_tree");
+    assert!(required.is_some(), "memory_tree must be a gated namespace");
+    let err = capability_verdict(
+        "null",
+        Capabilities::mandatory(),
+        required,
+        "openhuman memory_tree",
+    )
+    .expect_err("the null driver does not advertise `tree`");
+    let msg = err.to_string();
+    assert!(msg.contains("null"), "{msg}");
+    assert!(msg.contains("tree"), "{msg}");
+    assert!(!msg.contains("unknown namespace"), "{msg}");
+}
+
+#[test]
+fn capability_gated_function_reports_a_config_fact_not_a_typo() {
+    let required = capability_for_parts("memory", "doc_ingest").flatten();
+    let err = capability_verdict(
+        "null",
+        Capabilities::mandatory(),
+        required,
+        "openhuman memory doc_ingest",
+    )
+    .expect_err("the null driver does not advertise `ingest`");
+    let msg = err.to_string();
+    assert!(msg.contains("ingest"), "{msg}");
+    assert!(!msg.contains("unknown function"), "{msg}");
+}
+
+/// A real typo must stay a typo — the gate never fires for it, because the
+/// unfiltered lookup finds no controller to name a family for.
+#[test]
+fn unknown_namespace_still_reports_unknown_namespace() {
+    let err = super::run_namespace_command(
+        "definitely_not_a_namespace",
+        &["x".to_string()],
+        &grouped_schemas(),
+    )
+    .expect_err("an unknown namespace must error");
+    assert!(err.to_string().contains("unknown namespace"), "{err}");
+}
+
+#[test]
+fn unknown_function_in_a_live_namespace_still_reports_unknown_function() {
+    let grouped = grouped_schemas();
+    let namespace = grouped
+        .keys()
+        .next()
+        .expect("at least one namespace is registered")
+        .clone();
+    let err = super::run_namespace_command(
+        &namespace,
+        &["definitely_not_a_function".to_string()],
+        &grouped,
+    )
+    .expect_err("an unknown function must error");
+    assert!(err.to_string().contains("unknown function"), "{err}");
+}
+
+/// With no ambient context nothing is filtered, so the CLI's namespace list is
+/// exactly what it was before the gate existed.
+#[test]
+fn default_build_leaves_the_generic_namespace_path_unchanged() {
+    let grouped = grouped_schemas();
+    for ns in ["memory", "memory_tree", "memory_diff", "memory_goals"] {
+        assert!(grouped.contains_key(ns), "`{ns}` must still be listed");
+    }
+}
