@@ -167,7 +167,7 @@ impl CoreContext {
             host_kind,
             workspace_dir: RwLock::new(workspace_dir),
             domains,
-            memory_subsystem,
+            memory_subsystem: RwLock::new(memory_subsystem),
         });
 
         // Register the process default context (first build wins). Dispatch
