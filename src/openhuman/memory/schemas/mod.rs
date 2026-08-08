@@ -37,32 +37,127 @@ mod sync;
 mod tool_memory;
 
 // ---------------------------------------------------------------------------
-// Public entry points
+// Per-family entry points
+// ---------------------------------------------------------------------------
+//
+// Each capability family exposes its own `all_<family>_controller_schemas()` /
+// `all_<family>_registered_controllers()` pair so a caller can register (or, in
+// a later slice, decline to register) one family at a time. The aggregators
+// below fan these out in a fixed order — documents, files, kv_graph, sync,
+// learn, provider, tool_memory — which is the registration order the RPC
+// surface has always had. Do not reorder: `src/core/all.rs` pushes the seven
+// families in exactly this sequence and
+// `registered_controller_order_is_pinned_to_pre_split_snapshot` in
+// `schemas_tests.rs` fails if it drifts.
+
+/// Controller schemas for the document / namespace / recall family.
+pub fn all_documents_controller_schemas() -> Vec<ControllerSchema> {
+    documents::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the document / namespace / recall family.
+pub fn all_documents_registered_controllers() -> Vec<RegisteredController> {
+    documents::controllers()
+}
+
+/// Controller schemas for the file-backed memory family.
+pub fn all_files_controller_schemas() -> Vec<ControllerSchema> {
+    files::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the file-backed memory family.
+pub fn all_files_registered_controllers() -> Vec<RegisteredController> {
+    files::controllers()
+}
+
+/// Controller schemas for the key-value + knowledge-graph family.
+pub fn all_kv_graph_controller_schemas() -> Vec<ControllerSchema> {
+    kv_graph::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the key-value + knowledge-graph family.
+pub fn all_kv_graph_registered_controllers() -> Vec<RegisteredController> {
+    kv_graph::controllers()
+}
+
+/// Controller schemas for the channel/ingestion sync family.
+pub fn all_sync_controller_schemas() -> Vec<ControllerSchema> {
+    sync::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the channel/ingestion sync family.
+pub fn all_sync_registered_controllers() -> Vec<RegisteredController> {
+    sync::controllers()
+}
+
+/// Controller schemas for the `learn_all` family.
+pub fn all_learn_controller_schemas() -> Vec<ControllerSchema> {
+    learn::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the `learn_all` family.
+pub fn all_learn_registered_controllers() -> Vec<RegisteredController> {
+    learn::controllers()
+}
+
+/// Controller schemas for the bound-driver status family.
+///
+/// This family is the one that *reports* the driver's advertised capability
+/// set, so it must never itself be gated on a capability — doing so would be
+/// self-referential and would blind the UI, which reads the capability set
+/// from `<subsystem>_status` (kernel.md §3.3).
+pub fn all_provider_controller_schemas() -> Vec<ControllerSchema> {
+    provider::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the bound-driver status family.
+///
+/// Never gated — see [`all_provider_controller_schemas`].
+pub fn all_provider_registered_controllers() -> Vec<RegisteredController> {
+    provider::controllers()
+}
+
+/// Controller schemas for the tool-scoped memory family (#1400).
+pub fn all_tool_memory_controller_schemas() -> Vec<ControllerSchema> {
+    tool_memory::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+}
+
+/// Registered controllers for the tool-scoped memory family (#1400).
+pub fn all_tool_memory_registered_controllers() -> Vec<RegisteredController> {
+    tool_memory::controllers()
+}
+
+// ---------------------------------------------------------------------------
+// Aggregated entry points
 // ---------------------------------------------------------------------------
 
 /// Returns all controller schemas for the memory system.
+///
+/// Thin fan-out over the seven per-family pairs above, in their pinned order.
 pub fn all_controller_schemas() -> Vec<ControllerSchema> {
     let mut out = Vec::new();
-    out.extend(documents::FUNCTIONS.iter().map(|f| schemas(f)));
-    out.extend(files::FUNCTIONS.iter().map(|f| schemas(f)));
-    out.extend(kv_graph::FUNCTIONS.iter().map(|f| schemas(f)));
-    out.extend(sync::FUNCTIONS.iter().map(|f| schemas(f)));
-    out.extend(learn::FUNCTIONS.iter().map(|f| schemas(f)));
-    out.extend(provider::FUNCTIONS.iter().map(|f| schemas(f)));
-    out.extend(tool_memory::FUNCTIONS.iter().map(|f| schemas(f)));
+    out.extend(all_documents_controller_schemas());
+    out.extend(all_files_controller_schemas());
+    out.extend(all_kv_graph_controller_schemas());
+    out.extend(all_sync_controller_schemas());
+    out.extend(all_learn_controller_schemas());
+    out.extend(all_provider_controller_schemas());
+    out.extend(all_tool_memory_controller_schemas());
     out
 }
 
 /// Returns all registered controllers for the memory system, mapping schemas to handlers.
+///
+/// Thin fan-out over the seven per-family pairs above, in their pinned order.
 pub fn all_registered_controllers() -> Vec<RegisteredController> {
     let mut out = Vec::new();
-    out.extend(documents::controllers());
-    out.extend(files::controllers());
-    out.extend(kv_graph::controllers());
-    out.extend(sync::controllers());
-    out.extend(learn::controllers());
-    out.extend(provider::controllers());
-    out.extend(tool_memory::controllers());
+    out.extend(all_documents_registered_controllers());
+    out.extend(all_files_registered_controllers());
+    out.extend(all_kv_graph_registered_controllers());
+    out.extend(all_sync_registered_controllers());
+    out.extend(all_learn_registered_controllers());
+    out.extend(all_provider_registered_controllers());
+    out.extend(all_tool_memory_registered_controllers());
     out
 }
 
