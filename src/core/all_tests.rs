@@ -1621,14 +1621,503 @@ fn memory_controllers_form_one_contiguous_run_in_aggregator_order() {
     );
 }
 
-#[test]
-fn zzz_dump_memory_caps() {
-    for g in registry().iter().chain(internal_registry().iter()) {
-        if g.group == DomainGroup::Memory {
-            println!(
-                "DUMP\t{}\t{}\t{:?}",
-                g.controller.schema.namespace, g.controller.schema.function, g.capability
-            );
-        }
+// --- M5.2: memory-capability registration filter ---------------------------
+//
+// The capability axis is the same shape as the DomainSet axis above: the
+// registry holds every controller, and the ambient `CoreContext` decides at
+// READ time which ones exist. A family the bound driver never advertised is
+// ABSENT — unknown-method over `/rpc`, omitted from `/schema` — rather than
+// present and failing, because a registered-but-failing method teaches a model
+// the capability exists and makes it retry.
+
+use tinycortex_api::capabilities::Capability;
+
+/// A workspace path unique to one test.
+///
+/// `memory::binding::BINDINGS` is a process-global `HashMap<PathBuf, _>` that
+/// never evicts, so the FIRST test to bind a path fixes that path's driver for
+/// every later test in the process. Sharing a path between an ON test and an
+/// OFF test would make one of them silently assert the other's driver.
+fn caps_ws(name: &str) -> std::path::PathBuf {
+    std::path::PathBuf::from(format!("/tmp/oh-m5-caps-{name}"))
+}
+
+/// `[subsystems.memory] driver = "null"` — the only narrowed capability set a
+/// test can reach without booting.
+///
+/// `CoreContext::for_test` takes the memory *config*, not a `Capabilities`, on
+/// purpose (see its doc comment): injecting a set directly would let a test
+/// assert a set no driver could have advertised and would bypass the very
+/// `admit` + `capabilities()` path being proven. `admit` maps `"null"` to
+/// `NullMemoryProvider`, whose advertised set is exactly
+/// `Capabilities::mandatory()` = {core, recall, portability} — so every
+/// optional family is OFF at once. The OFF half of each pair below therefore
+/// reads "absent under a driver that advertises nothing optional", not "absent
+/// with only this one family missing".
+fn null_driver_cfg() -> crate::openhuman::config::schema::MemorySubsystemConfig {
+    crate::openhuman::config::schema::MemorySubsystemConfig {
+        driver: "null".into(),
+        ..Default::default()
     }
+}
+
+/// Namespaces registered under [`DomainGroup::Memory`], each with the capability
+/// its registration site tags it with. The `memory` namespace is absent here —
+/// it spans four families plus host surface and is covered per-function by
+/// [`MEMORY_FUNCTION_CAPABILITY`].
+const MEMORY_NAMESPACE_CAPABILITY: &[(&str, Option<Capability>)] = &[
+    // Host-owned address book, not a driver family.
+    ("people", None),
+    ("memory_goals", Some(Capability::Goals)),
+    // Both the tree registry and the retrieval layer share this namespace.
+    ("memory_tree", Some(Capability::Tree)),
+    ("tree_summarizer", Some(Capability::Tree)),
+    ("slack_memory", Some(Capability::Sources)),
+    ("memory_sync", Some(Capability::Sources)),
+    ("memory_sources", Some(Capability::Sources)),
+    ("memory_diff", Some(Capability::Diff)),
+];
+
+/// The `memory` namespace, function by function. Mandatory core/recall surface
+/// and host-only file I/O are `None` deliberately — a gate on a MANDATORY
+/// family could never fire, and a dead gate reads like a live one.
+const MEMORY_FUNCTION_CAPABILITY: &[(&str, Option<Capability>)] = &[
+    // core + recall (mandatory)
+    ("init", None),
+    ("list_documents", None),
+    ("list_namespaces", None),
+    ("delete_document", None),
+    ("query_namespace", None),
+    ("recall_context", None),
+    ("recall_memories", None),
+    ("namespace_list", None),
+    ("context_query", None),
+    ("context_recall", None),
+    ("clear_namespace", None),
+    // namespace-document tier
+    ("doc_put", Some(Capability::Documents)),
+    ("doc_list", Some(Capability::Documents)),
+    ("doc_delete", Some(Capability::Documents)),
+    // driver-owned ingestion
+    ("doc_ingest", Some(Capability::Ingest)),
+    // plain workspace file I/O, host-side
+    ("list_files", None),
+    ("read_file", None),
+    ("write_file", None),
+    // key/value + knowledge graph
+    ("kv_set", Some(Capability::Graph)),
+    ("kv_get", Some(Capability::Graph)),
+    ("kv_delete", Some(Capability::Graph)),
+    ("kv_list_namespace", Some(Capability::Graph)),
+    ("graph_upsert", Some(Capability::Graph)),
+    ("graph_query", Some(Capability::Graph)),
+    // source sync
+    ("sync_channel", Some(Capability::Sources)),
+    ("sync_all", Some(Capability::Sources)),
+    ("ingestion_status", Some(Capability::Sources)),
+    // the tree summarizer, NOT ingestion
+    ("learn_all", Some(Capability::Tree)),
+    // never gated: this is the RPC that reports the capability set
+    ("provider_status", None),
+    // per-tool learned memory
+    ("tool_rule_put", Some(Capability::ToolMemory)),
+    ("tool_rule_get", Some(Capability::ToolMemory)),
+    ("tool_rule_list", Some(Capability::ToolMemory)),
+    ("tool_rule_delete", Some(Capability::ToolMemory)),
+    ("tool_rules_for_prompt", Some(Capability::ToolMemory)),
+    ("tool_rules_json", Some(Capability::ToolMemory)),
+];
+
+fn expected_capability(ns: &str, function: &str) -> Option<Option<Capability>> {
+    if ns == "memory" {
+        return MEMORY_FUNCTION_CAPABILITY
+            .iter()
+            .find(|(f, _)| *f == function)
+            .map(|(_, c)| *c);
+    }
+    MEMORY_NAMESPACE_CAPABILITY
+        .iter()
+        .find(|(n, _)| *n == ns)
+        .map(|(_, c)| *c)
+}
+
+/// Drift guard: every `DomainGroup::Memory` controller carries a
+/// checked-in capability decision, and the live tag matches it.
+///
+/// This is what makes an untagged Memory push a test failure rather than a
+/// silent `None`. `push` delegates to `push_cap(.., None, ..)`, so a new Memory
+/// site added with the wrong helper compiles fine and gates nothing — only this
+/// table catches it.
+#[test]
+fn memory_capability_map_is_exhaustive() {
+    for g in registry().iter().chain(internal_registry().iter()) {
+        if g.group != DomainGroup::Memory {
+            continue;
+        }
+        let ns = g.controller.schema.namespace;
+        let function = g.controller.schema.function;
+        let expected = expected_capability(ns, function).unwrap_or_else(|| {
+            panic!(
+                "`{ns}.{function}` is registered under DomainGroup::Memory but carries no \
+                 checked-in capability decision — add it to MEMORY_NAMESPACE_CAPABILITY or \
+                 MEMORY_FUNCTION_CAPABILITY and tag its push site with push_cap(..)"
+            )
+        });
+        assert_eq!(
+            g.capability, expected,
+            "`{ns}.{function}` is tagged {:?} at its registration site but the map says {expected:?}",
+            g.capability
+        );
+    }
+}
+
+/// The other direction: no table entry may name a namespace/function that is no
+/// longer registered, so a deleted controller cannot leave a stale decision
+/// behind that looks like coverage.
+#[test]
+fn memory_capability_map_has_no_stale_entries() {
+    let live: Vec<(&str, &str)> = registry()
+        .iter()
+        .chain(internal_registry().iter())
+        .filter(|g| g.group == DomainGroup::Memory)
+        .map(|g| (g.controller.schema.namespace, g.controller.schema.function))
+        .collect();
+
+    for (ns, _) in MEMORY_NAMESPACE_CAPABILITY {
+        assert!(
+            live.iter().any(|(n, _)| n == ns),
+            "MEMORY_NAMESPACE_CAPABILITY names `{ns}`, which registers no Memory controller"
+        );
+    }
+    for (function, _) in MEMORY_FUNCTION_CAPABILITY {
+        assert!(
+            live.iter().any(|(n, f)| *n == "memory" && f == function),
+            "MEMORY_FUNCTION_CAPABILITY names `memory.{function}`, which is not registered"
+        );
+    }
+}
+
+/// Every capability family is accounted for in the RPC surface — either it
+/// gates at least one controller, or it is listed as deliberately RPC-less.
+///
+/// `Capability` is deliberately NOT `#[non_exhaustive]` (see that module's
+/// docs), so a fourteenth family is a **compile error** in the `match` below
+/// before it is a test failure. That compile error is the mechanism which
+/// guarantees a new family gets wired somewhere rather than silently defaulting
+/// to ungated.
+#[test]
+fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
+    let gated: std::collections::BTreeSet<Capability> = registry()
+        .iter()
+        .chain(internal_registry().iter())
+        .filter_map(|g| g.capability)
+        .collect();
+
+    for cap in Capability::ALL {
+        let has_rpc_surface = match cap {
+            // Gate at least one controller today.
+            Capability::Ingest
+            | Capability::Documents
+            | Capability::Tree
+            | Capability::Graph
+            | Capability::Diff
+            | Capability::Goals
+            | Capability::ToolMemory
+            | Capability::Sources => true,
+            // MANDATORY: `Capabilities::validate` refuses to bind a driver
+            // missing these, so a gate on one could never fire. Their surface
+            // (memory.init / recall_* / …) registers ungated on purpose.
+            Capability::Core | Capability::Recall | Capability::Portability => false,
+            // Folded into `Tree`: the tree registry's ~25 methods span tree,
+            // entities, graph and maintenance and are tagged as ONE family.
+            // See the push site in `all.rs` for why that trade was chosen.
+            Capability::Entities => false,
+            // No controller exposes re-embed / compact / dream / doctor yet.
+            Capability::Maintenance => false,
+        };
+        assert_eq!(
+            gated.contains(&cap),
+            has_rpc_surface,
+            "capability `{cap}` is {} in the live registry but the table says {}",
+            if gated.contains(&cap) { "gating controllers" } else { "gating nothing" },
+            if has_rpc_surface { "it should gate something" } else { "it should gate nothing" },
+        );
+    }
+}
+
+// --- default-open: the 4000-pre-boot-test tripwire -------------------------
+
+#[test]
+fn capability_allowed_defaults_open_with_no_context() {
+    // No ambient CoreContext at all. `None` is trivially allowed, and every
+    // real family must be allowed too — `current_memory_capabilities()` falls
+    // back to the full set. A deny-by-default here would fail every memory
+    // unit test in the crate at once.
+    assert!(capability_allowed(None));
+    for cap in Capability::ALL {
+        assert!(
+            capability_allowed(Some(cap)),
+            "capability `{cap}` must default OPEN with no ambient context"
+        );
+    }
+}
+
+#[test]
+fn unbound_registration_is_byte_identical() {
+    // Companion to `full_registration_is_byte_identical`: with no ambient
+    // context the capability filter must be an order-preserving identity, so
+    // adding the axis changed neither membership nor ordering of the unbound
+    // surface.
+    let filtered: Vec<String> = all_registered_controllers()
+        .iter()
+        .map(|c| c.rpc_method_name())
+        .collect();
+    let raw: Vec<String> = registry()
+        .iter()
+        .map(|g| g.controller.rpc_method_name())
+        .collect();
+    assert_eq!(filtered, raw);
+}
+
+#[tokio::test]
+async fn narrowed_capabilities_do_not_narrow_the_domain_set() {
+    // The two axes are independent: a null driver hides memory families, but
+    // every non-Memory namespace stays exactly as `full()` had it.
+    use std::collections::BTreeSet;
+
+    let full_ns: BTreeSet<&str> = all_controller_schemas()
+        .iter()
+        .map(|s| s.namespace)
+        .collect();
+
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("axes")),
+        Some(null_driver_cfg()),
+    );
+    let null_ns: BTreeSet<&'static str> =
+        CoreContext::scope(ctx, async { all_controller_schemas() })
+            .await
+            .iter()
+            .map(|s| s.namespace)
+            .collect();
+
+    for ns in ["threads", "config", "security", "agent", "tools"] {
+        assert!(
+            null_ns.contains(ns),
+            "a narrowed memory capability set must not remove the `{ns}` namespace"
+        );
+    }
+    assert!(null_ns.len() < full_ns.len());
+}
+
+// --- both-ways pairs, one per gated family ---------------------------------
+//
+// The ABSENT half of each pair is the one that proves the gate removes
+// anything; a gate that never removes anything would still pass the present
+// half.
+
+/// Namespaces + `memory.*` functions visible under the given memory config.
+async fn visible_under(
+    ws: &str,
+    cfg: Option<crate::openhuman::config::schema::MemorySubsystemConfig>,
+) -> (
+    std::collections::BTreeSet<&'static str>,
+    std::collections::BTreeSet<&'static str>,
+) {
+    let ctx = CoreContext::for_test(DomainSet::full(), Some(caps_ws(ws)), cfg);
+    let schemas = CoreContext::scope(ctx, async { all_controller_schemas() }).await;
+    let namespaces = schemas.iter().map(|s| s.namespace).collect();
+    let memory_fns = schemas
+        .iter()
+        .filter(|s| s.namespace == "memory")
+        .map(|s| s.function)
+        .collect();
+    (namespaces, memory_fns)
+}
+
+#[tokio::test]
+async fn memory_families_registered_when_capabilities_advertised() {
+    // The embedded `tinycortex` driver (the default config) advertises
+    // `Capabilities::all()`, so every gated family is present. Scoped rather
+    // than unscoped so this proves a BOUND driver's set, not the unbound
+    // default-open fallback.
+    let (ns, fns) = visible_under("on", None).await;
+
+    for present in [
+        "memory",
+        "memory_goals",
+        "memory_tree",
+        "tree_summarizer",
+        "memory_sync",
+        "memory_sources",
+        "memory_diff",
+        "slack_memory",
+        "people",
+    ] {
+        assert!(ns.contains(present), "`{present}` must be present under a full-capability driver");
+    }
+    for present in [
+        "doc_put", "doc_ingest", "kv_set", "graph_query", "sync_all", "learn_all",
+        "tool_rule_put", "provider_status", "recall_memories", "list_files",
+    ] {
+        assert!(fns.contains(present), "`memory.{present}` must be present under a full-capability driver");
+    }
+}
+
+#[tokio::test]
+async fn memory_families_absent_when_capabilities_not_advertised() {
+    // The null driver advertises exactly {core, recall, portability}, so every
+    // optional family is unadvertised at once.
+    let (ns, fns) = visible_under("off", Some(null_driver_cfg())).await;
+
+    // Whole namespaces vanish.
+    for absent in [
+        "memory_goals",
+        "memory_tree",
+        "tree_summarizer",
+        "memory_sync",
+        "memory_sources",
+        "memory_diff",
+        "slack_memory",
+    ] {
+        assert!(
+            !ns.contains(absent),
+            "`{absent}` must be ABSENT under a driver that advertises only the mandatory families"
+        );
+    }
+    // Gated `memory.*` functions vanish…
+    for absent in [
+        "doc_put",
+        "doc_list",
+        "doc_delete",
+        "doc_ingest",
+        "kv_set",
+        "kv_get",
+        "kv_delete",
+        "kv_list_namespace",
+        "graph_upsert",
+        "graph_query",
+        "sync_channel",
+        "sync_all",
+        "ingestion_status",
+        "learn_all",
+        "tool_rule_put",
+        "tool_rule_get",
+        "tool_rule_list",
+        "tool_rule_delete",
+        "tool_rules_for_prompt",
+        "tool_rules_json",
+    ] {
+        assert!(!fns.contains(absent), "`memory.{absent}` must be ABSENT under the null driver");
+    }
+    // …while the ungated surface stays. These are the positive controls that
+    // make the assertions above the GATE rather than a collapsed registry.
+    assert!(ns.contains("memory"), "the `memory` namespace itself must survive");
+    assert!(
+        ns.contains("people"),
+        "`people` is host surface with no capability — it must survive any driver"
+    );
+    for present in [
+        // MANDATORY core + recall.
+        "init",
+        "namespace_list",
+        "recall_memories",
+        "recall_context",
+        "query_namespace",
+        "clear_namespace",
+        // Host-side workspace file I/O.
+        "list_files",
+        "read_file",
+        "write_file",
+        // The RPC that REPORTS the capability set — gating it would hide the
+        // explanation for every absence above.
+        "provider_status",
+    ] {
+        assert!(
+            fns.contains(present),
+            "`memory.{present}` is ungated and must survive the null driver"
+        );
+    }
+}
+
+#[tokio::test]
+async fn dispatch_returns_none_for_capability_gated_method() {
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("dispatch")),
+        Some(null_driver_cfg()),
+    );
+    let out = CoreContext::scope(
+        ctx,
+        try_invoke_registered_rpc("openhuman.memory_tool_rules_json", Map::new()),
+    )
+    .await;
+    assert!(
+        out.is_none(),
+        "a capability-gated method must dispatch as None — indistinguishable from absent"
+    );
+
+    // Positive control in the same driver configuration.
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("dispatch")),
+        Some(null_driver_cfg()),
+    );
+    let out = CoreContext::scope(
+        ctx,
+        try_invoke_registered_rpc("openhuman.memory_provider_status", Map::new()),
+    )
+    .await;
+    assert!(
+        out.is_some(),
+        "ungated `memory.provider_status` must still route under the null driver"
+    );
+}
+
+#[tokio::test]
+async fn schema_lookup_is_gated_in_lockstep_with_capability_dispatch() {
+    // If `schema_for_rpc_method` did NOT gate, `invoke_method_inner` would run
+    // param validation against a hidden method and return the controller's
+    // validation error instead of method-not-found — leaking the surface the
+    // gate exists to hide.
+    let method = "openhuman.memory_tool_rules_json";
+    assert!(
+        schema_for_rpc_method(method).is_some(),
+        "unscoped, the schema must resolve — so the None below is the gate, not a typo"
+    );
+
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("schema")),
+        Some(null_driver_cfg()),
+    );
+    let gated = CoreContext::scope(ctx, async { schema_for_rpc_method(method) }).await;
+    assert!(gated.is_none(), "schema lookup for a capability-gated method must be None");
+
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("schema")),
+        Some(null_driver_cfg()),
+    );
+    let kept = CoreContext::scope(ctx, async {
+        schema_for_rpc_method("openhuman.memory_provider_status")
+    })
+    .await;
+    assert!(kept.is_some(), "ungated provider_status schema must still resolve");
+}
+
+#[tokio::test]
+async fn rpc_method_from_parts_stays_unfiltered_by_capability() {
+    // `rpc_method_from_parts` searches the FULL registry by design (it backs
+    // param validation and CLI routing). Pinning that here so a future "make
+    // every lookup consistent" change has to be a deliberate decision.
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("parts")),
+        Some(null_driver_cfg()),
+    );
+    let out =
+        CoreContext::scope(ctx, async { rpc_method_from_parts("memory", "tool_rules_json") }).await;
+    assert_eq!(out.as_deref(), Some("openhuman.memory_tool_rules_json"));
 }
