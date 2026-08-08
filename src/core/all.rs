@@ -1459,6 +1459,18 @@ pub async fn try_invoke_registered_rpc(
         );
         return None;
     }
+
+    // Memory-capability gate (M5.2). Deliberately a SECOND block rather than a
+    // clause folded into the check above, so the two gates log distinguishably:
+    // an operator seeing an absent `memory_tree.*` needs to know whether it was
+    // the DomainSet or the bound driver's advertised capability set.
+    if !capability_allowed(grouped.capability) {
+        log::debug!(
+            "[rpc][capability-gate] method '{method}' suppressed — memory capability {:?} not advertised by the bound driver",
+            grouped.capability
+        );
+        return None;
+    }
     let handler = grouped.controller.handler;
 
     // Establish the ambient CoreContext for the duration of the handler so
