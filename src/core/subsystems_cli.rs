@@ -15,8 +15,7 @@
 
 use anyhow::Result;
 
-use crate::core::subsystem::status::SubsystemStatus;
-use crate::core::subsystem::subsystems_status;
+use crate::core::subsystem::{subsystems_status, SubsystemStatus};
 
 pub fn run_subsystems_command(args: &[String]) -> Result<()> {
     if args.iter().any(|a| a == "-h" || a == "--help") {
