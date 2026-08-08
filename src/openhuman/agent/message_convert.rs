@@ -410,6 +410,51 @@ pub(crate) fn ta_call_to_oh_call(
 mod tests {
     use super::*;
 
+    /// TEMPORARY PROBE (verification only — revert before commit).
+    ///
+    /// Compares `f(c)` with `f(g(f(c)))` where `f = chat_message_to_message`
+    /// and `g = message_to_chat_message`, i.e. what routing the resume READ
+    /// through `ChatHistory::messages()` and back into `Vec<ChatMessage>`
+    /// would do to the harness input.
+    #[test]
+    fn probe_round_trip_through_crate_history() {
+        use crate::openhuman::inference::provider::ToolCall as OhToolCall;
+        let oh_call = OhToolCall {
+            id: "call-1".into(),
+            name: "echo".into(),
+            arguments: r#"{"msg":"hi"}"#.into(),
+            extra_content: None,
+        };
+        let mut assistant_env = ChatMessage::assistant(
+            serde_json::json!({ "content": "calling echo", "tool_calls": [oh_call] }).to_string(),
+        );
+        assistant_env.id = Some("msg_prov_1".into());
+        assistant_env.extra_metadata = Some(serde_json::json!({
+            REASONING_EXT_KEY: "because",
+            "openhuman_turn_usage": { "model": "gpt-x" },
+            "openhuman_tool_failure": { "failure": true, "detail": "boom" },
+        }));
+        let tool_row = ChatMessage::tool(
+            serde_json::json!({ "tool_call_id": "call-1", "content": "echoed:hi" }).to_string(),
+        );
+        let mut plain_assistant = ChatMessage::assistant("plain answer");
+        plain_assistant.id = Some("msg_prov_2".into());
+        let mut user = ChatMessage::user("hello");
+        user.id = Some("msg_user_1".into());
+
+        let direct: Vec<Message> = [&user, &assistant_env, &tool_row, &plain_assistant]
+            .into_iter()
+            .map(chat_message_to_message)
+            .collect();
+        let bounced_cm: Vec<ChatMessage> = direct.iter().map(message_to_chat_message).collect();
+        let bounced: Vec<Message> = bounced_cm.iter().map(chat_message_to_message).collect();
+
+        for (i, (d, b)) in direct.iter().zip(bounced.iter()).enumerate() {
+            eprintln!("--- idx {i}\n DIRECT: {d:?}\nBOUNCED: {b:?}\n  MIDCM: {:?}", bounced_cm[i]);
+        }
+        assert_eq!(direct, bounced, "round trip through ChatHistory is lossy");
+    }
+
     #[test]
     fn seeded_native_tool_round_recovers_structure_and_round_trips() {
         use crate::openhuman::inference::provider::ToolCall as OhToolCall;
