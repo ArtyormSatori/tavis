@@ -50,16 +50,7 @@ impl SecurityPolicy {
         match operation {
             ToolOperation::Read => Ok(()),
             ToolOperation::Act => {
-                if !self.can_act() {
-                    log::warn!(
-                        "[openhuman:policy] Operation '{}' blocked: read-only mode",
-                        operation_name
-                    );
-                    return Err(format!(
-                        "{POLICY_BLOCKED_MARKER} Security policy: read-only mode, cannot perform \
-                         '{operation_name}'. Do not retry; this tier blocks all write actions."
-                    ));
-                }
+                self.enforce_write_tier(operation_name)?;
 
                 if !self.record_action() {
                     log::warn!(
