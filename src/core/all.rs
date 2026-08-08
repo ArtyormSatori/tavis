@@ -725,52 +725,81 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Platform,
         crate::openhuman::tools::registry::all_tool_registry_registered_controllers(),
     );
-    // Document and knowledge graph storage. Registered one capability family at
-    // a time — documents, files, kv_graph, sync, learn, provider, tool_memory —
-    // in the exact order the single `all_memory_registered_controllers()`
-    // aggregator used to emit them, so the `memory.*` RPC surface is unchanged.
-    // The split exists so a family can later be registered conditionally on the
-    // bound driver's advertised capabilities (docs/specs/kernel.md §3.3);
-    // nothing here filters anything today.
-    push(
+    // Document and knowledge graph storage. The single `memory` RPC namespace
+    // spans four driver capability families plus two host-only surfaces, so it
+    // registers as nine tagged pushes rather than one (M5.2). Order matches
+    // `memory::schemas::all_registered_controllers`, which
+    // `registered_controller_order_is_pinned_to_pre_split_snapshot` pins.
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        // Core + Recall are MANDATORY families — `Capabilities::validate`
+        // refuses to bind a driver missing them — so a gate here could never
+        // fire, and a dead gate reads like a live one. Ungated on purpose.
+        None,
+        crate::openhuman::memory::all_memory_core_recall_registered_controllers(),
+    );
+    push_cap(
+        &mut controllers,
+        DomainGroup::Memory,
+        Some(Capability::Documents),
         crate::openhuman::memory::all_memory_documents_registered_controllers(),
     );
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Ingest),
+        crate::openhuman::memory::all_memory_ingest_registered_controllers(),
+    );
+    push_cap(
+        &mut controllers,
+        DomainGroup::Memory,
+        // Plain workspace file I/O through the host, not a driver family.
+        None,
         crate::openhuman::memory::all_memory_files_registered_controllers(),
     );
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Graph),
         crate::openhuman::memory::all_memory_kv_graph_registered_controllers(),
     );
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Sources),
         crate::openhuman::memory::all_memory_sync_registered_controllers(),
     );
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        // `learn_all` runs the TREE SUMMARIZER over namespaces, so it belongs
+        // to Tree, not Ingest — `Capability::Ingest` is `ingest_document` /
+        // `ingest_chat`, whose RPC surface is `memory.doc_ingest` above.
+        Some(Capability::Tree),
         crate::openhuman::memory::all_memory_learn_registered_controllers(),
     );
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        // NEVER gated: `memory.provider_status` is the RPC that REPORTS the
+        // bound driver's capability set. Gating it on a capability would be
+        // self-referential and would hide the explanation for every other
+        // absence in this block.
+        None,
         crate::openhuman::memory::all_memory_provider_registered_controllers(),
     );
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::ToolMemory),
         crate::openhuman::memory::all_memory_tool_memory_registered_controllers(),
     );
     // Long-term goals list (editable list + turn-based enrichment agent)
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Goals),
         crate::openhuman::memory::goals::all_memory_goals_registered_controllers(),
     );
     // Thread-level goal (Codex-style per-thread completion contract)
