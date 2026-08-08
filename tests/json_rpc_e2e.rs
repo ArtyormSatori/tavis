@@ -9492,7 +9492,7 @@ async fn json_rpc_meet_agent_session_lifecycle() {
 /// 3. Tool metadata (names/descriptions) is intact.
 #[tokio::test(flavor = "multi_thread")]
 async fn whatsapp_data_agent_tools_e2e_1341() {
-    use openhuman_core::core::bus::BUS.native().register;
+    use openhuman_core::core::bus::BUS;
     use openhuman_core::openhuman::channels::whatsapp_data::methods;
     use openhuman_core::openhuman::channels::whatsapp_data::types::{
         ListChatsRequest, ListMessagesRequest, SearchMessagesRequest, WhatsAppChat, WhatsAppMessage,
