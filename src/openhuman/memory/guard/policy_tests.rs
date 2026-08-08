@@ -60,6 +60,43 @@ fn guard_allows_write_under_full_tier() {
     assert!(embedded_policy().enforce_write("core.store").is_ok());
 }
 
+/// As `scoped_tier`, but with the hourly action budget already exhausted.
+fn scoped_tier_with_no_budget(autonomy: AutonomyLevel) -> live_policy::TestPolicyGuard {
+    let dir = std::env::temp_dir();
+    live_policy::install_scoped(
+        Arc::new(SecurityPolicy {
+            autonomy,
+            max_actions_per_hour: 0,
+            ..SecurityPolicy::default()
+        }),
+        dir.clone(),
+        dir,
+    )
+}
+
+/// The guard's write check is the **tier**, not the agent-tool action budget.
+///
+/// Fails before the fix: `enforce_write` mapped to `ToolOperation::Act`, whose
+/// `record_action` refuses at `max_actions_per_hour = 0` with "Rate limit
+/// exceeded". A budget denominated in tool calls must not be charged by a
+/// decorator that sits under `MemoryCore::store` — one bulk ingest is hundreds
+/// of calls. See `GuardPolicy::enforce_write`.
+#[test]
+fn guard_write_does_not_consume_the_agent_action_budget() {
+    let _tier = scoped_tier_with_no_budget(AutonomyLevel::Full);
+    assert!(
+        embedded_policy().enforce_write("core.store").is_ok(),
+        "an exhausted agent action budget must not refuse a kernel memory write"
+    );
+}
+
+/// …and the tier refusal the guard *does* own is unaffected by that change.
+#[test]
+fn guard_still_denies_write_under_readonly_tier_with_budget_exhausted() {
+    let _tier = scoped_tier_with_no_budget(AutonomyLevel::ReadOnly);
+    assert!(embedded_policy().enforce_write("core.store").is_err());
+}
+
 // ── Step 2 ───────────────────────────────────────────────────────────────────
 
 #[tokio::test]
