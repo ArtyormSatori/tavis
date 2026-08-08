@@ -28,7 +28,7 @@ use crate::api::config::effective_backend_api_url;
 use crate::api::jwt::bearer_authorization_value;
 use crate::openhuman::config::Config;
 use crate::openhuman::security::credentials::session_support::require_live_session_token;
-use tinyagents::harness::session_store::run_ledger::RunTelemetry;
+use tinyagents::session::run_ledger::RunTelemetry;
 
 use super::{SpanStatus, TraceContext, TraceSpan};
 

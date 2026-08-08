@@ -1,6 +1,6 @@
 //! Business logic for durable agent-team coordination (#3374).
 //!
-//! Thin orchestration over `tinyagents::harness::session_store::run_ledger`: create teams + members,
+//! Thin orchestration over `tinyagents::session::run_ledger`: create teams + members,
 //! assign dependency-aware tasks (with self/unknown/cycle validation reusing
 //! the same Kahn's-algorithm shape as `workflow_runs`), atomically claim tasks,
 //! and exchange teammate messages. Messaging rides the run-ledger event stream
@@ -14,7 +14,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::openhuman::config::Config;
-use tinyagents::harness::session_store::run_ledger::{
+use tinyagents::session::run_ledger::{
     self, AgentTeam, AgentTeamListRequest, AgentTeamListResponse, AgentTeamMemberStatus,
     AgentTeamMemberUpsert, AgentTeamStatus, AgentTeamTask, AgentTeamTaskStatus,
     AgentTeamTaskUpsert, AgentTeamUpsert, ClaimOutcome, CompletionOutcome, RunEvent,

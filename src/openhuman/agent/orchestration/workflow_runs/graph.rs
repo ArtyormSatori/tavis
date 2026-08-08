@@ -26,7 +26,7 @@ use tinyagents::graph::{
 };
 
 use crate::openhuman::config::Config;
-use tinyagents::harness::session_store::run_ledger::get_workflow_run;
+use tinyagents::session::run_ledger::get_workflow_run;
 
 use super::engine::{execute_phase, select_next_phase, PhaseExecOutcome, PhaseSelection};
 use super::types::{WorkflowDefinition, WorkflowPhase};

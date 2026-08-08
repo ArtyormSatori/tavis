@@ -2,7 +2,7 @@
 //!
 //! PR1 scope: expose the builtin [`WorkflowDefinition`]s, validate them
 //! (structure + agent existence), and read durable [`WorkflowRun`]s from
-//! `tinyagents::harness::session_store::run_ledger`. No execution engine yet — starting / stopping /
+//! `tinyagents::session::run_ledger`. No execution engine yet — starting / stopping /
 //! resuming runs lands in a follow-up PR.
 
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -11,7 +11,7 @@ use anyhow::Result;
 
 use crate::openhuman::agent::harness::definition::AgentDefinitionRegistry;
 use crate::openhuman::config::Config;
-use tinyagents::harness::session_store::run_ledger::{
+use tinyagents::session::run_ledger::{
     get_workflow_run, list_workflow_runs, WorkflowRun, WorkflowRunListRequest,
     WorkflowRunListResponse,
 };

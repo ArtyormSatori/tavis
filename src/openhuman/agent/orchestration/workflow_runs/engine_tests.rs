@@ -31,9 +31,7 @@ use crate::openhuman::config::{AgentConfig, Config};
 use crate::openhuman::memory::{Memory, MemoryCategory, MemoryEntry, NamespaceSummary, RecallOpts};
 use crate::openhuman::tools::{Tool, ToolSpec};
 use tinyagents::harness::model::{ChatModel, ModelProfile, ModelRequest, ModelResponse};
-use tinyagents::harness::session_store::run_ledger::{
-    get_workflow_run, upsert_workflow_run, WorkflowRunUpsert,
-};
+use tinyagents::session::run_ledger::{get_workflow_run, upsert_workflow_run, WorkflowRunUpsert};
 
 use super::super::types::{WorkflowDefinition, WorkflowPhase, WorkflowSafetyTier};
 

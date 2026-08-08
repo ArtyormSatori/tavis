@@ -31,7 +31,7 @@ use async_trait::async_trait;
 
 use crate::core::event_bus::{subscribe_global, DomainEvent, EventHandler};
 use crate::openhuman::config::Config;
-use tinyagents::harness::session_store::run_ledger::{transition_agent_run_status, AgentRunStatus};
+use tinyagents::session::run_ledger::{transition_agent_run_status, AgentRunStatus};
 
 const LOG_PREFIX: &str = "[run_ledger][finalize]";
 

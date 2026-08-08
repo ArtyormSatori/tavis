@@ -223,9 +223,7 @@ pub(super) fn command_center_needs_input(
     config: &Config,
 ) -> Vec<super::attention::NeedsInputSignal> {
     use crate::openhuman::agent::orchestration::command_center::build_view;
-    use tinyagents::harness::session_store::run_ledger::{
-        list_agent_runs, AgentRunListRequest, AgentRunStatus,
-    };
+    use tinyagents::session::run_ledger::{list_agent_runs, AgentRunListRequest, AgentRunStatus};
     let request = AgentRunListRequest {
         status: Some(AgentRunStatus::AwaitingUser.as_str().to_string()),
         kind: None,
@@ -354,7 +352,7 @@ mod tests {
 
     #[test]
     fn command_center_needs_input_surfaces_only_blocked_runs() {
-        use tinyagents::harness::session_store::run_ledger::{
+        use tinyagents::session::run_ledger::{
             upsert_agent_run, AgentRunKind, AgentRunStatus, AgentRunUpsert,
         };
         let tmp = tempfile::tempdir().unwrap();

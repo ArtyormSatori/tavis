@@ -2,7 +2,7 @@
 //!
 //! The read-only projection in [`super::ops`] shows what background agent work
 //! is in flight; these verbs let a reviewer *act* on a single row. Each verb is
-//! a durable transition on the run ledger (`tinyagents::harness::session_store::run_ledger`):
+//! a durable transition on the run ledger (`tinyagents::session::run_ledger`):
 //!
 //! - **stop** — cancel a non-terminal run (→ `cancelled`).
 //! - **retry** — re-queue a finished-with-error run (`failed` / `cancelled` /
@@ -23,14 +23,14 @@
 //! unit-tested without a database, mirroring [`super::ops::build_view`].
 //!
 //! [`AgentOrchestrationSession`]: crate::openhuman::agent::orchestration::ops::AgentOrchestrationSession
-//! [`transition_agent_run_status`]: tinyagents::harness::session_store::run_ledger::transition_agent_run_status
+//! [`transition_agent_run_status`]: tinyagents::session::run_ledger::transition_agent_run_status
 
 use chrono::{DateTime, Utc};
 use serde_json::json;
 use thiserror::Error;
 
 use crate::openhuman::config::Config;
-use tinyagents::harness::session_store::run_ledger::{
+use tinyagents::session::run_ledger::{
     append_run_event, get_agent_run, transition_agent_run_status, AgentRunStatus, RunEventAppend,
 };
 
@@ -273,7 +273,7 @@ mod tests {
     use super::*;
     use serde_json::json;
     use tempfile::TempDir;
-    use tinyagents::harness::session_store::run_ledger::{
+    use tinyagents::session::run_ledger::{
         list_recent_run_events, upsert_agent_run, AgentRunKind, AgentRunUpsert, RunEventListRequest,
     };
 

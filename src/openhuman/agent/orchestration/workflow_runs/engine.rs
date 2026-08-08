@@ -51,7 +51,7 @@ use tinyagents::{CancellationToken, TinyAgentsError};
 
 use crate::openhuman::agent::orchestration::parent_context::with_root_parent;
 use crate::openhuman::config::Config;
-use tinyagents::harness::session_store::run_ledger::{
+use tinyagents::session::run_ledger::{
     get_workflow_run, upsert_workflow_run, WorkflowRun, WorkflowRunStatus, WorkflowRunUpsert,
 };
 
