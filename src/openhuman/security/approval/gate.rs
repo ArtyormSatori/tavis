@@ -3385,10 +3385,10 @@ mod tests {
         let expected_id = format!("flow-gate-approval:{request_id}");
         loop {
             match rx.recv().await {
-                Some(event) if event.id == expected_id => return event,
-                Some(_) => continue,
-                None => panic!("the bus closed before the expected event arrived"),
-}
+                Ok(event) if event.id == expected_id => return event,
+                Ok(_) => continue,
+                Err(err) => panic!("the notification bus closed before the approval: {err}"),
+            }
         }
     }
 }

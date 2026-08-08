@@ -1742,8 +1742,7 @@ mod tests {
         loop {
             match rx.recv().await {
                 Ok(ev) if ev.thread_id == thread_id => return ev,
-                Some(_) => continue,
-                None => panic!("the bus closed before the expected event arrived"),
+                Ok(_) => continue,
                 Err(err) => panic!("web-channel bus closed before event: {err}"),
             }
         }
