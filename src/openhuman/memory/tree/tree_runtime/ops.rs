@@ -164,6 +164,7 @@ pub async fn tree_summarizer_rebuild(
 /// 3. Error otherwise — "Build Summary Trees" is local-only by default;
 ///    the user must opt in to cloud summarization via the
 ///    `memory_tree.cloud_summarization_opt_in` setting.
+///
 /// Visibility note: `pub(crate)` so the embedded memory driver's
 /// [`MemoryTree`](tinycortex_api::provider::MemoryTree) `seal`/`cascade` reach
 /// the **same** resolver the RPC path uses. Duplicating the local-AI /
