@@ -1,7 +1,9 @@
 //! Session persistence: transcript loading, checkpointing, and background tasks.
 
 use super::super::transcript;
-use super::super::transcript_history::{SessionTranscriptHistory, TranscriptTurn};
+use super::super::transcript_history::{
+    FileTranscriptLocator, SessionHistoryLocator, SessionTranscriptRead, TranscriptTurn,
+};
 use super::super::types::Agent;
 use crate::openhuman::agent::context::ARCHIVIST_EXTRACTION_PROMPT;
 use crate::openhuman::agent::harness;
