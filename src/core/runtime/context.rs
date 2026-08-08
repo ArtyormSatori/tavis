@@ -59,7 +59,14 @@ pub struct CoreContext {
     /// [`CoreContext::memory_binding`] stays synchronous and I/O-free.
     /// `Config::load_or_init` is async and expensive; a "cheap, infallible"
     /// capability accessor cannot afford to call it.
-    memory_subsystem: crate::openhuman::config::schema::MemorySubsystemConfig,
+    ///
+    /// Writable so a workspace rebind (desktop login / logout / pending-session
+    /// revalidation) can refresh it **together with** the workspace dir — the
+    /// caller already holds the target user's `Config`, and without the refresh
+    /// the rebound context would keep binding the pre-switch driver, so a user
+    /// with `driver = "null"` would inherit the previous user's TinyCortex
+    /// binding and full capability surface.
+    memory_subsystem: RwLock<crate::openhuman::config::schema::MemorySubsystemConfig>,
 }
 
 impl CoreContext {
