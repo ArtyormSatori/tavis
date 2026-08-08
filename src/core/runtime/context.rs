@@ -948,7 +948,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_b.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: untrusted_external_memory_cfg(),
+            memory_subsystem: RwLock::new(untrusted_external_memory_cfg()),
         };
 
         let bind_a = a.memory_binding().expect("bind workspace A");
