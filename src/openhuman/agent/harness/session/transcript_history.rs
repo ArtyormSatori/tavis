@@ -84,8 +84,72 @@
 //!    You would pay a tinyagents release and still need a
 //!    `serde_json::Value` escape hatch, for a trait that has no consumer inside
 //!    the vendored crate outside `harness/memory/`.
+//!
+//! # Why the READ half is [`SessionTranscriptRead`], not `ChatHistory::messages`
+//!
+//! Same shape of argument as the write, and equally settled — measured with a
+//! round-trip probe, not assumed. `ChatHistory::messages` returns
+//! `Vec<Message>`, and the turn path needs `Vec<ChatMessage>` back, so a
+//! trait-mediated read has to pass through
+//! [`message_to_chat_message`][crate::openhuman::agent::message_convert::message_to_chat_message].
+//! That converter maps `Message::Assistant` to `ChatMessage::assistant(msg.text())`
+//! and **drops `a.tool_calls` entirely**. A persisted native tool round is
+//! deliberately stored as the `{content, tool_calls}` / `{tool_call_id, content}`
+//! envelope so the next turn re-parses it; flattening it orphans every following
+//! `role:"tool"` row and produces the provider `400 An assistant message with
+//! 'tool_calls' must be followed by tool messages`. It also blinds the
+//! TAURI-RUST-7 trailing strip in
+//! [`bound_cached_transcript_messages`][super::types::Agent::bound_cached_transcript_messages],
+//! which sniffs that envelope out of `ChatMessage.content`. Two lesser losses
+//! ride along and are inert on this path: the `openhuman_turn_usage`
+//! `extra_metadata` (re-attached by `read_transcript`, never re-serialised from
+//! the cached prefix) and `AssistantMessage.id` (no reader anywhere).
+//!
+//! So the read goes through [`SessionTranscriptRead::read_session`], which
+//! returns the very [`SessionTranscript`] the free function returns, produced by
+//! the same [`read_transcript`] call. Losslessness is **structural**: nothing
+//! crosses `Message`, so `tool_calls`, `tool_call_id`, `failure`,
+//! `reasoning_content` and the `_meta` header all survive by construction, and
+//! compaction replay + `interrupted: true` partial skipping stay exactly where
+//! the format owner performs them.
+//!
+//! # Why discovery is a separate object ([`SessionHistoryLocator`])
+//!
+//! A handle is bound to one *file*. The turn path's two reads are *lookups*:
+//! `(workspace, session_raw_subdir, agent name)` → newest match, and
+//! `_meta.thread_id` → newest **root** transcript. `ChatHistory` has no
+//! discovery concept at all (it is `thread_id`-keyed and returns messages, never
+//! a location), so leaving discovery as free functions would keep the read half
+//! hitting the filesystem no matter what handle was injected — i.e. the
+//! `Arc<dyn …>` would stay decorative. The locator is therefore the single
+//! injected object covering *both* reads and the session's own write handle.
+//!
+//! # Deliberately NOT done here — recorded with reasons
+//!
+//! - **The `impl ChatHistory` block below still has no production caller.**
+//!   Reads go through `read_session`, writes through `append_turn`. It is kept,
+//!   not deleted, because it is the crate-side seam Option A exists to
+//!   establish, and because it supplies the `Send + Sync + 'static` bounds the
+//!   shared `Arc<dyn SessionHistory>` needs. The trigger that would delete it is
+//!   an explicit decision to drop `ChatHistory` from the [`SessionHistory`]
+//!   bound; that frees this file's `read`/`persisted`/`meta_for_write`/
+//!   `write_logical_set`/`impl ChatHistory` (~150 lines) plus most of the test
+//!   module (~570 lines together). Decide it, don't rediscover it.
+//! - **The spec's "Removes: ~400 LOC of parallel abstraction" is not delivered
+//!   and cannot be.** See the design doc's "Where '~400 LOC' came from"
+//!   subsection: the figure is §2.1's residual after Option B, i.e. exactly
+//!   `migration.rs` (373 LOC), which §5 S1 and the deletion ledger both keep
+//!   host-owned. Option A's measured ledger is ≈ −15 / +90 LOC here.
+//! - **The #4249 JSONL↔store mirror is the one genuine parallel session
+//!   persistence** (`session_import/live.rs`, `maybe_shadow_read_session_store`
+//!   / `maybe_dual_write_session_store`, the `StoreRegistry` registration, two
+//!   `AgentConfig` flags, one config migration — ~565 prod LOC). It is not
+//!   touched here: it is gated on #4249's own Phase-2 parity soak and its
+//!   terminus (reads served from the store) points the opposite way from this
+//!   branch's non-negotiable zero-on-disk-change constraint.
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use tinyagents::harness::memory::ChatHistory;
@@ -96,7 +160,8 @@ use crate::openhuman::agent::message_convert::{history_to_messages, message_to_c
 use crate::openhuman::agent::messages::ChatMessage;
 
 use super::transcript::{
-    append_transcript_turn, read_transcript, resolve_keyed_transcript_path,
+    append_transcript_turn, find_latest_transcript_in_subdir,
+    find_root_transcript_for_thread_in_dir, read_transcript, resolve_keyed_transcript_path,
     resolve_keyed_transcript_path_in_dir, SessionTranscript, TranscriptMeta, TurnUsage,
 };
 
