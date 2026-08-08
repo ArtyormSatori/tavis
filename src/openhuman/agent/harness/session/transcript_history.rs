@@ -202,9 +202,163 @@ pub struct TranscriptTurn<'a> {
 /// `append_turn` is deliberately **sync**: `persist_session_transcript` is a
 /// sync `&mut self` method and the whole write chain under it is sync, so an
 /// async method here would ripple `.await` through the turn loop for no gain.
-pub(crate) trait SessionHistory: ChatHistory {
+pub(crate) trait SessionHistory: ChatHistory + SessionTranscriptRead {
     /// Appends one turn, forwarding every argument to the format owner.
     fn append_turn(&self, turn: TranscriptTurn<'_>) -> anyhow::Result<()>;
+}
+
+/// The read half of a bound transcript — the seam the turn path's two resume
+/// reads hold.
+///
+/// Split out of [`SessionHistory`] rather than added as one more method on it,
+/// for a reason that is not stylistic: a *discovered* transcript can still be a
+/// legacy `.md` file (see [`SessionTranscriptHistory::opened_at`]), and
+/// `append_transcript_turn` writes JSONL. Handing discovery results out as
+/// `Arc<dyn SessionTranscriptRead>` makes it impossible to `append_turn` into
+/// one by construction, instead of by convention.
+///
+/// Sync for the same reason [`SessionHistory::append_turn`] is: both callers are
+/// sync `&mut self` methods on `Agent`.
+pub(crate) trait SessionTranscriptRead: Send + Sync {
+    /// The transcript file this handle is bound to.
+    ///
+    /// The turn path still needs the concrete path after the read:
+    /// `maybe_shadow_read_session_store` takes `&Path`, and the dual-write
+    /// mirror derives its record key from `file_stem()`.
+    fn path(&self) -> &Path;
+
+    /// The model-context replay of this transcript, `_meta` included, or
+    /// `Ok(None)` when the file does not exist.
+    ///
+    /// Exactly [`read_transcript`], so compaction records have already replaced
+    /// the accumulator and `interrupted: true` partials are already skipped —
+    /// §3.1's "single most important constraint". Returning the whole
+    /// [`SessionTranscript`] rather than messages alone is what lets the shadow
+    /// read keep working through this seam.
+    fn read_session(&self) -> anyhow::Result<Option<SessionTranscript>>;
+}
+
+/// Resolves transcripts by the two keys the turn path actually has, and binds
+/// this session's own write handle.
+///
+/// One injected object covers the whole turn path: both resume reads and the
+/// first-write bind. `Agent` holds it as `Option<Arc<dyn SessionHistoryLocator>>`
+/// and falls back to [`FileTranscriptLocator`] built from the *current*
+/// `workspace_dir`/`session_raw_subdir` — lazily, never frozen at build time,
+/// because tests reassign `agent.workspace_dir` after `build()` and a
+/// build-time locator would silently keep pointing at the old directory.
+pub(crate) trait SessionHistoryLocator: Send + Sync {
+    /// Newest transcript for `agent_name` in this session's raw subtree,
+    /// including the legacy `session_raw/DDMMYYYY/` + `.md` fallback.
+    fn latest_for_agent(&self, agent_name: &str) -> Option<Arc<dyn SessionTranscriptRead>>;
+
+    /// Newest **root** transcript whose `_meta.thread_id` matches.
+    ///
+    /// Root-only on purpose: several transcripts share one thread id (every
+    /// sub-agent spawned within it does), so a stem-keyed lookup would be
+    /// ambiguous.
+    fn root_for_thread(&self, thread_id: &str) -> Option<Arc<dyn SessionTranscriptRead>>;
+
+    /// Binds (creating on first write) this session's own write handle for
+    /// `stem`, with `seed` used only when no file exists yet.
+    fn open_stem(&self, stem: &str, seed: TranscriptMeta) -> anyhow::Result<Arc<dyn SessionHistory>>;
+}
+
+/// The default [`SessionHistoryLocator`]: real files under
+/// `{workspace_dir}/{session_raw_subdir}`.
+///
+/// Thin by design — each method wraps exactly one `transcript::` free function
+/// and changes nothing about it, so swapping the turn path onto the locator is
+/// behaviour-preserving.
+pub(crate) struct FileTranscriptLocator {
+    workspace_dir: PathBuf,
+    session_raw_subdir: String,
+}
+
+impl FileTranscriptLocator {
+    pub(crate) fn new(workspace_dir: impl Into<PathBuf>, session_raw_subdir: impl Into<String>) -> Self {
+        Self {
+            workspace_dir: workspace_dir.into(),
+            session_raw_subdir: session_raw_subdir.into(),
+        }
+    }
+
+    /// `{workspace_dir}/{session_raw_subdir}` — the profile-scoped raw dir.
+    fn raw_dir(&self) -> PathBuf {
+        self.workspace_dir.join(&self.session_raw_subdir)
+    }
+}
+
+impl SessionHistoryLocator for FileTranscriptLocator {
+    fn latest_for_agent(&self, agent_name: &str) -> Option<Arc<dyn SessionTranscriptRead>> {
+        let path = find_latest_transcript_in_subdir(
+            &self.workspace_dir,
+            &self.session_raw_subdir,
+            agent_name,
+        )?;
+        log::debug!(
+            "[transcript-history] locator latest_for_agent agent={agent_name} path={}",
+            path.display()
+        );
+        Some(Arc::new(SessionTranscriptHistory::opened_at(
+            path,
+            seed_meta_for_discovered(agent_name),
+        )))
+    }
+
+    fn root_for_thread(&self, thread_id: &str) -> Option<Arc<dyn SessionTranscriptRead>> {
+        let path = find_root_transcript_for_thread_in_dir(&self.raw_dir(), thread_id)?;
+        log::debug!(
+            "[transcript-history] locator root_for_thread thread={thread_id} path={}",
+            path.display()
+        );
+        Some(Arc::new(SessionTranscriptHistory::opened_at(
+            path,
+            seed_meta_for_discovered(thread_id),
+        )))
+    }
+
+    fn open_stem(
+        &self,
+        stem: &str,
+        seed: TranscriptMeta,
+    ) -> anyhow::Result<Arc<dyn SessionHistory>> {
+        // `new_in_dir` — never `new` — because `new` hardcodes
+        // `{workspace}/session_raw/`, and a dedicated-memory profile's sessions
+        // live in `session_raw-<id>/`.
+        Ok(Arc::new(SessionTranscriptHistory::new_in_dir(
+            self.raw_dir(),
+            stem,
+            seed,
+        )?))
+    }
+}
+
+/// A placeholder `_meta` for a handle bound to an already-existing transcript.
+///
+/// `seed_meta` is consulted only when the file is **absent**, and a discovered
+/// path exists by definition, so this value is never written. It exists because
+/// [`SessionTranscriptHistory`] is one type serving both roles; giving read-only
+/// handles a `None` meta would mean an `Option` field every write path then has
+/// to unwrap for no benefit.
+fn seed_meta_for_discovered(agent_name: &str) -> TranscriptMeta {
+    TranscriptMeta {
+        agent_name: agent_name.to_string(),
+        agent_id: None,
+        agent_type: None,
+        dispatcher: String::new(),
+        provider: None,
+        model: None,
+        created: String::new(),
+        updated: String::new(),
+        turn_count: 0,
+        input_tokens: 0,
+        output_tokens: 0,
+        cached_input_tokens: 0,
+        charged_amount_usd: 0.0,
+        thread_id: None,
+        task_id: None,
+    }
 }
 
 /// A [`ChatHistory`] backed by one `session_raw/{stem}.jsonl` transcript.
