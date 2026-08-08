@@ -658,11 +658,47 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Platform,
         crate::openhuman::tools::registry::all_tool_registry_registered_controllers(),
     );
-    // Document and knowledge graph storage
+    // Document and knowledge graph storage. Registered one capability family at
+    // a time — documents, files, kv_graph, sync, learn, provider, tool_memory —
+    // in the exact order the single `all_memory_registered_controllers()`
+    // aggregator used to emit them, so the `memory.*` RPC surface is unchanged.
+    // The split exists so a family can later be registered conditionally on the
+    // bound driver's advertised capabilities (docs/specs/kernel.md §3.3);
+    // nothing here filters anything today.
     push(
         &mut controllers,
         DomainGroup::Memory,
-        crate::openhuman::memory::all_memory_registered_controllers(),
+        crate::openhuman::memory::all_memory_documents_registered_controllers(),
+    );
+    push(
+        &mut controllers,
+        DomainGroup::Memory,
+        crate::openhuman::memory::all_memory_files_registered_controllers(),
+    );
+    push(
+        &mut controllers,
+        DomainGroup::Memory,
+        crate::openhuman::memory::all_memory_kv_graph_registered_controllers(),
+    );
+    push(
+        &mut controllers,
+        DomainGroup::Memory,
+        crate::openhuman::memory::all_memory_sync_registered_controllers(),
+    );
+    push(
+        &mut controllers,
+        DomainGroup::Memory,
+        crate::openhuman::memory::all_memory_learn_registered_controllers(),
+    );
+    push(
+        &mut controllers,
+        DomainGroup::Memory,
+        crate::openhuman::memory::all_memory_provider_registered_controllers(),
+    );
+    push(
+        &mut controllers,
+        DomainGroup::Memory,
+        crate::openhuman::memory::all_memory_tool_memory_registered_controllers(),
     );
     // Long-term goals list (editable list + turn-based enrichment agent)
     push(
