@@ -256,11 +256,13 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
     // slot, named truthfully). Refuse it so the fallback machinery surfaces the
     // mistake in status instead of mislabelling the bound engine.
     let Some(entry) = cfg.drivers.get(id) else {
-        return implicit_class(id, &refuse);
+        return implicit_class(id, &refuse, "no [subsystems.memory.drivers.<id>] entry");
     };
 
     let class = match entry.class.as_deref() {
-        None => implicit_class(id, &refuse)?,
+        // An entry that names no class still cannot admit an arbitrary id: the
+        // embedded default is the only non-null id that implies Embedded.
+        None => implicit_class(id, &refuse, "[subsystems.memory.drivers.<id>] has no class line")?,
         Some(raw) => DriverClass::parse(raw).map_err(|e| refuse(&e))?,
     };
 
