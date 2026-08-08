@@ -1824,7 +1824,7 @@ impl crate::openhuman::agent::harness::session::transcript_history::SessionHisto
         _agent_name: &str,
     ) -> Option<
         Arc<dyn crate::openhuman::agent::harness::session::transcript_history::SessionTranscriptRead>,
-    > {
+    >{
         Some(self.handle.clone())
     }
 
@@ -1833,7 +1833,7 @@ impl crate::openhuman::agent::harness::session::transcript_history::SessionHisto
         _thread_id: &str,
     ) -> Option<
         Arc<dyn crate::openhuman::agent::harness::session::transcript_history::SessionTranscriptRead>,
-    > {
+    >{
         Some(self.handle.clone())
     }
 
@@ -1926,7 +1926,10 @@ async fn fake_locator_substitutes_the_whole_turn_path() {
         .as_ref()
         .expect("resume prefix came from the fake locator");
     assert_eq!(
-        cached.iter().map(|m| m.content.as_str()).collect::<Vec<_>>(),
+        cached
+            .iter()
+            .map(|m| m.content.as_str())
+            .collect::<Vec<_>>(),
         vec!["canned system", "canned question", "canned answer"]
     );
 
