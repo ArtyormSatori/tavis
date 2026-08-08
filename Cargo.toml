@@ -400,7 +400,7 @@ tokio = { version = "1", features = ["test-util"] }
 proptest = "1"
 
 [features]
-default = ["inference", "voice", "web3", "media", "documents", "meet", "skills", "flows", "mcp", "crash-reporting", "http-server", "channels", "tui", "medulla", "scheduler-gate", "file-logging", "prediction-markets", "contacts"]
+default = ["inference", "voice", "web3", "media", "documents", "meet", "skills", "flows", "mcp", "crash-reporting", "http-server", "channels", "tui", "medulla", "scheduler-gate", "file-logging", "contacts"]
 # HTTP + Socket.IO server transport (#5048): the `/rpc` JSON-RPC endpoint and
 # its auth middleware/CORS layer (`core::jsonrpc`, `core::auth`), the `/v1`
 # OpenAI-compatible router (`inference::http`), the ad-hoc static-dir file
@@ -476,22 +476,14 @@ voice = [
 # crypto wallet (multi-chain sign/broadcast), the high-level swap/bridge/dapp
 # surface, and the x402 machine-payment protocol. Default-ON — the desktop app
 # always ships with the wallet. Slim / headless builds opt out via
-# `--no-default-features --features "<explicit list without web3>"`, which also
+# `--no-default-features --features "<explicit list without web3>"`, which
 # drops the exclusive `bitcoin` (P2WPKH PSBT) + `curve25519-dalek` (Solana
-# off-curve ATA) dependencies. Composes with the runtime `DomainSet::Web3` flag
-# (#4796): the feature narrows the compile-time surface, `DomainSet` gates it at
-# runtime. NOTE: this gate does NOT drop ethers-core / ethers-signers /
-# coins-bip39 / bs58 / ed25519-dalek / ripemd — those are shared with the
-# Polymarket tools + tinyplace on-chain payments + orchestration and stay
-# always-on. When off, tinyplace payments + Polymarket writes degrade to
-# graceful "wallet disabled" errors via the wallet/web3/x402 stub facades.
-# The EVM/mnemonic crypto stack now belongs to this gate. It previously did
-# not, because the Polymarket tools (`tools/impl/network/polymarket*`,
-# `clob_auth`) consumed `ethers-*`/`coins-bip39` while living outside the
-# wallet/web3/x402 domains — so the gate could not shed them and AGENTS.md said
-# so in writing. `prediction-markets` below resolves that by giving Polymarket
-# its own gate that implies this one, which makes the whole cohort droppable:
-# -67 crates, the largest single shed in the kernelization work.
+# off-curve ATA) + `ethers-core` / `ethers-signers` / `coins-bip39` (EVM/mnemonic
+# signing, used by the multi-chain wallet's EVM path) dependencies. Composes
+# with the runtime `DomainSet::Web3` flag (#4796): the feature narrows the
+# compile-time surface, `DomainSet` gates it at runtime. When off, tinyplace
+# payments degrade to graceful "wallet disabled" errors via the wallet/web3/x402
+# stub facades.
 #
 # `bs58` and `ed25519-dalek` deliberately stay always-on: `orchestration/ingest`
 # and `tinyplace/payment` use them for agent-network identity, which has nothing
@@ -521,12 +513,6 @@ web3 = [
 #   cargo tree --target aarch64-apple-darwin -e normal -i objc2-contacts \
 #     --no-default-features
 contacts = ["dep:objc2", "dep:objc2-foundation", "dep:objc2-contacts", "dep:block2"]
-
-# Polymarket prediction-market tools (read + trading). Implies `web3` because it
-# signs orders with the same EVM stack the wallet uses — an honest dependency
-# rather than a hidden one. Separate from `web3` so a build can have a wallet
-# without a trading surface; the reverse is not meaningful.
-prediction-markets = ["web3"]
 # Media-generation + image domains: the `media_generate_*` agent tools
 # (image/video via GMI through the backend) and the `openhuman::image` tool
 # contracts scaffold. Default-ON. Slim builds opt out via

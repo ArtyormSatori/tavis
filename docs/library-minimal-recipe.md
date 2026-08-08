@@ -123,8 +123,8 @@ build-fact error:
   voice` returns "voice disabled".
 - **web3:** wallet / web3 / x402 controllers unregistered; swap/bridge/dapp agent
   tools absent; the x402 402-retry path returns unpaid; tinyplace on-chain
-  payments + Polymarket *writes* degrade to graceful "wallet disabled" errors
-  (tinyplace comms + ed25519 signing are unaffected).
+  payments degrade to graceful "wallet disabled" errors (tinyplace comms +
+  ed25519 signing are unaffected).
 - **media:** `media_generate_*` agent tools absent.
 - **meet:** meet controllers unregistered; live Meet bot / STT-LLM-TTS loop absent.
 - **mcp:** `mcp_server` / `mcp_registry` (`mcp_clients` namespace) / `mcp_audit`
