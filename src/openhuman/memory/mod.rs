@@ -74,6 +74,8 @@ pub use schemas::{
     all_documents_registered_controllers as all_memory_documents_registered_controllers,
     all_files_controller_schemas as all_memory_files_controller_schemas,
     all_files_registered_controllers as all_memory_files_registered_controllers,
+    all_ingest_controller_schemas as all_memory_ingest_controller_schemas,
+    all_ingest_registered_controllers as all_memory_ingest_registered_controllers,
     all_kv_graph_controller_schemas as all_memory_kv_graph_controller_schemas,
     all_kv_graph_registered_controllers as all_memory_kv_graph_registered_controllers,
     all_learn_controller_schemas as all_memory_learn_controller_schemas,
