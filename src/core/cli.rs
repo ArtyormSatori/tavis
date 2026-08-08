@@ -696,7 +696,3 @@ fn is_help(value: &str) -> bool {
 #[cfg(test)]
 #[path = "cli_tests.rs"]
 mod tests;
-
-#[cfg(test)]
-#[path = "zz_throwaway_verify_tests.rs"]
-mod zz_throwaway_verify_tests;
