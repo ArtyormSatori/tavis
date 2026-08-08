@@ -148,7 +148,7 @@ fn embedded_class_binds_the_embedded_driver_not_null() {
     assert_eq!(binding.driver_id(), "tinycortex");
     assert_eq!(binding.class(), DriverClass::Embedded);
     assert!(binding.fallback().is_none());
-    assert_ne!(binding.provider().driver_id(), NULL_DRIVER_ID);
+    assert_ne!(binding.unguarded_provider().driver_id(), NULL_DRIVER_ID);
     assert!(binding.capabilities().contains(Capability::Core));
     assert!(binding.capabilities().validate().is_ok());
     assert!(
@@ -185,7 +185,7 @@ fn null_driver_config_still_binds_the_null_provider() {
     let binding = for_workspace(dir.path(), &cfg).expect("null bind");
     assert_eq!(binding.driver_id(), NULL_DRIVER_ID);
     assert_eq!(binding.class(), DriverClass::Null);
-    assert_eq!(binding.provider().driver_id(), NULL_DRIVER_ID);
+    assert_eq!(binding.unguarded_provider().driver_id(), NULL_DRIVER_ID);
     assert!(
         binding.fallback().is_none(),
         "an explicitly requested null driver is not a fallback"

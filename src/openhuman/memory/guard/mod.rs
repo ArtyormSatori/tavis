@@ -50,7 +50,7 @@
 //!
 //! M4a is **purely additive**. [`CoreContext::memory`] is new and nothing has
 //! been migrated onto it; `CoreContext::memory_binding()` and
-//! `MemoryBinding::provider()` still exist and still hand out the bare driver.
+//! `MemoryBinding::unguarded_provider()` still exist and still hand out the bare driver.
 //! The one production caller of `provider()` — the health probe in
 //! `memory::ops::provider` — should keep bypassing the guard: a liveness probe
 //! is not product code, and running it through the tier check would make an

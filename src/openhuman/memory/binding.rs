@@ -88,7 +88,7 @@ pub struct FallbackReason {
 /// One bound memory driver, for one workspace.
 pub struct MemoryBinding {
     provider: Arc<dyn MemoryProvider>,
-    /// The policy decorator over [`Self::provider`] — the handle product code
+    /// The policy decorator over [`Self::unguarded_provider`] — the handle product code
     /// receives, via `CoreContext::memory()`. Built here rather than by each
     /// caller so "every caller gets a guarded handle" holds by construction,
     /// the same way `capabilities()` is asked exactly once by construction.

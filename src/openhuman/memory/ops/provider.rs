@@ -39,7 +39,7 @@ pub async fn memory_subsystem_status() -> SubsystemStatus {
 /// the bound case is testable without standing up a [`CoreContext`].
 pub async fn status_from_binding(binding: &MemoryBinding) -> SubsystemStatus {
     let bound = binding.to_bound_driver();
-    let health = to_driver_health(binding.provider().health().await);
+    let health = to_driver_health(binding.unguarded_provider().health().await);
     let last_error = binding
         .fallback()
         .map(|fallback| format!("{}: {}", fallback.configured_driver, fallback.reason));
