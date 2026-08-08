@@ -225,6 +225,49 @@ fn for_workspace_caches_binding_per_workspace() {
 }
 
 #[test]
+fn same_workspace_with_changed_config_binds_fresh() {
+    // `CoreContext::rebind_workspace` treats "same workspace, changed
+    // [subsystems.memory]" as a real rebind (a changed driver/hooks/trust all
+    // feed `build`). The cache must key on the config as well as the path, or
+    // a changed config for an already-bound workspace would keep serving the
+    // previous driver until process restart.
+    let dir = tempfile::tempdir().unwrap();
+    let default = MemorySubsystemConfig::default();
+    let null = MemorySubsystemConfig {
+        driver: "null".into(),
+        ..Default::default()
+    };
+
+    let tiny = for_workspace(dir.path(), &default).expect("bind tinycortex");
+    assert_eq!(tiny.driver_id(), "tinycortex");
+
+    // Same (workspace, config) pair reuses the cached binding...
+    let tiny_again = for_workspace(dir.path(), &default).expect("re-bind tinycortex");
+    assert!(
+        Arc::ptr_eq(&tiny, &tiny_again),
+        "unchanged config must reuse the cached binding"
+    );
+
+    // ...but a changed config for the SAME workspace must bind fresh.
+    let null_binding = for_workspace(dir.path(), &null).expect("bind null");
+    assert!(
+        !Arc::ptr_eq(&tiny, &null_binding),
+        "changed config must bind fresh, not serve the stale tinycortex driver"
+    );
+    assert_eq!(null_binding.driver_id(), "null");
+
+    // Reverting to the original config still resolves its own binding. This is
+    // the transient-mismatch half: a stale (workspace, config) pairing never
+    // shadows the correct pair, so it cannot permanently pin a workspace to the
+    // wrong driver (the atomicity concern in the login/logout rebind).
+    let tiny_reverted = for_workspace(dir.path(), &default).expect("re-bind tinycortex");
+    assert!(
+        Arc::ptr_eq(&tiny, &tiny_reverted),
+        "returning to the original config must serve the original binding"
+    );
+}
+
+#[test]
 fn embedded_class_binds_the_embedded_driver_not_null() {
     // Plain `#[test]`: no tokio runtime. Binding must stay synchronous and
     // I/O-free, which is why the embedded driver resolves its client lazily.
