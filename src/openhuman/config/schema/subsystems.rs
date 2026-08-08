@@ -43,7 +43,12 @@ pub struct SubsystemsConfig {
 
 /// `[subsystems.memory]` — which driver is bound for the memory subsystem,
 /// its hook budgets, and the per-driver option table.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+///
+/// `PartialEq`/`Eq` let [`CoreContext::rebind_workspace`] short-circuit a
+/// no-op rebind by comparing the config it was handed against the one already
+/// held — equality is value comparison only, so it never prints or leaks the
+/// credential fields the way `Debug` would.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(default)]
 pub struct MemorySubsystemConfig {
     /// The bound driver id (e.g. `"tinycortex"`, `"supermemory"`, `"null"`).
