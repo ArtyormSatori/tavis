@@ -422,10 +422,7 @@ async fn channel_processed_event_records_resolved_agent_route() {
         let event = tokio::time::timeout(Duration::from_millis(200), events.recv())
             .await
             .expect("ChannelMessageProcessed event should be published");
-        let event = match event {
-            Ok(event) => event,
-            None => panic!("the bus closed before the expected event arrived"),
-};
+        let event = event.expect("the bus closed before the expected event arrived");
 
         if let DomainEvent::ChannelMessageProcessed {
             message_id,

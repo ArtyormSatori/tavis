@@ -1127,11 +1127,8 @@ use crate::core::events::DomainEvent;
                     break;
                 }
             }
-            Ok(Ok(_)) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Lagged(_))) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Closed)) => {
-                panic!("event bus closed before sentinel arrived")
-            }
+            Ok(Some(_)) => continue,
+            Ok(None) => panic!("the bus closed before the sentinel arrived"),
             Err(_) => panic!("timed out before egress sentinel arrived"),
         }
     }
@@ -1197,11 +1194,8 @@ use crate::core::events::DomainEvent;
                     _ => {}
                 }
             }
-            Ok(Ok(_)) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Lagged(_))) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Closed)) => {
-                panic!("event bus closed before sentinel arrived")
-            }
+            Ok(Some(_)) => continue,
+            Ok(None) => panic!("the bus closed before the sentinel arrived"),
             Err(_) => panic!("timed out before egress sentinel arrived"),
         }
     }
@@ -1411,11 +1405,8 @@ use crate::core::events::DomainEvent;
                     break;
                 }
             }
-            Ok(Ok(_)) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Lagged(_))) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Closed)) => {
-                panic!("event bus closed before sentinel arrived")
-            }
+            Ok(Some(_)) => continue,
+            Ok(None) => panic!("the bus closed before the sentinel arrived"),
             Err(_) => panic!("timed out before egress sentinel arrived"),
         }
     }
@@ -1463,11 +1454,8 @@ use crate::core::events::DomainEvent;
                     break;
                 }
             }
-            Ok(Ok(_)) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Lagged(_))) => continue,
-            Ok(Err(tokio::sync::broadcast::error::RecvError::Closed)) => {
-                panic!("event bus closed before sentinel arrived")
-            }
+            Ok(Some(_)) => continue,
+            Ok(None) => panic!("the bus closed before the sentinel arrived"),
             Err(_) => panic!("timed out before egress sentinel arrived"),
         }
     }
