@@ -893,12 +893,41 @@ mod tests {
         };
 
         let bind_a = ctx.memory_binding().expect("bind workspace A");
-        ctx.rebind_workspace_dir(dir_b.path())
+        ctx.rebind_workspace(dir_b.path(), Default::default())
             .expect("rebind context workspace");
 
         assert_eq!(ctx.workspace_dir().unwrap(), dir_b.path());
         let bind_b = ctx.memory_binding().expect("bind workspace B");
         assert!(!Arc::ptr_eq(&bind_a, &bind_b));
+    }
+
+    /// The subsystem-config refresh half of the rebind requirement: a rebind
+    /// that passes a `[subsystems.memory] driver = "null"` config must make the
+    /// accessor report the null driver, not the default embedded one captured
+    /// before the user switch.
+    #[test]
+    fn rebind_workspace_refreshes_memory_subsystem_config() {
+        let dir_a = tempfile::tempdir().unwrap();
+        let dir_b = tempfile::tempdir().unwrap();
+        let ctx = CoreContext {
+            host_kind: HostKind::Cli,
+            workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
+            domains: crate::core::runtime::DomainSet::full(),
+            memory_subsystem: RwLock::new(Default::default()),
+        };
+
+        let bind_a = ctx.memory_binding().expect("bind workspace A");
+        assert_eq!(bind_a.class(), crate::core::subsystem::DriverClass::Embedded);
+
+        let null_cfg = crate::openhuman::config::schema::MemorySubsystemConfig {
+            driver: "null".to_string(),
+            ..Default::default()
+        };
+        ctx.rebind_workspace(dir_b.path(), null_cfg)
+            .expect("rebind context workspace + subsystem");
+
+        let bind_b = ctx.memory_binding().expect("bind workspace B");
+        assert_eq!(bind_b.class(), crate::core::subsystem::DriverClass::Null);
     }
 
     /// `memory::global`'s clear-on-failed-rebind property, preserved
