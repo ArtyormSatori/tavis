@@ -295,7 +295,7 @@ impl SourceReader for GithubReader {
         let max_issues = source.max_issues.unwrap_or(DEFAULT_GITHUB_ITEM_LIMIT);
         let max_prs = source.max_prs.unwrap_or(DEFAULT_GITHUB_ITEM_LIMIT);
 
-        let cache_dir = git_cache_dir(config, &owner, &repo);
+        let cache_dir = git_cache_dir(&config.workspace_dir, &owner, &repo);
 
         tracing::debug!(
             owner = %owner,
@@ -384,7 +384,7 @@ impl SourceReader for GithubReader {
 
         match kind {
             ItemKind::Commit => {
-                let cache_dir = git_cache_dir(config, &owner, &repo);
+                let cache_dir = git_cache_dir(&config.workspace_dir, &owner, &repo);
                 match read_commit_git(&owner, &repo, ref_id, &cache_dir).await {
                     Ok(content) => Ok(content),
                     Err(e) => {
@@ -479,9 +479,8 @@ async fn fetch_all_pages<T: serde::de::DeserializeOwned>(
 const GIT_CLONE_TIMEOUT: Duration = Duration::from_secs(120);
 const GIT_LOG_TIMEOUT: Duration = Duration::from_secs(30);
 
-fn git_cache_dir(config: &Config, owner: &str, repo: &str) -> PathBuf {
-    config
-        .workspace_dir
+fn git_cache_dir(workspace: &Path, owner: &str, repo: &str) -> PathBuf {
+    workspace
         .join("git_cache")
         .join(owner)
         .join(format!("{repo}.git"))
