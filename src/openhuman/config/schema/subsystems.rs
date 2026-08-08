@@ -142,7 +142,7 @@ impl Default for MemoryHooksConfig {
 ///
 /// `PartialEq`/`Eq` are safe to derive: they compare values for equality and
 /// never render them, so `credential_ref` stays out of any output.
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(default)]
 pub struct MemoryDriverConfig {
     /// Driver class: `"embedded"` | `"external"` | `"null"`. See kernel.md §3.1.
