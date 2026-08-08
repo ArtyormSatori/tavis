@@ -389,7 +389,7 @@ pub(crate) fn create_workflow_inner(
 
     // Notify live agent sessions so they pick up the new skill in their
     // `## Installed Skills` catalogue (see `Agent::refresh_workflows`).
-    crate::core::event_bus::publish_global(crate::core::event_bus::DomainEvent::WorkflowsChanged {
+    crate::core::bus::BUS.publish(crate::core::events::DomainEvent::WorkflowsChanged {
         reason: "create".to_string(),
     });
 
@@ -687,13 +687,14 @@ mod render_skill_toml_tests {
     /// dropped emission would stay green while silently killing the feature).
     #[test]
     fn create_workflow_inner_emits_workflows_changed() {
-        use crate::core::event_bus::{global, init_global, DomainEvent};
+        use crate::core::bus::BUS;
+use crate::core::events::DomainEvent;
         use tokio::sync::broadcast::error::TryRecvError;
 
         let _ = init_global(64);
         let mut rx = global()
             .expect("event bus should be initialized")
-            .raw_receiver();
+            .receiver();
 
         let home = tempfile::TempDir::new().expect("temp home");
         let ws = tempfile::TempDir::new().expect("temp workspace");

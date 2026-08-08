@@ -20,9 +20,10 @@ use async_trait::async_trait;
 use chrono::{TimeZone, Utc};
 use tempfile::TempDir;
 
-use crate::core::event_bus::{
-    init_global as init_event_bus, subscribe_global, DomainEvent, EventHandler, SubscriptionHandle,
-};
+use crate::core::bus::BUS;
+use crate::core::events::DomainEvent;
+use tinybus::EventHandler;
+use tinybus::SubscriptionHandle;
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::ingest_pipeline::ingest_chat;
 use crate::openhuman::memory::queue::{
@@ -66,7 +67,7 @@ impl EventCollector {
     }
 
     fn subscribe(self) -> (Self, Option<SubscriptionHandle>) {
-        let handle = subscribe_global(Arc::new(self.clone()));
+        let handle = BUS.subscribe(Arc::new(self.clone()));
         (self, handle)
     }
 
@@ -81,7 +82,7 @@ impl EventCollector {
 }
 
 #[async_trait]
-impl EventHandler for EventCollector {
+impl EventHandler<DomainEvent> for EventCollector {
     fn name(&self) -> &str {
         "test::event_collector"
     }

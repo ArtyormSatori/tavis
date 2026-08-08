@@ -1682,7 +1682,7 @@ mod tests {
                         return ev;
                     }
                     Ok(_) => continue,
-                    Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                    None => panic!("the bus closed before the expected event arrived"),
                     Err(err) => panic!("bus closed: {err}"),
                 }
             }
@@ -1743,7 +1743,7 @@ mod tests {
             match rx.recv().await {
                 Ok(ev) if ev.thread_id == thread_id => return ev,
                 Ok(_) => continue,
-                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                None => panic!("the bus closed before the expected event arrived"),
                 Err(err) => panic!("web-channel bus closed before event: {err}"),
             }
         }

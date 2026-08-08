@@ -6,7 +6,7 @@
 //! (`MockProvider`, `RecordingProvider`, `MockTool`) are defined here.
 
 use super::types::{Agent, AgentBuilder};
-use crate::core::event_bus::DomainEvent;
+use crate::core::events::DomainEvent;
 use crate::openhuman::agent::dispatcher::{NativeToolDispatcher, XmlToolDispatcher};
 use crate::openhuman::agent::messages::ConversationMessage;
 use crate::openhuman::inference::provider::ChatResponse;

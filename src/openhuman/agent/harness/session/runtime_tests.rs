@@ -1,5 +1,6 @@
 use super::*;
-use crate::core::event_bus::{global, init_global, DomainEvent};
+use crate::core::bus::BUS;
+use crate::core::events::DomainEvent;
 use crate::openhuman::agent::dispatcher::XmlToolDispatcher;
 use crate::openhuman::agent::error::AgentError;
 use crate::openhuman::agent::messages::ChatMessage;

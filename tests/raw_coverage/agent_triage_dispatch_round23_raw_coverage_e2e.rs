@@ -1,4 +1,4 @@
-use openhuman_core::core::event_bus::init_global;
+use openhuman_core::core::bus::init as init_global;
 use openhuman_core::openhuman::agent::debug::DumpPromptOptions;
 use openhuman_core::openhuman::agent::task_board::{TaskBoardCard, TaskCardStatus};
 use openhuman_core::openhuman::agent::task_dispatcher::{dispatch_card, DispatchOutcome};

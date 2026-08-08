@@ -5,7 +5,7 @@ use super::*;
 use serde_json::json;
 use tempfile::TempDir;
 
-use crate::core::event_bus::EventHandler;
+use tinybus::EventHandler;
 use crate::openhuman::agent::session_db::run_ledger::{
     get_agent_run, upsert_agent_run, AgentRunKind, AgentRunStatus, AgentRunUpsert,
 };
