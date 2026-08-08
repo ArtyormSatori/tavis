@@ -157,6 +157,42 @@ pub fn current() -> Option<AgentTurnOrigin> {
     AGENT_TURN_ORIGIN.try_with(|o| o.clone()).ok()
 }
 
+/// Carry the origin scoped **right now** into a future that will run on
+/// another task.
+///
+/// A `tokio::task_local` does not cross `tokio::spawn`: a detached sub-agent
+/// (`spawn_async_subagent`, the orchestration `spawn_agent` task) starts on a
+/// fresh task where [`current`] is `None`, so every external-effect tool it
+/// calls reaches the approval gate as [`AgentTurnOrigin::Unknown`] and is
+/// refused — even though the parent turn that delegated the work was properly
+/// labelled. That is the same failure mode
+/// [`fork_context::with_parent_context`](crate::openhuman::agent::harness::fork_context)
+/// and [`thread_context::with_thread_id`](crate::openhuman::agent::tinyagents::thread_context)
+/// already re-install explicitly at those spawn sites; the origin is the third
+/// thing that has to travel with them.
+///
+/// **Call this on the parent task**, i.e. build the future *before* handing it
+/// to `tokio::spawn` — the origin is read when this function is called, not
+/// when the returned future is first polled:
+///
+/// ```ignore
+/// tokio::spawn(turn_origin::propagate(async move { run_subagent(..).await }));
+/// ```
+///
+/// Fail-closed is preserved: with no ambient origin nothing is scoped, so the
+/// child still lands on `Unknown` rather than inheriting a label nobody set.
+/// This only ever *carries* a decision the parent entry point already made — it
+/// cannot manufacture trust that did not exist on the spawning task.
+pub fn propagate<F: std::future::Future>(fut: F) -> impl std::future::Future<Output = F::Output> {
+    let captured = current();
+    async move {
+        match captured {
+            Some(origin) => with_origin(origin, fut).await,
+            None => fut.await,
+        }
+    }
+}
+
 /// Read the ambient web-chat `request_id` for the current turn, when one was
 /// scoped by an [`AgentTurnOrigin::WebChat`] entry point. `None` for every
 /// other origin (channel / cron / CLI / sub-agent) and outside any scope —
