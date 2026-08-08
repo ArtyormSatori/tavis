@@ -126,6 +126,100 @@ fn controller_schema_order_is_pinned_to_pre_split_snapshot() {
 }
 
 #[test]
+fn aggregator_is_exactly_the_seven_families_concatenated_in_order() {
+    let mut expected = Vec::new();
+    expected.extend(functions_of(&all_documents_registered_controllers()));
+    expected.extend(functions_of(&all_files_registered_controllers()));
+    expected.extend(functions_of(&all_kv_graph_registered_controllers()));
+    expected.extend(functions_of(&all_sync_registered_controllers()));
+    expected.extend(functions_of(&all_learn_registered_controllers()));
+    expected.extend(functions_of(&all_provider_registered_controllers()));
+    expected.extend(functions_of(&all_tool_memory_registered_controllers()));
+
+    assert_eq!(functions_of(&all_registered_controllers()), expected);
+    assert_eq!(expected, REGISTRATION_ORDER);
+}
+
+#[test]
+fn schema_aggregator_is_exactly_the_seven_families_concatenated_in_order() {
+    let mut expected: Vec<&'static str> = Vec::new();
+    for family in [
+        all_documents_controller_schemas(),
+        all_files_controller_schemas(),
+        all_kv_graph_controller_schemas(),
+        all_sync_controller_schemas(),
+        all_learn_controller_schemas(),
+        all_provider_controller_schemas(),
+        all_tool_memory_controller_schemas(),
+    ] {
+        expected.extend(family.into_iter().map(|s| s.function));
+    }
+    let actual: Vec<_> = all_controller_schemas()
+        .into_iter()
+        .map(|s| s.function)
+        .collect();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn each_family_pairs_its_schemas_with_its_controllers() {
+    let families: [(&str, Vec<ControllerSchema>, Vec<RegisteredController>); 7] = [
+        (
+            "documents",
+            all_documents_controller_schemas(),
+            all_documents_registered_controllers(),
+        ),
+        (
+            "files",
+            all_files_controller_schemas(),
+            all_files_registered_controllers(),
+        ),
+        (
+            "kv_graph",
+            all_kv_graph_controller_schemas(),
+            all_kv_graph_registered_controllers(),
+        ),
+        (
+            "sync",
+            all_sync_controller_schemas(),
+            all_sync_registered_controllers(),
+        ),
+        (
+            "learn",
+            all_learn_controller_schemas(),
+            all_learn_registered_controllers(),
+        ),
+        (
+            "provider",
+            all_provider_controller_schemas(),
+            all_provider_registered_controllers(),
+        ),
+        (
+            "tool_memory",
+            all_tool_memory_controller_schemas(),
+            all_tool_memory_registered_controllers(),
+        ),
+    ];
+
+    let mut total = 0;
+    for (name, schemas, controllers) in families {
+        assert!(!schemas.is_empty(), "family {name} advertises no schemas");
+        let schema_fns: Vec<_> = schemas.iter().map(|s| s.function).collect();
+        assert_eq!(
+            schema_fns,
+            functions_of(&controllers),
+            "family {name} schema order diverges from its handler order"
+        );
+        total += controllers.len();
+    }
+    assert_eq!(
+        total,
+        REGISTRATION_ORDER.len(),
+        "the seven families must cover the whole memory surface — no function may be orphaned"
+    );
+}
+
+#[test]
 fn all_controller_schemas_has_entry_per_supported_function() {
     let names: Vec<_> = all_controller_schemas()
         .into_iter()
