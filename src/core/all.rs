@@ -221,18 +221,50 @@ impl DomainGroup {
 #[derive(Clone)]
 struct GroupedController {
     group: DomainGroup,
+    /// The memory-driver capability family this controller's surface needs, if
+    /// any (M5.2, `docs/specs/kernel.md` §3.3).
+    ///
+    /// `None` — the overwhelming majority — means "not gated on memory
+    /// capabilities at all", either because the controller belongs to another
+    /// domain entirely, or because it is host surface that survives any driver
+    /// (`people`, `memory.list_files`, `memory.provider_status`), or because
+    /// its family is MANDATORY and so a gate could never fire.
+    ///
+    /// `Some(c)` means the surface is ABSENT when the bound driver does not
+    /// advertise `c`: unknown-method over `/rpc`, omitted from `/schema`.
+    /// Absence, not a stub that errors — a registered-but-failing method
+    /// teaches a model that the capability exists and makes it retry. Same
+    /// reasoning as the `flows` compile-time gate (see CLAUDE.md) and as
+    /// `tinycortex_api::capabilities`' module docs.
+    capability: Option<Capability>,
     controller: RegisteredController,
 }
 
-/// Append `items` to `dst`, tagging each with `group`. This is the single seam
-/// that attaches a [`DomainGroup`] to every domain's controllers without the
-/// domain modules knowing about groups.
+/// Append `items` to `dst`, tagging each with `group` and no capability gate.
+/// This is the single seam that attaches a [`DomainGroup`] to every domain's
+/// controllers without the domain modules knowing about groups.
 fn push(dst: &mut Vec<GroupedController>, group: DomainGroup, items: Vec<RegisteredController>) {
-    dst.extend(
-        items
-            .into_iter()
-            .map(|controller| GroupedController { group, controller }),
-    );
+    push_cap(dst, group, None, items);
+}
+
+/// [`push`] plus a memory-capability gate.
+///
+/// Every [`DomainGroup::Memory`] site calls THIS one with an explicit
+/// `Option<Capability>` — including the explicit `None`s — so "which family
+/// does this surface need" is a decision recorded at the registration site
+/// rather than a default nobody chose. `memory_capability_map_is_exhaustive`
+/// in `all_tests.rs` fails if a Memory push site is added without one.
+fn push_cap(
+    dst: &mut Vec<GroupedController>,
+    group: DomainGroup,
+    capability: Option<Capability>,
+    items: Vec<RegisteredController>,
+) {
+    dst.extend(items.into_iter().map(|controller| GroupedController {
+        group,
+        capability,
+        controller,
+    }));
 }
 
 /// The [`DomainSet`](crate::core::runtime::DomainSet) of the ambient dispatch
