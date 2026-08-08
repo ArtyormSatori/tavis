@@ -748,7 +748,7 @@ mod tests {
         };
 
         let store_a = ctx.people().expect("open people store for workspace A");
-        ctx.rebind_workspace_dir(dir_b.path())
+        ctx.rebind_workspace(dir_b.path(), Default::default())
             .expect("rebind context workspace");
 
         assert_eq!(ctx.workspace_dir().unwrap(), dir_b.path());
