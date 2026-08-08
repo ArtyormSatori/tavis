@@ -72,6 +72,19 @@ fn enforce_user_prompt_or_reject(prompt: &str, source: &'static str) -> Result<(
     }
 }
 
+/// The origin label [`agent_chat`] scopes around its turn.
+///
+/// An ambient origin — scoped by an in-process embedder around its
+/// `invoke("openhuman.inference_agent_chat", …)` — is the caller's own,
+/// deliberate trust statement about the turn and is kept. Absent one, the
+/// historical [`AgentTurnOrigin::Cli`] label applies: this RPC is reached by
+/// trusted clients (desktop UI, operator CLI), and leaving it unlabelled would
+/// fail the approval gate closed on every external-effect tool.
+fn effective_agent_chat_origin() -> crate::openhuman::agent::turn_origin::AgentTurnOrigin {
+    crate::openhuman::agent::turn_origin::current()
+        .unwrap_or(crate::openhuman::agent::turn_origin::AgentTurnOrigin::Cli)
+}
+
 /// Executes a single chat turn with an AI agent.
 ///
 /// This function initializes an agent from the provided configuration and
