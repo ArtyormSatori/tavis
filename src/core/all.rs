@@ -284,6 +284,36 @@ fn group_allowed(group: DomainGroup) -> bool {
     active_domain_set().is_none_or(|s| s.allows(group))
 }
 
+/// Whether the given memory capability family is advertised by the bound
+/// driver under the ambient context (M5.2).
+///
+/// **Defaults OPEN**, exactly like [`group_allowed`]: `None` is always allowed,
+/// and with no ambient context / no bound driver
+/// `CoreContext::current_memory_capabilities` returns the full set
+/// (`memory::binding::unbound_default_capabilities`). Roughly 4000 unit tests
+/// run pre-boot with no bound driver; a deny-by-default here would turn every
+/// memory test red at once. Denying is only ever correct AFTER a driver has
+/// actually answered `capabilities()`.
+fn capability_allowed(capability: Option<Capability>) -> bool {
+    match capability {
+        None => true,
+        Some(_) => capability_allowed_in(
+            crate::core::runtime::context::CoreContext::current_memory_capabilities(),
+            capability,
+        ),
+    }
+}
+
+/// [`capability_allowed`] against an already-resolved set.
+///
+/// The collect-all paths hoist the lookup out of their filter closure:
+/// resolving the set walks `CoreContext -> memory_binding -> RwLock read ->
+/// HashMap<PathBuf, _>`, materially heavier than `group_allowed`'s task-local
+/// read, and would otherwise run once per controller across the whole registry.
+fn capability_allowed_in(caps: Capabilities, capability: Option<Capability>) -> bool {
+    capability.is_none_or(|c| caps.contains(c))
+}
+
 /// The global static registry of all controllers, initialized once on first access.
 static REGISTRY: OnceLock<Vec<GroupedController>> = OnceLock::new();
 
