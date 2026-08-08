@@ -93,6 +93,7 @@ changes anything here.
 | `memory/ops/helpers.rs` | Defines `active_memory_client`. |
 | `memory/ops/guard.rs`, `guard_tests.rs` | The guarded resolver; matches only in prose and in its own fallback. |
 | `memory/ops/provider.rs` (`.unguarded_provider(`) | Health probe on the bound driver; a liveness probe is not product code. |
+| `core/cli_capability.rs` (`binding::for_workspace(`) | The CLI's capability gate (`kernel.md` §3.3's one exception to "degradation is absence"). Reads the driver id and advertised capability set only — the same two values `memory.provider_status` already returns over RPC — and never reaches memory content. No CLI subcommand except `run`/`serve` builds a `CoreContext`, so `CoreContext::memory()` resolves to nothing and there is no guard to route through. Deliberately the **single** binding-resolution site in the CLI layer: `core/memory_cli.rs` calls `bound_memory_driver_for` rather than binding itself, so this list carries one line, not one per CLI entry point. |
 
 ### B. Unguardable raw SQLite — `profile_conn()`, out of scope for M4
 
