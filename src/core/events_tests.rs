@@ -1,4 +1,4 @@
-use super::*;
+use super::events::*;
 
 #[test]
 fn all_variants_have_correct_domain() {

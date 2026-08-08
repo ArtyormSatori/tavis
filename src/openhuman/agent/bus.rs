@@ -404,7 +404,7 @@ pub fn register_agent_handlers() {
 /// This is the canonical entry point for any test that wants to verify
 /// dispatch routed through the bus OR inject a canned agent response
 /// without spinning up `run_tool_call_loop`. The returned guard holds
-/// [`crate::core::bus::testing::BUS_HANDLER_LOCK`] so other
+/// [`crate::core::bus_testing::BUS_HANDLER_LOCK`] so other
 /// dispatch tests will block until this one finishes.
 ///
 /// # Example
@@ -436,12 +436,12 @@ pub fn register_agent_handlers() {
 #[cfg(test)]
 pub async fn mock_agent_run_turn<F, Fut>(
     handler: F,
-) -> crate::core::bus::testing::MockBusGuard
+) -> crate::core::bus_testing::MockBusGuard
 where
     F: Fn(AgentTurnRequest) -> Fut + Send + Sync + 'static,
     Fut: std::future::Future<Output = Result<AgentTurnResponse, String>> + Send + 'static,
 {
-    crate::core::bus::testing::mock_bus_stub::<
+    crate::core::bus_testing::mock_bus_stub::<
         AgentTurnRequest,
         AgentTurnResponse,
         F,
@@ -461,7 +461,7 @@ where
 /// handler with a stub, use [`mock_agent_run_turn`] instead.
 #[cfg(test)]
 pub async fn use_real_agent_handler() -> tokio::sync::MutexGuard<'static, ()> {
-    let guard = crate::core::bus::testing::BUS_HANDLER_LOCK
+    let guard = crate::core::bus_testing::BUS_HANDLER_LOCK
         .lock()
         .await;
     register_agent_handlers();
