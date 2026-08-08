@@ -504,16 +504,14 @@ impl Agent {
             return false;
         }
 
-        let session_raw_dir = self.workspace_dir.join(&self.session_raw_subdir);
-        let Some(path) =
-            super::transcript::find_root_transcript_for_thread_in_dir(&session_raw_dir, thread_id)
-        else {
+        let Some(handle) = self.session_locator().root_for_thread(thread_id) else {
             log::debug!(
                 "[web-channel] no root session_raw transcript for thread={thread_id} — \
                  falling back to conversation-log prose seeding"
             );
             return false;
         };
+        let path = handle.path().to_path_buf();
 
         log::info!(
             "[web-channel] cold-boot resume — loading full-fidelity transcript for \
@@ -521,8 +519,18 @@ impl Agent {
             path.display()
         );
 
-        match super::transcript::read_transcript(&path) {
-            Ok(session) => {
+        match handle.read_session() {
+            // `Ok(None)` (file vanished between discovery and read) folds into
+            // the same empty-transcript branch, so the prose-seeding fallback
+            // triggers identically.
+            Ok(None) => {
+                log::debug!(
+                    "[web-channel] root transcript for thread={thread_id} is empty — \
+                     falling back to prose seeding"
+                );
+                false
+            }
+            Ok(Some(session)) => {
                 if session.messages.is_empty() {
                     log::debug!(
                         "[web-channel] root transcript for thread={thread_id} is empty — \
