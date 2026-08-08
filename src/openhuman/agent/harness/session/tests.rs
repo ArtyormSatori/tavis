@@ -1906,8 +1906,8 @@ fn agent_with_fake_locator(
 /// with **nothing written under the workspace**. That last assertion is the
 /// whole point: it is the proof the `Arc<dyn …>` is a real seam rather than
 /// decoration around a hardcoded filesystem call.
-#[test]
-fn fake_locator_substitutes_the_whole_turn_path() {
+#[tokio::test]
+async fn fake_locator_substitutes_the_whole_turn_path() {
     let workspace = tempfile::TempDir::new().expect("temp workspace");
     let canned = crate::openhuman::agent::harness::session::transcript::SessionTranscript {
         meta: fake_transcript_meta("thr_fake"),
@@ -1964,7 +1964,11 @@ fn fake_locator_substitutes_the_whole_turn_path() {
         "session_transcript_path is the bound handle's own path — they cannot drift"
     );
 
-    // (4) Nothing touched the filesystem.
+    drop(appended);
+
+    // (4) Nothing touched the transcript filesystem. (The #4249 store mirror
+    // still runs — it is a separate, gated path this seam does not own — but it
+    // never writes `session_raw/`.)
     assert!(
         !workspace.path().join("session_raw").exists(),
         "an injected locator must take the turn path entirely off disk"
