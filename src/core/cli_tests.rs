@@ -401,3 +401,48 @@ fn default_build_leaves_the_generic_namespace_path_unchanged() {
         assert!(grouped.contains_key(ns), "`{ns}` must still be listed");
     }
 }
+
+/// The gate must fire on the path a user actually takes.
+///
+/// This drives `run_namespace_command` itself rather than the pure
+/// `capability_verdict` helper, because the two disagreed once: the check
+/// originally sat in the not-found arm, which is unreachable on a plain CLI
+/// invocation (no ambient `CoreContext` ⇒ `grouped_schemas()` is unfiltered ⇒
+/// the gated function is still *found*). Every helper-level test passed while
+/// the real command ran to completion under a driver that does not advertise
+/// the family. Assert through the entry point or this regresses silently.
+#[test]
+fn generic_namespace_path_reports_the_config_fact_under_a_driver_without_the_family() {
+    let _env_lock = crate::openhuman::config::TEST_ENV_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    let workspace = tempdir().expect("temp workspace");
+
+    // SAFETY: serialised by TEST_ENV_LOCK, and both vars are restored below.
+    std::env::set_var("OPENHUMAN_WORKSPACE", workspace.path());
+    std::env::set_var("OPENHUMAN_MEMORY_DRIVER", "null");
+
+    let err = super::run_namespace_command(
+        "memory_tree",
+        &["list_chunks".to_string()],
+        &grouped_schemas(),
+    )
+    .expect_err("`tree` is not advertised by the null driver, so this must not run");
+
+    std::env::remove_var("OPENHUMAN_MEMORY_DRIVER");
+    std::env::remove_var("OPENHUMAN_WORKSPACE");
+
+    let message = err.to_string();
+    assert!(
+        message.starts_with(crate::core::cli_capability::CAPABILITY_UNAVAILABLE_PREFIX),
+        "must read as a configuration fact, not an unknown-command error: {message}"
+    );
+    assert!(
+        message.contains("null") && message.contains("tree"),
+        "must name the bound driver and the missing family: {message}"
+    );
+    assert!(
+        !message.contains("unknown"),
+        "a gated command is not a typo and must not read like one: {message}"
+    );
+}
