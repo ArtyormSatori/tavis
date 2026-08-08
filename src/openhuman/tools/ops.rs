@@ -1242,29 +1242,46 @@ pub fn all_tools_with_runtime(
         "[rhai_workflows] rhai_workflows tool not registered — flows feature disabled at compile time"
     );
 
-    // DomainSet post-filter (#4796): drop tools whose DomainGroup is disabled
-    // under the ambient CoreContext. With no active context, or under
-    // `DomainSet::full()`, every tool is kept (byte-identical). Under
-    // `harness()` the gate-family tools (web3/mcp/skills/flows/media/voice/meet)
-    // are dropped so agent turns can't call a domain that isn't live; only the
-    // memory + threads tools survive (the mapped harness families) — see
-    // `tool_group` for the classification and its Platform-default caveat.
+    // Two INDEPENDENT post-filters over the assembled list (kernel.md §3.7's
+    // separate axes — a narrowed DomainSet must not narrow capabilities, and
+    // vice versa):
+    //
+    // 1. DomainSet (#4796): drop tools whose DomainGroup is disabled under the
+    //    ambient CoreContext. With no active context, or under
+    //    `DomainSet::full()`, every tool is kept (byte-identical). Under
+    //    `harness()` the gate-family tools (web3/mcp/skills/flows/media/voice/
+    //    meet) are dropped so agent turns can't call a domain that isn't live;
+    //    only the memory + threads tools survive (the mapped harness families)
+    //    — see `tool_group` for the classification and its Platform-default
+    //    caveat.
+    // 2. Memory capability (M5.3): drop tools whose memory family the bound
+    //    driver does not advertise — see `tool_capability`.
+    //
+    // Both default OPEN: with no ambient context and with nothing bound the
+    // list is unchanged. Absence beats a stub that errors — a
+    // registered-but-failing memory tool teaches the model the capability
+    // exists and makes it retry (the `flows` compile-gate's reasoning).
+    let before = tools.len();
     let domains = crate::core::runtime::context::CoreContext::current().map(|c| c.domains());
-    if let Some(set) = domains {
-        let before = tools.len();
-        let filtered: Vec<Box<dyn Tool>> = tools
+    let mut tools: Vec<Box<dyn Tool>> = if let Some(set) = domains {
+        tools
             .into_iter()
             .filter(|t| set.allows(tool_group(t.name())))
-            .collect();
-        log::debug!(
-            "[tools::ops][domain-filter] ambient DomainSet active — {} of {before} tools retained",
-            filtered.len()
-        );
-        filtered
+            .collect()
     } else {
-        // No ambient context (unit tests / pre-boot) ⇒ no filtering.
+        // No ambient context (unit tests / pre-boot) ⇒ no domain filtering.
         tools
-    }
+    };
+    let after_domains = tools.len();
+
+    tools.retain(|t| crate::core::all::capability_allowed(tool_capability(t.name())));
+
+    log::debug!(
+        "[tools::ops][post-filter] {before} assembled → {after_domains} after DomainSet → {} after \
+         memory capabilities",
+        tools.len()
+    );
+    tools
 }
 
 /// Classify an agent tool into its [`DomainGroup`](crate::core::all::DomainGroup)
