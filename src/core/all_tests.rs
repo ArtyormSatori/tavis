@@ -2343,3 +2343,70 @@ async fn null_driver_keeps_the_mandatory_memory_surface_routable() {
         "the mandatory Recall surface must stay routable under the null driver"
     );
 }
+
+// --- the UNFILTERED capability lookup that backs the CLI's config-fact -------
+//
+// `docs/specs/kernel.md` §3.3 makes the CLI the one exception to "degradation
+// is absence". The exception is only implementable if something can still tell
+// "no such controller" apart from "gated" after the filtered lookups have
+// collapsed both into one absence. That something is `capability_for_parts`.
+
+#[test]
+fn capability_for_parts_returns_none_for_an_unregistered_controller() {
+    assert!(capability_for_parts("nope", "nope").is_none());
+    assert!(capability_for_parts("memory", "not_a_function").is_none());
+}
+
+#[test]
+fn capability_for_parts_reports_the_registered_family_unfiltered() {
+    assert_eq!(
+        capability_for_parts("memory_tree", "list_chunks"),
+        Some(Some(Capability::Tree))
+    );
+    // Registered and deliberately ungated — distinct from "not registered".
+    assert_eq!(capability_for_parts("memory", "provider_status"), Some(None));
+}
+
+/// The lookup that makes the whole distinction possible: it must stay
+/// unfiltered while the filtered lookup right beside it hides the method.
+#[tokio::test]
+async fn capability_for_parts_is_not_narrowed_by_the_ambient_context() {
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("cli-cap")),
+        Some(null_driver_cfg()),
+    );
+    let (unfiltered, filtered) = CoreContext::scope(ctx, async {
+        (
+            capability_for_parts("memory_tree", "list_chunks"),
+            schema_for_rpc_method("openhuman.memory_tree_list_chunks"),
+        )
+    })
+    .await;
+    assert_eq!(unfiltered, Some(Some(Capability::Tree)));
+    assert!(
+        filtered.is_none(),
+        "the filtered lookup must still hide the gated method"
+    );
+}
+
+#[test]
+fn sole_capability_for_namespace_reports_a_single_family_namespace() {
+    assert_eq!(
+        sole_capability_for_namespace("memory_tree"),
+        Some(Capability::Tree)
+    );
+    assert_eq!(
+        sole_capability_for_namespace("memory_diff"),
+        Some(Capability::Diff)
+    );
+}
+
+#[test]
+fn sole_capability_for_namespace_is_none_for_mixed_and_unknown_namespaces() {
+    // `memory` spans four families plus ungated host surface.
+    assert_eq!(sole_capability_for_namespace("memory"), None);
+    // `people` is registered under Memory but carries no capability.
+    assert_eq!(sole_capability_for_namespace("people"), None);
+    assert_eq!(sole_capability_for_namespace("not_a_namespace"), None);
+}
