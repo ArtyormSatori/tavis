@@ -261,7 +261,7 @@ fn harness_with(mock: Arc<MockLlm>) -> Harness {
     let keyring_guard = EnvGuard::set("OPENHUMAN_KEYRING_BACKEND", "file");
 
     // Globals the real pipeline needs.
-    crate::core::bus::init().await.expect("bus init");
+    openhuman_core::core::bus::init().await.expect("bus init");
     openhuman_core::openhuman::agent::bus::register_agent_handlers();
     let _ = AgentDefinitionRegistry::init_global_builtins();
 

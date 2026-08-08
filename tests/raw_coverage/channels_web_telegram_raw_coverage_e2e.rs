@@ -256,7 +256,7 @@ fn __shared_env_lock() -> std::sync::MutexGuard<'static, ()> {
 #[tokio::test]
 async fn web_channel_approval_bridge_forced_errors_and_newer_request_cancellation() {
     let _env_lock = __shared_env_lock();
-    crate::core::bus::init().await.expect("bus init");
+    openhuman_core::core::bus::init().await.expect("bus init");
     register_approval_surface_subscriber();
     let mut rx = subscribe_web_channel_events();
 

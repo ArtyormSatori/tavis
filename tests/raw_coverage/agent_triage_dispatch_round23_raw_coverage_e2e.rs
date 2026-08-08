@@ -127,7 +127,7 @@ async fn react_on_linked_todo_card_parks_for_plan_approval() {
     let _env_lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let workspace = tempfile::tempdir().expect("temp workspace");
     let _env = WorkspaceEnvGuard::set(workspace.path());
-    crate::core::bus::init().await.expect("bus init");
+    openhuman_core::core::bus::init().await.expect("bus init");
     let location = board_location(workspace.path());
     let card = add_card(&location, "needs plan approval", TaskCardStatus::Todo).await;
     let linked = envelope("round23-react").with_task_card(card.id.clone(), location.clone());
@@ -188,7 +188,7 @@ async fn dispatch_card_returns_awaiting_approval_before_agent_spawn() {
     let _env_lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let workspace = tempfile::tempdir().expect("temp workspace");
     let _env = WorkspaceEnvGuard::set(workspace.path());
-    crate::core::bus::init().await.expect("bus init");
+    openhuman_core::core::bus::init().await.expect("bus init");
     let location = board_location(workspace.path());
     let card = add_card(&location, "park explicitly", TaskCardStatus::Todo).await;
 
