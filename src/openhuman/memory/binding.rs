@@ -224,23 +224,18 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
     };
 
     // A driver needs no `[subsystems.memory.drivers.<id>]` entry: the embedded
-    // default's options still live in the existing `[memory]` blocks.
+    // default's options still live in the existing `[memory]` blocks. But only
+    // the two built-in ids are implicitly admitted — anything else is a typo or
+    // an external backend that forgot its entry, and admitting it would silently
+    // run TinyCortex under an invented driver id (kernel.md §3.1, one driver per
+    // slot, named truthfully). Refuse it so the fallback machinery surfaces the
+    // mistake in status instead of mislabelling the bound engine.
     let Some(entry) = cfg.drivers.get(id) else {
-        return if id == NULL_DRIVER_ID {
-            Ok((id.to_string(), DriverClass::Null))
-        } else {
-            Ok((id.to_string(), DriverClass::Embedded))
-        };
+        return implicit_class(id, &refuse);
     };
 
     let class = match entry.class.as_deref() {
-        None => {
-            if id == NULL_DRIVER_ID {
-                DriverClass::Null
-            } else {
-                DriverClass::Embedded
-            }
-        }
+        None => implicit_class(id, &refuse)?,
         Some(raw) => DriverClass::parse(raw).map_err(|e| refuse(&e))?,
     };
 
