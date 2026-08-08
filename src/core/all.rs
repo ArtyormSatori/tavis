@@ -652,9 +652,12 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         crate::openhuman::inference::embeddings::all_embeddings_registered_controllers(),
     );
     // People resolution and interaction scoring
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        // Host-owned address book + interaction scoring, not a driver family:
+        // `people` has no `Capability` and survives every bound driver.
+        None,
         crate::openhuman::memory::people::all_people_registered_controllers(),
     );
     // Sandbox execution backends (Docker, local jail, policy, cleanup)
