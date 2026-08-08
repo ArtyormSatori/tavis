@@ -562,7 +562,7 @@ Recorded so a later audit does not re-litigate:
 | In scope | `transcript.rs` (1,997), `turn_checkpoint.rs` (105), `migration.rs` (373) — ≤ 2 host imports each |
 | Key finding | the crate already ships `harness::memory::ChatHistory` + `harness::store` stream API; OpenHuman has a **second implementation**, not a missing home |
 | Key constraint | crate `ChatHistory` cannot express compaction records, interrupted partials, or dual read paths — a naive impl corrupts model context |
-| Recommendation | **Option A** — host backend behind the crate trait; ~400 LOC, zero on-disk change, reversible |
+| Recommendation | **Option A** — host backend behind the crate trait; zero on-disk change, reversible. Ledger is ≈ **−15 / +90 LOC** (S2–S4 overall +782 / −0), *not* the "~400 LOC removed" originally claimed — see §5 S4, [Where "~400 LOC" came from](#where-400-loc-came-from-and-why-it-is-struck) |
 | Escalation | **Option B** (upstream `JsonlChatHistory`, ~2,100 LOC) only as a deliberate crate-roadmap decision |
 | `builder/factory.rs` re-check (§3.5.1) | stays — builds `Agent` (40+ fields of product session state), not `AgentHarness` (6 fields of execution config); one real carve-out: dispatcher selection duplicates crate `with_native_tool_calling` |
 | `turn/core.rs` re-check (§3.5.2) | stays — the engine left in WP-3; residue is product enrichment. ~150 LOC of message-list helpers are upstreamable |
