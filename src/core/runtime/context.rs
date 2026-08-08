@@ -237,7 +237,12 @@ impl CoreContext {
         &self,
     ) -> Result<Arc<crate::openhuman::memory::binding::MemoryBinding>, String> {
         let workspace_dir = self.workspace_dir()?;
-        crate::openhuman::memory::binding::for_workspace(&workspace_dir, &self.memory_subsystem)
+        let memory_subsystem = self
+            .memory_subsystem
+            .read()
+            .map_err(|e| format!("[core-context] memory subsystem config lock poisoned: {e}"))?
+            .clone();
+        crate::openhuman::memory::binding::for_workspace(&workspace_dir, &memory_subsystem)
     }
 
     /// The bound driver's advertised capability set. Cheap (a `Copy` bitset
