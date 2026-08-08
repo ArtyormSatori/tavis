@@ -231,8 +231,16 @@ impl Agent {
         // The expression is extracted into [`derive_profile_workspace_descriptor`]
         // so the unit tests exercise the *same* code path rather than a
         // hand-copied mirror.
+        //
+        // When no profile binds one, an embedder may still have scoped a
+        // per-turn root (`agent::turn_workspace`) — a workflow node running
+        // this turn against the checkout it names. The profile's dedicated
+        // workspace wins where both exist: it is the stronger, persisted
+        // isolation boundary, and a profile that asked for its own home must
+        // not be relocated by an ambient host hint.
         let profile_workspace_descriptor =
-            derive_profile_workspace_descriptor(&config.action_dir, profile);
+            derive_profile_workspace_descriptor(&config.action_dir, profile)
+                .or_else(derive_turn_workspace_descriptor);
 
         let runtime: Arc<dyn host_runtime::RuntimeAdapter> = Arc::from(
             host_runtime::create_runtime(&config.runtime, config.shell.hide_window)?,
