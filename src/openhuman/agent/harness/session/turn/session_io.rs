@@ -581,41 +581,33 @@ impl Agent {
             task_id: None,
         };
 
-        // Resolve the transcript path on first write. The stem is
+        // Bind the write seam on first write. The stem is
         // `{parent_prefix}__{session_key}` for sub-agents (producing a
         // flat hierarchical filename) or just `{session_key}` for a
         // root session. Prefix chaining is already done by the
         // sub-agent runner when it populates `session_parent_prefix`.
+        //
+        // Path resolution is the locator's job, not this function's: it used to
+        // be duplicated here (a `resolve_keyed_transcript_path_in_dir` call
+        // that had to stay in lockstep with the identical one inside the
+        // handle's constructor). One call now yields both, and
+        // `session_transcript_path` is simply the bound handle's own path — so
+        // they cannot drift. The seed meta only matters when the file is absent
+        // and the caller supplies none; the turn path always passes its own
+        // freshly-computed meta below, so it never takes effect.
         if self.session_transcript_path.is_none() {
             let stem = match &self.session_parent_prefix {
                 Some(prefix) => format!("{}__{}", prefix, self.session_key),
                 None => self.session_key.clone(),
             };
-            let session_raw_dir = self.workspace_dir.join(&self.session_raw_subdir);
-            match transcript::resolve_keyed_transcript_path_in_dir(&session_raw_dir, &stem) {
-                Ok(path) => {
+            match self.session_locator().open_stem(&stem, meta.clone()) {
+                Ok(history) => {
                     log::info!(
                         "[transcript] new session transcript path={}",
-                        path.display()
+                        history.path().display()
                     );
-                    self.session_transcript_path = Some(path);
-                }
-                Err(err) => {
-                    log::warn!("[transcript] failed to resolve transcript path: {err}");
-                    return;
-                }
-            }
-
-            // Bind the write seam to the same file. `new_in_dir` — never
-            // `new` — because `new` hardcodes `{workspace}/session_raw/`, and a
-            // dedicated-memory profile's sessions live in `session_raw-<id>/`;
-            // using it here would silently write this session into the shared
-            // profile's directory. The seed meta only matters when the file is
-            // absent and the caller supplies none; the turn path always passes
-            // its own freshly-computed meta below, so it never takes effect.
-            match SessionTranscriptHistory::new_in_dir(&session_raw_dir, &stem, meta.clone()) {
-                Ok(history) => {
-                    self.session_history = Some(std::sync::Arc::new(history));
+                    self.session_transcript_path = Some(history.path().to_path_buf());
+                    self.session_history = Some(history);
                 }
                 Err(err) => {
                     log::warn!("[transcript] failed to bind session history: {err:#}");
