@@ -207,8 +207,8 @@ pub fn unbound_default_capabilities() -> Capabilities {
 ///
 /// `context` names which part of the config was missing; the refusal echoes it
 /// so the operator knows whether to add an entry or a `class` line.
-fn implicit_class<'a>(
-    id: &'a str,
+fn implicit_class(
+    id: &str,
     refuse: &impl Fn(&str) -> FallbackReason,
     context: &str,
 ) -> Result<(String, DriverClass), FallbackReason> {
