@@ -111,6 +111,10 @@ const BYPASS_PATTERNS: &[(&str, &str)] = &[
         ".memory_binding(",
         "raw MemoryBinding off CoreContext instead of CoreContext::memory()",
     ),
+    (
+        ".unguarded_provider(",
+        "raw Arc<dyn MemoryProvider> off a MemoryBinding — skips the guard entirely",
+    ),
 ];
 
 /// `(repo-relative path, pattern, why this file may bypass today)`.
