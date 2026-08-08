@@ -261,8 +261,37 @@ pub async fn doc_list(
     Ok(RpcOutcome::single_log(docs, "memory documents listed"))
 }
 
+/// Refuse an embedded-store-only operation when the bound driver is not the
+/// embedded engine.
+///
+/// `delete_document` / `clear_namespace` / `doc_delete` operate on the local
+/// embedded SQLite store through `active_memory_client` and have **no contract
+/// twin** — `MemoryDocuments` has no `delete_document` or `clear_namespace`
+/// method — so they cannot be routed through the contract. Under a null or
+/// fallback binding the operator asked for memory to be disabled, yet these
+/// handlers would otherwise still reach the store boot initialised and delete
+/// persisted rows. This is the RPC half of the CLI's legacy-client gate
+/// (`core::cli_capability::legacy_client_verdict`): an embedded-only operation
+/// is only valid when the bound driver actually is the embedded engine. The
+/// check runs through the guarded binding (`active_memory_guard`), so the
+/// verdict always reflects the driver that bound, never a global slot.
+async fn ensure_embedded_driver(operation: &str) -> Result<(), String> {
+    let guard = active_memory_guard().await?;
+    if guard.policy().class() == DriverClass::Embedded {
+        return Ok(());
+    }
+    Err(format!(
+        "memory driver `{}` is not the embedded TinyCortex driver, so `{operation}` is \
+         unavailable: it operates on the local embedded store directly, and this \
+         configuration bound a different driver. Change `[subsystems.memory] driver` in \
+         your config.",
+        guard.driver_id()
+    ))
+}
+
 /// Deletes a document from a namespace.
 pub async fn doc_delete(params: DeleteDocParams) -> Result<RpcOutcome<serde_json::Value>, String> {
+    ensure_embedded_driver("doc_delete").await?;
     let client = active_memory_client().await?;
     let result = client
         .delete_document(&params.namespace, &params.document_id)
@@ -274,6 +303,7 @@ pub async fn doc_delete(params: DeleteDocParams) -> Result<RpcOutcome<serde_json
 pub async fn clear_namespace(
     params: ClearNamespaceParams,
 ) -> Result<RpcOutcome<ClearNamespaceResult>, String> {
+    ensure_embedded_driver("clear_namespace").await?;
     let client = active_memory_client().await?;
     log::debug!("[memory] clear_namespace RPC invoked");
     client.clear_namespace(&params.namespace).await?;
