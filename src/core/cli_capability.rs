@@ -40,9 +40,15 @@
 use anyhow::Result;
 use tinycortex_api::capabilities::{Capabilities, Capability};
 
+use crate::core::subsystem::DriverClass;
+
 /// Stable, grep-friendly opening of the config-fact diagnostic. Shared between
 /// the emit site and the tests so the two cannot drift.
 pub const CAPABILITY_UNAVAILABLE_PREFIX: &str = "memory driver ";
+
+/// Stable, grep-friendly opening of the legacy-client diagnostic. Shared the
+/// same way as [`CAPABILITY_UNAVAILABLE_PREFIX`].
+pub const LEGACY_CLIENT_UNAVAILABLE_PREFIX: &str = "memory driver ";
 
 /// The operator-facing sentence.
 ///
