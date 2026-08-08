@@ -423,7 +423,19 @@ pub(crate) fn bind_provider_for_test(
 /// Per-workspace binding cache. Same shape as
 /// `memory::people::store::STORES` — see the module docs for why this is a map
 /// and not a slot.
-static BINDINGS: OnceLock<RwLock<HashMap<PathBuf, Arc<MemoryBinding>>>> = OnceLock::new();
+///
+/// Keyed on the **binding-relevant config as well as the path**, not the path
+/// alone, because a config change for an already-bound workspace must produce a
+/// fresh binding. `CoreContext::rebind_workspace` deliberately treats "same
+/// workspace, changed `[subsystems.memory]`" as a real rebind — a changed
+/// `driver` / `hooks` / `drivers` (trust) all feed `build`, so a path-only key
+/// would keep serving the previous driver until restart. Carrying
+/// `MemorySubsystemConfig` in the key (it derives `Hash`) means a changed
+/// config hits a different slot and binds fresh, while a returned-to config
+/// still resolves its original binding.
+static BINDINGS: OnceLock<
+    RwLock<HashMap<(PathBuf, MemorySubsystemConfig), Arc<MemoryBinding>>>,
+> = OnceLock::new();
 
 /// The bound memory driver for `workspace_dir`, constructing it on first use.
 ///
