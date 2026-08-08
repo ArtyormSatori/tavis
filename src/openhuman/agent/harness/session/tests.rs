@@ -497,17 +497,23 @@ async fn skill_listener_closed_channel_nulls_rx_and_is_not_a_signal() {
     // A receiver whose sender has been dropped → `try_recv` yields `Closed`.
     let isolated = crate::core::bus_testing::isolated_bus().await;
     agent.set_skill_events_rx_for_test(isolated.receiver());
-    // Dropping the bus drops its connection, which closes the signal stream the
-    // receiver is reading — the tinybus equivalent of dropping the sender.
+    // Dropping the bus drops its connection, which eventually closes the signal
+    // stream. "Eventually" is the difference from a raw channel: the dispatch
+    // task has to notice the transport is gone and exit before the broadcast
+    // sender is released, so this polls rather than asserting immediately.
     drop(isolated);
-    assert!(
-        !agent.drain_skill_events(),
-        "a closed channel is not a signal"
-    );
-    assert!(
-        !agent.has_skill_events_rx(),
-        "a closed receiver should be dropped so the next drain re-arms"
-    );
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(5);
+    while agent.has_skill_events_rx() {
+        assert!(
+            !agent.drain_skill_events(),
+            "a closed channel is never a signal"
+        );
+        assert!(
+            tokio::time::Instant::now() < deadline,
+            "a closed receiver should be dropped so the next drain re-arms"
+        );
+        tokio::task::yield_now().await;
+    }
 }
 
 /// Exercises real SKILL.md discovery from disk, so it is meaningful only with
