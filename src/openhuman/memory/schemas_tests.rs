@@ -191,6 +191,11 @@ fn each_family_pairs_its_schemas_with_its_controllers() {
             all_documents_registered_controllers(),
         ),
         (
+            "ingest",
+            all_ingest_controller_schemas(),
+            all_ingest_registered_controllers(),
+        ),
+        (
             "files",
             all_files_controller_schemas(),
             all_files_registered_controllers(),
