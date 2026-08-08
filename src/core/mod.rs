@@ -10,6 +10,7 @@ pub mod agent_cli;
 pub mod all;
 pub mod auth;
 pub mod cli;
+pub mod cli_capability;
 pub mod dispatch;
 pub mod event_bind_tokens;
 pub mod event_bus;
