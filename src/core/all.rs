@@ -1080,9 +1080,10 @@ pub fn all_registered_controllers() -> Vec<RegisteredController> {
 /// [`all_registered_controllers`], so `/schema` omits gated namespaces
 /// automatically under `harness()`.
 pub fn all_controller_schemas() -> Vec<ControllerSchema> {
+    let caps = crate::core::runtime::context::CoreContext::current_memory_capabilities();
     registry()
         .iter()
-        .filter(|g| group_allowed(g.group))
+        .filter(|g| group_allowed(g.group) && capability_allowed_in(caps, g.capability))
         .map(|g| g.controller.schema.clone())
         .collect()
 }
