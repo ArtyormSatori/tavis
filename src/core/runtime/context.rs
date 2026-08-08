@@ -594,7 +594,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(PathBuf::from(dir))),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         })
     }
 
@@ -717,13 +717,13 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         });
         let b = Arc::new(CoreContext {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_b.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         });
 
         let store_a = a.people().expect("open people store for workspace A");
@@ -744,7 +744,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         };
 
         let store_a = ctx.people().expect("open people store for workspace A");
@@ -766,13 +766,13 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         });
         let b = Arc::new(CoreContext {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_b.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         });
 
         let params = serde_json::json!({
@@ -820,7 +820,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(None),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         };
 
         let err = match ctx.people() {
@@ -861,13 +861,13 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         });
         let b = Arc::new(CoreContext {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_b.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         });
 
         let bind_a = a.memory_binding().expect("bind workspace A");
@@ -889,7 +889,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         };
 
         let bind_a = ctx.memory_binding().expect("bind workspace A");
@@ -912,7 +912,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(Some(dir_a.path().to_path_buf())),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         };
         let b = CoreContext {
             host_kind: HostKind::Cli,
@@ -944,7 +944,7 @@ mod tests {
             host_kind: HostKind::Cli,
             workspace_dir: RwLock::new(None),
             domains: crate::core::runtime::DomainSet::full(),
-            memory_subsystem: Default::default(),
+            memory_subsystem: RwLock::new(Default::default()),
         };
         assert!(ctx.memory_binding().is_err(), "no workspace ⇒ no binding");
         assert_eq!(
