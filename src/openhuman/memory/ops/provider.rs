@@ -25,14 +25,55 @@ use crate::rpc::RpcOutcome;
 /// Infallible by design: an unresolvable binding (no workspace bound, e.g. a
 /// pre-login core) is *reported*, not raised. A status surface that errors
 /// exactly when something is wrong is the opposite of useful.
+///
+/// A standalone CLI subcommand (`openhuman subsystems status`,
+/// `openhuman memory status`) never builds a [`CoreContext`] — the generic
+/// namespace dispatcher runs without one — so this resolves the configured
+/// workspace's binding directly via [`standalone_status`] instead of reporting
+/// an unresolved row. In an RPC host a context is always ambient, so that path
+/// is unaffected.
 pub async fn memory_subsystem_status() -> SubsystemStatus {
-    let binding = match CoreContext::current().map(|ctx| ctx.memory_binding()) {
-        Some(Ok(binding)) => binding,
-        Some(Err(err)) => return unresolved_status(err),
-        None => return unresolved_status("no core context for this dispatch".to_string()),
+    match CoreContext::current().map(|ctx| ctx.memory_binding()) {
+        Some(Ok(binding)) => status_from_binding(&binding).await,
+        Some(Err(err)) => unresolved_status(err),
+        None => standalone_status().await,
+    }
+}
+
+/// Resolve status from the on-disk config when no [`CoreContext`] is ambient
+/// (a bare CLI invocation). Reads the configured workspace's binding the same
+/// way `cli_capability::bound_memory_driver_for` does, so `openhuman subsystems
+/// status` shows the same resolved row as the table and as an RPC with a live
+/// context.
+///
+/// Never errors: on a config load or bind failure this reports an unresolved
+/// row (with a reason) rather than refusing to render — mirroring the
+/// capability gate's default-OPEN posture, where a status command that refuses
+/// to run because it cannot read config is worse than one that shows the
+/// unresolved row.
+async fn standalone_status() -> SubsystemStatus {
+    let config = match crate::openhuman::config::Config::load_or_init().await {
+        Ok(config) => config,
+        Err(err) => {
+            log::debug!(
+                "[memory:provider] standalone status: config unresolved ({err}); reporting unresolved"
+            );
+            return unresolved_status(format!("no core context; config load failed: {err}"));
+        }
     };
 
-    status_from_binding(&binding).await
+    match crate::openhuman::memory::binding::for_workspace(
+        &config.workspace_dir,
+        &config.subsystems.memory,
+    ) {
+        Ok(binding) => status_from_binding(&binding).await,
+        Err(err) => {
+            log::debug!(
+                "[memory:provider] standalone status: binding unresolved ({err}); reporting unresolved"
+            );
+            unresolved_status(format!("no core context; binding failed: {err}"))
+        }
+    }
 }
 
 /// Project one resolved binding. Separate from [`memory_subsystem_status`] so
