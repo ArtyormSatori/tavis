@@ -427,17 +427,60 @@ and the on-disk bytes are unchanged by construction —
 `append_turn_is_byte_identical_to_the_free_function` writes one turn both ways
 and compares the files byte for byte.
 
-The **read** path stays on the concrete free functions by design, and this is
-not deferred work. Both resume readers *discover* a path — by
-`(workspace, session_raw_subdir, agent name)` or by `_meta.thread_id` — and
-neither key is a stem, the only thing a handle can be bound to. Worse,
-`ChatHistory::messages()` returns `Vec<Message>`, and converting back flattens
-`Assistant.tool_calls` into plain text, which is exactly what
-`bound_cached_transcript_messages`' TAURI-RUST-7 trailing strip inspects and
+The **read** path does not cross `ChatHistory` either, and that half is settled
+for the same shape of reason: `ChatHistory::messages()` returns `Vec<Message>`,
+and converting back with `message_to_chat_message` flattens
+`Assistant.tool_calls` into plain text — exactly what
+`bound_cached_transcript_messages`' TAURI-RUST-7 trailing strip inspects, and
 what native providers reject with `400 assistant message with 'tool_calls' must
-be followed by tool messages`. `maybe_shadow_read_session_store` additionally
-needs the whole `SessionTranscript`, `_meta` included, which the trait cannot
-return.
+be followed by tool messages`. (A round-trip probe confirmed the loss set:
+assistant `tool_calls`, plus `openhuman_turn_usage` `extra_metadata` and
+`AssistantMessage.id`, both inert here. The tool-failure marker is *not* in it —
+that is a write-side/display-side field `read_transcript` never re-emits.)
+
+An earlier revision of this section concluded from that the read must stay on
+the concrete free functions. That conclusion was wrong, and the reasoning behind
+it rested on a premise that is false of the type as it stands:
+`SessionTranscriptHistory` is bound to a resolved `PathBuf`, not to a stem — its
+two constructors merely *resolve* one — so a discovered path can be bound
+verbatim. What landed instead:
+
+- **`SessionTranscriptRead { path(); read_session() -> Option<SessionTranscript> }`**,
+  a second supertrait of `SessionHistory`. `read_session` is the same
+  `read_transcript` call the free-function readers made, returning the same
+  struct, so losslessness is *structural*: nothing crosses `Message`, and
+  compaction replay, `interrupted: true` partial skipping and the `_meta` header
+  `maybe_shadow_read_session_store` needs all survive by construction. Split
+  from `SessionHistory` rather than added to it because a discovered transcript
+  can still be a legacy `.md` file, and handing read results out as
+  `Arc<dyn SessionTranscriptRead>` makes appending JSONL into one impossible by
+  construction rather than by convention.
+- **`SessionTranscriptHistory::opened_at(path, seed_meta)`**, which stores the
+  discovered path verbatim. It deliberately bypasses
+  `resolve_keyed_transcript_path_in_dir`, which `create_dir_all`s and forces a
+  `.jsonl` extension — that would mangle the legacy `.md` case and create stray
+  directories on a pure read.
+- **`SessionHistoryLocator`** (`latest_for_agent` / `root_for_thread` /
+  `open_stem`), with `FileTranscriptLocator` as the default. Discovery *is* the
+  thing `ChatHistory` cannot express — it is `thread_id`-keyed and returns
+  messages, never a location — so it belongs on an OpenHuman-side object.
+  Leaving it as free functions was what kept the read half on the filesystem no
+  matter what handle was injected.
+
+**The injection point now exists**, which is what makes the `Arc<dyn …>`
+non-decorative. `AgentBuilder::with_session_history_locator` sets
+`Agent::session_history_locator`; `Agent::session_locator()` resolves `None`
+*lazily* into a `FileTranscriptLocator` over the **current** `workspace_dir` /
+`session_raw_subdir` (never frozen at build time — callers reassign
+`workspace_dir` after `build()`, and a captured locator would silently keep
+reading the old directory). One injected object now covers both resume reads
+*and* the session's own write handle, and
+`fake_locator_substitutes_the_whole_turn_path` drives all three through a fake
+and asserts nothing is written under the workspace.
+
+`persist_session_transcript`'s own path resolution went with it:
+`session_transcript_path` is now simply the bound handle's `path()`, so the two
+can no longer drift.
 
 **Widening `ChatHistory` upstream is REJECTED, not deferred.** S0's rationale
 notes this question has already been re-opened twice, so the finding is recorded
