@@ -1321,6 +1321,68 @@ pub fn rpc_method_from_parts(namespace: &str, function: &str) -> Option<String> 
         .map(|g| g.controller.rpc_method_name())
 }
 
+/// The memory-driver capability family a controller's surface requires, looked
+/// up in the **UNFILTERED** registry.
+///
+/// Returns `None` when no controller with that `(namespace, function)` is
+/// registered anywhere — a genuine typo. Returns `Some(None)` when the
+/// controller exists and is ungated, and `Some(Some(c))` when it exists and
+/// needs family `c`.
+///
+/// The `Option<Option<_>>` is the whole point: it is what lets the CLI tell
+/// "no such command" apart from "this command exists but the bound driver does
+/// not advertise its family". Every *filtered* lookup ([`schema_for_rpc_method`],
+/// [`all_controller_schemas`]) collapses those two into one absence, which is
+/// correct for `/rpc` and for agent tools (`docs/specs/kernel.md` §3.3) and
+/// wrong for a human at a terminal — the CLI is §3.3's one named exception.
+///
+/// Scoped to the agent-facing [`registry`] exactly like [`rpc_method_from_parts`],
+/// the other lookup that backs CLI routing: an internal-only controller is not
+/// CLI-invokable in any configuration, so reporting a capability fact for one
+/// would name a cause that is not the reason the command is unavailable.
+pub fn capability_for_parts(namespace: &str, function: &str) -> Option<Option<Capability>> {
+    registry()
+        .iter()
+        .find(|g| {
+            g.controller.schema.namespace == namespace && g.controller.schema.function == function
+        })
+        .map(|g| g.capability)
+}
+
+/// The capability a whole namespace's surface requires, when every controller
+/// in it agrees — looked up in the **UNFILTERED** registry.
+///
+/// `None` when the namespace does not exist at all, or when nothing in it is
+/// gated, or when its controllers span more than one family. Used for the
+/// unknown-namespace case: a namespace whose controllers are ALL gated on one
+/// family disappears from the CLI's namespace list entirely, so there is no
+/// function name left to look up.
+///
+/// Deliberately conservative — it reports a family only when that family is the
+/// sole gate across the namespace, so a mixed namespace (like `memory`, which
+/// spans four families plus host surface) yields `None` and falls back to the
+/// ordinary unknown-namespace message rather than naming one family
+/// misleadingly.
+pub fn sole_capability_for_namespace(namespace: &str) -> Option<Capability> {
+    let mut found: Option<Capability> = None;
+    let mut any = false;
+    for grouped in registry()
+        .iter()
+        .filter(|g| g.controller.schema.namespace == namespace)
+    {
+        any = true;
+        match (grouped.capability, found) {
+            // An ungated member means the namespace does not vanish wholesale
+            // because of one family, so naming one would be a lie.
+            (None, _) => return None,
+            (Some(c), None) => found = Some(c),
+            (Some(c), Some(prev)) if c == prev => {}
+            (Some(_), Some(_)) => return None,
+        }
+    }
+    if any { found } else { None }
+}
+
 /// Retrieves the schema for a specific RPC method.
 ///
 /// Checks both the agent-facing registry and the internal registry so that
