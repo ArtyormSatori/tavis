@@ -2192,7 +2192,9 @@ async fn null_driver_makes_tree_methods_unknown_over_rpc() {
     // routes. Without this the assertion below could pass because the method
     // never existed at all.
     assert!(
-        try_invoke_registered_rpc(method, Map::new()).await.is_some(),
+        try_invoke_registered_rpc(method, Map::new())
+            .await
+            .is_some(),
         "`{method}` must route with no ambient context (the filter defaults OPEN)"
     );
 
@@ -2225,8 +2227,10 @@ async fn null_driver_makes_tree_methods_unknown_over_rpc() {
 /// of method-not-found.
 #[tokio::test]
 async fn null_driver_removes_tree_namespace_from_schema() {
-    let full_ns: std::collections::BTreeSet<&str> =
-        all_controller_schemas().iter().map(|s| s.namespace).collect();
+    let full_ns: std::collections::BTreeSet<&str> = all_controller_schemas()
+        .iter()
+        .map(|s| s.namespace)
+        .collect();
     assert!(
         full_ns.contains("memory_tree"),
         "unscoped ⇒ default open ⇒ memory_tree present; otherwise the assertion below is vacuous"
