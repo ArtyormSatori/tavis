@@ -17,7 +17,7 @@ dead-string rot the ratchet exists to prevent.
 
 ## Scope
 
-The lint scans `src/` for eleven patterns, keyed on `(file, pattern)` so the
+The lint scans `src/` for twelve patterns, keyed on `(file, pattern)` so the
 failure message names the needle that tripped:
 
 | Pattern | What it hands out |
@@ -30,6 +30,7 @@ failure message names the needle that tripped:
 | `EmbeddedMemoryProvider::new(` / `NullMemoryProvider::new(` | a driver, built outside `binding::for_workspace` |
 | `MemoryClient::from_workspace_dir(` | a second engine on the same store |
 | `binding::for_workspace(` / `.memory_binding(` | a raw `MemoryBinding` |
+| `.unguarded_provider(` | the raw `Arc<dyn MemoryProvider>` off a `MemoryBinding` |
 
 **By-path test files (`*_tests.rs`, `tests.rs`, `test_support/`) are out of
 scope.** Driver tests construct drivers — that is what a driver test *is* —
@@ -91,6 +92,7 @@ changes anything here.
 | `memory/global.rs` | The process-global slot itself. |
 | `memory/ops/helpers.rs` | Defines `active_memory_client`. |
 | `memory/ops/guard.rs`, `guard_tests.rs` | The guarded resolver; matches only in prose and in its own fallback. |
+| `memory/ops/provider.rs` (`.unguarded_provider(`) | Health probe on the bound driver; a liveness probe is not product code. |
 
 ### B. Unguardable raw SQLite — `profile_conn()`, out of scope for M4
 
