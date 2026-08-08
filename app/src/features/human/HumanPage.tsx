@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
-import { useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   selectCustomMascotGifUrl,
   selectCustomPrimaryColor,
   selectCustomSecondaryColor,
   selectMascotColor,
+  selectSpeakReplies,
+  selectVoiceMode,
+  setSpeakReplies,
 } from '../../store/mascotSlice';
+import { VOICE_MODE_FLAG_ENABLED } from '../../utils/config';
 import Conversations from '../conversations/Conversations';
 import {
   CustomGifMascot,
@@ -17,22 +21,22 @@ import {
   RiveMascot,
 } from './Mascot';
 import { useMascotManifest } from './Mascot/manifest/useMascotManifest';
+import RealtimeVoiceControls from './RealtimeVoiceControls';
 import { useHumanMascot } from './useHumanMascot';
-
-const SPEAK_REPLIES_KEY = 'human.speakReplies';
 
 const HumanPage = () => {
   const { t } = useT();
-  const [speakReplies, setSpeakReplies] = useState<boolean>(() => {
-    const raw = window.localStorage.getItem(SPEAK_REPLIES_KEY);
-    return raw === null ? true : raw === '1';
-  });
-
-  useEffect(() => {
-    window.localStorage.setItem(SPEAK_REPLIES_KEY, speakReplies ? '1' : '0');
-  }, [speakReplies]);
+  const dispatch = useAppDispatch();
+  // Reads the shared preference rather than the old
+  // `localStorage['human.speakReplies']` this page used to own. That key is
+  // consumed and deleted by the mascot slice's persist migration, so keeping the
+  // local copy would leave this page and the chat mascot disagreeing about the
+  // same setting — and would silently drop whatever the user had chosen before.
+  const speakReplies = useAppSelector(selectSpeakReplies);
 
   const { face, visemeCode } = useHumanMascot({ speakReplies });
+  const voiceMode = useAppSelector(selectVoiceMode);
+  const realtimeEnabled = VOICE_MODE_FLAG_ENABLED && voiceMode === 'realtime';
   const mascotColor = useAppSelector(selectMascotColor);
   const customPrimary = useAppSelector(selectCustomPrimaryColor);
   const customSecondary = useAppSelector(selectCustomSecondaryColor);
@@ -97,11 +101,20 @@ const HumanPage = () => {
         </div>
       </div>
 
+      {/* Realtime voice-chat controls (#5399) — additive overlay shown only when
+          the flag + realtime mode are on; the classic push-to-talk path below
+          is untouched. */}
+      {realtimeEnabled && (
+        <div className="absolute bottom-8 left-0 right-[436px] z-10 flex justify-center">
+          <RealtimeVoiceControls />
+        </div>
+      )}
+
       <label className="absolute top-4 left-4 z-10 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-line-strong text-xs text-content-secondary shadow-soft cursor-pointer select-none">
         <input
           type="checkbox"
           checked={speakReplies}
-          onChange={e => setSpeakReplies(e.target.checked)}
+          onChange={e => dispatch(setSpeakReplies(e.target.checked))}
           className="cursor-pointer"
         />
         {t('voice.pushToTalk')}

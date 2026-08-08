@@ -161,7 +161,7 @@ use crate::openhuman::agent::messages::ChatMessage;
 
 use super::transcript::{
     append_transcript_turn, find_latest_transcript_in_subdir,
-    find_root_transcript_for_thread_in_dir, read_transcript, resolve_keyed_transcript_path,
+    find_root_transcript_for_thread, read_transcript, resolve_keyed_transcript_path,
     resolve_keyed_transcript_path_in_dir, SessionTranscript, TranscriptMeta, TurnUsage,
 };
 
@@ -314,7 +314,20 @@ impl SessionHistoryLocator for FileTranscriptLocator {
     }
 
     fn root_for_thread(&self, thread_id: &str) -> Option<Arc<dyn SessionTranscriptRead>> {
-        let path = find_root_transcript_for_thread_in_dir(&self.raw_dir(), thread_id)?;
+        // Cross-dir, newest-wins — NOT scoped to this locator's own
+        // `session_raw-<id>/` (#5351). A thread's conversation belongs to the
+        // THREAD, not the active profile, so this scans the shared
+        // `session_raw/` and every profile-scoped sibling and takes the newest
+        // match. Switching profile mid-thread (the Quick/Reasoning toggle) then
+        // continues the same conversation even when earlier turns were written
+        // under another profile's subtree.
+        //
+        // Deliberately not own-dir-first: that lets an OLDER transcript in this
+        // agent's own dir shadow a NEWER one a sibling holds for the same
+        // thread, dropping recent turns and diverging from the transcript view
+        // and turn mirror, which both use this same resolver. The own dir is
+        // already in the scan, so newest-wins is a superset.
+        let path = find_root_transcript_for_thread(&self.workspace_dir, thread_id)?;
         log::debug!(
             "[transcript-history] locator root_for_thread thread={thread_id} path={}",
             path.display()
