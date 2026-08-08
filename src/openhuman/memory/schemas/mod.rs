@@ -46,21 +46,51 @@ mod tool_memory;
 // Each capability family exposes its own `all_<family>_controller_schemas()` /
 // `all_<family>_registered_controllers()` pair so a caller can register (or, in
 // a later slice, decline to register) one family at a time. The aggregators
-// below fan these out in a fixed order — documents, files, kv_graph, sync,
-// learn, provider, tool_memory — which is the registration order the RPC
-// surface has always had. Do not reorder: `src/core/all.rs` pushes the seven
-// families in exactly this sequence and
+// below fan these out in a fixed order — core_recall, documents, ingest, files,
+// kv_graph, sync, learn, provider, tool_memory. Do not reorder: `src/core/all.rs`
+// pushes the nine parts in exactly this sequence and
 // `registered_controller_order_is_pinned_to_pre_split_snapshot` in
 // `schemas_tests.rs` fails if it drifts.
 
-/// Controller schemas for the document / namespace / recall family.
-pub fn all_documents_controller_schemas() -> Vec<ControllerSchema> {
-    documents::FUNCTIONS.iter().map(|f| schemas(f)).collect()
+/// Controller schemas for the mandatory core + recall surface. Never
+/// capability-gated — see [`documents`]'s header.
+pub fn all_core_recall_controller_schemas() -> Vec<ControllerSchema> {
+    documents::FUNCTIONS_CORE_RECALL
+        .iter()
+        .map(|f| schemas(f))
+        .collect()
 }
 
-/// Registered controllers for the document / namespace / recall family.
+/// Registered controllers for the mandatory core + recall surface.
+pub fn all_core_recall_registered_controllers() -> Vec<RegisteredController> {
+    documents::controllers_core_recall()
+}
+
+/// Controller schemas for the namespace-document tier
+/// (`Capability::Documents`).
+pub fn all_documents_controller_schemas() -> Vec<ControllerSchema> {
+    documents::FUNCTIONS_DOCUMENTS
+        .iter()
+        .map(|f| schemas(f))
+        .collect()
+}
+
+/// Registered controllers for the namespace-document tier.
 pub fn all_documents_registered_controllers() -> Vec<RegisteredController> {
-    documents::controllers()
+    documents::controllers_documents()
+}
+
+/// Controller schemas for driver-owned ingestion (`Capability::Ingest`).
+pub fn all_ingest_controller_schemas() -> Vec<ControllerSchema> {
+    documents::FUNCTIONS_INGEST
+        .iter()
+        .map(|f| schemas(f))
+        .collect()
+}
+
+/// Registered controllers for driver-owned ingestion.
+pub fn all_ingest_registered_controllers() -> Vec<RegisteredController> {
+    documents::controllers_ingest()
 }
 
 /// Controller schemas for the file-backed memory family.
