@@ -1478,6 +1478,63 @@ pub(crate) struct ToolOutcomeCaptureMiddleware {
     failure_map: super::observability::ToolFailureMap,
 }
 
+/// Delivers tool lifecycle events to hooks installed by an embedding host.
+pub(crate) struct EmbedderToolHooksMiddleware {
+    hooks: Vec<std::sync::Arc<dyn crate::openhuman::agent::hooks::ToolHook>>,
+}
+
+impl EmbedderToolHooksMiddleware {
+    pub(crate) fn new(
+        hooks: Vec<std::sync::Arc<dyn crate::openhuman::agent::hooks::ToolHook>>,
+    ) -> Self {
+        Self { hooks }
+    }
+}
+
+#[async_trait]
+impl Middleware<()> for EmbedderToolHooksMiddleware {
+    fn name(&self) -> &str { "embedder_tool_hooks" }
+
+    async fn before_tool(
+        &self,
+        _ctx: &mut RunContext<()>,
+        _state: &(),
+        call: &mut TaToolCall,
+    ) -> TaResult<()> {
+        let context = crate::openhuman::agent::hooks::ToolHookContext {
+            event: crate::openhuman::agent::hooks::ToolHookEvent::PreToolUse,
+            call_id: call.id.clone(), tool_name: call.name.clone(),
+            arguments: call.arguments.clone(), success: None, duration_ms: None,
+        };
+        for hook in &self.hooks {
+            hook.before_tool(&context).await.map_err(|error| {
+                tinyagents::error::TinyAgentsError::Tool(format!("tool hook '{}' denied {}: {error:#}", hook.name(), context.tool_name))
+            })?;
+        }
+        Ok(())
+    }
+
+    async fn after_tool(
+        &self,
+        _ctx: &mut RunContext<()>,
+        _state: &(),
+        result: &mut TaToolResult,
+    ) -> TaResult<()> {
+        let context = crate::openhuman::agent::hooks::ToolHookContext {
+            event: crate::openhuman::agent::hooks::ToolHookEvent::PostToolUse,
+            call_id: result.call_id.clone(), tool_name: result.name.clone(),
+            arguments: serde_json::Value::Null, success: Some(result.error.is_none()),
+            duration_ms: Some(result.elapsed_ms),
+        };
+        for hook in &self.hooks {
+            if let Err(error) = hook.after_tool(&context).await {
+                tracing::warn!(hook = hook.name(), tool = context.tool_name, "embedder post-tool hook failed: {error:#}");
+            }
+        }
+        Ok(())
+    }
+}
+
 impl ToolOutcomeCaptureMiddleware {
     pub(crate) fn new(
         sink: super::ToolOutcomeSink,
