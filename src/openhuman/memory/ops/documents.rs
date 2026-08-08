@@ -852,4 +852,62 @@ mod tests {
             "the unguarded client must see the guarded write"
         );
     }
+
+    /// Pins the null-binding refusal for the destructive embedded-only ops
+    /// (the `all.rs` registration thread). Under `driver = "null"` the operator
+    /// asked for memory to be disabled, yet `clear_namespace` /
+    /// `delete_document` would still reach the embedded store boot initialised
+    /// and delete persisted rows. They must refuse with a config-fact message,
+    /// exactly as the CLI's legacy-client gate does.
+    #[tokio::test]
+    async fn destructive_ops_refuse_when_bound_driver_is_null() {
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
+            .lock()
+            .await;
+        let _env = ensure_memory_client();
+        let workspace = tempfile::tempdir().unwrap();
+        let null_cfg = crate::openhuman::config::schema::MemorySubsystemConfig {
+            driver: "null".into(),
+            ..Default::default()
+        };
+        let ctx = crate::core::runtime::context::CoreContext::for_test(
+            crate::core::runtime::DomainSet::full(),
+            Some(workspace.path().to_path_buf()),
+            Some(null_cfg),
+        );
+        crate::core::runtime::context::CoreContext::scope(ctx, async {
+            let err = clear_namespace(ClearNamespaceParams {
+                namespace: unique_namespace("null-driver"),
+            })
+            .await
+            .expect_err("clear_namespace must refuse under a null binding");
+            assert!(
+                err.contains("not the embedded TinyCortex driver"),
+                "refusal must explain the binding: {err}"
+            );
+
+            let err = doc_delete(DeleteDocParams {
+                namespace: unique_namespace("null-driver"),
+                document_id: "any".into(),
+            })
+            .await
+            .expect_err("doc_delete must refuse under a null binding");
+            assert!(
+                err.contains("not the embedded TinyCortex driver"),
+                "refusal must explain the binding: {err}"
+            );
+
+            let err = memory_delete_document(DeleteDocumentRequest {
+                namespace: unique_namespace("null-driver"),
+                document_id: "any".into(),
+            })
+            .await
+            .expect_err("memory_delete_document must refuse under a null binding");
+            assert!(
+                err.contains("not the embedded TinyCortex driver"),
+                "refusal must explain the binding: {err}"
+            );
+        })
+        .await;
+    }
 }
