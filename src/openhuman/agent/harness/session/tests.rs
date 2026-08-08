@@ -423,8 +423,8 @@ fn refresh_delegation_tools_no_duplicate_specs_across_shared_arc_connects() {
     );
 }
 
-#[test]
-fn composio_listener_drains_integrations_changed_events() {
+#[tokio::test]
+async fn composio_listener_drains_integrations_changed_events() {
     let mut agent = build_minimal_agent_with_definition_name(Some("orchestrator"));
     // Use an isolated bus, NOT the global singleton: other tests (e.g.
     // `events_tests` and any composio-listener publisher) emit
@@ -479,9 +479,9 @@ fn skill_listener_treats_lag_as_signal() {
     let isolated = crate::core::bus_testing::isolated_bus().await;
     agent.set_skill_events_rx_for_test(isolated.receiver());
     for _ in 0..256 {
-        // Sender outlives the receiver here, so `send` only errors when there
-        // are zero receivers — ignore the bounded-channel overwrite path.
-        let _ = tx.send(DomainEvent::WorkflowsChanged {
+        // Overruns the receiver's buffer on purpose: `try_recv` must then
+        // report `Lagged`, which the drain treats as "something changed".
+        isolated.publish(DomainEvent::WorkflowsChanged {
             reason: "install".into(),
         });
     }
@@ -491,13 +491,15 @@ fn skill_listener_treats_lag_as_signal() {
     );
 }
 
-#[test]
-fn skill_listener_closed_channel_nulls_rx_and_is_not_a_signal() {
+#[tokio::test]
+async fn skill_listener_closed_channel_nulls_rx_and_is_not_a_signal() {
     let mut agent = build_minimal_agent_with_definition_name(Some("orchestrator"));
     // A receiver whose sender has been dropped → `try_recv` yields `Closed`.
     let isolated = crate::core::bus_testing::isolated_bus().await;
-    drop(tx);
     agent.set_skill_events_rx_for_test(isolated.receiver());
+    // Dropping the bus drops its connection, which closes the signal stream the
+    // receiver is reading — the tinybus equivalent of dropping the sender.
+    drop(isolated);
     assert!(
         !agent.drain_skill_events(),
         "a closed channel is not a signal"
