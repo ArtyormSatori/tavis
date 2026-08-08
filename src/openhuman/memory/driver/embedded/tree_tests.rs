@@ -137,7 +137,7 @@ async fn tree_drill_down_unknown_node_is_not_found() {
 #[tokio::test]
 async fn tree_drill_down_returns_node_with_direct_children() {
     use crate::openhuman::memory::tree::tree_runtime::store::write_node;
-    use crate::openhuman::memory::tree::tree_runtime::types::{NodeLevel, TreeNode};
+    use tinycortex::memory::tree::runtime::{NodeLevel, TreeNode};
 
     let (_tmp, provider) = fresh_driver();
     let config = provider.config().await.expect("config").clone();

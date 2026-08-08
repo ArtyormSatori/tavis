@@ -8,7 +8,7 @@ use serde_json::Value;
 
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::tinycortex::engine_config;
-use crate::openhuman::memory::tree::tree_runtime::types::{TreeNode, TreeStatus};
+use tinycortex::memory::tree::runtime::{TreeNode, TreeStatus};
 
 pub fn tree_dir(config: &Config, namespace: &str) -> PathBuf {
     tinycortex::memory::tree::runtime::store::tree_dir(&engine_config(config), namespace)

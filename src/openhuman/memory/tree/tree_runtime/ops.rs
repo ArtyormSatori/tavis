@@ -4,7 +4,8 @@ use chrono::{DateTime, Utc};
 use serde_json::{json, Value};
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::tree::tree_runtime::{engine, store, types::*};
+use crate::openhuman::memory::tree::tree_runtime::{engine, store};
+use tinycortex::memory::tree::runtime::*;
 use crate::rpc::RpcOutcome;
 
 /// Append raw content to the ingestion buffer.
