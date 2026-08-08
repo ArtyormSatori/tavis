@@ -86,6 +86,32 @@ fn zz_typo_namespace_still_unknown_through_run_namespace_command() {
     assert!(!msg.contains(CAPABILITY_UNAVAILABLE_PREFIX), "{msg}");
 }
 
+/// What DOES a user actually get today for a gated namespace on the generic
+/// path, with the null driver bound? Print it.
+#[test]
+fn zz_probe_generic_path_under_null_driver() {
+    let tmp = std::env::temp_dir().join("zz-verify-generic-ws");
+    std::fs::create_dir_all(&tmp).unwrap();
+    std::env::set_var("OPENHUMAN_WORKSPACE", &tmp);
+    std::env::set_var("OPENHUMAN_MEMORY_DRIVER", "null");
+    let grouped = super::grouped_schemas();
+    let outcome = super::run_namespace_command(
+        "memory_tree",
+        &[
+            "list_chunks".to_string(),
+            "--limit".to_string(),
+            "1".to_string(),
+        ],
+        &grouped,
+    );
+    std::env::remove_var("OPENHUMAN_MEMORY_DRIVER");
+    std::env::remove_var("OPENHUMAN_WORKSPACE");
+    match outcome {
+        Ok(()) => eprintln!("ZZ-GENERIC: Ok(()) — command RAN, no config fact"),
+        Err(e) => eprintln!("ZZ-GENERIC-ERR: {e}"),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Path 2 — `openhuman memory <sub>`, end to end through the real entry point.
 // ---------------------------------------------------------------------------
