@@ -149,6 +149,11 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "binding::for_workspace(",
         "reads driver_id + advertised capabilities only (what memory.provider_status already reports); no CoreContext exists on a CLI invocation, so there is no guard to route through",
     ),
+    (
+        "src/core/subsystems_cli.rs",
+        "binding::for_workspace(",
+        "the `openhuman subsystems` slot table: resolves the configured workspace's binding to render driver/class/health/capabilities — the same status values memory.provider_status reports over RPC, never memory content. Bare CLI invocation builds no CoreContext, so there is no guard to route through (same reasoning as cli_capability.rs); falls back to the ambient subsystems_status when config cannot load",
+    ),
     // ── The bind site itself: it produces the guard ──
     (
         "src/core/runtime/context.rs",
