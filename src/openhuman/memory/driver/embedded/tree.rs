@@ -11,7 +11,7 @@
 //!
 //! The contract's [`IngestRequest`], [`QueryResult`], [`TreeNode`] and
 //! [`TreeStatus`] are the *runtime* tree's types — literally so:
-//! `memory::tree::tree_runtime::types` is a `pub use` of
+//! `memory::tree::tree_runtime` re-exports
 //! `tinycortex::memory::tree::runtime::*`, and that module in turn is
 //! `pub use tinycortex_api::tree as types`. Contract type and host type are
 //! **the same type**, so three of the five methods below convert nothing.
