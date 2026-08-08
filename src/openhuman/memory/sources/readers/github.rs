@@ -20,7 +20,6 @@ use crate::openhuman::memory::store::content::raw::RawKind;
 
 use super::SourceReader;
 
-const DEFAULT_BRANCH: &str = "main";
 
 /// Cache of issue/PR data populated during `list_items` so `read_item`
 /// doesn't re-fetch each one individually. The paginated list endpoints
@@ -95,14 +94,6 @@ enum ItemKind {
 }
 
 impl ItemKind {
-    fn prefix(self) -> &'static str {
-        match self {
-            ItemKind::Commit => "commit",
-            ItemKind::Issue => "issue",
-            ItemKind::PullRequest => "pr",
-        }
-    }
-
     fn from_id(id: &str) -> Option<(Self, &str)> {
         if let Some(rest) = id.strip_prefix("commit:") {
             Some((ItemKind::Commit, rest))
@@ -267,8 +258,6 @@ struct GhPr {
     created_at: Option<String>,
     updated_at: Option<String>,
     merged_at: Option<String>,
-    #[serde(default)]
-    comments: u64,
 }
 
 // ── Reader implementation ───────────────────────────────────────────
