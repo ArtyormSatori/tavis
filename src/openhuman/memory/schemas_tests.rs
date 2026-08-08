@@ -155,10 +155,12 @@ fn aggregator_is_exactly_the_nine_parts_concatenated_in_order() {
 }
 
 #[test]
-fn schema_aggregator_is_exactly_the_seven_families_concatenated_in_order() {
+fn schema_aggregator_is_exactly_the_nine_parts_concatenated_in_order() {
     let mut expected: Vec<&'static str> = Vec::new();
     for family in [
+        all_core_recall_controller_schemas(),
         all_documents_controller_schemas(),
+        all_ingest_controller_schemas(),
         all_files_controller_schemas(),
         all_kv_graph_controller_schemas(),
         all_sync_controller_schemas(),
