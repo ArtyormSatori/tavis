@@ -237,7 +237,7 @@ struct Harness {
 
 impl Harness {
     fn new(config: OrchestratorConfig) -> Self {
-        init_global(128);
+        crate::core::bus::init().await.expect("bus init");
         let transcript = Transcript::new();
         let emit: Emitter = Arc::new(StdMutex::new(VecDeque::new()));
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -256,7 +256,7 @@ impl Harness {
         // Capture proactive (subconscious → human) deliveries off the bus.
         let notifications = Arc::new(StdMutex::new(Vec::<String>::new()));
         let sink = Arc::clone(&notifications);
-        let sub = global().expect("bus").on("conv-e2e-notify", move |event| {
+        let sub = crate::core::bus::BUS.get().expect("bus").on("conv-e2e-notify", move |event| {
             let sink = Arc::clone(&sink);
             let event = event.clone();
             Box::pin(async move {

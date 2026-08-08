@@ -223,7 +223,7 @@ async fn run_single_preserves_native_model_error_text() {
     // A crate-native model error crosses the TinyAgents boundary as its
     // provider-neutral error type rather than a downcastable host error. Its
     // user-visible text must still remain intact.
-    let _ = init_global(64);
+    crate::core::bus::init().await.expect("bus init");
 
     let err_provider: Arc<dyn ChatModel<()>> = Arc::new(PersistentErrModel {
         kind: PersistentErrKind::MaxIterations { max: 8 },
@@ -255,7 +255,7 @@ async fn run_single_preserves_native_model_error_text() {
 
 #[tokio::test]
 async fn run_single_publishes_completed_and_error_events() {
-    let _ = init_global(64);
+    crate::core::bus::init().await.expect("bus init");
     let events = Arc::new(AsyncMutex::new(Vec::<DomainEvent>::new()));
     let events_handler = Arc::clone(&events);
     let _handle = global().unwrap().on("runtime-events-test", move |event| {

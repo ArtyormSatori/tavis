@@ -691,9 +691,8 @@ mod render_skill_toml_tests {
 use crate::core::events::DomainEvent;
         use tokio::sync::broadcast::error::TryRecvError;
 
-        let _ = init_global(64);
-        let mut rx = global()
-            .expect("event bus should be initialized")
+        crate::core::bus::init().await.expect("bus init");
+        let mut rx = crate::core::bus::BUS.get().expect("event bus should be initialized")
             .receiver();
 
         let home = tempfile::TempDir::new().expect("temp home");

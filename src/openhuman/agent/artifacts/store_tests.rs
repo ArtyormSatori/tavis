@@ -255,7 +255,7 @@ impl EventHandler<DomainEvent> for PendingCollector {
 /// in-progress "Generating…" card before the file lands on disk.
 #[tokio::test]
 async fn create_artifact_publishes_artifact_pending_event() {
-    init_global(256);
+    crate::core::bus::init().await.expect("bus init");
     let collector = PendingCollector::new();
     let _handle = collector.subscribe();
 

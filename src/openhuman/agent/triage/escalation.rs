@@ -496,7 +496,7 @@ use crate::core::events::DomainEvent;
     async fn apply_decision_drop_only_publishes_evaluated() {
         let _events_guard = test_events_guard().await;
         let envelope = envelope("esc-drop");
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let collect = tokio::spawn(collect_trigger_events_until("esc-drop", |events| {
             events.iter().any(|event| {
                 matches!(
@@ -535,7 +535,7 @@ use crate::core::events::DomainEvent;
     async fn apply_decision_acknowledge_only_publishes_evaluated() {
         let _events_guard = test_events_guard().await;
         let envelope = envelope("esc-ack");
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let collect = tokio::spawn(collect_trigger_events_until("esc-ack", |events| {
             events.iter().any(|event| {
                 matches!(
@@ -596,7 +596,7 @@ use crate::core::events::DomainEvent;
         use crate::openhuman::threads::todos::ops;
 
         let _events_guard = test_events_guard().await;
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let (_dir, location, card_id) = seed_task_card().await;
 
         let envelope = envelope("esc-drop-card").with_task_card(card_id.clone(), location.clone());
@@ -624,7 +624,7 @@ use crate::core::events::DomainEvent;
         use crate::openhuman::threads::todos::ops;
 
         let _events_guard = test_events_guard().await;
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let (_dir, location, card_id) = seed_task_card().await;
 
         let envelope = envelope("esc-ack-card").with_task_card(card_id.clone(), location.clone());
@@ -646,7 +646,7 @@ use crate::core::events::DomainEvent;
     async fn apply_decision_react_failure_publishes_failed_event() {
         let _events_guard = test_events_guard().await;
         let envelope = envelope("esc-react-fail");
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let _ = AgentDefinitionRegistry::init_global_builtins();
         let missing_target = format!("missing-agent-{}", uuid::Uuid::new_v4());
         let collect = tokio::spawn(collect_trigger_events_until("esc-react-fail", |events| {
@@ -697,7 +697,7 @@ use crate::core::events::DomainEvent;
     async fn apply_decision_escalate_failure_publishes_failed_event() {
         let _events_guard = test_events_guard().await;
         let envelope = envelope("esc-escalate-fail");
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let _ = AgentDefinitionRegistry::init_global_builtins();
         let missing_target = format!("missing-agent-{}", uuid::Uuid::new_v4());
         let collect = tokio::spawn(collect_trigger_events_until(

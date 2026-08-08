@@ -118,7 +118,7 @@ use crate::core::events::DomainEvent;
 
     #[tokio::test]
     async fn publish_helpers_emit_expected_trigger_events() {
-        let _ = init_global(32);
+        crate::core::bus::init().await.expect("bus init");
         let seen = Arc::new(Mutex::new(Vec::<DomainEvent>::new()));
         let seen_handler = Arc::clone(&seen);
         let _handle = global().unwrap().on("triage-events-test", move |event| {

@@ -58,7 +58,7 @@ use tinybus::EventHandler;
     #[tokio::test]
     async fn publishing_a_ptt_commit_reaches_a_subscriber() {
         // Use the singleton (init is idempotent).
-        let _ = init_global(64);
+        crate::core::bus::init().await.expect("bus init");
         let capture = Capture::default();
         let events = capture.events.clone();
         let _sub = BUS.subscribe(Arc::new(capture));

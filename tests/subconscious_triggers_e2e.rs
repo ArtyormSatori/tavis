@@ -482,12 +482,11 @@ fn bus_lock() -> std::sync::MutexGuard<'static, ()> {
 #[tokio::test]
 async fn scenario_notify_user_delivers_and_persists() {
     let _guard = bus_lock();
-    init_global(64);
+    crate::core::bus::init().await.expect("bus init");
 
     let captured: Arc<StdMutex<Vec<DomainEvent>>> = Arc::new(StdMutex::new(Vec::new()));
     let sink = Arc::clone(&captured);
-    let _sub = global()
-        .expect("bus initialized")
+    let _sub = crate::core::bus::BUS.get().expect("bus initialized")
         .on("e2e-notify-capture", move |event| {
             let sink = Arc::clone(&sink);
             let event = event.clone();
