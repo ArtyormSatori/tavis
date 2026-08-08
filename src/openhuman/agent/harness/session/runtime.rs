@@ -486,13 +486,13 @@ impl Agent {
     /// intentionally absent from the loaded prefix — no dedup is needed here (the
     /// on-disk transcript ends at the previous completed turn).
     ///
-    /// Stays on the concrete `transcript::` free functions for the same reasons
-    /// as `try_load_session_transcript` (see its doc comment), and one more
-    /// specific to this path: it resolves by `_meta.thread_id` across *root*
-    /// transcripts only, a disambiguation a stem-bound
-    /// [`SessionTranscriptHistory`][super::transcript_history::SessionTranscriptHistory]
-    /// explicitly declines to make — several transcripts share one thread id
-    /// (every sub-agent spawned within it does).
+    /// Goes through the S4 seam like `try_load_session_transcript` (see its doc
+    /// comment for why the read is `read_session` and not
+    /// `ChatHistory::messages()`), via the locator's `root_for_thread` — the
+    /// lookup that resolves by `_meta.thread_id` across *root* transcripts
+    /// only. That disambiguation is why it is a locator method rather than
+    /// anything a stem-bound handle could offer: several transcripts share one
+    /// thread id (every sub-agent spawned within it does).
     pub fn seed_resume_from_thread_transcript(&mut self, thread_id: &str) -> bool {
         if !self.history.is_empty() || self.cached_transcript_messages.is_some() {
             log::debug!(
