@@ -150,7 +150,7 @@ fn run_ingest(args: &[String]) -> Result<()> {
         .build()?;
 
     let result = rt.block_on(async {
-        let client = create_memory_client().await?;
+        let client = create_memory_client("ingest").await?;
 
         let document = NamespaceDocumentInput {
             namespace: namespace.clone(),
@@ -234,7 +234,7 @@ fn run_docs(args: &[String]) -> Result<()> {
         .build()?;
 
     let result = rt.block_on(async {
-        let client = create_memory_client().await?;
+        let client = create_memory_client("docs").await?;
         client
             .list_documents(namespace.as_deref())
             .await
@@ -285,7 +285,7 @@ fn run_graph_query(args: &[String]) -> Result<()> {
         .build()?;
 
     let result = rt.block_on(async {
-        let client = create_memory_client().await?;
+        let client = create_memory_client("graph").await?;
         client
             .graph_query(
                 namespace.as_deref(),
@@ -347,7 +347,7 @@ fn run_query(args: &[String]) -> Result<()> {
         .build()?;
 
     let result = rt.block_on(async {
-        let client = create_memory_client().await?;
+        let client = create_memory_client("query").await?;
         client
             .query_namespace(&namespace, &query, limit)
             .await
@@ -379,7 +379,7 @@ fn run_namespaces(args: &[String]) -> Result<()> {
         .build()?;
 
     let result = rt.block_on(async {
-        let client = create_memory_client().await?;
+        let client = create_memory_client("namespaces").await?;
         client.list_namespaces().await.map_err(anyhow::Error::msg)
     })?;
 
@@ -422,7 +422,7 @@ fn run_clear(args: &[String]) -> Result<()> {
         .build()?;
 
     rt.block_on(async {
-        let client = create_memory_client().await?;
+        let client = create_memory_client("clear").await?;
         client
             .clear_namespace(&namespace)
             .await
