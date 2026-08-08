@@ -10,7 +10,7 @@
 //! which keys on the context's workspace dir. The cache below is deliberately
 //! shaped like
 //! [`memory::people::store::for_workspace`](crate::openhuman::memory::people::store::for_workspace)
-//! — a **workspace-keyed map** — and deliberately *not* like
+//! — a **workspace-and-config-keyed map** — and deliberately *not* like
 //! [`memory::global`](crate::openhuman::memory::global), which is a single slot
 //! holding "the one active-user workspace".
 //!
