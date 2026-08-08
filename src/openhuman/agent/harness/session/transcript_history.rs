@@ -506,6 +506,31 @@ impl SessionTranscriptHistory {
     }
 }
 
+impl SessionTranscriptRead for SessionTranscriptHistory {
+    fn path(&self) -> &Path {
+        &self.path
+    }
+
+    /// Same call the free-function readers make, on the same path, with the
+    /// same return type — so there is nothing left for the round trip to lose.
+    fn read_session(&self) -> anyhow::Result<Option<SessionTranscript>> {
+        if !self.path.exists() {
+            log::debug!(
+                "[transcript-history] read_session absent path={}",
+                self.path.display()
+            );
+            return Ok(None);
+        }
+        let session = read_transcript(&self.path)?;
+        log::debug!(
+            "[transcript-history] read_session messages={} path={}",
+            session.messages.len(),
+            self.path.display()
+        );
+        Ok(Some(session))
+    }
+}
+
 impl SessionHistory for SessionTranscriptHistory {
     /// Pure forwarder: every argument reaches [`append_transcript_turn`]
     /// untouched, so the bytes this writes are identical to what the free
