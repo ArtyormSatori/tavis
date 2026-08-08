@@ -809,40 +809,56 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         crate::openhuman::threads::goals::all_thread_goals_registered_controllers(),
     );
     // Memory tree ingestion layer (#707 — canonicalised chunks with provenance)
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        // DELIBERATE, not inherited: `memory/schema/registry.rs`'s ~25 methods
+        // span tree, entities, graph and maintenance, and are tagged as ONE
+        // capability rather than split. Tree and entities are treated here as
+        // parts of a single encapsulated memory surface, not independently
+        // degradable families. The visible consequence: a driver advertising
+        // `entities` but not `tree` still loses `memory_tree.top_entities`.
+        // Split it only when a real driver needs that distinction.
+        Some(Capability::Tree),
         crate::openhuman::memory::tree::all_memory_tree_registered_controllers(),
     );
     // Memory tree retrieval layer (#710 — LLM-callable read tools over the tree)
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Tree),
         crate::openhuman::memory::tree::all_retrieval_registered_controllers(),
     );
     // Slack → memory-tree ingestion engine (per-message ingest, no bucketing)
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        // Grouped with the other three sync namespaces rather than `Ingest`: a
+        // driver that cannot accept synced source items should lose the whole
+        // source-sync surface coherently, not half of it.
+        Some(Capability::Sources),
         crate::openhuman::integrations::composio::providers::slack::all_slack_memory_registered_controllers(),
     );
     // Per-connection memory sync status, controls, and progress (#1136)
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Sources),
         crate::openhuman::memory::sync::sync_status::all_memory_sync_status_registered_controllers(
         ),
     );
     // Memory sources — user-configured data connectors registry
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Sources),
         crate::openhuman::memory::sources::all_memory_sources_registered_controllers(),
     );
     // Memory diff — snapshot-based change tracking for memory sources
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Diff),
         crate::openhuman::memory::diff::all_memory_diff_registered_controllers(),
     );
     // Referral and growth tracking
