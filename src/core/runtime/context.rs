@@ -314,11 +314,18 @@ impl CoreContext {
     }
 
     /// Rebind the process default context to the current active user's
-    /// workspace. Desktop login and pending-session revalidation can switch the
-    /// active workspace after boot without rebuilding the core. Scoped
-    /// multi-tenant dispatch is unaffected because tenant contexts are passed to
-    /// [`CoreContext::scope`] explicitly and are not the process default.
-    pub fn rebind_default_workspace_dir(workspace_dir: &std::path::Path) -> Result<(), String> {
+    /// workspace **and** that user's `[subsystems.memory]` config. Desktop
+    /// login, logout, and pending-session revalidation can switch the active
+    /// workspace after boot without rebuilding the core; every call site
+    /// already holds the target `Config`, so passing the config here keeps the
+    /// bound driver (and its hooks / trust settings) from silently carrying
+    /// over from the previous user. Scoped multi-tenant dispatch is unaffected
+    /// because tenant contexts are passed to [`CoreContext::scope`] explicitly
+    /// and are not the process default.
+    pub fn rebind_default_workspace(
+        workspace_dir: &std::path::Path,
+        memory_subsystem: crate::openhuman::config::schema::MemorySubsystemConfig,
+    ) -> Result<(), String> {
         let Some(ctx) = DEFAULT_CONTEXT.get() else {
             log::debug!(
                 "[core-context] default context not initialized; skipped workspace rebind to {}",
@@ -326,26 +333,47 @@ impl CoreContext {
             );
             return Ok(());
         };
-        ctx.rebind_workspace_dir(workspace_dir)
+        ctx.rebind_workspace(workspace_dir, memory_subsystem)
     }
 
-    fn rebind_workspace_dir(&self, workspace_dir: &std::path::Path) -> Result<(), String> {
-        let mut guard = self
+    fn rebind_workspace(
+        &self,
+        workspace_dir: &std::path::Path,
+        memory_subsystem: crate::openhuman::config::schema::MemorySubsystemConfig,
+    ) -> Result<(), String> {
+        let same_workspace = self
             .workspace_dir
-            .write()
-            .map_err(|e| format!("workspace rebind failed: context lock poisoned: {e}"))?;
-        if guard.as_deref() == Some(workspace_dir) {
+            .read()
+            .map_err(|e| format!("workspace rebind failed: context lock poisoned: {e}"))?
+            .as_deref()
+            == Some(workspace_dir);
+        let same_subsystem = self
+            .memory_subsystem
+            .read()
+            .map_err(|e| format!("workspace rebind failed: subsystem lock poisoned: {e}"))?
+            .eq(&memory_subsystem);
+        if same_workspace && same_subsystem {
             log::debug!(
-                "[core-context] workspace already bound to {}",
+                "[core-context] workspace {} already bound with the current subsystem config",
                 workspace_dir.display()
             );
             return Ok(());
         }
         log::info!(
-            "[core-context] rebound default workspace to {}",
-            workspace_dir.display()
+            "[core-context] rebound default workspace to {} with memory subsystem driver='{}'",
+            workspace_dir.display(),
+            memory_subsystem.driver
         );
-        *guard = Some(workspace_dir.to_path_buf());
+        *self
+            .workspace_dir
+            .write()
+            .map_err(|e| format!("workspace rebind failed: context lock poisoned: {e}"))? =
+            Some(workspace_dir.to_path_buf());
+        *self
+            .memory_subsystem
+            .write()
+            .map_err(|e| format!("workspace rebind failed: subsystem lock poisoned: {e}"))? =
+            memory_subsystem;
         Ok(())
     }
 
