@@ -685,10 +685,9 @@ mod render_skill_toml_tests {
     /// guards the `publish_global` emission line (the `refresh_workflows` test
     /// writes to disk directly and bypasses create/install, so without this a
     /// dropped emission would stay green while silently killing the feature).
-    #[test]
-    fn create_workflow_inner_emits_workflows_changed() {
-        use crate::core::bus::BUS;
-use crate::core::events::DomainEvent;
+    #[tokio::test]
+    async fn create_workflow_inner_emits_workflows_changed() {
+        use crate::core::events::DomainEvent;
         use tinybus::TryRecvError;
 
         crate::core::bus::init().await.expect("bus init");

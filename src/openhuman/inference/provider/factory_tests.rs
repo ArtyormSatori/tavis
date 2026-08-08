@@ -1118,7 +1118,7 @@ use crate::core::events::DomainEvent;
     let mut count = 0usize;
     loop {
         match tokio::time::timeout(Duration::from_secs(3), rx.recv()).await {
-            Ok(Ok(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
+            Ok(Some(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
                 if descriptor.service == marker {
                     assert_eq!(descriptor.provider_slug, "openhuman");
                     assert!(matches!(descriptor.reason, EgressReason::Inference));
@@ -1180,7 +1180,7 @@ use crate::core::events::DomainEvent;
     let mut configured_count = 0usize;
     loop {
         match tokio::time::timeout(Duration::from_secs(3), rx.recv()).await {
-            Ok(Ok(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
+            Ok(Some(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
                 match descriptor.service.as_str() {
                     service if service == pinned_sdk => {
                         assert_eq!(descriptor.provider_slug, "claude_agent_sdk");
@@ -1347,7 +1347,7 @@ use crate::core::events::DomainEvent;
     let found = tokio::time::timeout(std::time::Duration::from_secs(2), async {
         loop {
             match rx.recv().await {
-                Ok(DomainEvent::ExternalTransferPending { descriptor, .. })
+                Some(DomainEvent::ExternalTransferPending { descriptor, .. })
                     if descriptor.provider_slug == "openai"
                         && descriptor.is_external
                         && matches!(descriptor.reason, EgressReason::Inference) =>
@@ -1401,7 +1401,7 @@ use crate::core::events::DomainEvent;
     let mut count = 0usize;
     loop {
         match tokio::time::timeout(Duration::from_secs(3), rx.recv()).await {
-            Ok(Ok(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
+            Ok(Some(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
                 if descriptor.service == marker {
                     assert_eq!(descriptor.provider_slug, "openhuman");
                     assert!(descriptor.is_external, "managed backend is external");
@@ -1454,7 +1454,7 @@ use crate::core::events::DomainEvent;
 
     loop {
         match tokio::time::timeout(Duration::from_secs(3), rx.recv()).await {
-            Ok(Ok(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
+            Ok(Some(DomainEvent::ExternalTransferPending { descriptor, .. })) => {
                 assert_ne!(
                     descriptor.service, local_marker,
                     "local runtime must NOT publish ExternalTransferPending"

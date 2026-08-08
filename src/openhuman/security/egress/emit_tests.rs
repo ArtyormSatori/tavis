@@ -18,7 +18,7 @@ async fn find_pending(
 ) -> (EgressDescriptor, Option<String>, Option<String>) {
     loop {
         match rx.recv().await {
-            Ok(DomainEvent::ExternalTransferPending {
+            Some(DomainEvent::ExternalTransferPending {
                 descriptor,
                 thread_id,
                 client_id,
@@ -62,7 +62,7 @@ async fn local_transfer_does_not_publish() {
 
     loop {
         match rx.recv().await {
-            Ok(DomainEvent::ExternalTransferPending { descriptor, .. }) => {
+            Some(DomainEvent::ExternalTransferPending { descriptor, .. }) => {
                 assert_ne!(
                     descriptor.service, local_marker,
                     "local (non-external) transfer must not publish ExternalTransferPending"
@@ -126,7 +126,7 @@ async fn dedup_turn_scope_collapses_repeat_destination() {
     let mut distinct_seen = false;
     loop {
         match rx.recv().await {
-            Ok(DomainEvent::ExternalTransferPending { descriptor, .. }) => {
+            Some(DomainEvent::ExternalTransferPending { descriptor, .. }) => {
                 if descriptor.service == dup {
                     dup_count += 1;
                 }
@@ -168,7 +168,7 @@ async fn dedup_absent_outside_scope_publishes_each_time() {
     let mut count = 0;
     loop {
         match rx.recv().await {
-            Ok(DomainEvent::ExternalTransferPending { descriptor, .. }) => {
+            Some(DomainEvent::ExternalTransferPending { descriptor, .. }) => {
                 if descriptor.service == marker {
                     count += 1;
                 }
