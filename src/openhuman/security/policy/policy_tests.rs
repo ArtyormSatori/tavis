@@ -2808,7 +2808,10 @@ async fn write_outside_the_workspace_is_refused_without_a_turn_root() {
         .validate_parent_path(target.to_str().unwrap())
         .await
         .expect_err("a path outside the workspace must not validate");
-    assert!(err.contains("escapes workspace"), "unexpected error: {err}");
+    assert!(
+        err.contains(POLICY_BLOCKED_MARKER),
+        "unexpected error: {err}"
+    );
 }
 
 /// With the checkout scoped as this turn's workspace, the same write validates:
@@ -2850,7 +2853,10 @@ async fn the_turn_root_grant_does_not_reach_a_sibling_directory() {
     })
     .await
     .expect_err("a sibling of the scoped root must stay outside it");
-    assert!(err.contains("escapes workspace"), "unexpected error: {err}");
+    assert!(
+        err.contains(POLICY_BLOCKED_MARKER),
+        "unexpected error: {err}"
+    );
 }
 
 /// The grant is exactly as strong as a configured trusted root and no stronger:
