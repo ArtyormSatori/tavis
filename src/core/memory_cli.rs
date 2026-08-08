@@ -591,24 +591,16 @@ mod tests {
         assert_eq!(required_capability("not_a_subcommand"), None);
     }
 
-    fn null_binding(name: &str) -> std::sync::Arc<binding::MemoryBinding> {
-        let dir = std::env::temp_dir().join(format!("oh-memcli-cap-{name}"));
-        binding::for_workspace(
-            &dir,
-            &MemorySubsystemConfig {
-                driver: "null".into(),
-                ..Default::default()
-            },
-        )
-        .expect("binding resolves")
-    }
-
+    /// `Capabilities::mandatory()` is exactly what the `null` driver advertises;
+    /// the set is used directly rather than through `binding::for_workspace` so
+    /// this file stays off the memory-guard bypass allowlist (that scanner does
+    /// not strip inline `#[cfg(test)]` modules). The binding-level equivalence
+    /// is pinned in `cli_capability_tests.rs`.
     #[test]
     fn gated_subcommand_reports_the_driver_and_capability() {
-        let binding = null_binding("gated");
         let err = capability_verdict(
-            binding.driver_id(),
-            binding.capabilities(),
+            "null",
+            Capabilities::mandatory(),
             required_capability("ingest"),
             "openhuman memory ingest",
         )
@@ -622,14 +614,11 @@ mod tests {
     /// The default embedded driver advertises every family, so nothing changes.
     #[test]
     fn default_embedded_driver_gates_nothing() {
-        let dir = std::env::temp_dir().join("oh-memcli-cap-default");
-        let binding = binding::for_workspace(&dir, &MemorySubsystemConfig::default())
-            .expect("binding resolves");
         for (sub, _) in SUBCOMMAND_CONTROLLER {
             assert!(
                 capability_verdict(
-                    binding.driver_id(),
-                    binding.capabilities(),
+                    "tinycortex",
+                    Capabilities::all(),
                     required_capability(sub),
                     "openhuman memory <sub>",
                 )
