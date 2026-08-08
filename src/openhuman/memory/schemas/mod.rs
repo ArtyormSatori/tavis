@@ -7,7 +7,9 @@
 //! Internally the schemas are organised into family submodules that mirror
 //! [`crate::openhuman::memory::ops`]:
 //!
-//! - [`documents`] — doc/namespace/recall/clear schemas + handlers.
+//! - [`documents`] — doc/namespace/recall/clear schemas + handlers. Partitioned
+//!   three ways by capability family (core+recall / documents / ingest); see
+//!   that module's header for why.
 //! - [`kv_graph`] — key-value and knowledge-graph schemas + handlers.
 //! - [`sync`] — `sync_channel`, `sync_all`, `ingestion_status`.
 //! - [`learn`] — `learn_all`.
