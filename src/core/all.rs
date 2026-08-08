@@ -1282,6 +1282,10 @@ pub fn schema_for_rpc_method(method: &str) -> Option<ControllerSchema> {
     // call with bad params would return the controller's validation error
     // instead of method-not-found, leaking the hidden RPC surface. No ambient
     // context ⇒ `group_allowed` is `true` ⇒ unfiltered, identical to pre-#4796.
+    //
+    // The memory-capability gate (M5.2) rides here for exactly the same reason:
+    // a `memory_tree.*` method hidden because the bound driver never advertised
+    // `tree` must not leak back out through a param-validation error.
     registry()
         .iter()
         .chain(internal_registry().iter())
