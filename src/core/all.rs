@@ -294,7 +294,10 @@ fn group_allowed(group: DomainGroup) -> bool {
 /// run pre-boot with no bound driver; a deny-by-default here would turn every
 /// memory test red at once. Denying is only ever correct AFTER a driver has
 /// actually answered `capabilities()`.
-fn capability_allowed(capability: Option<Capability>) -> bool {
+/// (`pub(crate)` so the agent-tool post-filter in
+/// [`crate::openhuman::tools::ops::all_tools_with_runtime`] gates on the exact
+/// same predicate the RPC registry does — one definition, two surfaces.)
+pub(crate) fn capability_allowed(capability: Option<Capability>) -> bool {
     match capability {
         None => true,
         Some(_) => capability_allowed_in(
