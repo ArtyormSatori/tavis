@@ -19,8 +19,8 @@ pub mod tags;
 
 pub use tinycortex::memory::chunks::StagedChunk;
 pub use tinycortex::memory::store::content::{
-    atomic, compose, obsidian, obsidian_registry, paths, raw, stage_chunks, wiki_git, StagedSummary,
-    SummaryComposeInput, SummaryTreeKind,
+    atomic, compose, obsidian, obsidian_registry, paths, raw, stage_chunks, wiki_git,
+    StagedSummary, SummaryComposeInput, SummaryTreeKind,
 };
 
 /// Update the `tags:` block in a summary's on-disk `.md` file after an
