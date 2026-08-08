@@ -1515,6 +1515,94 @@ fn tool_group(name: &str) -> crate::core::all::DomainGroup {
     DomainGroup::Platform
 }
 
+/// Classify an agent tool into the memory capability family its surface
+/// requires, so [`all_tools_with_runtime`] can drop tools the bound memory
+/// driver does not advertise (`docs/specs/kernel.md` §3.3).
+///
+/// `None` means "not backed by the memory driver" — a workspace file
+/// (`update_memory_md`), the per-workspace people SQLite store, pure
+/// introspection (`memory_store_kinds`), or a flow-sandboxed namespace
+/// (`flow_memory_*`, already `DomainGroup::Flows`). Such a tool is never
+/// filtered on the capability axis. `None` here is a *decision*, not a default:
+/// `every_memory_tool_has_an_explicit_capability_or_is_core` forces every
+/// memory-family tool through this function so a new one cannot land in the
+/// always-present bucket by accident.
+///
+/// The mandatory families ([`Capability::Core`], [`Capability::Recall`]) are
+/// returned explicitly rather than folded into `None`. A bindable driver always
+/// advertises them (`Capability::MANDATORY`), so the filter is a no-op for those
+/// tools by construction — but the mapping stays self-documenting and the drift
+/// guard stays exhaustive.
+///
+/// **The `memory_` prefix is deliberately NOT a catch-all here.** [`tool_group`]
+/// can prefix-match because every `memory_*` tool is one family on the
+/// *DomainSet* axis; on the capability axis the family differs per tool, and a
+/// wrong default is worse than no rule. Hence enumeration plus two narrow
+/// prefix rules, backed by the drift guard.
+///
+/// ## Honesty clause — three assignments run ahead of the plumbing
+///
+/// `goals_*` is filesystem-backed today (`memory::goals::store`), not
+/// `MemoryGoals`; `tool_stats` reads the legacy `Arc<dyn Memory>` plus
+/// `agent::learning::tool_tracker`, not `MemoryToolMemory`; `memory_diff` reads
+/// `memory::diff::ops`, not `MemoryDiff`. Filtering them on the driver's
+/// advertised set is nevertheless the correct M5 behaviour: §3.3 is a contract
+/// about what the *model is told exists*, and the later re-point onto
+/// `MemoryGuard` must not change the advertised surface. Assigning them `None`
+/// to dodge the mismatch would bake the wrong contract in.
+fn tool_capability(name: &str) -> Option<tinycortex_api::capabilities::Capability> {
+    use tinycortex_api::capabilities::Capability;
+
+    // Not driver-backed. Each entry is an argued exception, not a fallthrough.
+    if name == "update_memory_md"          // writes the workspace `MEMORY.md` file directly
+        || name == "memory_store_kinds"    // enumerates `MemoryKind` constants; no store access
+        || name.starts_with("people_")     // per-workspace people SQLite store, not the driver
+        || name.starts_with("flow_memory_")
+    // flow-sandboxed; DomainGroup::Flows
+    {
+        return None;
+    }
+
+    let capability = match name {
+        // ── Mandatory families: always advertised, listed for the record ──
+        "memory_store" | "memory_forget" | "remember_preference" | "save_preference" => {
+            Capability::Core
+        }
+        // Chunk/recall retrieval surface. NOT `Tree` — these read chunk
+        // embeddings and chunk rows, never the summary tree.
+        "memory_recall"
+        | "memory_vector_search"
+        | "memory_chunk_context"
+        | "memory_hybrid_search"
+        | "memory_store_raw_chunks" => Capability::Recall,
+
+        // ── Optional families: absence means the tool disappears ──
+        // The one registered tree tool (`MemoryQueryTool` is an alias of
+        // `MemoryTreeTool`, `memory/query/mod.rs`) plus the compiled persona
+        // flavour reader, which reads a flavoured summary-tree root.
+        "memory_tree" | "memory_flavour" => Capability::Tree,
+        // Free-text search over the canonical *entity* index
+        // (`memory::tree::retrieval::search::search_entities`).
+        "memory_store_raw_search" => Capability::Entities,
+        "memory_diff" => Capability::Diff,
+        "memory_doctor" => Capability::Maintenance,
+        "tool_stats" => Capability::ToolMemory,
+
+        // Prefix rules, so a NEW tool in one of these families auto-gates
+        // instead of silently landing in the un-filtered bucket — the same
+        // reasoning as `tool_group`'s prefix families (#4808 review). Ordered
+        // after the exact arms so `memory_tree` is not swallowed by
+        // `memory_tree_`. The underscore in `goals_` is load-bearing: the
+        // per-thread `goal_get`/`goal_set`/`goal_complete` tools are
+        // `DomainGroup::Threads` and must not be caught.
+        n if n.starts_with("goals_") => Capability::Goals,
+        n if n.starts_with("memory_tree_") => Capability::Tree,
+
+        _ => return None,
+    };
+    Some(capability)
+}
+
 #[cfg(test)]
 #[path = "ops_tests.rs"]
 mod tests;
