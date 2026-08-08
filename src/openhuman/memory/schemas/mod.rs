@@ -19,9 +19,10 @@
 //!
 //! Every family publishes its own `all_<family>_controller_schemas()` /
 //! `all_<family>_registered_controllers()` pair; [`all_controller_schemas`] and
-//! [`all_registered_controllers`] are thin fan-outs over the seven, in a fixed
-//! order. The split exists so a caller can register families individually — it
-//! does **not** itself skip or filter anything (M5.1 is a pure refactor).
+//! [`all_registered_controllers`] are thin fan-outs over the **nine** parts, in
+//! a fixed order. The split exists so `core::all` can register (or decline to
+//! register) one capability family at a time — the parts themselves skip
+//! nothing.
 
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
