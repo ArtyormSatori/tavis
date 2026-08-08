@@ -84,7 +84,7 @@ impl Default for MemorySubsystemConfig {
 /// Memory-hook budgets — the auto-recall / auto-capture behavior gating
 /// values. Defaults reproduce today's (pre-`[subsystems]`) behavior exactly;
 /// nothing reads these yet.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(default)]
 pub struct MemoryHooksConfig {
     #[serde(default = "default_true")]
