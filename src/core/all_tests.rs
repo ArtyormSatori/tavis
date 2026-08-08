@@ -1839,8 +1839,16 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             gated.contains(&cap),
             has_rpc_surface,
             "capability `{cap}` is {} in the live registry but the table says {}",
-            if gated.contains(&cap) { "gating controllers" } else { "gating nothing" },
-            if has_rpc_surface { "it should gate something" } else { "it should gate nothing" },
+            if gated.contains(&cap) {
+                "gating controllers"
+            } else {
+                "gating nothing"
+            },
+            if has_rpc_surface {
+                "it should gate something"
+            } else {
+                "it should gate nothing"
+            },
         );
     }
 }
@@ -1955,13 +1963,27 @@ async fn memory_families_registered_when_capabilities_advertised() {
         "slack_memory",
         "people",
     ] {
-        assert!(ns.contains(present), "`{present}` must be present under a full-capability driver");
+        assert!(
+            ns.contains(present),
+            "`{present}` must be present under a full-capability driver"
+        );
     }
     for present in [
-        "doc_put", "doc_ingest", "kv_set", "graph_query", "sync_all", "learn_all",
-        "tool_rule_put", "provider_status", "recall_memories", "list_files",
+        "doc_put",
+        "doc_ingest",
+        "kv_set",
+        "graph_query",
+        "sync_all",
+        "learn_all",
+        "tool_rule_put",
+        "provider_status",
+        "recall_memories",
+        "list_files",
     ] {
-        assert!(fns.contains(present), "`memory.{present}` must be present under a full-capability driver");
+        assert!(
+            fns.contains(present),
+            "`memory.{present}` must be present under a full-capability driver"
+        );
     }
 }
 
@@ -2009,11 +2031,17 @@ async fn memory_families_absent_when_capabilities_not_advertised() {
         "tool_rules_for_prompt",
         "tool_rules_json",
     ] {
-        assert!(!fns.contains(absent), "`memory.{absent}` must be ABSENT under the null driver");
+        assert!(
+            !fns.contains(absent),
+            "`memory.{absent}` must be ABSENT under the null driver"
+        );
     }
     // …while the ungated surface stays. These are the positive controls that
     // make the assertions above the GATE rather than a collapsed registry.
-    assert!(ns.contains("memory"), "the `memory` namespace itself must survive");
+    assert!(
+        ns.contains("memory"),
+        "the `memory` namespace itself must survive"
+    );
     assert!(
         ns.contains("people"),
         "`people` is host surface with no capability — it must survive any driver"
@@ -2093,7 +2121,10 @@ async fn schema_lookup_is_gated_in_lockstep_with_capability_dispatch() {
         Some(null_driver_cfg()),
     );
     let gated = CoreContext::scope(ctx, async { schema_for_rpc_method(method) }).await;
-    assert!(gated.is_none(), "schema lookup for a capability-gated method must be None");
+    assert!(
+        gated.is_none(),
+        "schema lookup for a capability-gated method must be None"
+    );
 
     let ctx = CoreContext::for_test(
         DomainSet::full(),
@@ -2104,7 +2135,10 @@ async fn schema_lookup_is_gated_in_lockstep_with_capability_dispatch() {
         schema_for_rpc_method("openhuman.memory_provider_status")
     })
     .await;
-    assert!(kept.is_some(), "ungated provider_status schema must still resolve");
+    assert!(
+        kept.is_some(),
+        "ungated provider_status schema must still resolve"
+    );
 }
 
 #[tokio::test]
@@ -2117,7 +2151,9 @@ async fn rpc_method_from_parts_stays_unfiltered_by_capability() {
         Some(caps_ws("parts")),
         Some(null_driver_cfg()),
     );
-    let out =
-        CoreContext::scope(ctx, async { rpc_method_from_parts("memory", "tool_rules_json") }).await;
+    let out = CoreContext::scope(ctx, async {
+        rpc_method_from_parts("memory", "tool_rules_json")
+    })
+    .await;
     assert_eq!(out.as_deref(), Some("openhuman.memory_tool_rules_json"));
 }
