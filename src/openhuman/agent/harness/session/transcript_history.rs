@@ -261,7 +261,11 @@ pub(crate) trait SessionHistoryLocator: Send + Sync {
 
     /// Binds (creating on first write) this session's own write handle for
     /// `stem`, with `seed` used only when no file exists yet.
-    fn open_stem(&self, stem: &str, seed: TranscriptMeta) -> anyhow::Result<Arc<dyn SessionHistory>>;
+    fn open_stem(
+        &self,
+        stem: &str,
+        seed: TranscriptMeta,
+    ) -> anyhow::Result<Arc<dyn SessionHistory>>;
 }
 
 /// The default [`SessionHistoryLocator`]: real files under
@@ -276,7 +280,10 @@ pub(crate) struct FileTranscriptLocator {
 }
 
 impl FileTranscriptLocator {
-    pub(crate) fn new(workspace_dir: impl Into<PathBuf>, session_raw_subdir: impl Into<String>) -> Self {
+    pub(crate) fn new(
+        workspace_dir: impl Into<PathBuf>,
+        session_raw_subdir: impl Into<String>,
+    ) -> Self {
         Self {
             workspace_dir: workspace_dir.into(),
             session_raw_subdir: session_raw_subdir.into(),

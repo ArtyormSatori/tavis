@@ -551,7 +551,6 @@ fn locator_root_for_thread_reads_the_matching_transcript() {
         .unwrap()
         .expect("file exists");
 
-    assert_eq!(through_seam.path_check(), ());
     assert_eq!(
         transcript_fingerprint(&through_seam),
         transcript_fingerprint(&read_transcript(&path).unwrap())
