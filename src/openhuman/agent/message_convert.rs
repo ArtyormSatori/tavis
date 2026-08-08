@@ -450,7 +450,10 @@ mod tests {
         let bounced: Vec<Message> = bounced_cm.iter().map(chat_message_to_message).collect();
 
         for (i, (d, b)) in direct.iter().zip(bounced.iter()).enumerate() {
-            eprintln!("--- idx {i}\n DIRECT: {d:?}\nBOUNCED: {b:?}\n  MIDCM: {:?}", bounced_cm[i]);
+            eprintln!(
+                "--- idx {i}\n DIRECT: {d:?}\nBOUNCED: {b:?}\n  MIDCM: {:?}",
+                bounced_cm[i]
+            );
         }
         assert_eq!(direct, bounced, "round trip through ChatHistory is lossy");
     }
