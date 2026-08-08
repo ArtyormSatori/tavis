@@ -160,9 +160,9 @@ use crate::openhuman::agent::message_convert::{history_to_messages, message_to_c
 use crate::openhuman::agent::messages::ChatMessage;
 
 use super::transcript::{
-    append_transcript_turn, find_latest_transcript_in_subdir,
-    find_root_transcript_for_thread, read_transcript, resolve_keyed_transcript_path,
-    resolve_keyed_transcript_path_in_dir, SessionTranscript, TranscriptMeta, TurnUsage,
+    append_transcript_turn, find_latest_transcript_in_subdir, find_root_transcript_for_thread,
+    read_transcript, resolve_keyed_transcript_path, resolve_keyed_transcript_path_in_dir,
+    SessionTranscript, TranscriptMeta, TurnUsage,
 };
 
 /// One turn's worth of transcript write, borrowed.
