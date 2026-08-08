@@ -13,6 +13,7 @@ use crate::openhuman::memory::{
     QueryNamespaceRequest, QueryNamespaceResponse, RecallContextRequest, RecallContextResponse,
     RecallMemoriesRequest, RecallMemoriesResponse,
 };
+use crate::core::subsystem::DriverClass;
 use crate::rpc::RpcOutcome;
 use tinycortex_api::provider::MemoryProvider;
 
