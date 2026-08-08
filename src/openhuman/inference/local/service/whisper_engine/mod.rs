@@ -15,7 +15,7 @@
 //!   per-call `#[cfg]`.
 //!
 //! The stub signatures must match `real` exactly — the disabled build
-//! (`--no-default-features --features tokenjuice-treesitter`) is the only thing
+//! (`--no-default-features`) is the only thing
 //! that catches drift, so run it after touching either side.
 
 mod types;

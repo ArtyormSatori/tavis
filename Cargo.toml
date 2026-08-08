@@ -400,7 +400,7 @@ tokio = { version = "1", features = ["test-util"] }
 proptest = "1"
 
 [features]
-default = ["tokenjuice-treesitter", "inference", "voice", "web3", "media", "documents", "meet", "skills", "flows", "mcp", "crash-reporting", "http-server", "channels", "tui", "medulla", "scheduler-gate", "file-logging", "prediction-markets", "contacts"]
+default = ["inference", "voice", "web3", "media", "documents", "meet", "skills", "flows", "mcp", "crash-reporting", "http-server", "channels", "tui", "medulla", "scheduler-gate", "file-logging", "prediction-markets", "contacts"]
 # HTTP + Socket.IO server transport (#5048): the `/rpc` JSON-RPC endpoint and
 # its auth middleware/CORS layer (`core::jsonrpc`, `core::auth`), the `/v1`
 # OpenAI-compatible router (`inference::http`), the ad-hoc static-dir file
@@ -423,11 +423,6 @@ default = ["tokenjuice-treesitter", "inference", "voice", "web3", "media", "docu
 # socketioxide/axum-touching bodies are gated. Likewise `inference::http::types`
 # and `EXTERNAL_OPENAI_COMPAT_PROVIDER` stay compiled for `core::auth`.
 http-server = ["dep:axum", "dep:socketioxide"]
-# AST-aware code compression (tree-sitter Rust/TS/Python grammars; C build).
-# On by default; disable to fall back to the brace-depth heuristic.
-tokenjuice-treesitter = [
-    "tinyjuice/tinyjuice-treesitter",
-]
 # In-process inference engine: the whisper.cpp STT engine
 # (`inference::local::service::whisper_engine`) plus the `cpal` audio-device
 # probe shared by voice capture and the accessibility microphone-permission
@@ -524,7 +519,7 @@ web3 = [
 # NOTE: no-op on Linux/Windows, where these crates were never in the graph.
 # Verify the shed cross-target from any host:
 #   cargo tree --target aarch64-apple-darwin -e normal -i objc2-contacts \
-#     --no-default-features --features tokenjuice-treesitter
+#     --no-default-features
 contacts = ["dep:objc2", "dep:objc2-foundation", "dep:objc2-contacts", "dep:block2"]
 
 # Polymarket prediction-market tools (read + trading). Implies `web3` because it
@@ -674,7 +669,7 @@ tui = ["dep:ratatui", "dep:crossterm", "dep:unicode-width"]
 # `futures`, `serde`, and `tokio` are all load-bearing for other domains; the
 # gate's value is compile-time surface and RPC/tool reach, not binary size.
 # Verify before ever claiming otherwise:
-#   cargo tree -i reqwest --no-default-features --features tokenjuice-treesitter
+#   cargo tree -i reqwest --no-default-features
 medulla = []
 
 # Channels domain: `openhuman::channels` (external-messaging providers — Telegram,

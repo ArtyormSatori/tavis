@@ -36,13 +36,12 @@ There is **no** `library-minimal` meta-feature in `Cargo.toml`, on purpose — s
 
 ## Keep / drop table
 
-`default = ["tokenjuice-treesitter","voice","web3","media","meet","skills","flows","mcp","desktop-automation","tui"]`
+`default = ["voice","web3","media","meet","skills","flows","mcp","desktop-automation","tui"]`
 
 | Gate | Default | Decision | Why | Deps shed |
 | --- | :---: | :---: | --- | --- |
 | `skills` | ON | **KEEP** | python/js `SKILL.md` execution is a stated opencompany use case | none (surface/prompt/startup only) |
 | `flows` | ON | **KEEP** | saved-workflow (`flows_create`+`flows_run`) runs are a stated use case | — (adds `tinyflows`, `jaq-*`, `rhai`; see cost note) |
-| `tokenjuice-treesitter` | ON | **DROP** | AST-aware code compression → gracefully falls back to the brace-depth heuristic. Functional, only compression *quality* degrades. | tree-sitter Rust/TS/Python grammars + their C build |
 | `voice` | ON | **DROP** | STT/TTS/dictation/podcast — a headless host does no audio I/O | `hound`, `lettre` |
 | `web3` | ON | **DROP** | crypto wallet / swap / x402 machine payments — not an opencompany path | `bitcoin`, `curve25519-dalek` |
 | `media` | ON | **DROP** | `media_generate_*` image/video tools — surface-only | none (backend-proxied) |
@@ -56,15 +55,6 @@ There is **no** `library-minimal` meta-feature in `Cargo.toml`, on purpose — s
 `e2e-test-support`, `rss-bench`, `rss-bench-dhat`) are all default-OFF, so a
 `--no-default-features` build never links them unless explicitly added. None are
 needed for opencompany; `rss-bench`/`rss-bench-dhat` are dev/benchmark-only.
-
-### On `tokenjuice-treesitter`
-
-This is the one judgment call. Dropping it removes the largest *native C build*
-in the domain gates (three tree-sitter grammars) and shrinks the binary, at the
-cost of coarser code-context compression (brace-depth heuristic instead of AST).
-For a memory/binary-minimal library host it is dropped here. **If token budget
-per agent turn matters more than binary size, add `tokenjuice-treesitter` back**
-— it sheds no runtime behavior beyond compression fidelity.
 
 ## Measured results
 
@@ -146,8 +136,6 @@ build-fact error:
   / `desktop_companion` domains + the `computer` tool family (`ax_interact`,
   `automate`, mouse/keyboard) absent.
 - **tui:** `openhuman tui` / `chat` returns "tui feature disabled at compile time".
-- **tokenjuice-treesitter:** code compression falls back to the brace-depth
-  heuristic — degraded fidelity, not absent.
 
 Everything the opencompany use cases need remains: the agent harness + turn
 runner, subagent delegation (`spawn_parallel_agents`), the full memory stack

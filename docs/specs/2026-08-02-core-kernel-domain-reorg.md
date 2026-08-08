@@ -128,11 +128,10 @@ Verification that a family-move PR must reproduce:
 
 ```bash
 GGML_NATIVE=OFF cargo check --all-targets
-GGML_NATIVE=OFF cargo check --lib --no-default-features --features tokenjuice-treesitter
+GGML_NATIVE=OFF cargo check --lib --no-default-features
 GGML_NATIVE=OFF cargo check --manifest-path app/src-tauri/Cargo.toml
 GGML_NATIVE=OFF cargo test --lib core::                                             # gates on
-GGML_NATIVE=OFF cargo test --lib --no-default-features \
-  --features tokenjuice-treesitter core::                                           # gates off
+GGML_NATIVE=OFF cargo test --lib --no-default-features core::                       # gates off
 cargo fmt --check
 bash scripts/check-kernel-floor.sh --verbose      # must not move
 node scripts/ci/check-feature-forwarding.mjs

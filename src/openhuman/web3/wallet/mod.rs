@@ -19,7 +19,7 @@
 //! payments + the Polymarket tools degrade to graceful "wallet disabled"
 //! errors rather than failing to compile. Signatures MUST match the real ones;
 //! the disabled build
-//! (`cargo check --no-default-features --features tokenjuice-treesitter`) is
+//! (`cargo check --no-default-features`) is
 //! the only thing that catches drift.
 
 #[cfg(feature = "web3")]
