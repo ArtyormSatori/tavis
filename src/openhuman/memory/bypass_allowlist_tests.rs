@@ -38,6 +38,12 @@
 //!   over-match: an unrelated future `.get_document(` would trip this. That
 //!   failure direction is the correct one — a false positive costs one
 //!   allowlist line with a reason, a false negative costs a silent bypass.
+//!   One needle has a compiler backstop: `.unguarded_provider(` is
+//!   `pub(in crate::openhuman::memory)`, so even a re-export under another name
+//!   cannot carry it outside the memory family. It was also *named* for the
+//!   lint — `.provider(` would have over-matched `TaskSourceFilter::provider()`
+//!   and `ModelRef::provider()` in four unrelated production files, costing six
+//!   allowlist entries that document nothing.
 //! - **By-path test files are out of scope** (`*_tests.rs`, `tests.rs`,
 //!   `test_support/`). Driver tests construct drivers; that is what a driver
 //!   test *is*. Allowlisting them would add ~25 entries that can never shrink
