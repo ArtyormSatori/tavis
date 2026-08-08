@@ -432,12 +432,11 @@ fn composio_listener_drains_integrations_changed_events() {
     // leak into this receiver and make the second drain observe a foreign
     // event — racing the "drained after one pass" assertion. Injecting a
     // locally-owned channel keeps this test deterministic.
-    let (tx, rx) = tokio::sync::broadcast::channel::<DomainEvent>(64);
-    agent.set_composio_integrations_rx_for_test(rx);
-    tx.send(DomainEvent::ComposioIntegrationsChanged {
+    let isolated = crate::core::bus_testing::isolated_bus().await;
+    agent.set_composio_integrations_rx_for_test(isolated.receiver());
+    isolated.publish(DomainEvent::ComposioIntegrationsChanged {
         toolkits: vec!["gmail".into()],
-    })
-    .expect("isolated bus has a live receiver");
+    });
     assert!(agent.drain_composio_integrations_changed_events());
     assert!(
         !agent.drain_composio_integrations_changed_events(),
@@ -455,12 +454,11 @@ fn skill_listener_drains_workflows_changed_events() {
     // event could land between the two drains below and flip the second drain
     // to `true`, failing the "drained after one pass" assertion. Injecting a
     // locally-owned channel isolates this test from those publishers.
-    let (tx, rx) = tokio::sync::broadcast::channel::<DomainEvent>(64);
-    agent.set_skill_events_rx_for_test(rx);
-    tx.send(DomainEvent::WorkflowsChanged {
+    let isolated = crate::core::bus_testing::isolated_bus().await;
+    agent.set_skill_events_rx_for_test(isolated.receiver());
+    isolated.publish(DomainEvent::WorkflowsChanged {
         reason: "install".into(),
-    })
-    .expect("isolated bus has a live receiver");
+    });
     assert!(
         agent.drain_skill_events(),
         "a WorkflowsChanged event should be observed"
@@ -478,8 +476,8 @@ fn skill_listener_treats_lag_as_signal() {
     // why the global singleton races). Flood well past the 64-slot bounded
     // channel so the receiver lags. The `Lagged` arm must still report a
     // signal (returns true) so a refresh isn't silently dropped under load.
-    let (tx, rx) = tokio::sync::broadcast::channel::<DomainEvent>(64);
-    agent.set_skill_events_rx_for_test(rx);
+    let isolated = crate::core::bus_testing::isolated_bus().await;
+    agent.set_skill_events_rx_for_test(isolated.receiver());
     for _ in 0..256 {
         // Sender outlives the receiver here, so `send` only errors when there
         // are zero receivers — ignore the bounded-channel overwrite path.
@@ -497,9 +495,9 @@ fn skill_listener_treats_lag_as_signal() {
 fn skill_listener_closed_channel_nulls_rx_and_is_not_a_signal() {
     let mut agent = build_minimal_agent_with_definition_name(Some("orchestrator"));
     // A receiver whose sender has been dropped → `try_recv` yields `Closed`.
-    let (tx, rx) = tokio::sync::broadcast::channel::<DomainEvent>(4);
+    let isolated = crate::core::bus_testing::isolated_bus().await;
     drop(tx);
-    agent.set_skill_events_rx_for_test(rx);
+    agent.set_skill_events_rx_for_test(isolated.receiver());
     assert!(
         !agent.drain_skill_events(),
         "a closed channel is not a signal"
