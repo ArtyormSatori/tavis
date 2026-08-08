@@ -16,8 +16,8 @@ memory_tree            (this module — generic mechanics)
    ├── retrieval/      agent-facing read tools (walk, drill, fetch)
    ├── score/          scoring, embedding, entity extraction
    ├── tools.rs        re-exports from memory::query
-   └── io.rs           canonical Tree{Write,Read}{Request,Outcome,Result}
-                        │
+   └── mod.rs          re-exports the canonical Tree{Write,Read}{Request,Outcome,Result}
+                        │        contract types from tinycortex::memory::tree
                         ▼
 memory_store::trees    (persistence: one Tree table, one schema)
 ```
