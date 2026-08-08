@@ -13,6 +13,13 @@
 //! - [`learn`] — `learn_all`.
 //! - [`provider`] — `provider_status` (the bound memory driver).
 //! - [`files`] — file-based memory schemas + handlers.
+//! - [`tool_memory`] — tool-scoped memory rules (#1400).
+//!
+//! Every family publishes its own `all_<family>_controller_schemas()` /
+//! `all_<family>_registered_controllers()` pair; [`all_controller_schemas`] and
+//! [`all_registered_controllers`] are thin fan-outs over the seven, in a fixed
+//! order. The split exists so a caller can register families individually — it
+//! does **not** itself skip or filter anything (M5.1 is a pure refactor).
 
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
