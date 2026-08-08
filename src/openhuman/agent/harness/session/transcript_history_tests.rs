@@ -493,6 +493,8 @@ fn write_torture_transcript(dir: &TempDir) -> PathBuf {
         &path,
         "half a sent",
         Some("req-3"),
+        Some(1),
+        None,
     )
     .unwrap();
 
