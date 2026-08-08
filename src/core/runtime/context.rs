@@ -220,13 +220,14 @@ impl CoreContext {
     /// same shape as [`CoreContext::people`]: two contexts over different
     /// workspaces get isolated bindings, one context always gets the same
     /// cached binding, and an active-user switch that goes through
-    /// [`CoreContext::rebind_default_workspace_dir`] automatically resolves the
-    /// new workspace's binding.
+    /// [`CoreContext::rebind_default_workspace`] automatically resolves the
+    /// new workspace's binding — including its `[subsystems.memory]` config,
+    /// which the rebind carries along with the workspace dir.
     ///
     /// That last property is why there is **no** explicit "rebind the memory
     /// driver" call at the login / logout / revalidation sites the way
     /// `memory::global::init` needs one: the accessor keys on the workspace
-    /// dir, which those sites already re-point.
+    /// dir and the subsystem config, both of which those sites already re-point.
     ///
     /// It also structurally supersedes `memory::global`'s
     /// clear-on-failed-rebind guard. There is no shared slot that could keep
