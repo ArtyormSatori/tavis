@@ -136,7 +136,10 @@ impl Default for MemoryHooksConfig {
 /// secret handle and plan-memory.md §7 Tier-3 conformance requires "credential never
 /// in `Debug`/error output", mirroring [`super::storage_memory::MemoryConfig`]'s
 /// manual redacting `Debug` impl for `agentmemory_secret`.
-#[derive(Clone, Serialize, Deserialize, JsonSchema)]
+///
+/// `PartialEq`/`Eq` are safe to derive: they compare values for equality and
+/// never render them, so `credential_ref` stays out of any output.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(default)]
 pub struct MemoryDriverConfig {
     /// Driver class: `"embedded"` | `"external"` | `"null"`. See kernel.md §3.1.
