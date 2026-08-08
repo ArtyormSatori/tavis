@@ -16,7 +16,29 @@ use crate::openhuman::memory::{
 
 use super::{parse_params, to_json};
 
-pub(super) const FUNCTIONS: &[&str] = &[
+// ---------------------------------------------------------------------------
+// Capability partitions
+// ---------------------------------------------------------------------------
+//
+// This file is ONE RPC family by directory layout but THREE capability families
+// by contract (`tinycortex_api::capabilities::Capability`), so M5.2 partitions
+// it rather than tagging the whole file with a single capability:
+//
+//   * core/recall — `Capability::Core` + `Capability::Recall`, both MANDATORY.
+//     Every bindable driver advertises them (`Capabilities::validate`), so a
+//     gate here could never fire; these register UNGATED so a dead gate cannot
+//     be mistaken for a live one. Tagging the whole file `Documents` would have
+//     made `memory.recall_memories` vanish under a driver that merely lacks the
+//     document tier — gating a mandatory family.
+//   * documents — `Capability::Documents`, the namespace-document tier.
+//   * ingest — `Capability::Ingest`, where the DRIVER owns chunking/embedding.
+//     `doc_ingest` is the whole of that surface; it lives in this file only
+//     because it shares the `memory` namespace.
+//
+// `schema()` and every handler below are shared and unpartitioned.
+
+/// Mandatory core + recall surface. Never capability-gated — see above.
+pub(super) const FUNCTIONS_CORE_RECALL: &[&str] = &[
     "init",
     "list_documents",
     "list_namespaces",
@@ -25,16 +47,18 @@ pub(super) const FUNCTIONS: &[&str] = &[
     "recall_context",
     "recall_memories",
     "namespace_list",
-    "doc_put",
-    "doc_ingest",
-    "doc_list",
-    "doc_delete",
     "context_query",
     "context_recall",
     "clear_namespace",
 ];
 
-pub(super) fn controllers() -> Vec<RegisteredController> {
+/// The namespace-document tier — `Capability::Documents`.
+pub(super) const FUNCTIONS_DOCUMENTS: &[&str] = &["doc_put", "doc_list", "doc_delete"];
+
+/// Driver-owned ingestion — `Capability::Ingest`.
+pub(super) const FUNCTIONS_INGEST: &[&str] = &["doc_ingest"];
+
+pub(super) fn controllers_core_recall() -> Vec<RegisteredController> {
     vec![
         RegisteredController {
             schema: schema("init").unwrap(),
@@ -69,22 +93,6 @@ pub(super) fn controllers() -> Vec<RegisteredController> {
             handler: handle_namespace_list,
         },
         RegisteredController {
-            schema: schema("doc_put").unwrap(),
-            handler: handle_doc_put,
-        },
-        RegisteredController {
-            schema: schema("doc_ingest").unwrap(),
-            handler: handle_doc_ingest,
-        },
-        RegisteredController {
-            schema: schema("doc_list").unwrap(),
-            handler: handle_doc_list,
-        },
-        RegisteredController {
-            schema: schema("doc_delete").unwrap(),
-            handler: handle_doc_delete,
-        },
-        RegisteredController {
             schema: schema("context_query").unwrap(),
             handler: handle_context_query,
         },
@@ -97,6 +105,30 @@ pub(super) fn controllers() -> Vec<RegisteredController> {
             handler: handle_clear_namespace,
         },
     ]
+}
+
+pub(super) fn controllers_documents() -> Vec<RegisteredController> {
+    vec![
+        RegisteredController {
+            schema: schema("doc_put").unwrap(),
+            handler: handle_doc_put,
+        },
+        RegisteredController {
+            schema: schema("doc_list").unwrap(),
+            handler: handle_doc_list,
+        },
+        RegisteredController {
+            schema: schema("doc_delete").unwrap(),
+            handler: handle_doc_delete,
+        },
+    ]
+}
+
+pub(super) fn controllers_ingest() -> Vec<RegisteredController> {
+    vec![RegisteredController {
+        schema: schema("doc_ingest").unwrap(),
+        handler: handle_doc_ingest,
+    }]
 }
 
 pub(super) fn schema(function: &str) -> Option<ControllerSchema> {
