@@ -179,7 +179,12 @@ fn schema_aggregator_is_exactly_the_nine_parts_concatenated_in_order() {
 
 #[test]
 fn each_family_pairs_its_schemas_with_its_controllers() {
-    let families: [(&str, Vec<ControllerSchema>, Vec<RegisteredController>); 7] = [
+    let families: [(&str, Vec<ControllerSchema>, Vec<RegisteredController>); 9] = [
+        (
+            "core_recall",
+            all_core_recall_controller_schemas(),
+            all_core_recall_registered_controllers(),
+        ),
         (
             "documents",
             all_documents_controller_schemas(),
