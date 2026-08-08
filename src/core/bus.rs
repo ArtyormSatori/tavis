@@ -104,11 +104,25 @@ pub fn manifest() -> PeerManifest {
 /// code path that has never run.
 ///
 /// Idempotent: a second call returns the bus the first one created.
+/// # Runtime affinity
+///
+/// The in-process broker and this process's connection to it are tokio tasks,
+/// so they belong to the runtime that calls `init` **first**. That is fine in
+/// production, where the bus is initialised on the runtime that then runs for
+/// the life of the process. It is a trap under `cargo test`, where every
+/// `#[tokio::test]` builds its own runtime: the first test to call `init` wins
+/// the `OnceLock`, and when its runtime is torn down the bus it left behind is
+/// attached to a dead reactor. Tests that need to observe events should build
+/// their own with [`crate::core::bus_testing::isolated_bus`] rather than share
+/// the singleton.
 pub async fn init() -> tinybus::Result<()> {
     BUS.init_in_process(config()).await?;
-    // Announce after attaching, so the manifest is queryable the moment any
-    // peer can see this process at all.
-    BUS.announce(&manifest()).await?;
+    // Announcing is advisory: the manifest lets other peers check compatibility,
+    // and nothing in this process depends on it having landed. A failure here
+    // must not turn a working bus into a startup error.
+    if let Err(e) = BUS.announce(&manifest()).await {
+        tracing::warn!(error = %e, "[bus] could not announce the peer manifest");
+    }
     tracing::info!(
         events_version = %EVENTS_VERSION,
         "[bus] initialised with an in-process broker"
@@ -124,7 +138,9 @@ pub async fn init() -> tinybus::Result<()> {
 pub async fn init_over_socket(address: impl AsRef<std::path::Path>) -> tinybus::Result<()> {
     let transport = tinybus::transport::unix::UnixTransport::connect(address.as_ref()).await?;
     BUS.init_over(Box::new(transport), config()).await?;
-    BUS.announce(&manifest()).await?;
+    if let Err(e) = BUS.announce(&manifest()).await {
+        tracing::warn!(error = %e, "[bus] could not announce the peer manifest");
+    }
     tracing::info!(
         address = %address.as_ref().display(),
         events_version = %EVENTS_VERSION,
