@@ -166,10 +166,12 @@ pub fn all_tool_memory_registered_controllers() -> Vec<RegisteredController> {
 
 /// Returns all controller schemas for the memory system.
 ///
-/// Thin fan-out over the seven per-family pairs above, in their pinned order.
+/// Thin fan-out over the nine per-family pairs above, in their pinned order.
 pub fn all_controller_schemas() -> Vec<ControllerSchema> {
     let mut out = Vec::new();
+    out.extend(all_core_recall_controller_schemas());
     out.extend(all_documents_controller_schemas());
+    out.extend(all_ingest_controller_schemas());
     out.extend(all_files_controller_schemas());
     out.extend(all_kv_graph_controller_schemas());
     out.extend(all_sync_controller_schemas());
