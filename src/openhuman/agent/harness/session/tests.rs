@@ -444,8 +444,8 @@ async fn composio_listener_drains_integrations_changed_events() {
     );
 }
 
-#[test]
-fn skill_listener_drains_workflows_changed_events() {
+#[tokio::test]
+async fn skill_listener_drains_workflows_changed_events() {
     let mut agent = build_minimal_agent_with_definition_name(Some("orchestrator"));
     // Use an isolated bus, NOT the global singleton: other tests publish
     // `WorkflowsChanged` on the global bus in parallel — `skill_listener_
@@ -469,8 +469,8 @@ fn skill_listener_drains_workflows_changed_events() {
     );
 }
 
-#[test]
-fn skill_listener_treats_lag_as_signal() {
+#[tokio::test]
+async fn skill_listener_treats_lag_as_signal() {
     let mut agent = build_minimal_agent_with_definition_name(Some("orchestrator"));
     // Isolated bus (see `skill_listener_drains_workflows_changed_events` for
     // why the global singleton races). Flood well past the 64-slot bounded
