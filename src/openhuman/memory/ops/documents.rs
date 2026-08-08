@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::core::subsystem::DriverClass;
 use crate::openhuman::memory::store::{NamespaceDocumentInput, NamespaceRetrievalContext};
 use crate::openhuman::memory::{
     ApiEnvelope, DeleteDocumentRequest, DeleteDocumentResponse, EmptyRequest, ListDocumentsRequest,
@@ -13,7 +14,6 @@ use crate::openhuman::memory::{
     QueryNamespaceRequest, QueryNamespaceResponse, RecallContextRequest, RecallContextResponse,
     RecallMemoriesRequest, RecallMemoriesResponse,
 };
-use crate::core::subsystem::DriverClass;
 use crate::rpc::RpcOutcome;
 use tinycortex_api::provider::MemoryProvider;
 

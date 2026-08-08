@@ -262,7 +262,11 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
     let (admitted_id, class) = match entry.class.as_deref() {
         // An entry that names no class still cannot admit an arbitrary id: the
         // embedded default is the only non-null id that implies Embedded.
-        None => implicit_class(id, &refuse, "[subsystems.memory.drivers.<id>] has no class line")?,
+        None => implicit_class(
+            id,
+            &refuse,
+            "[subsystems.memory.drivers.<id>] has no class line",
+        )?,
         Some(raw) => (
             id.to_string(),
             DriverClass::parse(raw).map_err(|e| refuse(&e))?,

@@ -918,7 +918,10 @@ mod tests {
         };
 
         let bind_a = ctx.memory_binding().expect("bind workspace A");
-        assert_eq!(bind_a.class(), crate::core::subsystem::DriverClass::Embedded);
+        assert_eq!(
+            bind_a.class(),
+            crate::core::subsystem::DriverClass::Embedded
+        );
 
         let null_cfg = crate::openhuman::config::schema::MemorySubsystemConfig {
             driver: "null".to_string(),

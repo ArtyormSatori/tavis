@@ -89,8 +89,8 @@ async fn cli_subsystems_status() -> Vec<SubsystemStatus> {
         &config.subsystems.memory,
     ) {
         Ok(binding) => {
-            let memory = crate::openhuman::memory::ops::provider::status_from_binding(&binding)
-                .await;
+            let memory =
+                crate::openhuman::memory::ops::provider::status_from_binding(&binding).await;
             log::debug!(
                 "[subsystems] memory driver='{}' class={} health={} capabilities=[{}]",
                 memory.driver,
@@ -101,7 +101,9 @@ async fn cli_subsystems_status() -> Vec<SubsystemStatus> {
             vec![memory]
         }
         Err(err) => {
-            log::debug!("[subsystems] memory binding unresolved ({err}); falling back to ambient status");
+            log::debug!(
+                "[subsystems] memory binding unresolved ({err}); falling back to ambient status"
+            );
             subsystems_status().await
         }
     }

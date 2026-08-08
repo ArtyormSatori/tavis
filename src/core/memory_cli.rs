@@ -689,6 +689,9 @@ mod tests {
         );
         assert!(!msg.contains("keychain:"), "{msg}");
         assert!(!msg.contains("api.supermemory.ai"), "{msg}");
-        assert!(msg.starts_with(crate::core::cli_capability::LEGACY_CLIENT_UNAVAILABLE_PREFIX), "{msg}");
+        assert!(
+            msg.starts_with(crate::core::cli_capability::LEGACY_CLIENT_UNAVAILABLE_PREFIX),
+            "{msg}"
+        );
     }
 }

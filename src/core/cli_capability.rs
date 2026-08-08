@@ -202,11 +202,7 @@ pub fn ensure_capability_blocking(required: Option<Capability>, invocation: &str
 /// Mirrors [`capability_verdict`]'s default-OPEN posture — `None` from the
 /// caller means "no legacy gate applies", and an unresolvable binding has
 /// already been defaulted-OPEN upstream by the caller skipping this entirely.
-pub fn legacy_client_verdict(
-    driver_id: &str,
-    class: DriverClass,
-    invocation: &str,
-) -> Result<()> {
+pub fn legacy_client_verdict(driver_id: &str, class: DriverClass, invocation: &str) -> Result<()> {
     if class == DriverClass::Embedded {
         return Ok(());
     }
