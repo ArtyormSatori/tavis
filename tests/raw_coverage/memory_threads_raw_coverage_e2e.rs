@@ -3310,24 +3310,24 @@ fn memory_sync_profile_markdown_and_status_helpers_are_idempotent() {
 
     let now = 1_700_000_000_000_i64;
     assert_eq!(
-        openhuman_core::openhuman::memory::sync::sync_status::types::FreshnessLabel::from_age_ms(
+        openhuman_core::openhuman::memory::sync::sync_status::FreshnessLabel::from_age_ms(
             Some(now - 30_000),
             now
         ),
-        openhuman_core::openhuman::memory::sync::sync_status::types::FreshnessLabel::Active
+        openhuman_core::openhuman::memory::sync::sync_status::FreshnessLabel::Active
     );
     assert_eq!(
-        openhuman_core::openhuman::memory::sync::sync_status::types::FreshnessLabel::from_age_ms(
+        openhuman_core::openhuman::memory::sync::sync_status::FreshnessLabel::from_age_ms(
             Some(now - 30_001),
             now
         ),
-        openhuman_core::openhuman::memory::sync::sync_status::types::FreshnessLabel::Recent
+        openhuman_core::openhuman::memory::sync::sync_status::FreshnessLabel::Recent
     );
     assert_eq!(
-        openhuman_core::openhuman::memory::sync::sync_status::types::FreshnessLabel::from_age_ms(
+        openhuman_core::openhuman::memory::sync::sync_status::FreshnessLabel::from_age_ms(
             None, now
         ),
-        openhuman_core::openhuman::memory::sync::sync_status::types::FreshnessLabel::Idle
+        openhuman_core::openhuman::memory::sync::sync_status::FreshnessLabel::Idle
     );
 }
 
