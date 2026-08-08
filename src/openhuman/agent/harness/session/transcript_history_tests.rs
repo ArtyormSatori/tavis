@@ -416,3 +416,252 @@ fn first_display_message(
         })
         .expect("a display message line")
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// S4 read half: the locator + `read_session`
+// ─────────────────────────────────────────────────────────────────────
+
+/// The `_meta`/`messages` pair rendered exhaustively.
+///
+/// `SessionTranscript` cannot derive `PartialEq` here — that would mean editing
+/// `transcript.rs`, and this branch's zero-on-disk-change rule keeps that file
+/// untouched. `ChatMessage`'s `id` and `extra_metadata` are `skip_serializing`,
+/// so a JSON comparison would silently ignore exactly the fields most at risk;
+/// `Debug` prints every field, so it is the stricter check.
+fn transcript_fingerprint(t: &SessionTranscript) -> String {
+    format!("{:?}|{:?}", t.meta, t.messages)
+}
+
+fn locator(dir: &TempDir) -> FileTranscriptLocator {
+    FileTranscriptLocator::new(dir.path(), "session_raw")
+}
+
+/// A tool round persisted the way the turn path persists it: the assistant
+/// carries the native `{content, tool_calls}` envelope and the tool row carries
+/// the matching `tool_call_id`.
+fn native_tool_round() -> Vec<ChatMessage> {
+    vec![
+        ChatMessage::system("system prompt"),
+        ChatMessage::user("what is the weather"),
+        ChatMessage::assistant(
+            serde_json::json!({
+                "content": "calling get_weather",
+                "tool_calls": [{
+                    "id": "call-1",
+                    "type": "function",
+                    "function": {"name": "get_weather", "arguments": "{\"city\":\"SF\"}"}
+                }]
+            })
+            .to_string(),
+        ),
+        ChatMessage::tool(
+            serde_json::json!({"tool_call_id": "call-1", "content": "72F and sunny"}).to_string(),
+        ),
+        ChatMessage::assistant("It is 72F and sunny."),
+    ]
+}
+
+/// Writes a transcript exercising every replay rule the read must preserve: a
+/// plain extension turn, a **compaction** (a reduction, not a prefix), an
+/// `interrupted: true` partial, and a failure-annotated tool row.
+fn write_torture_transcript(dir: &TempDir) -> PathBuf {
+    let path = resolve_keyed_transcript_path(dir.path(), STEM).unwrap();
+
+    let first = native_tool_round();
+    append_transcript_turn(&path, &[], &first, &meta(), None, Some("req-1")).unwrap();
+
+    // A reduction, so the writer must emit a compaction record rather than a
+    // tail append. Replaying it wrongly is the corruption §3.1 calls the single
+    // most important constraint in the design.
+    let mut failed_tool = ChatMessage::tool(
+        serde_json::json!({"tool_call_id": "call-2", "content": "boom"}).to_string(),
+    );
+    crate::openhuman::agent::harness::session::transcript::attach_tool_failure_metadata(
+        &mut failed_tool,
+        Some("exit status 1"),
+    );
+    let reduced = vec![
+        ChatMessage::system("system prompt"),
+        ChatMessage::assistant("[summary] asked about weather"),
+        failed_tool,
+        ChatMessage::assistant("Sorry, that failed."),
+    ];
+    append_transcript_turn(&path, &first, &reduced, &meta(), None, Some("req-2")).unwrap();
+
+    // Display-only line the model-context replay must skip.
+    crate::openhuman::agent::harness::session::transcript::append_interrupted_partial(
+        &path,
+        "half a sent",
+        Some("req-3"),
+    )
+    .unwrap();
+
+    path
+}
+
+/// The locator's read must be the free function's read — same struct, same
+/// call, no `Message` round trip. Compaction replay and interrupted-partial
+/// skipping therefore come along for free rather than being re-implemented.
+#[test]
+fn locator_read_is_equivalent_to_the_free_function() {
+    let dir = TempDir::new().unwrap();
+    let path = write_torture_transcript(&dir);
+
+    let direct = read_transcript(&path).unwrap();
+    let through_seam = locator(&dir)
+        .latest_for_agent("tester")
+        .expect("locator discovers the transcript")
+        .read_session()
+        .unwrap()
+        .expect("file exists");
+
+    assert_eq!(
+        transcript_fingerprint(&through_seam),
+        transcript_fingerprint(&direct),
+        "read_session must return exactly what read_transcript returns"
+    );
+    // Guard the fixture itself: an equivalence that compared two empty replays
+    // would pass for the wrong reason.
+    assert_eq!(
+        direct
+            .messages
+            .iter()
+            .map(|m| m.content.as_str())
+            .collect::<Vec<_>>(),
+        vec![
+            "system prompt",
+            "[summary] asked about weather",
+            "{\"tool_call_id\":\"call-2\",\"content\":\"boom\"}",
+            "Sorry, that failed.",
+        ],
+        "the fixture must actually exercise the compaction + interrupted skip"
+    );
+}
+
+/// The cold-boot lookup keyed on `_meta.thread_id` goes through the same seam.
+#[test]
+fn locator_root_for_thread_reads_the_matching_transcript() {
+    let dir = TempDir::new().unwrap();
+    let path = write_torture_transcript(&dir);
+
+    let through_seam = locator(&dir)
+        .root_for_thread("thread-1")
+        .expect("locator resolves by _meta.thread_id")
+        .read_session()
+        .unwrap()
+        .expect("file exists");
+
+    assert_eq!(through_seam.path_check(), ());
+    assert_eq!(
+        transcript_fingerprint(&through_seam),
+        transcript_fingerprint(&read_transcript(&path).unwrap())
+    );
+    assert!(locator(&dir).root_for_thread("thread-absent").is_none());
+}
+
+/// `opened_at` binds a discovered path verbatim, so a legacy `.md` transcript
+/// still resolves. Re-resolving through `resolve_keyed_transcript_path*` — the
+/// obvious-looking alternative — would rewrite the extension to `.jsonl` and
+/// hand back a path that does not exist.
+#[test]
+fn md_legacy_path_resolves_through_the_locator() {
+    let dir = TempDir::new().unwrap();
+    let raw = dir.path().join("session_raw");
+    std::fs::create_dir_all(&raw).unwrap();
+    let md = raw.join(format!("{STEM}.md"));
+    std::fs::write(
+        &md,
+        "<!-- session_transcript\nagent: tester\ndispatcher: native\n-->\n\n\
+         <!--MSG role=\"user\"-->\nlegacy question\n<!--/MSG-->\n",
+    )
+    .unwrap();
+
+    let handle = locator(&dir)
+        .latest_for_agent("tester")
+        .expect("locator finds the legacy .md");
+    assert_eq!(
+        handle.path(),
+        md,
+        "the discovered path must be used verbatim"
+    );
+
+    let session = handle.read_session().unwrap().expect("legacy file exists");
+    assert_eq!(
+        session
+            .messages
+            .iter()
+            .map(|m| m.content.as_str())
+            .collect::<Vec<_>>(),
+        vec!["legacy question"]
+    );
+}
+
+/// A read handle bound to a file that vanished is `Ok(None)`, not an error —
+/// the callers fold it into their existing "nothing to resume from" branch.
+#[test]
+fn read_session_on_absent_file_is_none_not_an_error() {
+    let dir = TempDir::new().unwrap();
+    let handle = SessionTranscriptHistory::opened_at(
+        dir.path().join("session_raw").join("nope.jsonl"),
+        meta(),
+    );
+    assert!(handle.read_session().unwrap().is_none());
+}
+
+/// **The mutation gate for the read half.**
+///
+/// Routing the read through `ChatHistory::messages()` and converting back with
+/// `message_to_chat_message` flattens the assistant's native `tool_calls`
+/// envelope into prose, orphaning the following `role:"tool"` row — the
+/// provider `400 An assistant message with 'tool_calls' must be followed by
+/// tool messages`. This test asserts both halves: what the seam preserves, and
+/// that the rejected route really does lose it. Swap `read_session` for
+/// `messages()` in `try_load_session_transcript` and this fails.
+#[tokio::test]
+async fn resumed_native_tool_round_keeps_tool_calls() {
+    let dir = TempDir::new().unwrap();
+    let path = resolve_keyed_transcript_path(dir.path(), STEM).unwrap();
+    let round = native_tool_round();
+    append_transcript_turn(&path, &[], &round, &meta(), None, None).unwrap();
+
+    let through_seam = locator(&dir)
+        .latest_for_agent("tester")
+        .unwrap()
+        .read_session()
+        .unwrap()
+        .unwrap()
+        .messages;
+
+    let assistant = through_seam
+        .iter()
+        .find(|m| m.role == "assistant" && m.content.contains("tool_calls"))
+        .expect("the assistant envelope survived the seam");
+    let envelope: serde_json::Value = serde_json::from_str(&assistant.content).unwrap();
+    assert_eq!(envelope["tool_calls"][0]["id"], "call-1");
+    let tool_row = through_seam
+        .iter()
+        .find(|m| m.role == "tool")
+        .expect("the tool result survived");
+    let tool_json: serde_json::Value = serde_json::from_str(&tool_row.content).unwrap();
+    assert_eq!(
+        tool_json["tool_call_id"], "call-1",
+        "the tool result must still correlate to the assistant's call"
+    );
+
+    // The rejected route, run for real so the rejection stays evidence-backed.
+    let lossy: Vec<ChatMessage> = SessionTranscriptHistory::new(dir.path(), STEM, meta())
+        .unwrap()
+        .messages("thread-1")
+        .await
+        .unwrap()
+        .iter()
+        .map(message_to_chat_message)
+        .collect();
+    assert!(
+        !lossy
+            .iter()
+            .any(|m| m.role == "assistant" && m.content.contains("tool_calls")),
+        "ChatHistory::messages() is expected to drop the tool_calls envelope — \
+         if this ever stops being true, revisit the read seam's rationale"
+    );
+}
