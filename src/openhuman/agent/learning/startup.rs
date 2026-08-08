@@ -253,7 +253,7 @@ use tinybus::EventBus;
 
     #[tokio::test]
     async fn learning_subscriber_fires_with_no_channel_configured() {
-        let bus = EventBus::create(16);
+        let bus = crate::core::bus_testing::isolated_bus().await;
         let buffer: &'static Buffer = Box::leak(Box::new(Buffer::new(16)));
         let handle_cell = OnceLock::new();
         register_email_signature_once(&handle_cell, || {
@@ -279,7 +279,7 @@ use tinybus::EventBus;
 
     #[tokio::test]
     async fn register_learning_subscribers_is_idempotent() {
-        let bus = EventBus::create(16);
+        let bus = crate::core::bus_testing::isolated_bus().await;
         let buffer: &'static Buffer = Box::leak(Box::new(Buffer::new(16)));
         let handle_cell = OnceLock::new();
         register_email_signature_once(&handle_cell, || {

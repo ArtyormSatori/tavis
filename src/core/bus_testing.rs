@@ -149,3 +149,25 @@ where
         restore: Some(Box::new(restore)),
     }
 }
+
+/// An isolated bus for one test: its own broker, its own connection.
+///
+/// The replacement for the old `EventBus::create(capacity)`. Isolation matters
+/// more now, not less: the global bus is process-wide, so a test publishing
+/// onto it can be observed by a subscriber another test registered. Each call
+/// here builds a private broker, so nothing leaks between tests.
+pub async fn isolated_bus() -> tinybus::EventBus<crate::core::events::DomainEvent> {
+    let transport = tinybus::transport::memory::MemoryBus::new();
+    tinybus::broker::Broker::new().spawn(transport.clone());
+    let connection = tinybus::Connection::connect(
+        transport
+            .connect()
+            .await
+            .expect("the in-process broker accepts connections"),
+    )
+    .await
+    .expect("the in-process broker completes the handshake");
+    tinybus::EventBus::attach(connection, crate::core::bus::config())
+        .await
+        .expect("attaching the catalog cannot fail on a fresh connection")
+}
