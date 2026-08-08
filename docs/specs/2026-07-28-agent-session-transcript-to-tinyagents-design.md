@@ -288,7 +288,13 @@ rollups, path resolution) stay on the concrete type, reached directly by the 24
 consumers that need them.
 
 - **On-disk change:** none. **Migration risk:** none.
-- **Removes:** ~400 LOC of parallel abstraction, plus the conceptual duplicate.
+- **Removes:** ~15 LOC — the duplicated path-resolution block in
+  `persist_session_transcript`. **Adds** ~90 for the read + locator seam
+  (S2–S4 as a whole: +782 / −0). Option A buys a single documented,
+  *substitutable* seam, not a line reduction. The original "~400 LOC of parallel
+  abstraction" figure was measured and refuted — see
+  [Where "~400 LOC" came from](#where-400-loc-came-from-and-why-it-is-struck)
+  — and it contradicted this option's own **Weakness** bullet two lines below.
 - **Cost:** low. Reversible.
 - **Weakness:** the crate trait is only used on the narrow runtime path; most of
   `transcript.rs` stays. Honest framing: this fixes *"two abstractions"*, not
