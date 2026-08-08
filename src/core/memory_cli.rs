@@ -533,9 +533,7 @@ fn print_memory_help() {
 mod tests {
     use super::*;
     use crate::core::cli_capability::{CAPABILITY_UNAVAILABLE_PREFIX, capability_verdict};
-    use crate::openhuman::config::schema::MemorySubsystemConfig;
-    use crate::openhuman::memory::binding;
-    use tinycortex_api::capabilities::Capability;
+    use tinycortex_api::capabilities::{Capabilities, Capability};
 
     /// Drift guard: a renamed controller function must break here rather than
     /// silently un-gate a subcommand (`required_capability` would start
