@@ -639,4 +639,55 @@ mod tests {
             );
         }
     }
+
+    /// Every legacy subcommand — gated or not — must be rejected under a null
+    /// binding: they all operate on the embedded store directly, and the null
+    /// driver is not that engine. This is the regression the reviewer flagged:
+    /// `openhuman memory clear` used to open the embedded DB even with
+    /// `driver = "null"`.
+    #[test]
+    fn null_driver_rejects_every_legacy_subcommand() {
+        for (sub, _) in SUBCOMMAND_CONTROLLER {
+            let err = crate::core::cli_capability::legacy_client_verdict(
+                "null",
+                DriverClass::Null,
+                &format!("openhuman memory {sub}"),
+            )
+            .expect_err("a null binding must reject legacy subcommands");
+            let msg = err.to_string();
+            assert!(msg.contains("null"), "{msg}");
+            assert!(
+                msg.contains("embedded"),
+                "refusal must explain that the legacy client is the embedded engine: {msg}"
+            );
+        }
+    }
+
+    /// The embedded driver is the only class that may serve legacy subcommands.
+    #[test]
+    fn embedded_driver_serves_every_legacy_subcommand() {
+        for (sub, _) in SUBCOMMAND_CONTROLLER {
+            assert!(
+                crate::core::cli_capability::legacy_client_verdict(
+                    "tinycortex",
+                    DriverClass::Embedded,
+                    &format!("openhuman memory {sub}"),
+                )
+                .is_ok(),
+                "`openhuman memory {sub}` must stay available under the embedded driver"
+            );
+        }
+    }
+
+    /// The legacy-client diagnostic must not leak credentials or endpoints.
+    #[test]
+    fn legacy_message_never_contains_a_credential_or_endpoint() {
+        let msg = crate::core::cli_capability::legacy_client_unavailable_message(
+            "supermemory",
+            "openhuman memory clear",
+        );
+        assert!(!msg.contains("keychain:"), "{msg}");
+        assert!(!msg.contains("api.supermemory.ai"), "{msg}");
+        assert!(msg.starts_with(crate::core::cli_capability::LEGACY_CLIENT_UNAVAILABLE_PREFIX), "{msg}");
+    }
 }
