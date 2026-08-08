@@ -62,4 +62,12 @@
 #                      Native: aws-lc-sys libgit2-sys libsqlite3-sys libz-sys
 #                      lzma-sys ring. Target after gating is 222 names / 2 native
 #                      (libsqlite3-sys, ring) — see docs/plans MIGRATION-PLAN G6.
-flows:312:285:6
+#   313/286/6  2026-08-08  PR #5446 memory-subsystem binding work: the
+#                      `MemorySubsystemConfig` → `MemoryBinding` path now takes a
+#                      direct dependency on the vendored `tinycortex-api` crate
+#                      (the memory contract — `MemoryProvider`, `Capabilities`,
+#                      `NullMemoryProvider`). +1 package / +1 name over the
+#                      2026-08-02 inherited baseline; both belong to a crate
+#                      that was already in the graph transitively via `tinycortex`,
+#                      so no *new* third-party code enters the kernel profile.
+flows:313:286:6
