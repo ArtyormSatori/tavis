@@ -507,6 +507,67 @@ lossy against `common_prefix_len` (`read_transcript` lifts `failure` /
 fields), so the writer would emit a full compaction record every turn. The
 latter is what `maybe_dual_write_session_store` needs a concrete `&Path` for.
 
+Also deliberately kept: the `impl ChatHistory for SessionTranscriptHistory` from
+S3 still has **no production caller** after S4 — reads go through
+`read_session`, writes through `append_turn`. It is not deleted, because it is
+the crate-side seam Option A exists to establish and it supplies the
+`Send + Sync + 'static` bounds the shared handle needs. The trigger that would
+delete it is an explicit decision to drop `ChatHistory` from the
+`SessionHistory` bound, which frees `transcript_history.rs`'s
+`read`/`persisted`/`meta_for_write`/`write_logical_set`/`impl ChatHistory` plus
+most of its test module (~570 lines together). That is the only ~400-scale
+removal S4 can actually make — and it removes abstraction this work itself
+added, which is not what Option A was promising. Recorded so a future audit
+finds the decision rather than re-deriving it.
+
+#### Where "~400 LOC" came from, and why it is struck
+
+§4 Option A originally claimed it "Removes: ~400 LOC of parallel abstraction".
+The figure has no derivation anywhere in this document or its parent, and it is
+not achievable. Its arithmetic origin is recoverable: §2.1's in-scope table
+totals **2,475** LOC at this document's base commit (`transcript.rs` 1,997 +
+`turn_checkpoint.rs` 105 + `migration.rs` 373). Option B's "~2,100 host LOC" is
+exactly 1,997 + 105. The residual is **373 ≈ "~400" = `migration.rs`** — which
+§5 S1 and `docs/tinyagents-full-migration-plan/99-deletion-ledger.md:33` both
+resolve as HOST-OWNED, no deletion. Under Option A the §2.1 table loses **zero**
+lines.
+
+Every other candidate was checked and refuted:
+
+- **No host trait duplicates `ChatHistory`.** The only other match in `src/` is
+  a `MemorySource::ChatHistory` *enum variant* in `memory/remember.rs`.
+  `memory/store/memory_trait.rs` is the long-term semantic `Memory` trait — a
+  different concern with a different shape.
+- **`ShortTermMemory`'s `trim` is an empty hook slot**
+  (`vendor/tinyagents/src/harness/memory/types.rs`), so there is no crate-side
+  policy for the host to be parallel to. The host side is 104 LOC of
+  provider-400 defences (`trim_history`, `bound_cached_transcript_messages`)
+  with no crate analogue — not duplicated, not deletable.
+- **`agent/context/`'s reducer was already deleted under #4249**, before this
+  document was written (`context/manager.rs`: "Live history reduction/
+  summarization moved to the tinyagents graph"). What remains is prompt
+  assembly + stats.
+
+#### The one genuine parallel abstraction, and why S4/S5 cannot remove it
+
+The #4249 JSONL↔store mirror **is** a second session-persistence implementation,
+over crate `Store`/`AppendStore` rather than `ChatHistory`: `session_import/
+live.rs` (353), `Agent::maybe_shadow_read_session_store` /
+`maybe_dual_write_session_store` (119), the `StoreRegistry` registration in
+`agent/tinyagents/mod.rs`, two `AgentConfig` flags, and
+`config/migrations/enable_session_shadow_reads.rs` — ~565 prod LOC. It is the
+closest thing in the tree to "~400 LOC of parallel abstraction".
+
+It is out of scope here for two reasons. It is #4249's own 04.1/04.2 program,
+gated on that issue's Phase-2 parity soak (#5396, which flipped
+`session_shadow_reads` default-ON with a config migration); and its terminus —
+serving reads from the store — points the opposite way from this branch's
+non-negotiable zero-on-disk-change constraint. **It is also not S5's soak:** S5
+compares free-function reads against trait reads, an entirely different
+comparison. Track it as a #4249 phase-3 item ("retire the JSONL↔store dual path
+once the Phase-2 parity soak declares parity") with a deletion-ledger row naming
+the six sites above.
+
 ### S5 — Shadow soak, then remove the parallel path
 
 One release with both paths live and a read-side comparison logged on mismatch
