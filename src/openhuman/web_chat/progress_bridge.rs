@@ -1681,8 +1681,7 @@ mod tests {
                     Ok(ev) if ev.thread_id == "thread-out" && ev.event == "tool_result" => {
                         return ev;
                     }
-                    Some(_) => continue,
-                    None => panic!("the bus closed before the expected event arrived"),
+                    Ok(_) => continue,
                     Err(err) => panic!("bus closed: {err}"),
                 }
             }

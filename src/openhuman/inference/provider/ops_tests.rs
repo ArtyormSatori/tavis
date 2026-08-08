@@ -1363,7 +1363,7 @@ use crate::core::events::DomainEvent;
                 }
             }
             Ok(_) => continue,
-            Err(tokio::sync::broadcast::error::TryRecvError::Lagged(_)) => continue,
+            Err(tinybus::TryRecvError::Lagged(_)) => continue,
             Err(_) => break,
         }
     }

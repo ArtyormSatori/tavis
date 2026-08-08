@@ -50,8 +50,9 @@ fn test_config() -> (TempDir, Config) {
     (tmp, cfg)
 }
 
-fn ensure_event_bus() {
-    let _ = init_event_bus(256);
+async fn ensure_event_bus() {
+    // Standing the bus up is async now — it connects to a broker. Idempotent.
+    crate::core::bus::init().await.expect("bus init");
 }
 
 #[derive(Clone)]
@@ -143,7 +144,7 @@ fn mk_batch(source: &str, label: &str, seq: u32, body: &str, base_ts: i64) -> Ch
 #[tokio::test]
 async fn single_batch_sync_to_tree() {
     let (_tmp, cfg) = test_config();
-    ensure_event_bus();
+    ensure_event_bus().await;
 
     let (collector, _handle) = EventCollector::new().subscribe();
 
@@ -237,7 +238,7 @@ async fn single_batch_sync_to_tree() {
 #[tokio::test]
 async fn multi_batch_volume_builds_full_tree() {
     let (_tmp, cfg) = test_config();
-    ensure_event_bus();
+    ensure_event_bus().await;
 
     let (collector, _handle) = EventCollector::new().subscribe();
 
