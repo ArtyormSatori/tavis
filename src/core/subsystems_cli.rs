@@ -15,6 +15,7 @@
 
 use anyhow::Result;
 
+use crate::core::subsystem::status::SubsystemStatus;
 use crate::core::subsystem::subsystems_status;
 
 pub fn run_subsystems_command(args: &[String]) -> Result<()> {
@@ -29,7 +30,7 @@ pub fn run_subsystems_command(args: &[String]) -> Result<()> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
-    let rows = rt.block_on(subsystems_status());
+    let rows = rt.block_on(cli_subsystems_status());
 
     println!(
         "{:<10} {:<14} {:<9} {:<9} {:<9} CAPABILITIES",
