@@ -259,11 +259,14 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
         return implicit_class(id, &refuse, "no [subsystems.memory.drivers.<id>] entry");
     };
 
-    let class = match entry.class.as_deref() {
+    let (admitted_id, class) = match entry.class.as_deref() {
         // An entry that names no class still cannot admit an arbitrary id: the
         // embedded default is the only non-null id that implies Embedded.
         None => implicit_class(id, &refuse, "[subsystems.memory.drivers.<id>] has no class line")?,
-        Some(raw) => DriverClass::parse(raw).map_err(|e| refuse(&e))?,
+        Some(raw) => (
+            id.to_string(),
+            DriverClass::parse(raw).map_err(|e| refuse(&e))?,
+        ),
     };
 
     if class == DriverClass::External {
@@ -282,7 +285,7 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
         ));
     }
 
-    Ok((id.to_string(), class))
+    Ok((admitted_id, class))
 }
 
 /// Build the binding for a workspace. Infallible by design: an inadmissible
