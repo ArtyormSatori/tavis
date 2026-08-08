@@ -15,8 +15,6 @@ pub mod event_bind_tokens;
 pub mod bus;
 pub mod bus_testing;
 pub mod events;
-#[cfg(test)]
-mod events_tests;
 // Ungated compile-time marker for the `http-server` gate (#5048) — the desktop
 // shell asserts `HTTP_SERVER_COMPILED_IN` so a listener-less core fails the
 // build instead of shipping silently (cf. voice #4901).
