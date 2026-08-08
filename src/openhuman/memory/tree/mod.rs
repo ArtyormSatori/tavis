@@ -20,7 +20,8 @@ pub mod summarise;
 pub mod tree;
 pub mod tree_runtime;
 
-pub use io::{
+// Tree I/O contracts are engine-owned.
+pub use tinycortex::memory::tree::{
     TreeLabelStrategy, TreeLeafPayload, TreeReadHit, TreeReadRequest, TreeReadResult,
     TreeWriteOutcome, TreeWriteRequest,
 };
