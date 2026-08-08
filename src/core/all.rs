@@ -946,9 +946,10 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         crate::openhuman::platform::update::all_update_registered_controllers(),
     );
     // Hierarchical knowledge summarization
-    push(
+    push_cap(
         &mut controllers,
         DomainGroup::Memory,
+        Some(Capability::Tree),
         crate::openhuman::memory::tree::all_tree_summarizer_registered_controllers(),
     );
     // Self-learning and user context enrichment
