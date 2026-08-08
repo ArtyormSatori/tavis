@@ -241,7 +241,7 @@ fn each_family_pairs_its_schemas_with_its_controllers() {
     assert_eq!(
         total,
         REGISTRATION_ORDER.len(),
-        "the seven families must cover the whole memory surface — no function may be orphaned"
+        "the nine parts must cover the whole memory surface — no function may be orphaned"
     );
 }
 
