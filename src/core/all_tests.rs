@@ -2157,3 +2157,185 @@ async fn rpc_method_from_parts_stays_unfiltered_by_capability() {
     .await;
     assert_eq!(out.as_deref(), Some("openhuman.memory_tool_rules_json"));
 }
+
+// --- M5.4: the null-driver degradation gate (milestone definition of done) --
+//
+// M5.1–M5.3 built the filter; these are the end-to-end assertions that the
+// WIRING is right, using the tree family as the named vehicle. They target
+// `try_invoke_registered_rpc`, `schema_for_rpc_method` and
+// `all_controller_schemas` — the same three functions the HTTP layer calls
+// (`core::jsonrpc::invoke_method_inner` resolves the schema then dispatches;
+// `/schema` renders `all_http_method_schemas()`, which extends from
+// `all_controller_schemas()`). Asserting on them IS asserting on the wire
+// surface; there is no more faithful vehicle available at this level, and an
+// integration test under `tests/` would be strictly WEAKER — `CoreContext::for_test`
+// is `#[cfg(test)] pub(crate)` and `tests/json_rpc_e2e.rs` never calls
+// `CoreContext::init`, so `current()` is `None` there and the filter would
+// default OPEN, proving nothing. Do not "upgrade" these into `tests/`.
+//
+// The agent-tool half of the DoD is pinned next to the tool machinery that owns
+// the full tool list, by `optional_family_memory_tools_absent_under_the_null_driver`
+// in `src/openhuman/tools/ops_tests.rs` (`memory_tree` is in its absent list).
+// Same split the channels gate uses; not duplicated here.
+
+/// `memory_tree*` is unknown-method under a driver that never advertised
+/// `Capability::Tree`.
+///
+/// `is_none()`, never `is_err()`: `Some(Err(_))` is the registered-but-failing
+/// shape `docs/specs/kernel.md` §3.3 forbids, because a method that exists and
+/// fails teaches a model the capability is real and makes it retry.
+#[tokio::test]
+async fn null_driver_makes_tree_methods_unknown_over_rpc() {
+    let method = "openhuman.memory_tree_list_chunks";
+
+    // Positive control FIRST: unscoped (⇒ the default-open fallback) the method
+    // routes. Without this the assertion below could pass because the method
+    // never existed at all.
+    assert!(
+        try_invoke_registered_rpc(method, Map::new()).await.is_some(),
+        "`{method}` must route with no ambient context (the filter defaults OPEN)"
+    );
+
+    let ctx = CoreContext::for_test(
+        DomainSet::full(), // isolates the capability gate from the DomainSet gate
+        Some(caps_ws("m54-tree-dispatch")),
+        Some(null_driver_cfg()),
+    );
+    let out = CoreContext::scope(ctx, try_invoke_registered_rpc(method, Map::new())).await;
+    assert!(
+        out.is_none(),
+        "under the `null` driver `{method}` must dispatch as None — an unadvertised \
+         family is indistinguishable from an unregistered method, never a handler \
+         that returns 'not implemented'"
+    );
+}
+
+/// The whole `memory_tree` namespace leaves `/schema`, and the schema lookup
+/// gates in lockstep with dispatch.
+///
+/// Asserted as a namespace SET rather than a method list on purpose:
+/// `memory_tree` is the only namespace with two registration sites — the tree
+/// registry (`memory::schema::definitions`) and the retrieval layer
+/// (`memory::tree::retrieval::schemas`) both use `NAMESPACE = "memory_tree"` —
+/// so a method-level assertion could pass having filtered only one of them.
+///
+/// The lockstep half is not optional: `invoke_method_inner` resolves the schema
+/// and runs `validate_params` BEFORE dispatch, so a schema lookup that is not
+/// gated with dispatch leaks the hidden surface as a validation error instead
+/// of method-not-found.
+#[tokio::test]
+async fn null_driver_removes_tree_namespace_from_schema() {
+    let full_ns: std::collections::BTreeSet<&str> =
+        all_controller_schemas().iter().map(|s| s.namespace).collect();
+    assert!(
+        full_ns.contains("memory_tree"),
+        "unscoped ⇒ default open ⇒ memory_tree present; otherwise the assertion below is vacuous"
+    );
+
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("m54-tree-schema")),
+        Some(null_driver_cfg()),
+    );
+    let null_ns: std::collections::BTreeSet<&str> =
+        CoreContext::scope(ctx, async { all_controller_schemas() })
+            .await
+            .iter()
+            .map(|s| s.namespace)
+            .collect();
+
+    assert!(
+        !null_ns.contains("memory_tree"),
+        "both `memory_tree` registration sites must be absent from /schema under the null driver"
+    );
+    assert!(
+        null_ns.contains("memory"),
+        "the mandatory core/recall surface must survive"
+    );
+    assert!(
+        null_ns.len() < full_ns.len(),
+        "the null driver must expose strictly fewer namespaces"
+    );
+
+    // Lockstep: no schema resolves for a tree method either.
+    let method = "openhuman.memory_tree_list_chunks";
+    assert!(
+        schema_for_rpc_method(method).is_some(),
+        "unscoped the schema must resolve — so the None below is the gate, not a typo"
+    );
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(caps_ws("m54-tree-schema")),
+        Some(null_driver_cfg()),
+    );
+    let gated = CoreContext::scope(ctx, async { schema_for_rpc_method(method) }).await;
+    assert!(
+        gated.is_none(),
+        "schema lookup must gate in lockstep with dispatch, or param validation leaks the surface"
+    );
+}
+
+/// Degradation is not a crash: the mandatory surface still stands up.
+///
+/// **What this does and does not prove.** A true boot needs
+/// `CoreContext::init` → `Config::load_or_init`, which is async, env-dependent
+/// and writes `$HOME` — not appropriate here, and `tests/` cannot scope a
+/// context at all (see the module note above). What this DOES cover is the
+/// failure mode that would actually take boot down: the capability filter
+/// panicking inside `registry()`'s `validate_registry` (which panics on an
+/// invalid registry), or narrowing the surface to empty. Stated rather than
+/// overstated — an enforcement test that oversells its guarantee is worse than
+/// none, because it stops people looking.
+#[tokio::test]
+async fn null_driver_keeps_the_mandatory_memory_surface_routable() {
+    // (1) The registry builds and self-validates under the null context.
+    let schemas = CoreContext::scope(
+        CoreContext::for_test(
+            DomainSet::full(),
+            Some(caps_ws("m54-boot")),
+            Some(null_driver_cfg()),
+        ),
+        async { all_controller_schemas() },
+    )
+    .await;
+    assert!(
+        !schemas.is_empty(),
+        "degradation must not empty the controller surface"
+    );
+
+    // (2) The driver-status surface stays reachable — it is how a host reads
+    //     the capability set back, so gating it would hide the degradation.
+    //
+    // `is_some()`, never `is_ok()`: these handlers resolve through
+    // `active_memory_client`, a process global that is uninitialised in a unit
+    // test, so the inner `Result` is legitimately `Err`. ROUTABILITY is the
+    // property under test.
+    let out = CoreContext::scope(
+        CoreContext::for_test(
+            DomainSet::full(),
+            Some(caps_ws("m54-boot")),
+            Some(null_driver_cfg()),
+        ),
+        try_invoke_registered_rpc("openhuman.memory_provider_status", Map::new()),
+    )
+    .await;
+    assert!(
+        out.is_some(),
+        "memory.provider_status must stay routable under any driver"
+    );
+
+    // (3) Recall — a MANDATORY family — still routes.
+    let out = CoreContext::scope(
+        CoreContext::for_test(
+            DomainSet::full(),
+            Some(caps_ws("m54-boot")),
+            Some(null_driver_cfg()),
+        ),
+        try_invoke_registered_rpc("openhuman.memory_recall_memories", Map::new()),
+    )
+    .await;
+    assert!(
+        out.is_some(),
+        "the mandatory Recall surface must stay routable under the null driver"
+    );
+}
