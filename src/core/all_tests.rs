@@ -2343,3 +2343,156 @@ async fn null_driver_keeps_the_mandatory_memory_surface_routable() {
         "the mandatory Recall surface must stay routable under the null driver"
     );
 }
+
+// ===== THROWAWAY ADVERSARIAL VERIFICATION (zzverify_*) — DELETE AFTER RUN =====
+
+/// (a) DEFAULT OPEN, proven independently of the M5 tables: with NO ambient
+/// context every controller tagged DomainGroup::Memory is present in both
+/// public read paths, and a gated method really dispatches.
+#[tokio::test]
+async fn zzverify_default_open_every_memory_controller_present() {
+    let tagged: Vec<(String, Option<Capability>)> = registry()
+        .iter()
+        .filter(|g| g.group == DomainGroup::Memory)
+        .map(|g| (g.controller.rpc_method_name(), g.capability))
+        .collect();
+    assert!(tagged.len() > 50, "sanity: got {}", tagged.len());
+    let gated = tagged.iter().filter(|(_, c)| c.is_some()).count();
+    assert!(gated > 20, "sanity: only {gated} gated controllers");
+
+    let live: std::collections::BTreeSet<String> = all_registered_controllers()
+        .iter()
+        .map(|c| c.rpc_method_name())
+        .collect();
+    let live_schema: std::collections::BTreeSet<String> = all_controller_schemas()
+        .iter()
+        .map(rpc_method_name)
+        .collect();
+    for (m, cap) in &tagged {
+        assert!(live.contains(m), "DEFAULT-OPEN VIOLATED: {m} ({cap:?}) missing from all_registered_controllers");
+        assert!(live_schema.contains(m), "DEFAULT-OPEN VIOLATED: {m} ({cap:?}) missing from /schema");
+        assert!(
+            schema_for_rpc_method(m).is_some(),
+            "DEFAULT-OPEN VIOLATED: schema_for_rpc_method({m}) is None"
+        );
+    }
+    // and a real dispatch of a gated method resolves (Some(_), error or not)
+    assert!(
+        try_invoke_registered_rpc("openhuman.memory_goals_list", Map::new())
+            .await
+            .is_some(),
+        "DEFAULT-OPEN VIOLATED: gated memory_goals_list did not dispatch with no context"
+    );
+}
+
+/// (b)+(e) Degradation is real END-TO-END: under a null-driver context the
+/// gated method is UNKNOWN at dispatch (None, indistinguishable from an
+/// unregistered method), absent from /schema, and absent from schema lookup —
+/// while a mandatory sibling in the SAME namespace family still dispatches.
+#[tokio::test]
+async fn zzverify_null_driver_makes_gated_methods_unknown_at_dispatch() {
+    let ctx = CoreContext::for_test(
+        DomainSet::full(),
+        Some(std::path::PathBuf::from("/tmp/oh-zzverify-null")),
+        Some(null_driver_cfg()),
+    );
+    let out = CoreContext::scope(ctx, async {
+        let dispatched_gated =
+            try_invoke_registered_rpc("openhuman.memory_goals_list", Map::new()).await;
+        let dispatched_gated_tree =
+            try_invoke_registered_rpc("openhuman.memory_diff_summary", Map::new()).await;
+        let dispatched_mandatory =
+            try_invoke_registered_rpc("openhuman.memory_provider_status", Map::new()).await;
+        let schema_gated = schema_for_rpc_method("openhuman.memory_goals_list");
+        let in_catalog = all_controller_schemas()
+            .iter()
+            .map(rpc_method_name)
+            .any(|m| m == "openhuman.memory_goals_list");
+        let registered = all_registered_controllers()
+            .iter()
+            .any(|c| c.rpc_method_name() == "openhuman.memory_goals_list");
+        // a genuinely unregistered method, for the indistinguishability claim
+        let bogus = try_invoke_registered_rpc("openhuman.no_such_thing_at_all", Map::new()).await;
+        (
+            dispatched_gated.is_some(),
+            dispatched_gated_tree.is_some(),
+            dispatched_mandatory.is_some(),
+            schema_gated.is_some(),
+            in_catalog,
+            registered,
+            bogus.is_some(),
+        )
+    })
+    .await;
+
+    assert!(!out.0, "gated memory_goals_list still DISPATCHED under the null driver");
+    assert!(!out.3, "gated memory_goals_list still resolves a schema under the null driver");
+    assert!(!out.4, "gated memory_goals_list still advertised in /schema under the null driver");
+    assert!(!out.5, "gated memory_goals_list still in all_registered_controllers");
+    assert!(!out.6, "sanity: a bogus method must also be None");
+    assert!(
+        out.2,
+        "mandatory memory.provider_status must SURVIVE the null driver (absence would be over-gating)"
+    );
+    // memory_diff is gated too; report but do not fail if the method name differs
+    assert!(!out.1, "gated memory_diff_summary still dispatched");
+}
+
+/// (c) The M5.1/M5.2 split is identity-preserving: the nine family accessors
+/// reassemble EXACTLY the pre-split aggregator, and the `memory` namespace's
+/// registered set equals its pre-M5 set (hard-coded from git @ 10cb8b441).
+#[test]
+fn zzverify_split_preserved_the_registered_set() {
+    use crate::openhuman::memory as m;
+    let mut parts: Vec<String> = Vec::new();
+    for v in [
+        m::all_memory_core_recall_registered_controllers(),
+        m::all_memory_documents_registered_controllers(),
+        m::all_memory_ingest_registered_controllers(),
+        m::all_memory_files_registered_controllers(),
+        m::all_memory_kv_graph_registered_controllers(),
+        m::all_memory_sync_registered_controllers(),
+        m::all_memory_learn_registered_controllers(),
+        m::all_memory_provider_registered_controllers(),
+        m::all_memory_tool_memory_registered_controllers(),
+    ] {
+        parts.extend(v.iter().map(|c| c.rpc_method_name()));
+    }
+    let legacy: Vec<String> = m::all_memory_registered_controllers()
+        .iter()
+        .map(|c| c.rpc_method_name())
+        .collect();
+    let mut a = parts.clone();
+    a.sort();
+    let mut b = legacy.clone();
+    b.sort();
+    assert_eq!(a, b, "the nine family parts do not reassemble the legacy aggregator");
+
+    // What the registry actually holds for namespace `memory`.
+    let mut in_registry: Vec<String> = registry()
+        .iter()
+        .chain(internal_registry().iter())
+        .filter(|g| g.controller.schema.namespace == "memory")
+        .map(|g| g.controller.rpc_method_name())
+        .collect();
+    in_registry.sort();
+    assert_eq!(in_registry, a, "the registry's memory namespace != the nine parts");
+
+    // Pre-M5 snapshot, read out of git at 10cb8b441 (ALL_FUNCTIONS, unchanged
+    // across M5 — this list is transcribed independently of that constant).
+    const PRE_M5: &[&str] = &[
+        "init", "list_documents", "list_namespaces", "delete_document", "query_namespace",
+        "recall_context", "recall_memories", "namespace_list", "doc_put", "doc_ingest",
+        "doc_list", "doc_delete", "context_query", "context_recall", "clear_namespace",
+        "list_files", "read_file", "write_file", "kv_set", "kv_get", "kv_delete",
+        "kv_list_namespace", "graph_upsert", "graph_query", "sync_channel", "sync_all",
+        "ingestion_status", "learn_all", "provider_status", "tool_rule_put", "tool_rule_get",
+        "tool_rule_list", "tool_rule_delete", "tool_rules_for_prompt", "tool_rules_json",
+    ];
+    let mut expected: Vec<String> = PRE_M5
+        .iter()
+        .map(|f| format!("openhuman.memory_{f}"))
+        .collect();
+    expected.sort();
+    assert_eq!(in_registry, expected, "the memory namespace's set CHANGED across M5");
+}
