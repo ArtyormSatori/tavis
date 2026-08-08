@@ -175,19 +175,31 @@ pub struct Agent {
     /// rather than calling the format's free function directly.
     ///
     /// It is `Arc<dyn …>` rather than the concrete handle so the turn loop is
-    /// written against the seam instead of the implementation. Note there is
-    /// **no injection point today**: the field is `pub(super)`, the builder
-    /// always starts it `None`, and the first write constructs a concrete
-    /// [`SessionTranscriptHistory`][super::transcript_history::SessionTranscriptHistory].
-    /// Substituting a different backing store is therefore a *possible* next
-    /// step, not a capability this field currently provides — adding one means
-    /// a builder setter, and nothing needs it yet.
+    /// written against the seam instead of the implementation. It is now
+    /// genuinely substitutable: the handle is produced by
+    /// [`SessionHistoryLocator::open_stem`][super::transcript_history::SessionHistoryLocator::open_stem]
+    /// on the locator in `session_history_locator`, so injecting a locator
+    /// replaces this session's writes as well as both of its resume reads.
     ///
     /// `session_transcript_path` stays alongside it rather than being folded
     /// into the handle: the dual-write mirror needs the concrete `&Path` for
     /// `file_stem()`, and several tests assert on it directly.
     pub(super) session_history:
         Option<std::sync::Arc<dyn super::transcript_history::SessionHistory>>,
+    /// Injected transcript locator, or `None` to use real files.
+    ///
+    /// The single injection point for the whole transcript seam: it resolves
+    /// both resume reads (`latest_for_agent`, `root_for_thread`) and binds this
+    /// session's write handle (`open_stem`). `None` is the production default
+    /// and is resolved *lazily* by
+    /// [`Agent::session_locator`][Self::session_locator] into a
+    /// [`FileTranscriptLocator`][super::transcript_history::FileTranscriptLocator]
+    /// over the **current** `workspace_dir` / `session_raw_subdir` — never
+    /// captured at build time, because callers (tests especially) reassign
+    /// `workspace_dir` after `build()` and a frozen locator would silently keep
+    /// reading the old directory.
+    pub(super) session_history_locator:
+        Option<std::sync::Arc<dyn super::transcript_history::SessionHistoryLocator>>,
     /// The logical message set most recently persisted to
     /// `session_transcript_path`, tracked in memory so the append-only writer
     /// can diff each turn's messages against it (pure extension → append tail;
