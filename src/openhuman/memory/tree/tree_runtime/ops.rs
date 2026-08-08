@@ -5,8 +5,8 @@ use serde_json::{json, Value};
 
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::tree::tree_runtime::{engine, store};
-use tinycortex::memory::tree::runtime::*;
 use crate::rpc::RpcOutcome;
+use tinycortex::memory::tree::runtime::*;
 
 /// Append raw content to the ingestion buffer.
 pub async fn tree_summarizer_ingest(
