@@ -311,6 +311,11 @@ const ALLOWED: &[(&str, &str, &str)] = &[
     ),
     (
         "src/openhuman/memory/ops/provider.rs",
+        ".unguarded_provider(",
+        "health probe on the bound driver; a liveness probe is not product code",
+    ),
+    (
+        "src/openhuman/memory/ops/provider.rs",
         "binding::for_workspace(",
         "same status surface",
     ),
