@@ -1,4 +1,5 @@
 import type { Options } from '@wdio/types';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -33,6 +34,12 @@ const testSpecsPath = path.join(projectRoot, 'test', 'e2e', 'specs', '**', '*.sp
 const APPIUM_PORT = parseInt(process.env.APPIUM_PORT || '4723', 10);
 const CEF_CDP_HOST = process.env.CEF_CDP_HOST || '127.0.0.1';
 const CEF_CDP_PORT = parseInt(process.env.CEF_CDP_PORT || '19222', 10);
+
+function linuxAppPath(): string {
+  const candidate = path.join(projectRoot, 'src-tauri', 'target', 'debug', 'OpenHuman');
+  if (fs.existsSync(candidate)) return candidate;
+  return candidate;
+}
 
 // Admin base for the shared mock backend. The runner exports BACKEND_URL to
 // the mock; fall back to the E2E_MOCK_PORT default the runner scripts use.
@@ -80,13 +87,13 @@ function platformNameForHost(): 'mac' | 'linux' | 'windows' {
 export const config: Options.Testrunner & Record<string, unknown> = {
   runner: 'local',
   hostname: '127.0.0.1',
-  port: APPIUM_PORT,
+  port: process.platform === 'linux' ? parseInt(process.env.TAURI_DRIVER_PORT || '4444', 10) : APPIUM_PORT,
   path: '/',
   specs: [testSpecsPath],
   rootDir: projectRoot,
   // Single session — Tauri+CEF is one app instance.
   maxInstances: 1,
-  capabilities: [
+  capabilities: process.platform === 'linux' ? [{ 'tauri:options': { application: linuxAppPath() } }] : [
     {
       platformName: platformNameForHost(),
       'appium:automationName': 'Chromium',

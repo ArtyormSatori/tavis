@@ -338,6 +338,7 @@ jobs:
       - name: Run E2E shard (${{ matrix.shard.name }} — suites=${{ matrix.shard.suites }})
         env:
           E2E_BAIL_ON_FAILURE: ${{ vars.E2E_BAIL_ON_FAILURE || '' }}
+          E2E_USE_TAURI_DRIVER: "1"
         run: |
           BAIL_FLAG=""
           if [[ "${E2E_BAIL_ON_FAILURE:-}" == "1" ]]; then

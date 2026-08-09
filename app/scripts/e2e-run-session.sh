@@ -295,6 +295,36 @@ resolve_app_binary() {
 }
 
 APP_BIN="$(resolve_app_binary)"
+
+# Linux builds use Tauri's Wry/WebKit runtime, not CEF. Drive that native
+# webview through tauri-driver instead of waiting for a Chromium CDP endpoint.
+if [ "$OS" = "Linux" ] && [ "${E2E_USE_TAURI_DRIVER:-0}" = "1" ]; then
+  TAURI_DRIVER_PORT="${TAURI_DRIVER_PORT:-4444}"
+  TAURI_DRIVER_LOG="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/tauri-driver-${LOG_SUFFIX}.log"
+  echo "[runner] Starting tauri-driver on port $TAURI_DRIVER_PORT"
+  tauri-driver --port "$TAURI_DRIVER_PORT" --native-driver "${WEBKIT_WEBDRIVER:-/usr/bin/WebKitWebDriver}" \
+    > "$TAURI_DRIVER_LOG" 2>&1 &
+  APP_PID=$!
+  export TAURI_DRIVER_PORT
+  for i in $(seq 1 30); do
+    if curl -sf "http://127.0.0.1:$TAURI_DRIVER_PORT/status" >/dev/null 2>&1; then
+      break
+    fi
+    if ! kill -0 "$APP_PID" 2>/dev/null; then
+      cat "$TAURI_DRIVER_LOG" >&2 || true
+      exit 1
+    fi
+    sleep 1
+  done
+  if [ "${#SPEC_ARGS[@]}" -gt 0 ]; then
+    WDIO_SPEC_ARGS=()
+    for s in "${SPEC_ARGS[@]}"; do WDIO_SPEC_ARGS+=(--spec "$s"); done
+    pnpm exec wdio run test/wdio.conf.ts "${WDIO_SPEC_ARGS[@]}"
+  else
+    pnpm exec wdio run test/wdio.conf.ts
+  fi
+  exit $?
+fi
 if [ -z "${APP_BIN:-}" ] || [ ! -x "$APP_BIN" ]; then
   echo "ERROR: built OpenHuman binary not found. Run 'pnpm test:e2e:build' first." >&2
   exit 1
