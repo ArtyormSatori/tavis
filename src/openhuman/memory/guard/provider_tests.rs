@@ -13,9 +13,9 @@ use tinycortex_api::provider::{
 use tinycortex_api::recall::OwnedRecallOpts;
 use tinycortex_api::types::{MemoryCategory, MemoryTaint};
 
-use crate::core::event_bus::{init_global, DomainEvent, DEFAULT_CAPACITY};
 use crate::core::subsystem::DriverClass;
 use crate::openhuman::config::schema::MemoryHooksConfig;
+use crate::openhuman::memory::guard::audit::recorder;
 use crate::openhuman::memory::guard::policy::TRUSTED;
 use crate::openhuman::memory::guard::test_support::{
     embedded_policy, entry, export_record, external_policy, guarded, guarded_with,
@@ -195,7 +195,7 @@ async fn guard_does_not_budget_trim_an_export() {
 
 #[tokio::test]
 async fn guard_publishes_memory_guard_denied_on_refusal() {
-    let mut rx = init_global(DEFAULT_CAPACITY).raw_receiver();
+    let watermark = recorder::watermark();
     let (driver, guard) = guarded(external_policy("untrusted"));
     let err = guard
         .store(
@@ -211,19 +211,11 @@ async fn guard_publishes_memory_guard_denied_on_refusal() {
     assert!(err.to_string().contains("memory guard: "));
     assert_eq!(driver.call_count(), 0, "the driver must never be reached");
 
-    let mut seen = None;
-    while let Ok(event) = rx.try_recv() {
-        if let DomainEvent::MemoryGuardDenied {
-            driver_id,
-            method,
-            reason,
-        } = event
-        {
-            seen = Some((driver_id, method, reason));
-            break;
-        }
-    }
-    let (driver_id, method, reason) = seen.expect("a MemoryGuardDenied event");
+    let denied = recorder::denied_for_since(watermark, "supermemory");
+    let (driver_id, method, reason) = denied
+        .first()
+        .cloned()
+        .expect("a MemoryGuardDenied audit record");
     assert_eq!(driver_id, "supermemory");
     assert_eq!(method, "core.store");
     assert!(!reason.contains("hello"), "must never carry content");
@@ -231,7 +223,7 @@ async fn guard_publishes_memory_guard_denied_on_refusal() {
 
 #[tokio::test]
 async fn guard_publishes_nothing_on_the_success_path() {
-    let mut rx = init_global(DEFAULT_CAPACITY).raw_receiver();
+    let watermark = recorder::watermark();
     let (_driver, guard) = guarded(embedded_policy());
     guard
         .store(
@@ -249,16 +241,12 @@ async fn guard_publishes_nothing_on_the_success_path() {
         .await
         .expect("recall");
 
-    // Sibling tests share the process-global bus and run in parallel, so
-    // filter to *this* guard's driver id rather than asserting the channel is
+    // Sibling tests share the process-wide audit log and run in parallel, so
+    // filter to *this* guard's driver id rather than asserting the log is
     // empty — `guard_publishes_memory_guard_denied_on_refusal` legitimately
-    // publishes one (for `supermemory`) at the same time.
-    while let Ok(event) = rx.try_recv() {
-        if let DomainEvent::MemoryGuardDenied { driver_id, .. } = &event {
-            assert_ne!(
-                driver_id, "recording",
-                "a guarded read/write must not publish on success"
-            );
-        }
-    }
+    // records one (for `supermemory`) at the same time.
+    assert!(
+        recorder::denied_for_since(watermark, "recording").is_empty(),
+        "a guarded read/write must not publish on success"
+    );
 }
