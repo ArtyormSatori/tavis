@@ -158,6 +158,8 @@ jobs:
           bash scripts/ci-cancel-aware.sh appium driver install --source=npm appium-chromium-driver >/dev/null 2>&1 || true
 
       - name: Build E2E app
+        env:
+          CEF_PATH: ${{ runner.temp }}/tauri-cef
         run: bash scripts/ci-cancel-aware.sh pnpm --filter openhuman-app test:e2e:build
 
       - name: Run E2E (${{ inputs.spec_label }})
@@ -252,10 +254,10 @@ jobs:
           mkdir -p "$STAGE/repo/app/dist"
           cp -a app/src-tauri/target/debug/OpenHuman "$STAGE/repo/app/src-tauri/target/debug/"
           cp -a app/dist/. "$STAGE/repo/app/dist/"
-          CEF_LIB="$(find /__w -type f -name libcef.so -print -quit)"
-          test -n "$CEF_LIB" -a -f "$CEF_LIB"
+          CEF_ROOT="${RUNNER_TEMP}/tauri-cef"
+          test -d "$CEF_ROOT"
           mkdir -p "$STAGE/repo/.e2e/cef"
-          cp -a "$(dirname "$(dirname "$CEF_LIB")")" "$STAGE/repo/.e2e/cef/"
+          cp -a "$CEF_ROOT"/. "$STAGE/repo/.e2e/cef/"
           tar -czf e2e-build-linux.tar.gz -C "$STAGE" repo
           ls -lh e2e-build-linux.tar.gz
 
