@@ -400,6 +400,9 @@ esac
 LOG_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 APP_LOG="$LOG_DIR/openhuman-e2e-app-${LOG_SUFFIX}.log"
 APP_ARGS=()
+# The CEF runtime reads this browser-process switch directly. Keep it on the
+# test runner invocation so Appium's debuggerAddress has a stable endpoint.
+APP_ARGS+=("--remote-debugging-port=${CEF_CDP_PORT}")
 # CEF/Chromium needs extra coaxing in headless / containerized Linux runs:
 #
 #   --no-sandbox            crbug.com/638180 — needed only when the runner is
