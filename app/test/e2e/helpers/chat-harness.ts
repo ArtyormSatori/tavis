@@ -98,11 +98,12 @@ export async function typeIntoComposer(text: string): Promise<void> {
     }, COMPOSER_SELECTOR);
     if (!focused) continue;
 
-    // WebKitWebDriver can drop trailing events from one long `keys` call.
-    // Keep the real keyboard path (which drives React's controlled state)
-    // but send short chunks to retain every character.
-    for (let offset = 0; offset < text.length; offset += 8) {
-      await browser.keys(text.slice(offset, offset + 8).split(''));
+    // WebKitWebDriver can drop trailing events from a rapid `keys` call.
+    // Keep the real keyboard path (which drives React's controlled state),
+    // but give the native webview time to commit each small input batch.
+    for (let offset = 0; offset < text.length; offset += 4) {
+      await browser.keys(text.slice(offset, offset + 4).split(''));
+      await browser.pause(25);
     }
     await browser.pause(200);
     actual = String(await composer.getValue());
