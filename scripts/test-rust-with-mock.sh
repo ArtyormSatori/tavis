@@ -90,8 +90,22 @@ run_raw_coverage_modules() {
   done < <(raw_coverage_modules)
 }
 
+run_json_rpc_e2e() {
+  # The JSON-RPC E2E binary intentionally changes process-global environment
+  # and runtime configuration. Run each case in a fresh test process so a
+  # provider route persisted by one scenario cannot affect another one.
+  while IFS= read -r test_name; do
+    [ -n "$test_name" ] || continue
+    echo "[test-rust-with-mock] JSON-RPC E2E test: ${test_name}"
+    cargo_test --test json_rpc_e2e "$test_name" -- --test-threads=1 "$@"
+  done < <(cargo_test --test json_rpc_e2e -- --list | sed -n 's/: test$//p')
+}
+
 run_full_suite() {
-  cargo_test --lib --bins -- "$@"
+  # Several unit fixtures mutate process-wide state (provider overrides and
+  # temporary executable paths). Keep this aggregate invocation deterministic;
+  # integration targets below retain their own, narrower isolation strategies.
+  cargo_test --lib --bins -- --test-threads=1 "$@"
   cargo_test --doc -- "$@"
 
   while IFS= read -r target; do
@@ -101,6 +115,8 @@ run_full_suite() {
       # each generated module filter in its own cargo process so local
       # `pnpm test:rust` preserves the same process-global isolation as CI.
       run_raw_coverage_modules "$@"
+    elif [ "$target" = "json_rpc_e2e" ]; then
+      run_json_rpc_e2e "$@"
     else
       cargo_test --test "$target" -- "$@"
     fi
@@ -118,6 +134,12 @@ elif [ "$#" -ge 2 ] && [ "$1" = "--test" ] && [ "$2" = "raw_coverage_all" ]; the
     shift
   fi
   run_raw_coverage_modules "$@"
+elif [ "$#" -ge 2 ] && [ "$1" = "--test" ] && [ "$2" = "json_rpc_e2e" ]; then
+  shift 2
+  if [ "${1:-}" = "--" ]; then
+    shift
+  fi
+  run_json_rpc_e2e "$@"
 else
   cargo_test "$@"
 fi
