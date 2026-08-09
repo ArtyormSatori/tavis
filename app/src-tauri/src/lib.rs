@@ -52,6 +52,7 @@ mod deep_link_ipc_windows;
 mod deep_link_registration_check;
 mod dictation_hotkeys;
 mod discord_scanner;
+#[cfg(test)]
 mod fake_camera;
 mod file_logging;
 mod gmessages_scanner;
@@ -2025,11 +2026,12 @@ fn can_register_single_instance_plugin() -> bool {
     true
 }
 
+#[cfg(test)]
 type CefCommandLineArg = (&'static str, Option<&'static str>);
 
 /// Returns `true` when the process is running as root (UID 0) on Linux.
 /// Testable pure function; takes the uid directly.
-#[cfg(any(target_os = "linux", test))]
+#[cfg(test)]
 fn linux_is_root_uid(uid: u32) -> bool {
     uid == 0
 }
@@ -2051,6 +2053,7 @@ fn linux_is_root_uid(uid: u32) -> bool {
 /// this control is explicit opt-in: `1` / `true` / `yes` / `on`
 /// (case-insensitive) enables the override, and anything else (including
 /// unset) preserves the default disable.
+#[cfg(test)]
 fn cef_force_gpu_enabled(env_override: Option<&str>) -> bool {
     match env_override {
         Some(v) => {
@@ -2063,6 +2066,7 @@ fn cef_force_gpu_enabled(env_override: Option<&str>) -> bool {
 
 /// Emergency CEF startup escape hatch for driver/runtime combinations where
 /// CEF cannot initialize its GPU process before the app can render UI.
+#[cfg(test)]
 fn cef_disable_gpu_enabled(env_override: Option<&str>) -> bool {
     match env_override {
         Some(v) => {
@@ -2083,6 +2087,7 @@ fn cef_disable_gpu_enabled(env_override: Option<&str>) -> bool {
 /// keeps page compositing on the CPU. Crucially this does **not** pass
 /// `--disable-gpu`, which would shut the GPU process down entirely — and with it
 /// the SwiftShader context that lets CEF start.
+#[cfg(test)]
 fn push_swiftshader_software_gl(args: &mut Vec<CefCommandLineArg>) {
     args.push(("--use-gl", Some("angle")));
     args.push(("--use-angle", Some("swiftshader")));
@@ -2090,6 +2095,7 @@ fn push_swiftshader_software_gl(args: &mut Vec<CefCommandLineArg>) {
     args.push(("--disable-gpu-compositing", None));
 }
 
+#[cfg(test)]
 fn append_platform_cef_gpu_workarounds(
     args: &mut Vec<CefCommandLineArg>,
     os: &str,
@@ -2214,6 +2220,7 @@ fn append_platform_cef_gpu_workarounds(
 /// Whether a CEF command-line flag is `--time-ticks-at-unix-epoch` (in any
 /// dash/casing form, with or without an inline `=<value>` suffix). See
 /// [`strip_time_ticks_at_unix_epoch`] for why we care.
+#[cfg(test)]
 fn is_time_ticks_at_unix_epoch_flag(flag: &str) -> bool {
     let name = flag.trim_start_matches('-');
     // Chromium switches can carry their value inline (`--flag=value`); compare
@@ -2236,6 +2243,7 @@ fn is_time_ticks_at_unix_epoch_flag(flag: &str) -> bool {
 /// `RuntimeInitAttribute::CommandLineArgs` contributed elsewhere), so strip the
 /// flag from the final list as a guard and let Chromium compute the origin
 /// locally for each process.
+#[cfg(test)]
 fn strip_time_ticks_at_unix_epoch(args: &mut Vec<CefCommandLineArg>) {
     args.retain(|(flag, value)| {
         if is_time_ticks_at_unix_epoch_flag(flag) {
