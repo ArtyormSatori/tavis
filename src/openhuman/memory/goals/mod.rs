@@ -14,13 +14,13 @@
 //! - **Automatically** — the reflection agent is fired (best-effort) when the
 //!   conversation context is summarized; see the archivist segment-close hook.
 //!
-//! Persistence + cap enforcement live in [`store`]; the file is stored state,
+//! Persistence + cap enforcement live in `tinycortex::memory::goals::store`;
+//! the file is stored state,
 //! not injected into the main system prompt.
 
 pub mod enrich;
 pub mod ops;
 mod schemas;
-pub mod store;
 pub mod tools;
 
 pub use enrich::{enrich_goals, spawn_enrich_goals, GOALS_AGENT_ID};
