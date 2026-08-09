@@ -98,27 +98,12 @@ export async function typeIntoComposer(text: string): Promise<void> {
     }, COMPOSER_SELECTOR);
     if (!focused) continue;
 
-    // WebKitWebDriver can drop trailing key events from a long `keys` call.
-    // Set the native textarea value and emit the same bubbling input/change
-    // events React uses for its controlled composer state instead.
-    const typed = await browser.execute(
-      (sel: string, nextValue: string) => {
-        const el = document.querySelector(sel) as HTMLTextAreaElement | null;
-        if (!el) return false;
-        const setter = Object.getOwnPropertyDescriptor(
-          window.HTMLTextAreaElement.prototype,
-          'value'
-        )?.set;
-        if (setter) setter.call(el, nextValue);
-        else el.value = nextValue;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        return true;
-      },
-      COMPOSER_SELECTOR,
-      text
-    );
-    if (!typed) continue;
+    // WebKitWebDriver can drop trailing events from one long `keys` call.
+    // Keep the real keyboard path (which drives React's controlled state)
+    // but send short chunks to retain every character.
+    for (let offset = 0; offset < text.length; offset += 8) {
+      await browser.keys(text.slice(offset, offset + 8).split(''));
+    }
     await browser.pause(200);
     actual = String(await composer.getValue());
     if (actual === text) return;
