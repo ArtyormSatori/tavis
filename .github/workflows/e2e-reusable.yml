@@ -231,16 +231,6 @@ jobs:
           cache-on-failure: true
           key: e2e-linux-unified
 
-      # The bare Linux E2E binary dynamically loads CEF from this cache. Save
-      # it from the producer before its fan-out shards start on fresh runners.
-      - name: Cache CEF binary distribution
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/tauri-cef
-          key: cef-x86_64-unknown-linux-gnu-${{ hashFiles('app/src-tauri/Cargo.toml') }}
-          restore-keys: |
-            cef-x86_64-unknown-linux-gnu-
-
       - name: Install JS dependencies
         run: bash scripts/ci-cancel-aware.sh pnpm install --frozen-lockfile
 
@@ -262,6 +252,10 @@ jobs:
           mkdir -p "$STAGE/repo/app/dist"
           cp -a app/src-tauri/target/debug/OpenHuman "$STAGE/repo/app/src-tauri/target/debug/"
           cp -a app/dist/. "$STAGE/repo/app/dist/"
+          CEF_LIB="$(ldd app/src-tauri/target/debug/OpenHuman | awk '/libcef\.so/ { print $3; exit }')"
+          test -n "$CEF_LIB" -a -f "$CEF_LIB"
+          mkdir -p "$STAGE/repo/.e2e/cef"
+          cp -a "$(dirname "$(dirname "$CEF_LIB")")" "$STAGE/repo/.e2e/cef/"
           tar -czf e2e-build-linux.tar.gz -C "$STAGE" repo
           ls -lh e2e-build-linux.tar.gz
 
@@ -309,16 +303,6 @@ jobs:
           restore-keys: |
             pnpm-store-${{ runner.os }}-
 
-      # The build artifact intentionally contains only the executable and
-      # frontend dist. Restore its shared CEF runtime alongside it.
-      - name: Cache CEF binary distribution
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/tauri-cef
-          key: cef-x86_64-unknown-linux-gnu-${{ hashFiles('app/src-tauri/Cargo.toml') }}
-          restore-keys: |
-            cef-x86_64-unknown-linux-gnu-
-
       - name: Cache Appium global install
         uses: actions/cache@v6
         with:
@@ -351,6 +335,8 @@ jobs:
           mkdir -p app/src-tauri/target/debug app/dist
           cp -a repo/app/src-tauri/target/debug/OpenHuman app/src-tauri/target/debug/
           cp -a repo/app/dist/. app/dist/
+          mkdir -p .e2e
+          cp -a repo/.e2e/cef .e2e/
           rm -rf repo e2e-build-linux.tar.gz
           chmod +x app/src-tauri/target/debug/OpenHuman
           ls -la app/src-tauri/target/debug/OpenHuman app/dist | head
@@ -358,6 +344,7 @@ jobs:
       - name: Run E2E shard (${{ matrix.shard.name }} — suites=${{ matrix.shard.suites }})
         env:
           E2E_BAIL_ON_FAILURE: ${{ vars.E2E_BAIL_ON_FAILURE || '' }}
+          CEF_PATH: ${{ github.workspace }}/.e2e/cef
         run: |
           BAIL_FLAG=""
           if [[ "${E2E_BAIL_ON_FAILURE:-}" == "1" ]]; then
