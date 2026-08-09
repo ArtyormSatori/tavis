@@ -1985,8 +1985,8 @@ async fn memory_families_registered_when_capabilities_advertised() {
 
 #[tokio::test]
 async fn memory_families_absent_when_capabilities_not_advertised() {
-    // The null driver advertises exactly {core, recall, portability}, so every
-    // optional family is unadvertised at once.
+    // A null driver deliberately exposes no driver-backed memory capability,
+    // so the full driver-owned surface is absent at once.
     let (ns, fns) = visible_under("off", Some(null_driver_cfg())).await;
 
     // Whole namespaces vanish.
@@ -2001,11 +2001,22 @@ async fn memory_families_absent_when_capabilities_not_advertised() {
     ] {
         assert!(
             !ns.contains(absent),
-            "`{absent}` must be ABSENT under a driver that advertises only the mandatory families"
+            "`{absent}` must be ABSENT under the null driver"
         );
     }
-    // Gated `memory.*` functions vanish…
+    // Gated `memory.*` functions vanish, including the core/recall partition…
     for absent in [
+        "init",
+        "list_documents",
+        "list_namespaces",
+        "delete_document",
+        "query_namespace",
+        "recall_context",
+        "recall_memories",
+        "namespace_list",
+        "context_query",
+        "context_recall",
+        "clear_namespace",
         "doc_put",
         "doc_list",
         "doc_delete",
@@ -2032,7 +2043,7 @@ async fn memory_families_absent_when_capabilities_not_advertised() {
             "`memory.{absent}` must be ABSENT under the null driver"
         );
     }
-    // …while the ungated surface stays. These are the positive controls that
+    // …while the host-owned surface stays. These are the positive controls that
     // make the assertions above the GATE rather than a collapsed registry.
     assert!(
         ns.contains("memory"),
@@ -2043,13 +2054,6 @@ async fn memory_families_absent_when_capabilities_not_advertised() {
         "`people` is host surface with no capability — it must survive any driver"
     );
     for present in [
-        // MANDATORY core + recall.
-        "init",
-        "namespace_list",
-        "recall_memories",
-        "recall_context",
-        "query_namespace",
-        "clear_namespace",
         // Host-side workspace file I/O.
         "list_files",
         "read_file",
@@ -2060,7 +2064,7 @@ async fn memory_families_absent_when_capabilities_not_advertised() {
     ] {
         assert!(
             fns.contains(present),
-            "`memory.{present}` is ungated and must survive the null driver"
+            "`memory.{present}` is host-owned and must survive the null driver"
         );
     }
 }
@@ -2287,7 +2291,7 @@ async fn null_driver_removes_tree_namespace_from_schema() {
 /// overstated — an enforcement test that oversells its guarantee is worse than
 /// none, because it stops people looking.
 #[tokio::test]
-async fn null_driver_keeps_the_mandatory_memory_surface_routable() {
+async fn null_driver_keeps_memory_status_routable() {
     // (1) The registry builds and self-validates under the null context.
     let schemas = CoreContext::scope(
         CoreContext::for_test(
@@ -2324,7 +2328,7 @@ async fn null_driver_keeps_the_mandatory_memory_surface_routable() {
         "memory.provider_status must stay routable under any driver"
     );
 
-    // (3) Recall — a MANDATORY family — still routes.
+    // (3) The driver-owned recall surface is intentionally removed.
     let out = CoreContext::scope(
         CoreContext::for_test(
             DomainSet::full(),
@@ -2335,8 +2339,8 @@ async fn null_driver_keeps_the_mandatory_memory_surface_routable() {
     )
     .await;
     assert!(
-        out.is_some(),
-        "the mandatory Recall surface must stay routable under the null driver"
+        out.is_none(),
+        "the null driver must remove the driver-backed Recall surface"
     );
 }
 

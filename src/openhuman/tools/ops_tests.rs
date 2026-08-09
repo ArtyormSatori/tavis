@@ -2933,11 +2933,8 @@ const OPTIONAL_FAMILY_MEMORY_TOOLS: &[&str] = &[
 
 /// Memory-family tools that remain available when a null driver deliberately
 /// disables every driver-backed capability.
-const ALWAYS_PRESENT_MEMORY_TOOLS: &[&str] = &[
-    "update_memory_md",
-    "memory_store_kinds",
-    "people_list",
-];
+const ALWAYS_PRESENT_MEMORY_TOOLS: &[&str] =
+    &["update_memory_md", "memory_store_kinds", "people_list"];
 
 /// The ~4000-pre-boot-test default-open property, asserted once directly: with
 /// no ambient context at all the capability filter removes nothing.
