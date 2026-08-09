@@ -156,7 +156,13 @@ impl CoreProcessHandle {
             }
         }
 
-        if is_port_open(self.preferred_port).await {
+        // A pre-existing listener cannot be used as a readiness signal for
+        // the embedded task we are about to spawn: it may be a foreign
+        // process, while the core selects and reports a fallback port.
+        // Record that distinction before entering recovery so the wait loop
+        // below only accepts socket-only readiness for a port that was free.
+        let preferred_port_was_occupied = is_port_open(self.preferred_port).await;
+        if preferred_port_was_occupied {
             // Idempotent fast-path: if we already own a running embedded
             // task, the listener on this port is us — not a stale external
             // process. Without this short-circuit, a second `ensure_running`
@@ -334,7 +340,8 @@ impl CoreProcessHandle {
                     }
                 }
 
-                if self.is_rpc_port_open().await {
+                if received_ready || (!preferred_port_was_occupied && self.is_rpc_port_open().await)
+                {
                     if received_ready {
                         log::info!("[core] core rpc became ready at {}", self.rpc_url());
                     } else {
