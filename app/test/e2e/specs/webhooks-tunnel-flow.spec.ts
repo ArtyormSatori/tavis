@@ -24,6 +24,7 @@
  */
 import { waitForApp } from '../helpers/app-helpers';
 import { callOpenhumanRpc } from '../helpers/core-rpc';
+import { buildBypassJwt } from '../helpers/deep-link-helpers';
 import { textExists } from '../helpers/element-helpers';
 import { resetApp } from '../helpers/reset-app';
 import { navigateViaHash, waitForRequest } from '../helpers/shared-flows';
@@ -71,6 +72,12 @@ describe('Webhook tunnel CRUD (UI + core RPC + mock backend)', () => {
     await resetMockBehavior();
     await waitForApp();
     await resetApp(USER_ID);
+    // Tunnel CRUD is core-to-backend work. Seed its session directly instead
+    // of racing the renderer deep-link listener that resetApp also exercises.
+    const auth = await callOpenhumanRpc('openhuman.auth_store_session', {
+      token: buildBypassJwt(USER_ID),
+    });
+    expect(auth.ok).toBe(true);
     clearRequestLog();
   });
 
