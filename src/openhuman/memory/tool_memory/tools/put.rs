@@ -100,12 +100,11 @@ impl Tool for MemoryToolsPutTool {
             parsed.priority,
             parsed.tags.len()
         );
-        let guard = active_memory_guard()
+        let client = crate::openhuman::memory::ops::active_memory_client()
             .await
             .map_err(|e| anyhow::anyhow!("memory_tools_put: {e}"))?;
-        let family = guard
-            .as_tool_memory()
-            .ok_or_else(|| anyhow::anyhow!("memory_tools_put: {NO_TOOL_MEMORY}"))?;
+        let family =
+            crate::openhuman::memory::tool_memory::tool_memory_store(client.memory_handle());
         let mut rule = ToolMemoryRule::new(
             &parsed.tool_name,
             &parsed.rule,
