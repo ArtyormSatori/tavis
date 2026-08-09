@@ -1673,22 +1673,22 @@ const MEMORY_NAMESPACE_CAPABILITY: &[(&str, Option<Capability>)] = &[
     ("memory_diff", Some(Capability::Diff)),
 ];
 
-/// The `memory` namespace, function by function. Mandatory core/recall surface
-/// and host-only file I/O are `None` deliberately — a gate on a MANDATORY
-/// family could never fire, and a dead gate reads like a live one.
+/// The `memory` namespace, function by function. Core and recall share the
+/// `Core` gate, so `driver = "null"` can deliberately remove the entire
+/// driver-backed memory surface. Host-only file I/O remains ungated.
 const MEMORY_FUNCTION_CAPABILITY: &[(&str, Option<Capability>)] = &[
-    // core + recall (mandatory)
-    ("init", None),
-    ("list_documents", None),
-    ("list_namespaces", None),
-    ("delete_document", None),
-    ("query_namespace", None),
-    ("recall_context", None),
-    ("recall_memories", None),
-    ("namespace_list", None),
-    ("context_query", None),
-    ("context_recall", None),
-    ("clear_namespace", None),
+    // core + recall (both represented by the Core gate at registration)
+    ("init", Some(Capability::Core)),
+    ("list_documents", Some(Capability::Core)),
+    ("list_namespaces", Some(Capability::Core)),
+    ("delete_document", Some(Capability::Core)),
+    ("query_namespace", Some(Capability::Core)),
+    ("recall_context", Some(Capability::Core)),
+    ("recall_memories", Some(Capability::Core)),
+    ("namespace_list", Some(Capability::Core)),
+    ("context_query", Some(Capability::Core)),
+    ("context_recall", Some(Capability::Core)),
+    ("clear_namespace", Some(Capability::Core)),
     // namespace-document tier
     ("doc_put", Some(Capability::Documents)),
     ("doc_list", Some(Capability::Documents)),
@@ -1819,10 +1819,11 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             | Capability::Goals
             | Capability::ToolMemory
             | Capability::Sources => true,
-            // MANDATORY: `Capabilities::validate` refuses to bind a driver
-            // missing these, so a gate on one could never fire. Their surface
-            // (memory.init / recall_* / …) registers ungated on purpose.
-            Capability::Core | Capability::Recall | Capability::Portability => false,
+            // `Core` gates the combined core + recall controller partition so
+            // a null driver removes the entire driver-backed surface. Recall
+            // is represented by that same partition; Portability is RPC-less.
+            Capability::Core => true,
+            Capability::Recall | Capability::Portability => false,
             // Folded into `Tree`: the tree registry's ~25 methods span tree,
             // entities, graph and maintenance and are tagged as ONE family.
             // See the push site in `all.rs` for why that trade was chosen.

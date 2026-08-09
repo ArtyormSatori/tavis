@@ -2931,20 +2931,11 @@ const OPTIONAL_FAMILY_MEMORY_TOOLS: &[&str] = &[
     "goals_delete",
 ];
 
-/// Tools that must survive any driver: the mandatory families plus the
-/// host-owned surface that never touches the driver.
+/// Memory-family tools that remain available when a null driver deliberately
+/// disables every driver-backed capability.
 const ALWAYS_PRESENT_MEMORY_TOOLS: &[&str] = &[
-    "memory_store",
-    "memory_recall",
-    "memory_forget",
-    "remember_preference",
-    "save_preference",
     "update_memory_md",
     "memory_store_kinds",
-    "memory_vector_search",
-    "memory_chunk_context",
-    "memory_hybrid_search",
-    "memory_store_raw_chunks",
     "people_list",
 ];
 
