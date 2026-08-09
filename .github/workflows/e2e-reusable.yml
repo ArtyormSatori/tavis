@@ -74,6 +74,10 @@ permissions:
 env:
   # Consumed by scripts/ci-cancel-aware.sh's cancellation watchdog.
   GH_TOKEN: ${{ github.token }}
+  # Desktop E2E exercises the shipped app and does not execute skills. Avoid
+  # asynchronously provisioning the optional managed Node runtime during core
+  # startup, which can delay the ready signal past the harness timeout.
+  OPENHUMAN_NODE_ENABLED: "0"
 
 jobs:
   # Selected-spec gate for PR/push (full=false). The full-suite path lives in
@@ -440,10 +444,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -556,10 +560,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -653,10 +657,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -768,10 +772,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
 
       - name: Cache Appium global install
@@ -882,10 +886,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -965,10 +969,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: pnpm
 
       - name: Cache Appium global install
