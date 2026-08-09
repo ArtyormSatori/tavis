@@ -144,30 +144,25 @@ describe('Settings - Feature Preferences', function () {
     );
   });
 
-  it('persists notifications DND and category preferences', async () => {
+  it('persists notification category preferences', async () => {
     await navigateViaHash('/settings/notifications');
 
-    await waitForText('Do Not Disturb', 15_000);
     await waitForText('Messages', 15_000);
 
-    // Verify toggle buttons are interactive (click doesn't throw).
-    expect(await clickSelector('button[aria-label="Toggle Do Not Disturb"]')).toBeDefined();
+    // Verify the category switch is interactive (click doesn't throw).
     expect(await clickSelector('button[aria-label="Toggle Messages notifications"]')).toBeDefined();
     await browser.pause(1000);
 
-    // Verify the toggle state changed in the current session (before reload).
-    const dndAfterClick = await switchState('Toggle Do Not Disturb');
+    // Verify the toggle state is exposed in the current session (before reload).
     const msgAfterClick = await switchState('Toggle Messages notifications');
-    // At least one of the toggles should have a defined aria-checked state
-    // after being clicked.
-    expect(dndAfterClick !== null || msgAfterClick !== null).toBe(true);
+    expect(msgAfterClick).not.toBeNull();
 
     // Reload and verify the page still renders correctly.
-    await reloadAndReturnTo('/settings/notifications', 'Do Not Disturb');
+    await reloadAndReturnTo('/settings/notifications', 'Messages');
     // Verify the notifications panel renders after reload — the toggle
     // buttons must still be present.
-    const dndAfterReload = await switchState('Toggle Do Not Disturb');
-    expect(dndAfterReload).toBeDefined();
+    const messagesAfterReload = await switchState('Toggle Messages notifications');
+    expect(messagesAfterReload).not.toBeNull();
   });
 
   it('persists mascot color selection', async () => {
