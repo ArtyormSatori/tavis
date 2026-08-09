@@ -339,7 +339,14 @@ fi
 # dist dir to LD_LIBRARY_PATH (Linux) / PATH (Windows). On macOS this is a
 # no-op — the .app bundle already self-resolves.
 # ------------------------------------------------------------------------------
-CEF_PATH="${CEF_PATH:-$HOME/Library/Caches/tauri-cef}"
+if [ -z "${CEF_PATH:-}" ]; then
+  case "$(uname -s)" in
+    Linux) CEF_PATH="$HOME/.cache/tauri-cef" ;;
+    Darwin) CEF_PATH="$HOME/Library/Caches/tauri-cef" ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) CEF_PATH="$HOME/AppData/Local/tauri-cef" ;;
+    *) CEF_PATH="$HOME/.cache/tauri-cef" ;;
+  esac
+fi
 
 # Pick exactly one CEF distribution per platform. If two cached versions
 # coexist (e.g. after a CEF upgrade) `head -1` silently picks an arbitrary
