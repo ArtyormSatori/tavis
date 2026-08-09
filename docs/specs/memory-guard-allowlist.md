@@ -17,7 +17,7 @@ dead-string rot the ratchet exists to prevent.
 
 ## Scope
 
-The lint scans `src/` for twelve patterns, keyed on `(file, pattern)` so the
+The lint scans `src/` for thirteen patterns, keyed on `(file, pattern)` so the
 failure message names the needle that tripped:
 
 | Pattern | What it hands out |
@@ -25,7 +25,8 @@ failure message names the needle that tripped:
 | `active_memory_client(` | `MemoryClientRef` |
 | `global::client_if_ready(` / `global::client(` | `MemoryClientRef` |
 | `.memory_handle(` | raw `Arc<dyn Memory>` |
-| `.profile_conn(` | raw `Arc<Mutex<rusqlite::Connection>>` |
+| `.profile_conn(` | raw `Arc<Mutex<rusqlite::Connection>>` (one in-family site) |
+| `.profile_store(` | a typed `ProfileStore` — confined, but still unguarded |
 | `.get_document(` | `pub(crate)` read-one escape hatch |
 | `EmbeddedMemoryProvider::new(` / `NullMemoryProvider::new(` | a driver, built outside `binding::for_workspace` |
 | `MemoryClient::from_workspace_dir(` | a second engine on the same store |
@@ -96,22 +97,42 @@ changes anything here.
 | `core/cli_capability.rs` (`binding::for_workspace(`) | The CLI's capability gate (`kernel.md` §3.3's one exception to "degradation is absence"). Reads the driver id and advertised capability set only — the same two values `memory.provider_status` already returns over RPC — and never reaches memory content. No CLI subcommand except `run`/`serve` builds a `CoreContext`, so `CoreContext::memory()` resolves to nothing and there is no guard to route through. `core/memory_cli.rs` calls `bound_memory_driver_for` rather than binding itself. |
 | `core/subsystems_cli.rs` | The `openhuman subsystems` slot table. Delegates to `memory_subsystem_status` (which itself resolves the binding in `memory/ops/provider.rs`, already allowlisted above), so `subsystems_cli.rs` never touches `binding::for_workspace(` directly — the CLI's command arms go through `bound_memory_driver_for`. |
 
-### B. Unguardable raw SQLite — `profile_conn()`, out of scope for M4
+### B. Profile / facet access — confined, still unguarded
 
-No decorator can wrap an `Arc<Mutex<rusqlite::Connection>>`. These reach the
-profile / facet tables beneath all seven policy steps. **This is why "the guard
-is the only path" is not yet a true invariant.**
+`MemoryClient::profile_conn()` used to hand a raw
+`Arc<Mutex<rusqlite::Connection>>` to three domains outside the memory family,
+two of which wrote SQL inline at the call site. It is now
+`pub(in crate::openhuman::memory)` with a single caller — `profile_store()`,
+which wraps it in a typed `ProfileStore` (`memory/store/profile_store.rs`). Every
+SQL statement against `user_profile` is inside the memory family, and the
+compiler enforces that; `client_tests.rs::profile_conn_is_confined_to_the_memory_family`
+restates the rule in a form that names the offending file.
 
-| Path | Sites |
-| --- | --- |
-| `memory/sync/composio/providers/profile.rs` | 5 |
-| `agent/learning/schemas.rs` | 3 |
-| `agent/learning/tools.rs` | 1 |
-| `agent/learning/startup.rs` | 2 |
-| `memory/store/client_tests.rs` | 2 (test) |
+**That is confinement, not policy.** The contract has no profile/facet
+capability family, so these reads and writes still run beneath all seven steps —
+no tier check, no source scope, no taint, no redaction, no budget, no audit
+event. **This is why "the guard is the only path" is still not a true
+invariant.** Closing it needs a fourteenth family in `tinycortex_api`, or a
+host-side half-measure where `ProfileStore` consults `GuardPolicy` directly —
+which would make a `readonly` tier start rejecting learning-cache rebuilds and
+composio identity persistence, a behaviour change with its own blast radius.
 
-The brief named only the first two files. The other two were found by grep and
-are recorded here so M4c starts from the real set.
+The `.profile_store(` needle exists so the count does not vanish by rename: the
+number of unguarded profile call sites did not drop, only their shape changed.
+
+| Path | Pattern | Sites |
+| --- | --- | --- |
+| `memory/store/client.rs` | `.profile_conn(` | 1 (the wrap site) |
+| `memory/sync/composio/providers/profile.rs` | `.profile_store(` | 4 |
+| `agent/learning/schemas.rs` | `.profile_store(` | 3 |
+| `agent/learning/tools.rs` | `.profile_store(` | 1 |
+| `agent/learning/startup.rs` | `.profile_store(` | 2 |
+
+A second write path into `user_profile` is **not** covered by either needle:
+`agent/harness/archivist/lifecycle.rs` calls `profile::profile_upsert` on a
+connection injected at construction. It has no production construction site
+today (only `archivist_tests.rs` and `test_constructors.rs` build one), so it is
+inert — but it is a fresh unlinted write path the moment anyone wires it up.
 
 ### C. Needs a concrete engine type the contract does not expose
 
@@ -146,13 +167,15 @@ module).
 ## Honest scorecard
 
 Four of the twenty-eight `active_memory_client()` call sites now route through
-the guard. Eleven non-test `profile_conn()` sites and twelve non-test
-`memory_handle()` sites still hand out raw handles. The defensible claim for M4
-is therefore:
+the guard. Raw `profile_conn()` no longer leaves the memory family — but the ten
+profile/facet call sites it fed are still unguarded, now through a typed
+`ProfileStore`, and twelve non-test `memory_handle()` sites still hand out raw
+handles. The defensible claim is therefore:
 
 > Every memory RPC handler whose contract twin is a literal delegation now
 > routes through the guard, and every remaining bypass is enumerated here with
 > a reason and pinned by a drift guard.
 
 "Impossible to skip by construction" is **not** true until `memory_handle()`
-and `profile_conn()` are gone.
+is gone and the profile/facet tables have a capability family to be guarded
+against.
