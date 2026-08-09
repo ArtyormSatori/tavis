@@ -7,9 +7,9 @@ use std::path::Path;
 use serde::Serialize;
 
 use super::store;
-use super::GoalsDoc;
 use crate::openhuman::config::Config;
 use crate::rpc::RpcOutcome;
+use tinycortex_api::goals::GoalsDoc;
 
 /// Result of an add operation: the new id plus the full updated list.
 #[derive(Debug, Serialize)]
