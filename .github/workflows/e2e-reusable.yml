@@ -231,6 +231,16 @@ jobs:
           cache-on-failure: true
           key: e2e-linux-unified
 
+      # The bare Linux E2E binary dynamically loads CEF from this cache. Save
+      # it from the producer before its fan-out shards start on fresh runners.
+      - name: Cache CEF binary distribution
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/tauri-cef
+          key: cef-x86_64-unknown-linux-gnu-${{ hashFiles('app/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cef-x86_64-unknown-linux-gnu-
+
       - name: Install JS dependencies
         run: bash scripts/ci-cancel-aware.sh pnpm install --frozen-lockfile
 
@@ -298,6 +308,16 @@ jobs:
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             pnpm-store-${{ runner.os }}-
+
+      # The build artifact intentionally contains only the executable and
+      # frontend dist. Restore its shared CEF runtime alongside it.
+      - name: Cache CEF binary distribution
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/tauri-cef
+          key: cef-x86_64-unknown-linux-gnu-${{ hashFiles('app/src-tauri/Cargo.toml') }}
+          restore-keys: |
+            cef-x86_64-unknown-linux-gnu-
 
       - name: Cache Appium global install
         uses: actions/cache@v6
