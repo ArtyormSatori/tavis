@@ -429,7 +429,9 @@ async fn restart_app(app: tauri::AppHandle<AppRuntime>) -> Result<(), String> {
 fn get_active_user_id() -> Result<Option<String>, String> {
     let root = openhuman_core::openhuman::config::default_root_openhuman_dir()
         .map_err(|err| format!("resolve active-user state directory: {err}"))?;
-    Ok(openhuman_core::openhuman::config::read_active_user_id(&root))
+    Ok(openhuman_core::openhuman::config::read_active_user_id(
+        &root,
+    ))
 }
 
 /// Information about an available shell-app update returned to the frontend.
