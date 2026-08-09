@@ -104,17 +104,21 @@ describe('Webhook tunnel CRUD (UI + core RPC + mock backend)', () => {
   it('creates a tunnel → lists → deletes, with matching mock-backend traffic', async () => {
     // Wait for the deep-link listener's async `storeSession()` to settle before
     // exercising tunnel RPCs (webhooks ops require a stored session token).
-    await browser.waitUntil(
-      async () => {
-        const probe = await callOpenhumanRpc('openhuman.webhooks_list_tunnels', {});
-        return probe.ok;
-      },
-      {
-        timeout: 15_000,
-        interval: 500,
-        timeoutMsg: 'Session did not settle: webhooks_list_tunnels never returned ok',
-      }
-    );
+    let lastProbe: unknown;
+    try {
+      await browser.waitUntil(
+        async () => {
+          const probe = await callOpenhumanRpc('openhuman.webhooks_list_tunnels', {});
+          lastProbe = probe;
+          return probe.ok;
+        },
+        { timeout: 15_000, interval: 500 }
+      );
+    } catch {
+      throw new Error(
+        `Session did not settle: webhooks_list_tunnels never returned ok: ${JSON.stringify(lastProbe)}`
+      );
+    }
 
     // --- create ---------------------------------------------------------------
     clearRequestLog();
