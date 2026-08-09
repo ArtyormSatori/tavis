@@ -112,24 +112,10 @@ impl Tool for MemoryToolsPutTool {
             ToolMemorySource::UserExplicit,
         );
         rule.tags = parsed.tags;
-        let rule_id = rule.id.clone();
-        let tool_name = rule.tool_name.clone();
-        family
-            .put_tool_rule(rule)
+        let stored = family
+            .put_rule(rule)
             .await
             .map_err(|e| anyhow::anyhow!("memory_tools_put: {e}"))?;
-        // `put_tool_rule` answers with unit; the tool's contract is the stored
-        // rule (normalised tool_name, preserved created_at, refreshed
-        // updated_at), so read it back by the id generated above.
-        let stored = family
-            .tool_rules(&tool_name)
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_tools_put: {e}"))?
-            .into_iter()
-            .find(|r| r.id == rule_id)
-            .ok_or_else(|| {
-                anyhow::anyhow!("memory_tools_put: stored rule {rule_id} not found on read-back")
-            })?;
         log::debug!(
             "[tool][memory_tools] put via guard tool_name={} id={} read_back=ok",
             stored.tool_name,
