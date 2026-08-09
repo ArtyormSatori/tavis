@@ -203,7 +203,18 @@ describe('Settings - Feature Preferences', function () {
       );
       return;
     }
-    await customVoiceInput.setValue('voice-e2e-custom');
+    await browser.execute(() => {
+      const input = document.querySelector<HTMLInputElement>('[data-testid="mascot-voice-input"]');
+      if (!input) return;
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value'
+      )?.set;
+      if (setter) setter.call(input, 'voice-e2e-custom');
+      else input.value = 'voice-e2e-custom';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     expect(await clickSelector('[data-testid="mascot-voice-save-paste"]')).toBeDefined();
     await browser.waitUntil(async () => (await mascotVoiceIdFromStore()) === 'voice-e2e-custom', {
       timeout: 10_000,
