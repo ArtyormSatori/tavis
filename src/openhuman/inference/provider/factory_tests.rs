@@ -1108,7 +1108,7 @@ async fn openhuman_jwt_slug_discloses_pinned_model() {
         .expect("managed model should build");
 
     let sentinel = "egress-jwt-pinned-sentinel-end";
-    BUS.publish(DomainEvent::ExternalTransferPending {
+    crate::core::bus::BUS.publish(DomainEvent::ExternalTransferPending {
         descriptor: EgressDescriptor::network_fetch(sentinel),
         thread_id: None,
         client_id: None,
@@ -1325,7 +1325,6 @@ fn crate_native_chat_model_factory_preserves_invalid_route_diagnostics() {
 /// Complements the isolated emit unit tests in `security::egress`.
 #[tokio::test]
 async fn from_string_external_provider_emits_egress_realpath() {
-    use crate::core::bus::BUS;
     use crate::core::events::DomainEvent;
     use crate::openhuman::security::egress::EgressReason;
 
