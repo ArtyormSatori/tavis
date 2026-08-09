@@ -334,8 +334,21 @@ impl CoreProcessHandle {
                     }
                 }
 
-                if received_ready && self.is_rpc_port_open().await {
-                    log::info!("[core] core rpc became ready at {}", self.rpc_url());
+                if self.is_rpc_port_open().await {
+                    if received_ready {
+                        log::info!("[core] core rpc became ready at {}", self.rpc_url());
+                    } else {
+                        // The task is ours (the preferred listener was checked
+                        // before spawning it), and the embedded server has a
+                        // live loopback listener. Treat that as readiness when
+                        // the one-shot notification is lost under desktop CI
+                        // startup contention; otherwise a healthy core is
+                        // aborted after the full timeout.
+                        log::warn!(
+                            "[core] core RPC listener became reachable before the embedded ready signal at {}; continuing",
+                            self.rpc_url()
+                        );
+                    }
                     return Ok(());
                 }
 
@@ -388,8 +401,15 @@ impl CoreProcessHandle {
                     received_ready = true;
                 }
             }
-            if received_ready && self.is_rpc_port_open().await {
-                log::info!("[core] core rpc became ready at {}", self.rpc_url());
+            if self.is_rpc_port_open().await {
+                if !received_ready {
+                    log::warn!(
+                        "[core] core RPC listener became reachable before the embedded ready signal at {}; continuing",
+                        self.rpc_url()
+                    );
+                } else {
+                    log::info!("[core] core rpc became ready at {}", self.rpc_url());
+                }
                 return Ok(());
             }
 
