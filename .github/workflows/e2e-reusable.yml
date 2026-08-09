@@ -160,6 +160,7 @@ jobs:
       - name: Build E2E app
         env:
           CEF_PATH: ${{ runner.temp }}/tauri-cef
+          E2E_FORCE_CARGO_CLEAN: "1"
         run: bash scripts/ci-cancel-aware.sh pnpm --filter openhuman-app test:e2e:build
 
       - name: Run E2E (${{ inputs.spec_label }})
