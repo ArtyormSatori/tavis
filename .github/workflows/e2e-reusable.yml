@@ -440,10 +440,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 24.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -556,10 +556,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 24.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -653,10 +653,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 24.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -768,10 +768,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 24.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: pnpm
 
       - name: Cache Appium global install
@@ -882,10 +882,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 24.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: pnpm
 
       - name: Install Rust (rust-toolchain.toml)
@@ -965,10 +965,10 @@ jobs:
         with:
           version: 10.10.0
 
-      - name: Setup Node.js 24.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: pnpm
 
       - name: Cache Appium global install
