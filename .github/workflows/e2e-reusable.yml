@@ -252,7 +252,7 @@ jobs:
           mkdir -p "$STAGE/repo/app/dist"
           cp -a app/src-tauri/target/debug/OpenHuman "$STAGE/repo/app/src-tauri/target/debug/"
           cp -a app/dist/. "$STAGE/repo/app/dist/"
-          CEF_LIB="$(ldd app/src-tauri/target/debug/OpenHuman | awk '/libcef\.so/ { print $3; exit }')"
+          CEF_LIB="$(find target app/src-tauri/target -type f -name libcef.so -print -quit)"
           test -n "$CEF_LIB" -a -f "$CEF_LIB"
           mkdir -p "$STAGE/repo/.e2e/cef"
           cp -a "$(dirname "$(dirname "$CEF_LIB")")" "$STAGE/repo/.e2e/cef/"
