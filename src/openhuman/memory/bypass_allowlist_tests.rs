@@ -399,27 +399,6 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         "global::client_if_ready(",
         "the TinyCortex engine seam; it sits beneath the contract, not above it",
     ),
-    // ── Agent tools — deferred to M5's capability filter ──
-    (
-        "src/openhuman/memory/tool_memory/tools/list.rs",
-        ".memory_handle(",
-        "builds ToolMemoryStore; re-pointable via as_tool_memory(), deferred to M5",
-    ),
-    (
-        "src/openhuman/memory/tool_memory/tools/list.rs",
-        "active_memory_client(",
-        "same tool; M5 filters the tool surface by capability and would collide",
-    ),
-    (
-        "src/openhuman/memory/tool_memory/tools/put.rs",
-        ".memory_handle(",
-        "builds ToolMemoryStore; re-pointable via as_tool_memory(), deferred to M5",
-    ),
-    (
-        "src/openhuman/memory/tool_memory/tools/put.rs",
-        "active_memory_client(",
-        "same tool; M5 filters the tool surface by capability and would collide",
-    ),
 ];
 
 /// True for source files the lint deliberately does not scan.
