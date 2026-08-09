@@ -158,9 +158,6 @@ jobs:
           bash scripts/ci-cancel-aware.sh appium driver install --source=npm appium-chromium-driver >/dev/null 2>&1 || true
 
       - name: Build E2E app
-        env:
-          CEF_PATH: ${{ runner.temp }}/tauri-cef
-          E2E_FORCE_CARGO_CLEAN: "1"
         run: bash scripts/ci-cancel-aware.sh pnpm --filter openhuman-app test:e2e:build
 
       - name: Run E2E (${{ inputs.spec_label }})
@@ -255,10 +252,6 @@ jobs:
           mkdir -p "$STAGE/repo/app/dist"
           cp -a app/src-tauri/target/debug/OpenHuman "$STAGE/repo/app/src-tauri/target/debug/"
           cp -a app/dist/. "$STAGE/repo/app/dist/"
-          CEF_ROOT="${RUNNER_TEMP}/tauri-cef"
-          test -d "$CEF_ROOT"
-          mkdir -p "$STAGE/repo/.e2e/cef"
-          cp -a "$CEF_ROOT"/. "$STAGE/repo/.e2e/cef/"
           tar -czf e2e-build-linux.tar.gz -C "$STAGE" repo
           ls -lh e2e-build-linux.tar.gz
 
@@ -338,8 +331,6 @@ jobs:
           mkdir -p app/src-tauri/target/debug app/dist
           cp -a repo/app/src-tauri/target/debug/OpenHuman app/src-tauri/target/debug/
           cp -a repo/app/dist/. app/dist/
-          mkdir -p .e2e
-          cp -a repo/.e2e/cef .e2e/
           rm -rf repo e2e-build-linux.tar.gz
           chmod +x app/src-tauri/target/debug/OpenHuman
           ls -la app/src-tauri/target/debug/OpenHuman app/dist | head
@@ -347,7 +338,6 @@ jobs:
       - name: Run E2E shard (${{ matrix.shard.name }} — suites=${{ matrix.shard.suites }})
         env:
           E2E_BAIL_ON_FAILURE: ${{ vars.E2E_BAIL_ON_FAILURE || '' }}
-          CEF_PATH: ${{ github.workspace }}/.e2e/cef
         run: |
           BAIL_FLAG=""
           if [[ "${E2E_BAIL_ON_FAILURE:-}" == "1" ]]; then
