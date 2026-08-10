@@ -1151,15 +1151,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cmake"
-version = "0.1.58"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0f78a02292a74a88ac736019ab962ece0bc380e3f977bf72e376c5d78ff0678"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "cocoa"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5213,7 +5204,6 @@ dependencies = [
  "curve25519-dalek",
  "directories 6.0.0",
  "dirs 5.0.1",
- "docx-rs",
  "dotenvy",
  "ed25519-dalek",
  "enigo",
@@ -5265,13 +5255,19 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "tinyagents",
+ "tinybus",
  "tinychannels",
  "tinycortex",
  "tinycortex-api",
+ "tinydocs",
  "tinyflows",
  "tinyhumans-sdk",
  "tinyjuice",
+ "tinymemory",
+ "tinymemory-api",
+ "tinymemory-tinycortex",
  "tinyplace",
+ "tinywallet",
  "tokio",
  "tokio-stream",
  "tokio-tungstenite 0.29.0",
@@ -7110,7 +7106,6 @@ version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
- "indexmap 2.14.0",
  "itoa",
  "memchr",
  "serde",
@@ -8344,6 +8339,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinybus"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tinybus-macros",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "tinybus-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "tinychannels"
 version = "0.1.0"
 dependencies = [
@@ -8429,6 +8446,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinydocs"
+version = "0.1.0"
+dependencies = [
+ "docx-rs",
+ "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "tinyflows"
 version = "0.6.0"
 dependencies = [
@@ -8484,6 +8510,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinymemory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "log",
+ "serde",
+ "serde_json",
+ "tinymemory-api",
+]
+
+[[package]]
+name = "tinymemory-api"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.18",
+ "uuid 1.23.1",
+]
+
+[[package]]
+name = "tinymemory-tinycortex"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "tinycortex",
+ "tinymemory",
+ "tinymemory-api",
+]
+
+[[package]]
 name = "tinyplace"
 version = "2.0.4"
 dependencies = [
@@ -8534,6 +8597,25 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tinywallet"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bitcoin",
+ "bs58",
+ "coins-bip39",
+ "ed25519-dalek",
+ "hex",
+ "hmac",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "sha3",
+ "thiserror 2.0.18",
+ "zeroize",
+]
 
 [[package]]
 name = "tokio"
