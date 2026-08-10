@@ -322,6 +322,22 @@ APP_BIN="$(resolve_app_binary)"
 # webview through tauri-driver instead of waiting for a Chromium CDP endpoint.
 if [ "$OS" = "Linux" ] && [ "${E2E_USE_TAURI_DRIVER:-0}" = "1" ]; then
   TAURI_DRIVER_PORT="${TAURI_DRIVER_PORT:-4444}"
+  # Each spec gets a fresh Tauri-driver process. A previous driver can take a
+  # moment to relinquish its listening socket after its parent shell exits;
+  # treating its /status response as readiness for the new process sends WDIO
+  # to a stale session manager, where POST /session eventually times out.
+  # Keep the conventional port when it is free, but use an ephemeral one when
+  # it is still occupied so the readiness probe always identifies this launch.
+  if curl -sf "http://127.0.0.1:$TAURI_DRIVER_PORT/status" >/dev/null 2>&1; then
+    TAURI_DRIVER_PORT="$(python3 -c '
+import socket
+sock = socket.socket()
+sock.bind(("127.0.0.1", 0))
+print(sock.getsockname()[1])
+sock.close()
+')"
+    echo "[runner] Default Tauri-driver port is occupied; using $TAURI_DRIVER_PORT"
+  fi
   TAURI_DRIVER_LOG="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/tauri-driver-${LOG_SUFFIX}.log"
   echo "[runner] Starting tauri-driver on port $TAURI_DRIVER_PORT"
   tauri-driver --port "$TAURI_DRIVER_PORT" --native-driver "${WEBKIT_WEBDRIVER:-/usr/bin/WebKitWebDriver}" \
