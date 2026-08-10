@@ -121,7 +121,10 @@ impl MemoryHostConfig for Config {
     }
 
     fn sqlite_open_timeout_secs(&self) -> Option<u64> {
-        self.sqlite_open_timeout_secs()
+        // Fully qualified: `Config` has an inherent method of the same name,
+        // and `self.sqlite_open_timeout_secs()` would resolve back to this
+        // trait method and recurse.
+        Config::sqlite_open_timeout_secs(self)
     }
 
     fn onboarding_completed(&self) -> bool {
