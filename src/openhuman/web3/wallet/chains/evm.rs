@@ -535,3 +535,21 @@ mod tests {
         assert!(sent, "expected eth_sendRawTransaction call");
     }
 }
+
+#[cfg(test)]
+mod parity_probe {
+    use super::*;
+    #[test]
+    fn probe() {
+        for c in [
+            "0x52908400098527886E0F7030069857D2E4169EE7",
+            "52908400098527886E0F7030069857D2E4169EE7",
+            "0X52908400098527886E0F7030069857D2E4169EE7",
+            "0x52908400098527886e0f7030069857d2e4169ee7",
+            "0xdeadbeef",
+            "0x52908400098527886E0F7030069857D2E4169EEZ",
+        ] {
+            println!("PROBE {:?} => {:?}", c, validate_evm_address(c).is_ok());
+        }
+    }
+}
