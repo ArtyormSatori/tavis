@@ -334,13 +334,15 @@ pub async fn lookup_tx(network: EvmNetwork, hash: &str) -> Result<TxLookupInfo, 
     })
 }
 
+/// Validate an EVM address (20 bytes, 40 hex digits, optional `0x`).
+///
+/// Delegates to the vendored [`tinywallet`] crate, which owns the address
+/// format; this wrapper keeps the `Result<_, String>` shape the rest of the
+/// domain speaks. Accepts exactly what the previous `ethers-core` based check
+/// accepted — prefixed, unprefixed, and any hex case, but not an uppercase
+/// `0X` prefix.
 pub fn validate_evm_address(addr: &str) -> Result<String, String> {
-    let trimmed = addr.trim();
-    if trimmed.is_empty() {
-        return Err("address is empty".to_string());
-    }
-    Address::from_str(trimmed).map_err(|e| format!("invalid EVM address '{trimmed}': {e}"))?;
-    Ok(trimmed.to_string())
+    tinywallet::address::evm::validate(addr).map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -536,20 +538,3 @@ mod tests {
     }
 }
 
-#[cfg(test)]
-mod parity_probe {
-    use super::*;
-    #[test]
-    fn probe() {
-        for c in [
-            "0x52908400098527886E0F7030069857D2E4169EE7",
-            "52908400098527886E0F7030069857D2E4169EE7",
-            "0X52908400098527886E0F7030069857D2E4169EE7",
-            "0x52908400098527886e0f7030069857d2e4169ee7",
-            "0xdeadbeef",
-            "0x52908400098527886E0F7030069857D2E4169EEZ",
-        ] {
-            println!("PROBE {:?} => {:?}", c, validate_evm_address(c).is_ok());
-        }
-    }
-}

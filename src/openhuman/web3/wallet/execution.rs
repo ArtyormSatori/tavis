@@ -331,21 +331,26 @@ pub(crate) fn validate_amount(raw: &str) -> Result<u128, String> {
         .map_err(|_| format!("amount '{trimmed}' is not a valid non-negative integer"))
 }
 
+/// Validate `addr` for `chain`, returning it trimmed.
+///
+/// Every arm delegates to the vendored [`tinywallet`] crate, which owns the
+/// four address formats. The dispatch stays here rather than calling
+/// `tinywallet::address::validate` directly because [`WalletChain`] is
+/// OpenHuman's enum, and mapping it onto `tinywallet::Chain` here keeps that
+/// translation in one place.
+///
+/// For Bitcoin this is the **recipient** rule — any well-formed mainnet
+/// address. Sender addresses go through `chain_btc::validate_btc_sender_address`,
+/// which additionally requires P2WPKH; the distinction has no equivalent on
+/// the other three chains, so it cannot be expressed through this entry point.
 fn validate_address(chain: WalletChain, addr: &str) -> Result<String, String> {
-    let trimmed = addr.trim();
-    if trimmed.is_empty() {
-        return Err("address is empty".to_string());
-    }
-    match chain {
-        WalletChain::Evm => {
-            Address::from_str(trimmed)
-                .map_err(|e| format!("invalid EVM address '{trimmed}': {e}"))?;
-            Ok(trimmed.to_string())
-        }
-        WalletChain::Btc => chain_btc::validate_btc_address(trimmed),
-        WalletChain::Solana => chain_sol::validate_solana_address(trimmed),
-        WalletChain::Tron => chain_tron::validate_tron_address(trimmed),
-    }
+    let tw_chain = match chain {
+        WalletChain::Evm => tinywallet::Chain::Evm,
+        WalletChain::Btc => tinywallet::Chain::Btc,
+        WalletChain::Solana => tinywallet::Chain::Solana,
+        WalletChain::Tron => tinywallet::Chain::Tron,
+    };
+    tinywallet::address::validate(tw_chain, addr).map_err(|e| e.to_string())
 }
 
 pub(crate) fn validate_calldata(data: &str) -> Result<String, String> {
