@@ -3,9 +3,20 @@ import createDebug from 'debug';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchVoiceAgentSignedUrl } from '../../../services/api/voiceAgentApi';
+import { socketService } from '../../../services/socketService';
 import { MASCOT_VOICE_ID } from '../../../utils/config';
 
 const log = createDebug('app:human:realtime-voice');
+
+/**
+ * Instruction prefix for "speak-back". A slow voice turn (e.g. an email summary)
+ * is acknowledged aloud, finishes in the background, and its result is delivered
+ * to chat AND pushed here as a `voice_speak` event. We send it back into the live
+ * ElevenLabs session as a user message wrapped with this prefix so the agent reads
+ * it verbatim. MUST match `VOICE_READBACK_PREFIX` in `voice/realtime_harness.rs`,
+ * which uses it to avoid re-arming speak-back on the read-back turn (loop guard).
+ */
+const READBACK_PREFIX = 'Please read the following to me, word for word, and say nothing else:';
 
 /**
  * Lifecycle of a realtime ElevenLabs Agents voice session (#5399).
@@ -124,6 +135,25 @@ export function useRealtimeVoiceSession(opts?: { voiceId?: string }): RealtimeVo
     },
     []
   );
+
+  // Speak-back: a slow voice turn (email/calendar summary) is acknowledged aloud,
+  // finishes in the background, and the core emits its result as a `voice_speak`
+  // event. While the call is still open, read it aloud by sending it back into the
+  // live ElevenLabs session wrapped in the verbatim prefix (a fast read-back turn).
+  // The result also lands in chat regardless (delivered core-side) — this is the
+  // spoken copy. Refs keep the subscription set up once while always seeing the
+  // live conversation and liveness.
+  useEffect(() => {
+    const handler = (payload: unknown) => {
+      if (!liveRef.current) return; // call already ended — the chat copy stands alone
+      const text = (payload as { full_response?: string } | undefined)?.full_response?.trim();
+      if (!text) return;
+      log('speak-back: reading deferred result aloud (%d chars)', text.length);
+      conversationRef.current.sendUserMessage(`${READBACK_PREFIX}\n\n${text}`);
+    };
+    socketService.on('voice_speak', handler);
+    return () => socketService.off('voice_speak', handler);
+  }, []);
 
   return {
     state,

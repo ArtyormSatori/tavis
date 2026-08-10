@@ -8,10 +8,8 @@ import {
   selectCustomSecondaryColor,
   selectMascotColor,
   selectSpeakReplies,
-  selectVoiceMode,
   setSpeakReplies,
 } from '../../store/mascotSlice';
-import { VOICE_MODE_FLAG_ENABLED } from '../../utils/config';
 import Conversations from '../conversations/Conversations';
 import {
   CustomGifMascot,
@@ -35,8 +33,8 @@ const HumanPage = () => {
   const speakReplies = useAppSelector(selectSpeakReplies);
 
   const { face, visemeCode } = useHumanMascot({ speakReplies });
-  const voiceMode = useAppSelector(selectVoiceMode);
-  const realtimeEnabled = VOICE_MODE_FLAG_ENABLED && voiceMode === 'realtime';
+  // Realtime voice controls are always shown — no settings/flag gate.
+  const realtimeEnabled = true;
   const mascotColor = useAppSelector(selectMascotColor);
   const customPrimary = useAppSelector(selectCustomPrimaryColor);
   const customSecondary = useAppSelector(selectCustomSecondaryColor);

@@ -21,10 +21,21 @@ use serde_json::{json, Value};
 use tokio::sync::Semaphore;
 
 use crate::openhuman::agent::harness::session::Agent;
+use crate::openhuman::agent::progress::AgentProgress;
 use crate::openhuman::agent::turn_origin::{with_origin, AgentTurnOrigin};
 use crate::openhuman::platform::socket::manager::global_socket_manager;
 
 const TURN_TIMEOUT_SECS: u64 = 90;
+
+/// How long a voice turn may run before we stop making the caller wait and hand
+/// the result off to chat. The cloud voice session cancels a turn with no spoken
+/// token in ~11-12s, and a slow tool action (email/calendar summary can be
+/// 20-30s of Composio round-trips) will never fit that window. Once this elapses
+/// we close the voice turn cleanly — the spoken acknowledgement has already
+/// streamed — and let the orchestrator finish in the background, delivering its
+/// answer into the user's in-app chat. Sits comfortably under the provider's
+/// cancel deadline so `done` always beats the cut.
+const VOICE_ACK_DEADLINE_SECS: u64 = 8;
 
 /// Voice-scoped transcript namespace. Building a fresh orchestrator per turn
 /// would otherwise resume the *chat* orchestrator's latest transcript by name,
@@ -32,6 +43,48 @@ const TURN_TIMEOUT_SECS: u64 = 90;
 /// dedicated name isolates voice from chat; multi-turn context comes from the
 /// relayed `messages` we seed below, not from this resume path.
 const VOICE_AGENT_NAME: &str = "voice";
+
+/// Model pinned for realtime voice turns. The cloud voice session cancels a turn
+/// that has produced no spoken token in ~11-12s ("Generating the LLM response
+/// took too long"), and the orchestrator's default reasoning model spends that
+/// whole budget *thinking* before its first word. `chat-v1` (DeepSeek-V4-Flash,
+/// thinking off) is a short-turn, tool-capable SKU: the master still routes
+/// delegation through the prompt (per-turn classification is disabled — see the
+/// model pin in `agent/harness/session/turn/core.rs`), so tool turns keep working
+/// while spoken replies start in ~1s instead of ~6s. Reasoning models are the
+/// wrong tool for a latency-capped realtime channel.
+const VOICE_MODEL: &str = "chat-v1";
+
+/// Instruction prefix used for "speak-back": when a deferred result is ready, the
+/// renderer's live voice session sends it back as a user message wrapped with this
+/// prefix so the agent reads it aloud verbatim. The core recognises the prefix to
+/// avoid re-arming speak-back on the read-back turn itself (which would loop). MUST
+/// match the string the renderer prepends (`useRealtimeVoiceSession.ts`).
+const VOICE_READBACK_PREFIX: &str =
+    "Please read the following to me, word for word, and say nothing else:";
+
+/// Chat thread + client id the voice turn scopes as its approval / routing
+/// surface, mirroring `deliver_voice_result_to_chat`. Setting these around the
+/// turn (via `APPROVAL_CHAT_CONTEXT` + `with_thread_id`) is what makes the voice
+/// orchestrator behave like the chat path for tools that need a *routable*
+/// approval surface:
+///
+/// - `composio_connect` fails closed with a `[policy-denied] … needs an
+///   interactive chat turn` message whenever `APPROVAL_CHAT_CONTEXT` is absent
+///   (see `integrations/composio/tools.rs`). On voice that message got
+///   paraphrased back to the user as "your Gmail connection is throwing an auth
+///   error, reconnect it" — the exact voice-only Gmail-summary failure — even
+///   though the same request works in tap-and-speak (a `WebChat` turn, which
+///   installs this context). With the context set, the tool reaches its
+///   already-connected short-circuit and returns success instead.
+/// - external_effect tool approvals raised on the `ExternalChannel` turn now
+///   have a thread card to route to (the same `proactive:voice` thread where
+///   deferred voice answers land) rather than silently TTL-denying.
+/// - `with_thread_id` gives async delegation (`spawn_async_subagent`) the
+///   `parent_thread_id` it requires and aligns inference logs / KV-cache with
+///   the voice thread.
+const VOICE_CHAT_THREAD_ID: &str = "proactive:voice";
+const VOICE_CHAT_CLIENT_ID: &str = "system";
 
 /// Cap on concurrent local-agent turns driven by the relay. Each turn loads
 /// config, builds a full orchestrator, and runs for up to `TURN_TIMEOUT_SECS`,
@@ -97,9 +150,21 @@ fn messages_to_history_pairs(messages: &[Value]) -> Vec<(String, String)> {
 
 /// Spoken-output directive appended to the orchestrator profile so replies read
 /// naturally through TTS instead of as markdown.
+///
+/// The tool-preface clause is latency-critical, not cosmetic: the cloud realtime
+/// session enforces a per-response time ceiling, and a turn that delegates (email,
+/// calendar, files) produces no top-level assistant text until the sub-agent
+/// returns 10-20s later — past the ceiling. Emitting one short spoken sentence
+/// first makes the model stream an immediate `TextDelta`, so audio reaches the
+/// caller right away and the turn stays alive while the tool runs.
 const VOICE_DIRECTIVE: &str = "You are speaking aloud in a live voice conversation. \
 Reply in natural, concise spoken sentences. Do not use markdown, code blocks, \
-bullet lists, headings, or emoji.";
+bullet lists, headings, or emoji. Before you use a tool or delegate (for example \
+to check email, a calendar, files, or the web), first say one short spoken \
+sentence telling the user what you are doing — and, because those actions can take \
+a while, that you will put the details in their chat — then proceed. Example: \
+\"Sure, let me pull up your inbox — I'll drop the summary in your chat.\" Keep that \
+preface to one sentence so it starts speaking immediately.";
 
 /// Extract the user prompt from an OpenAI-style `messages` array: the content of
 /// the last `user` message. Content may be a plain string or an array of
@@ -125,9 +190,13 @@ fn content_to_text(content: Option<&Value>) -> String {
     }
 }
 
-/// Handle one relayed voice turn end to end: run the orchestrator and emit the
-/// reply back up the socket. Never panics — every failure path emits
-/// `voice:harness:error` so the backend relay ends the turn cleanly.
+/// Handle one relayed voice turn end to end. The reply streams token-by-token
+/// back up the socket as it is produced. A turn that finishes inside the voice
+/// window is spoken in full; a slow tool action (email/calendar summary — tens of
+/// seconds of Composio round-trips) is acknowledged aloud, then finishes in the
+/// background and delivers its answer into the user's in-app chat. Never panics —
+/// every failure path emits `voice:harness:error` (or a clean `done`) so the
+/// backend relay ends the turn cleanly.
 pub async fn handle_voice_harness_turn(correlation_id: String, messages: Vec<Value>) {
     let prompt = extract_prompt(&messages);
     if prompt.trim().is_empty() {
@@ -135,44 +204,202 @@ pub async fn handle_voice_harness_turn(correlation_id: String, messages: Vec<Val
         return;
     }
 
-    // Deduplicate a re-delivered turn (relay retry) before doing any work.
-    let Some(_in_flight) = InFlightGuard::claim(&correlation_id) else {
+    // Deduplicate a re-delivered turn (relay retry) before doing any work. Owned
+    // so it can move into the background continuation and track the real turn.
+    let Some(in_flight) = InFlightGuard::claim(&correlation_id) else {
         warn!("[voice-harness] duplicate turn correlation={correlation_id} already in flight — dropping");
         return;
     };
 
-    // Bound concurrent heavy agent turns; excess turns queue here rather than
-    // spawning unbounded orchestrators. Held for the duration of the turn.
-    let _permit = VOICE_TURN_LIMITER.acquire().await;
+    // Bound concurrent heavy agent turns; excess turns queue here. Owned so it is
+    // held for the REAL turn lifetime (including any background tail), not just the
+    // shortened spoken ack — which also caps the retry storm when the provider
+    // re-sends a turn it thinks stalled.
+    let permit = match VOICE_TURN_LIMITER.clone().acquire_owned().await {
+        Ok(permit) => permit,
+        Err(_) => {
+            emit_error(&correlation_id, "voice turn limiter unavailable").await;
+            return;
+        }
+    };
 
-    match run_agent_turn(&correlation_id, &messages, &prompt).await {
-        Ok(reply) => {
-            let spoken = reply.trim();
-            if !spoken.is_empty() {
-                emit_event(
-                    "voice:harness:delta",
-                    json!({ "correlationId": correlation_id, "text": spoken }),
-                )
-                .await;
+    // Stream the reply token-by-token: the orchestrator emits `TextDelta` as it
+    // generates, and `forward_reply_deltas` relays each as a `voice:harness:delta`
+    // so the spoken acknowledgement leaves the desktop immediately.
+    let (progress_tx, progress_rx) = tokio::sync::mpsc::channel::<AgentProgress>(256);
+    let forwarder = tokio::spawn(forward_reply_deltas(progress_rx, correlation_id.clone()));
+
+    // Run the turn on a detached task so it can outlive the spoken ack. A slow
+    // delegation keeps working after we close the voice turn and delivers its
+    // result into the user's chat. The task owns the agent, the concurrency
+    // permit, and the in-flight guard so that bookkeeping tracks the real turn.
+    let (result_tx, result_rx) = tokio::sync::oneshot::channel::<Result<String, String>>();
+    let turn_cid = correlation_id.clone();
+    let turn_messages = messages;
+    let turn_prompt = prompt;
+    tokio::spawn(async move {
+        let _in_flight = in_flight;
+        let _permit = permit;
+        let outcome = run_voice_turn(&turn_cid, &turn_messages, &turn_prompt, progress_tx).await;
+        // Hand the result to the foreground. If it already deferred (dropped the
+        // receiver at the ack deadline), the send fails and we deliver the reply
+        // into the user's chat instead.
+        if let Err(unsent) = result_tx.send(outcome) {
+            match unsent {
+                Ok(reply) => {
+                    // Arm speak-back only for a genuine deferred answer — never for a
+                    // read-back echo turn, or the spoken copy would loop forever.
+                    let allow_speak_back = should_arm_speak_back(&turn_prompt);
+                    deliver_voice_result_to_chat(&turn_cid, reply, allow_speak_back);
+                }
+                Err(err) => {
+                    warn!("[voice-harness] deferred turn failed correlation={turn_cid}: {err}")
+                }
             }
+        }
+    });
+
+    // Race the turn against the spoken-ack deadline.
+    match tokio::time::timeout(Duration::from_secs(VOICE_ACK_DEADLINE_SECS), result_rx).await {
+        Ok(Ok(outcome)) => {
+            // Finished inside the voice window — deltas already streamed. Join the
+            // forwarder so every delta is out before `done`, and learn whether
+            // anything streamed (fallback for a non-streaming reply).
+            let streamed_any = forwarder.await.unwrap_or(false);
+            match outcome {
+                Ok(reply) => {
+                    if !streamed_any {
+                        let spoken = reply.trim();
+                        if !spoken.is_empty() {
+                            emit_event(
+                                "voice:harness:delta",
+                                json!({ "correlationId": correlation_id, "text": spoken }),
+                            )
+                            .await;
+                        }
+                    }
+                    emit_event(
+                        "voice:harness:done",
+                        json!({ "correlationId": correlation_id }),
+                    )
+                    .await;
+                }
+                Err(err) => {
+                    warn!("[voice-harness] turn failed correlation={correlation_id}: {err}");
+                    emit_error(&correlation_id, &err).await;
+                }
+            }
+        }
+        Ok(Err(_recv)) => {
+            // Sender dropped without a value (task aborted). End cleanly.
             emit_event(
                 "voice:harness:done",
                 json!({ "correlationId": correlation_id }),
             )
             .await;
         }
-        Err(err) => {
-            warn!("[voice-harness] turn failed correlation={correlation_id}: {err}");
-            emit_error(&correlation_id, &err).await;
+        Err(_deadline) => {
+            // Still running (a slow tool action). The spoken ack has streamed, so
+            // close the voice turn cleanly; the detached task keeps going and
+            // delivers its answer into the user's chat. `timeout` consumed
+            // `result_rx`, so the task's send fails and takes the chat-delivery
+            // path. The forwarder is left running to keep draining progress — any
+            // late deltas reach a settled relay turn and are dropped harmlessly.
+            info!("[voice-harness] ack deadline reached, handing off to chat correlation={correlation_id}");
+            emit_event(
+                "voice:harness:done",
+                json!({ "correlationId": correlation_id }),
+            )
+            .await;
         }
     }
 }
 
-async fn run_agent_turn(
+/// Forward the orchestrator's streamed assistant text to the relay socket, one
+/// `voice:harness:delta` per top-level `AgentProgress::TextDelta`, until the
+/// turn's progress channel closes (the agent drops its sender when the turn
+/// ends). Returns whether any non-empty delta was streamed, so the caller can
+/// fall back to emitting the whole reply for a turn that produced text off the
+/// streaming path. Only top-level assistant text is voiced — sub-agent narration,
+/// thinking, tool-call args, and lifecycle events are deliberately not spoken.
+async fn forward_reply_deltas(
+    mut progress_rx: tokio::sync::mpsc::Receiver<AgentProgress>,
+    correlation_id: String,
+) -> bool {
+    let mut streamed_any = false;
+    while let Some(progress) = progress_rx.recv().await {
+        let Some(text) = spoken_delta(&progress) else {
+            continue;
+        };
+        // Skip only truly empty deltas — whitespace carries word boundaries and
+        // must be forwarded so the concatenated speech isn't run together.
+        if text.is_empty() {
+            continue;
+        }
+        streamed_any = true;
+        emit_event(
+            "voice:harness:delta",
+            json!({ "correlationId": correlation_id, "text": text }),
+        )
+        .await;
+    }
+    streamed_any
+}
+
+/// The spoken text carried by a progress event, or `None` for events that must
+/// not be voiced. Only the top-level assistant `TextDelta` is spoken; sub-agent
+/// deltas, thinking, tool-call args, and lifecycle events are internal. Pure +
+/// unit-tested.
+fn spoken_delta(progress: &AgentProgress) -> Option<&str> {
+    match progress {
+        AgentProgress::TextDelta { delta, .. } => Some(delta),
+        _ => None,
+    }
+}
+
+/// Whether a completed voice turn should arm speak-back — i.e. push its deferred
+/// answer back into the live session to be read aloud. A read-back turn is itself
+/// a verbatim-read request (its prompt is wrapped with [`VOICE_READBACK_PREFIX`]
+/// by the renderer), so re-arming speak-back on it would deliver the spoken copy
+/// to a turn that then asks to read it again — an unbounded loop. Suppress those.
+/// Pure + unit-tested; leading whitespace is tolerated because the renderer joins
+/// the prefix and payload with a blank line.
+fn should_arm_speak_back(prompt: &str) -> bool {
+    !prompt.trim_start().starts_with(VOICE_READBACK_PREFIX)
+}
+
+/// Build the fresh voice orchestrator, attach the streaming sink, run one turn
+/// under the hard per-turn ceiling, then detach the sink so the forwarder's
+/// channel closes. Runs entirely on the background task, so the ack deadline in
+/// the caller covers both the build and the model round-trips.
+async fn run_voice_turn(
     correlation_id: &str,
     messages: &[Value],
     prompt: &str,
+    progress_tx: tokio::sync::mpsc::Sender<AgentProgress>,
 ) -> Result<String, String> {
+    let mut agent = build_voice_agent(correlation_id, messages, prompt).await?;
+
+    // Attach the streaming sink before the turn: its presence switches the harness
+    // onto the true per-token streaming path, and each `AgentProgress::TextDelta`
+    // is forwarded to the relay socket by `forward_reply_deltas`.
+    agent.set_on_progress(Some(progress_tx));
+
+    let outcome = run_single_with_timeout(&mut agent, correlation_id, prompt).await;
+
+    // Detach the sink so the forwarder's channel closes the moment the turn ends,
+    // deterministically rather than waiting on `agent`'s drop.
+    agent.set_on_progress(None);
+    outcome
+}
+
+/// Construct the per-turn voice orchestrator: load config, pin the fast voice
+/// model, isolate the transcript namespace, and seed the relayed history.
+async fn build_voice_agent(
+    correlation_id: &str,
+    messages: &[Value],
+    prompt: &str,
+) -> Result<Agent, String> {
     let config = crate::openhuman::config::ops::load_config_with_timeout().await?;
     let mut agent = Agent::from_config_for_agent_with_profile(
         &config,
@@ -186,6 +413,9 @@ async fn run_agent_turn(
     // Isolate the voice transcript namespace from the chat orchestrator so a
     // fresh-per-turn agent can't resume an unrelated conversation by name.
     agent.set_agent_definition_name(VOICE_AGENT_NAME);
+    // Pin a fast, non-thinking model so the first spoken token lands inside the
+    // realtime session's response-time ceiling (see VOICE_MODEL).
+    agent.set_model_name(VOICE_MODEL);
 
     // Seed the authoritative prior turns the relay carries (OpenAI `messages`),
     // so follow-ups like "what about tomorrow?" keep their context. No-ops when
@@ -200,7 +430,31 @@ async fn run_agent_turn(
         prompt.chars().count(),
         messages.len()
     );
+    Ok(agent)
+}
 
+/// Run the orchestrator turn under the hard per-turn ceiling. The streaming sink
+/// must already be attached; deltas flow out while this runs.
+async fn run_single_with_timeout(
+    agent: &mut Agent,
+    correlation_id: &str,
+    prompt: &str,
+) -> Result<String, String> {
+    // Scope the turn with the SAME chat context the web-chat path installs
+    // (`APPROVAL_CHAT_CONTEXT` + `with_thread_id`), so approval-surfaced tools
+    // behave identically on voice. Without it `composio_connect` fails closed
+    // for lack of a routable surface, which the model paraphrases to the user as
+    // a confabulated "reconnect your Gmail" mid email-summary (#5399). See
+    // VOICE_CHAT_THREAD_ID for the full rationale. Nesting mirrors web chat:
+    // origin (outer) → approval context → thread id → the agent run.
+    let approval_ctx = crate::openhuman::security::approval::ApprovalChatContext {
+        thread_id: VOICE_CHAT_THREAD_ID.to_string(),
+        client_id: VOICE_CHAT_CLIENT_ID.to_string(),
+    };
+    let scoped_run = crate::openhuman::agent::tinyagents::thread_context::with_thread_id(
+        VOICE_CHAT_THREAD_ID,
+        agent.run_single(prompt),
+    );
     let fut = with_origin(
         AgentTurnOrigin::ExternalChannel {
             channel: "voice".to_string(),
@@ -208,7 +462,7 @@ async fn run_agent_turn(
             reply_target: correlation_id.to_string(),
             message_id: format!("voice-{correlation_id}"),
         },
-        agent.run_single(prompt),
+        crate::openhuman::security::approval::APPROVAL_CHAT_CONTEXT.scope(approval_ctx, scoped_run),
     );
 
     match tokio::time::timeout(Duration::from_secs(TURN_TIMEOUT_SECS), fut).await {
@@ -217,6 +471,47 @@ async fn run_agent_turn(
         Err(_) => Err(format!(
             "orchestrator turn timed out after {TURN_TIMEOUT_SECS}s"
         )),
+    }
+}
+
+/// Deliver a deferred voice turn's answer into the user's in-app chat. Publishes
+/// a `proactive_message` on the web-channel event bus — the same seam cron and the
+/// subconscious use — which the frontend renders as an assistant message in a
+/// visible thread. Web-only: it does not fan out to external channels (#5399).
+fn deliver_voice_result_to_chat(correlation_id: &str, reply: String, allow_speak_back: bool) {
+    let spoken = reply.trim();
+    if spoken.is_empty() {
+        warn!("[voice-harness] deferred turn produced no text correlation={correlation_id}");
+        return;
+    }
+    info!(
+        "[voice-harness] delivering deferred result to chat correlation={correlation_id} chars={} speak_back={allow_speak_back}",
+        spoken.chars().count()
+    );
+    crate::openhuman::web_chat::publish_web_channel_event(crate::core::socketio::WebChannelEvent {
+        event: "proactive_message".to_string(),
+        client_id: VOICE_CHAT_CLIENT_ID.to_string(),
+        thread_id: VOICE_CHAT_THREAD_ID.to_string(),
+        full_response: Some(spoken.to_string()),
+        success: Some(true),
+        ..Default::default()
+    });
+
+    // Speak-back: push the finished answer to the renderer's LIVE voice session so
+    // the agent can read it aloud. The frontend voice hook listens for `voice_speak`
+    // and, only while the call is still open, sends it back into the ElevenLabs
+    // session (a fast read-back turn). Skipped for read-back turns themselves to
+    // avoid a loop; harmless if the call already ended (nobody is subscribed).
+    if allow_speak_back {
+        crate::openhuman::web_chat::publish_web_channel_event(
+            crate::core::socketio::WebChannelEvent {
+                event: "voice_speak".to_string(),
+                client_id: VOICE_CHAT_CLIENT_ID.to_string(),
+                full_response: Some(spoken.to_string()),
+                success: Some(true),
+                ..Default::default()
+            },
+        );
     }
 }
 
@@ -301,5 +596,72 @@ mod tests {
         ];
         let pairs = messages_to_history_pairs(&messages);
         assert_eq!(pairs, vec![("user".to_string(), "hello".to_string())]);
+    }
+
+    #[test]
+    fn spoken_delta_forwards_only_top_level_assistant_text() {
+        assert_eq!(
+            spoken_delta(&AgentProgress::TextDelta {
+                delta: "hey there".to_string(),
+                iteration: 1,
+            }),
+            Some("hey there")
+        );
+        // Whitespace-only deltas carry word boundaries and are still spoken text —
+        // the empty-skip lives in the forwarder, not here.
+        assert_eq!(
+            spoken_delta(&AgentProgress::TextDelta {
+                delta: " ".to_string(),
+                iteration: 2,
+            }),
+            Some(" ")
+        );
+    }
+
+    #[test]
+    fn spoken_delta_suppresses_internal_events() {
+        // Reasoning must never be voiced.
+        assert_eq!(
+            spoken_delta(&AgentProgress::ThinkingDelta {
+                delta: "let me think".to_string(),
+                iteration: 1,
+            }),
+            None
+        );
+        // A delegated sub-agent's narration is internal, not the spoken answer.
+        assert_eq!(
+            spoken_delta(&AgentProgress::SubagentTextDelta {
+                agent_id: "a".to_string(),
+                task_id: "t".to_string(),
+                delta: "fetching inbox".to_string(),
+                iteration: 1,
+            }),
+            None
+        );
+        // Lifecycle events carry no spoken text.
+        assert_eq!(
+            spoken_delta(&AgentProgress::TurnCompleted { iterations: 1 }),
+            None
+        );
+    }
+
+    #[test]
+    fn speak_back_armed_for_a_genuine_answer_turn() {
+        assert!(should_arm_speak_back("summarize my unread emails"));
+        assert!(should_arm_speak_back("what's on my calendar tomorrow?"));
+    }
+
+    #[test]
+    fn speak_back_suppressed_for_a_read_back_turn() {
+        // The bare prefix, and the real renderer shape (prefix + blank line +
+        // payload, possibly with leading whitespace) must both be recognised so
+        // the spoken copy never re-arms into an unbounded loop.
+        assert!(!should_arm_speak_back(VOICE_READBACK_PREFIX));
+        assert!(!should_arm_speak_back(&format!(
+            "{VOICE_READBACK_PREFIX}\n\nHere is your inbox summary."
+        )));
+        assert!(!should_arm_speak_back(&format!(
+            "   \n{VOICE_READBACK_PREFIX} trailing payload"
+        )));
     }
 }
