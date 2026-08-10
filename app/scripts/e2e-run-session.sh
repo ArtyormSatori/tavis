@@ -169,6 +169,22 @@ export BACKEND_URL="http://127.0.0.1:${E2E_MOCK_PORT}"
 export OPENHUMAN_E2E_MODE="1"
 export APPIUM_PORT
 export CEF_CDP_PORT
+# Tauri uses WebView2 on Windows, not CEF. Unlike CEF, it does not consume
+# command-line arguments from the host executable for its browser process.
+# WebView2 reads its Chromium switches from this environment variable before
+# the first webview is created. Without it, the Windows runner waits for a
+# CDP endpoint that can never exist, even though the app itself has started.
+case "$OS" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+    _webview2_cdp_arg="--remote-debugging-port=${CEF_CDP_PORT}"
+    if [ -n "${WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS:-}" ]; then
+      export WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="${WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS} ${_webview2_cdp_arg}"
+    else
+      export WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="${_webview2_cdp_arg}"
+    fi
+    echo "[runner] WebView2 CDP enabled via WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS on port ${CEF_CDP_PORT}"
+    ;;
+esac
 # Redirect Telegram Bot API calls to the mock server during E2E runs.
 # The mock server (WS-A) serves /bot<token>/* routes on the same port as the
 # rest of the mock backend.  The core reads this at TelegramChannel::new() time,

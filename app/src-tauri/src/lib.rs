@@ -3494,24 +3494,39 @@ pub fn run() {
                 #[cfg(not(target_os = "linux"))]
                 let wayland_display_set = false;
                 let env_override = std::env::var("OPENHUMAN_CEF_PREWARM").ok();
-                if cef_prewarm_enabled(env_override.as_deref(), wayland_display_set) {
-                    let app_handle = app.handle().clone();
-                    tauri::async_runtime::spawn(async move {
-                        // Defer one tick so the main window finishes its
-                        // first paint before we attach a sibling webview.
-                        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-                        if let Err(e) = spawn_cef_prewarm(&app_handle) {
-                            log::warn!("[cef-prewarm] failed (non-fatal): {e}");
-                        }
-                    });
-                } else if wayland_display_set && env_override.is_none() {
-                    log::info!(
-                        "[cef-prewarm] auto-disabled: WAYLAND_DISPLAY is set (Wayland/XWayland \
-                         session) — prevents X_ConfigureWindow BadWindow crash in CEF \
-                         subprocesses (issue #2463); set OPENHUMAN_CEF_PREWARM=1 to override"
-                    );
-                } else {
-                    log::info!("[cef-prewarm] disabled via OPENHUMAN_CEF_PREWARM");
+                // The prewarm is a Chromium/CEF optimization. On Windows the
+                // production runtime is WebView2, whose child-webview API
+                // rejects the off-screen `about:blank` host used here with
+                // E_INVALIDARG. The main webview is unaffected, but skipping
+                // the non-applicable warmup avoids a noisy startup error and
+                // keeps native WebView2 E2E launches deterministic.
+                #[cfg(target_os = "windows")]
+                {
+                    let _ = (wayland_display_set, env_override);
+                    log::info!("[cef-prewarm] disabled: Windows uses WebView2, not CEF");
+                }
+
+                #[cfg(not(target_os = "windows"))]
+                {
+                    if cef_prewarm_enabled(env_override.as_deref(), wayland_display_set) {
+                        let app_handle = app.handle().clone();
+                        tauri::async_runtime::spawn(async move {
+                            // Defer one tick so the main window finishes its
+                            // first paint before we attach a sibling webview.
+                            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                            if let Err(e) = spawn_cef_prewarm(&app_handle) {
+                                log::warn!("[cef-prewarm] failed (non-fatal): {e}");
+                            }
+                        });
+                    } else if wayland_display_set && env_override.is_none() {
+                        log::info!(
+                            "[cef-prewarm] auto-disabled: WAYLAND_DISPLAY is set (Wayland/XWayland \
+                             session) — prevents X_ConfigureWindow BadWindow crash in CEF \
+                             subprocesses (issue #2463); set OPENHUMAN_CEF_PREWARM=1 to override"
+                        );
+                    } else {
+                        log::info!("[cef-prewarm] disabled via OPENHUMAN_CEF_PREWARM");
+                    }
                 }
             }
 
