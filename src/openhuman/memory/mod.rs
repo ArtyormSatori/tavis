@@ -46,6 +46,7 @@ pub mod conversations;
 pub mod diff;
 pub mod goals;
 pub mod people;
+pub mod schema;
 pub mod tool_memory;
 pub mod schema;
 pub mod sources;
@@ -68,7 +69,7 @@ mod tree_e2e_tests;
 pub use tinymemory_core::{
     chat, chat_host, composio_host, embedding_adapter, embedding_host, events, global,
     ingest_pipeline, ingestion, learning_candidate, observability, preferences, queue, remember, rpc_models,
-    scheduler_gate, search, source_scope, store, sync_events, thread_context, tinycortex, traits,
+    scheduler_gate, search, source_scope, store, sync_events, test_env_lock, thread_context, tinycortex, traits,
     tree_policy, tree_source, util,
 };
 
