@@ -4661,7 +4661,6 @@ dependencies = [
  "dhat",
  "directories",
  "dirs 5.0.1",
- "docx-rs",
  "dotenvy",
  "ed25519-dalek",
  "enigo",
@@ -4724,6 +4723,7 @@ dependencies = [
  "tinychannels",
  "tinycortex",
  "tinycortex-api",
+ "tinydocs",
  "tinyflows",
  "tinyhumans-sdk",
  "tinyjuice",
@@ -7325,6 +7325,15 @@ dependencies = [
  "sha2 0.10.9",
  "thiserror 2.0.18",
  "uuid 1.23.1",
+]
+
+[[package]]
+name = "tinydocs"
+version = "0.1.0"
+dependencies = [
+ "docx-rs",
+ "serde",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
