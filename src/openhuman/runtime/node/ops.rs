@@ -1,3 +1,5 @@
+// `sqlite_open_timeout_secs` is a `MemoryHostConfig` trait method.
+use tinymemory_api::host::MemoryHostConfig;
 use std::sync::Arc;
 use std::time::Instant;
 

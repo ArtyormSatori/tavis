@@ -46,6 +46,8 @@
 //! event bus dispatch loop is never blocked by a long-running provider
 //! call (sync can take seconds).
 
+// `backend_client` is a host extension on the core's `ProviderContext`.
+use crate::openhuman::memory::sync::composio::providers::ProviderContextExt;
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
@@ -582,7 +584,7 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
                     // collapses both to `Vec::new()` and would
                     // otherwise hide auth/backend failures from
                     // incident triage.
-                    match ops::fetch_connected_integrations_status(ctx.config.as_ref()).await {
+                    match ops::fetch_connected_integrations_status(&live_config).await {
                         FetchConnectedIntegrationsStatus::Authoritative(entries) => {
                             let mut toolkits: Vec<String> = entries
                                 .iter()
