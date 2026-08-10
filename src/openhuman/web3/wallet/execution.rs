@@ -9,11 +9,10 @@
 //!   Solana (native + SPL), and Tron (native + TRC20) all sign and broadcast.
 //!   Swap broadcast is still quote-only on every chain.
 
-use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use ethers_core::types::{Address, U256};
+use ethers_core::types::U256;
 use log::{debug, warn};
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
