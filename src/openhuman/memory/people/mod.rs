@@ -16,3 +16,6 @@ pub use schemas::{
     all_controller_schemas as all_people_controller_schemas,
     all_registered_controllers as all_people_registered_controllers,
 };
+
+#[cfg(test)]
+mod schemas_tests;
