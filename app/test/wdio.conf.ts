@@ -115,15 +115,14 @@ export const config: Options.Testrunner & Record<string, unknown> = {
       : isWindows
         ? [
             {
-              browserName: 'MicrosoftEdge',
+              // EdgeDriver selects WebView2 automation from the standard
+              // browserName capability, not an ms:edgeOptions entry.
+              browserName: 'webview2',
               'wdio:maxInstances': 1,
               // WebView2 reports itself as Edge over CDP. EdgeDriver, unlike
               // ChromeDriver, recognises that browser brand and can attach to
               // the already-running webview without launching a new browser.
-              // `useWebView` selects the native renderer target instead of an
-              // empty browser-style DevTools target.
               'ms:edgeOptions': {
-                useWebView: true,
                 debuggerAddress: `${CEF_CDP_HOST}:${CEF_CDP_PORT}`,
               },
             },
