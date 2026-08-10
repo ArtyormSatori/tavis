@@ -58,6 +58,7 @@ cd "$APP_DIR"
 
 CREATED_TEMP_WORKSPACE=""
 APPIUM_PID=""
+EDGE_DRIVER_PID=""
 APP_PID=""
 E2E_CONFIG_BACKUP=""
 E2E_CONFIG_FILE=""
@@ -110,6 +111,11 @@ cleanup() {
     echo "[runner] Stopping Appium (pid $APPIUM_PID)..."
     kill "$APPIUM_PID" 2>/dev/null || true
     wait "$APPIUM_PID" 2>/dev/null || true
+  fi
+  if [ -n "$EDGE_DRIVER_PID" ]; then
+    echo "[runner] Stopping EdgeDriver (pid $EDGE_DRIVER_PID)..."
+    kill "$EDGE_DRIVER_PID" 2>/dev/null || true
+    wait "$EDGE_DRIVER_PID" 2>/dev/null || true
   fi
   if [ -n "$APP_PID" ]; then
     echo "[runner] Stopping CEF app (pid $APP_PID)..."
@@ -570,6 +576,78 @@ for t in data:
     fi
   done
 fi
+
+# Windows Tauri runs on WebView2, whose CDP endpoint identifies itself as
+# Microsoft Edge (for example, `Edg/131.0.2903.86`). ChromeDriver rejects that
+# browser brand even when the protocol version matches, so the Appium
+# Chromium-driver path cannot attach. Use the matching EdgeDriver directly on
+# Windows; it supports the same debuggerAddress contract and exposes standard
+# W3C WebDriver to WDIO.
+case "$OS" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+    EDGE_DRIVER_PORT="${EDGE_DRIVER_PORT:-9515}"
+    export EDGE_DRIVER_PORT
+    EDGE_FULL_VERSION="$(echo "$CDP_VERSION_JSON" | sed -n 's/.*"Browser": *"Edg\/\([^"]*\)".*/\1/p' | head -1)"
+    if [ -z "$EDGE_FULL_VERSION" ]; then
+      echo "ERROR: WebView2 CDP did not report an Edge version: $CDP_VERSION_JSON" >&2
+      exit 1
+    fi
+
+    EDGE_CACHE_DIR="$APP_DIR/test/e2e/.cache/edgedriver/$EDGE_FULL_VERSION"
+    EDGE_DRIVER_BINARY="$EDGE_CACHE_DIR/msedgedriver.exe"
+    if [ ! -x "$EDGE_DRIVER_BINARY" ]; then
+      EDGE_DRIVER_URL="https://msedgedriver.microsoft.com/${EDGE_FULL_VERSION}/edgedriver_win64.zip"
+      EDGE_DRIVER_ZIP="$EDGE_CACHE_DIR/edgedriver_win64.zip"
+      echo "[runner] Downloading matching EdgeDriver: $EDGE_DRIVER_URL"
+      mkdir -p "$EDGE_CACHE_DIR"
+      curl -fSL "$EDGE_DRIVER_URL" -o "$EDGE_DRIVER_ZIP"
+      if command -v unzip >/dev/null 2>&1; then
+        (cd "$EDGE_CACHE_DIR" && unzip -o -q "$EDGE_DRIVER_ZIP")
+      else
+        python3 -c "import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" \
+          "$EDGE_DRIVER_ZIP" "$EDGE_CACHE_DIR"
+      fi
+      chmod +x "$EDGE_DRIVER_BINARY" 2>/dev/null || true
+    fi
+    if [ ! -x "$EDGE_DRIVER_BINARY" ]; then
+      echo "ERROR: matching EdgeDriver was not extracted: $EDGE_DRIVER_BINARY" >&2
+      exit 1
+    fi
+    if curl -sf "http://127.0.0.1:$EDGE_DRIVER_PORT/status" >/dev/null 2>&1; then
+      echo "ERROR: EdgeDriver is already listening on port $EDGE_DRIVER_PORT." >&2
+      exit 1
+    fi
+    EDGE_DRIVER_LOG="$LOG_DIR/edgedriver-e2e-${LOG_SUFFIX}.log"
+    echo "[runner] Starting EdgeDriver $EDGE_FULL_VERSION on port $EDGE_DRIVER_PORT"
+    "$EDGE_DRIVER_BINARY" --port="$EDGE_DRIVER_PORT" > "$EDGE_DRIVER_LOG" 2>&1 &
+    EDGE_DRIVER_PID=$!
+    for i in $(seq 1 30); do
+      if ! kill -0 "$EDGE_DRIVER_PID" 2>/dev/null; then
+        echo "ERROR: EdgeDriver exited before becoming ready. Log follows:" >&2
+        cat "$EDGE_DRIVER_LOG" >&2 || true
+        exit 1
+      fi
+      if curl -sf "http://127.0.0.1:$EDGE_DRIVER_PORT/status" >/dev/null 2>&1; then
+        echo "[runner] EdgeDriver is ready."
+        break
+      fi
+      if [ "$i" -eq 30 ]; then
+        echo "ERROR: EdgeDriver did not start within 30 seconds." >&2
+        exit 1
+      fi
+      sleep 1
+    done
+
+    if [ "${#SPEC_ARGS[@]}" -gt 0 ]; then
+      WDIO_SPEC_ARGS=()
+      for s in "${SPEC_ARGS[@]}"; do WDIO_SPEC_ARGS+=(--spec "$s"); done
+      pnpm exec wdio run test/wdio.conf.ts --maxInstances 1 "${WDIO_SPEC_ARGS[@]}"
+    else
+      pnpm exec wdio run test/wdio.conf.ts --maxInstances 1
+    fi
+    exit $?
+    ;;
+esac
 
 # ------------------------------------------------------------------------------
 # Resolve a chromedriver whose major matches CEF's bundled Chromium.

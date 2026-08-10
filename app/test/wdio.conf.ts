@@ -32,8 +32,10 @@ const tsconfigE2ePath = path.join(projectRoot, 'test', 'tsconfig.e2e.json');
 const testSpecsPath = path.join(projectRoot, 'test', 'e2e', 'specs', '**', '*.spec.ts');
 
 const APPIUM_PORT = parseInt(process.env.APPIUM_PORT || '4723', 10);
+const EDGE_DRIVER_PORT = parseInt(process.env.EDGE_DRIVER_PORT || '9515', 10);
 const CEF_CDP_HOST = process.env.CEF_CDP_HOST || '127.0.0.1';
 const CEF_CDP_PORT = parseInt(process.env.CEF_CDP_PORT || '19222', 10);
+const isWindows = process.platform === 'win32';
 
 function linuxAppPath(): string {
   const candidate = path.join(projectRoot, 'src-tauri', 'target', 'debug', 'OpenHuman');
@@ -90,7 +92,9 @@ export const config: Options.Testrunner & Record<string, unknown> = {
   port:
     process.platform === 'linux'
       ? parseInt(process.env.TAURI_DRIVER_PORT || '4444', 10)
-      : APPIUM_PORT,
+      : isWindows
+        ? EDGE_DRIVER_PORT
+        : APPIUM_PORT,
   path: '/',
   specs: [testSpecsPath],
   rootDir: projectRoot,
@@ -108,35 +112,46 @@ export const config: Options.Testrunner & Record<string, unknown> = {
             'wdio:maxInstances': 1,
           },
         ]
-      : [
-          {
-            platformName: platformNameForHost(),
-            'wdio:maxInstances': 1,
-            'appium:automationName': 'Chromium',
-            // Provider specs can spend long stretches polling mock backends between
-            // visible browser operations. Keep Appium from expiring the Chromium
-            // session mid-spec and surfacing that as teardown DELETE failures.
-            'appium:newCommandTimeout': 300,
-            // The runner downloads a chromedriver whose major matches CEF's
-            // bundled Chromium and exports its path here. If unset, Appium falls
-            // back to its bundled chromedriver — which usually drifts ahead of
-            // CEF and produces a "ChromeDriver only supports Chrome version N"
-            // session-creation error.
-            //
-            // Appium chromium driver names this capability `executable` (see
-            // appium-chromium-driver/build/lib/desired-caps.js), not the more
-            // common Chrome-driver name `chromedriverExecutable`.
-            ...(process.env.E2E_CHROMEDRIVER_PATH
-              ? { 'appium:executable': process.env.E2E_CHROMEDRIVER_PATH }
-              : {}),
-            'goog:chromeOptions': {
-              // Attach to the already-running CEF process. chromedriver will not
-              // try to launch its own Chrome — it picks the first page target
-              // exposed at this address (which is the main OpenHuman webview).
-              debuggerAddress: `${CEF_CDP_HOST}:${CEF_CDP_PORT}`,
+      : isWindows
+        ? [
+            {
+              browserName: 'MicrosoftEdge',
+              'wdio:maxInstances': 1,
+              // WebView2 reports itself as Edge over CDP. EdgeDriver, unlike
+              // ChromeDriver, recognises that browser brand and can attach to
+              // the already-running webview without launching a new browser.
+              'ms:edgeOptions': { debuggerAddress: `${CEF_CDP_HOST}:${CEF_CDP_PORT}` },
             },
-          },
-        ],
+          ]
+        : [
+            {
+              platformName: platformNameForHost(),
+              'wdio:maxInstances': 1,
+              'appium:automationName': 'Chromium',
+              // Provider specs can spend long stretches polling mock backends between
+              // visible browser operations. Keep Appium from expiring the Chromium
+              // session mid-spec and surfacing that as teardown DELETE failures.
+              'appium:newCommandTimeout': 300,
+              // The runner downloads a chromedriver whose major matches CEF's
+              // bundled Chromium and exports its path here. If unset, Appium falls
+              // back to its bundled chromedriver — which usually drifts ahead of
+              // CEF and produces a "ChromeDriver only supports Chrome version N"
+              // session-creation error.
+              //
+              // Appium chromium driver names this capability `executable` (see
+              // appium-chromium-driver/build/lib/desired-caps.js), not the more
+              // common Chrome-driver name `chromedriverExecutable`.
+              ...(process.env.E2E_CHROMEDRIVER_PATH
+                ? { 'appium:executable': process.env.E2E_CHROMEDRIVER_PATH }
+                : {}),
+              'goog:chromeOptions': {
+                // Attach to the already-running CEF process. chromedriver will not
+                // try to launch its own Chrome — it picks the first page target
+                // exposed at this address (which is the main OpenHuman webview).
+                debuggerAddress: `${CEF_CDP_HOST}:${CEF_CDP_PORT}`,
+              },
+            },
+          ],
   logLevel: 'warn',
   // `bail` is the number of failing specs to tolerate before WDIO stops the
   // run. `--bail` on e2e-run-all-flows.sh sets E2E_BAIL_ON_FAILURE=1 so we
