@@ -1,5 +1,7 @@
 //! Channel startup wiring.
 
+// `to_arc` / the config accessors are `MemoryHostConfig` trait methods.
+use tinymemory_api::host::MemoryHostConfig;
 use super::dispatch::{run_message_dispatch_loop, RuntimeChannelMessage};
 use super::supervision::{compute_max_in_flight_messages, spawn_supervised_listener};
 use crate::core::bus::BUS;

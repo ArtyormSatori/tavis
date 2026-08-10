@@ -12,6 +12,8 @@
 //! spawned at all) up to a `ServiceSet` chosen by the embedder, while these
 //! functions keep their config gates (is it enabled for this user).
 
+// `to_arc` / the config accessors are `MemoryHostConfig` trait methods.
+use tinymemory_api::host::MemoryHostConfig;
 use std::sync::Once;
 
 use crate::core::runtime::ServiceSet;

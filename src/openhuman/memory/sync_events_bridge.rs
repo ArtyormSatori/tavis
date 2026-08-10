@@ -77,7 +77,7 @@ impl EventHandler<DomainEvent> for SyncCompleteEmbedTrigger {
     }
 
     async fn handle(&self, event: &DomainEvent) {
-        if let crate::core::events::DomainEvent::SyncStageChanged { stage, .. } = event {
+        if let DomainEvent::MemorySyncStageChanged { stage, .. } = event {
             if stage == "completed" {
                 log::debug!("[memory-sync] sync completed — triggering batch embedding backfill");
                 crate::openhuman::memory::queue::ensure_reembed_backfill(&self.config);
@@ -100,7 +100,7 @@ impl EventHandler<DomainEvent> for MemorySyncStageBridge {
 
     async fn handle(&self, event: &DomainEvent) {
         match event {
-            crate::core::events::DomainEvent::DocumentCanonicalized {
+            DomainEvent::DocumentCanonicalized {
                 source_id,
                 source_kind,
                 chunks_written,
@@ -135,7 +135,7 @@ impl EventHandler<DomainEvent> for MemorySyncStageBridge {
                     mem_src_id,
                 );
             }
-            crate::core::events::DomainEvent::IngestionStarted {
+            DomainEvent::MemoryIngestionStarted {
                 document_id,
                 namespace,
                 queue_depth,
@@ -193,7 +193,7 @@ mod tests {
         }
 
         async fn handle(&self, event: &DomainEvent) {
-            if matches!(event, crate::core::events::DomainEvent::SyncStageChanged { .. }) {
+            if matches!(event, DomainEvent::MemorySyncStageChanged { .. }) {
                 self.events.lock().unwrap().push(event.clone());
             }
         }
@@ -213,7 +213,7 @@ mod tests {
 
         let bridge = MemorySyncStageBridge;
         bridge
-            .handle(&crate::core::events::DomainEvent::DocumentCanonicalized {
+            .handle(&DomainEvent::DocumentCanonicalized {
                 source_id: "slack:workspace-1".into(),
                 source_kind: "chat".into(),
                 chunks_written: 3,
@@ -231,7 +231,7 @@ mod tests {
             .unwrap()
             .iter()
             .filter_map(|event| match event {
-                crate::core::events::DomainEvent::SyncStageChanged { stage, .. } => Some(stage.clone()),
+                DomainEvent::MemorySyncStageChanged { stage, .. } => Some(stage.clone()),
                 _ => None,
             })
             .collect();
@@ -253,7 +253,7 @@ mod tests {
 
         let bridge = MemorySyncStageBridge;
         bridge
-            .handle(&crate::core::events::DomainEvent::IngestionStarted {
+            .handle(&DomainEvent::MemoryIngestionStarted {
                 document_id: "doc-123".into(),
                 title: "Vault Note".into(),
                 namespace: "vault:v-1".into(),
@@ -269,7 +269,7 @@ mod tests {
             .unwrap()
             .iter()
             .find_map(|event| match event {
-                crate::core::events::DomainEvent::SyncStageChanged {
+                DomainEvent::MemorySyncStageChanged {
                     stage,
                     provider,
                     connection_id,
@@ -345,7 +345,7 @@ mod tests {
 
         let bridge = MemorySyncStageBridge;
         bridge
-            .handle(&crate::core::events::DomainEvent::DocumentCanonicalized {
+            .handle(&DomainEvent::DocumentCanonicalized {
                 // composite source_id format: mem_src:<source_id>:<item_id>
                 source_id: "mem_src:src-folder-1:file-readme".into(),
                 source_kind: "folder".into(),
@@ -364,7 +364,7 @@ mod tests {
             .unwrap()
             .iter()
             .filter_map(|event| match event {
-                crate::core::events::DomainEvent::SyncStageChanged {
+                DomainEvent::MemorySyncStageChanged {
                     stage, source_id, ..
                 } if stage == "stored" || stage == "queued" => Some(source_id.clone()),
                 _ => None,
@@ -395,7 +395,7 @@ mod tests {
         let bridge = MemorySyncStageBridge;
         // Non-memory-source sync (e.g. Slack channel sync) should have source_id=None
         bridge
-            .handle(&crate::core::events::DomainEvent::DocumentCanonicalized {
+            .handle(&DomainEvent::DocumentCanonicalized {
                 source_id: "slack:workspace-1".into(),
                 source_kind: "chat".into(),
                 chunks_written: 5,
@@ -413,7 +413,7 @@ mod tests {
             .unwrap()
             .iter()
             .filter_map(|event| match event {
-                crate::core::events::DomainEvent::SyncStageChanged {
+                DomainEvent::MemorySyncStageChanged {
                     stage, source_id, ..
                 } if stage == "stored" || stage == "queued" => Some(source_id.clone()),
                 _ => None,
@@ -442,7 +442,7 @@ mod tests {
 
         let bridge = MemorySyncStageBridge;
         bridge
-            .handle(&crate::core::events::DomainEvent::IngestionStarted {
+            .handle(&DomainEvent::MemoryIngestionStarted {
                 document_id: "mem_src:src-rss-42:https://example.com/feed/item-7".into(),
                 title: "Feed Item".into(),
                 namespace: "user".into(),
@@ -458,7 +458,7 @@ mod tests {
             .unwrap()
             .iter()
             .find_map(|event| match event {
-                crate::core::events::DomainEvent::SyncStageChanged {
+                DomainEvent::MemorySyncStageChanged {
                     stage,
                     connection_id,
                     source_id,
@@ -497,7 +497,7 @@ mod tests {
         let bridge = MemorySyncStageBridge;
         // Non-memory-source ingestion (plain document_id, no mem_src prefix)
         bridge
-            .handle(&crate::core::events::DomainEvent::IngestionStarted {
+            .handle(&DomainEvent::MemoryIngestionStarted {
                 document_id: "doc-plain-uuid".into(),
                 title: "Vault Note".into(),
                 namespace: "vault:v-1".into(),
@@ -513,7 +513,7 @@ mod tests {
             .unwrap()
             .iter()
             .find_map(|event| match event {
-                crate::core::events::DomainEvent::SyncStageChanged {
+                DomainEvent::MemorySyncStageChanged {
                     stage, source_id, ..
                 } if stage == "ingesting" => Some(source_id.clone()),
                 _ => None,

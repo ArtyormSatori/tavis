@@ -1,5 +1,7 @@
 //! RPC handler implementations for memory sources.
 
+// `to_arc` / the config accessors are `MemoryHostConfig` trait methods.
+use tinymemory_api::host::MemoryHostConfig;
 use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::sources::readers;
 use crate::openhuman::memory::sources::registry::{self, MemorySourcePatch};
