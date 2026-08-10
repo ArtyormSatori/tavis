@@ -25,7 +25,6 @@
 
 pub mod agent;
 pub mod driver;
-pub mod global;
 pub mod guard;
 pub mod host;
 pub mod ops;
@@ -61,7 +60,7 @@ mod tree_e2e_tests;
 // `pub use … as …` rather than `pub mod` — these are other crates' modules now.
 // Every one of these was a `pub mod` here before the extraction.
 pub use tinymemory_core::{
-    binding, chat, conversations, events, ingest_pipeline, ingestion, preferences, queue, remember,
+    binding, chat, conversations, events, global, ingest_pipeline, ingestion, preferences, queue, remember,
     rpc_models, search, source_scope, store, sync_events, tinycortex, tool_memory, traits,
     tree_policy, tree_source, util,
 };
