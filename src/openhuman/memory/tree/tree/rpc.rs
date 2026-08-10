@@ -492,7 +492,7 @@ pub async fn pipeline_status_rpc(
             msg
         })?;
 
-    let is_paused = config.scheduler_gate().mode == SchedulerGateMode::Off;
+    let is_paused = config.scheduler_gate.mode == SchedulerGateMode::Off;
     let is_syncing = pipeline_jobs.running > 0;
 
     // #002: read the process-global degradation snapshot (set by the embed /
@@ -506,7 +506,7 @@ pub async fn pipeline_status_rpc(
 
     let (status, reason) = derive_pipeline_status(
         is_paused,
-        config.scheduler_gate().mode,
+        config.scheduler_gate.mode,
         is_syncing,
         pipeline_jobs.failed,
         failed_unrecoverable,
@@ -1034,7 +1034,7 @@ pub async fn set_enabled_rpc(
 ) -> Result<RpcOutcome<SetEnabledResponse>, String> {
     use tinymemory_api::host::SchedulerGateMode;
 
-    let prev_mode = config.scheduler_gate().mode;
+    let prev_mode = config.scheduler_gate.mode;
     let new_mode = if req.enabled {
         SchedulerGateMode::Auto
     } else {
@@ -1067,7 +1067,7 @@ pub async fn set_enabled_rpc(
         ));
     }
 
-    config.scheduler_gate().mode = new_mode;
+    config.scheduler_gate.mode = new_mode;
     config.save().await.map_err(|e| {
         let msg = format!("set_enabled: config.save failed: {e}");
         log::warn!("[memory-tree][rpc] {msg}");
@@ -1076,7 +1076,7 @@ pub async fn set_enabled_rpc(
 
     // Hot-reload the live gate state — workers re-poll inside
     // `wait_for_capacity` and pick up the new policy without a restart.
-    crate::openhuman::cron::scheduler_gate::gate::update_config(config.scheduler_gate().clone());
+    crate::openhuman::cron::scheduler_gate::gate::update_config(config.scheduler_gate.clone());
 
     log::info!(
         "[memory-tree][rpc] set_enabled: scheduler_gate.mode {} -> {} (enabled={})",

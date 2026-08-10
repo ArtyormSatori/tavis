@@ -183,8 +183,8 @@ pub(crate) fn create_provider(
     // The summarizer applies its own temperature per request
     // (`SUMMARIZATION_TEMP` in `engine`), so the construction temperature here is
     // just a default the per-call value overrides.
-    if config.local_ai().runtime_enabled {
-        let model = config.local_ai().chat_model_id.clone();
+    if config.local_ai.runtime_enabled {
+        let model = config.local_ai.chat_model_id.clone();
         let provider_string = format!("ollama:{model}");
         tracing::debug!(
             model = %model,
@@ -197,7 +197,7 @@ pub(crate) fn create_provider(
         .map_err(|e| format!("tree summarizer: failed to build local model: {e:#}"));
     }
 
-    if !config.memory_tree().cloud_summarization_opt_in {
+    if !config.memory_tree.cloud_summarization_opt_in {
         return Err("no summarization provider — enable local AI, or opt in to \
              cloud summarization via the memory_tree.cloud_summarization_opt_in setting"
             .to_string());
@@ -208,7 +208,7 @@ pub(crate) fn create_provider(
     crate::openhuman::inference::provider::create_chat_model_with_model_id(
         "summarization",
         config,
-        config.default_temperature(),
+        config.default_temperature,
     )
     .map_err(|e| format!("tree summarizer: failed to build cloud provider: {e:#}"))
 }
@@ -228,7 +228,7 @@ pub(crate) fn create_provider(
 /// The provider built for the `Ok` check is dropped — construction is cheap
 /// (no network) and confirming by build beats guessing.
 pub fn summarizer_available(config: &Config) -> (bool, &'static str) {
-    let local = config.local_ai().runtime_enabled;
+    let local = config.local_ai.runtime_enabled;
     match create_provider(config) {
         Ok(_) if local => (
             true,
