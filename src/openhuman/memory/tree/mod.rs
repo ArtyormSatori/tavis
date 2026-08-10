@@ -7,6 +7,7 @@
 
 pub use tinymemory_core::tree::*;
 
+pub mod health;
 pub mod retrieval;
 pub mod tree;
 pub mod tree_runtime;
