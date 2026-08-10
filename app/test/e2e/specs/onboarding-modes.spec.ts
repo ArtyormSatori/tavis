@@ -254,7 +254,11 @@ describe('Onboarding modes — Simple (Cloud) vs Advanced (Custom)', function ()
     setMockBehavior('composioConnections', '[]');
     // Reset state but skip the built-in onboarding walker — we walk it
     // ourselves to assert the per-step UI.
-    await resetApp('e2e-onboarding-modes', { skipAuth: true });
+    // This spec needs a non-local authenticated session to exercise the
+    // Cloud choice. test_reset alone leaves a prior app-session profile in
+    // place; that profile can be local and intentionally redirects straight
+    // to the Custom wizard, bypassing the runtime-choice page altogether.
+    await resetApp('e2e-onboarding-modes', { skipAuth: true, clearAuthSession: true });
     // resetApp restores onboarding_completed=true for normal specs; this spec
     // intentionally exercises the onboarding flow, so flip it back to false
     // before triggering auth so App.tsx routes to /onboarding.
