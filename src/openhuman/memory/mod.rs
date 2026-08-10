@@ -28,6 +28,7 @@ pub mod binding;
 pub mod driver;
 pub mod guard;
 pub mod host;
+pub mod host_impls;
 pub mod sync_events_bridge;
 pub mod ops;
 // The consolidated `memory_query` agent tool and its six retrieval modes. Came
