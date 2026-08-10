@@ -68,7 +68,7 @@ mod tree_e2e_tests;
 pub use tinymemory_core::{
     chat, chat_host, composio_host, embedding_adapter, embedding_host, events, global,
     ingest_pipeline, ingestion, learning_candidate, observability, preferences, queue, remember, rpc_models,
-    scheduler_gate, search, source_scope, store, sync_events, test_env_lock, thread_context, tinycortex, traits,
+    config_loader, scheduler_gate, search, source_scope, store, sync_events, test_env_lock, thread_context, tinycortex, traits,
     tree_policy, tree_source, util,
 };
 
