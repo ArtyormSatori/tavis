@@ -24,7 +24,7 @@
 //! quiet: the caller in `profiles/memory.rs` logs and moves on.
 
 use crate::Config;
-use crate::sources::types::MemorySourceEntry;
+use crate::openhuman::memory::sources::types::MemorySourceEntry;
 
 use super::types::{Checkpoint, CrossSourceDiff, Snapshot};
 
