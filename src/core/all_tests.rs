@@ -1816,10 +1816,13 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             | Capability::Documents
             | Capability::Tree
             | Capability::Graph
-            | Capability::Diff
             | Capability::Goals
             | Capability::ToolMemory
             | Capability::Sources => true,
+            #[cfg(feature = "memory-git")]
+            Capability::Diff => true,
+            #[cfg(not(feature = "memory-git"))]
+            Capability::Diff => false,
             // `Core` gates the combined core + recall controller partition so
             // a null driver removes the entire driver-backed surface. Recall
             // is represented by that same partition; Portability is RPC-less.
