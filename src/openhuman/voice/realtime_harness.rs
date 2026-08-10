@@ -161,10 +161,11 @@ const VOICE_DIRECTIVE: &str = "You are speaking aloud in a live voice conversati
 Reply in natural, concise spoken sentences. Do not use markdown, code blocks, \
 bullet lists, headings, or emoji. Before you use a tool or delegate (for example \
 to check email, a calendar, files, or the web), first say one short spoken \
-sentence telling the user what you are doing — and, because those actions can take \
-a while, that you will put the details in their chat — then proceed. Example: \
-\"Sure, let me pull up your inbox — I'll drop the summary in your chat.\" Keep that \
-preface to one sentence so it starts speaking immediately.";
+sentence telling the user what you are doing — and, since those actions sometimes \
+take a while, that you'll follow up with the details in their chat IF it does — \
+then proceed. Example: \"Sure, let me pull up your inbox — if it takes a moment \
+I'll drop the summary in your chat.\" Keep that preface to one sentence so it \
+starts speaking immediately.";
 
 /// Extract the user prompt from an OpenAI-style `messages` array: the content of
 /// the last `user` message. Content may be a plain string or an array of
@@ -247,13 +248,24 @@ pub async fn handle_voice_harness_turn(correlation_id: String, messages: Vec<Val
         if let Err(unsent) = result_tx.send(outcome) {
             match unsent {
                 Ok(reply) => {
-                    // Arm speak-back only for a genuine deferred answer — never for a
-                    // read-back echo turn, or the spoken copy would loop forever.
-                    let allow_speak_back = should_arm_speak_back(&turn_prompt);
-                    deliver_voice_result_to_chat(&turn_cid, reply, allow_speak_back);
+                    // A read-back turn only re-reads an answer already delivered to
+                    // chat; delivering it again would duplicate the chat message, and
+                    // re-arming speak-back would loop. So deliver + arm speak-back ONLY
+                    // for a genuine deferred answer, and skip the whole delivery for a
+                    // read-back echo turn.
+                    if should_arm_speak_back(&turn_prompt) {
+                        deliver_voice_result_to_chat(&turn_cid, reply, true);
+                    } else {
+                        info!("[voice-harness] deferred read-back turn carries no new content; skipping chat delivery correlation={turn_cid}");
+                    }
                 }
                 Err(err) => {
-                    warn!("[voice-harness] deferred turn failed correlation={turn_cid}: {err}")
+                    // The spoken turn already closed with `done` and the preface may
+                    // have promised a chat follow-up, so a silent failure would leave
+                    // the user waiting for a message that never arrives. Post a brief
+                    // failure notice to the same thread.
+                    warn!("[voice-harness] deferred turn failed correlation={turn_cid}: {err}");
+                    deliver_voice_failure_to_chat(&turn_cid);
                 }
             }
         }
@@ -513,6 +525,28 @@ fn deliver_voice_result_to_chat(correlation_id: &str, reply: String, allow_speak
             },
         );
     }
+}
+
+/// Deliver a short failure notice to the voice chat thread when a deferred turn
+/// errors after the spoken turn already closed. Because the spoken preface may
+/// have told the user their answer would land in chat, a silent failure would
+/// leave them waiting on a message that never comes — this makes the promised
+/// message always appear. Delivered as a normal assistant message (not spoken)
+/// on the same `proactive:voice` surface as a successful deferred answer.
+fn deliver_voice_failure_to_chat(correlation_id: &str) {
+    info!(
+        "[voice-harness] delivering deferred failure notice to chat correlation={correlation_id}"
+    );
+    crate::openhuman::web_chat::publish_web_channel_event(crate::core::socketio::WebChannelEvent {
+        event: "proactive_message".to_string(),
+        client_id: VOICE_CHAT_CLIENT_ID.to_string(),
+        thread_id: VOICE_CHAT_THREAD_ID.to_string(),
+        full_response: Some(
+            "Sorry — I couldn't finish that request just now. Please try again.".to_string(),
+        ),
+        success: Some(true),
+        ..Default::default()
+    });
 }
 
 async fn emit_event(event: &str, payload: Value) {
