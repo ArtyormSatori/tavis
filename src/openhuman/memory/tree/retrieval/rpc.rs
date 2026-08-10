@@ -7,7 +7,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::Config;
+use crate::openhuman::config::Config;
 use crate::openhuman::memory::store::chunks::types::SourceKind;
 use crate::openhuman::memory::tree::retrieval::{
     cover::cover_window,

@@ -11,7 +11,7 @@ use rusqlite::OptionalExtension;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::Config;
+use crate::openhuman::config::Config;
 use crate::openhuman::memory::ingest_pipeline::{
     ingest_chat as do_ingest_chat, ingest_document as do_ingest_document,
     ingest_email as do_ingest_email, IngestResult,

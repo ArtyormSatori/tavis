@@ -12,7 +12,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::Config;
+use crate::openhuman::config::Config;
 use crate::openhuman::integrations::composio::client::{
     create_composio_client, direct_list_connections, ComposioClientKind,
 };
