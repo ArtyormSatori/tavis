@@ -29,3 +29,11 @@ pub use flavour::MemoryFlavourTool;
 pub use forget::MemoryForgetTool;
 pub use recall::MemoryRecallTool;
 pub use store::MemoryStoreTool;
+
+// The tools that came back from the extracted crate, re-exported flat so
+// `openhuman::tools`'s glob keeps every historical name in scope — the
+// registration sites in `tools/ops.rs` name them unqualified.
+pub use diff::MemoryDiffTool;
+pub use goals::{GoalsAddTool, GoalsDeleteTool, GoalsEditTool, GoalsListTool};
+pub use raw_store::{MemoryStoreKindsTool, MemoryStoreRawChunksTool, MemoryStoreRawSearchTool};
+pub use search::{MemoryChunkContextTool, MemoryHybridSearchTool, MemoryVectorSearchTool};
