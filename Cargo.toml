@@ -549,6 +549,7 @@ web3 = [
     "dep:ethers-core",
     "dep:ethers-signers",
     "dep:coins-bip39",
+    "dep:tinywallet",
 ]
 
 # Managed Node.js runtime: `runtime::node` (download / verify / extract / install
