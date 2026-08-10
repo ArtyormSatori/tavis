@@ -4729,6 +4729,7 @@ dependencies = [
  "tinyjuice",
  "tinymemory",
  "tinymemory-api",
+ "tinymemory-core",
  "tinymemory-tinycortex",
  "tinyplace",
  "tinywallet",
@@ -7419,6 +7420,35 @@ dependencies = [
  "sha2 0.10.9",
  "thiserror 2.0.18",
  "uuid 1.23.1",
+]
+
+[[package]]
+name = "tinymemory-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "chrono",
+ "futures",
+ "log",
+ "parking_lot",
+ "regex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.18",
+ "tinyagents",
+ "tinychannels",
+ "tinycortex",
+ "tinycortex-api",
+ "tinymemory",
+ "tinymemory-api",
+ "tokio",
+ "url",
+ "uuid 1.23.1",
+ "walkdir",
 ]
 
 [[package]]
