@@ -52,6 +52,8 @@ pub mod sync;
 pub mod tree;
 
 #[cfg(test)]
+mod binding_tests;
+#[cfg(test)]
 mod bypass_allowlist_tests;
 #[cfg(test)]
 mod sync_pipeline_e2e_tests;
