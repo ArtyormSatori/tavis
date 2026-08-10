@@ -10,4 +10,5 @@ pub use tinymemory_core::sources::*;
 pub mod rpc;
 pub mod schemas;
 
-pub use rpc::apply_kind_defaults;
+
+pub use tinymemory_core::sources::apply_kind_defaults;

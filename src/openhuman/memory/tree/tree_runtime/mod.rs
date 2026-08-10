@@ -13,3 +13,6 @@ mod schemas;
 pub use ops as rpc;
 
 pub mod bus;
+
+/// The `openhuman memory tree` CLI subcommands, which drive the RPC handlers.
+pub mod cli;
