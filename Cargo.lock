@@ -7434,6 +7434,7 @@ dependencies = [
  "chrono",
  "dirs 5.0.1",
  "futures",
+ "git2",
  "log",
  "parking_lot",
  "rand 0.8.6",
