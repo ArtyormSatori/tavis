@@ -73,6 +73,14 @@ impl From<tinydocs::Error> for DocumentError {
     /// without re-truncating. `GenerationTimeout` is deliberately absent here
     /// — `tinydocs` is synchronous and has no deadline, so only
     /// [`engine`](super::engine) can produce that variant.
+    ///
+    /// `tinydocs::Error` is `#[non_exhaustive]`, so the catch-all arm is
+    /// required by the compiler rather than chosen. It degrades a variant
+    /// added by a future `tinydocs` release to `GenerationFailed` carrying
+    /// that variant's own `Display` text: the agent still sees a real reason
+    /// instead of a swallowed error, and the fallback is deliberately *not*
+    /// silent so a crate bump that introduces a case worth handling
+    /// structurally shows up in the logs.
     fn from(err: tinydocs::Error) -> Self {
         match err {
             tinydocs::Error::InvalidInput { field, reason } => {
@@ -81,6 +89,17 @@ impl From<tinydocs::Error> for DocumentError {
             tinydocs::Error::GenerationFailed { detail } => Self::GenerationFailed {
                 stderr_truncated: detail,
             },
+            other => {
+                tracing::warn!(
+                    target: "document",
+                    err = %other,
+                    "[document] unmapped tinydocs error variant; \
+                     degrading to GenerationFailed"
+                );
+                Self::GenerationFailed {
+                    stderr_truncated: Self::truncate_stderr(&other.to_string()),
+                }
+            }
         }
     }
 }
