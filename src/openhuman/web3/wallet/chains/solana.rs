@@ -654,9 +654,15 @@ mod tests {
 
     #[test]
     fn unhardened_paths_are_rejected() {
-        assert!(parse_path("m/44'/501'/0'/0'").is_ok());
-        assert!(parse_path("m/44/501/0/0").is_err());
-        assert!(parse_path("m").is_err());
+        // Path parsing now lives in `tinywallet`, so this exercises the rule
+        // through the derivation entry point rather than a private helper.
+        const MNEMONIC: &str = "abandon abandon abandon abandon abandon abandon \
+                                abandon abandon abandon abandon abandon about";
+        assert!(derive_solana_keypair(MNEMONIC, "m/44'/501'/0'/0'").is_ok());
+        // Non-hardened segments are underivable on ed25519, not merely
+        // unsupported — silently hardening them would yield a different account.
+        assert!(derive_solana_keypair(MNEMONIC, "m/44/501/0/0").is_err());
+        assert!(derive_solana_keypair(MNEMONIC, "m").is_err());
     }
 
     #[test]
