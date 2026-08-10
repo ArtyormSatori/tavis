@@ -121,7 +121,7 @@ impl MemoryHostConfig for Config {
     }
 
     fn sqlite_open_timeout_secs(&self) -> Option<u64> {
-        self.sqlite_open_timeout_secs
+        self.sqlite_open_timeout_secs()
     }
 
     fn onboarding_completed(&self) -> bool {
