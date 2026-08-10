@@ -48,7 +48,6 @@ pub mod goals;
 pub mod people;
 pub mod schema;
 pub mod tool_memory;
-pub mod schema;
 pub mod sources;
 pub mod sync;
 pub mod tree;
