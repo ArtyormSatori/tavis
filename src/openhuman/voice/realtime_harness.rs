@@ -494,6 +494,9 @@ fn deliver_voice_result_to_chat(correlation_id: &str, reply: String, allow_speak
     let spoken = reply.trim();
     if spoken.is_empty() {
         warn!("[voice-harness] deferred turn produced no text correlation={correlation_id}");
+        // The spoken ack already promised a chat follow-up, so an empty deferred
+        // reply must still surface a message rather than leave the user waiting.
+        deliver_voice_failure_to_chat(correlation_id);
         return;
     }
     info!(
@@ -544,7 +547,7 @@ fn deliver_voice_failure_to_chat(correlation_id: &str) {
         full_response: Some(
             "Sorry — I couldn't finish that request just now. Please try again.".to_string(),
         ),
-        success: Some(true),
+        success: Some(false),
         ..Default::default()
     });
 }
