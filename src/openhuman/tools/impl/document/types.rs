@@ -21,9 +21,17 @@
 use serde::{Deserialize, Serialize};
 
 pub use tinydocs::docx::{
-    DocumentSection, DocumentSpec as GenerateDocumentInput, MAX_BULLETS_PER_SECTION,
-    MAX_PARAGRAPHS_PER_SECTION, MAX_PARAGRAPH_CHARS, MAX_SECTIONS, MAX_TEXT_CHARS,
+    DocumentSpec as GenerateDocumentInput, MAX_BULLETS_PER_SECTION, MAX_PARAGRAPHS_PER_SECTION,
+    MAX_PARAGRAPH_CHARS, MAX_SECTIONS, MAX_TEXT_CHARS,
 };
+
+// `sections` is a `Vec<DocumentSection>`, so anything constructing an input
+// needs the element type under this module's path. Today that is only test
+// code (the tool itself deserialises whole inputs from JSON), and `mod types`
+// is private, so the re-export reads as unused to the compiler — hence the
+// explicit allow rather than dropping a name callers legitimately need.
+#[allow(unused_imports)]
+pub use tinydocs::docx::DocumentSection;
 
 /// Tool output returned via [`crate::openhuman::tools::traits::ToolResult`]
 /// as the JSON `data` field.
