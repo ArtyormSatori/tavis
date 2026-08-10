@@ -66,31 +66,24 @@ pub fn estimated_btc_fee_sats() -> u64 {
 /// Generic BTC address validation — any well-formed mainnet address is OK.
 /// Used for recipients (we don't care what address type they prefer; the
 /// `bitcoin` crate's script_pubkey() will encode P2WPKH/P2TR/P2SH correctly).
+///
+/// Delegates to the vendored [`tinywallet`] crate, which owns the address
+/// format itself. Nothing about parsing a Bitcoin address is OpenHuman-
+/// specific, so the rules live where any host can reach them; what stays here
+/// is the `Result<_, String>` shape the rest of this domain speaks.
 pub fn validate_btc_address(addr: &str) -> Result<String, String> {
-    let trimmed = addr.trim();
-    if trimmed.is_empty() {
-        return Err("BTC address is empty".to_string());
-    }
-    Address::from_str(trimmed)
-        .map_err(|e| format!("invalid BTC address '{trimmed}': {e}"))?
-        .require_network(Network::Bitcoin)
-        .map_err(|e| format!("BTC address '{trimmed}' is not mainnet: {e}"))?;
-    Ok(trimmed.to_string())
+    tinywallet::address::btc::validate(addr).map_err(|e| e.to_string())
 }
 
 /// Sender-side validation — must be P2WPKH because we only know how to
 /// derive + sign for native segwit (`bc1q…`). Recipients can be any type.
+///
+/// See [`validate_btc_address`] for why this delegates. `tinywallet` keeps the
+/// two rules as separate functions for the same reason this module does: using
+/// the recipient rule for a sender accepts an address that only fails later,
+/// at signing time.
 pub fn validate_btc_sender_address(addr: &str) -> Result<String, String> {
-    let trimmed = validate_btc_address(addr)?;
-    let parsed = Address::from_str(&trimmed)
-        .map_err(|e| format!("invalid BTC sender '{trimmed}': {e}"))?
-        .assume_checked();
-    if !parsed.script_pubkey().is_p2wpkh() {
-        return Err(format!(
-            "BTC sender '{trimmed}' is not P2WPKH (only bc1q… native segwit is supported for signing)"
-        ));
-    }
-    Ok(trimmed)
+    tinywallet::address::btc::validate_sender(addr).map_err(|e| e.to_string())
 }
 
 use std::str::FromStr;
@@ -464,8 +457,10 @@ mod tests {
         let err =
             validate_btc_address("tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3")
                 .unwrap_err();
+        // `tinywallet` reports a wrong-network address as a distinct condition
+        // from a malformed one, so the message names the required network.
         assert!(
-            err.contains("not mainnet") || err.contains("invalid"),
+            err.contains("not on mainnet") || err.contains("invalid"),
             "got: {err}"
         );
     }
@@ -479,7 +474,11 @@ mod tests {
         assert_eq!(validate_btc_address(p2tr).unwrap(), p2tr);
         // Sender validation must reject it.
         let err = validate_btc_sender_address(p2tr).unwrap_err();
-        assert!(err.contains("not P2WPKH"), "got: {err}");
+        assert!(err.contains("P2WPKH"), "got: {err}");
+        assert!(
+            err.contains("not supported as a sender"),
+            "the message should name the role that failed: {err}"
+        );
     }
 
     #[test]

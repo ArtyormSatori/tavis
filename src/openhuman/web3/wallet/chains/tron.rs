@@ -29,30 +29,25 @@ const TRON_PREFIX: u8 = 0x41;
 /// Fixed TRC20 fee_limit (15 TRX = 15_000_000 SUN). Safe upper bound.
 const TRC20_FEE_LIMIT_SUN: u64 = 15_000_000;
 
+/// Validate a Tron mainnet base58check address.
+///
+/// Delegates to the vendored [`tinywallet`] crate, which owns the address
+/// format; this wrapper keeps the `Result<_, String>` shape the rest of the
+/// domain speaks.
 pub fn validate_tron_address(addr: &str) -> Result<String, String> {
-    let trimmed = addr.trim();
-    if trimmed.is_empty() {
-        return Err("Tron address is empty".to_string());
-    }
-    let bytes = bs58::decode(trimmed)
-        .with_check(Some(TRON_PREFIX))
-        .into_vec()
-        .map_err(|e| format!("invalid Tron address '{trimmed}': {e}"))?;
-    if bytes.len() != 21 {
-        return Err(format!(
-            "invalid Tron address '{trimmed}': expected 21 bytes after base58check, got {}",
-            bytes.len()
-        ));
-    }
-    Ok(trimmed.to_string())
+    tinywallet::address::tron::validate(addr).map_err(|e| e.to_string())
 }
 
+/// Convert a base58check Tron address into the 42-hex-digit form the TronGrid
+/// API expects, version prefix included.
+///
+/// Delegates to [`tinywallet`]. Note this now validates the address before
+/// converting, where the previous local implementation decoded without a
+/// length check — a malformed address that happened to base58check-decode to
+/// the wrong length used to produce a short hex string and fail further
+/// downstream at the API call.
 pub fn tron_address_to_hex(addr: &str) -> Result<String, String> {
-    let bytes = bs58::decode(addr)
-        .with_check(Some(TRON_PREFIX))
-        .into_vec()
-        .map_err(|e| format!("invalid Tron address '{addr}': {e}"))?;
-    Ok(hex::encode(&bytes))
+    tinywallet::address::tron::to_hex(addr).map_err(|e| e.to_string())
 }
 
 pub async fn native_balance(address: &str) -> Result<u128, String> {

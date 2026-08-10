@@ -61,21 +61,13 @@ struct BlockhashValue {
     blockhash: String,
 }
 
+/// Validate a Solana address (a base58 ed25519 public key).
+///
+/// Delegates to the vendored [`tinywallet`] crate, which owns the address
+/// format; this wrapper keeps the `Result<_, String>` shape the rest of the
+/// domain speaks.
 pub fn validate_solana_address(addr: &str) -> Result<String, String> {
-    let trimmed = addr.trim();
-    if trimmed.is_empty() {
-        return Err("Solana address is empty".to_string());
-    }
-    let decoded = bs58::decode(trimmed)
-        .into_vec()
-        .map_err(|e| format!("invalid Solana base58 address '{trimmed}': {e}"))?;
-    if decoded.len() != 32 {
-        return Err(format!(
-            "invalid Solana address '{trimmed}': expected 32 bytes, got {}",
-            decoded.len()
-        ));
-    }
-    Ok(trimmed.to_string())
+    tinywallet::address::solana::validate(addr).map_err(|e| e.to_string())
 }
 
 pub async fn native_balance(address: &str) -> Result<u128, String> {
