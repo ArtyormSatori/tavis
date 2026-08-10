@@ -334,3 +334,4 @@ fn into_domain_event(event: MemoryEvent) -> Option<DomainEvent> {
         }
     };
     Some(domain_event)
+}
