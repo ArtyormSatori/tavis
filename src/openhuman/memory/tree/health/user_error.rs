@@ -65,8 +65,28 @@ mod tests {
             event.error_source.as_deref(),
             Some(MEMORY_USER_ERROR_SOURCE)
         );
-        // No free-form text field carries provider output, a model id, or an
-        // endpoint — the whole point of the metadata-only shape.
-        assert!(event.message.is_none());
+
+        // Nothing that could carry the base URL, a model id, or raw provider
+        // prose may ride along.
+        assert!(event.message.is_none(), "must not carry raw error prose");
+        assert!(event.full_response.is_none());
+        assert!(event.thread_id.is_empty());
+    }
+
+    /// The kind token is a cross-language contract: `app/src/types/userError.ts`
+    /// declares this exact `UserErrorKind` discriminator and `classify.ts` keys
+    /// on it. A rename on either side drops the signal with no compile error on
+    /// either side, so pin the wire string.
+    #[test]
+    fn kind_matches_frontend_discriminator() {
+        assert_eq!(LOCAL_MODEL_UNAVAILABLE_KIND, "local_model_unavailable");
+    }
+
+    /// `socketService` only maps `error_source == "memory"` onto the `memory`
+    /// scope; anything else falls back to the historical `cron` default, which
+    /// would file this entry under the wrong heading.
+    #[test]
+    fn source_matches_frontend_scope_mapping() {
+        assert_eq!(MEMORY_USER_ERROR_SOURCE, "memory");
     }
 }
