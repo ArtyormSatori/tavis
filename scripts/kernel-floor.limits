@@ -13,6 +13,17 @@
 # Simulate with: scripts/dep-sim.py --cut <crates>
 #
 # History
+#   305/282/2  2026-08-10  tinymemory engine-neutral memory layer (+3 packages
+#                      / +3 names). `tinymemory`, `tinymemory-api`, and
+#                      `tinymemory-tinycortex` are deliberate always-on
+#                      dependencies: driver admission and the mandatory memory
+#                      capability families must remain available to a second
+#                      engine in the `flows` host profile. `tinydocs` and
+#                      `tinywallet` remain gated behind `documents` and
+#                      `web3`, respectively, and do not enter this profile.
+#                      Verified with `scripts/kernel-floor.sh flows` and
+#                      `cargo tree --no-default-features --features flows
+#                      --invert tinymemory`.
 #   302/279/2  2026-08-09  `memory-git` gate (-3 packages / -3 names / -2 NATIVE),
 #                      measured on top of the runtime-node entry below.
 #
