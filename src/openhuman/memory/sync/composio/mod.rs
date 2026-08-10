@@ -8,3 +8,10 @@
 pub use tinymemory_core::sync::composio::*;
 
 pub mod providers;
+
+mod bus;
+
+pub use bus::{
+    register_composio_trigger_subscriber, ComposioConfigChangedSubscriber,
+    ComposioTriggerSubscriber,
+};

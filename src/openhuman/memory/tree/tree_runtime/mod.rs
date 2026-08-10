@@ -11,3 +11,5 @@ pub mod ops;
 mod schemas;
 
 pub use ops as rpc;
+
+pub mod bus;

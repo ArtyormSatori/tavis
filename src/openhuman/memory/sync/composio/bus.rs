@@ -384,7 +384,7 @@ impl EventHandler<DomainEvent> for ComposioTriggerSubscriber {
                         "[composio][triage] run_triage failed (label={}): {e:#}",
                         envelope.display_label
                     );
-                    crate::observability::report_error_or_expected(
+                    crate::openhuman::memory::observability::report_error_or_expected(
                         detail.as_str(),
                         "composio",
                         "trigger_triage",
@@ -496,18 +496,18 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
             // capped. list_enabled_by_kind would also drop disabled-but-
             // configured entries, so we use list_sources() and filter ourselves.
             let (src_max_items, src_sync_depth_days) = {
-                let registry_sources = crate::sources::list_sources()
+                let registry_sources = crate::openhuman::memory::sources::list_sources()
                     .await
                     .unwrap_or_default();
                 registry_sources
                     .iter()
                     .find(|s| {
-                        s.kind == crate::sources::SourceKind::Composio
+                        s.kind == crate::openhuman::memory::sources::SourceKind::Composio
                             && s.connection_id.as_deref() == Some(connection_id.as_str())
                     })
                     .map(|s| (s.max_items, s.sync_depth_days))
                     .unwrap_or_else(|| {
-                        crate::sources::memory_sync_defaults_for_toolkit(
+                        crate::openhuman::memory::sources::memory_sync_defaults_for_toolkit(
                             toolkit.as_str(),
                         )
                     })
@@ -591,8 +591,8 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
                                 .collect();
                             toolkits.sort();
                             toolkits.dedup();
-                            crate::events::publish(
-                                crate::events::MemoryEvent::ComposioIntegrationsChanged {
+                            crate::openhuman::memory::events::publish(
+                                crate::openhuman::memory::events::MemoryEvent::ComposioIntegrationsChanged {
                                     toolkits: toolkits.clone(),
                                 },
                             );
@@ -679,7 +679,7 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
                     );
                 }
 
-                match crate::tinycortex::run_composio_connection(
+                match crate::openhuman::memory::tinycortex::run_composio_connection(
                     &toolkit,
                     &connection_id,
                     ctx.config.as_ref(),
@@ -726,7 +726,7 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
                 return;
             }
             let label = format!("{toolkit} connection");
-            if let Err(e) = crate::sources::upsert_composio_source(
+            if let Err(e) = crate::openhuman::memory::sources::upsert_composio_source(
                 &toolkit,
                 &connection_id,
                 &label,
@@ -894,7 +894,7 @@ impl EventHandler<DomainEvent> for ComposioConfigChangedSubscriber {
                         .collect();
                     toolkits.sort();
                     toolkits.dedup();
-                    crate::events::publish(crate::events::MemoryEvent::ComposioIntegrationsChanged {
+                    crate::openhuman::memory::events::publish(crate::openhuman::memory::events::MemoryEvent::ComposioIntegrationsChanged {
                         toolkits: toolkits.clone(),
                     });
                     tracing::debug!(

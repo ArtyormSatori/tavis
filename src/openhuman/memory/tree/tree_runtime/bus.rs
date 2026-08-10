@@ -34,7 +34,7 @@ impl EventHandler<DomainEvent> for TreeSummarizerEventSubscriber {
 
     async fn handle(&self, event: &DomainEvent) {
         match event {
-            crate::events::MemoryEvent::TreeSummarizerHourCompleted {
+            crate::openhuman::memory::events::MemoryEvent::TreeSummarizerHourCompleted {
                 namespace,
                 node_id,
                 token_count,
@@ -46,7 +46,7 @@ impl EventHandler<DomainEvent> for TreeSummarizerEventSubscriber {
                     "[tree_summarizer] hour leaf completed"
                 );
             }
-            crate::events::MemoryEvent::TreeSummarizerPropagated {
+            crate::openhuman::memory::events::MemoryEvent::TreeSummarizerPropagated {
                 namespace,
                 node_id,
                 level,
@@ -60,7 +60,7 @@ impl EventHandler<DomainEvent> for TreeSummarizerEventSubscriber {
                     "[tree_summarizer] node propagated"
                 );
             }
-            crate::events::MemoryEvent::TreeSummarizerRebuildCompleted {
+            crate::openhuman::memory::events::MemoryEvent::TreeSummarizerRebuildCompleted {
                 namespace,
                 total_nodes,
             } => {
@@ -89,7 +89,7 @@ mod tests {
     #[tokio::test]
     async fn handles_hour_completed_without_panic() {
         let sub = TreeSummarizerEventSubscriber::new();
-        sub.handle(&crate::events::MemoryEvent::TreeSummarizerHourCompleted {
+        sub.handle(&crate::openhuman::memory::events::MemoryEvent::TreeSummarizerHourCompleted {
             namespace: "test".into(),
             node_id: "2024/03/15/14".into(),
             token_count: 500,
@@ -100,7 +100,7 @@ mod tests {
     #[tokio::test]
     async fn handles_propagated_without_panic() {
         let sub = TreeSummarizerEventSubscriber::new();
-        sub.handle(&crate::events::MemoryEvent::TreeSummarizerPropagated {
+        sub.handle(&crate::openhuman::memory::events::MemoryEvent::TreeSummarizerPropagated {
             namespace: "test".into(),
             node_id: "2024/03/15".into(),
             level: "day".into(),
@@ -112,7 +112,7 @@ mod tests {
     #[tokio::test]
     async fn handles_rebuild_without_panic() {
         let sub = TreeSummarizerEventSubscriber::new();
-        sub.handle(&crate::events::MemoryEvent::TreeSummarizerRebuildCompleted {
+        sub.handle(&crate::openhuman::memory::events::MemoryEvent::TreeSummarizerRebuildCompleted {
             namespace: "test".into(),
             total_nodes: 42,
         })

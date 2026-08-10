@@ -41,6 +41,7 @@ pub mod tools;
 // Each of these is a thin wrapper: `pub use tinymemory_core::<domain>::*;`
 // plus the handler/schema modules that name `RpcOutcome` and
 // `ControllerSchema`. See the module docs on each for the split.
+pub mod conversations;
 pub mod diff;
 pub mod goals;
 pub mod people;
@@ -61,7 +62,7 @@ mod tree_e2e_tests;
 // `pub use … as …` rather than `pub mod` — these are other crates' modules now.
 // Every one of these was a `pub mod` here before the extraction.
 pub use tinymemory_core::{
-    binding, chat, chat_host, conversations, embedding_adapter, embedding_host, events, global, ingest_pipeline, ingestion, preferences, queue, remember,
+    binding, chat, chat_host, embedding_adapter, embedding_host, events, global, ingest_pipeline, ingestion, preferences, queue, remember,
     observability, rpc_models, search, source_scope, store, sync_events, tinycortex, tool_memory, traits,
     tree_policy, tree_source, util,
 };
