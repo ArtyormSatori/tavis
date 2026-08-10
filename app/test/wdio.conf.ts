@@ -122,9 +122,7 @@ export const config: Options.Testrunner & Record<string, unknown> = {
               // WebView2 reports itself as Edge over CDP. EdgeDriver, unlike
               // ChromeDriver, recognises that browser brand and can attach to
               // the already-running webview without launching a new browser.
-              'ms:edgeOptions': {
-                debuggerAddress: `${CEF_CDP_HOST}:${CEF_CDP_PORT}`,
-              },
+              'ms:edgeOptions': { debuggerAddress: `${CEF_CDP_HOST}:${CEF_CDP_PORT}` },
             },
           ]
         : [
