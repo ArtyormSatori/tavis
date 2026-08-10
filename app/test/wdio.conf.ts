@@ -192,8 +192,14 @@ export const config: Options.Testrunner & Record<string, unknown> = {
    * which is `about:blank`. Without this switch, every spec ends up looking
    * at an empty document. We pick the first window whose URL contains
    * `tauri.localhost`, falling back to the first non-`about:blank`.
-   */
+  */
   before: async function () {
+    // EdgeDriver's WebView2 session already targets the application renderer.
+    // Its window-handle list also contains a synthetic blank document, so the
+    // generic CDP-target selection below can switch a healthy session away
+    // from the app on Windows.
+    if (isWindows) return;
+
     const handles = await browser.getWindowHandles();
     let target: string | null = null;
     for (const handle of handles) {
