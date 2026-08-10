@@ -85,8 +85,23 @@ impl MemoryHostConfig for Config {
         Config::workload_local_model(self, workload)
     }
 
+    fn to_arc(&self) -> Arc<dyn MemoryHostConfig> {
+        Arc::new(self.clone())
+    }
+
     fn api_url(&self) -> Option<&str> {
         self.api_url.as_deref()
+    }
+
+    fn effective_backend_api_url(&self) -> String {
+        // Resolution (env override, staging/prod default, trailing-slash
+        // normalisation) lives in `api::config` and must not be re-derived on
+        // the other side of the seam.
+        crate::api::config::effective_backend_api_url(&self.api_url)
+    }
+
+    fn session_token(&self) -> Result<Option<String>, String> {
+        crate::api::jwt::get_session_token(self)
     }
 
     fn default_model(&self) -> Option<&str> {
