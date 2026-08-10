@@ -67,7 +67,7 @@ mod tree_e2e_tests;
 // Every one of these was a `pub mod` here before the extraction.
 pub use tinymemory_core::{
     chat, chat_host, composio_host, embedding_adapter, embedding_host, events, global,
-    ingest_pipeline, ingestion, observability, preferences, queue, remember, rpc_models,
+    ingest_pipeline, ingestion, learning_candidate, observability, preferences, queue, remember, rpc_models,
     scheduler_gate, search, source_scope, store, sync_events, thread_context, tinycortex, traits,
     tree_policy, tree_source, util,
 };
