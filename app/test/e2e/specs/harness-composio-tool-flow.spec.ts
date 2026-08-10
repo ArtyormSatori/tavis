@@ -102,13 +102,13 @@ async function navigateChatAndSend(prompt: string): Promise<void> {
       return true;
     }));
   expect(clicked).toBe(true);
-  await browser.waitUntil(async () => {
-    const selectedThreadId = await getSelectedThreadId();
-    return Boolean(selectedThreadId && selectedThreadId !== previousThreadId);
-  }, {
-    timeout: 8_000,
-    timeoutMsg: 'a fresh thread.selectedThreadId never populated',
-  });
+  await browser.waitUntil(
+    async () => {
+      const selectedThreadId = await getSelectedThreadId();
+      return Boolean(selectedThreadId && selectedThreadId !== previousThreadId);
+    },
+    { timeout: 8_000, timeoutMsg: 'a fresh thread.selectedThreadId never populated' }
+  );
 
   await typeIntoComposer(prompt);
   const socketReady = await waitForSocketConnected(30_000);
