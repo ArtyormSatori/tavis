@@ -12,11 +12,10 @@
 use base64::engine::{general_purpose::STANDARD as B64, Engine as _};
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use ed25519_dalek::{Signer, SigningKey, SECRET_KEY_LENGTH};
-use hmac::{Hmac, Mac};
 use log::debug;
 use serde::Deserialize;
 use serde_json::json;
-use sha2::{Digest, Sha256, Sha512};
+use sha2::{Digest, Sha256};
 
 use crate::openhuman::config::rpc as config_rpc;
 
