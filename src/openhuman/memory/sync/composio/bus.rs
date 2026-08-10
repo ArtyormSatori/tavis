@@ -591,7 +591,10 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
                     // the OAuth completion we are reacting to may have written
                     // credentials since.
                     let live_config = match crate::openhuman::config::rpc::
-                        reload_config_snapshot_with_timeout(ctx.config.as_ref())
+                        reload_config_from_paths(
+                            ctx.config.config_path(),
+                            ctx.config.workspace_dir(),
+                        )
                         .await
                     {
                         Ok(cfg) => cfg,

@@ -45,7 +45,7 @@ impl ProviderContextExt for ProviderContext {
         //
         // Anchored to the snapshot's config_path (not OPENHUMAN_WORKSPACE) for
         // the same isolation reason as the core's `execute`.
-        let live_config = config_rpc::reload_config_snapshot_with_timeout(self.config.as_ref())
+        let live_config = config_rpc::reload_config_from_paths(self.config.config_path(), self.config.workspace_dir())
             .await
             .map_err(|e| {
                 tracing::warn!(
