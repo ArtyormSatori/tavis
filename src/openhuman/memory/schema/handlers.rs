@@ -2,14 +2,14 @@
 //!
 //! Each `handle_*` function is a thin bridge from raw JSON params to the
 //! typed RPC calls in [`crate::openhuman::memory::tree::tree::rpc`] (write
-//! side) or [`crate::read_rpc`] (UI read side).
+//! side) or [`crate::openhuman::memory::read_rpc`] (UI read side).
 
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
 use crate::core::all::ControllerFuture;
 use crate::openhuman::config::rpc as config_rpc;
-use crate::read_rpc;
+use crate::openhuman::memory::read_rpc;
 use crate::openhuman::memory::tree::tree::rpc;
 use crate::rpc::RpcOutcome;
 
