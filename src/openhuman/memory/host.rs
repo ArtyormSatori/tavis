@@ -167,7 +167,12 @@ pub struct BusEventSink;
 
 impl MemoryEventSink for BusEventSink {
     fn publish(&self, event: MemoryEvent) {
-        BUS.publish(into_domain_event(event));
+        // Not every memory event is a bus event. `LocalModelUnavailable` is a
+        // durable user-facing error and rides the web channel instead, so the
+        // mapping is allowed to answer "handled, nothing for the bus".
+        if let Some(domain_event) = into_domain_event(event) {
+            BUS.publish(domain_event);
+        }
     }
 }
 
@@ -181,8 +186,11 @@ pub fn install_memory_event_sink() {
 /// Structural mapping, deliberately exhaustive on the core's side so a new
 /// [`MemoryEvent`] variant is a compile error here rather than an event that
 /// silently never reaches the bus.
-fn into_domain_event(event: MemoryEvent) -> DomainEvent {
-    match event {
+///
+/// `None` means the event was handled here and has no bus equivalent — not
+/// that it was dropped.
+fn into_domain_event(event: MemoryEvent) -> Option<DomainEvent> {
+    let domain_event = match event {
         MemoryEvent::SyncStageChanged {
             trigger,
             stage,
@@ -318,5 +326,11 @@ fn into_domain_event(event: MemoryEvent) -> DomainEvent {
             DomainEvent::ComposioIntegrationsChanged { toolkits }
         }
         MemoryEvent::SyncRequested { channel_id } => DomainEvent::MemorySyncRequested { channel_id },
-    }
-}
+        // Goes to the durable UserErrorCenter over the web channel, not the bus.
+        MemoryEvent::LocalModelUnavailable { origin } => {
+            crate::openhuman::memory::tree::health::user_error::
+                publish_local_model_unavailable_user_error(&origin);
+            return None;
+        }
+    };
+    Some(domain_event)
