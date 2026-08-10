@@ -1000,6 +1000,10 @@ tinyagents = { path = "vendor/tinyagents" }
 # publishing.
 tinyflows = { path = "vendor/tinyflows" }
 tinycortex = { path = "vendor/tinycortex" }
+# `tinymemory-core` names `tinycortex-api` by version requirement (this crate
+# depends on it by path, above). Patch it onto the same checkout so both see one
+# copy of the contract types and the trait identities unify.
+tinycortex-api = { path = "vendor/tinycortex/api" }
 tinyjuice = { path = "vendor/tinyjuice" }
 tinychannels = { path = "vendor/tinychannels" }
 tinyplace = { path = "vendor/tinyplace/sdk/rust" }
