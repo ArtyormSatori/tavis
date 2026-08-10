@@ -231,6 +231,23 @@ tinycortex-api = { path = "vendor/tinycortex/api" }
 tinymemory = { path = "vendor/tinymemory" }
 tinymemory-api = { path = "vendor/tinymemory/api" }
 tinymemory-tinycortex = { path = "vendor/tinymemory/adapters/tinycortex" }
+# `tinymemory-core` is the *substance* of the memory subsystem, extracted out of
+# `src/openhuman/memory/` — the SQLite/vector store, the markdown summary tree,
+# the provider sync pipelines, ingestion, recall/query/search, the ingest queue,
+# conversations, people, goals and the tool-memory rules.
+#
+# What deliberately stayed behind in `src/openhuman/memory/` is the *host layer*
+# per the tinymemory README split: the RPC surface (`schemas/`, `read_rpc/`),
+# agent tools (`tools/`), the security/taint guard (`guard/`), the driver
+# binding (`driver/`), the memory agent, and the config mapping. Those reach
+# into this crate; this crate never names an OpenHuman type. Everything it needs
+# from the host arrives through the seam traits in `tinymemory_api::host`, whose
+# implementations live in `src/openhuman/memory/host.rs`.
+#
+# The `schemars` feature is enabled because the memory config *section* structs
+# (`MemoryConfig`, `MemoryTreeConfig`, …) now live in `tinymemory_api::host` and
+# are still fields of OpenHuman's `Config`, which derives `JsonSchema`.
+tinymemory-core = { path = "vendor/tinymemory/core" }
 tinychannels = { version = "0.1", features = ["relay-websocket"] }
 # tinybus — the message bus. Owns what `src/core/event_bus/` used to: the typed
 # pub/sub surface (`EventBus`, `EventHandler`, `SubscriptionHandle`), the
