@@ -14,8 +14,8 @@ use serde::Deserialize;
 use serde_json::json;
 use tinycortex_api::provider::MemoryProvider;
 
-use tinymemory_core::ops::guard::active_memory_guard;
-use tinymemory_core::ops::tool_memory::NO_TOOL_MEMORY;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::memory::ops::tool_memory::NO_TOOL_MEMORY;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 
 pub struct MemoryToolsListTool;

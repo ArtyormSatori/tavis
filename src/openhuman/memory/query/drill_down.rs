@@ -1,6 +1,6 @@
 use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::query::backend;
-use tinymemory_core::tree::retrieval::rpc::DrillDownRequest;
+use crate::openhuman::memory::tree::retrieval::rpc::DrillDownRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;

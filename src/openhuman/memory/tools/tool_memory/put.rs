@@ -26,8 +26,8 @@ use serde::Deserialize;
 use serde_json::json;
 use tinycortex_api::provider::MemoryProvider;
 
-use tinymemory_core::ops::guard::active_memory_guard;
-use tinymemory_core::ops::tool_memory::NO_TOOL_MEMORY;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::memory::ops::tool_memory::NO_TOOL_MEMORY;
 use tinymemory_core::tool_memory::{ToolMemoryPriority, ToolMemoryRule, ToolMemorySource};
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 
@@ -272,7 +272,7 @@ use crate::openhuman::config::{TEST_ENV_LOCK};
 
     #[tokio::test]
     async fn execute_success_path_persists_rule_in_isolated_workspace() {
-        let _serial = tinymemory_core::ops::GLOBAL_MEMORY_TEST_LOCK
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
         let tmp = TempDir::new().expect("tempdir");
@@ -298,7 +298,7 @@ use crate::openhuman::config::{TEST_ENV_LOCK};
         assert_eq!(parsed["tags"], json!(["safety", "shell"]));
         assert!(parsed["id"].as_str().is_some());
 
-        let guard = tinymemory_core::ops::guard::active_memory_guard()
+        let guard = crate::openhuman::memory::ops::guard::active_memory_guard()
             .await
             .expect("active memory guard");
         let rules = guard
@@ -318,7 +318,7 @@ use crate::openhuman::config::{TEST_ENV_LOCK};
 
     #[tokio::test]
     async fn execute_defaults_unknown_priority_to_normal() {
-        let _serial = tinymemory_core::ops::GLOBAL_MEMORY_TEST_LOCK
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
         let tmp = TempDir::new().expect("tempdir");
@@ -345,7 +345,7 @@ use crate::openhuman::config::{TEST_ENV_LOCK};
     /// `admit_write` calls `enforce_write_tier` first.
     #[tokio::test]
     async fn execute_is_refused_under_the_readonly_tier() {
-        let _serial = tinymemory_core::ops::GLOBAL_MEMORY_TEST_LOCK
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
         let tmp = TempDir::new().expect("tempdir");
@@ -370,7 +370,7 @@ use crate::openhuman::config::{TEST_ENV_LOCK};
     /// test above is proving the tier gate rather than a broken write path.
     #[tokio::test]
     async fn execute_succeeds_under_the_full_tier() {
-        let _serial = tinymemory_core::ops::GLOBAL_MEMORY_TEST_LOCK
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
         let tmp = TempDir::new().expect("tempdir");
@@ -392,7 +392,7 @@ use crate::openhuman::config::{TEST_ENV_LOCK};
     /// `ToolMemoryStore` handles.
     #[tokio::test]
     async fn guarded_put_and_guarded_list_share_the_store() {
-        let _serial = tinymemory_core::ops::GLOBAL_MEMORY_TEST_LOCK
+        let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
         let tmp = TempDir::new().expect("tempdir");

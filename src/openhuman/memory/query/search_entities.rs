@@ -1,6 +1,6 @@
 use crate::openhuman::config::rpc as config_rpc;
 use tinymemory_core::tree::retrieval;
-use tinymemory_core::tree::retrieval::rpc::SearchEntitiesRequest;
+use crate::openhuman::memory::tree::retrieval::rpc::SearchEntitiesRequest;
 use tinymemory_core::tree::score::extract::EntityKind;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;

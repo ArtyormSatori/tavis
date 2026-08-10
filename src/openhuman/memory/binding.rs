@@ -72,8 +72,8 @@ use crate::core::subsystem::{
 };
 use tinymemory_api::host::MemoryHooksConfig;
 use tinymemory_api::host::MemorySubsystemConfig;
-use crate::driver::embedded::EmbeddedMemoryProvider;
-use crate::guard::{GuardPolicy, MemoryGuard};
+use crate::openhuman::memory::driver::embedded::EmbeddedMemoryProvider;
+use crate::openhuman::memory::guard::{GuardPolicy, MemoryGuard};
 
 /// Why a bind fell back to the placeholder driver.
 ///
@@ -327,7 +327,7 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 .drivers
                 .get(&driver_id)
                 .map(|entry| entry.trust_state.clone())
-                .unwrap_or_else(|| crate::guard::policy::TRUSTED.to_string());
+                .unwrap_or_else(|| crate::openhuman::memory::guard::policy::TRUSTED.to_string());
             let binding = bind_provider(provider, driver_id, class, cfg.hooks, trust_state, None);
             log::info!(
                 "[memory:binding] workspace={} bound driver='{}' class={} capabilities=[{}]",
@@ -369,7 +369,7 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 // boundary to cross and nothing to trust-gate. The refused
                 // driver's own trust_state is deliberately NOT carried over —
                 // it describes a binding that did not happen.
-                crate::guard::policy::TRUSTED.to_string(),
+                crate::openhuman::memory::guard::policy::TRUSTED.to_string(),
                 Some(fallback),
             )
         }
@@ -424,7 +424,7 @@ pub(crate) fn bind_provider_for_test(
         driver_id,
         class,
         MemoryHooksConfig::default(),
-        crate::guard::policy::TRUSTED.to_string(),
+        crate::openhuman::memory::guard::policy::TRUSTED.to_string(),
         None,
     )
 }

@@ -44,7 +44,7 @@ use anyhow::{Context as _, Result};
 use chrono::{DateTime, TimeZone, Utc};
 
 use crate::openhuman::config::Config;
-use crate::ops::{
+use crate::openhuman::memory::ops::{
     doc_list, doc_put, graph_query, graph_upsert, kv_get, memory_query_namespace, GraphQueryParams,
     GraphUpsertParams, KvGetDeleteParams, KvSetParams, NamespaceOnlyParams, PutDocParams,
 };
@@ -190,7 +190,7 @@ async fn seed_documents() -> Result<()> {
 async fn seed_kv() -> Result<()> {
     for namespace in [None, Some(NAMESPACE_PRIMARY.to_string())] {
         tracing::debug!(?namespace, key = KV_KEY, "[golden] seeding kv");
-        crate::ops::kv_set(KvSetParams {
+        crate::openhuman::memory::ops::kv_set(KvSetParams {
             namespace: namespace.clone(),
             key: KV_KEY.to_string(),
             value: serde_json::json!({ "fixture": "golden", "v": 1 }),

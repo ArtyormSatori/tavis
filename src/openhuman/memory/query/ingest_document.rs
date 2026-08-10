@@ -1,6 +1,6 @@
 use crate::openhuman::config::rpc as config_rpc;
 use tinymemory_core::store::chunks::types::SourceKind;
-use tinymemory_core::tree::tree::rpc;
+use crate::openhuman::memory::tree::tree::rpc;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use chrono::Utc;

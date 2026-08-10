@@ -35,7 +35,7 @@ use async_trait::async_trait;
 
 use super::{tool_memory_store, ToolMemoryPriority, ToolMemorySource, ToolMemoryStore};
 use crate::openhuman::agent::hooks::{PostTurnHook, ToolCallRecord, TurnContext};
-use crate::Memory;
+use crate::openhuman::memory::Memory;
 
 /// Maximum length (chars) of the captured rule body — keeps malformed or
 /// runaway input from bloating the namespace.
