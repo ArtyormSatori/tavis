@@ -73,6 +73,10 @@ jobs:
             --exclude '^https://github\.com/tinyhumansai/openhuman/stargazers'
             --exclude '^https://api\.star-history\.com/'
             --exclude '^https://x\.com/karpathy/status/2039805659525644595$'
+            # Product Hunt denies GitHub-hosted runners (403) for the
+            # translated README badge destination, so it cannot be a stable
+            # external-link check.
+            --exclude '^https://www\.producthunt\.com/'
             'docs/**/*.md'
             'src/**/README.md'
             '.github/PULL_REQUEST_TEMPLATE.md'
