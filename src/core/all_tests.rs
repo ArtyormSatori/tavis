@@ -1670,6 +1670,7 @@ const MEMORY_NAMESPACE_CAPABILITY: &[(&str, Option<Capability>)] = &[
     ("slack_memory", Some(Capability::Sources)),
     ("memory_sync", Some(Capability::Sources)),
     ("memory_sources", Some(Capability::Sources)),
+    #[cfg(feature = "memory-git")]
     ("memory_diff", Some(Capability::Diff)),
 ];
 
@@ -1955,6 +1956,7 @@ async fn memory_families_registered_when_capabilities_advertised() {
         "tree_summarizer",
         "memory_sync",
         "memory_sources",
+        #[cfg(feature = "memory-git")]
         "memory_diff",
         "slack_memory",
         "people",
@@ -2399,6 +2401,7 @@ fn sole_capability_for_namespace_reports_a_single_family_namespace() {
         sole_capability_for_namespace("memory_tree"),
         Some(Capability::Tree)
     );
+    #[cfg(feature = "memory-git")]
     assert_eq!(
         sole_capability_for_namespace("memory_diff"),
         Some(Capability::Diff)

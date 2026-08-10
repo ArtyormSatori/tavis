@@ -2787,6 +2787,7 @@ const MEMORY_TOOL_CAPABILITIES: &[(&str, tinycortex_api::capabilities::Capabilit
         ("memory_tree", C::Tree),
         ("memory_flavour", C::Tree),
         ("memory_store_raw_search", C::Entities),
+        #[cfg(feature = "memory-git")]
         ("memory_diff", C::Diff),
         ("memory_doctor", C::Maintenance),
         ("tool_stats", C::ToolMemory),
@@ -2923,6 +2924,7 @@ const OPTIONAL_FAMILY_MEMORY_TOOLS: &[&str] = &[
     "memory_tree",
     "memory_flavour",
     "memory_store_raw_search",
+    #[cfg(feature = "memory-git")]
     "memory_diff",
     "memory_doctor",
     "goals_list",
