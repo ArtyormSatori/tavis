@@ -2980,6 +2980,19 @@ async fn memory_tools_all_present_under_the_embedded_driver() {
     }
 }
 
+/// The git-backed diff tool must not advertise an implementation that cannot
+/// run when the `memory-git` feature is compiled out.
+#[cfg(not(feature = "memory-git"))]
+#[test]
+fn memory_diff_tool_is_absent_when_memory_git_is_disabled() {
+    let tmp = TempDir::new().unwrap();
+    let names = tool_names(&expansion_tools_for(&tmp));
+    assert!(
+        !names.iter().any(|name| name == "memory_diff"),
+        "memory_diff must be absent when the memory-git feature is disabled; got: {names:?}"
+    );
+}
+
 /// The half that proves the filter removes anything.
 #[tokio::test]
 async fn optional_family_memory_tools_absent_under_the_null_driver() {
