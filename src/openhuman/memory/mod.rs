@@ -1,56 +1,41 @@
-//! Memory orchestration.
+//! Memory orchestration — the **host layer** over `tinymemory-core`.
 //!
-//! This module is the high-level routing + policy layer over the memory
-//! stack. Owns the ingest pipeline, background job handlers, scoring,
-//! tree-building policy (tree_global / tree_topic), recall ranking, and
-//! the RPC surface. Storage primitives all live in sibling memory_*
-//! modules — see [`README.md`](README.md) for the full map.
+//! The substance of the memory subsystem was extracted into
+//! [`tinymemory_core`]: the SQLite/vector store, the markdown summary tree, the
+//! provider sync pipelines, ingestion, recall/query/search, the ingest queue,
+//! conversations, people, goals and the tool-memory rules. That crate names no
+//! OpenHuman type.
 //!
-//! No SQLite, no on-disk md, no vector tables here — those belong one
-//! layer down in [`memory_store`](crate::openhuman::memory::store).
+//! What stays here is the host layer, per the tinymemory README's split:
+//!
+//! | Module | Role |
+//! | ------ | ---- |
+//! | [`schemas`] / [`read_rpc`] | the JSON-RPC surface and its controller registration |
+//! | [`tools`] | the memory agent tools |
+//! | [`guard`] | the taint/scope/budget policy gate over every provider call |
+//! | [`driver`] | driver binding — which provider backs this workspace |
+//! | [`ops`] | RPC handlers, delegating into the core |
+//! | [`agent`] | the memory agent and its prompt |
+//! | [`global`] | the per-workspace singleton |
+//! | [`host`] | the seam impls — [`host::install_memory_event_sink`] and `MemoryHostConfig for Config` |
+//!
+//! Everything else in this module is a **re-export** of the extracted crate, so
+//! the ~550 `crate::openhuman::memory::…` paths elsewhere in this crate keep
+//! resolving unchanged. Prefer `tinymemory_core::…` in new code.
 
-// Legacy memory modules
 pub mod agent;
-pub mod binding;
-pub mod conversations;
-pub mod diff;
 pub mod driver;
 pub mod global;
-pub mod goals;
 pub mod guard;
-pub mod ingestion;
+pub mod host;
 pub mod ops;
-pub mod people;
-pub mod preferences;
-pub mod queue;
-pub mod rpc_models;
-pub mod schemas;
-pub mod search;
-pub mod sources;
-pub mod store;
-pub mod sync;
-pub mod traits;
-
-// Modules moved from memory_tree (Phase 3)
-pub mod chat;
-pub mod ingest_pipeline;
+// The consolidated `memory_query` agent tool and its six retrieval modes. Came
+// back from `tinymemory-core` with the rest of the agent tools — it is a `Tool`
+// impl end to end, and the engine crate cannot name that trait.
 pub mod query;
 pub mod read_rpc;
-pub mod remember;
-pub mod schema;
-pub mod source_scope;
-pub mod sync_events;
-pub mod tinycortex;
-pub mod tool_memory;
+pub mod schemas;
 pub mod tools;
-pub mod tree;
-pub mod util;
-
-// Tree instances — policy and orchestration over the generic memory_tree engine.
-// The global (time-axis) and topic (subject-axis) trees were removed; source
-// trees plus the entity index are the substrate.
-pub mod tree_policy;
-pub mod tree_source;
 
 #[cfg(test)]
 mod bypass_allowlist_tests;
@@ -58,6 +43,17 @@ mod bypass_allowlist_tests;
 mod sync_pipeline_e2e_tests;
 #[cfg(test)]
 mod tree_e2e_tests;
+
+// ── The extracted subsystem, re-exported under its historical paths ─────────
+//
+// `pub use … as …` rather than `pub mod` — these are other crates' modules now.
+// Every one of these was a `pub mod` here before the extraction.
+pub use tinymemory_core::{
+    binding, chat, conversations, diff, events, goals, ingest_pipeline, ingestion, people,
+    preferences, queue, remember, rpc_models, schema, search, source_scope, sources, store,
+    sync, sync_events, tinycortex, tool_memory, traits, tree, tree_policy, tree_source, util,
+};
+
 pub use ingestion::{
     ExtractedEntity, ExtractedRelation, ExtractionMode, IngestionJob, IngestionQueue,
     IngestionState, IngestionStatusSnapshot, MemoryIngestionConfig, MemoryIngestionRequest,
@@ -90,8 +86,8 @@ pub use schemas::{
 };
 pub use traits::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary, RecallOpts};
 
-// Re-export types that external tests and consumers historically imported
-// from `memory::*`. The definitions moved to sibling crates during the
-// memory refactor; these aliases keep the public surface stable.
-pub use crate::openhuman::memory::store::types::NamespaceDocumentInput;
-pub use crate::openhuman::memory::store::{MemoryClient, UnifiedMemory};
+// Types that external tests and consumers historically imported from
+// `memory::*`. The definitions moved to sibling crates during the memory
+// refactor; these aliases keep the public surface stable.
+pub use store::types::NamespaceDocumentInput;
+pub use store::{MemoryClient, UnifiedMemory};
