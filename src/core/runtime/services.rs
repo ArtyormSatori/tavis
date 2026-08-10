@@ -276,7 +276,7 @@ pub fn start_bootstrap_jobs(services: ServiceSet, config: &Config) {
 
     if plan.memory_queue {
         log::debug!("[runtime.bootstrap] starting memory queue workers");
-        crate::openhuman::memory::queue::start(config.clone());
+        crate::openhuman::memory::queue::start(config.to_arc());
     } else {
         log::debug!("[runtime.bootstrap] memory queue workers disabled by ServiceSet");
     }

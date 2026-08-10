@@ -387,7 +387,7 @@ pub async fn sync_rpc(req: SyncRequest) -> Result<RpcOutcome<SyncResponse>, Stri
         .ok_or_else(|| format!("source '{}' not found", req.source_id))?;
 
     let config = config_rpc::load_config_with_timeout().await?;
-    crate::openhuman::memory::sources::sync::sync_source(source, config).await?;
+    crate::openhuman::memory::sources::sync::sync_source(source, config.to_arc()).await?;
 
     Ok(RpcOutcome::new(
         SyncResponse {
@@ -713,7 +713,7 @@ pub async fn apply_all_in_rpc() -> Result<RpcOutcome<AllInResponse>, String> {
             kind = %source.kind.as_str(),
             "[memory_sources] apply_all_in_rpc: triggering sync"
         );
-        match crate::openhuman::memory::sources::sync::sync_source(source.clone(), config.clone())
+        match crate::openhuman::memory::sources::sync::sync_source(source.clone(), config.to_arc())
             .await
         {
             Ok(()) => {
