@@ -27,6 +27,7 @@ pub mod agent;
 pub mod driver;
 pub mod guard;
 pub mod host;
+pub mod sync_events_bridge;
 pub mod ops;
 // The consolidated `memory_query` agent tool and its six retrieval modes. Came
 // back from `tinymemory-core` with the rest of the agent tools — it is a `Tool`
