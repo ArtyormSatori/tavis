@@ -51,7 +51,12 @@ llvm_cov() {
       return
       ;;
   esac
-  bash scripts/ci-cancel-aware.sh cargo llvm-cov --features "${PRODUCT_FEATURES}" "$@"
+  # The caller clears the workspace once before starting a coverage run. Every
+  # subsequent invocation contributes another test binary, so it must retain
+  # the existing raw profiles until the final `report` merges them. Without
+  # `--no-clean`, cargo-llvm-cov cleans profiles before each target and a
+  # scoped run with integration gates reaches `report` with nothing to merge.
+  bash scripts/ci-cancel-aware.sh cargo llvm-cov --no-clean --features "${PRODUCT_FEATURES}" "$@"
 }
 
 integration_test_targets() {
