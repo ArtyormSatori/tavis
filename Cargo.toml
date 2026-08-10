@@ -351,6 +351,21 @@ unicode-width = { version = "0.2", optional = true }
 # Optional: exclusive to the default-ON `documents` feature.
 tinydocs = { path = "vendor/tinydocs", default-features = false, optional = true }
 
+# TinyWallet — host-agnostic multi-chain wallet primitives. Owns the address
+# formats themselves: parsing, validation, and the conversions between their
+# encodings for Bitcoin, EVM chains, Solana and Tron. Nothing about "is this a
+# well-formed Solana address" is OpenHuman-specific, so the rules live where
+# any host can reach them. What stays in `src/openhuman/web3/` is everything
+# the crate deliberately refuses to own: RPC endpoint resolution, transaction
+# assembly and broadcast, and key custody.
+#
+# Vendored as a path dependency like `tinyhumans-sdk`: the crate is not
+# published to crates.io, so there is no `[patch.crates-io]` entry for it.
+# After cloning: `git submodule update --init vendor/tinywallet`.
+#
+# Optional: exclusive to the default-ON `web3` feature.
+tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["btc", "evm", "solana", "tron"], optional = true }
+
 [target.'cfg(windows)'.dependencies]
 # Windows: tokio-tungstenite uses native-tls (schannel) so wss://
 # connections honor the Windows cert store, including corporate CAs
