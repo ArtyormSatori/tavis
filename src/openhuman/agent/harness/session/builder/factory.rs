@@ -294,6 +294,7 @@ impl Agent {
             Some(&config.storage.provider.config),
             &config.workspace_dir,
             &memory_subdir,
+            config.sqlite_open_timeout_secs(),
         )?;
         let archivist_connection = session_memory.sqlite_connection;
         let memory: Arc<dyn Memory> = Arc::from(session_memory.memory);

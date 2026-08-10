@@ -107,6 +107,7 @@ pub fn build_runtime_tools(config: &Config) -> Result<Vec<Box<dyn Tool>>, String
             &config.embedding_routes,
             Some(&config.storage.provider.config),
             &config.workspace_dir,
+            config.sqlite_open_timeout_secs(),
         )
         .map_err(|error| {
             debug!(

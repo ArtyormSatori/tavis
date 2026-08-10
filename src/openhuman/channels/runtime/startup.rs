@@ -311,6 +311,7 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         &[],
         Some(&config.storage.provider.config),
         &config.workspace_dir,
+        config.sqlite_open_timeout_secs(),
     ) {
         Ok(mem) => Arc::from(mem),
         Err(e) => {
@@ -329,6 +330,7 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
                 &[],
                 Some(&config.storage.provider.config),
                 &config.workspace_dir,
+                config.sqlite_open_timeout_secs(),
             )?)
         }
     };
