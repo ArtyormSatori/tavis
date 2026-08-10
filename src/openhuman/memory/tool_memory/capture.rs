@@ -290,8 +290,8 @@ fn tool_aliases(tool_name: &str) -> Vec<&'static str> {
 mod tests {
     use super::*;
     use crate::openhuman::agent::hooks::ToolCallRecord;
-    use crate::tool_memory::test_helpers::MockMemory;
-    use crate::tool_memory::tool_memory_store;
+    use crate::openhuman::memory::tool_memory::test_helpers::MockMemory;
+    use crate::openhuman::memory::tool_memory::tool_memory_store;
 
     fn ctx_with(message: &str, tool_calls: Vec<ToolCallRecord>) -> TurnContext {
         TurnContext {
@@ -459,7 +459,7 @@ mod tests {
         //    front of the agent on every subsequent turn.
         let mut flat: Vec<_> = prompt.into_values().flatten().collect();
         flat.sort_by(|a, b| b.priority.cmp(&a.priority));
-        let rendered = crate::tool_memory::render_tool_memory_rules(&flat);
+        let rendered = crate::openhuman::memory::tool_memory::render_tool_memory_rules(&flat);
         assert!(rendered.contains("Never email Sarah"));
         assert!(rendered.contains("**[critical]**"));
     }
