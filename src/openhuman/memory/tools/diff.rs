@@ -10,7 +10,7 @@ use serde_json::{json, Value};
 use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
 
-use super::ops;
+use crate::openhuman::memory::diff::ops;
 use tinycortex::memory::diff::types::*;
 
 pub struct MemoryDiffTool;

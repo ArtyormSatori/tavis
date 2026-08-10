@@ -8,7 +8,7 @@
 pub use tinymemory_core::tree::tree_runtime::*;
 
 pub mod ops;
-mod schemas;
+pub mod schemas;
 
 pub use ops as rpc;
 

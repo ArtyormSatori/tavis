@@ -11,4 +11,4 @@ pub mod rpc;
 pub mod schemas;
 mod stub;
 
-pub use stub::{all_memory_diff_controller_schemas, all_memory_diff_registered_controllers, ops};
+pub use stub::{all_memory_diff_controller_schemas, all_memory_diff_registered_controllers};
