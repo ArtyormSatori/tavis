@@ -8,7 +8,7 @@
 //! contract crate for mechanical reasons, not because memory owns it.
 
 pub use tinymemory_api::host::cloud_providers::{
-    builtin_cloud_supports_responses_api, endpoint_host_is_chat_completions_only,
+    builtin_cloud_supports_responses_api, endpoint_host, endpoint_host_is_chat_completions_only,
     generate_provider_id, host_is_builtin_cloud_provider, is_builtin_cloud_slug, is_slug_reserved,
     migrate_legacy_fields, AuthStyle, BuiltinCloudProvider, CloudProviderCreds, CloudProviderType,
     BUILTIN_CLOUD_PROVIDERS,
