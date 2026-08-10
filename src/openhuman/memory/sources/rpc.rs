@@ -4,6 +4,7 @@ use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::sources::readers;
 use crate::openhuman::memory::sources::registry::{self, MemorySourcePatch};
 use crate::openhuman::memory::sources::types::{MemorySourceEntry, SourceKind};
+use crate::openhuman::memory::sources::apply_kind_defaults;
 use crate::rpc::RpcOutcome;
 
 #[derive(Debug, serde::Serialize)]

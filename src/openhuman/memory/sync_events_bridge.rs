@@ -20,7 +20,9 @@ use tinybus::SubscriptionHandle;
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::sync_events::{MemorySyncStage, MemorySyncTrigger};
+use crate::openhuman::memory::sync_events::{
+    emit_sync_stage, extract_mem_src_id, MemorySyncStage, MemorySyncTrigger,
+};
 
 static MEMORY_SYNC_FRONTEND_HANDLE: OnceLock<SubscriptionHandle> = OnceLock::new();
 static MEMORY_SYNC_EMBED_HANDLE: OnceLock<SubscriptionHandle> = OnceLock::new();
@@ -28,7 +30,7 @@ static MEMORY_SYNC_EMBED_HANDLE: OnceLock<SubscriptionHandle> = OnceLock::new();
 /// Register a lightweight bridge that translates lower-level ingestion events
 /// into the coarse sync-stage stream the frontend consumes, and a post-sync
 /// embed trigger that kicks off batch embedding after sync completion.
-pub fn register_sync_stage_bridge(config: &crate::Config) {
+pub fn register_sync_stage_bridge(config: &Config) {
     if MEMORY_SYNC_FRONTEND_HANDLE.get().is_some() {
         return;
     }
@@ -61,7 +63,7 @@ pub fn register_sync_stage_bridge(config: &crate::Config) {
 /// chunks admitted during the sync get their embeddings in one large batch
 /// pass (up to 1000 items per API call, ~1M tokens).
 struct SyncCompleteEmbedTrigger {
-    config: crate::Config,
+    config: Config,
 }
 
 #[async_trait]
