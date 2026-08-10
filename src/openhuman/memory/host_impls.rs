@@ -126,29 +126,30 @@ impl EmbeddingHost for OpenHumanEmbeddingHost {
 // ── Chat models ─────────────────────────────────────────────────────────────
 
 /// Builds chat models for summarisation and the memory chat helper.
+///
+/// Every method here is sync, so none can re-read the config the seam points
+/// at; they use the one captured at install time. Model routing does not change
+/// mid-session in practice, and this matches how the pre-extraction call sites
+/// behaved — they read the same ambient config.
 #[derive(Debug)]
-pub struct OpenHumanChatHost;
+pub struct OpenHumanChatHost {
+    config: Arc<Config>,
+}
 
 impl ChatHost for OpenHumanChatHost {
-    fn provider_for_role(&self, role: &str, config: &SeamConfig) -> String {
-        match downcast_config(config) {
-            Some(config) => {
-                crate::openhuman::inference::provider::provider_for_role(role, &config)
-            }
-            None => "unknown".to_string(),
-        }
+    fn provider_for_role(&self, role: &str, _config: &SeamConfig) -> String {
+        crate::openhuman::inference::provider::provider_for_role(role, &self.config)
     }
 
     fn create_chat_model_with_model_id(
         &self,
         role: &str,
-        config: &SeamConfig,
+        _config: &SeamConfig,
         temperature: f64,
     ) -> Result<(Arc<dyn ChatModel<()>>, String), String> {
-        let config = downcast_config(config).ok_or_else(|| CONFIG_UNAVAILABLE.to_string())?;
         crate::openhuman::inference::provider::create_chat_model_with_model_id(
             role,
-            &config,
+            &self.config,
             temperature,
         )
         .map_err(|e| format!("{e:#}"))
@@ -158,21 +159,22 @@ impl ChatHost for OpenHumanChatHost {
         crate::openhuman::agent::tinyagents::model::usage_info_from_response(response)
     }
 
-    fn summarizer_available(&self, config: &SeamConfig) -> (bool, &'static str) {
-        match downcast_config(config) {
-            Some(config) => {
-                crate::openhuman::memory::tree::tree_runtime::ops::summarizer_available(&config)
-            }
-            None => (false, CONFIG_UNAVAILABLE),
-        }
+    fn summarizer_available(&self, _config: &SeamConfig) -> (bool, &'static str) {
+        crate::openhuman::memory::tree::tree_runtime::ops::summarizer_available(&self.config)
     }
 }
 
 // ── Composio ────────────────────────────────────────────────────────────────
 
 /// Runs Composio calls for the memory sync pipelines.
+///
+/// The two async methods re-read the config the seam points at, because an
+/// OAuth completion or a `set_api_key` RPC between ticks has to take effect
+/// immediately. The two sync ones cannot, and use the captured startup config.
 #[derive(Debug)]
-pub struct OpenHumanComposioHost;
+pub struct OpenHumanComposioHost {
+    config: Arc<Config>,
+}
 
 #[async_trait]
 impl ComposioHost for OpenHumanComposioHost {
@@ -180,7 +182,7 @@ impl ComposioHost for OpenHumanComposioHost {
         use crate::openhuman::integrations::composio::client::{
             create_composio_client, direct_list_connections, ComposioClientKind,
         };
-        let config = downcast_config(config).ok_or_else(|| CONFIG_UNAVAILABLE.to_string())?;
+        let config = live_config(config).await?;
         let response = match create_composio_client(&config)
             .map_err(|e| format!("create_composio_client: {e:#}"))?
         {
@@ -217,7 +219,7 @@ impl ComposioHost for OpenHumanComposioHost {
         use crate::openhuman::integrations::composio::client::{
             create_composio_client, direct_execute, ComposioClientKind,
         };
-        let config = downcast_config(config).ok_or_else(|| CONFIG_UNAVAILABLE.to_string())?;
+        let config = live_config(config).await?;
         match create_composio_client(&config).map_err(|e| format!("{e:#}"))? {
             ComposioClientKind::Backend(client) => client
                 .execute_tool(tool, arguments)
@@ -231,16 +233,15 @@ impl ComposioHost for OpenHumanComposioHost {
         }
     }
 
-    fn api_key(&self, config: &SeamConfig) -> Option<String> {
-        let config = downcast_config(config)?;
-        crate::openhuman::security::credentials::get_composio_api_key(&config)
+    fn api_key(&self, _config: &SeamConfig) -> Option<String> {
+        crate::openhuman::security::credentials::get_composio_api_key(&self.config)
             .ok()
             .flatten()
     }
 
-    fn is_available(&self, config: &SeamConfig) -> bool {
+    fn is_available(&self, _config: &SeamConfig) -> bool {
         use crate::openhuman::integrations::composio::client::create_composio_client;
-        downcast_config(config).is_some_and(|config| create_composio_client(&config).is_ok())
+        create_composio_client(&self.config).is_ok()
     }
 }
 
@@ -279,7 +280,7 @@ pub struct OpenHumanNlpHost;
 #[async_trait]
 impl NlpHost for OpenHumanNlpHost {
     async fn extract_spacy(&self, config: &SeamConfig, text: &str) -> Result<SpacyResponse, String> {
-        let config = downcast_config(config).ok_or_else(|| CONFIG_UNAVAILABLE.to_string())?;
+        let config = live_config(config).await?;
         crate::openhuman::runtime::python_server::extract_spacy(&config, text)
             .await
             .map_err(|e| format!("{e:#}"))
@@ -349,24 +350,26 @@ impl ErrorReporter for OpenHumanErrorReporter {
 
 // ── Wiring ──────────────────────────────────────────────────────────────────
 
-/// Message used when a seam receives a config it cannot turn back into the
-/// host's concrete `Config`.
-const CONFIG_UNAVAILABLE: &str =
-    "memory host seam received a config it cannot resolve to the host's Config";
-
-/// Recover the host's concrete `Config` from the seam's trait object.
+/// Re-read the host's concrete `Config` from the paths the seam points at.
 ///
-/// The seam is `dyn MemoryHostConfig`, and the host functions these impls
-/// delegate to want `&Config`. Rather than downcast — which would fail for any
-/// other implementor, including `TestHostConfig` — this re-reads the config the
-/// seam points at. That is a file read per call on the paths that use it, which
-/// is why the hot seams (embeddings) capture an `Arc<Config>` instead.
-fn downcast_config(config: &SeamConfig) -> Option<Config> {
-    crate::openhuman::config::Config::load_from_config_path_blocking(
+/// The seam is `dyn MemoryHostConfig` and the host functions these impls
+/// delegate to want `&Config`. Recovering one is a file read, so it is only
+/// available to the **async** seam methods; the sync ones use the `Arc<Config>`
+/// captured at install time instead, and say so on their impl.
+///
+/// Deliberately not a downcast: `TestHostConfig` and any future implementor are
+/// not the host's `Config`, and a downcast would turn them into a silent `None`
+/// rather than an honest re-read.
+///
+/// # Errors
+///
+/// Returns `Err` when the config file cannot be read.
+async fn live_config(config: &SeamConfig) -> Result<Config, String> {
+    crate::openhuman::config::rpc::reload_config_from_paths(
         config.config_path(),
         config.workspace_dir(),
     )
-    .ok()
+    .await
 }
 
 /// Install every host seam into `tinymemory-core`.
@@ -377,10 +380,14 @@ fn downcast_config(config: &SeamConfig) -> Option<Config> {
 /// sync run look empty rather than broken.
 pub fn install_memory_host_seams(config: Arc<Config>) {
     tinymemory_core::embedding_host::set_embedding_host(Arc::new(OpenHumanEmbeddingHost {
-        config,
+        config: Arc::clone(&config),
     }));
-    tinymemory_core::chat_host::set_chat_host(Arc::new(OpenHumanChatHost));
-    tinymemory_core::composio_host::set_composio_host(Arc::new(OpenHumanComposioHost));
+    tinymemory_core::chat_host::set_chat_host(Arc::new(OpenHumanChatHost {
+        config: Arc::clone(&config),
+    }));
+    tinymemory_core::composio_host::set_composio_host(Arc::new(OpenHumanComposioHost {
+        config: Arc::clone(&config),
+    }));
     tinymemory_core::config_loader::set_config_loader(Arc::new(OpenHumanConfigLoader));
     tinymemory_core::nlp_host::set_nlp_host(Arc::new(OpenHumanNlpHost));
     tinymemory_core::scheduler_gate::set_scheduler_gate(Arc::new(OpenHumanSchedulerGate));
