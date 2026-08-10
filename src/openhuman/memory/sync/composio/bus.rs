@@ -584,6 +584,26 @@ impl EventHandler<DomainEvent> for ComposioConnectionCreatedSubscriber {
                     // collapses both to `Vec::new()` and would
                     // otherwise hide auth/backend failures from
                     // incident triage.
+                    // `ctx.config` is the seam's `dyn MemoryHostConfig` now,
+                    // and this fetcher wants the host's concrete `Config`.
+                    // Re-reading it here is also the correct thing on its own
+                    // terms: the context snapshot was taken at hook-entry and
+                    // the OAuth completion we are reacting to may have written
+                    // credentials since.
+                    let live_config = match crate::openhuman::config::rpc::
+                        reload_config_snapshot_with_timeout(ctx.config.as_ref())
+                        .await
+                    {
+                        Ok(cfg) => cfg,
+                        Err(e) => {
+                            tracing::debug!(
+                                error = %e,
+                                "[composio:bus] connected-integrations refresh: \
+                                 reload_config failed; skipping"
+                            );
+                            return;
+                        }
+                    };
                     match ops::fetch_connected_integrations_status(&live_config).await {
                         FetchConnectedIntegrationsStatus::Authoritative(entries) => {
                             let mut toolkits: Vec<String> = entries
