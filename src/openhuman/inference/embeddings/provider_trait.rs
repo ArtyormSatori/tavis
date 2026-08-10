@@ -10,9 +10,12 @@
 //! Every existing `inference::embeddings::EmbeddingProvider` path in this crate
 //! keeps resolving, and keeps naming the same type.
 //!
-//! What stays here is [`TinyAgentsEmbeddingProvider`], the adapter from
-//! tinyagents' own embedding-model trait. That belongs on this side: the
-//! contract crate must not depend on tinyagents.
+//! [`TinyAgentsEmbeddingProvider`], the adapter from tinyagents' own
+//! embedding-model trait, is re-exported from `tinymemory_core`. It cannot live
+//! in the contract crate, which must not depend on tinyagents; and it cannot
+//! live here, because the summary tree's embedder factory is core code that
+//! builds Ollama models directly and has to wrap them. `tinymemory-core` is the
+//! one crate that can name both sides.
 
 
 pub use tinymemory_api::host::{format_embedding_signature, EmbeddingProvider};
