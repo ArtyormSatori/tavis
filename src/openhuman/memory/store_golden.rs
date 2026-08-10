@@ -43,17 +43,17 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context as _, Result};
 use chrono::{DateTime, TimeZone, Utc};
 
-use crate::Config;
+use crate::openhuman::config::Config;
 use crate::ops::{
     doc_list, doc_put, graph_query, graph_upsert, kv_get, memory_query_namespace, GraphQueryParams,
     GraphUpsertParams, KvGetDeleteParams, KvSetParams, NamespaceOnlyParams, PutDocParams,
 };
-use crate::rpc_models::QueryNamespaceRequest;
-use crate::store::chunks;
-use crate::store::chunks::types::{Chunk, Metadata, SourceKind, SourceRef};
-use crate::store::namespace_store::{events, fts5, profile, segments};
-use crate::store::trees;
-use crate::store::trees::types::{SummaryNode, Tree, TreeKind, TreeStatus};
+use crate::openhuman::memory::rpc_models::QueryNamespaceRequest;
+use crate::openhuman::memory::store::chunks;
+use crate::openhuman::memory::store::chunks::types::{Chunk, Metadata, SourceKind, SourceRef};
+use crate::openhuman::memory::store::namespace_store::{events, fts5, profile, segments};
+use crate::openhuman::memory::store::trees;
+use crate::openhuman::memory::store::trees::types::{SummaryNode, Tree, TreeKind, TreeStatus};
 
 // ── Fixture identity ─────────────────────────────────────────────────────────
 //
@@ -142,7 +142,7 @@ pub async fn seed(workspace: &Path) -> Result<()> {
     seed_kv().await?;
     seed_graph().await?;
 
-    let client = crate::global::client()
+    let client = crate::openhuman::memory::global::client()
         .map_err(|e| anyhow::anyhow!("[golden] memory client not bound: {e}"))?;
     let conn = client.profile_conn();
 
@@ -413,7 +413,7 @@ pub async fn init_fresh_schema(workspace: &Path) -> Result<()> {
     std::fs::create_dir_all(workspace).context("[golden] create fresh workspace dir")?;
 
     // Host unified tier.
-    let memory = crate::store::UnifiedMemory::new(
+    let memory = crate::openhuman::memory::store::UnifiedMemory::new(
         workspace,
         std::sync::Arc::new(tinymemory_api::host::NoopEmbedding),
         None,
@@ -514,7 +514,7 @@ pub async fn read_back(workspace: &Path) -> Result<Readback> {
     .value
     .len();
 
-    let client = crate::global::client()
+    let client = crate::openhuman::memory::global::client()
         .map_err(|e| anyhow::anyhow!("[golden] memory client not bound: {e}"))?;
     let conn = client.profile_conn();
 
