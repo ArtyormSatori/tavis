@@ -60,6 +60,8 @@ mod binding_tests;
 #[cfg(test)]
 mod bypass_allowlist_tests;
 #[cfg(test)]
+mod profile_conn_guard_tests;
+#[cfg(test)]
 mod sync_pipeline_e2e_tests;
 #[cfg(test)]
 mod tree_e2e_tests;
