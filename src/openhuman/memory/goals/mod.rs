@@ -8,7 +8,7 @@
 pub use tinymemory_core::goals::*;
 
 pub mod ops;
-mod schemas;
+pub mod schemas;
 
 pub use schemas::{all_memory_goals_controller_schemas, all_memory_goals_registered_controllers};
 
@@ -17,3 +17,6 @@ pub use schemas::{all_memory_goals_controller_schemas, all_memory_goals_register
 pub mod enrich;
 
 pub use enrich::{enrich_goals, spawn_enrich_goals, GOALS_AGENT_ID};
+
+// The controller aggregators this domain's RPC surface defines.
+pub use schemas::*;

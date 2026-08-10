@@ -12,3 +12,6 @@ pub mod schemas;
 mod stub;
 
 pub use stub::{all_memory_diff_controller_schemas, all_memory_diff_registered_controllers};
+
+// The controller aggregators this domain's RPC surface defines.
+pub use schemas::*;

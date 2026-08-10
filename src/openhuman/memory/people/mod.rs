@@ -9,3 +9,6 @@ pub use tinymemory_core::people::*;
 
 pub mod rpc;
 pub mod schemas;
+
+// The controller aggregators this domain's RPC surface defines.
+pub use schemas::*;

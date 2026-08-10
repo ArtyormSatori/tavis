@@ -12,3 +12,6 @@ pub mod schemas;
 
 
 pub use tinymemory_core::sources::apply_kind_defaults;
+
+// The controller aggregators this domain's RPC surface defines.
+pub use schemas::*;
