@@ -10,5 +10,9 @@ pub use tinymemory_core::tree::retrieval::*;
 pub mod rpc;
 pub mod schemas;
 
-// The controller aggregators this domain's RPC surface defines.
-pub use schemas::*;
+// The controller aggregators this domain's RPC surface defines. Aliased
+// exactly as the pre-extraction module exported them.
+pub use schemas::{
+    all_controller_schemas as all_retrieval_controller_schemas,
+    all_registered_controllers as all_retrieval_registered_controllers,
+};

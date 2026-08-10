@@ -17,5 +17,9 @@ pub mod bus;
 /// The `openhuman memory tree` CLI subcommands, which drive the RPC handlers.
 pub mod cli;
 
-// The controller aggregators this domain's RPC surface defines.
-pub use schemas::*;
+// The controller aggregators this domain's RPC surface defines. Aliased
+// exactly as the pre-extraction module exported them.
+pub use schemas::{
+    all_controller_schemas as all_tree_summarizer_controller_schemas,
+    all_registered_controllers as all_tree_summarizer_registered_controllers,
+};

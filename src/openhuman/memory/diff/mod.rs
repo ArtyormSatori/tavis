@@ -7,11 +7,12 @@
 
 pub use tinymemory_core::diff::*;
 
+#[cfg(feature = "memory-git")]
 pub mod rpc;
+#[cfg(feature = "memory-git")]
 pub mod schemas;
+#[cfg(not(feature = "memory-git"))]
 mod stub;
 
+#[cfg(not(feature = "memory-git"))]
 pub use stub::{all_memory_diff_controller_schemas, all_memory_diff_registered_controllers};
-
-// The controller aggregators this domain's RPC surface defines.
-pub use schemas::*;
