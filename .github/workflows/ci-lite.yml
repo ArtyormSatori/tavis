@@ -779,6 +779,13 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
+      - name: Clear stale Tauri coverage artifacts
+        # rust-cache restores app/src-tauri/target, including llvm-cov-target.
+        # cargo's fingerprints do not distinguish a previously restored
+        # non-instrumented test executable, which then runs successfully but
+        # produces no .profraw file for cargo-llvm-cov to merge.
+        run: cargo llvm-cov clean --manifest-path app/src-tauri/Cargo.toml
+
       - name: Run cargo llvm-cov for Tauri shell
         run: bash scripts/ci-cancel-aware.sh cargo llvm-cov --manifest-path app/src-tauri/Cargo.toml --lcov --output-path lcov-tauri.info
         env:
