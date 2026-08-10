@@ -61,9 +61,9 @@ mod tree_e2e_tests;
 // `pub use … as …` rather than `pub mod` — these are other crates' modules now.
 // Every one of these was a `pub mod` here before the extraction.
 pub use tinymemory_core::{
-    binding, chat, conversations, diff, events, goals, ingest_pipeline, ingestion, people,
-    preferences, queue, remember, rpc_models, schema, search, source_scope, sources, store,
-    sync, sync_events, tinycortex, tool_memory, traits, tree, tree_policy, tree_source, util,
+    binding, chat, conversations, events, ingest_pipeline, ingestion, preferences, queue, remember,
+    rpc_models, search, source_scope, store, sync_events, tinycortex, tool_memory, traits,
+    tree_policy, tree_source, util,
 };
 
 pub use ingestion::{
