@@ -37,6 +37,18 @@ pub mod read_rpc;
 pub mod schemas;
 pub mod tools;
 
+// Domains that are *mostly* extracted but keep their JSON-RPC surface here.
+// Each of these is a thin wrapper: `pub use tinymemory_core::<domain>::*;`
+// plus the handler/schema modules that name `RpcOutcome` and
+// `ControllerSchema`. See the module docs on each for the split.
+pub mod diff;
+pub mod goals;
+pub mod people;
+pub mod schema;
+pub mod sources;
+pub mod sync;
+pub mod tree;
+
 #[cfg(test)]
 mod bypass_allowlist_tests;
 #[cfg(test)]
