@@ -5,7 +5,6 @@
 //! Derivation: BIP44 m/44'/195'/0'/0/0 → secp256k1 key. Tron addresses are
 //! `sha3_256(uncompressed_pubkey[1..])[12..]` prefixed with 0x41, base58check.
 
-use bitcoin::secp256k1::{Message, Secp256k1, SecretKey};
 use log::debug;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -101,12 +100,26 @@ struct TriggerSmartContractResponse {
 fn derive_tron_keypair(
     mnemonic: &str,
     derivation_path: &str,
-) -> Result<(SecretKey, String), String> {
+) -> Result<(Vec<u8>, String), String> {
     let derived = tinywallet::key::derive(tinywallet::Chain::Tron, mnemonic, derivation_path)
         .map_err(|e| e.to_string())?;
-    let secret = SecretKey::from_slice(derived.secret_bytes())
-        .map_err(|e| format!("tinywallet returned an unusable Tron key: {e}"))?;
-    Ok((secret, derived.address().to_string()))
+    Ok((
+        derived.secret_bytes().to_vec(),
+        derived.address().to_string(),
+    ))
+}
+
+/// The compressed SEC1 public key for a derived secret.
+///
+/// Public data the wallet module uses to confirm the key controls the sender.
+fn compressed_public_key(secret: &[u8]) -> Result<Vec<u8>, String> {
+    let key = k256::ecdsa::SigningKey::from_slice(secret)
+        .map_err(|_| "derived key is not a valid secp256k1 scalar".to_string())?;
+    Ok(key
+        .verifying_key()
+        .to_encoded_point(true)
+        .as_bytes()
+        .to_vec())
 }
 
 fn pad_left_32(bytes: &[u8]) -> Vec<u8> {
@@ -226,21 +239,27 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
         }
     };
 
-    // Tron signs sha256(raw_data_hex bytes).
-    let raw_bytes = hex::decode(&raw_tx.raw_data_hex)
-        .map_err(|e| format!("invalid raw_data_hex from Tron: {e}"))?;
-    let mut hasher = Sha256::new();
-    hasher.update(&raw_bytes);
-    let hash: [u8; 32] = hasher.finalize().into();
-
-    let secp = Secp256k1::new();
-    let msg = Message::from_digest(hash);
-    let sig = secp.sign_ecdsa_recoverable(&msg, &sk);
-    let (rec_id, compact) = sig.serialize_compact();
-    let mut sig_bytes = [0u8; 65];
-    sig_bytes[..64].copy_from_slice(&compact);
-    sig_bytes[64] = rec_id.to_i32() as u8;
-    let sig_hex = hex::encode(sig_bytes);
+    // The node builds the transaction, so the module's job here is to verify
+    // that what came back is the transfer that was asked for — it recomputes
+    // `sha256(raw_data)` against the `txID` and checks the recipient appears in
+    // the bytes — and then to hand back the digest for this process to sign.
+    // Signing whatever an endpoint returns is the failure this guards against.
+    let public_key = compressed_public_key(&sk)?;
+    let transaction = tinywallet::wire::TransactionSpec::Tron {
+        raw_data_hex: raw_tx.raw_data_hex.clone(),
+        expected_to: to_address.to_string(),
+        expected_txid: raw_tx.tx_id.clone(),
+    };
+    let signed = crate::openhuman::modules::wallet::sign_transaction(
+        &config,
+        tinywallet::Chain::Tron,
+        &transaction,
+        &sk,
+        &public_key,
+    )
+    .await
+    .map_err(|e| format!("failed to sign Tron transaction: {e}"))?;
+    let sig_hex = signed.raw;
 
     let mut tx_with_sig = serde_json::to_value(serde_json::json!({
         "txID": raw_tx.tx_id,
