@@ -1,4 +1,4 @@
-use super::ops::{build_evm_payment_with_signer, eip3009_struct_hash, eip712_domain_separator};
+use super::ops::build_evm_payment_with_signer;
 use super::types::*;
 use base64::engine::{general_purpose::STANDARD as B64, Engine as _};
 
@@ -520,7 +520,7 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
     };
 
     let req = &challenge.accepts[0];
-    let payload = build_evm_payment_with_signer(&wallet, from_address, &challenge, req).unwrap();
+    let payload = build_evm_payment_with_signer(&wallet, &from_address, &challenge, req).unwrap();
 
     assert_eq!(payload.x402_version, 2);
     assert_eq!(payload.accepted.network, BASE_MAINNET_CAIP2);
@@ -560,7 +560,6 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
 #[test]
 fn build_evm_payment_rejects_solana_network() {
     let (wallet, from_address) = test_signer();
-    let _ = &from_address;
 
     let challenge = PaymentRequired {
         x402_version: 2,
@@ -583,7 +582,7 @@ fn build_evm_payment_rejects_solana_network() {
     };
 
     let req = &challenge.accepts[0];
-    let result = build_evm_payment_with_signer(&wallet, wallet.address(), &challenge, req);
+    let result = build_evm_payment_with_signer(&wallet, &from_address, &challenge, req);
     assert!(result.is_err());
     let err_msg = format!("{}", result.unwrap_err());
     assert!(err_msg.contains("not an EVM network"));
