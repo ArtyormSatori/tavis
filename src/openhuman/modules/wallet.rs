@@ -276,12 +276,16 @@ fn unhex(value: &str) -> Result<Vec<u8>, WalletCallError> {
             "the module returned a payload with an odd number of hex characters".to_string(),
         ));
     }
-    (0..value.len())
-        .step_by(2)
-        .map(|index| {
-            u8::from_str_radix(&value[index..index + 2], 16).map_err(|_| {
-                WalletCallError::Failed("the module returned a non-hex payload".to_string())
-            })
+    value
+        .as_bytes()
+        .chunks_exact(2)
+        .map(|pair| {
+            std::str::from_utf8(pair)
+                .ok()
+                .and_then(|pair| u8::from_str_radix(pair, 16).ok())
+                .ok_or_else(|| {
+                    WalletCallError::Failed("the module returned a non-hex payload".to_string())
+                })
         })
         .collect()
 }

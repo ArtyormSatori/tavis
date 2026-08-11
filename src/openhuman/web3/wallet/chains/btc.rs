@@ -14,8 +14,8 @@ use crate::openhuman::config::rpc as config_rpc;
 
 use super::super::defaults::{explorer_tx_url, rpc_url_for_chain};
 use super::super::execution::{
-    ExecutionResult, PreparedKind, PreparedStatus, PreparedTransaction, TxLookupInfo,
-    TxReceiptInfo, TxState, TxStatusInfo,
+    compressed_public_key, ExecutionResult, PreparedKind, PreparedStatus, PreparedTransaction,
+    TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
 };
 use super::super::ops::{secret_material, WalletChain};
 use super::super::rpc::{rest_get_json, rest_get_text, rest_post_text};
@@ -133,16 +133,11 @@ fn derive_btc_private_key(
     let derived = tinywallet::key::derive(tinywallet::Chain::Btc, mnemonic, derivation_path)
         .map_err(|e| e.to_string())?;
     let secret = derived.secret_bytes().to_vec();
-    let key = k256::ecdsa::SigningKey::from_slice(&secret)
-        .map_err(|_| "tinywallet returned an unusable BTC key".to_string())?;
     // Compressed, because a P2WPKH witness program is defined over the
     // compressed encoding — the uncompressed form yields a valid-looking
     // address for an account holding no funds.
-    let public_key = key
-        .verifying_key()
-        .to_encoded_point(true)
-        .as_bytes()
-        .to_vec();
+    let public_key = compressed_public_key(&secret)
+        .map_err(|_| "tinywallet returned an unusable BTC key".to_string())?;
     Ok((secret, public_key))
 }
 

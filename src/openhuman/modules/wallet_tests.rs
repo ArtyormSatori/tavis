@@ -181,7 +181,7 @@ fn an_ed25519_payload_is_signed_over_the_whole_message() {
 
 #[test]
 fn a_malformed_payload_from_the_module_is_refused_rather_than_signed() {
-    for bytes_hex in ["abc", "zz".repeat(32).as_str()] {
+    for bytes_hex in ["abc", "zz".repeat(32).as_str(), "aéb"] {
         let payload = SigningPayload {
             bytes_hex: bytes_hex.to_string(),
             scheme: Scheme::Secp256k1Prehash,

@@ -16,8 +16,8 @@ use super::super::defaults::{
     explorer_tx_url_for_evm_network, rpc_url_for_evm_network, EvmNetwork,
 };
 use super::super::execution::{
-    hex_to_u128, u128_to_hex, ExecutionResult, PreparedKind, PreparedStatus, PreparedTransaction,
-    RawBroadcastResult, TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
+    compressed_public_key, hex_to_u128, u128_to_hex, ExecutionResult, PreparedKind, PreparedStatus,
+    PreparedTransaction, RawBroadcastResult, TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
 };
 use super::super::ops::{secret_material, WalletChain};
 use super::super::rpc::{evm_rpc_call, rpc_call_to};
@@ -136,21 +136,6 @@ async fn sign_and_broadcast(
         tx_hash
     );
     Ok((tx_hash, fee))
-}
-
-/// The compressed SEC1 public key for a derived secret.
-///
-/// The wallet module needs it to confirm the key controls the sender before it
-/// will encode anything; it is public data and the secret itself never leaves
-/// this process.
-fn compressed_public_key(secret: &[u8]) -> Result<Vec<u8>, String> {
-    let key = k256::ecdsa::SigningKey::from_slice(secret)
-        .map_err(|_| "derived key is not a valid secp256k1 scalar".to_string())?;
-    Ok(key
-        .verifying_key()
-        .to_encoded_point(true)
-        .as_bytes()
-        .to_vec())
 }
 
 pub async fn execute_evm_quote(mut quote: PreparedTransaction) -> Result<ExecutionResult, String> {
