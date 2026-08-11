@@ -256,13 +256,13 @@ pub async fn tx_status(network: EvmNetwork, hash: &str) -> Result<TxStatusInfo, 
         .get("blockNumber")
         .and_then(|v| v.as_str())
         .and_then(|s| hex_to_u128(s).ok())
-        .map(|v| v.as_u64());
+        .map(|v| u64::try_from(v).unwrap_or(u64::MAX));
     let confirmations = match block_number {
         Some(bn) => {
             let head_hex: String = rpc_call_to(&rpc_url, "eth_blockNumber", json!([])).await?;
             hex_to_u128(&head_hex)
                 .ok()
-                .map(|head| head.as_u64().saturating_sub(bn).saturating_add(1))
+                .map(|head| u64::try_from(head).unwrap_or(u64::MAX).saturating_sub(bn).saturating_add(1))
         }
         None => None,
     };
@@ -310,7 +310,7 @@ pub async fn tx_receipt(network: EvmNetwork, hash: &str) -> Result<TxReceiptInfo
         .get("blockNumber")
         .and_then(|v| v.as_str())
         .and_then(|s| hex_to_u128(s).ok())
-        .map(|v| v.as_u64());
+        .map(|v| u64::try_from(v).unwrap_or(u64::MAX));
     let gas_used = receipt
         .get("gasUsed")
         .and_then(|v| v.as_str())
