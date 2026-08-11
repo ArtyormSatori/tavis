@@ -388,13 +388,10 @@ fs2 = "0.4"
 # only by `openhuman::scheduler_gate::signals` to decide when to throttle
 # background LLM work on laptops.
 starship-battery = { version = "0.10", optional = true }
-ethers-core = { version = "2.0.14", default-features = false, optional = true }
-ethers-signers = { version = "2.0.14", default-features = false, optional = true }
 # Multi-chain wallet signing.
 # - bitcoin: P2WPKH PSBT build/sign/broadcast (includes secp256k1).
 # - ed25519-dalek: Solana transaction signing.
 # - bs58: Solana base58 addresses + Tron base58check addresses.
-bitcoin = { version = "0.32", default-features = false, features = ["std", "secp-recovery", "rand-std"], optional = true }
 ed25519-dalek = { version = "2", default-features = false, features = ["std", "rand_core"] }
 bs58 = { version = "0.5", default-features = false, features = ["std", "check"] }
 # Shared BIP-39 mnemonic → seed for non-EVM chains (BTC P2WPKH derivation,
