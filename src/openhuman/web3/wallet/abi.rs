@@ -66,8 +66,7 @@ mod tests {
         // Pinned against the bytes the `ethers-core` implementation produced,
         // so moving the encoder cannot quietly change what gets signed.
         assert_eq!(
-            encode_erc20_transfer("0x1111111111111111111111111111111111111111", "1000000")
-                .unwrap(),
+            encode_erc20_transfer("0x1111111111111111111111111111111111111111", "1000000").unwrap(),
             "0xa9059cbb\
              0000000000000000000000001111111111111111111111111111111111111111\
              00000000000000000000000000000000000000000000000000000000000f4240"
@@ -84,6 +83,9 @@ mod tests {
     fn an_invalid_amount_still_reads_the_way_the_tool_schema_says() {
         let error =
             encode_erc20_transfer("0x1111111111111111111111111111111111111111", "-1").unwrap_err();
-        assert!(error.contains("not a valid non-negative integer"), "{error}");
+        assert!(
+            error.contains("not a valid non-negative integer"),
+            "{error}"
+        );
     }
 }

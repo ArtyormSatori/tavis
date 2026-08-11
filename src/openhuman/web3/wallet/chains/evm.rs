@@ -6,7 +6,6 @@
 //! `None` (legacy quotes or callers that didn't specify), Ethereum mainnet
 //! is assumed.
 
-
 use log::debug;
 use serde_json::json;
 
@@ -17,8 +16,8 @@ use super::super::defaults::{
     explorer_tx_url_for_evm_network, rpc_url_for_evm_network, EvmNetwork,
 };
 use super::super::execution::{
-    hex_to_u128, u128_to_hex, ExecutionResult, PreparedKind, PreparedStatus,
-    PreparedTransaction, RawBroadcastResult, TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
+    hex_to_u128, u128_to_hex, ExecutionResult, PreparedKind, PreparedStatus, PreparedTransaction,
+    RawBroadcastResult, TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
 };
 use super::super::ops::{secret_material, WalletChain};
 use super::super::rpc::{evm_rpc_call, rpc_call_to};
@@ -129,7 +128,9 @@ async fn sign_and_broadcast(
 
     let tx_hash: String =
         rpc_call_to(&rpc_url, "eth_sendRawTransaction", json!([signed.raw])).await?;
-    let fee = gas_price.checked_mul(u128::from(gas_limit)).unwrap_or_default();
+    let fee = gas_price
+        .checked_mul(u128::from(gas_limit))
+        .unwrap_or_default();
     debug!(
         "{LOG_PREFIX} sign_and_broadcast network={} tx_hash={}",
         network.as_str(),
@@ -146,7 +147,11 @@ async fn sign_and_broadcast(
 fn compressed_public_key(secret: &[u8]) -> Result<Vec<u8>, String> {
     let key = k256::ecdsa::SigningKey::from_slice(secret)
         .map_err(|_| "derived key is not a valid secp256k1 scalar".to_string())?;
-    Ok(key.verifying_key().to_encoded_point(true).as_bytes().to_vec())
+    Ok(key
+        .verifying_key()
+        .to_encoded_point(true)
+        .as_bytes()
+        .to_vec())
 }
 
 pub async fn execute_evm_quote(mut quote: PreparedTransaction) -> Result<ExecutionResult, String> {
@@ -169,9 +174,8 @@ pub async fn execute_evm_quote(mut quote: PreparedTransaction) -> Result<Executi
                 .ok_or_else(|| "prepared token transfer is missing token_address".to_string())?;
             let calldata = encode_erc20_transfer(&quote.to_address, &quote.amount_raw)?;
             (
-                tinywallet::address::evm::validate(token).map_err(|e| {
-                    format!("invalid ERC20 token contract address '{token}': {e}")
-                })?,
+                tinywallet::address::evm::validate(token)
+                    .map_err(|e| format!("invalid ERC20 token contract address '{token}': {e}"))?,
                 "0".to_string(),
                 Some(calldata),
             )
@@ -259,9 +263,12 @@ pub async fn tx_status(network: EvmNetwork, hash: &str) -> Result<TxStatusInfo, 
     let confirmations = match block_number {
         Some(bn) => {
             let head_hex: String = rpc_call_to(&rpc_url, "eth_blockNumber", json!([])).await?;
-            hex_to_u128(&head_hex)
-                .ok()
-                .map(|head| u64::try_from(head).unwrap_or(u64::MAX).saturating_sub(bn).saturating_add(1))
+            hex_to_u128(&head_hex).ok().map(|head| {
+                u64::try_from(head)
+                    .unwrap_or(u64::MAX)
+                    .saturating_sub(bn)
+                    .saturating_add(1)
+            })
         }
         None => None,
     };

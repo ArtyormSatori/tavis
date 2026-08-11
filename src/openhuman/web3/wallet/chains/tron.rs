@@ -96,10 +96,7 @@ struct TriggerSmartContractResponse {
 /// secp256k1 derivation and the Keccak-then-base58check address construction.
 /// The hand-rolled BIP-32 walk and path parser that used to live here moved
 /// there wholesale. Custody stays here.
-fn derive_tron_keypair(
-    mnemonic: &str,
-    derivation_path: &str,
-) -> Result<(Vec<u8>, String), String> {
+fn derive_tron_keypair(mnemonic: &str, derivation_path: &str) -> Result<(Vec<u8>, String), String> {
     let derived = tinywallet::key::derive(tinywallet::Chain::Tron, mnemonic, derivation_path)
         .map_err(|e| e.to_string())?;
     Ok((
