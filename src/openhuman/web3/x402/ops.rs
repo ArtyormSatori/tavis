@@ -614,7 +614,7 @@ pub(crate) fn build_evm_payment_with_signer(
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs()
-        + req.max_timeout_seconds;
+        .saturating_add(req.max_timeout_seconds);
     let valid_before = eip712::u256_from_u64(valid_before_secs);
 
     // Random nonce for EIP-3009
@@ -735,15 +735,11 @@ fn evm_address_bytes(address: &str) -> Result<[u8; 20], X402Error> {
     let validated = tinywallet::address::evm::validate(address)
         .map_err(|e| X402Error::Protocol(format!("invalid EVM address '{address}': {e}")))?;
     let body = validated.strip_prefix("0x").unwrap_or(&validated);
-    let mut out = [0u8; 20];
-    for (index, slot) in out.iter_mut().enumerate() {
-        let pair = body
-            .get(index * 2..index * 2 + 2)
-            .ok_or_else(|| X402Error::Protocol(format!("truncated EVM address '{address}'")))?;
-        *slot = u8::from_str_radix(pair, 16)
-            .map_err(|_| X402Error::Protocol(format!("non-hex EVM address '{address}'")))?;
-    }
-    Ok(out)
+    let decoded = hex::decode(body)
+        .map_err(|_| X402Error::Protocol(format!("non-hex EVM address '{address}'")))?;
+    decoded
+        .try_into()
+        .map_err(|_| X402Error::Protocol(format!("truncated EVM address '{address}'")))
 }
 
 // ---------------------------------------------------------------------------

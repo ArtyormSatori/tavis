@@ -431,11 +431,7 @@ fn base_usdc() -> [u8; 20] {
 
 /// Decode an unprefixed 20-byte hex address.
 fn address_bytes(hex: &str) -> [u8; 20] {
-    let mut out = [0u8; 20];
-    for (index, slot) in out.iter_mut().enumerate() {
-        *slot = u8::from_str_radix(&hex[index * 2..index * 2 + 2], 16).unwrap();
-    }
-    out
+    hex::decode(hex).unwrap().try_into().unwrap()
 }
 
 #[test]
@@ -494,6 +490,10 @@ fn parse_twit_sh_402_challenge() {
 #[test]
 fn build_evm_payment_with_test_key_produces_valid_payload() {
     let (wallet, from_address) = test_signer();
+    assert_eq!(
+        from_address,
+        "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"
+    );
 
     let challenge = PaymentRequired {
         x402_version: 2,
@@ -542,6 +542,41 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
                 "0x9DBA414637c611a16BEa6f0796BFcbcBdc410df8"
             );
             assert_eq!(evm.authorization.from, from_address);
+
+            use k256::ecdsa::{RecoveryId, Signature, VerifyingKey};
+            use tinywallet::eip712;
+
+            let raw = hex::decode(evm.signature.trim_start_matches("0x")).unwrap();
+            assert!(matches!(raw[64], 27 | 28), "invalid recovery byte");
+            let signature = Signature::from_slice(&raw[..64]).unwrap();
+            let recovery_id = RecoveryId::try_from(raw[64] - 27).unwrap();
+            let nonce: [u8; 32] = hex::decode(evm.authorization.nonce.trim_start_matches("0x"))
+                .unwrap()
+                .try_into()
+                .unwrap();
+            let domain = eip712::domain_separator(
+                base_usdc(),
+                8453,
+                req.extra.as_ref().unwrap().name.as_deref().unwrap(),
+                req.extra.as_ref().unwrap().version.as_deref().unwrap(),
+            );
+            let structure = eip712::transfer_with_authorization_hash(
+                address_bytes(evm.authorization.from.trim_start_matches("0x")),
+                address_bytes(evm.authorization.to.trim_start_matches("0x")),
+                eip712::u256_from_decimal(&evm.authorization.value).unwrap(),
+                eip712::u256_from_u64(evm.authorization.valid_after.parse().unwrap()),
+                eip712::u256_from_u64(evm.authorization.valid_before.parse().unwrap()),
+                nonce,
+            );
+            let digest = eip712::signing_digest(domain, structure);
+            let recovered =
+                VerifyingKey::recover_from_prehash(&digest, &signature, recovery_id).unwrap();
+            let encoded = recovered.to_encoded_point(false);
+            let hash = eip712::keccak(&encoded.as_bytes()[1..]);
+            assert_eq!(
+                &hash[12..],
+                &address_bytes(from_address.trim_start_matches("0x"))
+            );
         }
         PaymentProof::Solana(_) => panic!("expected EVM proof, got Solana"),
     }
