@@ -4,7 +4,16 @@ use crate::openhuman::memory::chat::ChatPrompt;
 use crate::openhuman::memory::store::{events as ev, fts5, segments as seg};
 use std::sync::OnceLock;
 
-static TREE_INGEST_TEST_LOCK: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
+/// Serialises the tree-ingest tests.
+///
+/// A `std` mutex, not a `tokio` one, and that is load-bearing: each
+/// `#[tokio::test]` builds its own runtime, and a `tokio::sync::Mutex` shared
+/// across independent runtimes parks its waiters on whichever runtime first
+/// contended for it. When that runtime is torn down with the test that owned
+/// it, the wakeup is lost and the "serialised" tests overlap after all — which
+/// is what made these flake at ~50% under parallel execution while passing
+/// under `--test-threads=1`.
+static TREE_INGEST_TEST_LOCK: OnceLock<std::sync::Mutex<()>> = OnceLock::new();
 
 /// Runs `fut` with the memory chat provider pinned to a deterministic stub.
 ///
@@ -28,8 +37,10 @@ where
     // `test_override` is task-local, but tree ingest also builds shared
     // runtime state. Keep these integration-style tests isolated from each
     // other so a concurrent provider construction cannot escape the stub.
-    let lock = TREE_INGEST_TEST_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
-    let _guard = lock.lock().await;
+    let lock = TREE_INGEST_TEST_LOCK.get_or_init(|| std::sync::Mutex::new(()));
+    // Poison is deliberately ignored: one panicking test must not cascade into
+    // every later one.
+    let _guard = lock.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     // Tree ingest builds a memory store, which reaches the embedding seam.
     // Installing it here rather than relying on some earlier test having done
     // so is what makes these deterministic — the `test_override` below still
