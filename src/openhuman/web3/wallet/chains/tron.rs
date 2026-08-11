@@ -515,6 +515,57 @@ mod tests {
         addr
     }
 
+    #[test]
+    fn tron_specs_bind_native_and_trc20_verification_fields() {
+        let raw_tx = CreateTransactionResponse {
+            tx_id: "ab".repeat(32),
+            raw_data: json!({}),
+            raw_data_hex: "deadbeef".to_string(),
+        };
+        let recipient = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+        let contract = "TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH";
+
+        let native = tron_transaction_spec(
+            &raw_tx,
+            recipient.to_string(),
+            tinywallet::wire::TronTransfer::Native {
+                amount_sun: 1_000_000,
+            },
+        );
+        assert_eq!(
+            native,
+            tinywallet::wire::TransactionSpec::Tron {
+                raw_data_hex: "deadbeef".to_string(),
+                expected_to: recipient.to_string(),
+                expected_txid: "ab".repeat(32),
+                transfer: tinywallet::wire::TronTransfer::Native {
+                    amount_sun: 1_000_000,
+                },
+            }
+        );
+
+        let parameter = "01".repeat(64);
+        let token = tron_transaction_spec(
+            &raw_tx,
+            contract.to_string(),
+            tinywallet::wire::TronTransfer::Trc20 {
+                parameter_hex: parameter.clone(),
+            },
+        );
+        assert_eq!(
+            token,
+            tinywallet::wire::TransactionSpec::Tron {
+                raw_data_hex: "deadbeef".to_string(),
+                expected_to: contract.to_string(),
+                expected_txid: "ab".repeat(32),
+                transfer: tinywallet::wire::TronTransfer::Trc20 {
+                    parameter_hex: parameter,
+                },
+            }
+        );
+        assert_ne!(contract, recipient);
+    }
+
     // Drives the real wallet module, so it must be the only such test in its
     // process: tinybus never unloads a module, and the module bus belongs to
     // whichever tokio runtime created it — a second `#[tokio::test]` finds a
@@ -522,7 +573,7 @@ mod tests {
     // "connection closed". Verified passing in isolation:
     //
     //   cargo test -p openhuman --lib --features "$(bash scripts/ci/product-features.sh)" \
-    //     execute_tron_quote_signs_and_broadcasts_native_transfer -- --test-threads=1
+    //     execute_tron_quote_signs_and_broadcasts_trc20_transfer -- --test-threads=1
     //
     // Same constraint tinydocs documents for its module-backed tool tests.
     #[ignore = "drives the loaded wallet module; must run alone in its process"]
@@ -585,7 +636,7 @@ mod tests {
     // "connection closed". Verified passing in isolation:
     //
     //   cargo test -p openhuman --lib --features "$(bash scripts/ci/product-features.sh)" \
-    //     execute_tron_quote_signs_and_broadcasts_native_transfer -- --test-threads=1
+    //     execute_tron_quote_surfaces_node_rejection -- --test-threads=1
     //
     // Same constraint tinydocs documents for its module-backed tool tests.
     #[ignore = "drives the loaded wallet module; must run alone in its process"]

@@ -534,7 +534,7 @@ mod tests {
     // "connection closed". Verified passing in isolation:
     //
     //   cargo test -p openhuman --lib --features "$(bash scripts/ci/product-features.sh)" \
-    //     execute_tron_quote_signs_and_broadcasts_native_transfer -- --test-threads=1
+    //     sign_and_broadcast_evm_signs_raw_calldata -- --test-threads=1
     //
     // Same constraint tinydocs documents for its module-backed tool tests.
     #[ignore = "drives the loaded wallet module; must run alone in its process"]
