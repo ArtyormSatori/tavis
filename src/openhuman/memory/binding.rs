@@ -320,33 +320,25 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 // Unreachable: `admit` refuses every external driver above, so
                 // this arm cannot bind a transport that does not exist yet.
                 DriverClass::External => Arc::new(NullMemoryProvider::new()),
-                // Also unreachable today, and for the same structural reason:
-                // `admit` derives the class from `tinymemory::registry`'s own
-                // `DriverClass`, whose vocabulary is embedded / external / null.
-                // There is no config spelling that yields `Module`, so nothing
-                // can select this arm yet.
+                // The module-backed driver. Selected by
+                // `[subsystems.memory.drivers.<id>] class = "module"`.
                 //
-                // `modules::memory::ModuleMemoryProvider` is the driver that
-                // belongs here and is written and tested. Two things have to land
-                // before it can be constructed at this site, and neither is a
-                // design question:
+                // `from_boot_policy` rather than a `Config` argument: this
+                // function receives only a workspace dir and a
+                // `MemorySubsystemConfig`, while loading a module needs
+                // `modules.{enabled, allow_download, install_dir}`. Threading a
+                // whole `Config` here would widen this function's dependency and
+                // change a cache key ~4000 pre-boot tests hit, so boot publishes
+                // the policy instead — the same shape the embedding host and the
+                // product identity already use for construction sites too deep to
+                // thread through.
                 //
-                // 1. `tinymemory`'s `DriverClass` needs a `module` variant, so
-                //    `[subsystems.memory.drivers.tinymemory] class = "module"`
-                //    parses and admission maps it through.
-                // 2. This function needs the `[modules]` config block. It
-                //    currently receives only `workspace_dir` and
-                //    `MemorySubsystemConfig`, while `modules::ops::ensure_loaded`
-                //    needs `modules.enabled`, `modules.allow_download` and
-                //    `modules.install_dir`. Threading those two fields (not the
-                //    whole `Config`, which would widen the dependency) into
-                //    `MemoryBinding::for_workspace` is the change.
-                //
-                // Falling back to null rather than constructing the provider with
-                // invented defaults is deliberate: defaulting `modules.enabled`
-                // to `true` here would silently ignore an operator who turned
-                // modules off, which is worse than not binding.
-                DriverClass::Module => Arc::new(NullMemoryProvider::new()),
+                // If boot published nothing, every call reports the module
+                // unavailable. That is deliberate: assuming permissive defaults
+                // would silently ignore an operator who turned modules off.
+                DriverClass::Module => Arc::new(
+                    crate::openhuman::modules::memory::ModuleMemoryProvider::from_boot_policy(),
+                ),
             };
             // The configured trust state for the driver that actually bound.
             // Absent `[subsystems.memory.drivers.<id>]` entry ⇒ the fail-closed
