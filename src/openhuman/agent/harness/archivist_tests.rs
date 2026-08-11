@@ -30,6 +30,12 @@ where
     // other so a concurrent provider construction cannot escape the stub.
     let lock = TREE_INGEST_TEST_LOCK.get_or_init(|| tokio::sync::Mutex::new(()));
     let _guard = lock.lock().await;
+    // Tree ingest builds a memory store, which reaches the embedding seam.
+    // Installing it here rather than relying on some earlier test having done
+    // so is what makes these deterministic — the `test_override` below still
+    // keeps the *chat* side offline, since `build_chat_runtime` checks it
+    // before building anything.
+    crate::openhuman::memory::host_impls::install_for_tests();
     crate::openhuman::memory::chat::test_override::with_provider(
         Arc::new(crate::openhuman::memory::chat::StaticChatProvider::new(
             "{}",
@@ -591,6 +597,13 @@ fn test_config_with_tree() -> (TempDir, Config) {
     let tmp = TempDir::new().unwrap();
     let mut cfg = Config::default();
     cfg.workspace_dir = tmp.path().to_path_buf();
+    // Bind the process-global memory client to *this* workspace. Tree ingest
+    // resolves its store through `memory::global`, so without this the ingest
+    // writes wherever the last test to call `init` left the global pointing —
+    // and the chunk assertions below read this temp dir and find nothing. The
+    // module lock serialises these tests against each other; this is what
+    // stops an unrelated module's `init` from being the one that decided.
+    let _ = crate::openhuman::memory::global::init(cfg.workspace_dir.clone());
     // Route the embedder to `InertEmbedder`. This is the knob that actually
     // takes ingest offline: the tree reads `memory.embedding_model`
     // (`memory::tinycortex::config::memory_config_from`), which defaults to the

@@ -45,7 +45,7 @@ pub use crate::openhuman::integrations::tools::*;
 pub use crate::openhuman::mcp::registry::tools::*;
 pub use crate::openhuman::memory::agent::tools::*;
 #[cfg(feature = "memory-git")]
-pub use crate::openhuman::memory::diff::tools::*;
+pub use crate::openhuman::memory::tools::diff::*;
 pub use crate::openhuman::memory::tools::goals::*;
 pub use crate::openhuman::memory::tools::people::*;
 pub use crate::openhuman::memory::search::*;

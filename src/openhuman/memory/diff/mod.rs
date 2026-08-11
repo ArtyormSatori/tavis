@@ -11,6 +11,16 @@ pub use tinymemory_core::diff::*;
 pub mod rpc;
 #[cfg(feature = "memory-git")]
 pub mod schemas;
+
+#[cfg(feature = "memory-git")]
+pub use schemas::{
+    all_controller_schemas as all_memory_diff_controller_schemas,
+    all_registered_controllers as all_memory_diff_registered_controllers,
+};
+// The agent tool came back with the rest of them; re-exported here so the
+// historical `memory::diff::MemoryDiffTool` path keeps resolving.
+#[cfg(feature = "memory-git")]
+pub use crate::openhuman::memory::tools::diff::MemoryDiffTool;
 #[cfg(not(feature = "memory-git"))]
 mod stub;
 

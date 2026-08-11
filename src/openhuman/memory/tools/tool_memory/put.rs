@@ -1,6 +1,6 @@
 //! `memory_tools_put` — upsert a tool-scoped memory rule.
 //!
-//! Routed through [`MemoryGuard`](tinymemory_core::guard::MemoryGuard).
+//! Routed through [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard).
 //! `MemoryToolMemory::put_tool_rule` delegates to the same
 //! `ToolMemoryStore::put_rule` this tool used to build by hand, with one
 //! asymmetry: the contract method returns unit while the store returns the
@@ -148,9 +148,9 @@ mod tests {
 
     use tempfile::TempDir;
 
-    use tinymemory_core::Config;
+    use crate::openhuman::config::Config;
 use crate::openhuman::config::{TEST_ENV_LOCK};
-    use tinymemory_core::guard::policy::GUARD_DENIED_PREFIX;
+    use crate::openhuman::memory::guard::policy::GUARD_DENIED_PREFIX;
     use crate::openhuman::security::live_policy;
     use crate::openhuman::security::policy::{AutonomyLevel, SecurityPolicy};
     use crate::openhuman::tools::traits::Tool;

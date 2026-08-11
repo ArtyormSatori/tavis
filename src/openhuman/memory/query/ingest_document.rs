@@ -147,7 +147,7 @@ mod tests {
 
     use tempfile::TempDir;
 
-    use tinymemory_core::Config;
+    use crate::openhuman::config::Config;
 use crate::openhuman::config::{TEST_ENV_LOCK};
     use tinymemory_core::store::chunks::types::SourceRef;
     use crate::openhuman::tools::traits::Tool;

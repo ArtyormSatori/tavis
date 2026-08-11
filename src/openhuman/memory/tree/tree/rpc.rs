@@ -1112,10 +1112,10 @@ mod tests {
     fn test_config() -> (TempDir, Config) {
         let tmp = TempDir::new().unwrap();
         let mut cfg = Config::default();
-        cfg.workspace_dir() = tmp.path().to_path_buf();
-        cfg.memory_tree().embedding_endpoint = None;
-        cfg.memory_tree().embedding_model = None;
-        cfg.memory_tree().embedding_strict = false;
+        cfg.workspace_dir = tmp.path().to_path_buf();
+        cfg.memory_tree.embedding_endpoint = None;
+        cfg.memory_tree.embedding_model = None;
+        cfg.memory_tree.embedding_strict = false;
         (tmp, cfg)
     }
 
@@ -2032,7 +2032,7 @@ mod tests {
         use tinymemory_api::host::SchedulerGateMode;
 
         let (_tmp, mut cfg) = test_config();
-        cfg.scheduler_gate().mode = SchedulerGateMode::Off;
+        cfg.scheduler_gate.mode = SchedulerGateMode::Off;
         let out = pipeline_status_rpc(&cfg).await.unwrap().value;
         assert_eq!(out.status, "paused");
         assert!(out.is_paused);
@@ -2109,9 +2109,9 @@ mod tests {
 
         let (tmp, mut cfg) = test_config();
         // Pin config_path inside the tempdir so `save()` stays sandboxed.
-        cfg.config_path() = tmp.path().join("config.toml");
+        cfg.config_path = tmp.path().join("config.toml");
 
-        assert_eq!(cfg.scheduler_gate().mode, SchedulerGateMode::Auto);
+        assert_eq!(cfg.scheduler_gate.mode, SchedulerGateMode::Auto);
 
         let off = set_enabled_rpc(&mut cfg, SetEnabledRequest { enabled: false })
             .await
@@ -2120,7 +2120,7 @@ mod tests {
         assert!(!off.enabled);
         assert!(off.changed);
         assert_eq!(off.mode, "off");
-        assert_eq!(cfg.scheduler_gate().mode, SchedulerGateMode::Off);
+        assert_eq!(cfg.scheduler_gate.mode, SchedulerGateMode::Off);
 
         // Calling with the same value must report no-op.
         let again = set_enabled_rpc(&mut cfg, SetEnabledRequest { enabled: false })
@@ -2137,6 +2137,6 @@ mod tests {
         assert!(on.enabled);
         assert!(on.changed);
         assert_eq!(on.mode, "auto");
-        assert_eq!(cfg.scheduler_gate().mode, SchedulerGateMode::Auto);
+        assert_eq!(cfg.scheduler_gate.mode, SchedulerGateMode::Auto);
     }
 }

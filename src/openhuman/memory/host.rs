@@ -85,6 +85,10 @@ impl MemoryHostConfig for Config {
         Config::workload_local_model(self, workload)
     }
 
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     fn to_arc(&self) -> Arc<dyn MemoryHostConfig> {
         Arc::new(self.clone())
     }
@@ -118,13 +122,6 @@ impl MemoryHostConfig for Config {
 
     fn memory_sync_interval_secs(&self) -> Option<u64> {
         self.memory_sync_interval_secs
-    }
-
-    fn sqlite_open_timeout_secs(&self) -> Option<u64> {
-        // Fully qualified: `Config` has an inherent method of the same name,
-        // and `self.sqlite_open_timeout_secs()` would resolve back to this
-        // trait method and recurse.
-        Config::sqlite_open_timeout_secs(self)
     }
 
     fn onboarding_completed(&self) -> bool {

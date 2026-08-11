@@ -505,6 +505,12 @@ landlock = { version = "0.4", optional = true }
 rppal = { version = "0.22", optional = true }
 
 [dev-dependencies]
+# The host's own tests drive `tinymemory-core`'s test helpers
+# (`chat::test_override`, `StaticChatProvider`, `tool_memory::test_helpers`).
+# They were `#[cfg(test)]` items in this crate before the memory extraction; a
+# downstream test harness cannot see those across a crate boundary, so the
+# extracted crate exposes them behind `test-support` instead.
+tinymemory-core = { path = "vendor/tinymemory/core", features = ["test-support"] }
 # Dual-declared on purpose (same shape as the `sentry`/`axum` entries): the
 # optional dependency above is bin-only behind `bin-tools`, but
 # `agent_orchestration::tools::tools_e2e_tests` (a #[cfg(test)] LIB module),

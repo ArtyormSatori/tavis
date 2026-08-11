@@ -127,29 +127,32 @@ impl EmbeddingHost for OpenHumanEmbeddingHost {
 
 /// Builds chat models for summarisation and the memory chat helper.
 ///
-/// Every method here is sync, so none can re-read the config the seam points
-/// at; they use the one captured at install time. Model routing does not change
-/// mid-session in practice, and this matches how the pre-extraction call sites
-/// behaved — they read the same ambient config.
+/// Routing reads BYOK fallbacks, per-role routes and credentials, so it needs
+/// the host's own `Config` — recovered from the trait object with
+/// [`host_config`]. The captured config is only the fallback for a caller that
+/// handed us somebody else's implementation.
 #[derive(Debug)]
 pub struct OpenHumanChatHost {
     config: Arc<Config>,
 }
 
 impl ChatHost for OpenHumanChatHost {
-    fn provider_for_role(&self, role: &str, _config: &SeamConfig) -> String {
-        crate::openhuman::inference::provider::provider_for_role(role, &self.config)
+    fn provider_for_role(&self, role: &str, config: &SeamConfig) -> String {
+        crate::openhuman::inference::provider::provider_for_role(
+            role,
+            host_config(config, &self.config),
+        )
     }
 
     fn create_chat_model_with_model_id(
         &self,
         role: &str,
-        _config: &SeamConfig,
+        config: &SeamConfig,
         temperature: f64,
     ) -> Result<(Arc<dyn ChatModel<()>>, String), String> {
         crate::openhuman::inference::provider::create_chat_model_with_model_id(
             role,
-            &self.config,
+            host_config(config, &self.config),
             temperature,
         )
         .map_err(|e| format!("{e:#}"))
@@ -159,8 +162,11 @@ impl ChatHost for OpenHumanChatHost {
         crate::openhuman::agent::tinyagents::model::usage_info_from_response(response)
     }
 
-    fn summarizer_available(&self, _config: &SeamConfig) -> (bool, &'static str) {
-        crate::openhuman::memory::tree::tree_runtime::ops::summarizer_available(&self.config)
+    fn summarizer_available(&self, config: &SeamConfig) -> (bool, &'static str) {
+        crate::openhuman::memory::tree::tree_runtime::ops::summarizer_available(host_config(
+            config,
+            &self.config,
+        ))
     }
 }
 
@@ -168,9 +174,10 @@ impl ChatHost for OpenHumanChatHost {
 
 /// Runs Composio calls for the memory sync pipelines.
 ///
-/// The two async methods re-read the config the seam points at, because an
-/// OAuth completion or a `set_api_key` RPC between ticks has to take effect
-/// immediately. The two sync ones cannot, and use the captured startup config.
+/// The two async methods re-read the config from disk, because an OAuth
+/// completion or a `set_api_key` RPC between ticks has to take effect
+/// immediately. The two sync ones recover the caller's config with
+/// [`host_config`], which costs nothing and is still current as of the call.
 #[derive(Debug)]
 pub struct OpenHumanComposioHost {
     config: Arc<Config>,
@@ -233,15 +240,18 @@ impl ComposioHost for OpenHumanComposioHost {
         }
     }
 
-    fn api_key(&self, _config: &SeamConfig) -> Option<String> {
-        crate::openhuman::security::credentials::get_composio_api_key(&self.config)
-            .ok()
-            .flatten()
+    fn api_key(&self, config: &SeamConfig) -> Option<String> {
+        crate::openhuman::security::credentials::get_composio_api_key(host_config(
+            config,
+            &self.config,
+        ))
+        .ok()
+        .flatten()
     }
 
-    fn is_available(&self, _config: &SeamConfig) -> bool {
+    fn is_available(&self, config: &SeamConfig) -> bool {
         use crate::openhuman::integrations::composio::client::create_composio_client;
-        create_composio_client(&self.config).is_ok()
+        create_composio_client(host_config(config, &self.config)).is_ok()
     }
 }
 
@@ -350,6 +360,15 @@ impl ErrorReporter for OpenHumanErrorReporter {
 
 // ── Wiring ──────────────────────────────────────────────────────────────────
 
+/// Recover the host's concrete `Config` from the seam's trait object.
+///
+/// Returns `fallback` when the config is some other implementor — a test
+/// double, say. That is not an error: it means there is no host config to
+/// recover, and the one the seam was installed with is the best answer.
+fn host_config<'a>(config: &'a SeamConfig, fallback: &'a Config) -> &'a Config {
+    config.as_any().downcast_ref::<Config>().unwrap_or(fallback)
+}
+
 /// Re-read the host's concrete `Config` from the paths the seam points at.
 ///
 /// The seam is `dyn MemoryHostConfig` and the host functions these impls
@@ -395,4 +414,38 @@ pub fn install_memory_host_seams(config: Arc<Config>) {
     tinymemory_core::observability::set_error_reporter(Arc::new(OpenHumanErrorReporter));
     super::host::install_memory_event_sink();
     log::debug!("[memory:host] all seam implementations installed");
+}
+
+/// Install the seams for this crate's own tests.
+///
+/// Before the extraction, memory code called `inference::embeddings` and the
+/// provider factory directly, so any test that built a memory client got the
+/// real implementations for free. The seams made that wiring explicit — which
+/// is the point at runtime, but it means a test that builds a client now has to
+/// say so. This installs exactly what used to be implicit: the real host impls,
+/// over a default config.
+///
+/// Idempotent, and safe to call from many test threads.
+///
+/// # Why the thread
+///
+/// `Config` is a large struct, and `Config::default()` materialises one on the
+/// caller's stack before it reaches the `Arc`. Most callers here are
+/// `#[tokio::test]` async fns whose futures are already deep; adding it inline
+/// overflows the 2 MiB test-thread stack. Building it on a thread with a stack
+/// of its own keeps the cost off the caller entirely, and `Once` means it
+/// happens exactly one time per test binary.
+#[cfg(test)]
+pub(crate) fn install_for_tests() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+    INIT.call_once(|| {
+        std::thread::Builder::new()
+            .name("memory-seam-install".to_string())
+            .stack_size(8 * 1024 * 1024)
+            .spawn(|| install_memory_host_seams(Arc::new(Config::default())))
+            .expect("spawn seam installer")
+            .join()
+            .expect("seam installer panicked");
+    });
 }

@@ -1,8 +1,6 @@
 //! `Agent::from_config` factory methods and the internal
 //! `build_session_agent_inner` constructor.
 
-// `to_arc` / the config accessors are `MemoryHostConfig` trait methods.
-use tinymemory_api::host::MemoryHostConfig;
 use super::helpers::prefetch_tool_memory_rules_blocking;
 use super::should_synthesize_delegation_tools;
 use crate::openhuman::agent::context::prompt::SystemPromptBuilder;
@@ -296,7 +294,6 @@ impl Agent {
             Some(&config.storage.provider.config),
             &config.workspace_dir,
             &memory_subdir,
-            config.sqlite_open_timeout_secs(),
         )?;
         let archivist_connection = session_memory.sqlite_connection;
         let memory: Arc<dyn Memory> = Arc::from(session_memory.memory);

@@ -7446,7 +7446,6 @@ dependencies = [
  "sha2 0.10.9",
  "thiserror 2.0.18",
  "tinyagents",
- "tinychannels",
  "tinycortex",
  "tinycortex-api",
  "tinymemory",

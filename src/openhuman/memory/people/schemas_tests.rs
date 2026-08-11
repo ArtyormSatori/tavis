@@ -10,7 +10,7 @@ mod tests {
     /// `refresh_address_book` is wired up.
     #[test]
     fn schema_exposes_four_controllers() {
-        use crate::people::schemas;
+        use crate::openhuman::memory::people::schemas;
         let names: Vec<_> = schemas::all_controller_schemas()
             .into_iter()
             .map(|s| s.function)

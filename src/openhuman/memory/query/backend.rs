@@ -7,7 +7,7 @@
 
 use anyhow::Result;
 
-use tinymemory_core::Config;
+use crate::openhuman::config::Config;
 use tinymemory_core::store::chunks::types::SourceKind;
 use tinymemory_core::tree::retrieval::{self, QueryResponse, RetrievalHit};
 

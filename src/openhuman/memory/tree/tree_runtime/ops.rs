@@ -258,7 +258,7 @@ mod tests {
     fn config_in_tempdir() -> (TempDir, Config) {
         let tmp = TempDir::new().expect("tempdir");
         let mut cfg = Config::default();
-        cfg.workspace_dir() = tmp.path().to_path_buf();
+        cfg.workspace_dir = tmp.path().to_path_buf();
         (tmp, cfg)
     }
 
@@ -287,8 +287,8 @@ mod tests {
     fn create_provider_uses_local_model_when_local_ai_enabled() {
         // #002 FR-007: local path returns the user's local chat model.
         let mut cfg = Config::default();
-        cfg.local_ai().runtime_enabled = true;
-        cfg.local_ai().chat_model_id = "qwen2.5:7b".to_string();
+        cfg.local_ai.runtime_enabled = true;
+        cfg.local_ai.chat_model_id = "qwen2.5:7b".to_string();
         let (_provider, model) = create_provider(&cfg).expect("local provider should build");
         assert_eq!(model, "qwen2.5:7b");
     }
@@ -299,7 +299,7 @@ mod tests {
         // sensitive, so an explicit opt-in is required before routing them to
         // an external provider.
         let mut cfg = Config::default();
-        cfg.local_ai().runtime_enabled = false;
+        cfg.local_ai.runtime_enabled = false;
         // cloud_summarization_opt_in defaults to false
         match create_provider(&cfg) {
             Err(e) => assert!(
@@ -315,8 +315,8 @@ mod tests {
         // #002 FR-007: with explicit opt-in Build Summary Trees uses the
         // configured cloud provider when local AI is disabled.
         let mut cfg = Config::default();
-        cfg.local_ai().runtime_enabled = false;
-        cfg.memory_tree().cloud_summarization_opt_in = true;
+        cfg.local_ai.runtime_enabled = false;
+        cfg.memory_tree.cloud_summarization_opt_in = true;
         let (_provider, model) =
             create_provider(&cfg).expect("cloud fallback should build when opted in");
         assert!(
@@ -459,7 +459,7 @@ mod tests {
     #[tokio::test]
     async fn tree_summarizer_run_skips_when_buffer_is_empty() {
         let (_tmp, mut cfg) = config_in_tempdir();
-        cfg.local_ai().runtime_enabled = true;
+        cfg.local_ai.runtime_enabled = true;
 
         let outcome = tree_summarizer_run(&cfg, "team")
             .await
@@ -485,8 +485,8 @@ mod tests {
         // opt-in, run/rebuild do not hard-error on the provider precondition.
         // With an empty buffer, `run` reports the normal "no buffered data" skip.
         let (_tmp, mut cfg) = config_in_tempdir();
-        cfg.local_ai().runtime_enabled = false;
-        cfg.memory_tree().cloud_summarization_opt_in = true;
+        cfg.local_ai.runtime_enabled = false;
+        cfg.memory_tree.cloud_summarization_opt_in = true;
 
         let outcome = tree_summarizer_run(&cfg, "team")
             .await
