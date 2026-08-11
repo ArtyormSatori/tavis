@@ -250,17 +250,17 @@ pub async fn tx_status(network: EvmNetwork, hash: &str) -> Result<TxStatusInfo, 
     let status_ok = receipt
         .get("status")
         .and_then(|v| v.as_str())
-        .map(|s| hex_to_u256(s).map(|v| !v.is_zero()).unwrap_or(true))
+        .map(|s| hex_to_u128(s).map(|v| v != 0).unwrap_or(true))
         .unwrap_or(true);
     let block_number = receipt
         .get("blockNumber")
         .and_then(|v| v.as_str())
-        .and_then(|s| hex_to_u256(s).ok())
+        .and_then(|s| hex_to_u128(s).ok())
         .map(|v| v.as_u64());
     let confirmations = match block_number {
         Some(bn) => {
             let head_hex: String = rpc_call_to(&rpc_url, "eth_blockNumber", json!([])).await?;
-            hex_to_u256(&head_hex)
+            hex_to_u128(&head_hex)
                 .ok()
                 .map(|head| head.as_u64().saturating_sub(bn).saturating_add(1))
         }
@@ -305,20 +305,20 @@ pub async fn tx_receipt(network: EvmNetwork, hash: &str) -> Result<TxReceiptInfo
     let success = receipt
         .get("status")
         .and_then(|v| v.as_str())
-        .map(|s| hex_to_u256(s).map(|v| !v.is_zero()).unwrap_or(true));
+        .map(|s| hex_to_u128(s).map(|v| v != 0).unwrap_or(true));
     let block_number = receipt
         .get("blockNumber")
         .and_then(|v| v.as_str())
-        .and_then(|s| hex_to_u256(s).ok())
+        .and_then(|s| hex_to_u128(s).ok())
         .map(|v| v.as_u64());
     let gas_used = receipt
         .get("gasUsed")
         .and_then(|v| v.as_str())
-        .and_then(|s| hex_to_u256(s).ok());
+        .and_then(|s| hex_to_u128(s).ok());
     let effective_gas_price = receipt
         .get("effectiveGasPrice")
         .and_then(|v| v.as_str())
-        .and_then(|s| hex_to_u256(s).ok());
+        .and_then(|s| hex_to_u128(s).ok());
     let fee_raw = match (gas_used, effective_gas_price) {
         (Some(g), Some(p)) => g.checked_mul(p).map(|f| f.to_string()),
         _ => None,
