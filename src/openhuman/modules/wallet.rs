@@ -274,7 +274,7 @@ fn hex(bytes: &[u8]) -> String {
 
 /// Decode lowercase hex from the module.
 fn unhex(value: &str) -> Result<Vec<u8>, WalletCallError> {
-    if value.len() % 2 != 0 {
+    if !value.len().is_multiple_of(2) {
         return Err(WalletCallError::Failed(
             "the module returned a payload with an odd number of hex characters".to_string(),
         ));
