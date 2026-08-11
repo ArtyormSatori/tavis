@@ -1,4 +1,3 @@
-pub mod module_adapter;
 //! Memory-driver implementations of the [`tinycortex_api`] contract.
 //!
 //! One subdirectory per driver. Today there is exactly one — [`embedded`],
@@ -10,4 +9,5 @@ pub mod module_adapter;
 //! driver is memory, and gating it separately from the domain it implements
 //! would be meaningless.
 
+pub mod module_adapter;
 pub mod embedded;
