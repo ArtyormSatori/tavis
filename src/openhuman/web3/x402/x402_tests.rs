@@ -454,7 +454,8 @@ fn eip3009_struct_hash_is_deterministic() {
     assert_eq!(h1, h2);
 
     // Different nonce produces different hash
-    let h3 = eip3009_struct_hash(from, to, value, valid_after, valid_before, [43u8; 32]);
+    let h3 =
+        transfer_with_authorization_hash(from, to, value, valid_after, valid_before, [43u8; 32]);
     assert_ne!(h1, h3);
 }
 
