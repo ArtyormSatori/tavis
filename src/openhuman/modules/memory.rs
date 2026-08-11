@@ -61,16 +61,53 @@ use crate::openhuman::config::Config;
 /// Registry id of the module these calls go to.
 pub const MODULE_ID: &str = "tinymemory";
 
+/// The `[modules]` policy this process was booted with.
+///
+/// # Why a process-global and not a constructor argument
+///
+/// `memory::binding::build` is where a module driver is constructed, and it
+/// receives only a workspace dir and a `MemorySubsystemConfig`. What
+/// [`ops::ensure_loaded`] needs is `modules.{enabled, allow_download,
+/// install_dir}`, which lives on the full `Config` — and threading a whole
+/// `Config` down through `MemoryBinding::for_workspace` would widen that
+/// function's dependency and change a cache key that ~4000 pre-boot tests hit.
+///
+/// So the policy is published once during boot instead. This is the same shape
+/// `tinymemory_core::embedding_host` and `api::product` already use, and for the
+/// same stated reason: the construction sites sit too deep to thread through.
+///
+/// # Unset means disabled, deliberately
+///
+/// A pre-boot test, or a host that never called [`set_modules_policy`], gets
+/// `None` — and [`policy`] then reports modules disabled rather than assuming
+/// permissive defaults. Defaulting `enabled` to `true` here would silently
+/// ignore an operator who turned modules off, and would let a unit test reach
+/// for a download.
+static MODULES_POLICY: std::sync::OnceLock<Arc<Config>> = std::sync::OnceLock::new();
+
+/// Publish the config a module driver should load against.
+///
+/// Call once during boot, before any workspace is bound. Later calls are
+/// ignored — a driver already resolved against the first value must not have the
+/// policy change underneath it.
+pub fn set_modules_policy(config: Arc<Config>) {
+    let _ = MODULES_POLICY.set(config);
+}
+
+/// The published policy, if boot supplied one.
+fn policy() -> Option<&'static Arc<Config>> {
+    MODULES_POLICY.get()
+}
+
 /// A memory driver served by the loaded `tinymemory` module.
 pub struct ModuleMemoryProvider {
     /// The id reported by [`MemoryProvider::driver_id`].
     driver_id: String,
-    /// Snapshot of the host config needed to load the module on first use.
+    /// The config to load against, when the caller had one to give.
     ///
-    /// Owned rather than borrowed because the provider outlives the call that
-    /// built it, and cloned rather than re-read because a binding must keep
-    /// answering consistently even if configuration changes underneath it.
-    config: Arc<Config>,
+    /// `None` is the binding-site case: `build` has no `Config`, so the provider
+    /// falls back to the policy published at boot. Tests pass one explicitly.
+    config: Option<Arc<Config>>,
     /// Set once the module has answered `Capabilities`, so the cross-check runs
     /// once rather than per call.
     verified: std::sync::OnceLock<()>,
@@ -92,6 +129,20 @@ impl ModuleMemoryProvider {
     /// loaded until the first call.
     #[must_use]
     pub fn new(config: Arc<Config>) -> Self {
+        Self::with_optional_config(Some(config))
+    }
+
+    /// Bind against the policy published by [`set_modules_policy`].
+    ///
+    /// This is what `memory::binding::build` uses, because it has no `Config` to
+    /// hand over. If boot published nothing, every call reports the module
+    /// unavailable rather than guessing a permissive default.
+    #[must_use]
+    pub fn from_boot_policy() -> Self {
+        Self::with_optional_config(None)
+    }
+
+    fn with_optional_config(config: Option<Arc<Config>>) -> Self {
         Self {
             driver_id: registry::find(MODULE_ID)
                 .map_or_else(|| MODULE_ID.to_string(), |record| record.id.to_string()),
@@ -102,7 +153,13 @@ impl ModuleMemoryProvider {
 
     /// Ensure the module is serving, and hand back a proxy for its object.
     async fn proxy(&self) -> Result<tinybus::Proxy, MemoryError> {
-        ops::ensure_loaded(&self.config, MODULE_ID)
+        let config = self.config.as_ref().or_else(|| policy()).ok_or_else(|| {
+            MemoryError::Other(anyhow::anyhow!(
+                "the module host policy was never published, so module '{MODULE_ID}' \
+                 cannot be loaded; call modules::memory::set_modules_policy during boot"
+            ))
+        })?;
+        ops::ensure_loaded(config, MODULE_ID)
             .await
             .map_err(|message| MemoryError::Other(anyhow::anyhow!(message)))?;
 
