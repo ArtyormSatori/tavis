@@ -92,9 +92,9 @@ fn ensure_json_rpc_e2e_memory_seams() {
             .name("json-rpc-e2e-memory-seams".to_string())
             .stack_size(8 * 1024 * 1024)
             .spawn(|| {
-                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(
-                    Arc::new(openhuman_core::openhuman::config::Config::default()),
-                );
+                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(Arc::new(
+                    openhuman_core::openhuman::config::Config::default(),
+                ));
             })
             .expect("spawn json_rpc e2e memory seam installer")
             .join()
