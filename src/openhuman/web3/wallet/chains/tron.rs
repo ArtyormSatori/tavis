@@ -220,8 +220,16 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
         ));
     }
 
+    // Which address the *transaction* pays, which is not always the address the
+    // user is paying. A native transfer pays the recipient; a TRC20 transfer
+    // pays the token contract and carries the recipient inside the call
+    // parameter, left-padded to 32 bytes and so without the `41` prefix that
+    // appears in `raw_data` for a native transfer. Verifying a TRC20 against
+    // the user's recipient would therefore never match.
+    let verified_recipient;
     let raw_tx = match quote.kind {
         PreparedKind::NativeTransfer => {
+            verified_recipient = quote.to_address.clone();
             let amount_sun: u64 = amount
                 .try_into()
                 .map_err(|_| format!("Tron amount {amount} exceeds u64"))?;
@@ -233,6 +241,7 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
                 .as_deref()
                 .ok_or_else(|| "TRC20 transfer missing token_address".to_string())?;
             validate_tron_address(contract)?;
+            verified_recipient = contract.to_string();
             let contract_hex = tron_address_to_hex(contract)?;
             let parameter = encode_trc20_transfer_param(&to_hex, amount)?;
             trigger_trc20_transfer(&owner_hex, &contract_hex, &parameter).await?
@@ -247,7 +256,7 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     let public_key = compressed_public_key(&sk)?;
     let transaction = tinywallet::wire::TransactionSpec::Tron {
         raw_data_hex: raw_tx.raw_data_hex.clone(),
-        expected_to: to_address.to_string(),
+        expected_to: verified_recipient,
         expected_txid: raw_tx.tx_id.clone(),
     };
     let signed = crate::openhuman::modules::wallet::sign_transaction(
