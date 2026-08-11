@@ -86,6 +86,28 @@ fn ensure_memory_seams() {
     });
 }
 
+fn run_on_agent_stack<F, Fut>(name: &str, future_factory: F)
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: std::future::Future<Output = ()> + 'static,
+{
+    std::thread::Builder::new()
+        .name(name.to_string())
+        .stack_size(openhuman_core::core::runtime::AGENT_WORKER_STACK_BYTES)
+        .spawn(move || {
+            tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(2)
+                .thread_stack_size(openhuman_core::core::runtime::AGENT_WORKER_STACK_BYTES)
+                .enable_all()
+                .build()
+                .expect("build agent session turn raw coverage runtime")
+                .block_on(future_factory());
+        })
+        .expect("spawn agent session turn raw coverage thread")
+        .join()
+        .expect("agent session turn raw coverage thread should not panic");
+}
+
 #[derive(Clone, Debug)]
 struct CapturedRequest {
     model: String,
@@ -606,8 +628,15 @@ fn agent_with(
         .unwrap()
 }
 
-#[tokio::test]
-async fn turn_native_tool_progress_reasoning_usage_and_resume_seed_paths() {
+#[test]
+fn turn_native_tool_progress_reasoning_usage_and_resume_seed_paths() {
+    run_on_agent_stack(
+        "agent-session-turn-native-tool-raw-coverage",
+        turn_native_tool_progress_reasoning_usage_and_resume_seed_paths_inner,
+    );
+}
+
+async fn turn_native_tool_progress_reasoning_usage_and_resume_seed_paths_inner() {
     ensure_memory_seams();
     let _env = env_lock();
     let (_temp, workspace_path) = workspace("native-progress");
@@ -749,8 +778,15 @@ async fn turn_native_tool_progress_reasoning_usage_and_resume_seed_paths() {
     assert_eq!(seeded_answer, "seeded final");
 }
 
-#[tokio::test]
-async fn turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_exercised() {
+#[test]
+fn turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_exercised() {
+    run_on_agent_stack(
+        "agent-session-turn-xml-raw-coverage",
+        turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_exercised_inner,
+    );
+}
+
+async fn turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_exercised_inner() {
     ensure_memory_seams();
     let _env = env_lock();
     let (_temp, workspace_path) = workspace("xml-failures");
