@@ -6,6 +6,7 @@ use chrono::Utc;
 use openhuman_core::openhuman::desktop::app_state::{
     snapshot, update_local_state, StoredAppStatePatch, StoredOnboardingTasks,
 };
+use openhuman_core::openhuman::config::Config;
 use openhuman_core::openhuman::config::rpc as config_rpc;
 use openhuman_core::openhuman::security::credentials::profiles::{
     profile_id, AuthProfile, AuthProfilesStore, TokenSet,
@@ -30,6 +31,23 @@ use tempfile::{Builder, TempDir};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 static ROUND19_ENV_LOCK: &OnceLock<Mutex<()>> = &crate::SHARED_ENV_LOCK;
+static MEMORY_SEAMS_INIT: OnceLock<()> = OnceLock::new();
+
+fn ensure_memory_seams() {
+    MEMORY_SEAMS_INIT.get_or_init(|| {
+        std::thread::Builder::new()
+            .name("round19-memory-source-seams".to_string())
+            .stack_size(8 * 1024 * 1024)
+            .spawn(|| {
+                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(
+                    Arc::new(Config::default()),
+                );
+            })
+            .expect("spawn round19 memory source seam installer")
+            .join()
+            .expect("round19 memory source seam installer panicked");
+    });
+}
 
 struct EnvGuard {
     key: &'static str,
@@ -640,6 +658,7 @@ fn write_transcript(path: &Path, agent: &str, thread_id: &str) {
 #[tokio::test]
 async fn round19_memory_sources_registry_readers_sync_and_reconcile_edges() {
     let _lock = env_lock();
+    ensure_memory_seams();
     let harness = setup("http://127.0.0.1:9");
     let config = harness.config().await;
 
