@@ -325,15 +325,42 @@ mod tests {
     }
 
     #[test]
-    fn a_module_without_artifacts_offers_no_candidate_for_this_host() {
-        // The fail-safe the empty asset list depends on: platform resolution
-        // must find nothing rather than fall back to some other module's
-        // artifact or to an unverified download.
+    fn a_module_without_artifacts_resolves_on_no_host() {
+        // The fail-safe the empty asset list depends on. Checked against real
+        // host coordinates rather than asserted abstractly, so it also proves
+        // the lookup is per-record: `tinydocs` resolves on the same hosts where
+        // `tinywallet` does not, which rules out a fallback that would hand one
+        // module another module's artifact.
         let tinywallet = find("tinywallet").expect("the record exists");
-        if tinywallet.assets.is_empty() {
+        let tinydocs = find("tinydocs").expect("the record exists");
+
+        for (os, arch, glibc) in [
+            ("linux", "x86_64", Some((2, 39))),
+            ("linux", "aarch64", Some((2, 35))),
+            ("macos", "aarch64", None),
+            ("windows", "x86_64", None),
+        ] {
+            let candidates = candidates_for(os, arch, glibc);
             assert!(
-                candidates_for(tinywallet).is_empty(),
-                "an artifact-less module must not resolve to a candidate"
+                !candidates.is_empty(),
+                "{os}/{arch} should be a supported host"
+            );
+
+            let resolves = |record: &super::ModuleRecord| {
+                candidates
+                    .iter()
+                    .any(|key| record.assets.iter().any(|asset| asset.host_key == *key))
+            };
+
+            if tinywallet.assets.is_empty() {
+                assert!(
+                    !resolves(tinywallet),
+                    "an artifact-less module must not resolve on {os}/{arch}"
+                );
+            }
+            assert!(
+                resolves(tinydocs),
+                "tinydocs must still resolve on {os}/{arch}"
             );
         }
     }
