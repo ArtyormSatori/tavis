@@ -80,6 +80,7 @@ fn ensure_memory_seams() {
 /// Build a `Config` rooted at a temp workspace with no LLM provider and no
 /// embedder, so every test runs fully offline and deterministically.
 fn test_config(tmp: &TempDir) -> Config {
+    ensure_memory_seams();
     let workspace_dir = tmp.path().join("workspace");
     std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
     let mut cfg = Config {
