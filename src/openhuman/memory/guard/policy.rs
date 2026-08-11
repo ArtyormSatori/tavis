@@ -369,7 +369,8 @@ impl GuardPolicy {
     /// unmodified pass-through for embedded and null drivers.
     pub fn redact_outbound_json(&self, value: serde_json::Value) -> serde_json::Value {
         match self.class {
-            DriverClass::Embedded | DriverClass::Null => value,
+            // Same grouping and the same reason as `redact_outbound`.
+            DriverClass::Embedded | DriverClass::Module | DriverClass::Null => value,
             DriverClass::External => {
                 crate::openhuman::memory::store::safety::sanitize_json(&value).value
             }
