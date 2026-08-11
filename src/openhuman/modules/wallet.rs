@@ -101,7 +101,7 @@ pub async fn sign_transaction(
         key_hex: hex(public_key),
     };
 
-    let chain = transaction.chain().ok();
+    let chain = transaction.chain();
     log::debug!("[modules:wallet] build_unsigned chain={chain:?} module={MODULE_ID}");
     let unsigned: UnsignedTransaction = proxy
         .call(
