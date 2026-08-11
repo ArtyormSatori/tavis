@@ -143,9 +143,9 @@ async fn setup() -> TestHarness {
     // The HTTP router is intentionally transport-only and does not construct a
     // Core runtime context. Memory-backed RPC reads still need the explicit
     // tinymemory host seams before they can load their configured provider.
-    openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(
-        std::sync::Arc::new(openhuman_core::openhuman::config::Config::default()),
-    );
+    openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(std::sync::Arc::new(
+        openhuman_core::openhuman::config::Config::default(),
+    ));
 
     let (addr, join) = serve_rpc().await;
     TestHarness {
