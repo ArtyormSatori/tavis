@@ -344,7 +344,20 @@ impl GuardPolicy {
     /// same time as the class check that selects it.
     pub fn redact_outbound<'a>(&self, content: &'a str) -> Cow<'a, str> {
         match self.class {
-            DriverClass::Embedded | DriverClass::Null => Cow::Borrowed(content),
+            // `Module` sits with the in-process classes, and the test for this
+            // grouping is "does the content leave the device", not "is the code
+            // compiled in". A loaded module is in this address space and makes no
+            // egress of its own — the memory module's embeddings go back *to* the
+            // host, which is the whole point of that split — so there is no
+            // transfer here to disclose or scrub.
+            //
+            // Scrubbing would also be actively destructive for the same reason it
+            // would be for `Embedded`: these are the user's own memory writes, and
+            // sanitizing them would silently corrupt the data being stored rather
+            // than protect anything.
+            DriverClass::Embedded | DriverClass::Module | DriverClass::Null => {
+                Cow::Borrowed(content)
+            }
             DriverClass::External => {
                 Cow::Owned(crate::openhuman::memory::store::safety::sanitize_text(content).value)
             }
