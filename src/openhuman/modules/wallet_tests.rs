@@ -60,7 +60,11 @@ fn a_build_failure_is_not_an_input_error() {
 
 #[test]
 fn an_unsupported_chain_reads_as_unavailable_not_invalid() {
-    // The request was fine; this build of the module simply cannot serve it.
+    // Defensive: the current module never emits this name — an unrecognised
+    // transaction shape comes back as `InvalidInput` instead. The arm exists
+    // so a future module that does distinguish "chain not compiled in" from
+    // "bad request" is classified as a missing capability rather than as the
+    // caller's fault.
     assert!(matches!(
         classify(&failure("ai.tinyhumans.tinywallet.Error.UnsupportedChain")),
         WalletCallError::Unavailable(_)

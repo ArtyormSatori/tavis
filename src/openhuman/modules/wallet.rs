@@ -45,7 +45,6 @@ use tinywallet::wire::{
     AttachRequest, PublicKey, Scheme, Signature, SignedTransaction, SigningPayload, SigningRequest,
     TransactionSpec, UnsignedTransaction,
 };
-use tinywallet::Chain;
 
 use super::{host, ops, registry};
 use crate::openhuman::config::Config;
