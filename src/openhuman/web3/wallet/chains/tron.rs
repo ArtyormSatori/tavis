@@ -257,7 +257,6 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     };
     let signed = crate::openhuman::modules::wallet::sign_transaction(
         &config,
-        tinywallet::Chain::Tron,
         &transaction,
         &sk,
         &public_key,

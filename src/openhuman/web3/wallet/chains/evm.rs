@@ -118,7 +118,6 @@ async fn sign_and_broadcast(
     };
     let signed = crate::openhuman::modules::wallet::sign_transaction(
         &config,
-        tinywallet::Chain::Evm,
         &transaction,
         derived.secret_bytes(),
         &public_key,

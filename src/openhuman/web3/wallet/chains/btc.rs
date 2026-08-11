@@ -232,7 +232,6 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
     // to the module in input order — see `modules::wallet`.
     let signed = crate::openhuman::modules::wallet::sign_transaction(
         &config,
-        tinywallet::Chain::Btc,
         &transaction,
         &private_key,
         &public_key,

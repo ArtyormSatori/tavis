@@ -208,7 +208,7 @@ async fn a_disabled_host_reports_unavailable_without_starting_a_broker() {
     };
 
     assert!(matches!(
-        super::sign_transaction(&config, Chain::Evm, &spec, &evm_secret(), &[0x02; 33]).await,
+        super::sign_transaction(&config, &spec, &evm_secret(), &[0x02; 33]).await,
         Err(WalletCallError::Unavailable(_))
     ));
     assert!(matches!(

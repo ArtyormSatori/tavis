@@ -92,7 +92,6 @@ impl std::fmt::Display for WalletCallError {
 /// signing was at fault.
 pub async fn sign_transaction(
     config: &Config,
-    chain: Chain,
     transaction: &TransactionSpec,
     secret: &[u8],
     public_key: &[u8],
@@ -103,12 +102,12 @@ pub async fn sign_transaction(
         key_hex: hex(public_key),
     };
 
+    let chain = transaction.chain().ok();
     log::debug!("[modules:wallet] build_unsigned chain={chain:?} module={MODULE_ID}");
     let unsigned: UnsignedTransaction = proxy
         .call(
             "BuildUnsigned",
             (SigningRequest {
-                chain,
                 transaction: transaction.clone(),
                 public_key: public_key.clone(),
             },),
@@ -133,7 +132,6 @@ pub async fn sign_transaction(
         .call(
             "AttachSignature",
             (AttachRequest {
-                chain,
                 transaction: transaction.clone(),
                 public_key,
                 signatures,
