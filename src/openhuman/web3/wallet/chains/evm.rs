@@ -8,9 +8,6 @@
 
 use std::str::FromStr;
 
-use ethers_core::types::transaction::eip2718::TypedTransaction;
-use ethers_core::types::{Address, Bytes, NameOrAddress, TransactionRequest, U256};
-use ethers_signers::{LocalWallet, Signer};
 use log::debug;
 use serde_json::json;
 
@@ -21,7 +18,7 @@ use super::super::defaults::{
     explorer_tx_url_for_evm_network, rpc_url_for_evm_network, EvmNetwork,
 };
 use super::super::execution::{
-    hex_to_bytes, hex_to_u256, u256_to_hex, ExecutionResult, PreparedKind, PreparedStatus,
+    hex_to_u128, u128_to_hex, ExecutionResult, PreparedKind, PreparedStatus,
     PreparedTransaction, RawBroadcastResult, TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
 };
 use super::super::ops::{secret_material, WalletChain};
@@ -29,9 +26,9 @@ use super::super::rpc::{evm_rpc_call, rpc_call_to};
 
 const LOG_PREFIX: &str = "[wallet::evm]";
 
-pub async fn evm_balance(network: EvmNetwork, address: &str) -> Result<U256, String> {
+pub async fn evm_balance(network: EvmNetwork, address: &str) -> Result<u128, String> {
     let raw: String = evm_rpc_call(network, "eth_getBalance", json!([address, "latest"])).await?;
-    hex_to_u256(&raw)
+    hex_to_u128(&raw)
 }
 
 /// Sign an EVM transaction `(to, value, data)` from the wallet's encrypted
@@ -43,10 +40,10 @@ pub async fn evm_balance(network: EvmNetwork, address: &str) -> Result<U256, Str
 async fn sign_and_broadcast(
     network: EvmNetwork,
     from_address: &str,
-    tx_to: Address,
-    tx_value: U256,
+    to: &str,
+    value_raw: &str,
     tx_data: Option<String>,
-) -> Result<(String, U256), String> {
+) -> Result<(String, u128), String> {
     let rpc_url = rpc_url_for_evm_network(network);
     let secret = secret_material(WalletChain::Evm).await?;
     let config = config_rpc::load_config_with_timeout().await?;
@@ -56,20 +53,22 @@ async fn sign_and_broadcast(
     )
     .await?
     .value;
-    // Derivation is delegated to the vendored `tinywallet` crate, which owns
-    // BIP-32 secp256k1 for every chain; ethers is left holding only the
-    // signing itself. Custody is unchanged — the mnemonic is decrypted from
-    // the keyring above and handed over as a `&str` that is not retained.
+    // Derivation stays here, and so does the key. `tinywallet::key` owns BIP-32
+    // for every chain; what changed is that the *signing* no longer happens in
+    // this binary either — the transaction is encoded by the loaded wallet
+    // module, which hands back a digest for this process to sign. Custody is
+    // unchanged: the mnemonic is decrypted from the keyring above, handed over
+    // as a `&str` that is not retained, and never crosses the bus.
     let derived = tinywallet::key::derive(
         tinywallet::Chain::Evm,
         mnemonic.as_str(),
         &secret.derivation_path,
     )
     .map_err(|e| e.to_string())?;
-    let signer = LocalWallet::from_bytes(derived.secret_bytes())
-        .map_err(|e| format!("failed to build EVM signer from the derived key: {e}"))?;
-    let from = Address::from_str(from_address)
-        .map_err(|e| format!("invalid stored EVM sender address '{from_address}': {e}"))?;
+    let public_key = compressed_public_key(derived.secret_bytes())?;
+
+    let to = tinywallet::address::evm::validate(to)
+        .map_err(|e| format!("invalid EVM target address '{to}': {e}"))?;
 
     let chain_id_hex: String = rpc_call_to(&rpc_url, "eth_chainId", json!([])).await?;
     // Use "pending" so already-submitted-but-not-mined txs don't cause a
@@ -81,16 +80,21 @@ async fn sign_and_broadcast(
     )
     .await?;
     let gas_price_hex: String = rpc_call_to(&rpc_url, "eth_gasPrice", json!([])).await?;
+    let value = value_raw
+        .trim()
+        .parse::<u128>()
+        .map_err(|e| format!("invalid native value '{value_raw}': {e}"))?;
     let mut estimate_tx = json!({
         "from": from_address,
-        "to": format!("{tx_to:#x}"),
-        "value": u256_to_hex(tx_value),
+        "to": to,
+        "value": u128_to_hex(value),
     });
     if let Some(data_hex) = tx_data.as_deref() {
         estimate_tx["data"] = json!(data_hex);
     }
     let gas_hex: String = rpc_call_to(&rpc_url, "eth_estimateGas", json!([estimate_tx])).await?;
-    let chain_id = hex_to_u256(&chain_id_hex)?.as_u64();
+    let chain_id = u64::try_from(hex_to_u128(&chain_id_hex)?)
+        .map_err(|_| format!("EVM RPC reported an implausible chain_id '{chain_id_hex}'"))?;
     if chain_id != network.chain_id() {
         return Err(format!(
             "EVM RPC chain_id mismatch: rpc reported {} but network {} expects {}",
@@ -99,34 +103,34 @@ async fn sign_and_broadcast(
             network.chain_id()
         ));
     }
-    let nonce = hex_to_u256(&nonce_hex)?;
-    let gas_price = hex_to_u256(&gas_price_hex)?;
-    let gas = hex_to_u256(&gas_hex)?;
+    let nonce = u64::try_from(hex_to_u128(&nonce_hex)?)
+        .map_err(|_| format!("EVM RPC reported an implausible nonce '{nonce_hex}'"))?;
+    let gas_price = hex_to_u128(&gas_price_hex)?;
+    let gas_limit = u64::try_from(hex_to_u128(&gas_hex)?)
+        .map_err(|_| format!("EVM RPC reported an implausible gas limit '{gas_hex}'"))?;
 
-    let tx_data_bytes = tx_data
-        .map(|value| hex_to_bytes(&value).map(Bytes::from))
-        .transpose()?;
-    let mut request = TransactionRequest::new()
-        .from(from)
-        .to(NameOrAddress::Address(tx_to))
-        .value(tx_value)
-        .nonce(nonce)
-        .gas(gas)
-        .gas_price(gas_price)
-        .chain_id(chain_id);
-    if let Some(data) = tx_data_bytes {
-        request = request.data(data);
-    }
-    let tx: TypedTransaction = request.into();
-    let signature = signer
-        .with_chain_id(chain_id)
-        .sign_transaction(&tx)
-        .await
-        .map_err(|e| format!("failed to sign EVM transaction: {e}"))?;
-    let raw_bytes = tx.rlp_signed(&signature);
-    let raw_tx = format!("0x{}", hex::encode(raw_bytes));
-    let tx_hash: String = rpc_call_to(&rpc_url, "eth_sendRawTransaction", json!([raw_tx])).await?;
-    let fee = gas_price.checked_mul(gas).unwrap_or_default();
+    let transaction = tinywallet::wire::TransactionSpec::Evm {
+        to,
+        value_wei: value.to_string(),
+        data_hex: tx_data.unwrap_or_default(),
+        nonce,
+        gas_limit,
+        gas_price_wei: gas_price.to_string(),
+        chain_id,
+    };
+    let signed = crate::openhuman::modules::wallet::sign_transaction(
+        &config,
+        tinywallet::Chain::Evm,
+        &transaction,
+        derived.secret_bytes(),
+        &public_key,
+    )
+    .await
+    .map_err(|e| format!("failed to sign EVM transaction: {e}"))?;
+
+    let tx_hash: String =
+        rpc_call_to(&rpc_url, "eth_sendRawTransaction", json!([signed.raw])).await?;
+    let fee = gas_price.checked_mul(u128::from(gas_limit)).unwrap_or_default();
     debug!(
         "{LOG_PREFIX} sign_and_broadcast network={} tx_hash={}",
         network.as_str(),
@@ -135,18 +139,30 @@ async fn sign_and_broadcast(
     Ok((tx_hash, fee))
 }
 
+/// The compressed SEC1 public key for a derived secret.
+///
+/// The wallet module needs it to confirm the key controls the sender before it
+/// will encode anything; it is public data and the secret itself never leaves
+/// this process.
+fn compressed_public_key(secret: &[u8]) -> Result<Vec<u8>, String> {
+    let key = k256::ecdsa::SigningKey::from_slice(secret)
+        .map_err(|_| "derived key is not a valid secp256k1 scalar".to_string())?;
+    Ok(key.verifying_key().to_encoded_point(true).as_bytes().to_vec())
+}
+
 pub async fn execute_evm_quote(mut quote: PreparedTransaction) -> Result<ExecutionResult, String> {
     let network = quote.evm_network.unwrap_or(EvmNetwork::EthereumMainnet);
     let (tx_to, tx_value, tx_data) = match quote.kind {
+        // A native transfer pays the recipient directly and carries no data.
         PreparedKind::NativeTransfer => (
-            Address::from_str(&quote.to_address).map_err(|e| {
+            tinywallet::address::evm::validate(&quote.to_address).map_err(|e| {
                 format!("invalid EVM recipient address '{}': {e}", quote.to_address)
             })?,
-            U256::from_dec_str(&quote.amount_raw).map_err(|e| {
-                format!("invalid prepared native value '{}': {e}", quote.amount_raw)
-            })?,
+            quote.amount_raw.clone(),
             None,
         ),
+        // A token transfer pays the *contract* zero and puts the recipient and
+        // the amount in the calldata instead.
         PreparedKind::TokenTransfer => {
             let token = quote
                 .token_address
@@ -154,16 +170,17 @@ pub async fn execute_evm_quote(mut quote: PreparedTransaction) -> Result<Executi
                 .ok_or_else(|| "prepared token transfer is missing token_address".to_string())?;
             let calldata = encode_erc20_transfer(&quote.to_address, &quote.amount_raw)?;
             (
-                Address::from_str(token)
-                    .map_err(|e| format!("invalid ERC20 token contract address '{token}': {e}"))?,
-                U256::zero(),
+                tinywallet::address::evm::validate(token).map_err(|e| {
+                    format!("invalid ERC20 token contract address '{token}': {e}")
+                })?,
+                "0".to_string(),
                 Some(calldata),
             )
         }
     };
 
     let (tx_hash, fee) =
-        sign_and_broadcast(network, &quote.from_address, tx_to, tx_value, tx_data).await?;
+        sign_and_broadcast(network, &quote.from_address, &tx_to, &tx_value, tx_data).await?;
     quote.estimated_fee_raw = fee.to_string();
     quote.status = PreparedStatus::Broadcasted;
     debug!(
@@ -194,14 +211,12 @@ pub(crate) async fn sign_and_broadcast_evm(
     value_raw: &str,
 ) -> Result<RawBroadcastResult, String> {
     let account = super::super::execution::require_evm_account().await?;
-    let tx_to = Address::from_str(to.trim())
-        .map_err(|e| format!("invalid EVM target address '{to}': {e}"))?;
-    let tx_value = U256::from_dec_str(value_raw.trim())
-        .map_err(|e| format!("invalid native value '{value_raw}': {e}"))?;
     let data = data_hex
         .map(|d| super::super::execution::validate_calldata(&d))
         .transpose()?;
-    let (tx_hash, fee) = sign_and_broadcast(network, &account, tx_to, tx_value, data).await?;
+    // `to` and `value_raw` are validated inside `sign_and_broadcast`, which is
+    // the only place that needs them parsed.
+    let (tx_hash, fee) = sign_and_broadcast(network, &account, to, value_raw, data).await?;
     Ok(RawBroadcastResult {
         transaction_hash: tx_hash.clone(),
         explorer_url: explorer_tx_url_for_evm_network(network, &tx_hash),
