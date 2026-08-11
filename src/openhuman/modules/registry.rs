@@ -174,7 +174,43 @@ const TINYWALLET: ModuleRecord = ModuleRecord {
 };
 
 /// Every module this build can load.
-pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET];
+/// The memory engine, served as a driver.
+///
+/// # `assets` is empty on purpose, and this record is therefore inert
+///
+/// No `tinymemory` release has been cut yet. A `PlatformAsset` pairs an archive
+/// name with the SHA-256 that makes those bytes legitimate, and that digest must
+/// be copied **verbatim from the release's `checksum.toml`** — never computed
+/// from a local build, which would pin whatever this machine happened to produce
+/// and defeat the point of a second, offline-auditable gate.
+///
+/// So the entry ships with no assets rather than with placeholder digests. The
+/// consequences are the correct ones: `platform`'s resolver finds no candidate,
+/// `modules.status` reports `Unsupported`, and `ensure_loaded` refuses instead of
+/// downloading something unverifiable. A developer can still load a locally built
+/// artifact through `OPENHUMAN_MODULE_PATH`, which is how the host side is
+/// exercised before the release exists.
+///
+/// Filling this in is the last step of the port: cut the release, then paste the
+/// eleven digests here.
+const TINYMEMORY: ModuleRecord = ModuleRecord {
+    id: "tinymemory",
+    description: "Local memory engine: store, ranked recall, and portable export",
+    bus_name: "ai.tinyhumans.tinymemory.Memory",
+    object_path: "/ai/tinyhumans/tinymemory/Memory",
+    version: "0.1.0",
+    release_url: "https://github.com/tinyhumansai/tinymemory/releases/tag/v0.1.0",
+    assets: &[],
+    // Eager, unlike the two codecs above. A codec that is never asked for should
+    // not be paid for, but a memory driver's absence changes what the kernel
+    // offers rather than merely delaying it: capabilities are read at bind time
+    // and the RPC surface and agent-tool list are filtered from them. Resolving
+    // that during a user's first recall would mean the first recall is the one
+    // that behaves differently.
+    load: LoadPolicy::Eager,
+};
+
+pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET, TINYMEMORY];
 
 /// The record for `id`, if this build knows it.
 #[must_use]
