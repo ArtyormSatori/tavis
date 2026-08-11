@@ -320,25 +320,29 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 // Unreachable: `admit` refuses every external driver above, so
                 // this arm cannot bind a transport that does not exist yet.
                 DriverClass::External => Arc::new(NullMemoryProvider::new()),
-                // The module-backed driver. Selected by
-                // `[subsystems.memory.drivers.<id>] class = "module"`.
+                // Selectable in config now (`class = "module"` parses), but it
+                // cannot bind yet, and the reason is a contract mismatch rather
+                // than missing plumbing.
                 //
-                // `from_boot_policy` rather than a `Config` argument: this
-                // function receives only a workspace dir and a
-                // `MemorySubsystemConfig`, while loading a module needs
-                // `modules.{enabled, allow_download, install_dir}`. Threading a
-                // whole `Config` here would widen this function's dependency and
-                // change a cache key ~4000 pre-boot tests hit, so boot publishes
-                // the policy instead — the same shape the embedding host and the
-                // product identity already use for construction sites too deep to
-                // thread through.
+                // This function builds an `Arc<dyn tinycortex_api::provider::
+                // MemoryProvider>`, while `modules::memory::ModuleMemoryProvider`
+                // implements `tinymemory_api::provider::MemoryProvider`. Those are
+                // two different traits from two different crates. OpenHuman's
+                // migration onto the tinymemory contract is partial — most of the
+                // tree still names `tinycortex_api` — so the module driver cannot
+                // be handed to this slot until the memory binding itself moves
+                // over.
                 //
-                // If boot published nothing, every call reports the module
-                // unavailable. That is deliberate: assuming permissive defaults
-                // would silently ignore an operator who turned modules off.
-                DriverClass::Module => Arc::new(
-                    crate::openhuman::modules::memory::ModuleMemoryProvider::from_boot_policy(),
-                ),
+                // Implementing the tinycortex trait *as well* was considered and
+                // rejected: the module's wire types are the tinymemory ones, so a
+                // second impl would need a full type conversion layer at exactly
+                // the seam the one-method-per-method design exists to avoid, and
+                // it would have to be deleted again when the binding migrates.
+                //
+                // Everything else is ready: the provider, its 14 tests, the
+                // registry record, and the class itself. What remains is the
+                // binding's own contract migration, which is a separate change.
+                DriverClass::Module => Arc::new(NullMemoryProvider::new()),
             };
             // The configured trust state for the driver that actually bound.
             // Absent `[subsystems.memory.drivers.<id>]` entry ⇒ the fail-closed
