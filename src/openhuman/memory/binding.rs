@@ -342,7 +342,13 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 // Everything else is ready: the provider, its 14 tests, the
                 // registry record, and the class itself. What remains is the
                 // binding's own contract migration, which is a separate change.
-                DriverClass::Module => Arc::new(NullMemoryProvider::new()),
+                DriverClass::Module => Arc::new(
+                    crate::openhuman::memory::driver::module_adapter::TinyMemoryContractAdapter::new(
+                        Arc::new(
+                            crate::openhuman::modules::memory::ModuleMemoryProvider::from_boot_policy(),
+                        ),
+                    ),
+                ),
             };
             // The configured trust state for the driver that actually bound.
             // Absent `[subsystems.memory.drivers.<id>]` entry ⇒ the fail-closed

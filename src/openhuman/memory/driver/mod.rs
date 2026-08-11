@@ -1,3 +1,4 @@
+pub mod module_adapter;
 //! Memory-driver implementations of the [`tinycortex_api`] contract.
 //!
 //! One subdirectory per driver. Today there is exactly one — [`embedded`],
