@@ -192,6 +192,23 @@ impl Drop for EnvVarGuard {
 }
 
 static ENV_LOCK: &OnceLock<Mutex<()>> = &crate::SHARED_ENV_LOCK;
+static MEMORY_SEAMS_INIT: OnceLock<()> = OnceLock::new();
+
+fn ensure_memory_seams() {
+    MEMORY_SEAMS_INIT.get_or_init(|| {
+        std::thread::Builder::new()
+            .name("raw-coverage-memory-seams".to_string())
+            .stack_size(8 * 1024 * 1024)
+            .spawn(|| {
+                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(Arc::new(
+                    Config::default(),
+                ));
+            })
+            .expect("spawn raw coverage memory seam installer")
+            .join()
+            .expect("raw coverage memory seam installer panicked");
+    });
+}
 
 fn env_lock() -> std::sync::MutexGuard<'static, ()> {
     ENV_LOCK
@@ -2964,6 +2981,7 @@ async fn memory_sync_provider_trait_defaults_and_connection_hook_are_determinist
     // global, so under parallel execution this test could otherwise observe an
     // unready client and see 0 instead of 1. Bind the global to this test's
     // workspace up front so the assertion is independent of execution order.
+    ensure_memory_seams();
     openhuman_core::openhuman::memory::global::init(tmp.path().to_path_buf())
         .expect("init global memory client");
     let ctx = ProviderContext {
