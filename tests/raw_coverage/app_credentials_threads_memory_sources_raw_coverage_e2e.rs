@@ -683,7 +683,7 @@ async fn round19_memory_sources_registry_readers_sync_and_reconcile_edges() {
             .len(),
         0
     );
-    let disabled_sync = memory_sources::sync::sync_source(updated.clone(), config.clone())
+    let disabled_sync = memory_sources::sync::sync_source(updated.clone(), Arc::new(config.clone()))
         .await
         .expect_err("disabled source rejected");
     assert!(disabled_sync.contains("disabled"));
@@ -711,7 +711,7 @@ async fn round19_memory_sources_registry_readers_sync_and_reconcile_edges() {
             query: Some("openhuman".to_string()),
             ..twitter
         },
-        config.clone(),
+        Arc::new(config.clone()),
     )
     .await;
     assert!(

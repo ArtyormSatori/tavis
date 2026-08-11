@@ -118,11 +118,15 @@ use openhuman_core::openhuman::memory::sync::sync_status::{
     rpc as memory_sync_status_rpc, schemas as memory_sync_status_schemas,
 };
 use tinycortex::memory::sync::{SyncOutcome as PipelineSyncOutcome, SyncPipelineKind};
-use openhuman_core::openhuman::memory::tool_memory::tools::{MemoryToolsListTool, MemoryToolsPutTool};
+use openhuman_core::openhuman::memory::tools::tool_memory::{
+    MemoryToolsListTool, MemoryToolsPutTool,
+};
 use openhuman_core::openhuman::memory::tool_memory::{
-    render_tool_memory_rules, tool_memory_namespace, tool_memory_store, ToolMemoryPriority,
-    ToolMemoryRule, ToolMemoryRulesSection, ToolMemorySource, TOOL_MEMORY_HEADING,
-    TOOL_MEMORY_PROMPT_CAP,
+    tool_memory_namespace, tool_memory_store, ToolMemoryPriority, ToolMemoryRule,
+    ToolMemorySource, TOOL_MEMORY_PROMPT_CAP,
+};
+use openhuman_core::openhuman::memory::tool_memory::prompt::{
+    render_tool_memory_rules, ToolMemoryRulesSection, TOOL_MEMORY_HEADING,
 };
 use openhuman_core::openhuman::memory::tree::score::embed::Embedder;
 use openhuman_core::openhuman::memory::tree::score::extract::{
@@ -2594,7 +2598,7 @@ async fn memory_source_sync_entrypoint_rejects_disabled_and_ingests_folder_items
     let mut disabled = source(SourceKind::Folder, "src_disabled");
     disabled.path = Some(tmp.path().to_string_lossy().to_string());
     disabled.enabled = false;
-    assert!(sync_source(disabled, config.clone())
+    assert!(sync_source(disabled, Arc::new(config.clone()))
         .await
         .unwrap_err()
         .contains("disabled"));
@@ -2602,7 +2606,7 @@ async fn memory_source_sync_entrypoint_rejects_disabled_and_ingests_folder_items
     let mut folder = source(SourceKind::Folder, "src_sync");
     folder.path = Some(tmp.path().to_string_lossy().to_string());
     folder.glob = Some("sync-note.md".into());
-    sync_source(folder, config.clone())
+    sync_source(folder, Arc::new(config.clone()))
         .await
         .expect("queue folder sync");
 
@@ -2629,7 +2633,7 @@ async fn memory_source_sync_entrypoint_rejects_disabled_and_ingests_folder_items
 
     let mut twitter = source(SourceKind::TwitterQuery, "src_twitter_sync");
     twitter.query = Some("openhuman".into());
-    sync_source(twitter, config)
+    sync_source(twitter, Arc::new(config))
         .await
         .expect("twitter placeholder queues and reports failure asynchronously");
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;

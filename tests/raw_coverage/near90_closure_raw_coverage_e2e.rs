@@ -479,13 +479,13 @@ async fn round20_memory_sources_readers_and_sync_cover_error_edges_without_netwo
 
     let mut disabled = source_entry("disabled-twitter", SourceKind::TwitterQuery);
     disabled.enabled = false;
-    let disabled_err = sync_source(disabled, config.clone())
+    let disabled_err = sync_source(disabled, Arc::new(config.clone()))
         .await
         .expect_err("disabled sync rejected");
     assert!(disabled_err.contains("is disabled"));
 
     let twitter = source_entry("twitter-round20", SourceKind::TwitterQuery);
-    sync_source(twitter, config)
+    sync_source(twitter, Arc::new(config))
         .await
         .expect("twitter placeholder is reported by background task");
     tokio::time::sleep(StdDuration::from_millis(25)).await;
