@@ -515,30 +515,25 @@ mod tests {
         let create = record.create_calls.clone();
         let trigger = record.trigger_calls.clone();
         let broadcast = record.broadcast_calls.clone();
-        // A well-formed node response, which this fixture did not used to be.
-        // The wallet module verifies what a node returns before signing it —
-        // `txID` must equal `sha256(raw_data)`, and the recipient must appear
-        // in the bytes — so the canned transaction now satisfies both. The old
-        // fixture had an arbitrary `txID` and no recipient, which the previous
-        // code signed without complaint; that it now fails is the check
-        // working, not the fixture regressing.
-        let canned_raw = "0a02ab1d2208deadbeef00deadbe4098f0d8a88232525a41a614f803b6fd780986a42c78ec9c7f77e6ded13c5802";
-        let canned_tx = json!({
-            "txID": "6bef816d2844aaac1720a5fb4d4c83816a8e96d907a227f1844348d6a120642a",
-            "raw_data": {"contract": []},
-            "raw_data_hex": canned_raw,
-        });
-        let canned_tx_create = canned_tx.clone();
-        let canned_tx_trigger = canned_tx.clone();
         let app = Router::new()
             .route(
                 "/wallet/createtransaction",
                 post(move |axum::Json(payload): axum::Json<Value>| {
                     let create = create.clone();
-                    let canned = canned_tx_create.clone();
                     async move {
+                        let recipient = payload["to_address"].as_str().unwrap();
+                        let amount = payload["amount"].as_u64().unwrap();
+                        let raw = format!(
+                            "0a{recipient}18{}ff",
+                            hex::encode(encode_protobuf_varint(amount))
+                        );
+                        let txid = tinywallet::tx::tron::recompute_txid(&raw).unwrap();
                         create.lock().push(payload);
-                        axum::Json(canned)
+                        axum::Json(json!({
+                            "txID": txid,
+                            "raw_data": {"contract": []},
+                            "raw_data_hex": raw,
+                        }))
                     }
                 }),
             )
@@ -546,10 +541,19 @@ mod tests {
                 "/wallet/triggersmartcontract",
                 post(move |axum::Json(payload): axum::Json<Value>| {
                     let trigger = trigger.clone();
-                    let canned = canned_tx_trigger.clone();
                     async move {
+                        let contract = payload["contract_address"].as_str().unwrap();
+                        let parameter = payload["parameter"].as_str().unwrap();
+                        let raw = format!("0a{contract}ff{parameter}ee");
+                        let txid = tinywallet::tx::tron::recompute_txid(&raw).unwrap();
                         trigger.lock().push(payload);
-                        axum::Json(json!({ "transaction": canned }))
+                        axum::Json(json!({
+                            "transaction": {
+                                "txID": txid,
+                                "raw_data": {"contract": []},
+                                "raw_data_hex": raw,
+                            }
+                        }))
                     }
                 }),
             )
