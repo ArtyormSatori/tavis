@@ -254,7 +254,7 @@ pub(crate) fn reserved_class(id: &str) -> Option<DriverClass> {
 
 /// The contract's driver class in the kernel's generic vocabulary.
 ///
-/// A total three-arm match, which is why both enums were shaped one-for-one.
+/// A total match, which is why both enums were shaped one-for-one.
 /// The kernel's own enum is deliberately not replaced by the contract's: it is
 /// shared with the subsystems that come after memory, which must not inherit
 /// their vocabulary from a *memory* crate.
@@ -262,6 +262,7 @@ fn from_contract_class(class: ContractDriverClass) -> DriverClass {
     match class {
         ContractDriverClass::Embedded => DriverClass::Embedded,
         ContractDriverClass::External => DriverClass::External,
+        ContractDriverClass::Module => DriverClass::Module,
         ContractDriverClass::Null => DriverClass::Null,
     }
 }
