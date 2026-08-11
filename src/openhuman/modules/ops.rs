@@ -319,21 +319,21 @@ fn status_of(config: &Config, record: &ModuleRecord) -> ModuleStatus {
             Some("modules are disabled in configuration".to_string()),
         ),
         _ => match cached_resolution(record.id) {
-        Some(Resolution::Ready) => (ModuleState::Ready, None),
-        Some(Resolution::Failed(reason)) => (ModuleState::Failed, Some(reason)),
-        None => {
-            let supported = platform::host_candidates()
-                .iter()
-                .any(|key| record.asset_for(key).is_some());
-            if supported {
-                (ModuleState::Available, None)
-            } else {
-                (
-                    ModuleState::Unsupported,
-                    Some("no artifact is published for this platform".to_string()),
-                )
+            Some(Resolution::Ready) => (ModuleState::Ready, None),
+            Some(Resolution::Failed(reason)) => (ModuleState::Failed, Some(reason)),
+            None => {
+                let supported = platform::host_candidates()
+                    .iter()
+                    .any(|key| record.asset_for(key).is_some());
+                if supported {
+                    (ModuleState::Available, None)
+                } else {
+                    (
+                        ModuleState::Unsupported,
+                        Some("no artifact is published for this platform".to_string()),
+                    )
+                }
             }
-        }
         },
     };
     ModuleStatus {
