@@ -646,7 +646,7 @@ async fn round19_memory_sources_registry_readers_sync_and_reconcile_edges() {
     let invalid = memory_sources::add_source(source_entry("", SourceKind::Folder, "No id"))
         .await
         .expect_err("id required");
-    assert!(invalid.contains("id is required"));
+    assert!(invalid.contains("id is required"), "unexpected validation error: {invalid}");
 
     let folder_dir = harness.root.join("notes");
     std::fs::create_dir_all(&folder_dir).expect("notes dir");
