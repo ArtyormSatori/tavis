@@ -8,7 +8,6 @@
 use log::debug;
 use serde::Deserialize;
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
 
 use crate::openhuman::config::rpc as config_rpc;
 

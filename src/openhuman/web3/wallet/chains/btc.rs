@@ -93,7 +93,6 @@ pub fn validate_btc_sender_address(addr: &str) -> Result<String, String> {
     result
 }
 
-use std::str::FromStr;
 
 pub async fn native_balance(address: &str) -> Result<u128, String> {
     validate_btc_address(address)?;

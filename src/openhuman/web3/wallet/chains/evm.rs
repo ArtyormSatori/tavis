@@ -6,7 +6,6 @@
 //! `None` (legacy quotes or callers that didn't specify), Ethereum mainnet
 //! is assumed.
 
-use std::str::FromStr;
 
 use log::debug;
 use serde_json::json;
