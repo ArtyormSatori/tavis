@@ -150,16 +150,21 @@ fn script_pubkey_for_addr(addr: &str) -> Result<ScriptBuf, String> {
 fn derive_btc_private_key(
     mnemonic: &str,
     derivation_path: &str,
-) -> Result<(PrivateKey, CompressedPublicKey), String> {
+) -> Result<(Vec<u8>, Vec<u8>), String> {
     let derived = tinywallet::key::derive(tinywallet::Chain::Btc, mnemonic, derivation_path)
         .map_err(|e| e.to_string())?;
-    let secret = bitcoin::secp256k1::SecretKey::from_slice(derived.secret_bytes())
-        .map_err(|e| format!("tinywallet returned an unusable BTC key: {e}"))?;
-    let secp = Secp256k1::signing_only();
-    let private_key = PrivateKey::new(secret, Network::Bitcoin);
-    let public_key = CompressedPublicKey::from_private_key(&secp, &private_key)
-        .map_err(|e| format!("failed to derive BTC public key: {e}"))?;
-    Ok((private_key, public_key))
+    let secret = derived.secret_bytes().to_vec();
+    let key = k256::ecdsa::SigningKey::from_slice(&secret)
+        .map_err(|_| "tinywallet returned an unusable BTC key".to_string())?;
+    // Compressed, because a P2WPKH witness program is defined over the
+    // compressed encoding — the uncompressed form yields a valid-looking
+    // address for an account holding no funds.
+    let public_key = key
+        .verifying_key()
+        .to_encoded_point(true)
+        .as_bytes()
+        .to_vec();
+    Ok((secret, public_key))
 }
 
 /// Select UTXOs to cover `amount_sats + fee_sats`, returning the selected
@@ -223,70 +228,40 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
     .value;
     let (private_key, public_key) = derive_btc_private_key(&mnemonic, &secret.derivation_path)?;
 
-    let from_spk = script_pubkey_for_addr(&from_addr)?;
-    let to_spk = script_pubkey_for_addr(&to_addr)?;
-
-    // Build inputs.
-    let mut tx_inputs = Vec::with_capacity(selected.len());
-    for utxo in &selected {
-        let txid = bitcoin::Txid::from_str(&utxo.txid)
-            .map_err(|e| format!("invalid utxo txid '{}': {e}", utxo.txid))?;
-        tx_inputs.push(TxIn {
-            previous_output: OutPoint {
-                txid,
+    // Selection stays here — this crate knows the fee policy and the UTXO
+    // source — but the transaction itself is encoded by the loaded wallet
+    // module, which also re-runs the same largest-first selection over the
+    // UTXOs it is handed. Passing only the already-selected set keeps the two
+    // in agreement: the module's `select_coins` and `select_utxos` above are
+    // the same algorithm, down to the 546-sat dust rule, so it reselects
+    // exactly what was chosen here.
+    let transaction = tinywallet::wire::TransactionSpec::Btc {
+        from: from_addr.clone(),
+        to: to_addr.clone(),
+        amount_sat: amount_sats,
+        fee_sat: fee_sats,
+        utxos: selected
+            .iter()
+            .map(|utxo| tinywallet::wire::Utxo {
+                txid: utxo.txid.clone(),
                 vout: utxo.vout,
-            },
-            script_sig: ScriptBuf::new(),
-            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::default(),
-        });
-    }
-    // Outputs: recipient + (optional) change to self.
-    let mut tx_outputs = vec![TxOut {
-        value: Amount::from_sat(amount_sats),
-        script_pubkey: to_spk,
-    }];
-    if change_sats > 546 {
-        tx_outputs.push(TxOut {
-            value: Amount::from_sat(change_sats),
-            script_pubkey: from_spk.clone(),
-        });
-    }
-
-    let mut tx = Transaction {
-        version: Version::TWO,
-        lock_time: LockTime::ZERO,
-        input: tx_inputs,
-        output: tx_outputs,
+                value: utxo.value,
+            })
+            .collect(),
     };
+    // One signature per selected input, produced in this process and returned
+    // to the module in input order — see `modules::wallet`.
+    let signed = crate::openhuman::modules::wallet::sign_transaction(
+        &config,
+        tinywallet::Chain::Btc,
+        &transaction,
+        &private_key,
+        &public_key,
+    )
+    .await
+    .map_err(|e| format!("failed to sign BTC transaction: {e}"))?;
 
-    // Sign each input (BIP143 segwit sighash).
-    let secp = Secp256k1::signing_only();
-    let mut sighash_cache = SighashCache::new(&mut tx);
-    let mut witnesses = Vec::with_capacity(selected.len());
-    for (idx, utxo) in selected.iter().enumerate() {
-        let sighash = sighash_cache
-            .p2wpkh_signature_hash(
-                idx,
-                &from_spk,
-                Amount::from_sat(utxo.value),
-                EcdsaSighashType::All,
-            )
-            .map_err(|e| format!("failed to compute BTC sighash: {e}"))?;
-        let msg = Message::from_digest(sighash.to_byte_array());
-        let sig = secp.sign_ecdsa(&msg, &private_key.inner);
-        let mut witness = Witness::new();
-        let mut sig_bytes = sig.serialize_der().to_vec();
-        sig_bytes.push(EcdsaSighashType::All as u8);
-        witness.push(sig_bytes);
-        witness.push(public_key.to_bytes());
-        witnesses.push(witness);
-    }
-    for (input, witness) in tx.input.iter_mut().zip(witnesses) {
-        input.witness = witness;
-    }
-
-    let tx_hex = serialize_hex(&tx);
+    let tx_hex = signed.raw;
     let txid_hex = broadcast_raw_hex(&tx_hex).await?;
     quote.estimated_fee_raw = fee_sats.to_string();
     quote.status = PreparedStatus::Broadcasted;
