@@ -97,41 +97,33 @@ const TINYDOCS: ModuleRecord = ModuleRecord {
     load: LoadPolicy::Lazy,
 };
 
-/// The `tinywallet` module: transaction building and assembly for four chains.
-///
-/// Lazy for the same reason as [`TINYDOCS`], and more so: most sessions never
-/// touch a wallet, and this artifact carries `bitcoin` and a native `secp256k1`
-/// build that would otherwise be resident for all of them.
-///
-/// **The signing key is never sent to this module.** It returns the bytes that
-/// need signing and reassembles once the host has signed them — see
-/// [`super::wallet`].
-const TINYWALLET: ModuleRecord = ModuleRecord {
-    id: "tinywallet",
-    description: "Transaction building and assembly for Bitcoin, EVM, Solana and Tron",
-    bus_name: "ai.tinyhumans.tinywallet.Wallet",
-    object_path: "/ai/tinyhumans/tinywallet/Wallet",
-    version: "0.2.0",
-    release_url: "https://github.com/tinyhumansai/tinywallet/releases/tag/v0.2.0",
-    assets: TINYWALLET_ASSETS,
-    load: LoadPolicy::Lazy,
-};
-
-/// Published artifacts for [`TINYWALLET`].
-///
-/// Empty until `tinywallet` v0.2.0 is released, and deliberately so: the eleven
-/// entries here have to be copied verbatim from the release's `checksum.toml`,
-/// and inventing placeholder digests to fill the gap would put a constant in
-/// this file that says something untrue about a published artifact. An empty
-/// list fails the only way that is safe — [`super::platform`] finds no
-/// candidate for any host, and the wallet reports the capability as
-/// unavailable rather than downloading something unverified.
-///
-/// `tinywallet_assets_are_populated_before_release` below is the reminder.
-const TINYWALLET_ASSETS: &[PlatformAsset] = &[];
+// The `tinywallet` module is deliberately NOT registered yet.
+//
+// `every_host_the_platform_table_can_produce_has_an_asset` states the
+// invariant: a registered record must publish an artifact for every host the
+// platform table can ask for. That cannot be satisfied before tinywallet
+// v0.2.0 exists, because the eleven digests have to be copied verbatim from
+// the release's `checksum.toml` — computing them from a local build would
+// defeat the entire point of pinning them.
+//
+// So the entry lands with the release, together with the call-site migration
+// that needs it. Until then `modules::wallet` reports the capability as
+// unavailable, which is the correct answer: this build genuinely cannot verify
+// an artifact it has no digest for.
+//
+//     ModuleRecord {
+//         id: "tinywallet",
+//         description: "Transaction building and assembly for Bitcoin, EVM, Solana and Tron",
+//         bus_name: "ai.tinyhumans.tinywallet.Wallet",
+//         object_path: "/ai/tinyhumans/tinywallet/Wallet",
+//         version: "0.2.0",
+//         release_url: "https://github.com/tinyhumansai/tinywallet/releases/tag/v0.2.0",
+//         assets: &[ /* 11 entries from checksum.toml */ ],
+//         load: LoadPolicy::Lazy,
+//     }
 
 /// Every module this build can load.
-pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET];
+pub const ALL: &[ModuleRecord] = &[TINYDOCS];
 
 /// The record for `id`, if this build knows it.
 #[must_use]
@@ -304,64 +296,4 @@ mod tests {
         assert!(find("not-a-module").is_none());
     }
 
-    #[test]
-    fn tinywallet_assets_are_populated_before_release() {
-        // A standing reminder rather than an assertion, because the digests
-        // cannot exist before tinywallet v0.2.0 is published and must be copied
-        // from its `checksum.toml` rather than computed here.
-        //
-        // Failing the build now would block unrelated work on an upstream
-        // release; saying nothing would let the wallet ship permanently
-        // unavailable. So this reports, and the empty list fails safe in the
-        // meantime — no candidate artifact, no download, no unverified load.
-        let tinywallet = find("tinywallet").expect("the record exists");
-        if tinywallet.assets.is_empty() {
-            eprintln!(
-                "note: the tinywallet module has no published artifacts yet; \
-                 fill `TINYWALLET_ASSETS` from the v0.2.0 checksum.toml before \
-                 relying on wallet operations"
-            );
-        }
-    }
-
-    #[test]
-    fn a_module_without_artifacts_resolves_on_no_host() {
-        // The fail-safe the empty asset list depends on. Checked against real
-        // host coordinates rather than asserted abstractly, so it also proves
-        // the lookup is per-record: `tinydocs` resolves on the same hosts where
-        // `tinywallet` does not, which rules out a fallback that would hand one
-        // module another module's artifact.
-        let tinywallet = find("tinywallet").expect("the record exists");
-        let tinydocs = find("tinydocs").expect("the record exists");
-
-        for (os, arch, glibc) in [
-            ("linux", "x86_64", Some((2, 39))),
-            ("linux", "aarch64", Some((2, 35))),
-            ("macos", "aarch64", None),
-            ("windows", "x86_64", None),
-        ] {
-            let candidates = candidates_for(os, arch, glibc);
-            assert!(
-                !candidates.is_empty(),
-                "{os}/{arch} should be a supported host"
-            );
-
-            let resolves = |record: &super::ModuleRecord| {
-                candidates
-                    .iter()
-                    .any(|key| record.assets.iter().any(|asset| asset.host_key == *key))
-            };
-
-            if tinywallet.assets.is_empty() {
-                assert!(
-                    !resolves(tinywallet),
-                    "an artifact-less module must not resolve on {os}/{arch}"
-                );
-            }
-            assert!(
-                resolves(tinydocs),
-                "tinydocs must still resolve on {os}/{arch}"
-            );
-        }
-    }
 }
