@@ -145,8 +145,8 @@ async fn a_disabled_host_reports_down_rather_than_erroring() {
     let provider = ModuleMemoryProvider::new(Arc::new(config));
     let health = provider.health().await;
     assert!(
-        !matches!(health, tinymemory_api::health::MemoryHealth::Up),
-        "a disabled module host must not report Up, got {health:?}"
+        matches!(health, tinymemory_api::health::MemoryHealth::Down { .. }),
+        "a disabled module host must report Down, got {health:?}"
     );
 }
 
