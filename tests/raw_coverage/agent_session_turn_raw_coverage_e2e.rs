@@ -13,7 +13,7 @@ use openhuman_core::openhuman::agent::tool_policy::{
 };
 use openhuman_core::openhuman::agent::Agent;
 use openhuman_core::openhuman::memory::agent::memory_loader::MemoryLoader;
-use openhuman_core::openhuman::config::{AgentConfig, ContextConfig, MemoryConfig};
+use openhuman_core::openhuman::config::{AgentConfig, Config, ContextConfig, MemoryConfig};
 use openhuman_core::openhuman::agent::messages::ConversationMessage;
 use openhuman_core::openhuman::memory::{
     Memory, MemoryCategory, MemoryEntry, NamespaceSummary, RecallOpts,
@@ -28,7 +28,7 @@ use serde_json::json;
 use std::collections::{HashSet, VecDeque};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use tempfile::TempDir;
 use tinyagents::harness::message::{AssistantMessage, ContentBlock, Message, MessageDelta};
 use tinyagents::harness::model::{
@@ -66,6 +66,24 @@ fn env_lock() -> std::sync::MutexGuard<'static, ()> {
     LOCK.get_or_init(|| std::sync::Mutex::new(()))
         .lock()
         .unwrap_or_else(|e| e.into_inner())
+}
+
+static MEMORY_SEAMS_INIT: OnceLock<()> = OnceLock::new();
+
+fn ensure_memory_seams() {
+    MEMORY_SEAMS_INIT.get_or_init(|| {
+        std::thread::Builder::new()
+            .name("agent-session-turn-raw-coverage-seams".to_string())
+            .stack_size(8 * 1024 * 1024)
+            .spawn(|| {
+                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(
+                    Arc::new(Config::default()),
+                );
+            })
+            .expect("spawn agent session turn raw coverage seam installer")
+            .join()
+            .expect("agent session turn raw coverage seam installer panicked");
+    });
 }
 
 #[derive(Clone, Debug)]
@@ -590,6 +608,7 @@ fn agent_with(
 
 #[tokio::test]
 async fn turn_native_tool_progress_reasoning_usage_and_resume_seed_paths() {
+    ensure_memory_seams();
     let _env = env_lock();
     let (_temp, workspace_path) = workspace("native-progress");
     let _workspace_guard = EnvGuard::set_path("OPENHUMAN_WORKSPACE", &workspace_path);
@@ -732,6 +751,7 @@ async fn turn_native_tool_progress_reasoning_usage_and_resume_seed_paths() {
 
 #[tokio::test]
 async fn turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_exercised() {
+    ensure_memory_seams();
     let _env = env_lock();
     let (_temp, workspace_path) = workspace("xml-failures");
     let _workspace_guard = EnvGuard::set_path("OPENHUMAN_WORKSPACE", &workspace_path);
