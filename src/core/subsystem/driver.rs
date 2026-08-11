@@ -92,6 +92,7 @@ impl DriverClass {
         match self {
             Self::Embedded => "embedded",
             Self::External => "external",
+            Self::Module => "module",
             Self::Null => "null",
         }
     }
