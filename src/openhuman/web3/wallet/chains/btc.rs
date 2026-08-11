@@ -7,16 +7,6 @@
 //! seeded with a standard recovery phrase + this path produces a `bc1q…`
 //! native segwit address.
 
-use bitcoin::absolute::LockTime;
-use bitcoin::hashes::Hash;
-use bitcoin::key::{CompressedPublicKey, PrivateKey};
-use bitcoin::secp256k1::{Message, Secp256k1};
-use bitcoin::sighash::{EcdsaSighashType, SighashCache};
-use bitcoin::transaction::Version;
-use bitcoin::{
-    consensus::encode::serialize_hex, Address, Amount, Network, OutPoint, ScriptBuf, Sequence,
-    Transaction, TxIn, TxOut, Witness,
-};
 use log::debug;
 use serde::Deserialize;
 
@@ -131,15 +121,6 @@ pub async fn broadcast_raw_hex(tx_hex: &str) -> Result<String, String> {
     let base = rpc_url_for_chain(WalletChain::Btc);
     let url = format!("{}/tx", base.trim_end_matches('/'));
     rest_post_text(&url, tx_hex, "text/plain").await
-}
-
-/// Best-effort lookup of an address's spending scriptPubKey by parsing it.
-fn script_pubkey_for_addr(addr: &str) -> Result<ScriptBuf, String> {
-    let parsed = Address::from_str(addr)
-        .map_err(|e| format!("invalid address '{addr}': {e}"))?
-        .require_network(Network::Bitcoin)
-        .map_err(|e| format!("address '{addr}' is not mainnet: {e}"))?;
-    Ok(parsed.script_pubkey())
 }
 
 /// Derive the P2WPKH signing key for `derivation_path` from a BIP-39 mnemonic.
@@ -658,17 +639,23 @@ mod tests {
         // The compressed pubkey should serialize to 33 bytes.
         let mnemonic =
             "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-        let (pk, pubkey) = derive_btc_private_key(mnemonic, "m/84'/0'/0'/0/0").unwrap();
-        assert_eq!(pk.network, bitcoin::NetworkKind::Main);
-        assert_eq!(pubkey.to_bytes().len(), 33);
-        let secp = Secp256k1::signing_only();
-        let addr = Address::p2wpkh(&pubkey, Network::Bitcoin);
-        // Known good vector for this mnemonic + path:
+        let (secret, pubkey) = derive_btc_private_key(mnemonic, "m/84'/0'/0'/0/0").unwrap();
+        assert_eq!(secret.len(), 32);
+        // Compressed SEC1. The uncompressed form would be 65 bytes and would
+        // hash to a different — spendable by nobody — address.
+        assert_eq!(pubkey.len(), 33);
+        assert!(matches!(pubkey[0], 0x02 | 0x03));
+
+        // The known-good vector for this mnemonic and path, unchanged by the
+        // move off the `bitcoin` crate. Derived through `tinywallet`, which is
+        // the same code the address in `execute_btc_quote` comes from.
+        let derived =
+            tinywallet::key::derive(tinywallet::Chain::Btc, mnemonic, "m/84'/0'/0'/0/0").unwrap();
         assert_eq!(
-            addr.to_string(),
+            derived.address(),
             "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu"
         );
-        let _ = secp; // suppress unused
+        assert_eq!(derived.secret_bytes(), secret.as_slice());
     }
 
     #[tokio::test]
