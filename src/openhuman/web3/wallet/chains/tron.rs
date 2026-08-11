@@ -505,12 +505,6 @@ mod tests {
         addr
     }
 
-    // Migrated onto the loaded wallet module: this drives the real signing
-    // path, which cannot resolve until the module is registered and its
-    // artifact is downloadable. The mock-server coverage it provides returns
-    // with that entry.
-    #[ignore = "signs through the tinywallet module: needs the registry entry \
-                  (blocked on tinywallet v0.2.0) and a loadable artifact"]
     #[tokio::test]
     async fn execute_tron_quote_signs_and_broadcasts_native_transfer() {
         let _guard = TEST_LOCK.lock();
@@ -563,12 +557,6 @@ mod tests {
         assert_eq!(sig.len(), 130, "expected 65-byte signature, got: {sig}");
     }
 
-    // Migrated onto the loaded wallet module: this drives the real signing
-    // path, which cannot resolve until the module is registered and its
-    // artifact is downloadable. The mock-server coverage it provides returns
-    // with that entry.
-    #[ignore = "signs through the tinywallet module: needs the registry entry \
-                  (blocked on tinywallet v0.2.0) and a loadable artifact"]
     #[tokio::test]
     async fn execute_tron_quote_signs_and_broadcasts_trc20_transfer() {
         let _guard = TEST_LOCK.lock();
@@ -620,12 +608,6 @@ mod tests {
         assert_eq!(param.len(), 128, "64-byte ABI args, hex-encoded");
     }
 
-    // Migrated onto the loaded wallet module: this drives the real signing
-    // path, which cannot resolve until the module is registered and its
-    // artifact is downloadable. The mock-server coverage it provides returns
-    // with that entry.
-    #[ignore = "signs through the tinywallet module: needs the registry entry \
-                  (blocked on tinywallet v0.2.0) and a loadable artifact"]
     #[tokio::test]
     async fn execute_tron_quote_surfaces_node_rejection() {
         let _guard = TEST_LOCK.lock();

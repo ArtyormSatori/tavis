@@ -257,12 +257,6 @@ async fn tx_status_rejects_empty_hash() {
     assert!(err.contains("tx hash is empty"), "got: {err}");
 }
 
-// Migrated onto the loaded wallet module: this drives the real signing
-// path, which cannot resolve until the module is registered and its
-// artifact is downloadable. The mock-server coverage it provides
-// returns with that entry.
-#[ignore = "signs through the tinywallet module: needs the registry entry \
-            (blocked on tinywallet v0.2.0) and a loadable artifact"]
 #[tokio::test]
 async fn execute_prepared_broadcasts_native_evm_transaction() {
     let _guard = TEST_LOCK.lock();
@@ -300,12 +294,6 @@ async fn execute_prepared_broadcasts_native_evm_transaction() {
     );
 }
 
-// Migrated onto the loaded wallet module: this drives the real signing
-// path, which cannot resolve until the module is registered and its
-// artifact is downloadable. The mock-server coverage it provides
-// returns with that entry.
-#[ignore = "signs through the tinywallet module: needs the registry entry \
-            (blocked on tinywallet v0.2.0) and a loadable artifact"]
 #[tokio::test]
 async fn execute_prepared_broadcasts_erc20_transfer_using_default_token_catalog() {
     let _guard = TEST_LOCK.lock();
@@ -347,12 +335,6 @@ async fn execute_prepared_broadcasts_erc20_transfer_using_default_token_catalog(
     assert!(data.starts_with("0xa9059cbb"));
 }
 
-// Migrated onto the loaded wallet module: this drives the real signing
-// path, which cannot resolve until the module is registered and its
-// artifact is downloadable. The mock-server coverage it provides
-// returns with that entry.
-#[ignore = "signs through the tinywallet module: needs the registry entry \
-            (blocked on tinywallet v0.2.0) and a loadable artifact"]
 #[tokio::test]
 async fn execute_prepared_broadcasts_native_evm_on_base_with_chain_id_8453() {
     let _guard = TEST_LOCK.lock();
