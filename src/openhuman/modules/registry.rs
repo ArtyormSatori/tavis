@@ -365,6 +365,25 @@ mod tests {
             ("windows", "aarch64", None),
         ];
         for record in ALL {
+            // A record with no assets at all is a module whose release has not
+            // been cut yet. It is exempt from the per-host check — there is
+            // nothing to be missing — but only if it is on this list, so an
+            // *accidentally* asset-less record still fails here rather than
+            // silently becoming unsupported on every platform.
+            //
+            // Digests must be copied verbatim from the release `checksum.toml`,
+            // so shipping placeholder assets to satisfy this test would be worse
+            // than the exemption.
+            if record.assets.is_empty() {
+                assert!(
+                    PENDING_RELEASE.contains(&record.id),
+                    "{} publishes no assets and is not a known pre-release module; \
+                     either add its assets (digests copied from the release \
+                     checksum.toml) or add it to PENDING_RELEASE with a reason",
+                    record.id
+                );
+                continue;
+            }
             for (os, arch, glibc) in hosts {
                 for key in candidates_for(os, arch, glibc) {
                     assert!(
@@ -376,6 +395,18 @@ mod tests {
             }
         }
     }
+
+    /// Modules registered before their first release exists.
+    ///
+    /// Being here means `modules.status` reports `Unsupported` on every platform
+    /// and `ensure_loaded` refuses, which is the correct behaviour for an artifact
+    /// that cannot be verified because it has not been published. Removing an
+    /// entry is the last step of a module port.
+    ///
+    /// - `tinymemory`: the host client and the module are both written and
+    ///   tested; the release has not been cut. Loadable meanwhile via
+    ///   `OPENHUMAN_MODULE_PATH`.
+    const PENDING_RELEASE: &[&str] = &["tinymemory"];
 
     #[test]
     fn find_resolves_known_ids_only() {
