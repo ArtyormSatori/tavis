@@ -310,11 +310,10 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
         }
     };
 
-    // The node builds the transaction, so the module's job here is to verify
-    // that what came back is the transfer that was asked for — it recomputes
-    // `sha256(raw_data)` against the `txID` and checks the recipient appears in
-    // the bytes — and then to hand back the digest for this process to sign.
-    // Signing whatever an endpoint returns is the failure this guards against.
+    // The node builds the transaction, so verify every requested field here
+    // before the module hands back a digest to sign. The module independently
+    // rechecks the locally recomputed txid and recipient; the host additionally
+    // binds the native amount or full TRC20 parameter.
     let public_key = compressed_public_key(&sk)?;
     let transaction = tron_transaction_spec(&raw_tx, verified_recipient, &transfer)?;
     let signed = crate::openhuman::modules::wallet::sign_transaction(
