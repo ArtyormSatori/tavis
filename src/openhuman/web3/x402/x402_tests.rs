@@ -490,10 +490,7 @@ fn parse_twit_sh_402_challenge() {
 #[test]
 fn build_evm_payment_with_test_key_produces_valid_payload() {
     let (wallet, from_address) = test_signer();
-    assert_eq!(
-        from_address,
-        "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"
-    );
+    assert_eq!(from_address, "0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
 
     let challenge = PaymentRequired {
         x402_version: 2,
