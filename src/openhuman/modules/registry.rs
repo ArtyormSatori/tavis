@@ -303,4 +303,38 @@ mod tests {
         assert!(find("tinydocs").is_some());
         assert!(find("not-a-module").is_none());
     }
+
+    #[test]
+    fn tinywallet_assets_are_populated_before_release() {
+        // A standing reminder rather than an assertion, because the digests
+        // cannot exist before tinywallet v0.2.0 is published and must be copied
+        // from its `checksum.toml` rather than computed here.
+        //
+        // Failing the build now would block unrelated work on an upstream
+        // release; saying nothing would let the wallet ship permanently
+        // unavailable. So this reports, and the empty list fails safe in the
+        // meantime — no candidate artifact, no download, no unverified load.
+        let tinywallet = find("tinywallet").expect("the record exists");
+        if tinywallet.assets.is_empty() {
+            eprintln!(
+                "note: the tinywallet module has no published artifacts yet; \
+                 fill `TINYWALLET_ASSETS` from the v0.2.0 checksum.toml before \
+                 relying on wallet operations"
+            );
+        }
+    }
+
+    #[test]
+    fn a_module_without_artifacts_offers_no_candidate_for_this_host() {
+        // The fail-safe the empty asset list depends on: platform resolution
+        // must find nothing rather than fall back to some other module's
+        // artifact or to an unverified download.
+        let tinywallet = find("tinywallet").expect("the record exists");
+        if tinywallet.assets.is_empty() {
+            assert!(
+                candidates_for(tinywallet).is_empty(),
+                "an artifact-less module must not resolve to a candidate"
+            );
+        }
+    }
 }
