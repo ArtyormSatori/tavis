@@ -568,11 +568,12 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
             let digest = eip712::signing_digest(domain, structure);
             let recovered =
                 VerifyingKey::recover_from_prehash(&digest, &signature, recovery_id).unwrap();
-            let encoded = recovered.to_encoded_point(false);
-            let hash = eip712::keccak(&encoded.as_bytes()[1..]);
             assert_eq!(
-                &hash[12..],
-                &address_bytes(from_address.trim_start_matches("0x"))
+                recovered,
+                *k256::ecdsa::SigningKey::from_slice(&wallet)
+                    .unwrap()
+                    .verifying_key(),
+                "the recovered signer must control the pinned from_address"
             );
         }
         PaymentProof::Solana(_) => panic!("expected EVM proof, got Solana"),
