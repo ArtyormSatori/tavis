@@ -800,11 +800,18 @@ mod tests {
         let app = Router::new()
             .route(
                 "/wallet/createtransaction",
-                post(|| async {
+                post(|axum::Json(payload): axum::Json<Value>| async move {
+                    let recipient = payload["to_address"].as_str().unwrap();
+                    let amount = payload["amount"].as_u64().unwrap();
+                    let raw = format!(
+                        "0a{recipient}18{}ff",
+                        hex::encode(encode_protobuf_varint(amount))
+                    );
+                    let txid = tinywallet::tx::tron::recompute_txid(&raw).unwrap();
                     axum::Json(json!({
-                        "txID": "6bef816d2844aaac1720a5fb4d4c83816a8e96d907a227f1844348d6a120642a",
+                        "txID": txid,
                         "raw_data": {"contract": []},
-                        "raw_data_hex": "0a02ab1d2208deadbeef00deadbe4098f0d8a88232525a41a614f803b6fd780986a42c78ec9c7f77e6ded13c5802",
+                        "raw_data_hex": raw,
                     }))
                 }),
             )
