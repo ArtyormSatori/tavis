@@ -584,45 +584,38 @@ async fn build_evm_payment(
     challenge: &PaymentRequired,
     req: &PaymentRequirements,
 ) -> Result<PaymentPayload, X402Error> {
-    let (signer, from_address) = derive_evm_signer().await?;
-    build_evm_payment_with_signer(&signer, from_address, challenge, req)
+    let (secret, from_address) = derive_evm_signer().await?;
+    build_evm_payment_with_signer(&secret, &from_address, challenge, req)
 }
 
 /// Core EVM payment construction — separated from wallet derivation for testability.
 pub(crate) fn build_evm_payment_with_signer(
-    signer: &ethers_signers::LocalWallet,
-    from_address: ethers_core::types::Address,
+    secret: &[u8],
+    from_address: &str,
     challenge: &PaymentRequired,
     req: &PaymentRequirements,
 ) -> Result<PaymentPayload, X402Error> {
-    use ethers_core::types::{Address, U256};
-
-    use std::str::FromStr;
+    use tinywallet::eip712;
 
     let chain_id = req
         .evm_chain_id()
         .ok_or_else(|| X402Error::Protocol(format!("not an EVM network: {}", req.network)))?;
 
-    let amount = U256::from_dec_str(&req.amount)
+    let amount = eip712::u256_from_decimal(&req.amount)
         .map_err(|e| X402Error::Protocol(format!("invalid amount '{}': {e}", req.amount)))?;
 
-    let pay_to = Address::from_str(&req.pay_to).map_err(|e| {
-        X402Error::Protocol(format!("invalid EVM payTo address '{}': {e}", req.pay_to))
-    })?;
-
-    let token_address = Address::from_str(&req.asset).map_err(|e| {
-        X402Error::Protocol(format!("invalid EVM token address '{}': {e}", req.asset))
-    })?;
+    let from_bytes = evm_address_bytes(from_address)?;
+    let pay_to = evm_address_bytes(&req.pay_to)?;
+    let token_address = evm_address_bytes(&req.asset)?;
 
     // EIP-3009 parameters
-    let valid_after = U256::zero();
-    let valid_before = U256::from(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs()
-            + req.max_timeout_seconds,
-    );
+    let valid_after = eip712::u256_from_u64(0);
+    let valid_before_secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+        + req.max_timeout_seconds;
+    let valid_before = eip712::u256_from_u64(valid_before_secs);
 
     // Random nonce for EIP-3009
     let nonce = {
@@ -649,36 +642,35 @@ pub(crate) fn build_evm_payment_with_signer(
         .and_then(|e| e.version.as_deref())
         .unwrap_or("2");
     let domain_separator =
-        eip712_domain_separator_named(token_address, chain_id, domain_name, domain_version);
-    let struct_hash = eip3009_struct_hash(
-        from_address,
+        eip712::domain_separator(token_address, chain_id, domain_name, domain_version);
+    let struct_hash = eip712::transfer_with_authorization_hash(
+        from_bytes,
         pay_to,
         amount,
         valid_after,
         valid_before,
         nonce,
     );
+    let digest = eip712::signing_digest(domain_separator, struct_hash);
 
-    let mut digest_input = Vec::with_capacity(66);
-    digest_input.extend(b"\x19\x01");
-    digest_input.extend(domain_separator);
-    digest_input.extend(struct_hash);
-    let digest: [u8; 32] = {
-        use ethers_core::types::H256;
-        let h = H256::from(ethers_core::utils::keccak256(&digest_input));
-        h.into()
-    };
-
-    let signature = signer
-        .sign_hash(ethers_core::types::H256::from(digest))
+    // Signed here with `k256`, over the prehashed digest. An EIP-712 signature
+    // is `r ‖ s ‖ v` where `v` is the recovery id offset by 27 — not EIP-155's
+    // chain-mixed `v`, because typed data is not a transaction.
+    let key = k256::ecdsa::SigningKey::from_slice(secret)
+        .map_err(|_| X402Error::Wallet("derived EVM key is unusable".to_string()))?;
+    let (signature, recovery_id) = key
+        .sign_prehash_recoverable(&digest)
         .map_err(|e| X402Error::Wallet(format!("EVM sign EIP-3009: {e}")))?;
+    let mut sig_bytes = [0u8; 65];
+    sig_bytes[..64].copy_from_slice(&signature.to_bytes());
+    sig_bytes[64] = recovery_id.to_byte() + 27;
 
-    let sig_hex = format!("0x{}", hex::encode(signature.to_vec()));
+    let sig_hex = format!("0x{}", hex::encode(sig_bytes));
     let nonce_hex = format!("0x{}", hex::encode(nonce));
 
     debug!(
-        "{LOG_PREFIX} built EVM payment chain_id={chain_id} amount={} asset={} from={:#x} to={:#x}",
-        req.amount, req.asset, from_address, pay_to
+        "{LOG_PREFIX} built EVM payment chain_id={chain_id} amount={} asset={} from={} to={}",
+        req.amount, req.asset, from_address, req.pay_to
     );
 
     Ok(PaymentPayload {
@@ -688,11 +680,11 @@ pub(crate) fn build_evm_payment_with_signer(
         payload: PaymentProof::Evm(EvmPaymentProof {
             signature: sig_hex,
             authorization: EvmAuthorization {
-                from: format!("{from_address:#x}"),
-                to: format!("{pay_to:#x}"),
+                from: from_address.to_string(),
+                to: req.pay_to.clone(),
                 value: req.amount.clone(),
                 valid_after: "0".to_string(),
-                valid_before: valid_before.to_string(),
+                valid_before: valid_before_secs.to_string(),
                 nonce: nonce_hex,
             },
         }),
