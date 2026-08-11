@@ -12,7 +12,7 @@
 //! `tests/fixtures/memory_golden/workspace/**.db` is a **real workspace,
 //! captured from a real build** (see that directory's `README.md` for the SHA).
 //! `manifest.txt` beside it is **derived from those DB files** by
-//! `memory::store::golden::schema_manifest`, never hand-written.
+//! `memory::store_golden::schema_manifest`, never hand-written.
 //!
 //! ## The ordering rule — read this before "fixing" a failure
 //!
@@ -46,7 +46,7 @@ use std::sync::{Mutex, OnceLock};
 
 use tempfile::tempdir;
 
-use openhuman_core::openhuman::memory::store::golden;
+use openhuman_core::openhuman::memory::store_golden as golden;
 
 // ── Fixture layout ───────────────────────────────────────────────────────────
 
@@ -478,7 +478,7 @@ async fn regenerate_golden_fixture() {
     let header = format!(
         "# GENERATED — do not hand-edit.\n\
          # Derived from tests/fixtures/memory_golden/workspace/**.db by\n\
-         # memory::store::golden::schema_manifest. Regenerate both together with\n\
+         # memory::store_golden::schema_manifest. Regenerate both together with\n\
          # scripts/regen-memory-golden-fixture.sh.\n\
          # {} schema objects across {} db file(s).\n",
         manifest.len(),
