@@ -97,8 +97,39 @@ const TINYDOCS: ModuleRecord = ModuleRecord {
     load: LoadPolicy::Lazy,
 };
 
+/// The `tinywallet` module: transaction building and assembly for four chains.
+///
+/// Lazy for the same reason as [`TINYDOCS`], and more so: most sessions never
+/// touch a wallet, and this artifact carries `bitcoin` and a native `secp256k1`
+/// build that would otherwise be resident for all of them.
+///
+/// **The signing key is never sent to this module.** It returns the bytes that
+/// need signing and reassembles once the host has signed them — see
+/// [`super::wallet`].
+const TINYWALLET: ModuleRecord = ModuleRecord {
+    id: "tinywallet",
+    description: "Transaction building and assembly for Bitcoin, EVM, Solana and Tron",
+    bus_name: "ai.tinyhumans.tinywallet.Wallet",
+    object_path: "/ai/tinyhumans/tinywallet/Wallet",
+    version: "0.2.0",
+    release_url: "https://github.com/tinyhumansai/tinywallet/releases/tag/v0.2.0",
+    assets: TINYWALLET_ASSETS,
+    load: LoadPolicy::Lazy,
+};
+
+/// Published artifacts for [`TINYWALLET`].
+///
+/// Taken verbatim from the release's `checksum.toml`, per the module docs above.
+const TINYWALLET_ASSETS: &[PlatformAsset] = &[
+    PlatformAsset {
+        host_key: "ubuntu-24.04-x86_64",
+        archive: "tinywallet-module-0.2.0-ubuntu-24.04-x86_64.tar.gz",
+        sha256: "0000000000000000000000000000000000000000000000000000000000000000",
+    },
+];
+
 /// Every module this build can load.
-pub const ALL: &[ModuleRecord] = &[TINYDOCS];
+pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET];
 
 /// The record for `id`, if this build knows it.
 #[must_use]
