@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use chrono::Utc;
 use openhuman_core::openhuman::desktop::app_state::{
