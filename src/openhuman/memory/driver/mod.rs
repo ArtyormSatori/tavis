@@ -10,4 +10,4 @@
 //! would be meaningless.
 
 pub mod embedded;
-// TEMP-DISABLED pub mod module_adapter;
+pub mod module_adapter;
