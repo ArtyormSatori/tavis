@@ -90,6 +90,19 @@ struct TriggerSmartContractResponse {
     transaction: CreateTransactionResponse,
 }
 
+fn tron_transaction_spec(
+    raw_tx: &CreateTransactionResponse,
+    expected_to: String,
+    transfer: tinywallet::wire::TronTransfer,
+) -> tinywallet::wire::TransactionSpec {
+    tinywallet::wire::TransactionSpec::Tron {
+        raw_data_hex: raw_tx.raw_data_hex.clone(),
+        expected_to,
+        expected_txid: raw_tx.tx_id.clone(),
+        transfer,
+    }
+}
+
 /// Derive the Tron signing key and its base58check address.
 ///
 /// Delegates to the vendored [`tinywallet`] crate, which owns BIP-32
@@ -209,14 +222,16 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     // parameter, left-padded to 32 bytes and so without the `41` prefix that
     // appears in `raw_data` for a native transfer. Verifying a TRC20 against
     // the user's recipient would therefore never match.
-    let verified_recipient;
-    let raw_tx = match quote.kind {
+    let (verified_recipient, transfer, raw_tx) = match quote.kind {
         PreparedKind::NativeTransfer => {
-            verified_recipient = quote.to_address.clone();
             let amount_sun: u64 = amount
                 .try_into()
                 .map_err(|_| format!("Tron amount {amount} exceeds u64"))?;
-            create_native_transaction(&owner_hex, &to_hex, amount_sun).await?
+            (
+                quote.to_address.clone(),
+                tinywallet::wire::TronTransfer::Native { amount_sun },
+                create_native_transaction(&owner_hex, &to_hex, amount_sun).await?,
+            )
         }
         PreparedKind::TokenTransfer => {
             let contract = quote
@@ -224,10 +239,15 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
                 .as_deref()
                 .ok_or_else(|| "TRC20 transfer missing token_address".to_string())?;
             validate_tron_address(contract)?;
-            verified_recipient = contract.to_string();
             let contract_hex = tron_address_to_hex(contract)?;
             let parameter = encode_trc20_transfer_param(&to_hex, amount)?;
-            trigger_trc20_transfer(&owner_hex, &contract_hex, &parameter).await?
+            (
+                contract.to_string(),
+                tinywallet::wire::TronTransfer::Trc20 {
+                    parameter_hex: parameter.clone(),
+                },
+                trigger_trc20_transfer(&owner_hex, &contract_hex, &parameter).await?,
+            )
         }
     };
 
@@ -237,11 +257,7 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     // the bytes — and then to hand back the digest for this process to sign.
     // Signing whatever an endpoint returns is the failure this guards against.
     let public_key = compressed_public_key(&sk)?;
-    let transaction = tinywallet::wire::TransactionSpec::Tron {
-        raw_data_hex: raw_tx.raw_data_hex.clone(),
-        expected_to: verified_recipient,
-        expected_txid: raw_tx.tx_id.clone(),
-    };
+    let transaction = tron_transaction_spec(&raw_tx, verified_recipient, transfer);
     let signed = crate::openhuman::modules::wallet::sign_transaction(
         &config,
         &transaction,
