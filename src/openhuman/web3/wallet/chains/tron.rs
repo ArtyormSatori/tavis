@@ -512,6 +512,17 @@ mod tests {
         addr
     }
 
+    // Drives the real wallet module, so it must be the only such test in its
+    // process: tinybus never unloads a module, and the module bus belongs to
+    // whichever tokio runtime created it — a second `#[tokio::test]` finds a
+    // broker whose tasks died with the first and the call fails with
+    // "connection closed". Verified passing in isolation:
+    //
+    //   cargo test -p openhuman --lib --features "$(bash scripts/ci/product-features.sh)" \
+    //     execute_tron_quote_signs_and_broadcasts_native_transfer -- --test-threads=1
+    //
+    // Same constraint tinydocs documents for its module-backed tool tests.
+    #[ignore = "drives the loaded wallet module; must run alone in its process"]
     #[tokio::test]
     async fn execute_tron_quote_signs_and_broadcasts_native_transfer() {
         let _guard = TEST_LOCK.lock();
@@ -564,6 +575,17 @@ mod tests {
         assert_eq!(sig.len(), 130, "expected 65-byte signature, got: {sig}");
     }
 
+    // Drives the real wallet module, so it must be the only such test in its
+    // process: tinybus never unloads a module, and the module bus belongs to
+    // whichever tokio runtime created it — a second `#[tokio::test]` finds a
+    // broker whose tasks died with the first and the call fails with
+    // "connection closed". Verified passing in isolation:
+    //
+    //   cargo test -p openhuman --lib --features "$(bash scripts/ci/product-features.sh)" \
+    //     execute_tron_quote_signs_and_broadcasts_native_transfer -- --test-threads=1
+    //
+    // Same constraint tinydocs documents for its module-backed tool tests.
+    #[ignore = "drives the loaded wallet module; must run alone in its process"]
     #[tokio::test]
     async fn execute_tron_quote_signs_and_broadcasts_trc20_transfer() {
         let _guard = TEST_LOCK.lock();
@@ -615,6 +637,17 @@ mod tests {
         assert_eq!(param.len(), 128, "64-byte ABI args, hex-encoded");
     }
 
+    // Drives the real wallet module, so it must be the only such test in its
+    // process: tinybus never unloads a module, and the module bus belongs to
+    // whichever tokio runtime created it — a second `#[tokio::test]` finds a
+    // broker whose tasks died with the first and the call fails with
+    // "connection closed". Verified passing in isolation:
+    //
+    //   cargo test -p openhuman --lib --features "$(bash scripts/ci/product-features.sh)" \
+    //     execute_tron_quote_signs_and_broadcasts_native_transfer -- --test-threads=1
+    //
+    // Same constraint tinydocs documents for its module-backed tool tests.
+    #[ignore = "drives the loaded wallet module; must run alone in its process"]
     #[tokio::test]
     async fn execute_tron_quote_surfaces_node_rejection() {
         let _guard = TEST_LOCK.lock();
