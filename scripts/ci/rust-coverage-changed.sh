@@ -303,8 +303,8 @@ fi
 shopt -s nullglob
 profiles=("${profile_dir}"/*.profraw)
 test "${#profiles[@]}" -gt 0
-mkdir -p target/llvm-cov-target
-mv "${profiles[@]}" target/llvm-cov-target/
+mkdir -p "${CARGO_LLVM_COV_TARGET_DIR}"
+mv "${profiles[@]}" "${CARGO_LLVM_COV_TARGET_DIR}/"
 
 log "merging coverage into ${OUT}"
 llvm_cov report --lcov --output-path "${OUT}"
