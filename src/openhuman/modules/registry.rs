@@ -295,5 +295,4 @@ mod tests {
         assert!(find("tinydocs").is_some());
         assert!(find("not-a-module").is_none());
     }
-
 }

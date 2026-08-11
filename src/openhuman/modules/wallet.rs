@@ -103,9 +103,7 @@ pub async fn sign_transaction(
         key_hex: hex(public_key),
     };
 
-    log::debug!(
-        "[modules:wallet] build_unsigned chain={chain:?} module={MODULE_ID}"
-    );
+    log::debug!("[modules:wallet] build_unsigned chain={chain:?} module={MODULE_ID}");
     let unsigned: UnsignedTransaction = proxy
         .call(
             "BuildUnsigned",
@@ -179,18 +177,14 @@ fn sign_payload(payload: &SigningPayload, secret: &[u8]) -> Result<Signature, Wa
 /// is already in the tree beneath `coins-bip32`, which derives the key being
 /// used here. It produces low-`s` signatures by default, which Bitcoin requires
 /// as relay policy (BIP-146) and Ethereum as consensus (EIP-2).
-fn sign_secp256k1_prehash(
-    digest: &[u8; 32],
-    secret: &[u8],
-) -> Result<Signature, WalletCallError> {
+fn sign_secp256k1_prehash(digest: &[u8; 32], secret: &[u8]) -> Result<Signature, WalletCallError> {
     use k256::ecdsa::SigningKey;
 
-    let key = SigningKey::from_slice(secret).map_err(|_| {
-        WalletCallError::Failed("not a valid secp256k1 secret key".to_string())
-    })?;
-    let (signature, recovery_id) = key.sign_prehash_recoverable(digest).map_err(|_| {
-        WalletCallError::Failed("secp256k1 signing failed".to_string())
-    })?;
+    let key = SigningKey::from_slice(secret)
+        .map_err(|_| WalletCallError::Failed("not a valid secp256k1 secret key".to_string()))?;
+    let (signature, recovery_id) = key
+        .sign_prehash_recoverable(digest)
+        .map_err(|_| WalletCallError::Failed("secp256k1 signing failed".to_string()))?;
 
     Ok(Signature::Secp256k1 {
         rs_hex: hex(&signature.to_bytes()),
@@ -262,9 +256,7 @@ fn classify(error: &tinybus::Error) -> WalletCallError {
     let message = error.to_string();
     match error.wire_name() {
         "ai.tinyhumans.tinywallet.Error.InvalidInput" => WalletCallError::InvalidInput(message),
-        "ai.tinyhumans.tinywallet.Error.UnsupportedChain" => {
-            WalletCallError::Unavailable(message)
-        }
+        "ai.tinyhumans.tinywallet.Error.UnsupportedChain" => WalletCallError::Unavailable(message),
         // The module is loaded but not answering: refused, faulted, or gone.
         name if name.contains("ModuleUnavailable") => WalletCallError::Unavailable(message),
         _ => WalletCallError::Failed(message),
