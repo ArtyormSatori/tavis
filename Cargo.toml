@@ -669,7 +669,7 @@ documents = ["dep:tinydocs", "modules"]
 # A loaded module is trusted in-process code with this process's privileges, and
 # tinybus never unloads one. See `src/openhuman/modules/` before adding an entry
 # to the registry.
-modules = ["tinybus/modules", "web3"]
+modules = ["tinybus/modules"]
 # Voice + audio_toolkit domains: STT/TTS providers, the standalone dictation
 # server, always-on listening, and podcast audio generation/email delivery.
 # Default-ON — the desktop app always ships with voice. Slim / headless builds

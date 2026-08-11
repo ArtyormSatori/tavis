@@ -37,6 +37,7 @@
 //! - [`boot`] — what happens at startup.
 
 pub mod boot;
+#[cfg(feature = "documents")]
 pub mod documents;
 pub mod host;
 pub mod ops;
@@ -44,6 +45,7 @@ pub mod platform;
 pub mod registry;
 pub mod schemas;
 pub mod types;
+#[cfg(feature = "web3")]
 pub mod wallet;
 
 pub use ops::ensure_loaded;
