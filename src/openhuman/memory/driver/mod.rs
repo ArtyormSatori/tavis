@@ -9,5 +9,5 @@
 //! driver is memory, and gating it separately from the domain it implements
 //! would be meaningless.
 
-pub mod module_adapter;
 pub mod embedded;
+pub mod module_adapter;
