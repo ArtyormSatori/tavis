@@ -106,9 +106,8 @@ impl ModuleMemoryProvider {
             .await
             .map_err(|message| MemoryError::Other(anyhow::anyhow!(message)))?;
 
-        let record = registry::find(MODULE_ID).ok_or_else(|| {
-            MemoryError::Other(anyhow::anyhow!("unknown module '{MODULE_ID}'"))
-        })?;
+        let record = registry::find(MODULE_ID)
+            .ok_or_else(|| MemoryError::Other(anyhow::anyhow!("unknown module '{MODULE_ID}'")))?;
         let runtime = host::runtime().await.map_err(|error| {
             MemoryError::Other(anyhow::anyhow!("the module bus is not running: {error}"))
         })?;

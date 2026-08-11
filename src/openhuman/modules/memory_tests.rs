@@ -108,7 +108,10 @@ fn a_path_escape_does_not_arrive_as_a_caller_mistake() {
 #[test]
 fn an_unsupported_capability_keeps_its_family_name() {
     let error = from_bus(&failure(tinymemory_api::wire::UNSUPPORTED));
-    assert!(matches!(error, MemoryError::Unsupported { .. }), "{error:?}");
+    assert!(
+        matches!(error, MemoryError::Unsupported { .. }),
+        "{error:?}"
+    );
 }
 
 #[test]
@@ -156,7 +159,8 @@ async fn a_call_against_a_disabled_host_fails_instead_of_hanging() {
     config.modules.enabled = false;
 
     let provider = ModuleMemoryProvider::new(Arc::new(config));
-    let outcome = tinymemory_api::provider::mandatory::MemoryCore::get(&provider, "ns", "key").await;
+    let outcome =
+        tinymemory_api::provider::mandatory::MemoryCore::get(&provider, "ns", "key").await;
     assert!(outcome.is_err(), "expected an error, got {outcome:?}");
 }
 
