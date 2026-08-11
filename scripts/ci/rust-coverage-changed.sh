@@ -268,6 +268,15 @@ fi
 # this run (build cache for dependencies is unaffected).
 llvm_cov clean --workspace
 
+# Containerised GitHub runners mount the workspace from the host. LLVM can run
+# the test binary successfully there while silently failing to create its raw
+# profile on that mount. Collect profiles on the container filesystem, then
+# move them into cargo-llvm-cov's target directory for the report step.
+profile_dir="${LLVM_PROFILE_DIR:-/tmp/openhuman-core-profraw}"
+rm -rf "${profile_dir}"
+mkdir -p "${profile_dir}"
+export LLVM_PROFILE_FILE="${profile_dir}/core-%p-%m.profraw"
+
 if [ "${#lib_filters[@]}" -gt 0 ]; then
   log "running scoped lib unit tests with filters: ${lib_filters[*]}"
   # libtest ORs multiple positional filters — one run covers all domains.
@@ -280,6 +289,12 @@ if [ "${#test_targets[@]}" -gt 0 ]; then
     run_integration_target "${t}"
   done
 fi
+
+shopt -s nullglob
+profiles=("${profile_dir}"/*.profraw)
+test "${#profiles[@]}" -gt 0
+mkdir -p target/llvm-cov-target
+mv "${profiles[@]}" target/llvm-cov-target/
 
 log "merging coverage into ${OUT}"
 llvm_cov report --lcov --output-path "${OUT}"
