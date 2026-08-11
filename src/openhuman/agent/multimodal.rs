@@ -622,9 +622,8 @@ async fn write_attachment(id: &str, data_uri: &str) -> anyhow::Result<PathBuf> {
         // sweep cannot reclaim an attachment that was just reused.
         let touch_path = final_path.clone();
         tokio::task::spawn_blocking(move || -> std::io::Result<()> {
-            std::fs::File::open(touch_path)?.set_times(
-                std::fs::FileTimes::new().set_modified(std::time::SystemTime::now()),
-            )
+            std::fs::File::open(touch_path)?
+                .set_times(std::fs::FileTimes::new().set_modified(std::time::SystemTime::now()))
         })
         .await??;
         return Ok(final_path); // content-addressed: already persisted
