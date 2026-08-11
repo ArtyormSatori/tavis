@@ -394,33 +394,48 @@ fn solana_payment_proof_serializes_correctly() {
 
 #[test]
 fn eip712_domain_separator_is_deterministic() {
-    use std::str::FromStr;
-    let contract =
-        ethers_core::types::Address::from_str("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913")
-            .unwrap();
-    let sep1 = eip712_domain_separator(contract, 8453);
-    let sep2 = eip712_domain_separator(contract, 8453);
+    // Now `tinywallet::eip712`, which also pins the hashes against the
+    // published EIP-712/EIP-3009 constants. What this still checks is the
+    // property that matters at this layer: the separator binds the chain, so
+    // an authorization cannot be replayed on another one.
+    use tinywallet::eip712::domain_separator;
+
+    let contract = base_usdc();
+    let sep1 = domain_separator(contract, 8453, "USD Coin", "2");
+    let sep2 = domain_separator(contract, 8453, "USD Coin", "2");
     assert_eq!(sep1, sep2);
 
-    // Different chain ID produces different separator
-    let sep_eth = eip712_domain_separator(contract, 1);
+    let sep_eth = domain_separator(contract, 1, "USD Coin", "2");
     assert_ne!(sep1, sep_eth);
+}
+
+/// Base mainnet USDC, as raw address bytes.
+fn base_usdc() -> [u8; 20] {
+    address_bytes("833589fCD6eDb6E08f4c7C32D4f71b54bdA02913")
+}
+
+/// Decode an unprefixed 20-byte hex address.
+fn address_bytes(hex: &str) -> [u8; 20] {
+    let mut out = [0u8; 20];
+    for (index, slot) in out.iter_mut().enumerate() {
+        *slot = u8::from_str_radix(&hex[index * 2..index * 2 + 2], 16).unwrap();
+    }
+    out
 }
 
 #[test]
 fn eip3009_struct_hash_is_deterministic() {
-    use std::str::FromStr;
-    let from = ethers_core::types::Address::from_str("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        .unwrap();
-    let to = ethers_core::types::Address::from_str("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-        .unwrap();
-    let value = ethers_core::types::U256::from(1_000_000u64);
-    let valid_after = ethers_core::types::U256::zero();
-    let valid_before = ethers_core::types::U256::from(99999u64);
+    use tinywallet::eip712::{transfer_with_authorization_hash, u256_from_u64};
+
+    let from = address_bytes(&"aa".repeat(20));
+    let to = address_bytes(&"bb".repeat(20));
+    let value = u256_from_u64(1_000_000);
+    let valid_after = u256_from_u64(0);
+    let valid_before = u256_from_u64(99_999);
     let nonce = [42u8; 32];
 
-    let h1 = eip3009_struct_hash(from, to, value, valid_after, valid_before, nonce);
-    let h2 = eip3009_struct_hash(from, to, value, valid_after, valid_before, nonce);
+    let h1 = transfer_with_authorization_hash(from, to, value, valid_after, valid_before, nonce);
+    let h2 = transfer_with_authorization_hash(from, to, value, valid_after, valid_before, nonce);
     assert_eq!(h1, h2);
 
     // Different nonce produces different hash
@@ -462,17 +477,7 @@ fn parse_twit_sh_402_challenge() {
 
 #[test]
 fn build_evm_payment_with_test_key_produces_valid_payload() {
-    use ethers_signers::{coins_bip39::English, MnemonicBuilder, Signer};
-    use std::str::FromStr;
-
-    let test_mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    let wallet = MnemonicBuilder::<English>::default()
-        .phrase(test_mnemonic)
-        .derivation_path("m/44'/60'/0'/0/0")
-        .unwrap()
-        .build()
-        .unwrap();
-    let from_address = wallet.address();
+    let (wallet, from_address) = test_signer();
 
     let challenge = PaymentRequired {
         x402_version: 2,
@@ -514,17 +519,13 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
             assert_eq!(evm.authorization.value, "2500");
             assert_eq!(evm.authorization.valid_after, "0");
             assert!(evm.authorization.nonce.starts_with("0x"));
+            // Checksummed, as `tinywallet::address::evm` renders it, and as
+            // the requirement itself carried it.
             assert_eq!(
                 evm.authorization.to,
-                format!(
-                    "{:#x}",
-                    ethers_core::types::Address::from_str(
-                        "0x9DBA414637c611a16BEa6f0796BFcbcBdc410df8"
-                    )
-                    .unwrap()
-                )
+                "0x9DBA414637c611a16BEa6f0796BFcbcBdc410df8"
             );
-            assert_eq!(evm.authorization.from, format!("{from_address:#x}"));
+            assert_eq!(evm.authorization.from, from_address);
         }
         PaymentProof::Solana(_) => panic!("expected EVM proof, got Solana"),
     }
@@ -543,15 +544,8 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
 
 #[test]
 fn build_evm_payment_rejects_solana_network() {
-    use ethers_signers::{coins_bip39::English, MnemonicBuilder, Signer};
-
-    let test_mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    let wallet = MnemonicBuilder::<English>::default()
-        .phrase(test_mnemonic)
-        .derivation_path("m/44'/60'/0'/0/0")
-        .unwrap()
-        .build()
-        .unwrap();
+    let (wallet, from_address) = test_signer();
+    let _ = &from_address;
 
     let challenge = PaymentRequired {
         x402_version: 2,
