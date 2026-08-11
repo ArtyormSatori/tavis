@@ -90,16 +90,75 @@ struct TriggerSmartContractResponse {
     transaction: CreateTransactionResponse,
 }
 
+#[derive(Debug)]
+enum TronTransferVerification {
+    Native { amount_sun: u64 },
+    Trc20 { parameter_hex: String },
+}
+
 fn tron_transaction_spec(
     raw_tx: &CreateTransactionResponse,
     expected_to: String,
-    transfer: tinywallet::wire::TronTransfer,
-) -> tinywallet::wire::TransactionSpec {
-    tinywallet::wire::TransactionSpec::Tron {
+    transfer: &TronTransferVerification,
+) -> Result<tinywallet::wire::TransactionSpec, String> {
+    let recomputed_txid = tinywallet::tx::tron::recompute_txid(&raw_tx.raw_data_hex)
+        .map_err(|error| format!("invalid Tron raw_data_hex: {error}"))?;
+    if !recomputed_txid.eq_ignore_ascii_case(raw_tx.tx_id.trim()) {
+        return Err("Tron node txID does not match sha256(raw_data)".to_string());
+    }
+
+    let raw = hex::decode(raw_tx.raw_data_hex.trim())
+        .map_err(|error| format!("invalid Tron raw_data_hex: {error}"))?;
+    let recipient = hex::decode(tron_address_to_hex(&expected_to)?)
+        .map_err(|error| format!("invalid Tron recipient encoding: {error}"))?;
+    if !raw
+        .windows(recipient.len())
+        .any(|window| window == recipient)
+    {
+        return Err("Tron node transaction does not pay the requested recipient".to_string());
+    }
+
+    let (field, expected) = match transfer {
+        TronTransferVerification::Native { amount_sun } => {
+            let mut encoded = vec![0x18]; // TransferContract.amount, protobuf field 3.
+            encoded.extend(encode_protobuf_varint(*amount_sun));
+            ("amount", encoded)
+        }
+        TronTransferVerification::Trc20 { parameter_hex } => (
+            "TRC20 transfer parameter",
+            hex::decode(parameter_hex)
+                .map_err(|error| format!("invalid TRC20 parameter: {error}"))?,
+        ),
+    };
+    if expected.is_empty()
+        || !raw
+            .windows(expected.len())
+            .any(|window| window == expected)
+    {
+        return Err(format!(
+            "Tron node transaction does not contain the requested {field}"
+        ));
+    }
+
+    Ok(tinywallet::wire::TransactionSpec::Tron {
         raw_data_hex: raw_tx.raw_data_hex.clone(),
         expected_to,
-        expected_txid: raw_tx.tx_id.clone(),
-        transfer,
+        expected_txid: recomputed_txid,
+    })
+}
+
+fn encode_protobuf_varint(mut value: u64) -> Vec<u8> {
+    let mut encoded = Vec::new();
+    loop {
+        let mut byte = (value & 0x7f) as u8;
+        value >>= 7;
+        if value != 0 {
+            byte |= 0x80;
+        }
+        encoded.push(byte);
+        if value == 0 {
+            return encoded;
+        }
     }
 }
 
@@ -229,7 +288,7 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
                 .map_err(|_| format!("Tron amount {amount} exceeds u64"))?;
             (
                 quote.to_address.clone(),
-                tinywallet::wire::TronTransfer::Native { amount_sun },
+                TronTransferVerification::Native { amount_sun },
                 create_native_transaction(&owner_hex, &to_hex, amount_sun).await?,
             )
         }
@@ -243,7 +302,7 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
             let parameter = encode_trc20_transfer_param(&to_hex, amount)?;
             (
                 contract.to_string(),
-                tinywallet::wire::TronTransfer::Trc20 {
+                TronTransferVerification::Trc20 {
                     parameter_hex: parameter.clone(),
                 },
                 trigger_trc20_transfer(&owner_hex, &contract_hex, &parameter).await?,
@@ -257,7 +316,7 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     // the bytes — and then to hand back the digest for this process to sign.
     // Signing whatever an endpoint returns is the failure this guards against.
     let public_key = compressed_public_key(&sk)?;
-    let transaction = tron_transaction_spec(&raw_tx, verified_recipient, transfer);
+    let transaction = tron_transaction_spec(&raw_tx, verified_recipient, &transfer)?;
     let signed = crate::openhuman::modules::wallet::sign_transaction(
         &config,
         &transaction,
