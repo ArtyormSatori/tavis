@@ -719,13 +719,7 @@ voice = [
 # pulls them in regardless.
 web3 = [
     "dep:k256",
-    # Still here: the four chain modules and x402 have not yet been migrated
-    # onto the loaded wallet module. Removing these is the last step of the
-    # port and is what turns the work into the measured 51-crate shed.
-    "dep:bitcoin",
     "dep:curve25519-dalek",
-    "dep:ethers-core",
-    "dep:ethers-signers",
     "dep:coins-bip39",
     "dep:tinywallet",
 ]
