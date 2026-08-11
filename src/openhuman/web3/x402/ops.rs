@@ -700,11 +700,14 @@ pub(crate) fn build_evm_payment_with_signer(
     })
 }
 
-/// Derive the wallet's EVM signer from the encrypted mnemonic.
-async fn derive_evm_signer(
-) -> Result<(ethers_signers::LocalWallet, ethers_core::types::Address), X402Error> {
+/// Derive the wallet's EVM signing key from the encrypted mnemonic.
+///
+/// Returns the raw secret and the checksummed address it controls. Derivation
+/// goes through `tinywallet::key` — the same BIP-32 walk the wallet domain uses,
+/// so an x402 payment is signed by exactly the account the wallet reports — and
+/// the key stays in this process.
+async fn derive_evm_signer() -> Result<(Vec<u8>, String), X402Error> {
     use crate::openhuman::web3::wallet::WalletChain;
-    use ethers_signers::{coins_bip39::English, MnemonicBuilder, Signer};
 
     let secret = crate::openhuman::web3::wallet::secret_material(WalletChain::Evm)
         .await
@@ -722,100 +725,33 @@ async fn derive_evm_signer(
     .map_err(|e| X402Error::Wallet(format!("decrypt mnemonic: {e}")))?
     .value;
 
-    let wallet = MnemonicBuilder::<English>::default()
-        .phrase(mnemonic.as_str())
-        .derivation_path(&secret.derivation_path)
-        .map_err(|e| {
-            X402Error::Wallet(format!(
-                "invalid EVM derivation path '{}': {e}",
-                secret.derivation_path
-            ))
-        })?
-        .build()
-        .map_err(|e| X402Error::Wallet(format!("derive EVM signer: {e}")))?;
+    let derived = tinywallet::key::derive(
+        tinywallet::Chain::Evm,
+        mnemonic.as_str(),
+        &secret.derivation_path,
+    )
+    .map_err(|e| X402Error::Wallet(format!("derive EVM signer: {e}")))?;
 
-    let address = wallet.address();
-    Ok((wallet, address))
+    Ok((
+        derived.secret_bytes().to_vec(),
+        derived.address().to_string(),
+    ))
 }
 
-/// EIP-712 domain separator with default USDC params ("USD Coin", "2").
-pub(crate) fn eip712_domain_separator(
-    verifying_contract: ethers_core::types::Address,
-    chain_id: u64,
-) -> [u8; 32] {
-    eip712_domain_separator_named(verifying_contract, chain_id, "USD Coin", "2")
-}
-
-/// EIP-712 domain separator with explicit name and version from the 402 extra.
-pub(crate) fn eip712_domain_separator_named(
-    verifying_contract: ethers_core::types::Address,
-    chain_id: u64,
-    name: &str,
-    version: &str,
-) -> [u8; 32] {
-    use ethers_core::utils::keccak256;
-
-    let type_hash = keccak256(
-        b"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
-    );
-    let name_hash = keccak256(name.as_bytes());
-    let version_hash = keccak256(version.as_bytes());
-
-    let mut encoded = Vec::with_capacity(5 * 32);
-    encoded.extend(type_hash);
-    encoded.extend(name_hash);
-    encoded.extend(version_hash);
-    let mut chain_id_bytes = [0u8; 32];
-    chain_id_bytes[24..].copy_from_slice(&chain_id.to_be_bytes());
-    encoded.extend(chain_id_bytes);
-    let mut addr_bytes = [0u8; 32];
-    addr_bytes[12..].copy_from_slice(verifying_contract.as_bytes());
-    encoded.extend(addr_bytes);
-
-    keccak256(&encoded)
-}
-
-/// EIP-3009 `TransferWithAuthorization` struct hash.
-pub(crate) fn eip3009_struct_hash(
-    from: ethers_core::types::Address,
-    to: ethers_core::types::Address,
-    value: ethers_core::types::U256,
-    valid_after: ethers_core::types::U256,
-    valid_before: ethers_core::types::U256,
-    nonce: [u8; 32],
-) -> [u8; 32] {
-    use ethers_core::utils::keccak256;
-
-    let type_hash = keccak256(
-        b"TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)",
-    );
-
-    let mut encoded = Vec::with_capacity(7 * 32);
-    encoded.extend(type_hash);
-
-    let mut from_bytes = [0u8; 32];
-    from_bytes[12..].copy_from_slice(from.as_bytes());
-    encoded.extend(from_bytes);
-
-    let mut to_bytes = [0u8; 32];
-    to_bytes[12..].copy_from_slice(to.as_bytes());
-    encoded.extend(to_bytes);
-
-    let mut value_bytes = [0u8; 32];
-    value.to_big_endian(&mut value_bytes);
-    encoded.extend(value_bytes);
-
-    let mut va_bytes = [0u8; 32];
-    valid_after.to_big_endian(&mut va_bytes);
-    encoded.extend(va_bytes);
-
-    let mut vb_bytes = [0u8; 32];
-    valid_before.to_big_endian(&mut vb_bytes);
-    encoded.extend(vb_bytes);
-
-    encoded.extend(nonce);
-
-    keccak256(&encoded)
+/// The 20 raw bytes of an EVM address.
+fn evm_address_bytes(address: &str) -> Result<[u8; 20], X402Error> {
+    let validated = tinywallet::address::evm::validate(address)
+        .map_err(|e| X402Error::Protocol(format!("invalid EVM address '{address}': {e}")))?;
+    let body = validated.strip_prefix("0x").unwrap_or(&validated);
+    let mut out = [0u8; 20];
+    for (index, slot) in out.iter_mut().enumerate() {
+        let pair = body
+            .get(index * 2..index * 2 + 2)
+            .ok_or_else(|| X402Error::Protocol(format!("truncated EVM address '{address}'")))?;
+        *slot = u8::from_str_radix(pair, 16)
+            .map_err(|_| X402Error::Protocol(format!("non-hex EVM address '{address}'")))?;
+    }
+    Ok(out)
 }
 
 // ---------------------------------------------------------------------------
