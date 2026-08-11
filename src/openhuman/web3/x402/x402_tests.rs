@@ -409,6 +409,21 @@ fn eip712_domain_separator_is_deterministic() {
     assert_ne!(sep1, sep_eth);
 }
 
+/// The BIP-39 vector mnemonic's EVM account: raw secret and its address.
+///
+/// Derived through `tinywallet::key`, which is what the production path uses,
+/// so the test signs as exactly the account the wallet would.
+fn test_signer() -> (Vec<u8>, String) {
+    let test_mnemonic = "abandon abandon abandon abandon abandon abandon \
+                         abandon abandon abandon abandon abandon about";
+    let derived =
+        tinywallet::key::derive(tinywallet::Chain::Evm, test_mnemonic, "m/44'/60'/0'/0/0").unwrap();
+    (
+        derived.secret_bytes().to_vec(),
+        derived.address().to_string(),
+    )
+}
+
 /// Base mainnet USDC, as raw address bytes.
 fn base_usdc() -> [u8; 20] {
     address_bytes("833589fCD6eDb6E08f4c7C32D4f71b54bdA02913")
