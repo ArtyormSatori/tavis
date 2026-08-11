@@ -14,7 +14,7 @@ fn round_trip_preserves_every_field() {
     // happen to match.
     let opts = tinycortex_api::recall::OwnedRecallOpts {
         namespace: Some("work".to_string()),
-        category: Some("core".to_string()),
+        category: Some(tinycortex_api::types::MemoryCategory::Core),
         session_id: Some("session-9".to_string()),
         ..Default::default()
     };
