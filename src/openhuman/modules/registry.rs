@@ -119,14 +119,16 @@ const TINYWALLET: ModuleRecord = ModuleRecord {
 
 /// Published artifacts for [`TINYWALLET`].
 ///
-/// Taken verbatim from the release's `checksum.toml`, per the module docs above.
-const TINYWALLET_ASSETS: &[PlatformAsset] = &[
-    PlatformAsset {
-        host_key: "ubuntu-24.04-x86_64",
-        archive: "tinywallet-module-0.2.0-ubuntu-24.04-x86_64.tar.gz",
-        sha256: "0000000000000000000000000000000000000000000000000000000000000000",
-    },
-];
+/// Empty until `tinywallet` v0.2.0 is released, and deliberately so: the eleven
+/// entries here have to be copied verbatim from the release's `checksum.toml`,
+/// and inventing placeholder digests to fill the gap would put a constant in
+/// this file that says something untrue about a published artifact. An empty
+/// list fails the only way that is safe — [`super::platform`] finds no
+/// candidate for any host, and the wallet reports the capability as
+/// unavailable rather than downloading something unverified.
+///
+/// `tinywallet_assets_are_populated_before_release` below is the reminder.
+const TINYWALLET_ASSETS: &[PlatformAsset] = &[];
 
 /// Every module this build can load.
 pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET];
