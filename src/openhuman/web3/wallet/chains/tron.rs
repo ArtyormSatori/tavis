@@ -576,53 +576,77 @@ mod tests {
 
     #[test]
     fn tron_specs_bind_native_and_trc20_verification_fields() {
-        let raw_tx = CreateTransactionResponse {
-            tx_id: "ab".repeat(32),
-            raw_data: json!({}),
-            raw_data_hex: "deadbeef".to_string(),
-        };
         let recipient = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
         let contract = "TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH";
+        let recipient_hex = tron_address_to_hex(recipient).unwrap();
+        let contract_hex = tron_address_to_hex(contract).unwrap();
 
+        let native_raw = format!("aa{recipient_hex}18{}bb", hex::encode(encode_protobuf_varint(1_000_000)));
+        let native_txid = tinywallet::tx::tron::recompute_txid(&native_raw).unwrap();
+        let native_tx = CreateTransactionResponse {
+            tx_id: native_txid.clone(),
+            raw_data: json!({}),
+            raw_data_hex: native_raw.clone(),
+        };
         let native = tron_transaction_spec(
-            &raw_tx,
+            &native_tx,
             recipient.to_string(),
-            tinywallet::wire::TronTransfer::Native {
+            &TronTransferVerification::Native {
                 amount_sun: 1_000_000,
             },
-        );
+        )
+        .unwrap();
         assert_eq!(
             native,
             tinywallet::wire::TransactionSpec::Tron {
-                raw_data_hex: "deadbeef".to_string(),
+                raw_data_hex: native_raw,
                 expected_to: recipient.to_string(),
-                expected_txid: "ab".repeat(32),
-                transfer: tinywallet::wire::TronTransfer::Native {
-                    amount_sun: 1_000_000,
-                },
+                expected_txid: native_txid,
             }
         );
 
         let parameter = "01".repeat(64);
+        let token_raw = format!("aa{contract_hex}bb{parameter}cc");
+        let token_txid = tinywallet::tx::tron::recompute_txid(&token_raw).unwrap();
+        let token_tx = CreateTransactionResponse {
+            tx_id: token_txid.clone(),
+            raw_data: json!({}),
+            raw_data_hex: token_raw.clone(),
+        };
         let token = tron_transaction_spec(
-            &raw_tx,
+            &token_tx,
             contract.to_string(),
-            tinywallet::wire::TronTransfer::Trc20 {
+            &TronTransferVerification::Trc20 {
                 parameter_hex: parameter.clone(),
             },
-        );
+        )
+        .unwrap();
         assert_eq!(
             token,
             tinywallet::wire::TransactionSpec::Tron {
-                raw_data_hex: "deadbeef".to_string(),
+                raw_data_hex: token_raw,
                 expected_to: contract.to_string(),
-                expected_txid: "ab".repeat(32),
-                transfer: tinywallet::wire::TronTransfer::Trc20 {
-                    parameter_hex: parameter,
-                },
+                expected_txid: token_txid,
             }
         );
         assert_ne!(contract, recipient);
+
+        assert!(tron_transaction_spec(
+            &native_tx,
+            recipient.to_string(),
+            &TronTransferVerification::Native { amount_sun: 2 },
+        )
+        .unwrap_err()
+        .contains("requested amount"));
+        assert!(tron_transaction_spec(
+            &token_tx,
+            contract.to_string(),
+            &TronTransferVerification::Trc20 {
+                parameter_hex: "02".repeat(64),
+            },
+        )
+        .unwrap_err()
+        .contains("TRC20 transfer parameter"));
     }
 
     // Drives the real wallet module, so it must be the only such test in its
