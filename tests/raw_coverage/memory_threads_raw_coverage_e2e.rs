@@ -222,6 +222,7 @@ fn env_lock() -> std::sync::MutexGuard<'static, ()> {
 }
 
 fn config_in(tmp: &TempDir) -> Config {
+    ensure_memory_seams();
     let mut config = Config::default();
     config.workspace_dir = tmp.path().to_path_buf();
     config
