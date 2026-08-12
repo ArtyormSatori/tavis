@@ -18,6 +18,7 @@
 //! - [`spec`] — the typed document specs and their validation. Compiled in
 //!   every build, including `--no-default-features`, so a host whose synthesis
 //!   happens elsewhere still shares one definition of the wire contract.
+//!
 //! Writer and extractor implementations are intentionally absent: the host
 //! sends these contract values over TinyBus.
 
