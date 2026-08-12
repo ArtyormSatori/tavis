@@ -459,10 +459,11 @@ mod tests {
     /// that cannot be verified because it has not been published. Removing an
     /// entry is the last step of a module port.
     ///
-    /// - `tinymemory`: the host client and the module are both written and
-    ///   tested; the release has not been cut. Loadable meanwhile via
-    ///   `OPENHUMAN_MODULE_PATH`.
-    const PENDING_RELEASE: &[&str] = &["tinymemory"];
+    /// Empty today: every registered module has a release. Kept rather than
+    /// deleted because the exemption it grants is what lets the check above stay
+    /// strict — an accidentally asset-less record must fail, and it can only be
+    /// told apart from a deliberate one by a list like this.
+    const PENDING_RELEASE: &[&str] = &[];
 
     #[test]
     fn find_resolves_known_ids_only() {
