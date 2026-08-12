@@ -8,8 +8,25 @@
 //! depends on.
 
 use super::*;
+use crate::core::subsystem::DriverClass;
+use crate::openhuman::config::schema::MemorySubsystemConfig;
 
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+
+// `binding.rs` reaches these through its own `use` statements; a sibling test
+// module only inherits its `pub` items, so they are named again here.
+use crate::core::subsystem::{DriverHealth, SubsystemSlot};
+use tinycortex_api::capabilities::Capabilities;
+use tinycortex_api::health::MemoryHealth;
+use tinycortex_api::null::{NullMemoryProvider, NULL_DRIVER_ID};
+use tinycortex_api::provider::MemoryProvider;
+use tinycortex_api::CONTRACT_VERSION;
+
+// Imported here rather than re-exported from `binding.rs`: since admission
+// moved to `tinymemory::registry`, the production module no longer names this
+// constant and an import kept alive only for the tests would read as dead code.
+use crate::openhuman::memory::driver::embedded::EMBEDDED_DRIVER_ID;
 
 use async_trait::async_trait;
 use tinycortex_api::capabilities::Capability;
@@ -19,7 +36,7 @@ use tinycortex_api::provider::{MemoryCore, MemoryPortability, MemoryRecall};
 use tinycortex_api::recall::OwnedRecallOpts;
 use tinycortex_api::types::{MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary};
 
-use crate::openhuman::config::schema::MemoryDriverConfig;
+use tinymemory_api::host::MemoryDriverConfig;
 
 fn external_driver_cfg(trust_state: &str) -> MemorySubsystemConfig {
     let mut cfg = MemorySubsystemConfig {
@@ -618,4 +635,38 @@ fn the_embedded_driver_never_disables_memory() {
     let dir = tempfile::tempdir().unwrap();
     let binding = for_workspace(dir.path(), &MemorySubsystemConfig::default()).expect("binds");
     assert!(!binding.disables_memory());
+}
+
+// A build that admits the module class but cannot construct a module-backed
+// provider must not *report* the module class. `bind_provider` receives the
+// class that status, `modules.status` and the boot log all read, so passing the
+// admitted class while binding a placeholder advertises a live module-backed
+// surface with a null store behind it — the one failure this codebase's drift
+// guards exist to prevent, and the shape a reviewer caught here.
+
+#[cfg(not(feature = "modules"))]
+#[test]
+fn a_module_driver_reports_the_null_class_when_the_feature_is_off() {
+    let cfg = cfg_with_class("tinymemory", "module");
+    let binding = super::build(std::path::Path::new("/tmp/openhuman-binding-test"), &cfg);
+    assert_eq!(
+        binding.class(),
+        crate::core::subsystem::DriverClass::Null,
+        "a placeholder must not be reported as module-backed"
+    );
+}
+
+#[cfg(feature = "modules")]
+#[test]
+fn a_module_driver_reports_the_module_class_when_the_feature_is_on() {
+    // The other direction, so the arm above cannot be "fixed" by making every
+    // module binding report Null. Construction stays I/O-free, so this needs no
+    // runtime and loads nothing.
+    let cfg = cfg_with_class("tinymemory", "module");
+    let binding = super::build(std::path::Path::new("/tmp/openhuman-binding-test"), &cfg);
+    assert_eq!(
+        binding.class(),
+        crate::core::subsystem::DriverClass::Module,
+        "a real module binding must report the module class"
+    );
 }

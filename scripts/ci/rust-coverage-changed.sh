@@ -6,6 +6,9 @@
 #   - src/<a>/<b>/... .rs  → libtest filter "<a>::<b>" (domain-level scope, so
 #     sibling-module tests like store_tests.rs / ops.rs still run)
 #   - tests/<name>.rs      → that integration-test target only (--test <name>)
+# On top of that, a small table (`domain_integration_targets`) drags in the
+# integration targets that GUARD a domain but live outside `--lib`, so a PR
+# touching only that domain's src/ still runs its gate.
 # Coverage from all scoped runs is merged (--no-report + report) into a single
 # lcov file; the PR CI Gate's diff-cover step enforces >= 80% on changed lines.
 #
@@ -31,14 +34,61 @@ MAX_CHANGED_FILES="${MAX_CHANGED_FILES:-200}"
 
 log() { echo "[ci][rust-cov-changed] $*"; }
 
+# The desktop product's gates. `[features] default` is the CONTRIBUTOR set now
+# and deliberately omits voice, web3, documents, meet, contacts, inference and
+# crash-reporting — so a coverage run on default features would silently stop
+# measuring code that ships, and the diff-coverage gate would pass a PR whose
+# changed lines were never compiled. Source of truth:
+# scripts/ci/product-features.txt.
+PRODUCT_FEATURES="$(bash scripts/ci/product-features.sh)"
+
 llvm_cov() {
-  bash scripts/ci-cancel-aware.sh cargo llvm-cov "$@"
+  # `clean` and `report` are cargo-llvm-cov subcommands that take no feature
+  # selection; passing --features to them is an error.
+  case "${1:-}" in
+    clean | report | show-env)
+      bash scripts/ci-cancel-aware.sh cargo llvm-cov "$@"
+      return
+      ;;
+  esac
+  # `show-env` above configures ordinary Cargo test commands for coverage.
+  # Invoking cargo-llvm-cov again under those exported variables is unsupported
+  # (and fails before tests run), so remove its report-only flag and run Cargo.
+  local -a cargo_args=()
+  local arg
+  for arg in "$@"; do
+    [ "${arg}" = "--no-report" ] && continue
+    cargo_args+=("${arg}")
+  done
+  bash scripts/ci-cancel-aware.sh cargo test --features "${PRODUCT_FEATURES}" "${cargo_args[@]}"
 }
 
 integration_test_targets() {
   find tests -maxdepth 1 -type f -name '*.rs' -print |
     sed -e 's#^tests/##' -e 's#\.rs$##' |
     sort
+}
+
+# Integration-test targets a changed *source* path must drag in, on top of its
+# `--lib` filter.
+#
+# The default scoping maps `src/<a>/<b>/…` to the libtest filter `<a>::<b>`,
+# which runs `--lib` only. That is right for domains whose contract is unit
+# tested, and wrong for domains whose contract lives in an integration target:
+# such a gate never runs on a PR that touches only the domain's `src/`.
+#
+#   src/openhuman/memory/** → the golden-workspace schema gates. They stand
+#   between a memory-store schema change and a corrupted user workspace, and
+#   they are `tests/` targets, so `--lib` scoping alone skips them entirely.
+#
+# Echoes zero or more target names, one per line; the caller tolerates an
+# empty result.
+domain_integration_targets() {
+  case "$1" in
+    src/openhuman/memory/*)
+      printf '%s\n' memory_golden_fixture_e2e memory_golden_parity_e2e
+      ;;
+  esac
 }
 
 raw_coverage_modules() {
@@ -60,6 +110,12 @@ run_integration_target() {
       log "running raw coverage module: ${module}"
       llvm_cov --no-report --no-fail-fast -p openhuman --test "${target}" -- "${module}::" --test-threads=1
     done < <(raw_coverage_modules)
+  elif [ "${target}" = "json_rpc_e2e" ]; then
+    # This target exercises process-global runtime/config state. Its tests take
+    # an environment lock, but background agent tasks can outlive an individual
+    # case briefly; keeping libtest serial prevents a successor from observing
+    # that teardown window.
+    llvm_cov --no-report --no-fail-fast -p openhuman --test "${target}" -- --test-threads=1
   else
     llvm_cov --no-report --no-fail-fast -p openhuman --test "${target}"
   fi
@@ -79,6 +135,18 @@ run_full() {
   llvm_cov report --lcov --output-path "${OUT}"
   exit 0
 }
+
+# Containerised GitHub runners mount the workspace from the host. LLVM can run
+# the test binary successfully there while silently failing to create its raw
+# profile on that mount. `show-env` is cargo-llvm-cov's supported mode for
+# instrumenting ordinary Cargo test commands; override only its profile output
+# after it has configured the compiler wrapper.
+eval "$(cargo llvm-cov show-env --sh)"
+# Keep profiles where cargo-llvm-cov itself reports from. This avoids relying
+# on bind-mounted temporary paths that the report subprocess cannot observe.
+profile_dir="${LLVM_PROFILE_DIR:-${CARGO_LLVM_COV_TARGET_DIR}}"
+mkdir -p "${profile_dir}"
+export LLVM_PROFILE_FILE="${profile_dir}/core-%p-%m.profraw"
 
 if [ "${FULL}" = "true" ]; then
   run_full "build-config/workflow-level change detected by paths-filter"
@@ -140,6 +208,12 @@ for f in "${files[@]}"; do
       lib_filters_raw="${lib_filters_raw}${key}
 "
       log "${f} → libtest filter '${key}'"
+      while IFS= read -r extra_target; do
+        [ -n "${extra_target}" ] || continue
+        test_targets_raw="${test_targets_raw}${extra_target}
+"
+        log "${f} → integration gate '--test ${extra_target}'"
+      done < <(domain_integration_targets "${f}")
       ;;
     src/*/*)
       # Non-.rs asset embedded in a domain (e.g. agent prompt markdown under
@@ -155,6 +229,20 @@ for f in "${files[@]}"; do
       lib_filters_raw="${lib_filters_raw}${key}
 "
       log "${f} → libtest filter '${key}' (embedded asset)"
+      while IFS= read -r extra_target; do
+        [ -n "${extra_target}" ] || continue
+        test_targets_raw="${test_targets_raw}${extra_target}
+"
+        log "${f} → integration gate '--test ${extra_target}'"
+      done < <(domain_integration_targets "${f}")
+      ;;
+    tests/fixtures/memory_golden/*)
+      # The golden memory-workspace fixture (committed .db blobs + the derived
+      # manifest). A change here IS the schema-gate re-baseline, so run the
+      # gates rather than falling through to the `*)` full-suite arm.
+      test_targets_raw="${test_targets_raw}memory_golden_fixture_e2e
+"
+      log "${f} → integration gate '--test memory_golden_fixture_e2e'"
       ;;
     tests/raw_coverage/*.rs)
       # The ~76 *_raw_coverage_e2e.rs suites are aggregated into the single
@@ -213,6 +301,10 @@ if [ "${#test_targets[@]}" -gt 0 ]; then
     run_integration_target "${t}"
   done
 fi
+
+shopt -s nullglob
+profiles=("${profile_dir}"/*.profraw)
+test "${#profiles[@]}" -gt 0
 
 log "merging coverage into ${OUT}"
 llvm_cov report --lcov --output-path "${OUT}"
