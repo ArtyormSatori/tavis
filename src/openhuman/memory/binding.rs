@@ -228,6 +228,12 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
         Some(raw) => DriverClass::parse(raw).map_err(|e| refuse(&e))?,
     };
 
+    if class == DriverClass::Embedded {
+        return Err(refuse(
+            "embedded memory drivers are no longer supported; use the 'tinymemory' module driver",
+        ));
+    }
+
     let built_in_class = match id {
         NULL_DRIVER_ID => Some(DriverClass::Null),
         MODULE_ID => Some(DriverClass::Module),
@@ -236,15 +242,9 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
     if let Some(expected) = built_in_class {
         if class != expected {
             return Err(refuse(&format!(
-                "built in driver '{id}' has class '{expected}' and cannot be re-classed as '{class}'"
+                "built in driver '{configured_id}' has class '{expected}' and cannot be re-classed as '{class}'"
             )));
         }
-    }
-
-    if class == DriverClass::Embedded {
-        return Err(refuse(
-            "embedded memory drivers are no longer supported; use the 'tinymemory' module driver",
-        ));
     }
 
     if class == DriverClass::Module && id != MODULE_ID {

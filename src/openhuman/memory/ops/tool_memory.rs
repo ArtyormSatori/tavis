@@ -72,11 +72,7 @@ pub struct ToolRulesForPromptParams {
 async fn tool_memory(
 ) -> Result<std::sync::Arc<dyn crate::openhuman::memory::api::provider::MemoryProvider>, String> {
     let guard = super::guard::active_memory_guard().await?;
-    let provider = Arc::clone(guard.inner());
-    provider
-        .as_tool_memory()
-        .ok_or_else(|| NO_TOOL_MEMORY.to_string())?;
-    Ok(provider)
+    Ok(Arc::clone(guard.inner()))
 }
 
 /// Upsert a tool-scoped memory rule.
@@ -96,10 +92,10 @@ pub async fn tool_rule_put(
             rule.id = id;
         }
     }
-    tool_memory()
-        .await?
+    let provider = tool_memory().await?;
+    provider
         .as_tool_memory()
-        .expect("checked")
+        .ok_or_else(|| NO_TOOL_MEMORY.to_string())?
         .put_tool_rule(rule.clone())
         .await
         .map_err(|e| e.to_string())?;
@@ -115,10 +111,10 @@ pub async fn tool_rule_get(
         params.tool_name,
         params.id
     );
-    let rule = tool_memory()
-        .await?
+    let provider = tool_memory().await?;
+    let rule = provider
         .as_tool_memory()
-        .expect("checked")
+        .ok_or_else(|| NO_TOOL_MEMORY.to_string())?
         .tool_rules(&params.tool_name)
         .await
         .map_err(|e| e.to_string())?
@@ -200,7 +196,9 @@ pub async fn tool_rules_for_prompt(
         params.tools
     );
     let provider = tool_memory().await?;
-    let family = provider.as_tool_memory().expect("checked");
+    let family = provider
+        .as_tool_memory()
+        .ok_or_else(|| NO_TOOL_MEMORY.to_string())?;
     let mut flat = Vec::new();
     for tool in &params.tools {
         flat.extend(family.tool_rules(tool).await.map_err(|e| e.to_string())?);
@@ -228,10 +226,10 @@ pub async fn tool_rules_json(params: ToolRuleListParams) -> Result<RpcOutcome<Va
         "[tool-memory] rpc tool_rules_json tool={}",
         params.tool_name
     );
-    let rules = tool_memory()
-        .await?
+    let provider = tool_memory().await?;
+    let rules = provider
         .as_tool_memory()
-        .expect("checked")
+        .ok_or_else(|| NO_TOOL_MEMORY.to_string())?
         .tool_rules(&params.tool_name)
         .await
         .map_err(|e| e.to_string())?;

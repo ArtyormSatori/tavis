@@ -50,12 +50,11 @@ pub mod tron;
 /// # Errors
 ///
 /// Whatever the chain's own `validate` returns, plus
-/// [`crate::openhuman::web3::wallet::primitives::Error::ChainNotCompiled`] if `chain`'s feature gate is disabled in
-/// this build. That case is a build fact rather than a property of the address:
-/// the validation code was not compiled, so there is no answer to give, and
-/// silently accepting or rejecting would be a wrong answer dressed up as a
-/// real one. A host building with a subset of gates can match on [`Chain`]
-/// itself and never encounter it.
+/// [`crate::openhuman::web3::wallet::primitives::Error::ChainNotCompiled`] if the shared `web3` feature gate is
+/// disabled in this build. That case is a build fact rather than a property of
+/// the address: the validation code was not compiled, so there is no answer to
+/// give, and silently accepting or rejecting would be a wrong answer dressed
+/// up as a real one.
 ///
 /// # Examples
 ///
@@ -71,10 +70,7 @@ pub mod tron;
 // With every chain gate off, only the `ChainNotCompiled` arm survives and
 // `address` goes unread. That build is legal (a host may depend on this crate
 // purely for `Chain`), so the unused binding is expected rather than a bug.
-#[cfg_attr(
-    not(any(feature = "web3", feature = "web3", feature = "web3", feature = "web3")),
-    allow(unused_variables)
-)]
+#[cfg_attr(not(feature = "web3"), allow(unused_variables))]
 pub fn validate(chain: Chain, address: &str) -> Result<String> {
     match chain {
         #[cfg(feature = "web3")]

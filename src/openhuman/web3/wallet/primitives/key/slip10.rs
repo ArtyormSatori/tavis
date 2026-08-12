@@ -82,10 +82,17 @@ fn parse_path(path: &str) -> Result<Vec<u32>> {
                 path: path.to_string(),
             });
         };
-        out.push(index.parse::<u32>().map_err(|e| Error::InvalidPath {
+        let index = index.parse::<u32>().map_err(|e| Error::InvalidPath {
             path: path.to_string(),
             reason: format!("segment '{segment}': {e}"),
-        })?);
+        })?;
+        if index >= 0x8000_0000 {
+            return Err(Error::InvalidPath {
+                path: path.to_string(),
+                reason: format!("segment '{segment}' exceeds the maximum raw index"),
+            });
+        }
+        out.push(index);
     }
 
     if out.is_empty() {

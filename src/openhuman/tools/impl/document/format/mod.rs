@@ -11,9 +11,6 @@
 //! No filesystem access, no subprocesses, no async runtime, no deadline
 //! handling. Synthesis runs in the document bus module; this host module owns
 //! the wire contract and validation only.
-//! on an async executor owns the blocking-pool hop and the timeout, because
-//! only the host knows its own executor and deadline policy — and a crate that
-//! guessed at either would be wrong for every other host.
 //!
 //! # Layout
 //!

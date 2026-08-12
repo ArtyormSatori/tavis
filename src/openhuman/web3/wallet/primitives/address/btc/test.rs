@@ -158,8 +158,8 @@ fn rejects_a_taproot_address_carrying_a_bech32_checksum() {
 }
 
 #[test]
-fn rejects_a_witness_program_of_the_wrong_length_for_version_zero() {
-    // BIP-173: a v0 program is 20 or 32 bytes and nothing else.
+fn rejects_a_witness_program_with_the_wrong_checksum_for_version_three() {
+    // BIP-350: witness versions 1..=16 require bech32m, not bech32.
     let v0_16_bytes = "bc1rw5uspcuh";
     assert!(validate(v0_16_bytes).is_err());
 }

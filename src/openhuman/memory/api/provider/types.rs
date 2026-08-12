@@ -85,7 +85,7 @@ impl SourceScope {
     /// rule.
     ///
     /// ```
-    /// use crate::openhuman::memory::api::provider::types::SourceScope;
+    /// use openhuman_core::openhuman::memory::api::provider::types::SourceScope;
     ///
     /// let scope = SourceScope::new(["src-abc"]);
     /// assert!(scope.allows_source_id("src-abc"));

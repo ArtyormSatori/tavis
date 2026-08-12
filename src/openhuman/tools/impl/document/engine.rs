@@ -209,7 +209,7 @@ mod tests {
 
     // The OOXML round trips that used to live here — container shape, which
     // text reaches document.xml, blank filtering — moved with the writer into
-    // `crate::openhuman::tools::implementations::document::format::docx`, which tests them against the bytes it produces. Asserting
+    // the TinyDocs module, which tests them against the bytes it produces. Asserting
     // them again through a bus call would test the same behaviour twice and
     // drift the moment one copy changed.
 

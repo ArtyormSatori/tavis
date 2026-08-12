@@ -22,7 +22,25 @@ use async_trait::async_trait;
 /// unsearchable without a re-embed.
 #[must_use]
 pub fn format_embedding_signature(name: &str, model_id: &str, dims: usize) -> String {
-    format!("provider={name};model={model_id};dims={dims}")
+    format!(
+        "provider={}:{};model={}:{};dims={dims}",
+        name.len(),
+        name,
+        model_id.len(),
+        model_id
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_embedding_signature;
+
+    #[test]
+    fn delimiter_characters_cannot_make_distinct_spaces_collide() {
+        let first = format_embedding_signature("a;model=b", "c", 3);
+        let second = format_embedding_signature("a", "b;model=c", 3);
+        assert_ne!(first, second);
+    }
 }
 
 /// Converts text into numerical vectors.

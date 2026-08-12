@@ -218,6 +218,14 @@ fn a_solana_path_with_a_non_numeric_segment_is_rejected() {
 }
 
 #[test]
+fn a_solana_path_with_an_already_hardened_index_is_rejected() {
+    assert!(matches!(
+        derive(Chain::Solana, VECTOR, "m/44'/501'/2147483648'").unwrap_err(),
+        Error::InvalidPath { .. }
+    ));
+}
+
+#[test]
 fn derivation_backend_failures_remain_specific_without_leaking_inputs() {
     // Drives the real derivation path rather than the backend's error mapper.
     // The previous version of this test called two private helpers with a
