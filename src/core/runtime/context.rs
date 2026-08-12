@@ -973,10 +973,12 @@ mod tests {
         };
 
         let bind_a = ctx.memory_binding().expect("bind workspace A");
-        assert_eq!(
-            bind_a.class(),
-            crate::core::subsystem::DriverClass::Embedded
-        );
+        let expected = if cfg!(feature = "modules") {
+            crate::core::subsystem::DriverClass::Module
+        } else {
+            crate::core::subsystem::DriverClass::Null
+        };
+        assert_eq!(bind_a.class(), expected);
 
         let null_cfg = crate::openhuman::config::schema::MemorySubsystemConfig {
             driver: "null".to_string(),
@@ -1017,7 +1019,7 @@ mod tests {
         };
 
         let bind_a = a.memory_binding().expect("bind workspace A");
-        assert_eq!(bind_a.driver_id(), "tinycortex");
+        assert_eq!(bind_a.driver_id(), "tinymemory");
         assert!(bind_a.fallback().is_none());
 
         let bind_b = b.memory_binding().expect("workspace B falls back");

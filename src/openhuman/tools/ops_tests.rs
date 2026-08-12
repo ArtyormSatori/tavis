@@ -3005,10 +3005,11 @@ fn memory_tools_all_present_with_no_ambient_context() {
     }
 }
 
-/// Under the default (`driver = "tinycortex"`) binding the embedded driver
+/// Under the default binding the TinyMemory module
 /// advertises all thirteen families, so the list is byte-identical to today.
 #[tokio::test]
-async fn memory_tools_all_present_under_the_embedded_driver() {
+#[cfg(feature = "modules")]
+async fn memory_tools_all_present_under_the_module_driver() {
     use crate::core::runtime::context::CoreContext;
     use crate::core::runtime::DomainSet;
 
@@ -3025,13 +3026,13 @@ async fn memory_tools_all_present_under_the_embedded_driver() {
     {
         assert!(
             names.iter().any(|n| n == name),
-            "`{name}` must survive the embedded driver; got: {names:?}"
+            "`{name}` must survive the module driver; got: {names:?}"
         );
     }
     if cfg!(feature = "memory-git") {
         assert!(
             names.iter().any(|n| n == "memory_diff"),
-            "`memory_diff` must survive the embedded driver when `memory-git` is on; got: {names:?}"
+            "`memory_diff` must survive the module driver when `memory-git` is on; got: {names:?}"
         );
     }
 }

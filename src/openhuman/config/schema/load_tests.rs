@@ -813,7 +813,9 @@ fn env_overlay_memory_sync_interval_parses_and_honours_zero() {
 #[test]
 fn env_overlay_subsystems_memory_driver_and_hooks_apply() {
     let mut cfg = Config::default();
-    assert_eq!(cfg.subsystems.memory.driver, "tinymemory");
+    // The shared schema retains the persisted legacy id; binding normalizes it
+    // to the built-in `tinymemory` module id.
+    assert_eq!(cfg.subsystems.memory.driver, "tinycortex");
     assert!(cfg.subsystems.memory.hooks.auto_recall);
     assert!(cfg.subsystems.memory.hooks.auto_capture);
     assert_eq!(cfg.subsystems.memory.hooks.max_context_tokens, 2000);

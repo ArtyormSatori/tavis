@@ -1983,8 +1983,9 @@ async fn visible_under(
 }
 
 #[tokio::test]
+#[cfg(feature = "modules")]
 async fn memory_families_registered_when_capabilities_advertised() {
-    // The embedded `tinycortex` driver (the default config) advertises
+    // The TinyMemory module driver advertises
     // `Capabilities::all()`, so every gated family is present. Scoped rather
     // than unscoped so this proves a BOUND driver's set, not the unbound
     // default-open fallback.
