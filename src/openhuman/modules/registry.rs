@@ -198,9 +198,65 @@ const TINYMEMORY: ModuleRecord = ModuleRecord {
     description: "Local memory engine: store, ranked recall, and portable export",
     bus_name: "ai.tinyhumans.tinymemory.Memory",
     object_path: "/ai/tinyhumans/tinymemory/Memory",
-    version: "0.1.0",
-    release_url: "https://github.com/tinyhumansai/tinymemory/releases/tag/v0.1.0",
-    assets: &[],
+    version: "0.3.0",
+    release_url: "https://github.com/tinyhumansai/tinymemory/releases/tag/v0.3.0",
+    assets: &[
+        PlatformAsset {
+            host_key: "ubuntu-24.04-x86_64",
+            archive: "tinymemory-module-0.3.0-ubuntu-24.04-x86_64.tar.gz",
+            sha256: "c0406030c7cc09b386bc6040ab29dbafe6dd4f428db9623819c567b4c71afb5a",
+        },
+        PlatformAsset {
+            host_key: "ubuntu-24.04-arm64",
+            archive: "tinymemory-module-0.3.0-ubuntu-24.04-arm64.tar.gz",
+            sha256: "c4e165b68887874acba691dd6a103feea8d0acb401a1d8d00c073bc27404d08f",
+        },
+        PlatformAsset {
+            host_key: "ubuntu-22.04-x86_64",
+            archive: "tinymemory-module-0.3.0-ubuntu-22.04-x86_64.tar.gz",
+            sha256: "e3ac3eb98997bd25b02bdb71c3d565b2e42a89fa4b7f6369758b3ec6a684c857",
+        },
+        PlatformAsset {
+            host_key: "ubuntu-22.04-arm64",
+            archive: "tinymemory-module-0.3.0-ubuntu-22.04-arm64.tar.gz",
+            sha256: "bf06c9540bed6f2c1b95c57f324fd6a33a33bc10a2a7deaddd36fbafc7d02c40",
+        },
+        PlatformAsset {
+            host_key: "macos-26-arm64",
+            archive: "tinymemory-module-0.3.0-macos-26-arm64.tar.gz",
+            sha256: "2d4266d1430c7fa9ec3e609785d534a0fe84a4a1d00ae9fbb151c82c32eccf19",
+        },
+        PlatformAsset {
+            host_key: "macos-26-x86_64",
+            archive: "tinymemory-module-0.3.0-macos-26-x86_64.tar.gz",
+            sha256: "11b63f0492a9c365ebecfc2e7e433cd133b58e0e727322868b6ef3e6edbd8b4b",
+        },
+        PlatformAsset {
+            host_key: "macos-15-arm64",
+            archive: "tinymemory-module-0.3.0-macos-15-arm64.tar.gz",
+            sha256: "7a39d272aa29148ef652727bbc05d67c361c4d706a7d89a5dedab192bbb75642",
+        },
+        PlatformAsset {
+            host_key: "macos-15-x86_64",
+            archive: "tinymemory-module-0.3.0-macos-15-x86_64.tar.gz",
+            sha256: "0c7eba4e64009eec8e1ae19bfc9b5859136ebf6bc6cb7efa7510a61da42f4456",
+        },
+        PlatformAsset {
+            host_key: "windows-2025-x86_64",
+            archive: "tinymemory-module-0.3.0-windows-2025-x86_64.zip",
+            sha256: "4e55458bc79e1c504d1224afb70edd8404fe8ee3bf0f5e2d44bb258cae79fe05",
+        },
+        PlatformAsset {
+            host_key: "windows-2022-x86_64",
+            archive: "tinymemory-module-0.3.0-windows-2022-x86_64.zip",
+            sha256: "608354bf847ee32f90fa6f76c918c20441be9ec09544338867512dbf49b4685d",
+        },
+        PlatformAsset {
+            host_key: "windows-11-arm64",
+            archive: "tinymemory-module-0.3.0-windows-11-arm64.zip",
+            sha256: "b7b55d5a473d43053e791eb94116e9e88fc3533b8a7325c45dad832018f02766",
+        },
+    ],
     // Eager, unlike the two codecs above. A codec that is never asked for should
     // not be paid for, but a memory driver's absence changes what the kernel
     // offers rather than merely delaying it: capabilities are read at bind time
