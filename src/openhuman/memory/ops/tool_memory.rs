@@ -6,9 +6,9 @@
 //! never `global` or `tool_effectiveness`.
 //!
 //! Every handler reaches the module-backed [`MemoryToolMemory`](crate::openhuman::memory::api::provider::MemoryToolMemory)
-//! API. List and delete apply the full [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard)
-//! policy; the remaining host-shaped operations compose the same API methods
-//! to preserve their historical response values.
+//! API through [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard),
+//! including the host-shaped operations that compose multiple API methods to
+//! preserve their historical response values.
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -65,10 +65,8 @@ pub struct ToolRulesForPromptParams {
     pub tools: Vec<String>,
 }
 
-async fn tool_memory(
-) -> Result<std::sync::Arc<dyn crate::openhuman::memory::api::provider::MemoryProvider>, String> {
-    let guard = super::guard::active_memory_guard().await?;
-    Ok(Arc::clone(guard.inner()))
+async fn tool_memory_guard() -> Result<Arc<crate::openhuman::memory::guard::MemoryGuard>, String> {
+    super::guard::active_memory_guard().await
 }
 
 /// Upsert a tool-scoped memory rule.
@@ -88,8 +86,8 @@ pub async fn tool_rule_put(
             rule.id = id;
         }
     }
-    let provider = tool_memory().await?;
-    provider
+    let guard = tool_memory_guard().await?;
+    guard
         .as_tool_memory()
         .ok_or_else(|| NO_TOOL_MEMORY.to_string())?
         .put_tool_rule(rule.clone())
@@ -107,8 +105,8 @@ pub async fn tool_rule_get(
         params.tool_name,
         params.id
     );
-    let provider = tool_memory().await?;
-    let rule = provider
+    let guard = tool_memory_guard().await?;
+    let rule = guard
         .as_tool_memory()
         .ok_or_else(|| NO_TOOL_MEMORY.to_string())?
         .tool_rules(&params.tool_name)
@@ -188,8 +186,8 @@ pub async fn tool_rules_for_prompt(
         "[tool-memory] rpc tool_rules_for_prompt tools={:?}",
         params.tools
     );
-    let provider = tool_memory().await?;
-    let family = provider
+    let guard = tool_memory_guard().await?;
+    let family = guard
         .as_tool_memory()
         .ok_or_else(|| NO_TOOL_MEMORY.to_string())?;
     let mut flat = Vec::new();
@@ -226,8 +224,8 @@ pub async fn tool_rules_json(params: ToolRuleListParams) -> Result<RpcOutcome<Va
         "[tool-memory] rpc tool_rules_json tool={}",
         params.tool_name
     );
-    let provider = tool_memory().await?;
-    let rules = provider
+    let guard = tool_memory_guard().await?;
+    let rules = guard
         .as_tool_memory()
         .ok_or_else(|| NO_TOOL_MEMORY.to_string())?
         .tool_rules(&params.tool_name)
