@@ -784,7 +784,9 @@ jobs:
         # cargo's fingerprints do not distinguish a previously restored
         # non-instrumented test executable, which then runs successfully but
         # produces no .profraw file for cargo-llvm-cov to merge.
-        run: cargo llvm-cov clean --manifest-path app/src-tauri/Cargo.toml
+        run: |
+          export CARGO_TARGET_DIR="$PWD/app/src-tauri/target/llvm-cov-target"
+          cargo llvm-cov clean --manifest-path app/src-tauri/Cargo.toml
 
       - name: Run cargo llvm-cov for Tauri shell
         run: |

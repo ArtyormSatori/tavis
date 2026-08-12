@@ -141,6 +141,11 @@ run_full() {
 # profile on that mount. `show-env` is cargo-llvm-cov's supported mode for
 # instrumenting ordinary Cargo test commands; override only its profile output
 # after it has configured the compiler wrapper.
+#
+# Do not preserve the runner's sccache wrapper here. It can return an object
+# compiled without coverage instrumentation, which lets tests pass but leaves
+# no `.profraw` data for the report step.
+unset RUSTC_WRAPPER
 eval "$(cargo llvm-cov show-env --sh)"
 # Keep profiles where cargo-llvm-cov itself reports from. This avoids relying
 # on bind-mounted temporary paths that the report subprocess cannot observe.
