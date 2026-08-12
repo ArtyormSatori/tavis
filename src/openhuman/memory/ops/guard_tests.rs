@@ -50,7 +50,7 @@ async fn guards_the_module_driver_and_keeps_its_identity() {
     let guard = active_memory_guard().await.expect("guard resolves");
     assert_eq!(
         guard.driver_id(),
-        crate::openhuman::modules::memory::MODULE_ID
+        crate::openhuman::memory::binding::MODULE_ID
     );
     assert!(guard.as_documents().is_some());
     assert!(guard.as_graph().is_some());

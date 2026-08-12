@@ -23,11 +23,6 @@ use crate::openhuman::memory::api::null::{NullMemoryProvider, NULL_DRIVER_ID};
 use crate::openhuman::memory::api::provider::MemoryProvider;
 use crate::openhuman::memory::api::CONTRACT_VERSION;
 
-// Imported here rather than re-exported from `binding.rs`: since admission
-// moved to `tinymemory::registry`, the production module no longer names this
-// constant and an import kept alive only for the tests would read as dead code.
-use crate::openhuman::modules::memory::MODULE_ID;
-
 use crate::openhuman::memory::api::capabilities::Capability;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::provider::types::{

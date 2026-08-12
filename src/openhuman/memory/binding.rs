@@ -53,6 +53,9 @@ use crate::core::subsystem::{
 };
 use crate::openhuman::config::schema::MemorySubsystemConfig;
 
+/// Registry id of the built-in TinyMemory module.
+pub(crate) const MODULE_ID: &str = "tinymemory";
+
 /// Why a bind fell back to the placeholder driver.
 ///
 /// `reason` is operator-facing: it is logged, published on the event bus, and
@@ -190,7 +193,6 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
         reason: reason.to_string(),
     };
 
-    const MODULE_ID: &str = "tinymemory";
     // Temporary persisted-config alias. The schema still comes from the
     // legacy contract until its remaining engine callers are moved onto the
     // host-owned copy; both values bind the compiled module and report its
