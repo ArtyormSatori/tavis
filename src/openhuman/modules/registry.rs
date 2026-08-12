@@ -173,26 +173,21 @@ const TINYWALLET: ModuleRecord = ModuleRecord {
     load: LoadPolicy::Lazy,
 };
 
-/// Every module this build can load.
 /// The memory engine, served as a driver.
 ///
-/// # `assets` is empty on purpose, and this record is therefore inert
+/// # The digests below came from the release, not from a local build
 ///
-/// No `tinymemory` release has been cut yet. A `PlatformAsset` pairs an archive
-/// name with the SHA-256 that makes those bytes legitimate, and that digest must
-/// be copied **verbatim from the release's `checksum.toml`** — never computed
-/// from a local build, which would pin whatever this machine happened to produce
-/// and defeat the point of a second, offline-auditable gate.
+/// Every `sha256` here was copied verbatim from
+/// `v0.3.0`'s `checksum.toml`. Recomputing one from a local
+/// build would pin whatever this machine happened to produce, which defeats the
+/// point: tinybus fetches the release's own manifest, compares it with this
+/// value, hashes the download, and only then extracts. Pinning here is the half
+/// of that check which is auditable offline, and the half that makes a release
+/// re-cut under the same tag stop matching rather than silently replacing what
+/// runs in-process.
 ///
-/// So the entry ships with no assets rather than with placeholder digests. The
-/// consequences are the correct ones: `platform`'s resolver finds no candidate,
-/// `modules.status` reports `Unsupported`, and `ensure_loaded` refuses instead of
-/// downloading something unverifiable. A developer can still load a locally built
-/// artifact through `OPENHUMAN_MODULE_PATH`, which is how the host side is
-/// exercised before the release exists.
-///
-/// Filling this in is the last step of the port: cut the release, then paste the
-/// eleven digests here.
+/// If these ever need to change, take the new values from the release. Do not
+/// run `sha256sum` on `target/release/`.
 const TINYMEMORY: ModuleRecord = ModuleRecord {
     id: "tinymemory",
     description: "Local memory engine: store, ranked recall, and portable export",
