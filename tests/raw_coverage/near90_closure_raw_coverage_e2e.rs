@@ -105,6 +105,20 @@ fn env_lock() -> std::sync::MutexGuard<'static, ()> {
         .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
+fn ensure_memory_seams() {
+    std::thread::Builder::new()
+        .name("round20-memory-seams".to_string())
+        .stack_size(8 * 1024 * 1024)
+        .spawn(|| {
+            openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(Arc::new(
+                openhuman_core::openhuman::config::Config::default(),
+            ));
+        })
+        .expect("spawn round20 memory seam installer")
+        .join()
+        .expect("round20 memory seam installer panicked");
+}
+
 fn tempdir() -> TempDir {
     std::fs::create_dir_all("target").expect("create target");
     Builder::new()
@@ -494,6 +508,7 @@ async fn round20_memory_sources_readers_and_sync_cover_error_edges_without_netwo
 #[tokio::test]
 async fn round20_memory_documents_files_and_envelopes_cover_success_and_failure_paths() {
     let _lock = env_lock();
+    ensure_memory_seams();
     let harness = setup("http://127.0.0.1:9");
 
     let init = memory_init(MemoryInitRequest {
