@@ -70,17 +70,33 @@ fn the_registry_record_matches_the_interface_the_module_serves() {
 }
 
 #[test]
-fn the_memory_record_publishes_no_assets_yet_and_that_is_deliberate() {
-    // Guards the reason, not just the state: digests must be copied verbatim from
-    // a release `checksum.toml`, and no release exists. If someone adds assets,
-    // this test failing is the prompt to confirm the digests came from the release
-    // rather than from a local build.
+fn the_memory_record_publishes_one_asset_per_supported_host() {
+    // The release exists now, so the question this test used to ask ("are the
+    // assets deliberately absent?") is settled. What is worth pinning instead is
+    // that the set is complete: a record missing a host silently reports
+    // `Unsupported` there rather than failing loudly, so a platform can lose the
+    // driver without anything saying so.
+    //
+    // The digests themselves are checked structurally by `registry`'s own tests
+    // (lowercase, 64 hex chars) and semantically by tinybus, which refetches the
+    // release manifest and refuses on disagreement. Nothing here can verify they
+    // came from the release rather than a local build — that is a review rule,
+    // and it is written on the record itself.
     let record = registry::find(MODULE_ID).expect("registered");
-    assert!(
-        record.assets.is_empty(),
-        "assets appeared — confirm every sha256 was copied from the release \
-         checksum.toml and not computed locally, then update this test"
+    assert_eq!(
+        record.assets.len(),
+        11,
+        "expected one asset per released host, got {:?}",
+        record.assets.iter().map(|a| a.host_key).collect::<Vec<_>>()
     );
+    for asset in record.assets {
+        assert!(
+            asset.archive.contains(record.version),
+            "{} names version-less or mismatched archive {}",
+            asset.host_key,
+            asset.archive
+        );
+    }
 }
 
 #[test]
