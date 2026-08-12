@@ -62,9 +62,11 @@ impl Tool for ProposeWorkflowTool {
          execute_by_workflow; schedule needs config.schedule = {kind:\"cron\",expr,tz?} | \
          {kind:\"at\",at} | {kind:\"every\",every_ms}; app_event needs config.toolkit + \
          config.trigger_slug), agent (config.prompt), tool_call (config.slug REQUIRED + \
-         config.args), http_request (config.method/url, optional headers/body), shell \
-         (config.source), code \
-         (config.language: \"javascript\"|\"python\" + config.source), condition (config.field; \
+         config.args), http_request (config.method/url, optional headers/body), code \
+         (config.language: \"javascript\"|\"python\" + config.source), shell (exactly one of \
+         config.source or config.script_path; optional config.interpreter: \"sh\"|\"bash\", \
+         config.cwd, config.env; this host rejects execution until it has a policy-aware shell \
+         capability), condition (config.field; \
          routes on from_port \"true\"/\"false\", e.g. {from_node:\"gate\",from_port:\"true\",\
          to_node:\"x\",to_port:\"main\"}), switch (config.expression or config.field; routes to \
          the matching case port, or \"default\"), transform (config.set: {key: \"=expr\"} \
@@ -115,9 +117,9 @@ impl Tool for ProposeWorkflowTool {
                                         "type": "string",
                                         "enum": [
                                             "trigger", "agent", "tool_call", "http_request",
-                                            "code", "condition", "switch", "merge", "split_out",
+                                            "code", "shell", "condition", "switch", "merge", "split_out",
                                             "transform", "output_parser", "sub_workflow", "memory",
-                                            "dedup", "loop", "shell"
+                                            "dedup", "loop"
                                         ]
                                     },
                                     "name": { "type": "string", "description": "Human-readable node name." },
@@ -497,7 +499,11 @@ fn config_hint(node: &Node) -> Option<String> {
             .and_then(Value::as_str)
             .map(str::to_string)
             .or_else(|| Some("javascript".to_string())),
-        NodeKind::Shell => cfg.get("source").and_then(Value::as_str).map(truncate_hint),
+        NodeKind::Shell => cfg
+            .get("script_path")
+            .and_then(Value::as_str)
+            .map(|path| truncate_hint(&format!("script: {path}")))
+            .or_else(|| cfg.get("source").and_then(Value::as_str).map(truncate_hint)),
         NodeKind::Condition => cfg
             .get("field")
             .and_then(Value::as_str)
