@@ -157,10 +157,10 @@ mod tests {
 
         let status = status_from_binding(&binding).await;
         assert_eq!(status.slot, "memory");
-        // The default `[subsystems.memory] driver` is the embedded tinycortex
-        // driver.
-        assert_eq!(status.driver, cfg.driver);
-        assert_eq!(status.class, "embedded");
+        // The legacy default id is normalized to the compiled TinyMemory
+        // module at the binding boundary.
+        assert_eq!(status.driver, crate::openhuman::memory::binding::MODULE_ID);
+        assert_eq!(status.class, "module");
         assert_eq!(status.health, "ready");
         assert_eq!(
             status.contract_version,

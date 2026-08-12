@@ -118,24 +118,30 @@ pub(super) async fn install(
     connection: &tinybus::Connection,
     config: Arc<Config>,
 ) -> tinybus::Result<()> {
-    connection
-        .serve_at(
-            ObjectPath::new(EMBEDDING_PATH)?,
-            EmbeddingCallbacks(Arc::clone(&config)),
-        )
-        .await?;
-    connection
-        .serve_at(
-            ObjectPath::new(CHAT_PATH)?,
-            ChatCallbacks(Arc::clone(&config)),
-        )
-        .await?;
-    connection
-        .serve_at(ObjectPath::new(RUNTIME_PATH)?, RuntimeCallbacks(config))
-        .await?;
-    connection.request_name(EMBEDDING_NAME).await?;
-    connection.request_name(CHAT_NAME).await?;
-    connection.request_name(RUNTIME_NAME).await
+    static INSTALLED: tokio::sync::OnceCell<()> = tokio::sync::OnceCell::const_new();
+    INSTALLED
+        .get_or_try_init(|| async move {
+            connection
+                .serve_at(
+                    ObjectPath::new(EMBEDDING_PATH)?,
+                    EmbeddingCallbacks(Arc::clone(&config)),
+                )
+                .await?;
+            connection
+                .serve_at(
+                    ObjectPath::new(CHAT_PATH)?,
+                    ChatCallbacks(Arc::clone(&config)),
+                )
+                .await?;
+            connection
+                .serve_at(ObjectPath::new(RUNTIME_PATH)?, RuntimeCallbacks(config))
+                .await?;
+            connection.request_name(EMBEDDING_NAME).await?;
+            connection.request_name(CHAT_NAME).await?;
+            connection.request_name(RUNTIME_NAME).await
+        })
+        .await
+        .map(|_| ())
 }
 
 fn into_domain_event(event: MemoryEvent) -> Option<crate::core::events::DomainEvent> {

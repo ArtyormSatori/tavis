@@ -284,7 +284,7 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
                 if class == DriverClass::Null {
                     (Arc::new(NullMemoryProvider::new()), DriverClass::Null)
                 } else {
-                    module_provider()
+                    module_provider(workspace_dir)
                 };
             let binding = bind_provider(provider, driver_id, reported_class, None);
             log::info!(
@@ -328,16 +328,40 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
     }
 }
 
-#[cfg(feature = "modules")]
-fn module_provider() -> (Arc<dyn MemoryProvider>, DriverClass) {
+#[cfg(all(feature = "modules", not(test)))]
+fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
     (
         Arc::new(crate::openhuman::modules::memory::ModuleMemoryProvider::from_boot_policy()),
         DriverClass::Module,
     )
 }
 
+#[cfg(all(feature = "modules", test))]
+fn module_provider(workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
+    // Unit tests do not run the full boot sequence that publishes the module
+    // policy. Give the real compiled module the shared test workspace
+    // explicitly, so guarded module calls and legacy read-back assertions see
+    // the same store without racing a process-global boot-policy OnceLock.
+    let mut config = crate::openhuman::config::Config::default();
+    config.workspace_dir = workspace_dir.to_path_buf();
+    config.modules.install_dir = Some(workspace_dir.join("modules").to_string_lossy().into_owned());
+    if let Some(path) = std::env::var_os("TINYMEMORY_TEST_MODULE") {
+        config
+            .modules
+            .overrides
+            .push(crate::openhuman::config::schema::ModuleOverride {
+                id: MODULE_ID.to_string(),
+                path: path.to_string_lossy().into_owned(),
+            });
+    }
+    (
+        Arc::new(crate::openhuman::modules::memory::ModuleMemoryProvider::new(Arc::new(config))),
+        DriverClass::Module,
+    )
+}
+
 #[cfg(not(feature = "modules"))]
-fn module_provider() -> (Arc<dyn MemoryProvider>, DriverClass) {
+fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
     log::warn!(
         "[memory:binding] the 'modules' feature is disabled; binding the null memory provider"
     );

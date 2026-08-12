@@ -5,14 +5,10 @@
 //! RPCs use, and the namespace they touch is exactly `tool-{tool_name}` —
 //! never `global` or `tool_effectiveness`.
 //!
-//! Two of them — [`tool_rule_list`] and [`tool_rule_delete`] — reach it through
-//! [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard) because their
-//! contract twins are literal delegations to the same store. The other four
-//! stay on [`open_store`]: `tool_rule_put` returns the *stored* rule (with
-//! `created_at` preserved and `updated_at` refreshed) while the contract's
-//! `put_tool_rule` returns unit, and `get_rule` / `list_rules_json` /
-//! `rules_for_prompt` have no contract equivalent at all. See
-//! `docs/specs/memory-guard-allowlist.md`.
+//! Every handler reaches the module-backed [`MemoryToolMemory`](crate::openhuman::memory::api::provider::MemoryToolMemory)
+//! API. List and delete apply the full [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard)
+//! policy; the remaining host-shaped operations compose the same API methods
+//! to preserve their historical response values.
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -136,10 +132,8 @@ pub(crate) const NO_TOOL_MEMORY: &str = "memory driver does not support the tool
 /// List every tool-scoped rule for a tool.
 ///
 /// Routed through [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard).
-/// `MemoryToolMemory::tool_rules` on the embedded driver is
-/// `tool_memory_store(self.memory()).list_rules(tool_name)` — the same store
-/// over the same `Arc<dyn Memory>` [`open_store`] builds. The wire type matches
-/// by identity, not conversion: `memory::tool_memory::ToolMemoryRule` **is**
+/// The wire type matches by identity, not conversion:
+/// `memory::tool_memory::ToolMemoryRule` **is**
 /// `crate::openhuman::memory::api::tool_memory::ToolMemoryRule`.
 pub async fn tool_rule_list(
     params: ToolRuleListParams,
@@ -157,9 +151,8 @@ pub async fn tool_rule_list(
 
 /// Delete a tool-scoped rule by id.
 ///
-/// Routed through [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard);
-/// `MemoryToolMemory::delete_tool_rule` delegates to the same
-/// `ToolMemoryStore::delete_rule` [`open_store`] would reach.
+/// Routed through [`MemoryGuard`](crate::openhuman::memory::guard::MemoryGuard)
+/// and the shared tool-memory API.
 pub async fn tool_rule_delete(params: ToolRuleRefParams) -> Result<RpcOutcome<bool>, String> {
     log::debug!(
         "[tool-memory] rpc tool_rule_delete tool={} id={}",
@@ -201,7 +194,14 @@ pub async fn tool_rules_for_prompt(
         .ok_or_else(|| NO_TOOL_MEMORY.to_string())?;
     let mut flat = Vec::new();
     for tool in &params.tools {
-        flat.extend(family.tool_rules(tool).await.map_err(|e| e.to_string())?);
+        flat.extend(
+            family
+                .tool_rules(tool)
+                .await
+                .map_err(|e| e.to_string())?
+                .into_iter()
+                .filter(|rule| rule.priority.is_eager()),
+        );
     }
     flat.sort_by(|a, b| {
         b.priority
@@ -239,8 +239,6 @@ pub async fn tool_rules_json(params: ToolRuleListParams) -> Result<RpcOutcome<Va
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-
     use super::*;
     use crate::openhuman::memory::api::tool_memory::ToolMemoryPriority;
 
@@ -249,9 +247,10 @@ mod tests {
     }
 
     fn unique_tool_name() -> String {
-        static NEXT_TOOL_ID: AtomicUsize = AtomicUsize::new(1);
-        let id = NEXT_TOOL_ID.fetch_add(1, Ordering::Relaxed);
-        format!("toolmem_test_{id}")
+        format!(
+            "toolmem_test_{}",
+            &uuid::Uuid::new_v4().as_simple().to_string()[..12]
+        )
     }
 
     #[tokio::test]
@@ -392,13 +391,10 @@ mod tests {
         .await;
     }
 
-    /// The two guarded handlers and the four unguarded ones share one store.
-    /// `tool_rule_put` writes through `open_store()` (the bare client);
-    /// `tool_rule_list` and `tool_rule_delete` read and write through the
-    /// guard; `open_store()` is then asked directly whether the delete
-    /// actually happened.
+    /// Host-shaped put and guarded list/delete compose the same module-backed
+    /// tool-memory API.
     #[tokio::test]
-    async fn guarded_list_and_delete_share_the_store_with_the_unguarded_put() {
+    async fn guarded_list_and_delete_share_the_store_with_host_shaped_put() {
         let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
@@ -414,7 +410,7 @@ mod tests {
             id: None,
         })
         .await
-        .expect("unguarded put")
+        .expect("host-shaped put")
         .value;
 
         let listed = tool_rule_list(ToolRuleListParams {
@@ -423,7 +419,7 @@ mod tests {
         .await
         .expect("guarded list")
         .value;
-        assert_eq!(listed.len(), 1, "the guard must see the unguarded write");
+        assert_eq!(listed.len(), 1, "the guard must see the API write");
         assert_eq!(listed[0].id, stored.id);
 
         let deleted = tool_rule_delete(ToolRuleRefParams {

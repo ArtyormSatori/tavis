@@ -5,7 +5,6 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::subsystem::DriverClass;
 use crate::openhuman::memory::api::provider::MemoryProvider;
 use crate::openhuman::memory::api::types::NamespaceDocumentInput;
 use crate::openhuman::memory::store::NamespaceRetrievalContext;
@@ -166,8 +165,14 @@ pub struct PutDocResult {
 
 /// Lists all namespaces in the memory system.
 pub async fn namespace_list() -> Result<RpcOutcome<Vec<String>>, String> {
-    let client = active_memory_client().await?;
-    let namespaces = client.list_namespaces().await?;
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let namespaces = documents
+        .list_namespaces()
+        .await
+        .map_err(|error| error.to_string())?;
     Ok(RpcOutcome::single_log(
         namespaces,
         "memory namespaces listed",
@@ -255,48 +260,27 @@ pub async fn doc_ingest(
 pub async fn doc_list(
     params: Option<NamespaceOnlyParams>,
 ) -> Result<RpcOutcome<serde_json::Value>, String> {
-    let client = active_memory_client().await?;
-    let docs = client
-        .list_documents(params.as_ref().map(|v| v.namespace.as_str()))
-        .await?;
-    Ok(RpcOutcome::single_log(docs, "memory documents listed"))
-}
-
-/// Refuse an embedded-store-only operation when the bound driver is not the
-/// embedded engine.
-///
-/// `delete_document` / `clear_namespace` / `doc_delete` operate on the local
-/// embedded SQLite store through `active_memory_client` and have **no contract
-/// twin** — `MemoryDocuments` has no `delete_document` or `clear_namespace`
-/// method — so they cannot be routed through the contract. Under a null or
-/// fallback binding the operator asked for memory to be disabled, yet these
-/// handlers would otherwise still reach the store boot initialised and delete
-/// persisted rows. This is the RPC half of the CLI's legacy-client gate
-/// (`core::cli_capability::legacy_client_verdict`): an embedded-only operation
-/// is only valid when the bound driver actually is the embedded engine. The
-/// check runs through the guarded binding (`active_memory_guard`), so the
-/// verdict always reflects the driver that bound, never a global slot.
-async fn ensure_embedded_driver(operation: &str) -> Result<(), String> {
     let guard = active_memory_guard().await?;
-    if guard.policy().class() == DriverClass::Embedded {
-        return Ok(());
-    }
-    Err(format!(
-        "memory driver `{}` is not the embedded TinyCortex driver, so `{operation}` is \
-         unavailable: it operates on the local embedded store directly, and this \
-         configuration bound a different driver. Change `[subsystems.memory] driver` in \
-         your config.",
-        guard.driver_id()
-    ))
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let docs = documents
+        .list_documents(params.as_ref().map(|value| value.namespace.as_str()))
+        .await
+        .map_err(|error| error.to_string())?;
+    Ok(RpcOutcome::single_log(docs, "memory documents listed"))
 }
 
 /// Deletes a document from a namespace.
 pub async fn doc_delete(params: DeleteDocParams) -> Result<RpcOutcome<serde_json::Value>, String> {
-    ensure_embedded_driver("doc_delete").await?;
-    let client = active_memory_client().await?;
-    let result = client
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let result = documents
         .delete_document(&params.namespace, &params.document_id)
-        .await?;
+        .await
+        .map_err(|error| error.to_string())?;
     Ok(RpcOutcome::single_log(result, "memory document deleted"))
 }
 
@@ -304,10 +288,15 @@ pub async fn doc_delete(params: DeleteDocParams) -> Result<RpcOutcome<serde_json
 pub async fn clear_namespace(
     params: ClearNamespaceParams,
 ) -> Result<RpcOutcome<ClearNamespaceResult>, String> {
-    ensure_embedded_driver("clear_namespace").await?;
-    let client = active_memory_client().await?;
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
     log::debug!("[memory] clear_namespace RPC invoked");
-    client.clear_namespace(&params.namespace).await?;
+    documents
+        .clear_namespace(&params.namespace)
+        .await
+        .map_err(|error| error.to_string())?;
     let msg = "memory namespace cleared".to_string();
     Ok(RpcOutcome::single_log(
         ClearNamespaceResult {
@@ -369,8 +358,14 @@ pub async fn memory_init(
 pub async fn memory_list_documents(
     request: ListDocumentsRequest,
 ) -> Result<RpcOutcome<ApiEnvelope<ListDocumentsResponse>>, String> {
-    let client = active_memory_client().await?;
-    let raw = client.list_documents(request.namespace.as_deref()).await?;
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let raw = documents
+        .list_documents(request.namespace.as_deref())
+        .await
+        .map_err(|error| error.to_string())?;
     let documents = parse_memory_document_summaries(raw)?;
     let count = documents.len();
     Ok(envelope(
@@ -392,8 +387,14 @@ pub async fn memory_list_documents(
 pub async fn memory_list_namespaces(
     _request: EmptyRequest,
 ) -> Result<RpcOutcome<ApiEnvelope<ListNamespacesResponse>>, String> {
-    let client = active_memory_client().await?;
-    let namespaces = client.list_namespaces().await?;
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let namespaces = documents
+        .list_namespaces()
+        .await
+        .map_err(|error| error.to_string())?;
     let count = namespaces.len();
     Ok(envelope(
         ListNamespacesResponse { namespaces, count },
@@ -406,11 +407,14 @@ pub async fn memory_list_namespaces(
 pub async fn memory_delete_document(
     request: DeleteDocumentRequest,
 ) -> Result<RpcOutcome<ApiEnvelope<DeleteDocumentResponse>>, String> {
-    ensure_embedded_driver("delete_document").await?;
-    let client = active_memory_client().await?;
-    let raw = client
+    let guard = active_memory_guard().await?;
+    let documents = guard
+        .as_documents()
+        .ok_or_else(|| "memory driver does not support the documents family".to_string())?;
+    let raw = documents
         .delete_document(&request.namespace, &request.document_id)
-        .await?;
+        .await
+        .map_err(|error| error.to_string())?;
     let parsed: RawDeleteDocumentResult =
         serde_json::from_value(raw).map_err(|e| format!("decode delete document result: {e}"))?;
     Ok(envelope(
@@ -810,15 +814,15 @@ mod tests {
     }
 
     /// Same store property as `kv_set_through_the_guard_…`: the guarded
-    /// `doc_put` must be readable by the unguarded client, not merely by the
-    /// sibling handler.
+    /// `doc_put` must be readable through the module-backed memory API, not
+    /// merely by the sibling handler.
     ///
     /// The taint half of this re-point is not asserted here because no read
     /// path in `MemoryClient` projects the stored taint column back out.
     /// `GuardPolicy::stamp_taint`'s monotone-raise behaviour is pinned in
     /// `memory::guard::policy_tests` instead.
     #[tokio::test]
-    async fn doc_put_through_the_guard_is_visible_to_the_unguarded_client() {
+    async fn doc_put_through_the_guard_is_visible_to_the_memory_api() {
         let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
             .lock()
             .await;
@@ -839,27 +843,23 @@ mod tests {
         .expect("guarded doc_put");
         assert!(!put.value.document_id.is_empty());
 
-        let client = active_memory_client().await.expect("client");
-        let raw = client
+        let guard = active_memory_guard().await.expect("guard");
+        let documents = guard.inner().as_documents().expect("documents family");
+        let raw = documents
             .list_documents(Some(namespace.as_str()))
             .await
-            .expect("unguarded list_documents");
+            .expect("module-backed list_documents");
         let docs = raw
             .get("documents")
             .and_then(|v| v.as_array())
             .expect("documents array");
         assert!(
             docs.iter().any(|doc| doc["key"] == key),
-            "the unguarded client must see the guarded write"
+            "the module-backed memory API must see the guarded write"
         );
     }
 
-    /// Pins the null-binding refusal for the destructive embedded-only ops
-    /// (the `all.rs` registration thread). Under `driver = "null"` the operator
-    /// asked for memory to be disabled, yet `clear_namespace` /
-    /// `delete_document` would still reach the embedded store boot initialised
-    /// and delete persisted rows. They must refuse with a config-fact message,
-    /// exactly as the CLI's legacy-client gate does.
+    /// Pins the null-binding refusal for destructive document operations.
     #[tokio::test]
     async fn destructive_ops_refuse_when_bound_driver_is_null() {
         let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
@@ -883,7 +883,7 @@ mod tests {
             .await
             .expect_err("clear_namespace must refuse under a null binding");
             assert!(
-                err.contains("not the embedded TinyCortex driver"),
+                err.contains("does not support the documents family"),
                 "refusal must explain the binding: {err}"
             );
 
@@ -894,7 +894,7 @@ mod tests {
             .await
             .expect_err("doc_delete must refuse under a null binding");
             assert!(
-                err.contains("not the embedded TinyCortex driver"),
+                err.contains("does not support the documents family"),
                 "refusal must explain the binding: {err}"
             );
 
@@ -905,7 +905,7 @@ mod tests {
             .await
             .expect_err("memory_delete_document must refuse under a null binding");
             assert!(
-                err.contains("not the embedded TinyCortex driver"),
+                err.contains("does not support the documents family"),
                 "refusal must explain the binding: {err}"
             );
         })

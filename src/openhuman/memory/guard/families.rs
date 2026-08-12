@@ -241,6 +241,53 @@ impl MemoryDocuments for GuardedDocuments {
         self.family()?.get_document(namespace, key).await
     }
 
+    async fn list_documents(
+        &self,
+        namespace: Option<&str>,
+    ) -> Result<serde_json::Value, MemoryError> {
+        self.policy.admit_read(
+            Capability::Documents,
+            "documents.list_documents",
+            namespace.unwrap_or(NO_NAMESPACE),
+            false,
+        )?;
+        self.family()?.list_documents(namespace).await
+    }
+
+    async fn list_namespaces(&self) -> Result<Vec<String>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Documents,
+            "documents.list_namespaces",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.list_namespaces().await
+    }
+
+    async fn delete_document(
+        &self,
+        namespace: &str,
+        document_id: &str,
+    ) -> Result<serde_json::Value, MemoryError> {
+        self.policy.admit_write(
+            Capability::Documents,
+            "documents.delete_document",
+            namespace,
+            false,
+        )?;
+        self.family()?.delete_document(namespace, document_id).await
+    }
+
+    async fn clear_namespace(&self, namespace: &str) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Documents,
+            "documents.clear_namespace",
+            namespace,
+            false,
+        )?;
+        self.family()?.clear_namespace(namespace).await
+    }
+
     async fn query_documents(
         &self,
         namespace: &str,
@@ -431,6 +478,16 @@ impl MemoryGraph for GuardedGraph {
             .admit_write(Capability::Graph, "graph.kv_put", graph_ns(namespace), true)?;
         let value = self.policy.redact_outbound_json(value);
         self.family()?.kv_put(namespace, key, value).await
+    }
+
+    async fn kv_delete(&self, namespace: Option<&str>, key: &str) -> Result<bool, MemoryError> {
+        self.policy.admit_write(
+            Capability::Graph,
+            "graph.kv_delete",
+            graph_ns(namespace),
+            false,
+        )?;
+        self.family()?.kv_delete(namespace, key).await
     }
 
     async fn kv_list(

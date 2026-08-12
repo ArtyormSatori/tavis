@@ -21,14 +21,11 @@
 //! `MemoryProvider::capabilities` is a **synchronous** method, and the module can
 //! only answer it over the bus. It therefore cannot be asked here.
 //!
-//! It does not need to be. The module serves exactly the mandatory three —
-//! `tinymemory-tinycortex` advertises Core, Recall and Portability because the
-//! optional families need a host's configuration, embedding compute and job
-//! queue — and that is a property of the artifact's *source*, fixed at the
-//! version the registry pins, not something to discover at runtime. So this
-//! returns [`Capabilities::mandatory`], and [`ModuleMemoryProvider::verify`]
-//! cross-checks it against the module's own answer on first use and logs loudly
-//! on disagreement.
+//! It does not need to be. The TinyMemory module serves the complete shared API,
+//! and that is a property of the artifact's *source*, fixed at the version the
+//! registry pins, not something to discover at runtime. So this returns
+//! [`Capabilities::all`], and [`ModuleMemoryProvider::verify`] cross-checks it
+//! against the module's own answer on first use and logs loudly on disagreement.
 //!
 //! Guessing high would be the dangerous direction: the kernel filters its RPC
 //! surface and agent-tool assembly from this set, so an overstated capability
@@ -189,6 +186,13 @@ impl ModuleMemoryProvider {
         let runtime = host::runtime().await.map_err(|error| {
             MemoryError::Other(anyhow::anyhow!("the module bus is not running: {error}"))
         })?;
+        super::memory_host::install(runtime.connection(), Arc::clone(config))
+            .await
+            .map_err(|error| {
+                MemoryError::Other(anyhow::anyhow!(
+                    "the memory module host callbacks are unavailable: {error}"
+                ))
+            })?;
         let proxy = runtime
             .proxy(record.bus_name, record.object_path)
             .map_err(|error| MemoryError::Other(anyhow::anyhow!(error.to_string())))?;
@@ -200,11 +204,9 @@ impl ModuleMemoryProvider {
     /// Cross-check the module's advertised capabilities against what this build
     /// assumes, once per process.
     ///
-    /// Logged rather than fatal. A module that advertises *more* than the
-    /// mandatory three is not dangerous — the kernel simply will not use the
-    /// extra families, because it filtered its surface from the static set — but
-    /// it does mean the registry pin and the artifact have diverged, which is
-    /// worth seeing. A module advertising *less* is the real problem, and says so.
+    /// Logged rather than fatal. Any mismatch means the registry pin and the
+    /// artifact have diverged; advertising less is the dangerous direction,
+    /// because the host assembled its full memory surface from this static set.
     async fn verify(&self, proxy: &tinybus::Proxy) {
         if self.verified.get().is_some() {
             return;
@@ -460,6 +462,35 @@ impl MemoryDocuments for ModuleMemoryProvider {
     ) -> Result<Option<StoredMemoryDocument>, MemoryError> {
         module_call!(self, "get_document", "GetDocument", (namespace, key))
     }
+    async fn list_documents(
+        &self,
+        namespace: Option<&str>,
+    ) -> Result<serde_json::Value, MemoryError> {
+        module_call!(
+            self,
+            "list_documents",
+            "ListDocuments",
+            (namespace.map(str::to_string),)
+        )
+    }
+    async fn list_namespaces(&self) -> Result<Vec<String>, MemoryError> {
+        module_call!(self, "list_namespaces", "ListNamespaces", ())
+    }
+    async fn delete_document(
+        &self,
+        namespace: &str,
+        document_id: &str,
+    ) -> Result<serde_json::Value, MemoryError> {
+        module_call!(
+            self,
+            "delete_document",
+            "DeleteDocument",
+            (namespace, document_id)
+        )
+    }
+    async fn clear_namespace(&self, namespace: &str) -> Result<(), MemoryError> {
+        module_call!(self, "clear_namespace", "ClearNamespace", (namespace,))
+    }
     async fn query_documents(
         &self,
         namespace: &str,
@@ -572,6 +603,14 @@ impl MemoryGraph for ModuleMemoryProvider {
             "kv_put",
             "KvPut",
             (namespace.map(str::to_string), key, value)
+        )
+    }
+    async fn kv_delete(&self, namespace: Option<&str>, key: &str) -> Result<bool, MemoryError> {
+        module_call!(
+            self,
+            "kv_delete",
+            "KvDelete",
+            (namespace.map(str::to_string), key)
         )
     }
     async fn kv_list(

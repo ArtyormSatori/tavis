@@ -43,20 +43,16 @@ fn construction_touches_no_io_and_needs_no_runtime() {
 }
 
 #[test]
-fn the_advertised_capabilities_are_exactly_the_mandatory_three() {
-    // Must match what the module serves. Overstating is the dangerous direction:
-    // the kernel filters its RPC surface and agent-tool list from this set, so an
-    // extra family registers methods that answer errors.
+fn the_advertised_capabilities_cover_the_complete_memory_api() {
+    // The compiled module owns the complete TinyMemory API, so the host can
+    // assemble every memory RPC and tool family before the async bus starts.
     let capabilities = provider().capabilities();
-    assert_eq!(capabilities, Capabilities::mandatory());
+    assert_eq!(capabilities, Capabilities::all());
 
     for mandatory in Capability::MANDATORY {
         assert!(capabilities.contains(mandatory), "{mandatory:?} is missing");
     }
-    assert!(
-        !capabilities.contains(Capability::Tree),
-        "an optional family the module cannot serve must not be advertised"
-    );
+    assert!(capabilities.contains(Capability::Tree));
 }
 
 #[test]

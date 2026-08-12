@@ -172,13 +172,16 @@ async fn blocking<F>(work: F) -> Result<(), String>
 where
     F: FnOnce() -> Result<(), String> + Send + 'static,
 {
-    match tokio::task::spawn_blocking(work).await {
-        Ok(result) => result,
-        Err(err) => Err(format!(
-            "the module loader did not finish: {err}. This is terminal for the running \
-             process; restart the app to try again"
-        )),
-    }
+    host::runtime()
+        .await
+        .map_err(|error| format!("the module bus could not start: {error}"))?
+        .blocking(work)
+        .await
+        .map_err(|error| {
+            format!(
+                "{error}. This is terminal for the running process; restart the app to try again"
+            )
+        })
 }
 
 /// Download, verify, and load the pinned release artifact for this host.

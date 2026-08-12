@@ -338,6 +338,33 @@ impl MemoryDocuments for RecordingProvider {
         Ok(None)
     }
 
+    async fn list_documents(
+        &self,
+        _namespace: Option<&str>,
+    ) -> Result<serde_json::Value, MemoryError> {
+        self.record(Call::plain("documents.list_documents"));
+        Ok(serde_json::json!({"documents": []}))
+    }
+
+    async fn list_namespaces(&self) -> Result<Vec<String>, MemoryError> {
+        self.record(Call::plain("documents.list_namespaces"));
+        Ok(vec![])
+    }
+
+    async fn delete_document(
+        &self,
+        _namespace: &str,
+        _document_id: &str,
+    ) -> Result<serde_json::Value, MemoryError> {
+        self.record(Call::plain("documents.delete_document"));
+        Ok(serde_json::json!({"deleted": false}))
+    }
+
+    async fn clear_namespace(&self, _namespace: &str) -> Result<(), MemoryError> {
+        self.record(Call::plain("documents.clear_namespace"));
+        Ok(())
+    }
+
     async fn query_documents(
         &self,
         namespace: &str,
@@ -469,6 +496,11 @@ impl MemoryGraph for RecordingProvider {
             scoped: None,
         });
         Ok(())
+    }
+
+    async fn kv_delete(&self, _namespace: Option<&str>, _key: &str) -> Result<bool, MemoryError> {
+        self.record(Call::plain("graph.kv_delete"));
+        Ok(false)
     }
 
     async fn kv_list(

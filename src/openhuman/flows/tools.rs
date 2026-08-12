@@ -57,12 +57,13 @@ impl Tool for ProposeWorkflowTool {
          (to_port just stays \"main\"); routing is keyed exclusively on from_port, so a label \
          on to_port instead silently turns the branch into an unconditional fan-out and is a \
          hard reject. Exactly ONE \
-         trigger node is required. The 15 node kinds: trigger (config.trigger_kind: manual | \
+         trigger node is required. The 16 node kinds: trigger (config.trigger_kind: manual | \
          schedule | webhook | app_event | form | chat_message | evaluation | system | \
          execute_by_workflow; schedule needs config.schedule = {kind:\"cron\",expr,tz?} | \
          {kind:\"at\",at} | {kind:\"every\",every_ms}; app_event needs config.toolkit + \
          config.trigger_slug), agent (config.prompt), tool_call (config.slug REQUIRED + \
-         config.args), http_request (config.method/url, optional headers/body), code \
+         config.args), http_request (config.method/url, optional headers/body), shell \
+         (config.source), code \
          (config.language: \"javascript\"|\"python\" + config.source), condition (config.field; \
          routes on from_port \"true\"/\"false\", e.g. {from_node:\"gate\",from_port:\"true\",\
          to_node:\"x\",to_port:\"main\"}), switch (config.expression or config.field; routes to \
@@ -116,7 +117,7 @@ impl Tool for ProposeWorkflowTool {
                                             "trigger", "agent", "tool_call", "http_request",
                                             "code", "condition", "switch", "merge", "split_out",
                                             "transform", "output_parser", "sub_workflow", "memory",
-                                            "dedup", "loop"
+                                            "dedup", "loop", "shell"
                                         ]
                                     },
                                     "name": { "type": "string", "description": "Human-readable node name." },

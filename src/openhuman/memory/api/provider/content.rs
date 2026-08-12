@@ -87,6 +87,25 @@ pub trait MemoryDocuments: Send + Sync {
         key: &str,
     ) -> Result<Option<StoredMemoryDocument>, MemoryError>;
 
+    /// List document summaries, optionally restricted to one namespace.
+    async fn list_documents(
+        &self,
+        namespace: Option<&str>,
+    ) -> Result<serde_json::Value, MemoryError>;
+
+    /// List every namespace containing documents.
+    async fn list_namespaces(&self) -> Result<Vec<String>, MemoryError>;
+
+    /// Delete a document by its driver-assigned id.
+    async fn delete_document(
+        &self,
+        namespace: &str,
+        document_id: &str,
+    ) -> Result<serde_json::Value, MemoryError>;
+
+    /// Delete all data belonging to one namespace.
+    async fn clear_namespace(&self, namespace: &str) -> Result<(), MemoryError>;
+
     /// Run a ranked query over one namespace's documents.
     ///
     /// Returns both the ranked hits and the driver's rendered context text, so
