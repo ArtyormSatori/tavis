@@ -7,7 +7,7 @@ use crate::openhuman::cron::scheduler_gate::signals::Signals;
 /// extracted memory sync loops read it on every tick. The types are unchanged
 /// and every existing `scheduler_gate::policy::{Policy, PauseReason}` path
 /// keeps naming them.
-pub use tinymemory_api::host::{PauseReason, Policy};
+pub use crate::openhuman::memory::api::host::{PauseReason, Policy};
 
 /// Compute the current [`Policy`] from sampled signals + user config.
 ///

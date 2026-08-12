@@ -35,10 +35,10 @@ pub const DEFAULT_MODEL: &str = MODEL_CHAT_V1;
 /// explicitly picked a schedule. 24h, matching the "Sync every 24h" preset
 /// surfaced in the Memory Sources UI. See issue #3302.
 ///
-/// Defined in `tinymemory_api::host` and re-exported here: the extracted memory
+/// Defined in `crate::openhuman::memory::api::host` and re-exported here: the extracted memory
 /// subsystem applies this fallback too, and two `86_400`s that must agree is a
 /// drift waiting to happen.
-pub use tinymemory_api::host::DEFAULT_MEMORY_SYNC_INTERVAL_SECS;
+pub use crate::openhuman::memory::api::host::DEFAULT_MEMORY_SYNC_INTERVAL_SECS;
 
 /// Preset memory-sync cadences (seconds) offered in the UI: 4h / 12h / 24h.
 /// "Manual only" is represented separately by `Some(0)`. See issue #3302.

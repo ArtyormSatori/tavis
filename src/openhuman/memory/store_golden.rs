@@ -415,7 +415,7 @@ pub async fn init_fresh_schema(workspace: &Path) -> Result<()> {
     // Host unified tier.
     let memory = crate::openhuman::memory::store::UnifiedMemory::new(
         workspace,
-        std::sync::Arc::new(tinymemory_api::host::NoopEmbedding),
+        std::sync::Arc::new(crate::openhuman::memory::api::host::NoopEmbedding),
         None,
     )
     .context("[golden] UnifiedMemory::new on a fresh workspace")?;

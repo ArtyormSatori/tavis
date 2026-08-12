@@ -17,11 +17,11 @@ use std::sync::Arc;
 // `binding.rs` reaches these through its own `use` statements; a sibling test
 // module only inherits its `pub` items, so they are named again here.
 use crate::core::subsystem::{DriverHealth, SubsystemSlot};
-use tinycortex_api::capabilities::Capabilities;
-use tinycortex_api::health::MemoryHealth;
-use tinycortex_api::null::{NullMemoryProvider, NULL_DRIVER_ID};
-use tinycortex_api::provider::MemoryProvider;
-use tinycortex_api::CONTRACT_VERSION;
+use crate::openhuman::memory::api::capabilities::Capabilities;
+use crate::openhuman::memory::api::health::MemoryHealth;
+use crate::openhuman::memory::api::null::{NullMemoryProvider, NULL_DRIVER_ID};
+use crate::openhuman::memory::api::provider::MemoryProvider;
+use crate::openhuman::memory::api::CONTRACT_VERSION;
 
 // Imported here rather than re-exported from `binding.rs`: since admission
 // moved to `tinymemory::registry`, the production module no longer names this
@@ -40,7 +40,7 @@ use crate::openhuman::memory::api::types::{
 };
 use async_trait::async_trait;
 
-use tinymemory_api::host::MemoryDriverConfig;
+use crate::openhuman::memory::api::host::MemoryDriverConfig;
 
 fn external_driver_cfg(trust_state: &str) -> MemorySubsystemConfig {
     let mut cfg = MemorySubsystemConfig {

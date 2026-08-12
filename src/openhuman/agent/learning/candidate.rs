@@ -11,7 +11,7 @@
 //! It could not go in `tinymemory-api`, which stays dependency-light;
 //! the queue needs `parking_lot`. [`EvidenceRef`] *is* in the contract crate,
 //! because the memory store persists it — see
-//! [`tinymemory_api::host::EvidenceRef`].
+//! [`crate::openhuman::memory::api::host::EvidenceRef`].
 //!
 //! Every existing `agent::learning::candidate::…` path keeps resolving.
 

@@ -166,7 +166,7 @@ pub async fn tree_summarizer_rebuild(
 ///    `memory_tree.cloud_summarization_opt_in` setting.
 ///
 /// Visibility note: `pub(crate)` so the embedded memory driver's
-/// [`MemoryTree`](tinycortex_api::provider::MemoryTree) `seal`/`cascade` reach
+/// [`MemoryTree`](crate::openhuman::memory::api::provider::MemoryTree) `seal`/`cascade` reach
 /// the **same** resolver the RPC path uses. Duplicating the local-AI /
 /// cloud-opt-in precedence in the driver would be new policy logic, and the
 /// `summarizer_available` doc below is explicit that this function is the

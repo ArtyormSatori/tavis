@@ -7,7 +7,7 @@ use crate::openhuman::memory::sources::readers;
 use crate::openhuman::memory::sources::registry::{self, MemorySourcePatch};
 use crate::openhuman::memory::sources::types::{MemorySourceEntry, SourceKind};
 use crate::rpc::RpcOutcome;
-use tinymemory_api::host::MemoryHostConfig;
+use crate::openhuman::memory::api::host::MemoryHostConfig;
 
 #[derive(Debug, serde::Serialize)]
 pub struct CodingSessionStatusResponse {

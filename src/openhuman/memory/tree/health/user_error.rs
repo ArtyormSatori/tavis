@@ -8,7 +8,7 @@
 //! Both halves key on `LOCAL_MODEL_UNAVAILABLE_KIND`, which lives in the
 //! contract crate so the two cannot drift apart silently.
 
-use tinymemory_api::host::{LOCAL_MODEL_UNAVAILABLE_KIND, MEMORY_USER_ERROR_SOURCE};
+use crate::openhuman::memory::api::host::{LOCAL_MODEL_UNAVAILABLE_KIND, MEMORY_USER_ERROR_SOURCE};
 
 use crate::core::socketio::WebChannelEvent;
 

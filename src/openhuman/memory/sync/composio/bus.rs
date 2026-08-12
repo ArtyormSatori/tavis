@@ -60,7 +60,7 @@ use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::integrations::composio::trigger_history;
 use tinybus::EventHandler;
 use tinybus::SubscriptionHandle;
-use tinymemory_api::host::COMPOSIO_MODE_DIRECT;
+use crate::openhuman::memory::api::host::COMPOSIO_MODE_DIRECT;
 
 use super::providers::{get_provider, ProviderContext};
 use crate::openhuman::integrations::composio::client::ComposioClient;

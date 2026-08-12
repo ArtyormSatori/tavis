@@ -14,7 +14,7 @@
 
 // `to_arc` / the config accessors are `MemoryHostConfig` trait methods.
 use std::sync::Once;
-use tinymemory_api::host::MemoryHostConfig;
+use crate::openhuman::memory::api::host::MemoryHostConfig;
 
 use crate::core::runtime::ServiceSet;
 use crate::openhuman::config::Config;

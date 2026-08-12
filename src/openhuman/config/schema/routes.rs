@@ -11,5 +11,5 @@ pub struct ModelRouteConfig {
 
 /// A per-workload embedding provider override. Defined in the contract crate —
 /// the memory store's embedder factory reads it. See
-/// [`tinymemory_api::host::EmbeddingRouteConfig`].
-pub use tinymemory_api::host::EmbeddingRouteConfig;
+/// [`crate::openhuman::memory::api::host::EmbeddingRouteConfig`].
+pub use crate::openhuman::memory::api::host::EmbeddingRouteConfig;
