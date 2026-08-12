@@ -337,13 +337,16 @@ fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverCla
 }
 
 #[cfg(all(feature = "modules", test))]
-fn module_provider(workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
+fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
     // Unit tests do not run the full boot sequence that publishes the module
-    // policy. Give the real compiled module the shared test workspace
-    // explicitly, so guarded module calls and legacy read-back assertions see
-    // the same store without racing a process-global boot-policy OnceLock.
+    // policy. A native module is loaded once per process and therefore captures
+    // the first workspace it receives. Pin every test binding to the same
+    // workspace as the process-global test client so concurrent tests cannot
+    // win module initialization with an unrelated tempdir and split guarded
+    // writes from legacy read-back calls.
+    let workspace_dir = crate::openhuman::memory::ops::ensure_shared_memory_client();
     let mut config = crate::openhuman::config::Config::default();
-    config.workspace_dir = workspace_dir.to_path_buf();
+    config.workspace_dir = workspace_dir.clone();
     config.modules.install_dir = Some(workspace_dir.join("modules").to_string_lossy().into_owned());
     if let Some(path) = std::env::var_os("TINYMEMORY_TEST_MODULE") {
         config
