@@ -6512,7 +6512,7 @@ dependencies = [
  "axum",
  "futures-timer",
  "futures-util",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "jaq-core",
  "jaq-json",
  "jaq-std",
