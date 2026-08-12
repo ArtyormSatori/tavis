@@ -461,7 +461,9 @@ mod tests {
         let mut flat: Vec<_> = prompt.into_values().flatten().collect();
         flat.sort_by(|a, b| b.priority.cmp(&a.priority));
         let rendered =
-            crate::openhuman::memory::tool_memory::prompt::render_tool_memory_rules(&flat);
+            crate::openhuman::memory::tool_memory::prompt::ToolMemoryRulesSection::new(flat)
+                .rendered()
+                .to_string();
         assert!(rendered.contains("Never email Sarah"));
         assert!(rendered.contains("**[critical]**"));
     }

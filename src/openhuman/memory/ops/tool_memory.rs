@@ -244,7 +244,7 @@ mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
-    use crate::openhuman::memory::tool_memory::ToolMemoryPriority;
+    use crate::openhuman::memory::api::tool_memory::ToolMemoryPriority;
 
     fn ensure_memory_client() {
         crate::openhuman::memory::ops::ensure_shared_memory_client();
@@ -280,7 +280,7 @@ mod tests {
         assert_eq!(stored.priority, ToolMemoryPriority::Normal);
         assert_eq!(
             stored.source,
-            crate::openhuman::memory::tool_memory::ToolMemorySource::Programmatic
+            crate::openhuman::memory::api::tool_memory::ToolMemorySource::Programmatic
         );
         assert_eq!(stored.tags, vec!["safety".to_string()]);
         assert!(
@@ -437,15 +437,13 @@ mod tests {
         .value;
         assert!(deleted);
 
-        let remaining = open_store()
+        let remaining = tool_rule_list(ToolRuleListParams { tool_name })
             .await
-            .expect("unguarded store")
-            .list_rules(&tool_name)
-            .await
-            .expect("unguarded list");
+            .expect("module-backed list")
+            .value;
         assert!(
             remaining.is_empty(),
-            "the unguarded store must observe the guarded delete"
+            "the module-backed provider must observe the guarded delete"
         );
     }
 }

@@ -177,8 +177,8 @@ pub fn unbound_default_capabilities() -> Capabilities {
 /// driver is refused. Callers fall back rather than failing: kernel.md §3.7
 /// requires the subsystem stay bound, loudly.
 pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), FallbackReason> {
-    let id = cfg.driver.trim();
-    if id.is_empty() {
+    let configured_id = cfg.driver.trim();
+    if configured_id.is_empty() {
         return Err(FallbackReason {
             configured_driver: String::new(),
             reason: "[subsystems.memory] driver is empty".to_string(),
@@ -186,14 +186,28 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
     }
 
     let refuse = |reason: &str| FallbackReason {
-        configured_driver: id.to_string(),
+        configured_driver: configured_id.to_string(),
         reason: reason.to_string(),
     };
 
     const MODULE_ID: &str = crate::openhuman::modules::memory::MODULE_ID;
+    // Temporary persisted-config alias. The schema still comes from the
+    // legacy contract until its remaining engine callers are moved onto the
+    // host-owned copy; both values bind the compiled module and report its
+    // actual id. Remove this alias with that final schema cutover.
+    const LEGACY_MODULE_ID: &str = "tinycortex";
+    let id = if configured_id == LEGACY_MODULE_ID {
+        MODULE_ID
+    } else {
+        configured_id
+    };
 
     // The two built-ins need no `[subsystems.memory.drivers.<id>]` entry.
-    let Some(entry) = cfg.drivers.get(id) else {
+    let Some(entry) = cfg
+        .drivers
+        .get(configured_id)
+        .or_else(|| cfg.drivers.get(id))
+    else {
         return match id {
             NULL_DRIVER_ID => Ok((id.to_string(), DriverClass::Null)),
             MODULE_ID => Ok((id.to_string(), DriverClass::Module)),
@@ -206,7 +220,11 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
     let class = match entry.class.as_deref() {
         None if id == NULL_DRIVER_ID => DriverClass::Null,
         None if id == MODULE_ID => DriverClass::Module,
-        None => return Err(refuse("a non-built-in driver requires an explicit class line")),
+        None => {
+            return Err(refuse(&format!(
+                "driver '{id}' is not built in and requires an explicit class line"
+            )))
+        }
         Some(raw) => DriverClass::parse(raw).map_err(|e| refuse(&e))?,
     };
 
@@ -359,7 +377,8 @@ pub(crate) fn bind_provider_for_test(
 /// Per-workspace binding cache. Same shape as
 /// `memory::people::store::STORES` — see the module docs for why this is a map
 /// and not a slot.
-static BINDINGS: OnceLock<RwLock<HashMap<PathBuf, Arc<MemoryBinding>>>> = OnceLock::new();
+type BindingCacheKey = (PathBuf, MemorySubsystemConfig);
+static BINDINGS: OnceLock<RwLock<HashMap<BindingCacheKey, Arc<MemoryBinding>>>> = OnceLock::new();
 
 /// The bound memory driver for `workspace_dir`, constructing it on first use.
 ///
@@ -375,10 +394,11 @@ pub fn for_workspace(
     cfg: &MemorySubsystemConfig,
 ) -> Result<Arc<MemoryBinding>, String> {
     let cache = BINDINGS.get_or_init(Default::default);
+    let key = (workspace_dir.to_path_buf(), cfg.clone());
     if let Some(binding) = cache
         .read()
         .map_err(|e| format!("[memory:binding] cache read lock poisoned: {e}"))?
-        .get(workspace_dir)
+        .get(&key)
     {
         return Ok(Arc::clone(binding));
     }
@@ -391,9 +411,7 @@ pub fn for_workspace(
     // Re-check under the write lock: a racing caller may have bound the same
     // workspace while we were building. Reuse theirs so one workspace never has
     // two live drivers (kernel.md §3.1) and `capabilities()` stays asked once.
-    let entry = guard
-        .entry(workspace_dir.to_path_buf())
-        .or_insert_with(|| Arc::clone(&binding));
+    let entry = guard.entry(key).or_insert_with(|| Arc::clone(&binding));
     Ok(Arc::clone(entry))
 }
 

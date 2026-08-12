@@ -40,7 +40,7 @@ use crate::openhuman::memory::api::types::{
 };
 use async_trait::async_trait;
 
-use crate::openhuman::memory::api::host::MemoryDriverConfig;
+use tinymemory_api::host::MemoryDriverConfig;
 
 fn external_driver_cfg(trust_state: &str) -> MemorySubsystemConfig {
     let mut cfg = MemorySubsystemConfig {
@@ -584,8 +584,7 @@ fn admit_accepts_a_class_line_that_agrees_with_the_built_in_id() {
     assert_eq!(id, "null");
     assert_eq!(class, DriverClass::Null);
 
-    let (id, class) =
-        admit(&cfg_with_class(MODULE_ID, "module")).expect("agreeing class admits");
+    let (id, class) = admit(&cfg_with_class(MODULE_ID, "module")).expect("agreeing class admits");
     assert_eq!(id, MODULE_ID);
     assert_eq!(class, DriverClass::Module);
 }
