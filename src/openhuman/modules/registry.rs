@@ -261,6 +261,7 @@ const TINYMEMORY: ModuleRecord = ModuleRecord {
     load: LoadPolicy::Eager,
 };
 
+/// Every module this build can load.
 pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET, TINYMEMORY];
 
 /// The record for `id`, if this build knows it.
