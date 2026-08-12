@@ -805,6 +805,7 @@ jobs:
           # Its shared cache can return objects compiled without coverage,
           # yielding a passing test binary that never writes a raw profile.
           unset RUSTC_WRAPPER
+          export CARGO_BUILD_RUSTC_WRAPPER=""
           eval "$(cargo llvm-cov show-env --manifest-path app/src-tauri/Cargo.toml --sh)"
           export LLVM_PROFILE_FILE="$profile_dir/tauri-%p-%m.profraw"
           bash scripts/ci-cancel-aware.sh cargo test --manifest-path app/src-tauri/Cargo.toml
