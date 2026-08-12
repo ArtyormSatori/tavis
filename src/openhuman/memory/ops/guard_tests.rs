@@ -40,7 +40,7 @@ async fn falls_back_to_the_globally_bound_workspace_when_there_is_no_context() {
 /// spans.
 #[tokio::test]
 async fn guards_the_embedded_driver_and_keeps_its_identity() {
-    use tinycortex_api::provider::MemoryProvider;
+    use crate::openhuman::memory::api::provider::MemoryProvider;
 
     let _serial = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
         .lock()

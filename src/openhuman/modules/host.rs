@@ -40,6 +40,7 @@
 //! to be the only one in its process, which is why the module-backed tool tests
 //! are `#[ignore]`d rather than merely gated on an artifact being present.
 
+use std::sync::Arc;
 use std::sync::OnceLock;
 
 use tinybus::broker::Broker;
@@ -125,6 +126,10 @@ pub async fn runtime() -> tinybus::Result<&'static ModuleRuntime> {
     // refusal or a fault at load time, not silent corruption.
     let host = ModuleHost::new(broker);
     let connection = Connection::connect(transport.connect().await?).await?;
+
+    if let Some(config) = super::memory::policy().cloned() {
+        super::memory_host::install(&connection, Arc::clone(&config)).await?;
+    }
 
     let runtime = ModuleRuntime { host, connection };
     // A concurrent caller may have won the race. Its runtime is equivalent, so

@@ -24,6 +24,7 @@ use crate::openhuman::config::Config;
 /// unavailable, and the feature says so at the point of use. Taking the core
 /// down because an optional codec is missing would be a worse trade.
 pub async fn load_declared_modules(config: &Config) {
+    super::memory::set_modules_policy(std::sync::Arc::new(config.clone()));
     if !config.modules.enabled {
         log::debug!("[modules] boot load skipped: modules are disabled in configuration");
         return;

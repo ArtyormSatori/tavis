@@ -33,9 +33,10 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 
-use super::{tool_memory_store, ToolMemoryPriority, ToolMemorySource, ToolMemoryStore};
+use super::{tool_memory_store, ToolMemoryStore};
 use crate::openhuman::agent::hooks::{PostTurnHook, ToolCallRecord, TurnContext};
 use crate::openhuman::memory::Memory;
+use tinycortex::memory::tool_memory::{ToolMemoryPriority, ToolMemorySource};
 
 /// Maximum length (chars) of the captured rule body — keeps malformed or
 /// runaway input from bloating the namespace.

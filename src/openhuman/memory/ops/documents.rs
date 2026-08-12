@@ -6,7 +6,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::subsystem::DriverClass;
-use crate::openhuman::memory::store::{NamespaceDocumentInput, NamespaceRetrievalContext};
+use crate::openhuman::memory::api::provider::MemoryProvider;
+use crate::openhuman::memory::api::types::NamespaceDocumentInput;
+use crate::openhuman::memory::store::NamespaceRetrievalContext;
 use crate::openhuman::memory::{
     ApiEnvelope, DeleteDocumentRequest, DeleteDocumentResponse, EmptyRequest, ListDocumentsRequest,
     ListDocumentsResponse, ListNamespacesResponse, MemoryIngestionConfig, MemoryIngestionRequest,
@@ -15,7 +17,6 @@ use crate::openhuman::memory::{
     RecallMemoriesRequest, RecallMemoriesResponse,
 };
 use crate::rpc::RpcOutcome;
-use tinycortex_api::provider::MemoryProvider;
 
 use super::envelope::{envelope, error_envelope, memory_counts};
 use super::guard::active_memory_guard;
@@ -209,7 +210,7 @@ pub async fn doc_put(params: PutDocParams) -> Result<RpcOutcome<PutDocResult>, S
             // RPC-driven doc puts come from the user / agent — Internal.
             // External-sync ingest paths bypass this RPC and call
             // `store_skill_sync` directly with their own taint label.
-            taint: crate::openhuman::memory::MemoryTaint::Internal,
+            taint: crate::openhuman::memory::api::types::MemoryTaint::Internal,
         })
         .await
         .map_err(|e| e.to_string())?;
@@ -226,7 +227,7 @@ pub async fn doc_ingest(
     let client = active_memory_client().await?;
     let result = client
         .ingest_doc(MemoryIngestionRequest {
-            document: NamespaceDocumentInput {
+            document: tinycortex::memory::NamespaceDocumentInput {
                 namespace: params.namespace,
                 key: params.key,
                 title: params.title,
@@ -238,7 +239,7 @@ pub async fn doc_ingest(
                 category: params.category,
                 session_id: params.session_id,
                 document_id: params.document_id,
-                taint: crate::openhuman::memory::MemoryTaint::Internal,
+                taint: tinycortex::memory::MemoryTaint::Internal,
             },
             config: params.config.unwrap_or_default(),
         })

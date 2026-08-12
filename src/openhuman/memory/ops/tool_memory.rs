@@ -16,15 +16,14 @@
 
 use serde::Deserialize;
 use serde_json::Value;
+use std::sync::Arc;
 
-use tinycortex_api::provider::MemoryProvider;
+use crate::openhuman::memory::api::provider::MemoryProvider;
 
-use crate::openhuman::memory::tool_memory::{
-    tool_memory_store, ToolMemoryPriority, ToolMemoryRule, ToolMemorySource, ToolMemoryStore,
+use crate::openhuman::memory::api::tool_memory::{
+    ToolMemoryPriority, ToolMemoryRule, ToolMemorySource,
 };
 use crate::rpc::RpcOutcome;
-
-use super::helpers::active_memory_client;
 
 /// Parameters for `memory_tool_rule_put`.
 #[derive(Debug, Deserialize)]
@@ -70,9 +69,14 @@ pub struct ToolRulesForPromptParams {
     pub tools: Vec<String>,
 }
 
-async fn open_store() -> Result<ToolMemoryStore, String> {
-    let client = active_memory_client().await?;
-    Ok(tool_memory_store(client.memory_handle()))
+async fn tool_memory(
+) -> Result<std::sync::Arc<dyn crate::openhuman::memory::api::provider::MemoryProvider>, String> {
+    let guard = super::guard::active_memory_guard().await?;
+    let provider = Arc::clone(guard.inner());
+    provider
+        .as_tool_memory()
+        .ok_or_else(|| NO_TOOL_MEMORY.to_string())?;
+    Ok(provider)
 }
 
 /// Upsert a tool-scoped memory rule.
@@ -80,7 +84,6 @@ pub async fn tool_rule_put(
     params: ToolRulePutParams,
 ) -> Result<RpcOutcome<ToolMemoryRule>, String> {
     log::debug!("[tool-memory] rpc tool_rule_put tool={}", params.tool_name);
-    let store = open_store().await?;
     let mut rule = ToolMemoryRule::new(
         &params.tool_name,
         &params.rule,
@@ -93,8 +96,14 @@ pub async fn tool_rule_put(
             rule.id = id;
         }
     }
-    let stored = store.put_rule(rule).await?;
-    Ok(RpcOutcome::single_log(stored, "tool memory rule stored"))
+    tool_memory()
+        .await?
+        .as_tool_memory()
+        .expect("checked")
+        .put_tool_rule(rule.clone())
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(RpcOutcome::single_log(rule, "tool memory rule stored"))
 }
 
 /// Fetch a tool-scoped rule by id.
@@ -106,8 +115,15 @@ pub async fn tool_rule_get(
         params.tool_name,
         params.id
     );
-    let store = open_store().await?;
-    let rule = store.get_rule(&params.tool_name, &params.id).await?;
+    let rule = tool_memory()
+        .await?
+        .as_tool_memory()
+        .expect("checked")
+        .tool_rules(&params.tool_name)
+        .await
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .find(|rule| rule.id == params.id);
     Ok(RpcOutcome::single_log(rule, "tool memory rule fetched"))
 }
 
@@ -128,7 +144,7 @@ pub(crate) const NO_TOOL_MEMORY: &str = "memory driver does not support the tool
 /// `tool_memory_store(self.memory()).list_rules(tool_name)` — the same store
 /// over the same `Arc<dyn Memory>` [`open_store`] builds. The wire type matches
 /// by identity, not conversion: `memory::tool_memory::ToolMemoryRule` **is**
-/// `tinycortex_api::tool_memory::ToolMemoryRule`.
+/// `crate::openhuman::memory::api::tool_memory::ToolMemoryRule`.
 pub async fn tool_rule_list(
     params: ToolRuleListParams,
 ) -> Result<RpcOutcome<Vec<ToolMemoryRule>>, String> {
@@ -183,9 +199,12 @@ pub async fn tool_rules_for_prompt(
         "[tool-memory] rpc tool_rules_for_prompt tools={:?}",
         params.tools
     );
-    let store = open_store().await?;
-    let grouped = store.rules_for_prompt(&params.tools).await?;
-    let mut flat: Vec<ToolMemoryRule> = grouped.into_values().flatten().collect();
+    let provider = tool_memory().await?;
+    let family = provider.as_tool_memory().expect("checked");
+    let mut flat = Vec::new();
+    for tool in &params.tools {
+        flat.extend(family.tool_rules(tool).await.map_err(|e| e.to_string())?);
+    }
     flat.sort_by(|a, b| {
         b.priority
             .cmp(&a.priority)
@@ -209,8 +228,14 @@ pub async fn tool_rules_json(params: ToolRuleListParams) -> Result<RpcOutcome<Va
         "[tool-memory] rpc tool_rules_json tool={}",
         params.tool_name
     );
-    let store = open_store().await?;
-    let value = store.list_rules_json(&params.tool_name).await?;
+    let rules = tool_memory()
+        .await?
+        .as_tool_memory()
+        .expect("checked")
+        .tool_rules(&params.tool_name)
+        .await
+        .map_err(|e| e.to_string())?;
+    let value = serde_json::to_value(rules).map_err(|e| e.to_string())?;
     Ok(RpcOutcome::single_log(value, "tool memory rules json"))
 }
 

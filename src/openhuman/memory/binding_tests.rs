@@ -28,13 +28,17 @@ use tinycortex_api::CONTRACT_VERSION;
 // constant and an import kept alive only for the tests would read as dead code.
 use crate::openhuman::memory::driver::embedded::EMBEDDED_DRIVER_ID;
 
+use crate::openhuman::memory::api::capabilities::Capability;
+use crate::openhuman::memory::api::error::MemoryError;
+use crate::openhuman::memory::api::provider::types::{
+    ExportPage, ExportRecord, ImportOutcome, SourceScope,
+};
+use crate::openhuman::memory::api::provider::{MemoryCore, MemoryPortability, MemoryRecall};
+use crate::openhuman::memory::api::recall::OwnedRecallOpts;
+use crate::openhuman::memory::api::types::{
+    MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary,
+};
 use async_trait::async_trait;
-use tinycortex_api::capabilities::Capability;
-use tinycortex_api::error::MemoryError;
-use tinycortex_api::provider::types::{ExportPage, ExportRecord, ImportOutcome, SourceScope};
-use tinycortex_api::provider::{MemoryCore, MemoryPortability, MemoryRecall};
-use tinycortex_api::recall::OwnedRecallOpts;
-use tinycortex_api::types::{MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary};
 
 use tinymemory_api::host::MemoryDriverConfig;
 

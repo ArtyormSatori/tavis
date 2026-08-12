@@ -11,28 +11,28 @@
 
 use std::sync::{Arc, Mutex};
 
-use async_trait::async_trait;
-use tinycortex_api::capabilities::Capabilities;
-use tinycortex_api::chunks::Chunk;
-use tinycortex_api::error::MemoryError;
-use tinycortex_api::goals::GoalsDoc;
-use tinycortex_api::health::MemoryHealth;
-use tinycortex_api::provider::types::{
+use crate::openhuman::memory::api::capabilities::Capabilities;
+use crate::openhuman::memory::api::chunks::Chunk;
+use crate::openhuman::memory::api::error::MemoryError;
+use crate::openhuman::memory::api::goals::GoalsDoc;
+use crate::openhuman::memory::api::health::MemoryHealth;
+use crate::openhuman::memory::api::provider::types::{
     DiffReport, EntityHit, ExportPage, ExportRecord, ImportOutcome, IngestItem, IngestOutcome,
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
-use tinycortex_api::provider::{
+use crate::openhuman::memory::api::provider::{
     MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals, MemoryGraph,
     MemoryIngest, MemoryMaintenance, MemoryPortability, MemoryProvider, MemoryRecall,
     MemorySourceSink, MemoryToolMemory, MemoryTree,
 };
-use tinycortex_api::recall::OwnedRecallOpts;
-use tinycortex_api::tool_memory::ToolMemoryRule;
-use tinycortex_api::tree::{IngestRequest, QueryResult, TreeStatus};
-use tinycortex_api::types::{
+use crate::openhuman::memory::api::recall::OwnedRecallOpts;
+use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
+use crate::openhuman::memory::api::tree::{IngestRequest, QueryResult, TreeStatus};
+use crate::openhuman::memory::api::types::{
     GraphRelationRecord, MemoryCategory, MemoryEntry, MemoryKvRecord, MemoryTaint,
     NamespaceDocumentInput, NamespaceRetrievalContext, NamespaceSummary, StoredMemoryDocument,
 };
+use async_trait::async_trait;
 
 /// One call that reached the driver.
 #[derive(Debug, Clone, PartialEq)]

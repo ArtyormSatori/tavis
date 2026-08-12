@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 
-use tinycortex_api::provider::MemoryProvider;
+use crate::openhuman::memory::api::provider::MemoryProvider;
 
 use crate::rpc::RpcOutcome;
 
