@@ -196,22 +196,18 @@ impl Drop for EnvVarGuard {
 }
 
 static ENV_LOCK: &OnceLock<Mutex<()>> = &crate::SHARED_ENV_LOCK;
-static MEMORY_SEAMS_INIT: OnceLock<()> = OnceLock::new();
-
 fn ensure_memory_seams() {
-    MEMORY_SEAMS_INIT.get_or_init(|| {
-        std::thread::Builder::new()
-            .name("raw-coverage-memory-seams".to_string())
-            .stack_size(8 * 1024 * 1024)
-            .spawn(|| {
-                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(Arc::new(
-                    Config::default(),
-                ));
-            })
-            .expect("spawn raw coverage memory seam installer")
-            .join()
-            .expect("raw coverage memory seam installer panicked");
-    });
+    std::thread::Builder::new()
+        .name("raw-coverage-memory-seams".to_string())
+        .stack_size(8 * 1024 * 1024)
+        .spawn(|| {
+            openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(Arc::new(
+                Config::default(),
+            ));
+        })
+        .expect("spawn raw coverage memory seam installer")
+        .join()
+        .expect("raw coverage memory seam installer panicked");
 }
 
 fn env_lock() -> std::sync::MutexGuard<'static, ()> {
@@ -2588,6 +2584,7 @@ async fn memory_queue_and_tool_memory_public_stores_cover_persistence_edges() {
 
 #[tokio::test]
 async fn memory_source_sync_entrypoint_rejects_disabled_and_ingests_folder_items() {
+    let _lock = env_lock();
     let tmp = TempDir::new().expect("tempdir");
     let config = config_in(&tmp);
     std::fs::write(
@@ -3980,6 +3977,7 @@ async fn memory_ops_public_handlers_cover_document_file_kv_graph_and_envelopes()
 
 async fn memory_ops_public_handlers_cover_document_file_kv_graph_and_envelopes_body() {
     let _lock = env_lock();
+    ensure_memory_seams();
     let tmp = TempDir::new().expect("tempdir");
     let _workspace = EnvVarGuard::set_to_path("OPENHUMAN_WORKSPACE", tmp.path());
 
