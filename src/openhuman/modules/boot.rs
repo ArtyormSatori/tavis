@@ -120,7 +120,7 @@ mod tests {
         config.subsystems.memory.driver = "tinymemory".to_string();
         config.subsystems.memory.drivers.insert(
             "tinymemory".to_string(),
-            crate::openhuman::memory::api::host::MemoryDriverConfig {
+            tinymemory_api::host::MemoryDriverConfig {
                 class: Some("module".to_string()),
                 ..Default::default()
             },

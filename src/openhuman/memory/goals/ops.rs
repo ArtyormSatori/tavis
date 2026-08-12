@@ -9,7 +9,7 @@ use serde::Serialize;
 use crate::openhuman::config::Config;
 use crate::rpc::RpcOutcome;
 use tinycortex::memory::goals::store;
-use crate::openhuman::memory::api::goals::GoalsDoc;
+use tinycortex_api::goals::GoalsDoc;
 
 /// Result of an add operation: the new id plus the full updated list.
 #[derive(Debug, Serialize)]

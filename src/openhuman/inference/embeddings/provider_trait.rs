@@ -1,7 +1,7 @@
 //! Interface for embedding providers that convert text into numerical vectors.
 //!
 //! [`EmbeddingProvider`] and [`format_embedding_signature`] are **defined in
-//! `crate::openhuman::memory::api::host`** and re-exported here. The extracted memory subsystem
+//! `tinymemory_api::host`** and re-exported here. The extracted memory subsystem
 //! takes an `Arc<dyn EmbeddingProvider>` from this host, so the trait has to live
 //! somewhere both sides can name — and it has to be *one* trait, not two
 //! structurally identical ones, or the trait objects would not be
@@ -17,5 +17,5 @@
 //! builds Ollama models directly and has to wrap them. `tinymemory-core` is the
 //! one crate that can name both sides.
 
-pub use crate::openhuman::memory::api::host::{format_embedding_signature, EmbeddingProvider};
+pub use tinymemory_api::host::{format_embedding_signature, EmbeddingProvider};
 pub use tinymemory_core::embedding_adapter::TinyAgentsEmbeddingProvider;

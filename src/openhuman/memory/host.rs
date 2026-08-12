@@ -3,7 +3,7 @@
 //! `tinymemory-core` holds the substance of the memory subsystem — the store,
 //! the summary tree, the sync pipelines, ingestion, recall. It names no
 //! OpenHuman type. Everything it needs from us arrives through the traits in
-//! [`crate::openhuman::memory::api::host`], and this module is where we implement them.
+//! [`tinymemory_api::host`], and this module is where we implement them.
 //!
 //! Three impls, and one wiring call:
 //!
@@ -17,7 +17,7 @@
 //!   learns `DomainEvent` exists; that enum is OpenHuman's own vocabulary and
 //!   spans agents, channels, cron and tools as well as memory.
 //! - The embedding provider trait is not implemented here — it is *defined* in
-//!   `crate::openhuman::memory::api::host` and re-exported from
+//!   `tinymemory_api::host` and re-exported from
 //!   [`crate::openhuman::inference::embeddings`], so our existing providers
 //!   already implement it.
 //!
@@ -28,7 +28,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use crate::openhuman::memory::api::host::{
+use tinymemory_api::host::{
     CloudProviderCreds, ComposioMode, LocalAiConfig, MemoryConfig, MemoryEvent, MemoryEventSink,
     MemoryHostConfig, MemoryTreeConfig, SchedulerGateConfig,
 };

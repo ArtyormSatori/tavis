@@ -55,8 +55,8 @@ pub struct SpacyRuntime {
 }
 
 /// The spaCy wire types live in the contract crate — the memory tree's query
-/// extractor consumes them. See [`crate::openhuman::memory::api::host::SpacyResponse`].
-pub use crate::openhuman::memory::api::host::{SpacyEntity, SpacyResponse};
+/// extractor consumes them. See [`tinymemory_api::host::SpacyResponse`].
+pub use tinymemory_api::host::{SpacyEntity, SpacyResponse};
 
 pub async fn extract(config: &Config, text: &str) -> Result<SpacyResponse> {
     super::server::request_spacy_extract(config, text).await

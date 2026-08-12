@@ -25,7 +25,7 @@
 //!
 //! ## Two vocabularies meet here, on purpose
 //!
-//! [`tinycortex_api`] is the *memory contract*: `MemoryProvider`,
+//! [`crate::openhuman::memory::api`] is the host-owned memory contract: `MemoryProvider`,
 //! `Capabilities`, `MemoryHealth`. [`crate::core::subsystem`] is the kernel's
 //! *generic* driver vocabulary shared with the subsystems that come after
 //! memory: `DriverClass`, `DriverCapabilities`, `DriverHealth`, `BoundDriver`.
@@ -34,14 +34,8 @@
 //! redefined here precisely because it is a *host* fact about how a driver was
 //! bound, identical for every subsystem.
 //!
-//! ## Scope of this step (M2b)
-//!
-//! Every admitted driver binds [`NullMemoryProvider`] — this step proves the
-//! plumbing, not the storage. M3 replaces exactly one thing: the
-//! [`DriverClass::Embedded`] arm of [`build`]. Note the consequence: until M3
-//! lands, a *booted* process advertises only the three mandatory capability
-//! families, so nothing may gate its RPC/tool surface on
-//! `memory_capabilities()` yet.
+//! The built-in driver is the compiled TinyMemory TinyBus module. The host no
+//! longer exposes an embedded engine class for memory.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -196,26 +190,50 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
         reason: reason.to_string(),
     };
 
-    // A driver needs no `[subsystems.memory.drivers.<id>]` entry: the embedded
-    // default's options still live in the existing `[memory]` blocks.
+    const MODULE_ID: &str = crate::openhuman::modules::memory::MODULE_ID;
+
+    // The two built-ins need no `[subsystems.memory.drivers.<id>]` entry.
     let Some(entry) = cfg.drivers.get(id) else {
-        return if id == NULL_DRIVER_ID {
-            Ok((id.to_string(), DriverClass::Null))
-        } else {
-            Ok((id.to_string(), DriverClass::Module))
+        return match id {
+            NULL_DRIVER_ID => Ok((id.to_string(), DriverClass::Null)),
+            MODULE_ID => Ok((id.to_string(), DriverClass::Module)),
+            _ => Err(refuse(&format!(
+                "driver '{id}' is not built in; add [subsystems.memory.drivers.{id}] with an explicit class line"
+            ))),
         };
     };
 
     let class = match entry.class.as_deref() {
-        None => {
-            if id == NULL_DRIVER_ID {
-                DriverClass::Null
-            } else {
-                DriverClass::Module
-            }
-        }
+        None if id == NULL_DRIVER_ID => DriverClass::Null,
+        None if id == MODULE_ID => DriverClass::Module,
+        None => return Err(refuse("a non-built-in driver requires an explicit class line")),
         Some(raw) => DriverClass::parse(raw).map_err(|e| refuse(&e))?,
     };
+
+    let built_in_class = match id {
+        NULL_DRIVER_ID => Some(DriverClass::Null),
+        MODULE_ID => Some(DriverClass::Module),
+        _ => None,
+    };
+    if let Some(expected) = built_in_class {
+        if class != expected {
+            return Err(refuse(&format!(
+                "built in driver '{id}' has class '{expected}' and cannot be re-classed as '{class}'"
+            )));
+        }
+    }
+
+    if class == DriverClass::Embedded {
+        return Err(refuse(
+            "embedded memory drivers are no longer supported; use the 'tinymemory' module driver",
+        ));
+    }
+
+    if class == DriverClass::Module && id != MODULE_ID {
+        return Err(refuse(&format!(
+            "module driver '{id}' is not registered; the built-in memory module id is '{MODULE_ID}'"
+        )));
+    }
 
     if class == DriverClass::External {
         // kernel.md §3.4: fail-closed. Trust must be explicitly raised before

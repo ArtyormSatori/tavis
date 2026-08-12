@@ -1,6 +1,6 @@
 //! Domain types for the Composio integration.
 //!
-//! The definitions **moved to `crate::openhuman::memory::api::host::composio`** during the
+//! The definitions **moved to `tinymemory_api::host::composio`** during the
 //! memory extraction: the extracted sync pipelines read these fields directly
 //! on every run, so they had to live somewhere both crates can name. They are
 //! inert serde data and carry no dependencies, so the contract crate's
@@ -12,4 +12,4 @@
 //! `#[serde(...)]` attributes are a wire contract, not an implementation
 //! detail.
 
-pub use crate::openhuman::memory::api::host::composio::*;
+pub use tinymemory_api::host::composio::*;

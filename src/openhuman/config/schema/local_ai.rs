@@ -1,6 +1,6 @@
 //! Local AI runtime configuration.
 //!
-//! Definitions moved to [`crate::openhuman::memory::api::host`] — the extracted memory
+//! Definitions moved to [`tinymemory_api::host`] — the extracted memory
 //! subsystem reads `local_ai` when it resolves an embedding backend. Re-exported
 //! here so existing paths keep resolving.
 //!
@@ -8,4 +8,4 @@
 //! mechanical reasons; moving embedding *construction* back into the host would
 //! let it come home.
 
-pub use crate::openhuman::memory::api::host::local_ai::{LocalAiConfig, LocalAiUsage};
+pub use tinymemory_api::host::local_ai::{LocalAiConfig, LocalAiUsage};

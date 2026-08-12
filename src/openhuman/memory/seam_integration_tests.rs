@@ -14,7 +14,7 @@
 mod tests {
     use std::sync::Arc;
 
-    use crate::openhuman::memory::api::host::{MemoryConfig, DEFAULT_CLOUD_LLM_MODEL};
+    use tinymemory_api::host::{MemoryConfig, DEFAULT_CLOUD_LLM_MODEL};
     use tinymemory_core::sync::composio::providers::{ComposioUsageHandle, ProviderContext};
 
     use crate::openhuman::config::Config;

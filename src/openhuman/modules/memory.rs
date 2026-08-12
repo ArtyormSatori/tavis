@@ -11,7 +11,7 @@
 //! roughly four thousand pre-boot tests invoke with no tokio runtime at all. So
 //! [`ModuleMemoryProvider::new`] cannot load the module, cannot dial the bus, and
 //! cannot await anything. It stores its configuration and resolves on first use,
-//! the same contract `driver::embedded` follows.
+//! the same lazy-loading contract used by the module host.
 //!
 //! That has one consequence worth stating plainly, because it looks like a
 //! shortcut and is not:

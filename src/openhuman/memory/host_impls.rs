@@ -1,7 +1,7 @@
 //! Host implementations of the seam traits `tinymemory-core` declares.
 //!
 //! The extracted memory subsystem reaches back into OpenHuman through nine
-//! traits (see `crate::openhuman::memory::api::host` and the `*_host` modules in
+//! traits (see `tinymemory_api::host` and the `*_host` modules in
 //! `tinymemory_core`). [`super::host`] carries the two that are about *data* —
 //! `MemoryHostConfig` and `MemoryEventSink`. This module carries the seven that
 //! are about *capability*: building providers, loading config, running spaCy,
@@ -29,7 +29,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use tinyagents::harness::model::{ChatModel, ModelResponse};
-use crate::openhuman::memory::api::host::{EmbeddingHost, EmbeddingProvider, ErrorReporter, UsageInfo};
+use tinymemory_api::host::{EmbeddingHost, EmbeddingProvider, ErrorReporter, UsageInfo};
 use tinymemory_core::chat_host::ChatHost;
 use tinymemory_core::composio_host::{ComposioConnection, ComposioExecuteResponse, ComposioHost};
 use tinymemory_core::config_loader::ConfigLoader;

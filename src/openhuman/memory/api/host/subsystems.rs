@@ -10,7 +10,7 @@
 //!
 //! ```toml
 //! [subsystems.memory]
-//! driver = "tinycortex"
+//! driver = "tinymemory"
 //!
 //! [subsystems.memory.hooks]
 //! auto_recall = true
@@ -54,7 +54,7 @@ pub struct SubsystemsConfig {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(default)]
 pub struct MemorySubsystemConfig {
-    /// The bound driver id (e.g. `"tinycortex"`, `"supermemory"`, `"null"`).
+    /// The bound driver id (e.g. `"tinymemory"`, `"supermemory"`, `"null"`).
     /// Must match a key under `drivers` when that driver needs options.
     #[serde(default = "default_memory_driver")]
     pub driver: String,
@@ -62,8 +62,8 @@ pub struct MemorySubsystemConfig {
     #[serde(default)]
     pub hooks: MemoryHooksConfig,
 
-    /// Per-driver option tables, keyed by driver id. The embedded default
-    /// (`tinycortex`) needs no entry here — its options continue to live in
+    /// Per-driver option tables, keyed by driver id. The module default
+    /// (`tinymemory`) needs no entry here — its options continue to live in
     /// the existing `[memory]` / `[memory_tree]` / `[[memory_sources]]`
     /// blocks (plan-memory.md §4.5: "no user-visible config break").
     #[serde(default)]
@@ -71,7 +71,7 @@ pub struct MemorySubsystemConfig {
 }
 
 fn default_memory_driver() -> String {
-    "tinycortex".into()
+    "tinymemory".into()
 }
 
 impl Default for MemorySubsystemConfig {
@@ -216,7 +216,7 @@ mod tests {
     #[test]
     fn subsystems_config_defaults_reproduce_today_behavior() {
         let cfg = SubsystemsConfig::default();
-        assert_eq!(cfg.memory.driver, "tinycortex");
+        assert_eq!(cfg.memory.driver, "tinymemory");
         assert!(cfg.memory.hooks.auto_recall);
         assert!(cfg.memory.hooks.auto_capture);
         assert_eq!(cfg.memory.hooks.max_context_tokens, 2000);
