@@ -190,7 +190,7 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
         reason: reason.to_string(),
     };
 
-    const MODULE_ID: &str = crate::openhuman::modules::memory::MODULE_ID;
+    const MODULE_ID: &str = "tinymemory";
     // Temporary persisted-config alias. The schema still comes from the
     // legacy contract until its remaining engine callers are moved onto the
     // host-owned copy; both values bind the compiled module and report its
@@ -278,18 +278,12 @@ pub fn admit(cfg: &MemorySubsystemConfig) -> Result<(String, DriverClass), Fallb
 fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
     match admit(cfg) {
         Ok((driver_id, class)) => {
-            let provider: Arc<dyn MemoryProvider> = if class == DriverClass::Null {
-                Arc::new(NullMemoryProvider::new())
-            } else {
-                Arc::new(
-                    crate::openhuman::modules::memory::ModuleMemoryProvider::from_boot_policy(),
-                )
-            };
-            let reported_class = if class == DriverClass::Null {
-                class
-            } else {
-                DriverClass::Module
-            };
+            let (provider, reported_class): (Arc<dyn MemoryProvider>, DriverClass) =
+                if class == DriverClass::Null {
+                    (Arc::new(NullMemoryProvider::new()), DriverClass::Null)
+                } else {
+                    module_provider()
+                };
             let binding = bind_provider(provider, driver_id, reported_class, None);
             log::info!(
                 "[memory:binding] workspace={} bound driver='{}' class={} capabilities=[{}]",
@@ -330,6 +324,22 @@ fn build(workspace_dir: &Path, cfg: &MemorySubsystemConfig) -> MemoryBinding {
             )
         }
     }
+}
+
+#[cfg(feature = "modules")]
+fn module_provider() -> (Arc<dyn MemoryProvider>, DriverClass) {
+    (
+        Arc::new(crate::openhuman::modules::memory::ModuleMemoryProvider::from_boot_policy()),
+        DriverClass::Module,
+    )
+}
+
+#[cfg(not(feature = "modules"))]
+fn module_provider() -> (Arc<dyn MemoryProvider>, DriverClass) {
+    log::warn!(
+        "[memory:binding] the 'modules' feature is disabled; binding the null memory provider"
+    );
+    (Arc::new(NullMemoryProvider::new()), DriverClass::Null)
 }
 
 /// The single place `capabilities()` is asked. Every construction path — real
