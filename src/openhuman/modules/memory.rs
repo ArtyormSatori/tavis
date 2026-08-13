@@ -811,16 +811,23 @@ impl MemoryPeople for ModuleMemoryProvider {
         person_id: &str,
         handle: &PersonHandle,
     ) -> Result<(), MemoryError> {
-        module_call!(self, "add_handle_alias", "AddHandleAlias", (person_id, handle))
+        module_call!(
+            self,
+            "add_handle_alias",
+            "AddHandleAlias",
+            (person_id, handle)
+        )
     }
     async fn score_person(&self, person_id: &str) -> Result<Option<PersonScore>, MemoryError> {
         module_call!(self, "score_person", "ScorePerson", (person_id,))
     }
-    async fn record_interaction(
-        &self,
-        interaction: &PersonInteraction,
-    ) -> Result<(), MemoryError> {
-        module_call!(self, "record_interaction", "RecordInteraction", (interaction,))
+    async fn record_interaction(&self, interaction: &PersonInteraction) -> Result<(), MemoryError> {
+        module_call!(
+            self,
+            "record_interaction",
+            "RecordInteraction",
+            (interaction,)
+        )
     }
     async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
         module_call!(self, "seed_from_address_book", "SeedFromAddressBook", ())
