@@ -227,16 +227,60 @@ back to exactly the 26 pre-existing failures with no new ones; `cargo fmt`
 clean. (The full `--lib` run aborts on a pre-existing stack overflow in
 `agent::harness::session::runtime`, identical on a clean `main` checkout.)
 
+### 1c. Engine implementation, module service, host client — landed
+
+**Not in `tinymemory-tinycortex`.** That adapter holds only an
+`Arc<dyn Memory>` and documents its own scope as the mandatory three, because
+the optional families need a host's configuration. The implementation belongs
+to `tinymemory-module`'s `ModuleMemoryProvider`, which already holds
+`workspace_dir` and implements the other ten.
+
+**Conversions destructure; they do not round-trip through serde.** The module's
+`Self::cross` helper is a serde value round-trip, and it would have compiled
+and then failed at runtime on the first call: the engine's `Interaction` names
+its timestamp `ts` where the contract names it `at`. Explicit destructuring
+makes a renamed or added field a compile error instead — the rule
+`tinymemory-tinycortex::convert` already follows.
+
+Two smaller decisions worth keeping:
+
+- A malformed `PersonRef` is `Invalid`, not `NotFound`. `NotFound` would tell a
+  caller their id was well-formed but absent, sending them to look for a deleted
+  person rather than at the id they built.
+- Ranking sorts with `total_cmp`, not `partial_cmp`. A NaN from a degenerate
+  score makes `partial_cmp` return `None`, and `sort_by` on a non-total ordering
+  may panic or produce garbage order.
+
+Service side: seven methods on `ai.tinyhumans.tinymemory.Memory`, with
+`ListPeople` size-checked like the other list-returning methods — `limit` bounds
+the count but not the bytes. Host side: seven forwards through `module_call!`
+and an `as_people()` accessor.
+
+**The nested TinyCortex submodule was fast-forwarded** (`be7b395` → `566804c`,
+verified as an ancestor first) so the module crate can actually build and test
+against the engine change. That pointer bump is part of the release anyway.
+
+### Release-ordering hazard — read before shipping stage 2
+
+`ModuleMemoryProvider::capabilities()` answers `Capabilities::all()`
+**statically**. That set grew with the contract; the *artifact* only grows when a
+release is cut and `modules/registry.rs` is re-pinned. Between those moments the
+host over-claims, and `verify()` logs the disagreement without narrowing the
+advertised set.
+
+`people` is in that window now: served by the module source in this tree, not by
+the pinned `1.0.1` artifact. It is **inert today** because nothing in the host
+reaches `as_people()` yet. It stops being inert the moment the people RPC
+handlers are routed through the driver, so **that change and the module release
+must land together**. Documented at the `capabilities()` call site too.
+
 ### Still open in stage 1
 
-- `MemoryPeople` implementation in the TinyCortex adapter.
-- The `People` methods on the module service and the host client.
-- The `Chunks` and `Retrieval` families, same shape.
-- A module release, and the digest update in `modules/registry.rs`.
-- TinyMemory's own workspace pins a nested TinyCortex submodule, so its
-  standalone `cargo test` cannot see these engine changes until that pointer is
-  bumped at release time. The OpenHuman build patches both to one checkout and
-  is the authoritative build meanwhile.
+- The `Chunks` and `Retrieval` families, same shape as People.
+- Routing the host's people RPC + agent tools through `as_people()` (stage 2),
+  which is what makes the family load-bearing.
+- A module release, the digest update in `modules/registry.rs`, and the
+  TinyMemory-side submodule pointer commit.
 
 **Why People moves rather than staying put.** `tinymemory-core` survives this
 port — it is the module's own implementation crate, it just stops being an
