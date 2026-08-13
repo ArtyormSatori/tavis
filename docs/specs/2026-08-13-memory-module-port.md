@@ -133,10 +133,29 @@ issue for the real fix. *No behaviour change; makes every later stage safe.*
 > the wrong way round in the first draft of this plan.
 
 **Stage 1 — close the wire gaps.**
-In TinyMemory: add the People family, chunk-level access, and the retrieval
-primitives to the contract, the module service and the host client. Ship a new
-module release; update the digests in `modules/registry.rs`. This is the
-largest stage and the only one that is cross-repo-blocking.
+
+*Decision: all four surfaces are pushed down into TinyCortex and exposed through
+the TinyMemory contract. None is rebuilt host-side.* The host calls them over
+the bus like every other provider method, and the engine stays the single owner
+of storage and scoring.
+
+The audit shows this is less new code than it looks, because the engine already
+owns most of it:
+
+| Surface | Where it is today | Work |
+| --- | --- | --- |
+| Retrieval primitives | `cover_window` / `search_entities` already in `tinycortex::memory::retrieval`; `tinymemory-core/tree/retrieval` carries a parallel `cover`/`fast`/`search` set | Consolidate onto the TinyCortex implementation, delete the duplicate, expose |
+| Chunk-level access | `list_chunks` exists in **both** `tinycortex/memory/chunks/store_list.rs` and `tinymemory-core/store/chunks/store.rs` | Same — collapse to one, expose |
+| Unified store types | `tinymemory-core/store` (49 files, part wrapper over TinyCortex) | Move the owning types down, expose |
+| **People** | `tinymemory-core/people` only — a standalone implementation with no TinyCortex reference | Genuine migration down into TinyCortex, then a new People capability family |
+
+Then: widen `MemoryProvider` and the capability set, extend the module service
+and the host client in `modules/memory.rs`, cut a TinyMemory module release and
+update the digests in `modules/registry.rs`.
+
+This is the largest stage and the only cross-repo-blocking one — it needs a
+published module release, taken verbatim from the release's `checksum.toml`,
+never recomputed from a local build.
 
 **Stage 2 — cut the direct engine calls over.**
 Rewrite the 30 `tinymemory_core` call sites in `memory/{tools,query,tree}` onto
