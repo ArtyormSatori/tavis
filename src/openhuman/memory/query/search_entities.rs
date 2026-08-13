@@ -1,4 +1,3 @@
-use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::tree::retrieval::rpc::SearchEntitiesRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
@@ -205,10 +204,18 @@ kind validation moved into the driver with the open entity-kind vocabulary"]
             .contains("memory_tree_search_entities: invalid kind:"));
     }
 
+    /// The parity half of this test is gone with the split brain.
+    ///
+    /// It used to run the tool and then call `retrieval::search_entities`
+    /// directly on the same workspace, asserting both saw an empty store. That
+    /// second call is exactly the in-process engine access this port removes —
+    /// there is no longer a second reader to agree with.
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the tool now reads entities through the bound driver, not the in-process engine"]
     async fn execute_success_path_returns_empty_json_array_for_isolated_workspace() {
         let tmp = TempDir::new().expect("tempdir");
-        let (_workspace, cfg) = isolated_config(&tmp).await;
+        let (_workspace, _cfg) = isolated_config(&tmp).await;
         let tool = MemoryTreeSearchEntitiesTool;
         let result = tool
             .execute(json!({
@@ -226,14 +233,11 @@ kind validation moved into the driver with the open entity-kind vocabulary"]
             "search_entities should serialize a JSON array"
         );
         assert_eq!(parsed, json!([]));
-
-        let direct = retrieval::search_entities(&cfg, "alice", None, 3)
-            .await
-            .expect("direct search_entities on empty workspace");
-        assert!(direct.is_empty());
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the tool now reads entities through the bound driver, not the in-process engine"]
     async fn execute_accepts_kind_filter_and_clamps_large_limit() {
         let tmp = TempDir::new().expect("tempdir");
         let (_workspace, _cfg) = isolated_config(&tmp).await;
