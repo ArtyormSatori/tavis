@@ -95,7 +95,7 @@ impl Capability {
     /// Declaration order is also bit order in [`Capabilities`] and iteration
     /// order in its serialized form, so this slice is the single ordering
     /// authority for the whole module.
-    pub const ALL: [Capability; 13] = [
+    pub const ALL: [Capability; 14] = [
         Capability::Core,
         Capability::Recall,
         Capability::Ingest,
@@ -109,6 +109,10 @@ impl Capability {
         Capability::Sources,
         Capability::Maintenance,
         Capability::Portability,
+        // Appended, never inserted: declaration order is bit order in
+        // `Capabilities`, so moving an existing variant would silently change
+        // what an already-persisted or already-transmitted bitset means.
+        Capability::People,
     ];
 
     /// The families a driver must advertise to be bindable at all.
