@@ -1,9 +1,9 @@
+use crate::openhuman::memory::api::provider::MemoryProvider;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::memory::tree::retrieval::rpc::SearchEntitiesRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
-use crate::openhuman::memory::api::provider::MemoryProvider;
-use crate::openhuman::memory::ops::guard::active_memory_guard;
 
 pub struct MemoryTreeSearchEntitiesTool;
 
