@@ -753,14 +753,17 @@ impl MemoryMaintenance for GuardedMaintenance {
     }
 }
 
-
 // ── People ───────────────────────────────────────────────────────────────────
 
 #[async_trait]
 impl MemoryPeople for GuardedPeople {
     async fn list_people(&self, limit: Option<usize>) -> Result<Vec<RankedPerson>, MemoryError> {
-        self.policy
-            .admit_read(Capability::People, "people.list_people", NO_NAMESPACE, false)?;
+        self.policy.admit_read(
+            Capability::People,
+            "people.list_people",
+            NO_NAMESPACE,
+            false,
+        )?;
         self.family()?.list_people(limit).await
     }
 
@@ -797,7 +800,9 @@ impl MemoryPeople for GuardedPeople {
                 false,
             )?;
         }
-        self.family()?.resolve_handle(handle, create_if_missing).await
+        self.family()?
+            .resolve_handle(handle, create_if_missing)
+            .await
     }
 
     async fn add_handle_alias(
@@ -815,15 +820,16 @@ impl MemoryPeople for GuardedPeople {
     }
 
     async fn score_person(&self, person_id: &str) -> Result<Option<PersonScore>, MemoryError> {
-        self.policy
-            .admit_read(Capability::People, "people.score_person", NO_NAMESPACE, false)?;
+        self.policy.admit_read(
+            Capability::People,
+            "people.score_person",
+            NO_NAMESPACE,
+            false,
+        )?;
         self.family()?.score_person(person_id).await
     }
 
-    async fn record_interaction(
-        &self,
-        interaction: &PersonInteraction,
-    ) -> Result<(), MemoryError> {
+    async fn record_interaction(&self, interaction: &PersonInteraction) -> Result<(), MemoryError> {
         self.policy.admit_write(
             Capability::People,
             "people.record_interaction",
