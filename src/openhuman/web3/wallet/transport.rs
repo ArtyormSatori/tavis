@@ -29,12 +29,10 @@
 //! is the safe direction: a missed retry costs a request, a wrong retry can
 //! cost a duplicate transaction.
 
-use tinywallet::rpc::{
-    NetworkId, Transport, TransportError, TransportResult,
-};
 use async_trait::async_trait;
 use log::debug;
 use serde_json::Value;
+use tinywallet::rpc::{NetworkId, Transport, TransportError, TransportResult};
 
 use super::defaults::{rpc_url_for_chain, rpc_url_for_evm_network, EvmNetwork};
 use super::ops::WalletChain;
@@ -76,15 +74,9 @@ fn resolve(network: NetworkId) -> Result<String, TransportError> {
                 })?;
             Ok(rpc_url_for_evm_network(evm))
         }
-        tinywallet::Chain::Btc => {
-            Ok(rpc_url_for_chain(WalletChain::Btc))
-        }
-        tinywallet::Chain::Solana => {
-            Ok(rpc_url_for_chain(WalletChain::Solana))
-        }
-        tinywallet::Chain::Tron => {
-            Ok(rpc_url_for_chain(WalletChain::Tron))
-        }
+        tinywallet::Chain::Btc => Ok(rpc_url_for_chain(WalletChain::Btc)),
+        tinywallet::Chain::Solana => Ok(rpc_url_for_chain(WalletChain::Solana)),
+        tinywallet::Chain::Tron => Ok(rpc_url_for_chain(WalletChain::Tron)),
         // `tinywallet::Chain` is `#[non_exhaustive]`, so a future variant must
         // be handled. Reporting it as authoritative is correct: no endpoint is
         // configured for it, and retrying elsewhere cannot change that.
@@ -246,10 +238,7 @@ mod tests {
 
     #[test]
     fn an_evm_request_without_a_chain_id_is_authoritative_not_retryable() {
-        let err = resolve(NetworkId::chain(
-            tinywallet::Chain::Evm,
-        ))
-        .unwrap_err();
+        let err = resolve(NetworkId::chain(tinywallet::Chain::Evm)).unwrap_err();
         assert!(!err.is_retryable(), "{err}");
     }
 

@@ -363,8 +363,7 @@ fn validate_address(chain: WalletChain, addr: &str) -> Result<String, String> {
         WalletChain::Tron => tinywallet::Chain::Tron,
     };
     debug!("{LOG_PREFIX} validate_address chain={chain:?} role=recipient dispatch=tinywallet");
-    let result = tinywallet::address::validate(tw_chain, addr)
-        .map_err(|e| e.to_string());
+    let result = tinywallet::address::validate(tw_chain, addr).map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address chain={chain:?} role=recipient result={}",
         if result.is_ok() {

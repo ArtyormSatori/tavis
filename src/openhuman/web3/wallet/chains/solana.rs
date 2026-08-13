@@ -66,8 +66,7 @@ struct BlockhashValue {
 /// format; this wrapper keeps the `Result<_, String>` shape the rest of the
 /// domain speaks.
 pub fn validate_solana_address(addr: &str) -> Result<String, String> {
-    let result = tinywallet::address::solana::validate(addr)
-        .map_err(|e| e.to_string());
+    let result = tinywallet::address::solana::validate(addr).map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address result={}",
         if result.is_ok() {
@@ -104,12 +103,8 @@ pub async fn native_balance(address: &str) -> Result<u128, String> {
 /// because such a path is derivable-looking but underivable on ed25519 — and
 /// silently hardening it would return a different account than the path names.
 fn derive_solana_keypair(mnemonic: &str, derivation_path: &str) -> Result<SigningKey, String> {
-    let derived = tinywallet::key::derive(
-        tinywallet::Chain::Solana,
-        mnemonic,
-        derivation_path,
-    )
-    .map_err(|e| e.to_string())?;
+    let derived = tinywallet::key::derive(tinywallet::Chain::Solana, mnemonic, derivation_path)
+        .map_err(|e| e.to_string())?;
     let bytes: [u8; SECRET_KEY_LENGTH] = derived
         .secret_bytes()
         .try_into()

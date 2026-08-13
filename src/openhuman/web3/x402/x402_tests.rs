@@ -416,12 +416,8 @@ fn eip712_domain_separator_is_deterministic() {
 fn test_signer() -> (Vec<u8>, String) {
     let test_mnemonic = "abandon abandon abandon abandon abandon abandon \
                          abandon abandon abandon abandon abandon about";
-    let derived = tinywallet::key::derive(
-        tinywallet::Chain::Evm,
-        test_mnemonic,
-        "m/44'/60'/0'/0/0",
-    )
-    .unwrap();
+    let derived =
+        tinywallet::key::derive(tinywallet::Chain::Evm, test_mnemonic, "m/44'/60'/0'/0/0").unwrap();
     (
         derived.secret_bytes().to_vec(),
         derived.address().to_string(),
@@ -440,9 +436,7 @@ fn address_bytes(hex: &str) -> [u8; 20] {
 
 #[test]
 fn eip3009_struct_hash_is_deterministic() {
-    use tinywallet::eip712::{
-        transfer_with_authorization_hash, u256_from_u64,
-    };
+    use tinywallet::eip712::{transfer_with_authorization_hash, u256_from_u64};
 
     let from = address_bytes(&"aa".repeat(20));
     let to = address_bytes(&"bb".repeat(20));
@@ -546,8 +540,8 @@ fn build_evm_payment_with_test_key_produces_valid_payload() {
             );
             assert_eq!(evm.authorization.from, from_address);
 
-            use tinywallet::eip712;
             use k256::ecdsa::{RecoveryId, Signature, VerifyingKey};
+            use tinywallet::eip712;
 
             let raw = hex::decode(evm.signature.trim_start_matches("0x")).unwrap();
             assert!(matches!(raw[64], 27 | 28), "invalid recovery byte");

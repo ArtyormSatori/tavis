@@ -27,19 +27,18 @@
 /// amount is not a non-negative integer that fits in 256 bits.
 #[allow(unreachable_patterns)]
 pub fn encode_erc20_transfer(to_address: &str, amount_raw: &str) -> Result<String, String> {
-    tinywallet::abi::encode_erc20_transfer(to_address, amount_raw)
-        .map_err(|error| match error {
-            tinywallet::abi::Error::InvalidRecipient { .. } => {
-                format!("invalid EVM recipient address '{to_address}': {error}")
-            }
-            // Preserves the wording the previous implementation used, because the
-            // agent tool's schema documents it and a model reads it to correct
-            // itself.
-            tinywallet::abi::Error::InvalidAmount { .. } => {
-                format!("amount '{amount_raw}' is not a valid non-negative integer")
-            }
-            _ => error.to_string(),
-        })
+    tinywallet::abi::encode_erc20_transfer(to_address, amount_raw).map_err(|error| match error {
+        tinywallet::abi::Error::InvalidRecipient { .. } => {
+            format!("invalid EVM recipient address '{to_address}': {error}")
+        }
+        // Preserves the wording the previous implementation used, because the
+        // agent tool's schema documents it and a model reads it to correct
+        // itself.
+        tinywallet::abi::Error::InvalidAmount { .. } => {
+            format!("amount '{amount_raw}' is not a valid non-negative integer")
+        }
+        _ => error.to_string(),
+    })
 }
 
 #[cfg(test)]

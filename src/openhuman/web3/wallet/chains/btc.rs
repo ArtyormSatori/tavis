@@ -61,8 +61,7 @@ pub fn estimated_btc_fee_sats() -> u64 {
 /// specific, so the rules live where any host can reach them; what stays here
 /// is the `Result<_, String>` shape the rest of this domain speaks.
 pub fn validate_btc_address(addr: &str) -> Result<String, String> {
-    let result = tinywallet::address::btc::validate(addr)
-        .map_err(|e| e.to_string());
+    let result = tinywallet::address::btc::validate(addr).map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address role=recipient result={}",
         if result.is_ok() {
@@ -82,8 +81,7 @@ pub fn validate_btc_address(addr: &str) -> Result<String, String> {
 /// the recipient rule for a sender accepts an address that only fails later,
 /// at signing time.
 pub fn validate_btc_sender_address(addr: &str) -> Result<String, String> {
-    let result = tinywallet::address::btc::validate_sender(addr)
-        .map_err(|e| e.to_string());
+    let result = tinywallet::address::btc::validate_sender(addr).map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address role=sender result={}",
         if result.is_ok() {
@@ -132,12 +130,8 @@ fn derive_btc_private_key(
     mnemonic: &str,
     derivation_path: &str,
 ) -> Result<(Vec<u8>, Vec<u8>), String> {
-    let derived = tinywallet::key::derive(
-        tinywallet::Chain::Btc,
-        mnemonic,
-        derivation_path,
-    )
-    .map_err(|e| e.to_string())?;
+    let derived = tinywallet::key::derive(tinywallet::Chain::Btc, mnemonic, derivation_path)
+        .map_err(|e| e.to_string())?;
     let secret = derived.secret_bytes().to_vec();
     // Compressed, because a P2WPKH witness program is defined over the
     // compressed encoding — the uncompressed form yields a valid-looking
@@ -222,13 +216,11 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
         fee_sat: fee_sats,
         utxos: selected
             .iter()
-            .map(
-                |utxo| tinywallet::wire::Utxo {
-                    txid: utxo.txid.clone(),
-                    vout: utxo.vout,
-                    value: utxo.value,
-                },
-            )
+            .map(|utxo| tinywallet::wire::Utxo {
+                txid: utxo.txid.clone(),
+                vout: utxo.vout,
+                value: utxo.value,
+            })
             .collect(),
     };
     // One signature per selected input, produced in this process and returned
@@ -660,12 +652,8 @@ mod tests {
         // The known-good vector for this mnemonic and path, unchanged by the
         // move off the `bitcoin` crate. Derived through `tinywallet`, which is
         // the same code the address in `execute_btc_quote` comes from.
-        let derived = tinywallet::key::derive(
-            tinywallet::Chain::Btc,
-            mnemonic,
-            "m/84'/0'/0'/0/0",
-        )
-        .unwrap();
+        let derived =
+            tinywallet::key::derive(tinywallet::Chain::Btc, mnemonic, "m/84'/0'/0'/0/0").unwrap();
         assert_eq!(
             derived.address(),
             "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu"

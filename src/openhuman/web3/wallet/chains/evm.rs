@@ -143,8 +143,9 @@ pub async fn execute_evm_quote(mut quote: PreparedTransaction) -> Result<Executi
     let (tx_to, tx_value, tx_data) = match quote.kind {
         // A native transfer pays the recipient directly and carries no data.
         PreparedKind::NativeTransfer => (
-            tinywallet::address::evm::validate(&quote.to_address)
-                .map_err(|e| format!("invalid EVM recipient address '{}': {e}", quote.to_address))?,
+            tinywallet::address::evm::validate(&quote.to_address).map_err(|e| {
+                format!("invalid EVM recipient address '{}': {e}", quote.to_address)
+            })?,
             quote.amount_raw.clone(),
             None,
         ),
@@ -347,8 +348,7 @@ pub async fn lookup_tx(network: EvmNetwork, hash: &str) -> Result<TxLookupInfo, 
 /// accepted — prefixed, unprefixed, and any hex case, but not an uppercase
 /// `0X` prefix.
 pub fn validate_evm_address(addr: &str) -> Result<String, String> {
-    let result = tinywallet::address::evm::validate(addr)
-        .map_err(|e| e.to_string());
+    let result = tinywallet::address::evm::validate(addr).map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address result={}",
         if result.is_ok() {
