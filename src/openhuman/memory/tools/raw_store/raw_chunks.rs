@@ -10,8 +10,9 @@ use serde_json::json;
 
 use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
-use tinymemory_core::store::chunks::store::{list_chunks, ListChunksQuery};
-use tinymemory_core::store::chunks::types::SourceKind;
+use crate::openhuman::memory::api::chunks::SourceKind;
+use crate::openhuman::memory::api::provider::{ChunkQuery, MemoryProvider};
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 
 pub struct MemoryStoreRawChunksTool;
 
@@ -94,7 +95,7 @@ impl Tool for MemoryStoreRawChunksTool {
         }
         // The per-profile memory-source gate is applied inside `list_chunks`
         // (before the row limit). None = unrestricted.
-        let query = ListChunksQuery {
+        let query = ChunkQuery {
             source_kind,
             source_id: parsed.source_id,
             owner: parsed.owner,
@@ -102,10 +103,20 @@ impl Tool for MemoryStoreRawChunksTool {
             until_ms: parsed.until_ms,
             limit: parsed.limit,
             offset: None,
-            source_scope: tinymemory_core::source_scope::current_source_scope(),
             exclude_dropped: false,
         };
-        let mut rows = list_chunks(&cfg, &query)?;
+        let guard = active_memory_guard()
+            .await
+            .map_err(|e| anyhow::anyhow!("memory_store_raw_chunks: {e}"))?;
+        let mut rows = guard
+            .as_chunks()
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "memory_store_raw_chunks: memory driver does not support the chunk family"
+                )
+            })?
+            .list_chunks(&query, None)
+            .await?;
         if let Some(required) = parsed.tags_all_of.as_ref() {
             if !required.is_empty() {
                 rows.retain(|c| {
