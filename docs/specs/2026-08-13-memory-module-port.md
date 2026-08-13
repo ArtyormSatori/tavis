@@ -342,9 +342,64 @@ This is the largest stage and the only cross-repo-blocking one — it needs a
 published module release, taken verbatim from the release's `checksum.toml`,
 never recomputed from a local build.
 
-**Stage 2 — cut the direct engine calls over.**
+**Stage 2 — cut the direct engine calls over.** *(in progress)*
 Rewrite the 30 `tinymemory_core` call sites in `memory/{tools,query,tree}` onto
 the provider. Ends the split brain.
+
+### 2a. A guard bug caught before any call site moved
+
+The `GuardedChunks` / `GuardedRetrieval` decorators written in stage 1 forwarded
+the caller's `scope` argument **unchanged**. That is the exact widening leak
+`GuardPolicy::narrow_scope` exists to close, and its own docs record the earlier
+version of it: with a pass-through, a source-restricted turn can name a
+collection its restriction excluded and have that become the sole query
+predicate, so the restriction vanishes.
+
+Fixed to intersect via `narrow_scope`, matching `GuardedTree::query_source`.
+Four regression tests added (`families_tests.rs`), and each was verified to
+**fail** against the pass-through version before being kept — a scope test that
+cannot fail is worse than none.
+
+### 2b. Call sites converted
+
+| Tool | Was | Now |
+| --- | --- | --- |
+| `memory_vector_search` | `list_chunks(&config, …)` + `get_chunk_embeddings_for_signature_batch` | `as_chunks()` |
+| `memory_chunk_context` | `get_chunk` + `list_chunks` | `as_chunks()` |
+| `memory_store_raw_chunks` | `list_chunks` | `as_chunks()` |
+| `memory_tree` walk | `fast_retrieve` | `as_retrieval()` |
+| `memory_tree_cover_window` | `cover_window` | `as_retrieval()` |
+
+`memory_vector_search` is the case §2.1 names: it resolved the workspace path
+and opened the same SQLite database the loaded module already had open. It no
+longer touches the engine.
+
+Two of these dropped their `load_config_with_timeout()` entirely — the config
+load existed only to reach the database.
+
+**A test moved to `#[ignore]`, deliberately.**
+`raw_chunks::execute_success_path_returns_json_array` was a pure-SQLite test: it
+opened the workspace store in-process and read an empty table. That *is* the
+split brain. With no module artifact the binding now falls back to the null
+driver and the tool refuses — the correct answer, not a regression — so the test
+joins the module-backed set (`OPENHUMAN_MODULE_PATH`, own process), the same
+pattern the `tinydocs` tool tests use.
+
+**Verification.** `openhuman::memory::` 716 passed, failing set byte-identical
+to the pre-existing 26; `memory::guard` 60/0 (four new).
+
+### Still open in stage 2
+
+`memory/query/{backend,drill_down,fetch_leaves,ingest_document,query_source,
+search_entities}`, `memory/tools/{diff,people}`,
+`memory/tools/raw_store/{kinds,raw_search}`,
+`memory/tools/search/hybrid_search`, `memory/tools/tool_memory/list`.
+
+`search_entities` needs a decision when it lands: the host currently validates
+`kinds` with `EntityKind::parse` **before** touching disk, and a test pins that.
+The contract moved that validation into the driver (the vocabulary is open — see
+§1d), so the host either keeps a duplicate kind list that can drift, or the
+pre-flight guarantee moves and that test changes with it.
 
 **Stage 3 — the 98 `tinycortex::memory` references.**
 56 sit outside `memory/` (`agent/`, `threads/`, `subconscious/`, `channels/`,
