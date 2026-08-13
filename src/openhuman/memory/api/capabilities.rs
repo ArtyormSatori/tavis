@@ -51,7 +51,7 @@ use crate::openhuman::memory::api::error::MemoryError;
 
 /// One capability family a memory driver may advertise.
 ///
-/// The variants are exactly the thirteen families of the memory contract. Each
+/// The variants are exactly the fourteen families of the memory contract. Each
 /// maps to a trait family in the contract, a group of RPC methods, and a group
 /// of agent tools; a driver that does not advertise a family simply has that
 /// surface absent.

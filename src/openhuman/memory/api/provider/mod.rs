@@ -1,4 +1,4 @@
-//! The memory driver contract: [`MemoryProvider`] plus the thirteen capability
+//! The memory driver contract: [`MemoryProvider`] plus the fourteen capability
 //! family traits a driver may implement.
 //!
 //! ## Shape
@@ -21,7 +21,7 @@
 //! ```
 //!
 //! The mandatory three are supertraits, so "mandatory" is enforced by the type
-//! system rather than by a runtime check. The optional ten are accessors that
+//! system rather than by a runtime check. The optional eleven are accessors that
 //! default to `None`, so absence is the default and presence is opt-in.
 //!
 //! ## Rules that bind every family
@@ -45,7 +45,7 @@
 //!
 //! ## Reference implementation
 //!
-//! [`crate::openhuman::memory::api::null::NullMemoryProvider`] implements all thirteen families:
+//! [`crate::openhuman::memory::api::null::NullMemoryProvider`] implements all fourteen families:
 //! `/dev/null` semantics for the mandatory three, and
 //! [`crate::openhuman::memory::api::error::MemoryError::Unsupported`] for the other ten, which it does
 //! not advertise. It is what a compiled-out or unconfigured memory subsystem
