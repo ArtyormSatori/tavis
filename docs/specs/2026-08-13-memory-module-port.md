@@ -274,11 +274,56 @@ reaches `as_people()` yet. It stops being inert the moment the people RPC
 handlers are routed through the driver, so **that change and the module release
 must land together**. Documented at the `capabilities()` call site too.
 
+### 1d. The `Chunks` and `Retrieval` families — landed
+
+Families fifteen and sixteen, contract now `(2, 1)` with three additions (one
+minor bump covers all three — capability negotiation is what makes each safe).
+
+- **`MemoryChunks`** — `list_chunks`, `get_chunk`, `chunk_embeddings`. A
+  deliberately lower-level surface than the rest of the contract: it exists so a
+  host doing its *own* ranking (cosine + MMR, hybrid keyword/vector) can get the
+  rows without reaching around the driver into the engine's tables — which is
+  the split-brain this port exists to end.
+- **`MemoryRetrieval`** — `fast_retrieve`, `cover_window`, `search_entities`.
+
+Three decisions worth keeping:
+
+**Source scope had to become an explicit wire argument.** `tinymemory-core`'s
+in-process entry points read it from a **task-local**. That task-local belongs to
+the host's task and does not exist on the module's side of a bus call, so it
+would have read as `None` there — and `None` means *unrestricted*. A
+per-profile source gate would have failed open, silently, on every scoped
+retrieval. So `cover_window_scoped` and `fast_retrieve_scoped` were added
+alongside the ambient-scope originals (mirroring TinyCortex's own
+`cover_window_scoped`), and every scoped method on the wire takes `scope` as an
+argument and never infers it.
+
+**Entity kinds travel as strings, not as an enum.** The engine's `EntityKind` is
+`#[non_exhaustive]` and has grown twice. A closed enum on the wire means the
+first time the engine emits a kind this build has not heard of, the **response
+fails to deserialize** — a new entity category would break retrieval outright
+rather than showing up as an unfamiliar label. Responses therefore carry an open
+snake_case vocabulary. Requests are the opposite case and *are* validated: an
+unknown kind in a filter is `Invalid`, because silently matching nothing is
+indistinguishable from a genuine empty result.
+
+**`chunk_embeddings` sorts its result.** The engine returns a `HashMap`, whose
+iteration order varies per process; an otherwise-identical call would return a
+differently-ordered list. It is also the largest thing this interface returns —
+a 1536-dimension vector is roughly 10 KiB of JSON — so it is size-checked and
+refused by name rather than truncated, since a short batch is indistinguishable
+from "those chunks have no vector".
+
+**Verification.** Module crate 34/0 · host `memory::api` 190/0 ·
+`memory::guard` 56/0 · `core::all` 91/0 · `openhuman::memory::` failing set
+byte-identical to the pre-existing 26 · `cargo fmt` clean across all four
+crates.
+
 ### Still open in stage 1
 
-- The `Chunks` and `Retrieval` families, same shape as People.
-- Routing the host's people RPC + agent tools through `as_people()` (stage 2),
-  which is what makes the family load-bearing.
+- Routing the host's people / chunk / retrieval RPC + agent tools through the
+  driver (stage 2) — that is what makes these three families load-bearing and
+  what ends the split brain.
 - A module release, the digest update in `modules/registry.rs`, and the
   TinyMemory-side submodule pointer commit.
 
