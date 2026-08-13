@@ -14,8 +14,8 @@ use serde_json::json;
 
 #[test]
 fn capability_has_exactly_the_sixteen_contract_families() {
-    assert_eq!(Capability::ALL.len(), 14);
-    assert_eq!(Capability::all().len(), 14);
+    assert_eq!(Capability::ALL.len(), 16);
+    assert_eq!(Capability::all().len(), 16);
 
     let names: Vec<&str> = Capability::ALL.iter().map(|c| c.as_str()).collect();
     assert_eq!(
@@ -35,6 +35,8 @@ fn capability_has_exactly_the_sixteen_contract_families() {
             "maintenance",
             "portability",
             "people",
+            "chunks",
+            "retrieval",
         ]
     );
 }
