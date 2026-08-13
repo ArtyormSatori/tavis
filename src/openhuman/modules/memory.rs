@@ -51,9 +51,10 @@ use crate::openhuman::memory::api::provider::types::{
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
 use crate::openhuman::memory::api::provider::{
-    MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals, MemoryGraph,
-    MemoryIngest, MemoryMaintenance, MemoryPortability, MemoryProvider, MemoryRecall,
-    MemorySourceSink, MemoryToolMemory, MemoryTree,
+    AddressBookSeedOutcome, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
+    MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability, MemoryProvider,
+    MemoryRecall, MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction,
+    PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
 };
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
@@ -304,6 +305,9 @@ impl MemoryProvider for ModuleMemoryProvider {
         Some(self)
     }
     fn as_maintenance(&self) -> Option<&dyn MemoryMaintenance> {
+        Some(self)
+    }
+    fn as_people(&self) -> Option<&dyn MemoryPeople> {
         Some(self)
     }
 }
@@ -761,3 +765,44 @@ impl MemoryMaintenance for ModuleMemoryProvider {
 #[cfg(test)]
 #[path = "memory_tests.rs"]
 mod tests;
+
+#[async_trait]
+impl MemoryPeople for ModuleMemoryProvider {
+    async fn list_people(&self, limit: Option<usize>) -> Result<Vec<RankedPerson>, MemoryError> {
+        module_call!(self, "list_people", "ListPeople", (limit,))
+    }
+    async fn get_person(&self, person_id: &str) -> Result<Option<PersonRecord>, MemoryError> {
+        module_call!(self, "get_person", "GetPerson", (person_id,))
+    }
+    async fn resolve_handle(
+        &self,
+        handle: &PersonHandle,
+        create_if_missing: bool,
+    ) -> Result<Option<ResolvedPerson>, MemoryError> {
+        module_call!(
+            self,
+            "resolve_handle",
+            "ResolveHandle",
+            (handle, create_if_missing)
+        )
+    }
+    async fn add_handle_alias(
+        &self,
+        person_id: &str,
+        handle: &PersonHandle,
+    ) -> Result<(), MemoryError> {
+        module_call!(self, "add_handle_alias", "AddHandleAlias", (person_id, handle))
+    }
+    async fn score_person(&self, person_id: &str) -> Result<Option<PersonScore>, MemoryError> {
+        module_call!(self, "score_person", "ScorePerson", (person_id,))
+    }
+    async fn record_interaction(
+        &self,
+        interaction: &PersonInteraction,
+    ) -> Result<(), MemoryError> {
+        module_call!(self, "record_interaction", "RecordInteraction", (interaction,))
+    }
+    async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
+        module_call!(self, "seed_from_address_book", "SeedFromAddressBook", ())
+    }
+}
