@@ -49,7 +49,7 @@ mod contacts_gate_tests {
         // failure. Reaching a `PermissionDenied` — or real contacts — proves the
         // macOS arm compiled in. On a CI box with no Contacts authorisation the
         // permission error is the expected outcome.
-        match SystemContactsSource.read() {
+        match SystemContactsSource.fetch_contacts() {
             Err(AddressBookError::PermissionDenied) => {}
             Ok(_) => {}
             Err(other) => panic!("address book read failed unexpectedly: {other:?}"),
@@ -63,7 +63,7 @@ mod contacts_gate_tests {
         use super::address_book::{ContactsSource, SystemContactsSource};
 
         assert_eq!(
-            SystemContactsSource.read().expect("stub never fails"),
+            SystemContactsSource.fetch_contacts().expect("stub never fails"),
             vec![],
             "off macOS the reader must be the empty stub"
         );
