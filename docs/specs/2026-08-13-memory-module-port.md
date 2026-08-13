@@ -151,6 +151,39 @@ does not:
 | Unified store types | Same shim relationship over `tinycortex::memory::store`. | Expose only |
 | **People** | `tinymemory-core/people` — 2,138 LOC, its own SQLite database, its own migrations, a workspace-keyed process-global store, and **zero** TinyCortex references. | Genuine migration down into TinyCortex, then a new People capability family |
 
+### 1a. People migration — landed
+
+`tinymemory-core/people` (2,138 LOC, 34 tests) now lives at
+`tinycortex::memory::people`, behind a default-off `people` feature that implies
+`tokio` (the store shares its connection as an `Arc<tokio::sync::Mutex<_>>`).
+`tinymemory-core/people/mod.rs` is a re-export shim, matching `store/chunks`.
+Six `tracing::` calls became `log::` — all plain format strings, no structured
+fields — so `people` pulls in no dependency TinyCortex did not already have.
+
+**A live bug fell out of it.** The `contacts` gate was never forwarded. The
+reader has always lived below this crate, but `contacts` enabled four `objc2`
+crates *in the host* — which no file in `src/` names — and never reached
+`tinymemory-core`, where the `#[cfg]` is. So the macOS arm of `address_book.rs`
+was always compiled out: `SystemContactsSource` returned the empty stub,
+`people.refresh_address_book` reported success having seeded nothing, and macOS
+paid to compile four unused crates for it.
+
+This is the `voice` (#4901) / `tokenjuice-treesitter` (#4918) failure shape
+exactly — an unforwarded gate does not break the build, it silently does
+nothing. Fixed by forwarding (`contacts = ["tinymemory-core/contacts"]` →
+`tinycortex/contacts`), deleting the host's four unused `objc2` declarations,
+and adding `contacts_feature_reaches_the_engine_reader`, which asserts the
+property that was missing: that enabling the feature *here* changes what the
+reader does *there*. A `cfg!(feature = ...)` self-assertion would have passed
+throughout the bug.
+
+**Verification.** TinyCortex: 34 people tests pass; default and `contacts`
+builds clean. Host: builds clean both ways; feature-forwarding gate passes;
+`openhuman::memory::` is 711 passed / 26 failed / 1 ignored against `main`'s
+710 / 26 / 0 — the 26 are pre-existing and identical on a clean `main`
+checkout (they need the module artifact, which is not fetched locally), so this
+adds one passing test and one deliberately ignored one, and no new failures.
+
 **Why People moves rather than staying put.** `tinymemory-core` survives this
 port — it is the module's own implementation crate, it just stops being an
 *OpenHuman* dependency — so leaving People there would compile. But the contract
