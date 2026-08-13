@@ -1,4 +1,3 @@
-use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::tree::retrieval::rpc::CoverWindowRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
