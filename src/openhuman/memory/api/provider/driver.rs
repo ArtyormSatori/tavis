@@ -74,7 +74,7 @@ use crate::openhuman::memory::api::provider::records::{
 /// supertraits, so a driver missing any of them cannot be constructed as a
 /// provider at all.
 ///
-/// The eleven optional families are reached through the `as_*` accessors below.
+/// The thirteen optional families are reached through the `as_*` accessors below.
 /// Each defaults to `None`, so a minimal driver implements only what it
 /// supports and inherits correct absence for everything else.
 #[async_trait]

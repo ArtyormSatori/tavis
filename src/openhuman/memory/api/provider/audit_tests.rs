@@ -141,7 +141,7 @@ fn honest_driver_passes_the_audit() {
 #[test]
 fn over_claiming_driver_is_reported_as_advertised_but_absent() {
     // Advertises everything, exposes no optional accessor. Every one of the
-    // eleven optional families would fail on first call — the exact
+    // thirteen optional families would fail on first call — the exact
     // registered-but-failing outcome the capability filter exists to prevent.
     let liar = Fixture::new(Capabilities::all(), false);
 

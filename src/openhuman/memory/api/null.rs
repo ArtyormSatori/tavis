@@ -10,7 +10,7 @@
 //! `stub.rs` files with one generic answer.
 //!
 //! It is also the fixture the capability-degradation tests bind: with it in the
-//! slot, the eleven optional families are unadvertised, so their RPC methods are
+//! slot, the thirteen optional families are unadvertised, so their RPC methods are
 //! unregistered and their agent tools are absent — and the core still boots.
 //!
 //! And it is the existence proof for the mandatory set: if
@@ -32,9 +32,9 @@
 //! driver that failed to bind — **that** case falls back to the embedded
 //! default, never to this. Do not wire it as a general-purpose failure mode.
 //!
-//! ## Why it implements all fourteen families but advertises three
+//! ## Why it implements all sixteen families but advertises three
 //!
-//! The eleven optional families are implemented and every method returns
+//! The thirteen optional families are implemented and every method returns
 //! [`crate::openhuman::memory::api::error::MemoryError::Unsupported`] naming its family, but the
 //! `as_*` accessors return `None` and
 //! [`crate::openhuman::memory::api::provider::MemoryProvider::capabilities`] lists only the mandatory
@@ -60,7 +60,9 @@ use crate::openhuman::memory::api::provider::types::{
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
 use crate::openhuman::memory::api::provider::{
-    AddressBookSeedOutcome, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
+    AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
+    FastRetrieveQuery, MemoryChunks, MemoryRetrieval, RetrievalResponse, SourceScopeRef as _,
+    MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
     MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability, MemoryProvider,
     MemoryRecall, MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction,
     PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
@@ -102,7 +104,7 @@ impl MemoryProvider for NullMemoryProvider {
         NULL_DRIVER_ID
     }
 
-    /// Exactly the mandatory three. The eleven optional families are implemented
+    /// Exactly the mandatory three. The thirteen optional families are implemented
     /// below but deliberately not advertised, so they stay unreachable through
     /// the trait object.
     fn capabilities(&self) -> Capabilities {
