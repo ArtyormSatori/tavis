@@ -32,7 +32,7 @@ const TRC20_FEE_LIMIT_SUN: u64 = 15_000_000;
 /// format; this wrapper keeps the `Result<_, String>` shape the rest of the
 /// domain speaks.
 pub fn validate_tron_address(addr: &str) -> Result<String, String> {
-    let result = crate::openhuman::web3::wallet::primitives::address::tron::validate(addr)
+    let result = tinywallet::address::tron::validate(addr)
         .map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address result={}",
@@ -54,7 +54,7 @@ pub fn validate_tron_address(addr: &str) -> Result<String, String> {
 /// the wrong length used to produce a short hex string and fail further
 /// downstream at the API call.
 pub fn tron_address_to_hex(addr: &str) -> Result<String, String> {
-    let result = crate::openhuman::web3::wallet::primitives::address::tron::to_hex(addr)
+    let result = tinywallet::address::tron::to_hex(addr)
         .map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} address_to_hex result={}",
@@ -116,7 +116,7 @@ fn tron_transaction_spec(
     raw_tx: &CreateTransactionResponse,
     expected_to: String,
     transfer: &TronTransferVerification,
-) -> Result<crate::openhuman::web3::wallet::primitives::wire::TransactionSpec, String> {
+) -> Result<tinywallet::wire::TransactionSpec, String> {
     let recomputed_txid = recompute_tron_txid(&raw_tx.raw_data_hex)?;
     if !recomputed_txid.eq_ignore_ascii_case(raw_tx.tx_id.trim()) {
         return Err("Tron node txID does not match sha256(raw_data)".to_string());
@@ -177,7 +177,7 @@ fn tron_transaction_spec(
     }
 
     Ok(
-        crate::openhuman::web3::wallet::primitives::wire::TransactionSpec::Tron {
+        tinywallet::wire::TransactionSpec::Tron {
             raw_data_hex: raw_tx.raw_data_hex.clone(),
             expected_to,
             expected_txid: recomputed_txid,
@@ -335,8 +335,8 @@ fn take_exact<'a>(input: &mut &'a [u8], length: usize) -> Result<&'a [u8], Strin
 /// The hand-rolled BIP-32 walk and path parser that used to live here moved
 /// there wholesale. Custody stays here.
 fn derive_tron_keypair(mnemonic: &str, derivation_path: &str) -> Result<(Vec<u8>, String), String> {
-    let derived = crate::openhuman::web3::wallet::primitives::key::derive(
-        crate::openhuman::web3::wallet::primitives::Chain::Tron,
+    let derived = tinywallet::key::derive(
+        tinywallet::Chain::Tron,
         mnemonic,
         derivation_path,
     )
@@ -853,7 +853,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             native,
-            crate::openhuman::web3::wallet::primitives::wire::TransactionSpec::Tron {
+            tinywallet::wire::TransactionSpec::Tron {
                 raw_data_hex: native_raw_hex,
                 expected_to: recipient.to_string(),
                 expected_txid: native_txid,
@@ -878,7 +878,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             token,
-            crate::openhuman::web3::wallet::primitives::wire::TransactionSpec::Tron {
+            tinywallet::wire::TransactionSpec::Tron {
                 raw_data_hex: token_raw,
                 expected_to: contract.to_string(),
                 expected_txid: token_txid,

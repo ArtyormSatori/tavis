@@ -41,7 +41,7 @@
 //! with which it is, and [`sign_payload`] dispatches on the tag rather than on
 //! the chain — so a chain that changes scheme cannot silently sign wrongly.
 
-use crate::openhuman::web3::wallet::primitives::wire::{
+use tinywallet::wire::{
     AttachRequest, PublicKey, Scheme, Signature, SignedTransaction, SigningPayload, SigningRequest,
     TransactionSpec, UnsignedTransaction,
 };

@@ -4103,7 +4103,6 @@ dependencies = [
  "async-trait",
  "axum",
  "base64 0.22.1",
- "bech32 0.11.1",
  "block2 0.6.2",
  "bs58",
  "bytes",
@@ -4111,7 +4110,6 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "clap",
- "coins-bip32",
  "coins-bip39",
  "cpal",
  "cron",
@@ -4158,7 +4156,6 @@ dependencies = [
  "regex",
  "reqwest",
  "ring",
- "ripemd",
  "rppal",
  "rusqlite",
  "rustls",
@@ -4169,7 +4166,6 @@ dependencies = [
  "serde_repr",
  "serde_yaml",
  "sha2 0.10.9",
- "sha3",
  "socketioxide",
  "starship-battery",
  "sysinfo",
@@ -4189,6 +4185,7 @@ dependencies = [
  "tinymemory-core",
  "tinymemory-tinycortex",
  "tinyplace",
+ "tinywallet",
  "tokio",
  "tokio-stream",
  "tokio-tungstenite 0.29.0",
@@ -6691,6 +6688,27 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tinywallet"
+version = "0.2.1"
+dependencies = [
+ "async-trait",
+ "bech32 0.11.1",
+ "bs58",
+ "coins-bip32",
+ "coins-bip39",
+ "ed25519-dalek",
+ "hex",
+ "hmac",
+ "ripemd",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "sha3",
+ "thiserror 2.0.18",
+ "zeroize",
+]
 
 [[package]]
 name = "tokio"

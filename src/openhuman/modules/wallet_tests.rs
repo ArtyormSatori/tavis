@@ -7,10 +7,10 @@
 //! themselves are covered where they can be honest: `tinywallet`'s own loader
 //! E2E, which drives a real module over a real broker.
 
-use crate::openhuman::web3::wallet::primitives::wire::{
+use tinywallet::wire::{
     Scheme, Signature, SigningPayload, TransactionSpec,
 };
-use crate::openhuman::web3::wallet::primitives::Chain;
+use tinywallet::Chain;
 
 use super::{classify, sign_payload, WalletCallError};
 use crate::openhuman::config::Config;
@@ -36,7 +36,7 @@ fn failure(name: &str) -> tinybus::Error {
 }
 
 fn evm_secret() -> Vec<u8> {
-    crate::openhuman::web3::wallet::primitives::key::derive(Chain::Evm, VECTOR, "m/44'/60'/0'/0/0")
+    tinywallet::key::derive(Chain::Evm, VECTOR, "m/44'/60'/0'/0/0")
         .expect("the vector mnemonic derives")
         .secret_bytes()
         .to_vec()
@@ -153,7 +153,7 @@ fn an_ed25519_payload_is_signed_over_the_whole_message() {
     // against the public key rather than merely checked for a length.
     use ed25519_dalek::{Signature as EdSignature, SigningKey, Verifier as _};
 
-    let derived = crate::openhuman::web3::wallet::primitives::key::derive(
+    let derived = tinywallet::key::derive(
         Chain::Solana,
         VECTOR,
         "m/44'/501'/0'/0'",

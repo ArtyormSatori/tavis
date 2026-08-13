@@ -61,7 +61,7 @@ pub fn estimated_btc_fee_sats() -> u64 {
 /// specific, so the rules live where any host can reach them; what stays here
 /// is the `Result<_, String>` shape the rest of this domain speaks.
 pub fn validate_btc_address(addr: &str) -> Result<String, String> {
-    let result = crate::openhuman::web3::wallet::primitives::address::btc::validate(addr)
+    let result = tinywallet::address::btc::validate(addr)
         .map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address role=recipient result={}",
@@ -82,7 +82,7 @@ pub fn validate_btc_address(addr: &str) -> Result<String, String> {
 /// the recipient rule for a sender accepts an address that only fails later,
 /// at signing time.
 pub fn validate_btc_sender_address(addr: &str) -> Result<String, String> {
-    let result = crate::openhuman::web3::wallet::primitives::address::btc::validate_sender(addr)
+    let result = tinywallet::address::btc::validate_sender(addr)
         .map_err(|e| e.to_string());
     debug!(
         "{LOG_PREFIX} validate_address role=sender result={}",
@@ -132,8 +132,8 @@ fn derive_btc_private_key(
     mnemonic: &str,
     derivation_path: &str,
 ) -> Result<(Vec<u8>, Vec<u8>), String> {
-    let derived = crate::openhuman::web3::wallet::primitives::key::derive(
-        crate::openhuman::web3::wallet::primitives::Chain::Btc,
+    let derived = tinywallet::key::derive(
+        tinywallet::Chain::Btc,
         mnemonic,
         derivation_path,
     )
@@ -215,7 +215,7 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
     // in agreement: the module's `select_coins` and `select_utxos` above are
     // the same algorithm, down to the 546-sat dust rule, so it reselects
     // exactly what was chosen here.
-    let transaction = crate::openhuman::web3::wallet::primitives::wire::TransactionSpec::Btc {
+    let transaction = tinywallet::wire::TransactionSpec::Btc {
         from: from_addr.clone(),
         to: to_addr.clone(),
         amount_sat: amount_sats,
@@ -223,7 +223,7 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
         utxos: selected
             .iter()
             .map(
-                |utxo| crate::openhuman::web3::wallet::primitives::wire::Utxo {
+                |utxo| tinywallet::wire::Utxo {
                     txid: utxo.txid.clone(),
                     vout: utxo.vout,
                     value: utxo.value,
@@ -660,8 +660,8 @@ mod tests {
         // The known-good vector for this mnemonic and path, unchanged by the
         // move off the `bitcoin` crate. Derived through `tinywallet`, which is
         // the same code the address in `execute_btc_quote` comes from.
-        let derived = crate::openhuman::web3::wallet::primitives::key::derive(
-            crate::openhuman::web3::wallet::primitives::Chain::Btc,
+        let derived = tinywallet::key::derive(
+            tinywallet::Chain::Btc,
             mnemonic,
             "m/84'/0'/0'/0/0",
         )

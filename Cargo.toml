@@ -474,14 +474,13 @@ unicode-width = { version = "0.2", optional = true }
 # What stays is address validation, key derivation, the `Transport` seam, the
 # wire contract, EIP-712 hashing and ERC-20 calldata — none of which needs a
 # chain library.
+tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["btc", "evm", "solana", "tron", "keccak", "key", "net", "wire", "eip712", "abi", "x402"], optional = true }
+
 # secp256k1 signing over the digests the wallet module hands back. Pure Rust,
 # and already in the graph beneath `coins-bip32` (which derives the key being
-# used), so naming it directly costs nothing and is what lets `bitcoin` go.
+# used, via tinywallet's `key` gate), so naming it directly costs nothing and
+# is what lets `bitcoin` go.
 k256 = { version = "0.13", default-features = false, features = ["std", "ecdsa"], optional = true }
-bech32 = { version = "0.11", optional = true }
-ripemd = { version = "0.1", optional = true }
-coins-bip32 = { version = "0.8", optional = true }
-sha3 = { version = "0.10", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 # Windows: tokio-tungstenite uses native-tls (schannel) so wss://
@@ -740,11 +739,8 @@ voice = [
 # to do with the wallet. Measured: excluding them costs 0, because tinyplace
 # pulls them in regardless.
 web3 = [
+    "dep:tinywallet",
     "dep:k256",
-    "dep:bech32",
-    "dep:ripemd",
-    "dep:coins-bip32",
-    "dep:sha3",
     "dep:curve25519-dalek",
     "dep:coins-bip39",
     "modules",
