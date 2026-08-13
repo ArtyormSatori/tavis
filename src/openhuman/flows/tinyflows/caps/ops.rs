@@ -640,6 +640,15 @@ pub fn build_capabilities(config: Arc<Config>, state_namespace: impl Into<String
         // until that boundary exists rather than inheriting ambient process
         // access from the workflow engine.
         shell: None,
+        // `spawn`/`gate` overlap only when a TaskRunner is injected. With
+        // `None` the engine still produces the right answer — `spawn` runs its
+        // work inline and hands back a settled ticket — so the failure mode is
+        // a silent loss of concurrency rather than an error, which is exactly
+        // the kind that survives a smoke test. Flow runs are already on tokio,
+        // so take the crate's tokio-backed runner. It is in-process only:
+        // tickets do not survive a restart, which is the right bound for work
+        // a single run collects at its own gate.
+        tasks: Some(Arc::new(TokioTaskRunner::new())),
         memory: Some(Arc::new(
             crate::openhuman::flows::tinyflows::memory_adapter::OpenHumanMemory {
                 config: config.clone(),
