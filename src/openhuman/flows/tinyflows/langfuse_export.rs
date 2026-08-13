@@ -27,6 +27,7 @@ use serde_json::{json, Map};
 use tinyagents::{
     GraphLangfuseExporter, GraphObservation, LangfuseAuth, LangfuseClient, LangfuseTraceConfig,
 };
+use tinyflows::engine::GraphObservation as FlowObservation;
 
 use crate::api::config::effective_backend_api_url;
 use crate::openhuman::config::Config;
