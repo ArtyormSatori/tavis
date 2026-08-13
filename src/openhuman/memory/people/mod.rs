@@ -63,7 +63,9 @@ mod contacts_gate_tests {
         use super::address_book::{ContactsSource, SystemContactsSource};
 
         assert_eq!(
-            SystemContactsSource.fetch_contacts().expect("stub never fails"),
+            SystemContactsSource
+                .fetch_contacts()
+                .expect("stub never fails"),
             vec![],
             "off macOS the reader must be the empty stub"
         );
