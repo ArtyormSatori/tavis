@@ -245,6 +245,26 @@ impl MemoryProvider for ModuleMemoryProvider {
     }
 
     /// Every family is implemented by the pinned compiled module.
+    ///
+    /// # This couples to the registry pin, and the coupling is not enforced
+    ///
+    /// `Capabilities::all()` grows whenever a family is added to the contract,
+    /// but the *artifact* only grows when a release is cut and
+    /// [`registry`](super::registry) is re-pinned to it. Between those two
+    /// moments this over-claims: the host says it can do something the loaded
+    /// binary cannot.
+    ///
+    /// [`Self::verify`] notices and logs, but it does **not** narrow the
+    /// advertised set — so the failure mode is a call that reaches the module
+    /// and comes back as an unknown method, not a family that quietly turns
+    /// itself off.
+    ///
+    /// Today `people` is exactly that case: family fourteen is served by the
+    /// module source in this tree but not by the pinned `1.0.1` artifact. It is
+    /// currently inert, because nothing in the host reaches `as_people()` yet.
+    /// **It stops being inert the moment the people RPC handlers are routed
+    /// through this driver**, so that change and the module release must land
+    /// together — see `docs/specs/2026-08-13-memory-module-port.md` stage 2.
     fn capabilities(&self) -> Capabilities {
         Capabilities::all()
     }
