@@ -474,7 +474,7 @@ unicode-width = { version = "0.2", optional = true }
 # What stays is address validation, key derivation, the `Transport` seam, the
 # wire contract, EIP-712 hashing and ERC-20 calldata — none of which needs a
 # chain library.
-tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["btc", "evm", "solana", "tron", "keccak", "key", "net", "wire", "eip712", "abi", "x402"], optional = true }
+tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["btc", "evm", "solana", "tron", "keccak", "key", "net", "wire", "eip712", "abi", "x402", "tx-codec"], optional = true }
 
 # secp256k1 signing over the digests the wallet module hands back. Pure Rust,
 # and already in the graph beneath `coins-bip32` (which derives the key being
