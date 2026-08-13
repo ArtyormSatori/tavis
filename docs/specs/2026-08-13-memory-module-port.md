@@ -388,18 +388,45 @@ pattern the `tinydocs` tool tests use.
 **Verification.** `openhuman::memory::` 716 passed, failing set byte-identical
 to the pre-existing 26; `memory::guard` 60/0 (four new).
 
+### 2c. Second batch converted
+
+`memory_tree_search_entities`, `memory_store_raw_search` (both onto
+`as_retrieval()`), and `memory_tools_list` (a stale doc link only).
+`memory_chunk_context`'s remaining `chunk_source_allowed` call was re-pointed at
+the host's own `memory::source_scope` path, which is how `guard/policy.rs`
+already reaches it — the predicate is host *policy* over a host task-local, so
+relocating it properly is stage 4.
+
+**Entity-kind validation moved into the driver**, as flagged. The host used to
+`EntityKind::parse` before touching disk; the vocabulary is open on the wire
+(§1d) and the driver is its authority, so a host-side copy would either reject a
+kind the engine understands or drift out of date. The cost is named rather than
+hidden: a bad `kinds` value used to fail with no workspace and now needs a bound
+driver, so `execute_rejects_invalid_kind_after_validation` became a
+module-backed test rather than being quietly relaxed.
+
+**Eight tools are now off the engine entirely** — `vector_search`,
+`chunk_context`, `raw_chunks`, `raw_search`, `tool_memory/list`, `fast_walk`,
+`cover_window`, `search_entities` name no engine crate at all.
+
+**Six tests moved to `#[ignore]`, all for the same reason and none of them
+cosmetic.** Each asserted a success path by reading the workspace store
+in-process — which *is* the split brain. Two also ran the tool and then called
+the engine directly on the same workspace to assert both agreed; that second
+reader is precisely what this port removes, so the parity half is gone rather
+than reworked. This is a real loss of local coverage until the module release
+lands, not a cleanup.
+
 ### Still open in stage 2
 
-`memory/query/{backend,drill_down,fetch_leaves,ingest_document,query_source,
-search_entities}`, `memory/tools/{diff,people}`,
-`memory/tools/raw_store/{kinds,raw_search}`,
-`memory/tools/search/hybrid_search`, `memory/tools/tool_memory/list`.
-
-`search_entities` needs a decision when it lands: the host currently validates
-`kinds` with `EntityKind::parse` **before** touching disk, and a test pins that.
-The contract moved that validation into the driver (the vocabulary is open — see
-§1d), so the host either keeps a duplicate kind list that can drift, or the
-pre-flight guarantee moves and that test changes with it.
+| File | Why it is not converted |
+| --- | --- |
+| `query/backend.rs` + its three tool wrappers (`drill_down`, `fetch_leaves`, `query_source`) | **Needs contract surface that does not exist.** `backend::query_source(config, source_id, source_kind, time_window_days, query, limit) -> QueryResponse` has a different shape from `MemoryTree::query_source`, and `fetch_leaves` has no equivalent at all. Three more `MemoryRetrieval` methods, or a widened `MemoryTree` — the latter would be a **major** contract bump. |
+| `tools/people.rs` + `people/rpc.rs` | The `People` family exists, but the RPC layer is the real call site and its `people_list` payload carries `interaction_count`, which `RankedPerson` does not. Either the contract gains that field or the RPC wire shape changes; `schemas_tests` pins the current one. |
+| `tools/diff.rs` | Uses `tinymemory_core::sources::{get_source, list_sources}` — the source *registry*, which is host-layer config, not engine storage. Belongs in stage 4, not behind the driver. |
+| `tools/raw_store/kinds.rs` | `MemoryKind` is the engine's **storage-shape** catalog (raw / chunk / entity / tree / vector / kv / contact) and is unrelated to the contract's `MemoryItemKind`. The tool is a static enumeration with no database access, so there is nothing to route — the question is whether the contract should expose engine storage shapes at all, or whether the tool should go. Needs a decision. |
+| `tools/search/hybrid_search.rs` | Uses `UnifiedMemory` + `MemoryItemKind` + `tinycortex::WeightProfile` — a whole retrieval facade rather than a single call. Largest remaining conversion. |
+| `query/ingest_document.rs`, `query/query_source.rs` | Type-only imports (`SourceKind`, `SourceRef`) plus test-only direct engine calls; trivial once `backend.rs` is resolved. |
 
 **Stage 3 — the 98 `tinycortex::memory` references.**
 56 sit outside `memory/` (`agent/`, `threads/`, `subconscious/`, `channels/`,
