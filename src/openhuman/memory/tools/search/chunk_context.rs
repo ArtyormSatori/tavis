@@ -9,7 +9,6 @@ use serde::Deserialize;
 use serde_json::json;
 use std::fmt::Write;
 
-use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use crate::openhuman::memory::api::provider::{ChunkQuery, MemoryProvider};
 use crate::openhuman::memory::ops::guard::active_memory_guard;
@@ -76,10 +75,6 @@ impl Tool for MemoryChunkContextTool {
             parsed.chunk_id,
             window,
         );
-
-        let config = config_rpc::load_config_with_timeout()
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_chunk_context: load config failed: {e}"))?;
 
         // Chunks are read through the bound driver rather than by opening the
         // store in this process — see the note in `vector_search.rs`.

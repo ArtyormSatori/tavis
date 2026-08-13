@@ -8,7 +8,6 @@ use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use crate::openhuman::memory::api::chunks::SourceKind;
 use crate::openhuman::memory::api::provider::{ChunkQuery, MemoryProvider};
@@ -76,9 +75,6 @@ impl Tool for MemoryStoreRawChunksTool {
             parsed.tags_all_of,
             parsed.limit
         );
-        let cfg = config_rpc::load_config_with_timeout()
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_store_raw_chunks: load config failed: {e}"))?;
         let source_kind = match parsed.source_kind.as_deref() {
             Some(s) => Some(
                 SourceKind::parse(s)
