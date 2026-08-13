@@ -139,15 +139,24 @@ the TinyMemory contract. None is rebuilt host-side.* The host calls them over
 the bus like every other provider method, and the engine stays the single owner
 of storage and scoring.
 
-The audit shows this is less new code than it looks, because the engine already
-owns most of it:
+The audit shows this is far less new code than it looks, and **three of the four
+surfaces need no migration at all** — a first reading of the file lists suggested
+`tinymemory-core` carried a parallel implementation of retrieval and chunks. It
+does not:
 
 | Surface | Where it is today | Work |
 | --- | --- | --- |
-| Retrieval primitives | `cover_window` / `search_entities` already in `tinycortex::memory::retrieval`; `tinymemory-core/tree/retrieval` carries a parallel `cover`/`fast`/`search` set | Consolidate onto the TinyCortex implementation, delete the duplicate, expose |
-| Chunk-level access | `list_chunks` exists in **both** `tinycortex/memory/chunks/store_list.rs` and `tinymemory-core/store/chunks/store.rs` | Same — collapse to one, expose |
-| Unified store types | `tinymemory-core/store` (49 files, part wrapper over TinyCortex) | Move the owning types down, expose |
-| **People** | `tinymemory-core/people` only — a standalone implementation with no TinyCortex reference | Genuine migration down into TinyCortex, then a new People capability family |
+| Retrieval primitives | Algorithms already in `tinycortex::memory::retrieval`. `tinymemory-core/tree/retrieval/{cover,fast,search,drill_down,fetch,source}.rs` are 26–64 line **shims** that add source-scope filtering, limit truncation and logging — a policy layer, not a fork. | Expose only |
+| Chunk-level access | `tinymemory-core/store/chunks/store.rs` is a pure delegating wrapper — `engine_config(config)` then straight through to `tinycortex::memory::chunks`. | Expose only |
+| Unified store types | Same shim relationship over `tinycortex::memory::store`. | Expose only |
+| **People** | `tinymemory-core/people` — 2,138 LOC, its own SQLite database, its own migrations, a workspace-keyed process-global store, and **zero** TinyCortex references. | Genuine migration down into TinyCortex, then a new People capability family |
+
+**Why People moves rather than staying put.** `tinymemory-core` survives this
+port — it is the module's own implementation crate, it just stops being an
+*OpenHuman* dependency — so leaving People there would compile. But the contract
+defines a capability and each engine implements it; a second engine binding in
+TinyCortex's place must bring its own People store. Storage belongs to the
+engine, which is exactly the split that makes the contract engine-neutral.
 
 Then: widen `MemoryProvider` and the capability set, extend the module service
 and the host client in `modules/memory.rs`, cut a TinyMemory module release and
