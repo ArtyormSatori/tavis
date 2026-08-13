@@ -61,11 +61,11 @@ use crate::openhuman::memory::api::provider::types::{
 };
 use crate::openhuman::memory::api::provider::{
     AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
-    FastRetrieveQuery, MemoryChunks, MemoryRetrieval, RetrievalResponse, SourceScopeRef as _,
-    MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
-    MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability, MemoryProvider,
-    MemoryRecall, MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction,
-    PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
+    FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
+    MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
+    MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
+    PersonHandle, PersonInteraction, PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
+    RetrievalResponse,
 };
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
@@ -517,6 +517,62 @@ impl MemoryPeople for NullMemoryProvider {
 
     async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
         unsupported(Capability::People)
+    }
+}
+
+
+#[async_trait]
+impl MemoryChunks for NullMemoryProvider {
+    async fn list_chunks(
+        &self,
+        _query: &ChunkQuery,
+        _scope: Option<&SourceScope>,
+    ) -> Result<Vec<crate::openhuman::memory::api::chunks::Chunk>, MemoryError> {
+        unsupported(Capability::Chunks)
+    }
+
+    async fn get_chunk(
+        &self,
+        _chunk_id: &str,
+    ) -> Result<Option<crate::openhuman::memory::api::chunks::Chunk>, MemoryError> {
+        unsupported(Capability::Chunks)
+    }
+
+    async fn chunk_embeddings(
+        &self,
+        _chunk_ids: &[String],
+        _model_signature: &str,
+    ) -> Result<Vec<ChunkEmbedding>, MemoryError> {
+        unsupported(Capability::Chunks)
+    }
+}
+
+#[async_trait]
+impl MemoryRetrieval for NullMemoryProvider {
+    async fn fast_retrieve(
+        &self,
+        _query: &str,
+        _options: FastRetrieveQuery,
+        _scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        unsupported(Capability::Retrieval)
+    }
+
+    async fn cover_window(
+        &self,
+        _window: &CoverWindowQuery,
+        _scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        unsupported(Capability::Retrieval)
+    }
+
+    async fn search_entities(
+        &self,
+        _query: &str,
+        _kinds: Option<&[String]>,
+        _limit: usize,
+    ) -> Result<Vec<EntityMatch>, MemoryError> {
+        unsupported(Capability::Retrieval)
     }
 }
 
