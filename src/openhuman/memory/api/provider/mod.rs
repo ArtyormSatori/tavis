@@ -18,7 +18,9 @@
 //!   ├─ as_tool_memory()  -> Option<&dyn MemoryToolMemory>
 //!   ├─ as_sources()      -> Option<&dyn MemorySourceSink>
 //!   ├─ as_maintenance()  -> Option<&dyn MemoryMaintenance>
-//!   └─ as_people()       -> Option<&dyn MemoryPeople>
+//!   ├─ as_people()       -> Option<&dyn MemoryPeople>
+//!   ├─ as_chunks()       -> Option<&dyn MemoryChunks>
+//!   └─ as_retrieval()    -> Option<&dyn MemoryRetrieval>
 //! ```
 //!
 //! The mandatory three are supertraits, so "mandatory" is enforced by the type
@@ -54,15 +56,18 @@
 //! implementable without a storage engine.
 
 pub mod audit;
+pub mod chunks;
 pub mod content;
 pub mod driver;
 pub mod knowledge;
 pub mod mandatory;
 pub mod people;
 pub mod records;
+pub mod retrieval;
 pub mod types;
 
 pub use audit::{audit_provider, CapabilityAudit};
+pub use chunks::{ChunkEmbedding, ChunkQuery, MemoryChunks};
 pub use content::{MemoryDocuments, MemoryIngest, MemoryTree};
 pub use driver::MemoryProvider;
 pub use knowledge::{MemoryDiff, MemoryEntities, MemoryGraph};
@@ -72,6 +77,10 @@ pub use people::{
     PersonScore, RankedPerson, ResolvedPerson,
 };
 pub use records::{MemoryGoals, MemoryMaintenance, MemorySourceSink, MemoryToolMemory};
+pub use retrieval::{
+    CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalHit,
+    RetrievalNodeKind, RetrievalResponse,
+};
 pub use types::{
     ChangeKind, DiffReport, EntityHit, EntityRef, ExportPage, ExportRecord, ImportOutcome,
     IngestItem, IngestOutcome, MaintenanceReport, SnapshotRef, SourceChange, SourceItem,

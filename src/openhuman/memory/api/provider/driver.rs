@@ -60,7 +60,9 @@ use crate::openhuman::memory::api::provider::knowledge::{MemoryDiff, MemoryEntit
 use crate::openhuman::memory::api::provider::mandatory::{
     MemoryCore, MemoryPortability, MemoryRecall,
 };
+use crate::openhuman::memory::api::provider::chunks::MemoryChunks;
 use crate::openhuman::memory::api::provider::people::MemoryPeople;
+use crate::openhuman::memory::api::provider::retrieval::MemoryRetrieval;
 use crate::openhuman::memory::api::provider::records::{
     MemoryGoals, MemoryMaintenance, MemorySourceSink, MemoryToolMemory,
 };
@@ -175,6 +177,16 @@ pub trait MemoryProvider: MemoryCore + MemoryRecall + MemoryPortability + 'stati
         None
     }
 
+    /// Direct chunk-tier reads, when advertised.
+    fn as_chunks(&self) -> Option<&dyn MemoryChunks> {
+        None
+    }
+
+    /// Deterministic retrieval primitives, when advertised.
+    fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
+        None
+    }
+
     /// Whether `capability` is actually **reachable** on this driver.
     ///
     /// This is the implementation-side truth, as opposed to
@@ -201,6 +213,8 @@ pub trait MemoryProvider: MemoryCore + MemoryRecall + MemoryPortability + 'stati
             Capability::Sources => self.as_sources().is_some(),
             Capability::Maintenance => self.as_maintenance().is_some(),
             Capability::People => self.as_people().is_some(),
+            Capability::Chunks => self.as_chunks().is_some(),
+            Capability::Retrieval => self.as_retrieval().is_some(),
         }
     }
 }
