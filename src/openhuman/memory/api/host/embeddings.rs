@@ -20,26 +20,64 @@ use async_trait::async_trait;
 /// provider. Drift between the two silently splits one embedding space into
 /// two, and every vector written on the wrong side of the split becomes
 /// unsearchable without a re-embed.
+///
+/// # This format is under-specified, and fixing it is not this copy's decision
+///
+/// The delimiters are not escaped, so two distinct `(name, model_id)` pairs can
+/// collide onto one signature — see the ignored test below for a witness. A
+/// length-prefixed form fixes it, and this file briefly carried one.
+///
+/// It was reverted, because **this is not the only copy**. The identical format
+/// lives in `tinymemory_api::host::embeddings` and again in
+/// `tinycortex::memory::store::vectors`, where a parity test asserts the two
+/// agree byte for byte. A signature is the key every stored vector is written
+/// under, so a copy that improves the format unilaterally does not fix a
+/// collision — it splits the embedding space against the engine, and the
+/// symptom is not a failing test but recall quietly matching nothing.
+///
+/// So the fix belongs upstream in TinyMemory, landed across the contract, the
+/// engine and this host together with a migration for stored vectors. Until
+/// then every copy stays byte-identical, deliberately including the flaw.
+/// See `docs/specs/2026-08-13-memory-module-port.md` §3.
 #[must_use]
 pub fn format_embedding_signature(name: &str, model_id: &str, dims: usize) -> String {
-    format!(
-        "provider={}:{};model={}:{};dims={dims}",
-        name.len(),
-        name,
-        model_id.len(),
-        model_id
-    )
+    format!("provider={name};model={model_id};dims={dims}")
 }
 
 #[cfg(test)]
 mod tests {
     use super::format_embedding_signature;
 
+    /// Witness for the collision described on [`format_embedding_signature`].
+    ///
+    /// Ignored rather than deleted: it is the executable record of a known
+    /// defect, and it must start passing in the same change that fixes the
+    /// format across all three copies — not before.
     #[test]
+    #[ignore = "known defect; fix belongs upstream in TinyMemory across all three copies"]
     fn delimiter_characters_cannot_make_distinct_spaces_collide() {
         let first = format_embedding_signature("a;model=b", "c", 3);
         let second = format_embedding_signature("a", "b;model=c", 3);
         assert_ne!(first, second);
+    }
+
+    /// The host-local copy must stay byte-identical to the contract crate's.
+    ///
+    /// This is the guard that would have caught the divergence: it fails the
+    /// moment either copy is "improved" on its own.
+    #[test]
+    fn signature_is_byte_identical_to_the_contract_crate() {
+        for (name, model, dims) in [
+            ("ollama", "nomic-embed-text", 768usize),
+            ("openai", "text-embedding-3-small", 1536),
+            ("none", "none", 0),
+        ] {
+            assert_eq!(
+                format_embedding_signature(name, model, dims),
+                tinymemory_api::host::format_embedding_signature(name, model, dims),
+                "host-local and contract-crate embedding signatures diverged"
+            );
+        }
     }
 }
 
