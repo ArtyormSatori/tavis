@@ -35,6 +35,10 @@ use crate::openhuman::memory::api::capabilities::Capability;
 use crate::openhuman::memory::api::chunks::Chunk;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::goals::GoalsDoc;
+use crate::openhuman::memory::api::provider::people::{
+    AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord,
+    PersonScore, RankedPerson, ResolvedPerson,
+};
 use crate::openhuman::memory::api::provider::types::{
     DiffReport, EntityHit, IngestItem, IngestOutcome, MaintenanceReport, SnapshotRef, SourceItem,
     SourceScope,
@@ -156,6 +160,13 @@ decorator!(
     dyn MemoryMaintenance,
     as_maintenance,
     Maintenance
+);
+decorator!(
+    /// Guarded [`MemoryPeople`].
+    GuardedPeople,
+    dyn MemoryPeople,
+    as_people,
+    People
 );
 
 // ── Ingest ───────────────────────────────────────────────────────────────────
@@ -739,6 +750,98 @@ impl MemoryMaintenance for GuardedMaintenance {
             false,
         )?;
         self.family()?.doctor().await
+    }
+}
+
+
+// ── People ───────────────────────────────────────────────────────────────────
+
+#[async_trait]
+impl MemoryPeople for GuardedPeople {
+    async fn list_people(&self, limit: Option<usize>) -> Result<Vec<RankedPerson>, MemoryError> {
+        self.policy
+            .admit_read(Capability::People, "people.list_people", NO_NAMESPACE, false)?;
+        self.family()?.list_people(limit).await
+    }
+
+    async fn get_person(&self, person_id: &str) -> Result<Option<PersonRecord>, MemoryError> {
+        self.policy
+            .admit_read(Capability::People, "people.get_person", NO_NAMESPACE, false)?;
+        self.family()?.get_person(person_id).await
+    }
+
+    /// A read *unless* it may mint a person, which is a write.
+    ///
+    /// The tier check follows what the call can actually do rather than what it
+    /// is named: with `create_if_missing` set this inserts a row, so a
+    /// `readonly` operator must be refused. Classifying the whole method as a
+    /// read would have handed `readonly` a working insert through the back
+    /// door.
+    async fn resolve_handle(
+        &self,
+        handle: &PersonHandle,
+        create_if_missing: bool,
+    ) -> Result<Option<ResolvedPerson>, MemoryError> {
+        if create_if_missing {
+            self.policy.admit_write(
+                Capability::People,
+                "people.resolve_handle",
+                NO_NAMESPACE,
+                true,
+            )?;
+        } else {
+            self.policy.admit_read(
+                Capability::People,
+                "people.resolve_handle",
+                NO_NAMESPACE,
+                false,
+            )?;
+        }
+        self.family()?.resolve_handle(handle, create_if_missing).await
+    }
+
+    async fn add_handle_alias(
+        &self,
+        person_id: &str,
+        handle: &PersonHandle,
+    ) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::People,
+            "people.add_handle_alias",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.add_handle_alias(person_id, handle).await
+    }
+
+    async fn score_person(&self, person_id: &str) -> Result<Option<PersonScore>, MemoryError> {
+        self.policy
+            .admit_read(Capability::People, "people.score_person", NO_NAMESPACE, false)?;
+        self.family()?.score_person(person_id).await
+    }
+
+    async fn record_interaction(
+        &self,
+        interaction: &PersonInteraction,
+    ) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::People,
+            "people.record_interaction",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.record_interaction(interaction).await
+    }
+
+    /// A write: it reads the platform address book and inserts what it finds.
+    async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
+        self.policy.admit_write(
+            Capability::People,
+            "people.seed_from_address_book",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.seed_from_address_book().await
     }
 }
 
