@@ -697,4 +697,56 @@ impl MemoryProvider for RecordingProvider {
     fn as_maintenance(&self) -> Option<&dyn MemoryMaintenance> {
         Some(self)
     }
+    fn as_people(&self) -> Option<&dyn MemoryPeople> {
+        Some(self)
+    }
+}
+
+#[async_trait]
+impl MemoryPeople for RecordingProvider {
+    async fn list_people(&self, _limit: Option<usize>) -> Result<Vec<RankedPerson>, MemoryError> {
+        self.record(Call::plain("people.list_people"));
+        Ok(vec![])
+    }
+
+    async fn get_person(&self, _person_id: &str) -> Result<Option<PersonRecord>, MemoryError> {
+        self.record(Call::plain("people.get_person"));
+        Ok(None)
+    }
+
+    async fn resolve_handle(
+        &self,
+        _handle: &PersonHandle,
+        _create_if_missing: bool,
+    ) -> Result<Option<ResolvedPerson>, MemoryError> {
+        self.record(Call::plain("people.resolve_handle"));
+        Ok(None)
+    }
+
+    async fn add_handle_alias(
+        &self,
+        _person_id: &str,
+        _handle: &PersonHandle,
+    ) -> Result<(), MemoryError> {
+        self.record(Call::plain("people.add_handle_alias"));
+        Ok(())
+    }
+
+    async fn score_person(&self, _person_id: &str) -> Result<Option<PersonScore>, MemoryError> {
+        self.record(Call::plain("people.score_person"));
+        Ok(None)
+    }
+
+    async fn record_interaction(
+        &self,
+        _interaction: &PersonInteraction,
+    ) -> Result<(), MemoryError> {
+        self.record(Call::plain("people.record_interaction"));
+        Ok(())
+    }
+
+    async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
+        self.record(Call::plain("people.seed_from_address_book"));
+        Ok(AddressBookSeedOutcome::default())
+    }
 }
