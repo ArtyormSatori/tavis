@@ -52,10 +52,11 @@ use crate::openhuman::memory::api::provider::types::{
 };
 use crate::openhuman::memory::api::provider::{
     AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
-    FastRetrieveQuery, MemoryChunks, MemoryRetrieval, RetrievalResponse, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
-    MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability, MemoryProvider,
-    MemoryRecall, MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction,
-    PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
+    FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
+    MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
+    MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
+    PersonHandle, PersonInteraction, PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
+    RetrievalResponse,
 };
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
@@ -875,7 +876,12 @@ impl MemoryRetrieval for ModuleMemoryProvider {
         options: FastRetrieveQuery,
         scope: Option<&SourceScope>,
     ) -> Result<RetrievalResponse, MemoryError> {
-        module_call!(self, "fast_retrieve", "FastRetrieve", (query, options, scope))
+        module_call!(
+            self,
+            "fast_retrieve",
+            "FastRetrieve",
+            (query, options, scope)
+        )
     }
     async fn cover_window(
         &self,
@@ -890,6 +896,11 @@ impl MemoryRetrieval for ModuleMemoryProvider {
         kinds: Option<&[String]>,
         limit: usize,
     ) -> Result<Vec<EntityMatch>, MemoryError> {
-        module_call!(self, "search_entities", "SearchEntities", (query, kinds, limit))
+        module_call!(
+            self,
+            "search_entities",
+            "SearchEntities",
+            (query, kinds, limit)
+        )
     }
 }

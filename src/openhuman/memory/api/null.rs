@@ -520,7 +520,6 @@ impl MemoryPeople for NullMemoryProvider {
     }
 }
 
-
 #[async_trait]
 impl MemoryChunks for NullMemoryProvider {
     async fn list_chunks(

@@ -55,17 +55,17 @@ use async_trait::async_trait;
 use crate::openhuman::memory::api::capabilities::{Capabilities, Capability};
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::health::MemoryHealth;
+use crate::openhuman::memory::api::provider::chunks::MemoryChunks;
 use crate::openhuman::memory::api::provider::content::{MemoryDocuments, MemoryIngest, MemoryTree};
 use crate::openhuman::memory::api::provider::knowledge::{MemoryDiff, MemoryEntities, MemoryGraph};
 use crate::openhuman::memory::api::provider::mandatory::{
     MemoryCore, MemoryPortability, MemoryRecall,
 };
-use crate::openhuman::memory::api::provider::chunks::MemoryChunks;
 use crate::openhuman::memory::api::provider::people::MemoryPeople;
-use crate::openhuman::memory::api::provider::retrieval::MemoryRetrieval;
 use crate::openhuman::memory::api::provider::records::{
     MemoryGoals, MemoryMaintenance, MemorySourceSink, MemoryToolMemory,
 };
+use crate::openhuman::memory::api::provider::retrieval::MemoryRetrieval;
 
 /// A bound memory driver.
 ///

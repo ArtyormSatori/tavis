@@ -36,12 +36,12 @@ use crate::openhuman::memory::api::chunks::Chunk;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::goals::GoalsDoc;
 use crate::openhuman::memory::api::provider::chunks::{ChunkEmbedding, ChunkQuery, MemoryChunks};
-use crate::openhuman::memory::api::provider::retrieval::{
-    CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalResponse,
-};
 use crate::openhuman::memory::api::provider::people::{
     AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord,
     PersonScore, RankedPerson, ResolvedPerson,
+};
+use crate::openhuman::memory::api::provider::retrieval::{
+    CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalResponse,
 };
 use crate::openhuman::memory::api::provider::types::{
     DiffReport, EntityHit, IngestItem, IngestOutcome, MaintenanceReport, SnapshotRef, SourceItem,
@@ -868,7 +868,6 @@ impl MemoryPeople for GuardedPeople {
         self.family()?.seed_from_address_book().await
     }
 }
-
 
 // ── Chunks ───────────────────────────────────────────────────────────────────
 

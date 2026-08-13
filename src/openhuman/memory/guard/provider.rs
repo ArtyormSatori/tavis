@@ -6,15 +6,15 @@ use crate::openhuman::memory::api::capabilities::{Capabilities, Capability};
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::health::MemoryHealth;
 use crate::openhuman::memory::api::provider::{
-    MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals, MemoryGraph, MemoryIngest,
-    MemoryChunks, MemoryMaintenance, MemoryPeople, MemoryProvider, MemoryRetrieval,
+    MemoryChunks, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals, MemoryGraph,
+    MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryProvider, MemoryRetrieval,
     MemorySourceSink, MemoryToolMemory, MemoryTree,
 };
 use async_trait::async_trait;
 
 use super::families::{
-    GuardedDiff, GuardedDocuments, GuardedEntities, GuardedGoals, GuardedGraph, GuardedIngest,
-    GuardedChunks, GuardedMaintenance, GuardedPeople, GuardedRetrieval, GuardedSources,
+    GuardedChunks, GuardedDiff, GuardedDocuments, GuardedEntities, GuardedGoals, GuardedGraph,
+    GuardedIngest, GuardedMaintenance, GuardedPeople, GuardedRetrieval, GuardedSources,
     GuardedToolMemory, GuardedTree,
 };
 use super::policy::GuardPolicy;
