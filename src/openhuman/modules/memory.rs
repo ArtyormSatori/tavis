@@ -51,7 +51,8 @@ use crate::openhuman::memory::api::provider::types::{
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
 use crate::openhuman::memory::api::provider::{
-    AddressBookSeedOutcome, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
+    AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
+    FastRetrieveQuery, MemoryChunks, MemoryRetrieval, RetrievalResponse, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
     MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability, MemoryProvider,
     MemoryRecall, MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction,
     PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
@@ -328,6 +329,12 @@ impl MemoryProvider for ModuleMemoryProvider {
         Some(self)
     }
     fn as_people(&self) -> Option<&dyn MemoryPeople> {
+        Some(self)
+    }
+    fn as_chunks(&self) -> Option<&dyn MemoryChunks> {
+        Some(self)
+    }
+    fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
         Some(self)
     }
 }
@@ -831,5 +838,58 @@ impl MemoryPeople for ModuleMemoryProvider {
     }
     async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
         module_call!(self, "seed_from_address_book", "SeedFromAddressBook", ())
+    }
+}
+
+#[async_trait]
+impl MemoryChunks for ModuleMemoryProvider {
+    async fn list_chunks(
+        &self,
+        query: &ChunkQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<Vec<Chunk>, MemoryError> {
+        module_call!(self, "list_chunks", "ListChunks", (query, scope))
+    }
+    async fn get_chunk(&self, chunk_id: &str) -> Result<Option<Chunk>, MemoryError> {
+        module_call!(self, "get_chunk", "GetChunk", (chunk_id,))
+    }
+    async fn chunk_embeddings(
+        &self,
+        chunk_ids: &[String],
+        model_signature: &str,
+    ) -> Result<Vec<ChunkEmbedding>, MemoryError> {
+        module_call!(
+            self,
+            "chunk_embeddings",
+            "ChunkEmbeddings",
+            (chunk_ids, model_signature)
+        )
+    }
+}
+
+#[async_trait]
+impl MemoryRetrieval for ModuleMemoryProvider {
+    async fn fast_retrieve(
+        &self,
+        query: &str,
+        options: FastRetrieveQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        module_call!(self, "fast_retrieve", "FastRetrieve", (query, options, scope))
+    }
+    async fn cover_window(
+        &self,
+        window: &CoverWindowQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        module_call!(self, "cover_window", "CoverWindow", (window, scope))
+    }
+    async fn search_entities(
+        &self,
+        query: &str,
+        kinds: Option<&[String]>,
+        limit: usize,
+    ) -> Result<Vec<EntityMatch>, MemoryError> {
+        module_call!(self, "search_entities", "SearchEntities", (query, kinds, limit))
     }
 }
