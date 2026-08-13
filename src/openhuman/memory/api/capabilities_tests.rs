@@ -319,3 +319,56 @@ fn missing_mandatory_is_empty_for_a_valid_set() {
     assert!(Capabilities::mandatory().missing_mandatory().is_empty());
     assert!(Capabilities::all().missing_mandatory().is_empty());
 }
+
+/// The host-local contract and the `tinymemory-api` crate must agree, family
+/// for family and version for version.
+///
+/// # Why this guard exists
+///
+/// There are two copies of this contract: this one, which the host and the
+/// module *client* compile against, and `tinymemory-api`, which the module
+/// *service* compiles against. They meet only over a bus, where a mismatch is
+/// not a type error — it is a method that is never called, or a capability the
+/// host filters its RPC surface and agent-tool list from while the module
+/// happily serves it.
+///
+/// That is not hypothetical. The same duplication already produced one live
+/// defect: `format_embedding_signature` was "fixed" in the host copy alone,
+/// which would have silently split the embedding space against the engine the
+/// moment the fixed copy became the live one. See
+/// `docs/specs/2026-08-13-memory-module-port.md` §3.
+///
+/// So: adding a family to one copy and not the other fails here, at compile-and-
+/// test time, instead of in the field.
+///
+/// This guard is removed when the port drops the `tinymemory-api` dependency —
+/// at that point there is one copy and nothing left to diverge from.
+#[test]
+fn the_two_contract_copies_advertise_identical_families() {
+    let host: Vec<&str> = Capability::ALL.iter().map(|c| c.as_str()).collect();
+    let crate_side: Vec<&str> = tinymemory_api::capabilities::Capability::ALL
+        .iter()
+        .map(|c| c.as_str())
+        .collect();
+
+    assert_eq!(
+        host, crate_side,
+        "host-local and tinymemory-api capability families diverged — \
+         a family added to one copy but not the other is invisible until it \
+         reaches the bus"
+    );
+}
+
+/// The two copies must also agree on the contract version they negotiate with.
+///
+/// A host that thinks it speaks (2, 1) while the module serves (2, 0) is the
+/// exact case `is_compatible` exists to refuse, and it would be refusing its
+/// own build rather than a genuinely foreign driver.
+#[test]
+fn the_two_contract_copies_declare_the_same_version() {
+    assert_eq!(
+        crate::openhuman::memory::api::CONTRACT_VERSION,
+        tinymemory_api::CONTRACT_VERSION,
+        "host-local and tinymemory-api contract versions diverged"
+    );
+}
