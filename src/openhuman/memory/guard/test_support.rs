@@ -49,6 +49,15 @@ pub struct Call {
     pub scoped: Option<bool>,
 }
 
+/// The scope's allow list rendered for assertions, sorted for determinism.
+fn rendered_scope(scope: Option<&SourceScope>) -> Option<String> {
+    scope.map(|s| {
+        let mut allow = s.allow.clone();
+        allow.sort();
+        allow.join(",")
+    })
+}
+
 impl Call {
     fn plain(method: &str) -> Self {
         Self {
@@ -716,9 +725,14 @@ impl MemoryChunks for RecordingProvider {
     async fn list_chunks(
         &self,
         _query: &ChunkQuery,
-        _scope: Option<&SourceScope>,
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<Chunk>, MemoryError> {
-        self.record(Call::plain("chunks.list_chunks"));
+        self.record(Call {
+            method: "chunks.list_chunks".into(),
+            content: rendered_scope(scope),
+            taint: None,
+            scoped: Some(scope.is_some()),
+        });
         Ok(vec![])
     }
 
@@ -743,18 +757,28 @@ impl MemoryRetrieval for RecordingProvider {
         &self,
         _query: &str,
         _options: FastRetrieveQuery,
-        _scope: Option<&SourceScope>,
+        scope: Option<&SourceScope>,
     ) -> Result<RetrievalResponse, MemoryError> {
-        self.record(Call::plain("retrieval.fast_retrieve"));
+        self.record(Call {
+            method: "retrieval.fast_retrieve".into(),
+            content: rendered_scope(scope),
+            taint: None,
+            scoped: Some(scope.is_some()),
+        });
         Ok(RetrievalResponse::default())
     }
 
     async fn cover_window(
         &self,
         _window: &CoverWindowQuery,
-        _scope: Option<&SourceScope>,
+        scope: Option<&SourceScope>,
     ) -> Result<RetrievalResponse, MemoryError> {
-        self.record(Call::plain("retrieval.cover_window"));
+        self.record(Call {
+            method: "retrieval.cover_window".into(),
+            content: rendered_scope(scope),
+            taint: None,
+            scoped: Some(scope.is_some()),
+        });
         Ok(RetrievalResponse::default())
     }
 

@@ -236,3 +236,91 @@ async fn family_calls_are_refused_for_an_untrusted_external_driver() {
         .expect_err("fail-closed");
     assert_eq!(driver.call_count(), 0);
 }
+
+// ── Scope narrowing on the chunk and retrieval families ─────────────────────
+//
+// These mirror `guard_explicit_scope_is_intersected_with_the_ambient_one` for
+// the two families added by the module port. They exist because the first
+// implementation of both forwarded the caller's scope **unchanged**, which is
+// the widening leak `GuardPolicy::narrow_scope` was written to close: a
+// source-restricted turn could name a collection outside its restriction and
+// have that become the sole query predicate.
+
+#[tokio::test]
+async fn chunk_listing_intersects_an_explicit_scope_with_the_ambient_one() {
+    let (driver, guard) = guarded(embedded_policy());
+    let explicit = SourceScope::new(["gmail:me"]);
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_chunks()
+            .unwrap()
+            .list_chunks(&ChunkQuery::default(), Some(&explicit))
+            .await
+            .expect("list_chunks");
+    })
+    .await;
+    assert_eq!(
+        driver.only_call().content.as_deref(),
+        Some(""),
+        "a chunk query outside the ambient allowlist must fail closed"
+    );
+}
+
+#[tokio::test]
+async fn chunk_listing_inherits_the_ambient_scope_when_none_is_requested() {
+    let (driver, guard) = guarded(embedded_policy());
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_chunks()
+            .unwrap()
+            .list_chunks(&ChunkQuery::default(), None)
+            .await
+            .expect("list_chunks");
+    })
+    .await;
+    assert_eq!(
+        driver.only_call().content.as_deref(),
+        Some("slack:#eng"),
+        "the ambient allowlist must reach the driver as a query predicate"
+    );
+}
+
+#[tokio::test]
+async fn fast_retrieve_intersects_an_explicit_scope_with_the_ambient_one() {
+    let (driver, guard) = guarded(embedded_policy());
+    let explicit = SourceScope::new(["gmail:me"]);
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_retrieval()
+            .unwrap()
+            .fast_retrieve(
+                "q",
+                FastRetrieveQuery {
+                    limit: 10,
+                    max_hops: 2,
+                    time_window_days: None,
+                },
+                Some(&explicit),
+            )
+            .await
+            .expect("fast_retrieve");
+    })
+    .await;
+    assert_eq!(driver.only_call().content.as_deref(), Some(""));
+}
+
+#[tokio::test]
+async fn cover_window_intersects_an_explicit_scope_with_the_ambient_one() {
+    let (driver, guard) = guarded(embedded_policy());
+    let explicit = SourceScope::new(["gmail:me"]);
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_retrieval()
+            .unwrap()
+            .cover_window(&CoverWindowQuery::default(), Some(&explicit))
+            .await
+            .expect("cover_window");
+    })
+    .await;
+    assert_eq!(driver.only_call().content.as_deref(), Some(""));
+}
