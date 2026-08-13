@@ -138,18 +138,28 @@ primitives to the contract, the module service and the host client. Ship a new
 module release; update the digests in `modules/registry.rs`. This is the
 largest stage and the only one that is cross-repo-blocking.
 
-**Stage 3 — cut the direct engine calls over.**
+**Stage 2 — cut the direct engine calls over.**
 Rewrite the 30 `tinymemory_core` call sites in `memory/{tools,query,tree}` onto
 the provider. Ends the split brain.
 
-**Stage 4 — bring host-layer code home.**
-Move `sync`, `composio_host`, `chat`, `learning_candidate`, `nlp_host` out of
-`tinymemory-core` into `memory/`. Delete `host_impls.rs`.
-
-**Stage 5 — the 98 `tinycortex::memory` references.**
+**Stage 3 — the 98 `tinycortex::memory` references.**
 56 sit outside `memory/` (`agent/`, `threads/`, `subconscious/`, `channels/`,
 `security/`), mostly `tinycortex::memory::conversations`. Route through the
 provider or through a host-owned conversation store.
+
+**Stage 4 — bring host-layer code home, and drop `tinymemory-core`.**
+Move `sync`, `composio_host`, `chat`, `learning_candidate`, `nlp_host` out of
+`tinymemory-core` into `memory/`. Delete `host_impls.rs` in favour of the bus
+services in `modules/memory_host.rs`.
+
+**Stage 5 — retire `tinymemory-api`.**
+Only reachable once stage 4 lands, per the ordering constraint above. Re-point
+the 46 `tinymemory_api::host` references at the host-local `memory::api::host`
+and reconcile the 6 diverged files. Touches `config/schema/*`, `inference/`,
+`cron/scheduler_gate`, `integrations/composio`. These config types are persisted
+serde — field names, defaults and `#[serde(...)]` attributes must not move.
+Drop the crate cross-check test in `memory/api/host/embeddings.rs`; the golden
+test beside it is what carries the format guarantee afterwards.
 
 **Stage 6 — drop the deps and ratchet.**
 Remove all five entries from `Cargo.toml`, forward the gate to
