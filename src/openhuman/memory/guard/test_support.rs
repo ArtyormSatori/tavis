@@ -21,7 +21,8 @@ use crate::openhuman::memory::api::provider::types::{
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
 use crate::openhuman::memory::api::provider::{
-    AddressBookSeedOutcome, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
+    AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
+    FastRetrieveQuery, MemoryChunks, MemoryRetrieval, RetrievalResponse, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals,
     MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability, MemoryProvider,
     MemoryRecall, MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction,
     PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
@@ -700,6 +701,70 @@ impl MemoryProvider for RecordingProvider {
     }
     fn as_people(&self) -> Option<&dyn MemoryPeople> {
         Some(self)
+    }
+    fn as_chunks(&self) -> Option<&dyn MemoryChunks> {
+        Some(self)
+    }
+    fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
+        Some(self)
+    }
+}
+
+#[async_trait]
+impl MemoryChunks for RecordingProvider {
+    async fn list_chunks(
+        &self,
+        _query: &ChunkQuery,
+        _scope: Option<&SourceScope>,
+    ) -> Result<Vec<Chunk>, MemoryError> {
+        self.record(Call::plain("chunks.list_chunks"));
+        Ok(vec![])
+    }
+
+    async fn get_chunk(&self, _chunk_id: &str) -> Result<Option<Chunk>, MemoryError> {
+        self.record(Call::plain("chunks.get_chunk"));
+        Ok(None)
+    }
+
+    async fn chunk_embeddings(
+        &self,
+        _chunk_ids: &[String],
+        _model_signature: &str,
+    ) -> Result<Vec<ChunkEmbedding>, MemoryError> {
+        self.record(Call::plain("chunks.chunk_embeddings"));
+        Ok(vec![])
+    }
+}
+
+#[async_trait]
+impl MemoryRetrieval for RecordingProvider {
+    async fn fast_retrieve(
+        &self,
+        _query: &str,
+        _options: FastRetrieveQuery,
+        _scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        self.record(Call::plain("retrieval.fast_retrieve"));
+        Ok(RetrievalResponse::default())
+    }
+
+    async fn cover_window(
+        &self,
+        _window: &CoverWindowQuery,
+        _scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        self.record(Call::plain("retrieval.cover_window"));
+        Ok(RetrievalResponse::default())
+    }
+
+    async fn search_entities(
+        &self,
+        _query: &str,
+        _kinds: Option<&[String]>,
+        _limit: usize,
+    ) -> Result<Vec<EntityMatch>, MemoryError> {
+        self.record(Call::plain("retrieval.search_entities"));
+        Ok(vec![])
     }
 }
 
