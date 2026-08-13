@@ -475,6 +475,48 @@ impl MemoryMaintenance for NullMemoryProvider {
     }
 }
 
+#[async_trait]
+impl MemoryPeople for NullMemoryProvider {
+    async fn list_people(&self, _limit: Option<usize>) -> Result<Vec<RankedPerson>, MemoryError> {
+        unsupported(Capability::People)
+    }
+
+    async fn get_person(&self, _person_id: &str) -> Result<Option<PersonRecord>, MemoryError> {
+        unsupported(Capability::People)
+    }
+
+    async fn resolve_handle(
+        &self,
+        _handle: &PersonHandle,
+        _create_if_missing: bool,
+    ) -> Result<Option<ResolvedPerson>, MemoryError> {
+        unsupported(Capability::People)
+    }
+
+    async fn add_handle_alias(
+        &self,
+        _person_id: &str,
+        _handle: &PersonHandle,
+    ) -> Result<(), MemoryError> {
+        unsupported(Capability::People)
+    }
+
+    async fn score_person(&self, _person_id: &str) -> Result<Option<PersonScore>, MemoryError> {
+        unsupported(Capability::People)
+    }
+
+    async fn record_interaction(
+        &self,
+        _interaction: &PersonInteraction,
+    ) -> Result<(), MemoryError> {
+        unsupported(Capability::People)
+    }
+
+    async fn seed_from_address_book(&self) -> Result<AddressBookSeedOutcome, MemoryError> {
+        unsupported(Capability::People)
+    }
+}
+
 #[cfg(test)]
 #[path = "null_tests.rs"]
 mod tests;
