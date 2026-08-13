@@ -884,7 +884,13 @@ impl MemoryChunks for GuardedChunks {
             NO_NAMESPACE,
             false,
         )?;
-        self.family()?.list_chunks(query, scope).await
+        // Intersected with the ambient allowlist, never passed through. The
+        // ambient scope is an upper bound: forwarding the caller's scope
+        // unchanged would let a source-restricted turn widen itself back out by
+        // naming a collection the restriction excluded. See
+        // `GuardPolicy::narrow_scope`.
+        let effective = self.policy.narrow_scope(scope);
+        self.family()?.list_chunks(query, effective.as_ref()).await
     }
 
     async fn get_chunk(&self, chunk_id: &str) -> Result<Option<Chunk>, MemoryError> {
@@ -928,7 +934,10 @@ impl MemoryRetrieval for GuardedRetrieval {
             NO_NAMESPACE,
             false,
         )?;
-        self.family()?.fast_retrieve(query, options, scope).await
+        let effective = self.policy.narrow_scope(scope);
+        self.family()?
+            .fast_retrieve(query, options, effective.as_ref())
+            .await
     }
 
     async fn cover_window(
@@ -942,7 +951,8 @@ impl MemoryRetrieval for GuardedRetrieval {
             NO_NAMESPACE,
             false,
         )?;
-        self.family()?.cover_window(window, scope).await
+        let effective = self.policy.narrow_scope(scope);
+        self.family()?.cover_window(window, effective.as_ref()).await
     }
 
     async fn search_entities(
