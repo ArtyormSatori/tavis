@@ -151,6 +151,7 @@ impl Capability {
             Self::Sources => "sources",
             Self::Maintenance => "maintenance",
             Self::Portability => "portability",
+            Self::People => "people",
         }
     }
 

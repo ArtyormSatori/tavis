@@ -57,6 +57,7 @@ pub mod content;
 pub mod driver;
 pub mod knowledge;
 pub mod mandatory;
+pub mod people;
 pub mod records;
 pub mod types;
 
@@ -65,6 +66,10 @@ pub use content::{MemoryDocuments, MemoryIngest, MemoryTree};
 pub use driver::MemoryProvider;
 pub use knowledge::{MemoryDiff, MemoryEntities, MemoryGraph};
 pub use mandatory::{MemoryCore, MemoryPortability, MemoryRecall};
+pub use people::{
+    AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord, PersonRef,
+    PersonScore, RankedPerson, ResolvedPerson,
+};
 pub use records::{MemoryGoals, MemoryMaintenance, MemorySourceSink, MemoryToolMemory};
 pub use types::{
     ChangeKind, DiffReport, EntityHit, EntityRef, ExportPage, ExportRecord, ImportOutcome,
