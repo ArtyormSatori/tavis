@@ -1835,7 +1835,7 @@ fn memory_capability_map_has_no_stale_entries() {
 /// gates at least one controller, or it is listed as deliberately RPC-less.
 ///
 /// `Capability` is deliberately NOT `#[non_exhaustive]` (see that module's
-/// docs), so a fourteenth family is a **compile error** in the `match` below
+/// docs), so a new family is a **compile error** in the `match` below
 /// before it is a test failure. That compile error is the mechanism which
 /// guarantees a new family gets wired somewhere rather than silently defaulting
 /// to ungated.
@@ -1882,6 +1882,11 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             // through `as_people()`. See
             // `docs/specs/2026-08-13-memory-module-port.md` stage 2.
             Capability::People => false,
+            // Same as `People`: the chunk-tier and retrieval primitives back
+            // agent tools that still call the engine in-process, so nothing is
+            // gated on these families yet. Both flip to reflect reality in the
+            // change that routes those tools through the driver.
+            Capability::Chunks | Capability::Retrieval => false,
         };
         assert_eq!(
             gated.contains(&cap),
