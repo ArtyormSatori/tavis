@@ -35,6 +35,10 @@ use crate::openhuman::memory::api::capabilities::Capability;
 use crate::openhuman::memory::api::chunks::Chunk;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::goals::GoalsDoc;
+use crate::openhuman::memory::api::provider::chunks::{ChunkEmbedding, ChunkQuery, MemoryChunks};
+use crate::openhuman::memory::api::provider::retrieval::{
+    CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalResponse,
+};
 use crate::openhuman::memory::api::provider::people::{
     AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord,
     PersonScore, RankedPerson, ResolvedPerson,
@@ -167,6 +171,20 @@ decorator!(
     dyn MemoryPeople,
     as_people,
     People
+);
+decorator!(
+    /// Guarded [`MemoryChunks`].
+    GuardedChunks,
+    dyn MemoryChunks,
+    as_chunks,
+    Chunks
+);
+decorator!(
+    /// Guarded [`MemoryRetrieval`].
+    GuardedRetrieval,
+    dyn MemoryRetrieval,
+    as_retrieval,
+    Retrieval
 );
 
 // ── Ingest ───────────────────────────────────────────────────────────────────
@@ -848,6 +866,99 @@ impl MemoryPeople for GuardedPeople {
             true,
         )?;
         self.family()?.seed_from_address_book().await
+    }
+}
+
+
+// ── Chunks ───────────────────────────────────────────────────────────────────
+
+#[async_trait]
+impl MemoryChunks for GuardedChunks {
+    async fn list_chunks(
+        &self,
+        query: &ChunkQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<Vec<Chunk>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Chunks,
+            "chunks.list_chunks",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.list_chunks(query, scope).await
+    }
+
+    async fn get_chunk(&self, chunk_id: &str) -> Result<Option<Chunk>, MemoryError> {
+        self.policy
+            .admit_read(Capability::Chunks, "chunks.get_chunk", NO_NAMESPACE, false)?;
+        self.family()?.get_chunk(chunk_id).await
+    }
+
+    /// Vectors, not content — but still a read of stored material, so it takes
+    /// the same tier check rather than being waved through as metadata.
+    async fn chunk_embeddings(
+        &self,
+        chunk_ids: &[String],
+        model_signature: &str,
+    ) -> Result<Vec<ChunkEmbedding>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Chunks,
+            "chunks.chunk_embeddings",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?
+            .chunk_embeddings(chunk_ids, model_signature)
+            .await
+    }
+}
+
+// ── Retrieval ────────────────────────────────────────────────────────────────
+
+#[async_trait]
+impl MemoryRetrieval for GuardedRetrieval {
+    async fn fast_retrieve(
+        &self,
+        query: &str,
+        options: FastRetrieveQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.fast_retrieve",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.fast_retrieve(query, options, scope).await
+    }
+
+    async fn cover_window(
+        &self,
+        window: &CoverWindowQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.cover_window",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.cover_window(window, scope).await
+    }
+
+    async fn search_entities(
+        &self,
+        query: &str,
+        kinds: Option<&[String]>,
+        limit: usize,
+    ) -> Result<Vec<EntityMatch>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.search_entities",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.search_entities(query, kinds, limit).await
     }
 }
 
