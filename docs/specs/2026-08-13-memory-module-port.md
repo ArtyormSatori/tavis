@@ -184,6 +184,60 @@ builds clean. Host: builds clean both ways; feature-forwarding gate passes;
 checkout (they need the module artifact, which is not fetched locally), so this
 adds one passing test and one deliberately ignored one, and no new failures.
 
+### 1b. The People capability family — landed in the contract
+
+`Capability::People` is family fourteen, appended (never inserted — declaration
+order is bit order in the `Capabilities` bitset, so moving a variant would
+silently re-interpret an already-transmitted set). `CONTRACT_VERSION` goes
+`(2, 0)` → `(2, 1)`.
+
+**A new family, not methods on an existing one — the version rule forces this.**
+Adding these calls to `MemoryEntities` would have been a **major** bump, because
+a new method on a family a driver may already advertise is breaking: negotiation
+cannot protect a caller from a method an older driver never implemented. A new
+family is a minor bump, and an older driver simply does not advertise it.
+
+`MemoryPeople` carries seven methods, derived from the seven agent tools and
+four RPC controllers that exist today rather than guessed at: `list_people`,
+`get_person`, `resolve_handle`, `add_handle_alias`, `score_person`,
+`record_interaction`, `seed_from_address_book`. Its types are the contract's
+own — TinyCortex's `Person`/`Handle`/`Interaction` never cross — and identity
+travels as an opaque `PersonRef` string, since the contract does not promise
+every engine identifies people by UUID.
+
+Wired through: both contract copies, `NullMemoryProvider`, the `MemoryGuard`
+decorator (`GuardedPeople`), and the recording test fixture. In the guard,
+`resolve_handle` takes the **write** tier check when `create_if_missing` is set
+and the read check otherwise — classifying the whole method as a read would have
+handed a `readonly` operator a working insert through the back door.
+
+**A drift guard now holds the two contract copies together.** There are two
+copies of this contract — the host-local one the module *client* compiles
+against, and `tinymemory-api` which the module *service* compiles against — and
+they meet only over a bus, where a mismatch is not a type error but a method
+never called or a capability filtered away on one side. That duplication already
+produced one live defect (§3). Two tests now pin the families and the version
+across both copies; both were verified to actually fail by temporarily diverging
+a wire string, then to go green again. They are deleted with the
+`tinymemory-api` dependency in stage 5, when one copy remains.
+
+**Verification.** `openhuman::memory::api` 190 passed / 0 failed;
+`openhuman::memory::guard` 56 / 0; `core::all` 91 / 0; `openhuman::memory::`
+back to exactly the 26 pre-existing failures with no new ones; `cargo fmt`
+clean. (The full `--lib` run aborts on a pre-existing stack overflow in
+`agent::harness::session::runtime`, identical on a clean `main` checkout.)
+
+### Still open in stage 1
+
+- `MemoryPeople` implementation in the TinyCortex adapter.
+- The `People` methods on the module service and the host client.
+- The `Chunks` and `Retrieval` families, same shape.
+- A module release, and the digest update in `modules/registry.rs`.
+- TinyMemory's own workspace pins a nested TinyCortex submodule, so its
+  standalone `cargo test` cannot see these engine changes until that pointer is
+  bumped at release time. The OpenHuman build patches both to one checkout and
+  is the authoritative build meanwhile.
+
 **Why People moves rather than staying put.** `tinymemory-core` survives this
 port — it is the module's own implementation crate, it just stops being an
 *OpenHuman* dependency — so leaving People there would compile. But the contract
