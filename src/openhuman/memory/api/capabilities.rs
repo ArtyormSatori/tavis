@@ -194,6 +194,7 @@ impl Capability {
             Self::Sources => 10,
             Self::Maintenance => 11,
             Self::Portability => 12,
+            Self::People => 13,
         }
     }
 
