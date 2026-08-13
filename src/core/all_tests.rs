@@ -1872,6 +1872,16 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             Capability::Entities => false,
             // No controller exposes re-embed / compact / dream / doctor yet.
             Capability::Maintenance => false,
+            // The `people.*` controllers exist, but they still reach
+            // `PeopleStore` directly rather than through the bound driver, so
+            // tagging them with this family would gate a surface on a
+            // capability it does not actually consult — a null driver would
+            // unregister RPC methods that would have worked fine.
+            //
+            // Flips to `true` in the same change that routes those handlers
+            // through `as_people()`. See
+            // `docs/specs/2026-08-13-memory-module-port.md` stage 2.
+            Capability::People => false,
         };
         assert_eq!(
             gated.contains(&cap),
