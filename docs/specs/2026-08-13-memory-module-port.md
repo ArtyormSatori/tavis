@@ -123,14 +123,16 @@ Revert `memory/api/host/embeddings.rs` to the naive signature form, keeping the
 collision test as `#[ignore]` with a pointer to this section. Open a TinyMemory
 issue for the real fix. *No behaviour change; makes every later stage safe.*
 
-**Stage 1 — retire `tinymemory-api`.**
-Re-point the 46 `tinymemory_api::host` references at the host-local
-`memory::api::host`, reconcile the 6 diverged files, drop the dep. Touches
-`config/schema/*`, `inference/`, `cron/scheduler_gate`, `integrations/composio`.
-Config types are persisted serde — field names, defaults and `#[serde(...)]`
-attributes must not move.
+> **Ordering constraint — `tinymemory-api` goes last, not first.**
+> `tinymemory_core::Config` is `dyn tinymemory_api::host::MemoryHostConfig`
+> (`tinymemory/core/src/lib.rs:32`), and `memory/host_impls.rs` implements eight
+> of these traits *for host types*. So for as long as `tinymemory-core` is a
+> dependency, the host's config must implement the **crate's** trait, and
+> re-pointing those references at the host-local copy would not compile. The
+> contract crate can only be dropped after the engine crate. Stages 1 and 5 were
+> the wrong way round in the first draft of this plan.
 
-**Stage 2 — close the wire gaps.**
+**Stage 1 — close the wire gaps.**
 In TinyMemory: add the People family, chunk-level access, and the retrieval
 primitives to the contract, the module service and the host client. Ship a new
 module release; update the digests in `modules/registry.rs`. This is the
