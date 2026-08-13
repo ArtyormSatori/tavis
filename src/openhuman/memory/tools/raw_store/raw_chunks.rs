@@ -241,6 +241,14 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the module bus belongs to the runtime that creates it, so run this test alone"]
+    // Was a pure-SQLite test: it opened the workspace store in-process and read
+    // an empty table. That is the split brain this port removes — the tool now
+    // reads chunks through the bound driver, so the success path needs a driver
+    // that advertises the chunk family. With no module artifact the binding
+    // falls back to the null driver and the tool refuses, which is the correct
+    // answer rather than a regression.
     async fn execute_success_path_returns_json_array() {
         let tmp = TempDir::new().expect("tempdir");
         let (_workspace, _config) = isolated_config(&tmp).await;
