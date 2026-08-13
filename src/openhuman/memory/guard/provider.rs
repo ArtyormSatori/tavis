@@ -7,13 +7,14 @@ use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::health::MemoryHealth;
 use crate::openhuman::memory::api::provider::{
     MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals, MemoryGraph, MemoryIngest,
-    MemoryMaintenance, MemoryProvider, MemorySourceSink, MemoryToolMemory, MemoryTree,
+    MemoryMaintenance, MemoryPeople, MemoryProvider, MemorySourceSink, MemoryToolMemory,
+    MemoryTree,
 };
 use async_trait::async_trait;
 
 use super::families::{
     GuardedDiff, GuardedDocuments, GuardedEntities, GuardedGoals, GuardedGraph, GuardedIngest,
-    GuardedMaintenance, GuardedSources, GuardedToolMemory, GuardedTree,
+    GuardedMaintenance, GuardedPeople, GuardedSources, GuardedToolMemory, GuardedTree,
 };
 use super::policy::GuardPolicy;
 
@@ -22,7 +23,7 @@ use super::policy::GuardPolicy;
 ///
 /// It implements [`MemoryProvider`], so it is transparent to callers and cannot
 /// be "skipped" by a caller that simply keeps using the contract — there is no
-/// second, unguarded shape to hold. Its ten `as_*` overrides hand back
+/// second, unguarded shape to hold. Its eleven `as_*` overrides hand back
 /// **guarded** family handles rather than the inner driver's, which is what
 /// closes the accessor bypass; see [`super::families`] for why that forces the
 /// decorators to be owned fields.
@@ -30,7 +31,7 @@ pub struct MemoryGuard {
     inner: Arc<dyn MemoryProvider>,
     policy: Arc<GuardPolicy>,
 
-    // The ten optional families. Each is `Some` **iff** the inner driver
+    // The eleven optional families. Each is `Some` **iff** the inner driver
     // provides it, so `provides()` — which the contract's `audit_provider`
     // compares against `capabilities()` — answers identically for the guard and
     // for the driver underneath it.
@@ -44,12 +45,13 @@ pub struct MemoryGuard {
     tool_memory: Option<GuardedToolMemory>,
     sources: Option<GuardedSources>,
     maintenance: Option<GuardedMaintenance>,
+    people: Option<GuardedPeople>,
 }
 
 impl MemoryGuard {
     /// Wrap `inner` in `policy`.
     ///
-    /// Builds all ten decorators up front. That is not an optimisation: the
+    /// Builds all eleven decorators up front. That is not an optimisation: the
     /// `as_*` accessors return borrows, so a decorator constructed inside an
     /// accessor could not outlive the call.
     pub fn new(inner: Arc<dyn MemoryProvider>, policy: Arc<GuardPolicy>) -> Self {
@@ -71,6 +73,7 @@ impl MemoryGuard {
             tool_memory: family!(ToolMemory, GuardedToolMemory),
             sources: family!(Sources, GuardedSources),
             maintenance: family!(Maintenance, GuardedMaintenance),
+            people: family!(People, GuardedPeople),
             inner,
             policy,
         }
@@ -154,6 +157,10 @@ impl MemoryProvider for MemoryGuard {
         self.maintenance
             .as_ref()
             .map(|g| g as &dyn MemoryMaintenance)
+    }
+
+    fn as_people(&self) -> Option<&dyn MemoryPeople> {
+        self.people.as_ref().map(|g| g as &dyn MemoryPeople)
     }
 }
 
