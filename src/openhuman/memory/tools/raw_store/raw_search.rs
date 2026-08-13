@@ -205,6 +205,8 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the tool now reads the entity index through the bound driver, not the in-process engine"]
     async fn execute_success_path_returns_json_array() {
         let tmp = TempDir::new().expect("tempdir");
         let (_workspace, _config) = isolated_config(&tmp).await;
