@@ -61,10 +61,32 @@ mod tests {
         assert_ne!(first, second);
     }
 
-    /// The host-local copy must stay byte-identical to the contract crate's.
+    /// The signature format is a persisted key, pinned to literal values.
     ///
-    /// This is the guard that would have caught the divergence: it fails the
-    /// moment either copy is "improved" on its own.
+    /// This is the guard that would have caught the divergence, and it is
+    /// written against **golden strings** rather than against
+    /// `tinymemory_api`'s copy on purpose: the contract crate leaves this
+    /// crate's dependency graph during the module port, and a guard that
+    /// disappears with it would stop protecting the format at exactly the
+    /// point where the host and the module can no longer be diffed at compile
+    /// time. Every vector on disk is keyed by one of these strings, so a
+    /// change here is a migration, never an edit.
+    #[test]
+    fn signature_format_is_pinned_to_its_persisted_form() {
+        assert_eq!(
+            format_embedding_signature("ollama", "nomic-embed-text", 768),
+            "provider=ollama;model=nomic-embed-text;dims=768"
+        );
+        assert_eq!(
+            format_embedding_signature("none", "none", 0),
+            "provider=none;model=none;dims=0"
+        );
+    }
+
+    /// Cross-check against the contract crate while it is still a dependency.
+    ///
+    /// Removed together with the `tinymemory-api` dependency; the golden test
+    /// above is what outlives it.
     #[test]
     fn signature_is_byte_identical_to_the_contract_crate() {
         for (name, model, dims) in [
