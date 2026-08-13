@@ -2,7 +2,7 @@
 //!
 //! `tinywallet` performs no I/O and takes no URLs: it names a
 //! [`NetworkId`](tinywallet::rpc::NetworkId) and asks a host to reach it. This
-//! module is that host side — the adapter that lets `tinywallet::client` and
+//! module is that host side — the adapter that lets `tinywallet::rpc` and
 //! the chain modules run against OpenHuman's existing RPC layer.
 //!
 //! Everything the crate deliberately refused to own lives on this side of the
