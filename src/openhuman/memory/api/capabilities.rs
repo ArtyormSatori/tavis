@@ -85,6 +85,8 @@ pub enum Capability {
     Maintenance,
     /// Export and import of the whole store as a stream. **Mandatory.**
     Portability,
+    /// Contacts, handle resolution, and closeness scoring.
+    People,
 }
 
 impl Capability {
