@@ -168,6 +168,17 @@ CREATE INDEX IF NOT EXISTS idx_checkpoint_writes_thread
     ON checkpoint_writes (thread_id, checkpoint_id);
 ";
 
+/// tinyflows keeps its own copy `pub(crate)`, so the port carries one. Same
+/// message: a caller comparing the two backends' errors sees no difference.
+fn require_checkpoint_id(config: &CheckpointConfig) -> Result<String> {
+    config.checkpoint_id.clone().ok_or_else(|| {
+        GraphError::Checkpoint(format!(
+            "put_writes requires an explicit checkpoint_id (thread `{}`)",
+            config.thread_id
+        ))
+    })
+}
+
 /// The projected listing columns read from one `checkpoints` row.
 struct MetaRow {
     thread_id: String,
@@ -534,7 +545,7 @@ where
     }
 
     async fn put_writes(&self, config: &CheckpointConfig, writes: &[PendingWrite]) -> Result<()> {
-        let checkpoint_id = super::require_checkpoint_id(config)?;
+        let checkpoint_id = require_checkpoint_id(config)?;
         if writes.is_empty() {
             return Ok(());
         }
