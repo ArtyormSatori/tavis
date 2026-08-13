@@ -15,7 +15,7 @@ use std::sync::Arc;
 use anyhow::Context;
 use async_trait::async_trait;
 use serde_json::{json, Value};
-use tinyagents::graph::SqliteCheckpointer;
+use crate::openhuman::flows::tinyflows::checkpoint_sqlite::SqliteCheckpointer;
 use tinyflows::caps::*;
 use tinyflows::error::{EngineError, Result};
 #[cfg(test)]
