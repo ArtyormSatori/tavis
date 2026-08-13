@@ -58,7 +58,7 @@ async fn guard_passes_audit_provider_against_its_own_capabilities() {
 }
 
 #[tokio::test]
-async fn guard_accessor_presence_mirrors_inner_provides_for_all_ten_families() {
+async fn guard_accessor_presence_mirrors_inner_provides_for_every_family() {
     let (_driver, guard) = guarded(embedded_policy());
     for capability in Capability::ALL {
         assert!(
