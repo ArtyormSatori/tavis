@@ -513,15 +513,6 @@ windows-sys = { version = "0.61", features = [
 # default. Avoids pulling OpenSSL as a runtime dep on Linux.
 tokio-tungstenite = { version = "0.29", default-features = false, features = ["connect", "handshake", "rustls-tls-webpki-roots"] }
 
-[target.'cfg(target_os = "macos")'.dependencies]
-# Contacts framework bindings for address book seeding. Exclusive to
-# `memory::people::address_book` (verified: no other file in src/ names any of
-# the four), so the default-ON `contacts` feature sheds the whole cohort.
-objc2 = { version = "0.6", optional = true }
-objc2-foundation = { version = "0.3", features = ["NSArray", "NSError", "NSObject", "NSString", "NSPredicate"], optional = true }
-objc2-contacts = { version = "0.3.2", features = ["CNContact", "CNContactFetchRequest", "CNContactStore", "CNLabeledValue", "CNPhoneNumber"], optional = true }
-block2 = { version = "0.6", optional = true }
-
 [target.'cfg(target_os = "linux")'.dependencies]
 landlock = { version = "0.4", optional = true }
 rppal = { version = "0.22", optional = true }
