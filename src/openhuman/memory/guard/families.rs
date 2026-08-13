@@ -952,7 +952,9 @@ impl MemoryRetrieval for GuardedRetrieval {
             false,
         )?;
         let effective = self.policy.narrow_scope(scope);
-        self.family()?.cover_window(window, effective.as_ref()).await
+        self.family()?
+            .cover_window(window, effective.as_ref())
+            .await
     }
 
     async fn search_entities(

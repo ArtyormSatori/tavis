@@ -1,10 +1,10 @@
+use crate::openhuman::memory::api::chunks::SourceKind;
+use crate::openhuman::memory::api::provider::{CoverWindowQuery, MemoryProvider};
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::memory::tree::retrieval::rpc::CoverWindowRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
-use crate::openhuman::memory::api::chunks::SourceKind;
-use crate::openhuman::memory::api::provider::{CoverWindowQuery, MemoryProvider};
-use crate::openhuman::memory::ops::guard::active_memory_guard;
 
 /// Agent-facing wrapper for the windowed minimum-cover retrieval. Returns the
 /// smallest set of nodes (summaries + raw chunks) covering all memory in

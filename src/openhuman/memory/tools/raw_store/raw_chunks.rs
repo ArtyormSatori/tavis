@@ -8,10 +8,10 @@ use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::openhuman::tools::traits::{Tool, ToolResult};
 use crate::openhuman::memory::api::chunks::SourceKind;
 use crate::openhuman::memory::api::provider::{ChunkQuery, MemoryProvider};
 use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::tools::traits::{Tool, ToolResult};
 
 pub struct MemoryStoreRawChunksTool;
 

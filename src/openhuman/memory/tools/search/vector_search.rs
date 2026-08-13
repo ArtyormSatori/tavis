@@ -11,11 +11,11 @@ use std::fmt::Write;
 
 use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::inference::embeddings::provider_from_config;
-use crate::openhuman::tools::traits::{Tool, ToolResult};
 use crate::openhuman::memory::api::chunks::SourceKind;
 use crate::openhuman::memory::api::provider::ChunkQuery;
 use crate::openhuman::memory::api::provider::MemoryProvider;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::tools::traits::{Tool, ToolResult};
 use tinycortex::memory::retrieval::mmr::{mmr_select, MmrCandidate};
 use tinycortex::memory::store::vectors::cosine_similarity;
 

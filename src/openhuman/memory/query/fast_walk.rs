@@ -5,9 +5,9 @@
 //! retriever. It returns a structured [`QueryResponse`] of ranked evidence
 //! (no synthesized prose); a higher-level context agent composes the answer.
 
-use crate::openhuman::tools::traits::ToolResult;
 use crate::openhuman::memory::api::provider::{FastRetrieveQuery, MemoryProvider};
 use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::tools::traits::ToolResult;
 
 /// Parse the shared `memory_tree` args and run deterministic retrieval.
 /// Accepts `query` (required), `limit`, `time_window_days`, and `max_hops`.
