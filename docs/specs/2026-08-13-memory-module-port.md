@@ -494,21 +494,43 @@ that the driver's order is passed through rather than re-sorted — and there is
 now an explicit test that the host does **not** re-sort, since a host-side sort
 would silently override the ranking authority.
 
-### Residual split brain: the people store is still opened at boot
+### 2f. People's split brain closed at the store, not just the call sites
 
-Every *caller* now goes through the driver, but four sites still call
-`people::store::init_from_workspace` — `core/runtime/context.rs` at boot,
-`security/credentials/ops.rs` (×2) and `desktop/app_state/ops.rs` on
-active-user switch. They seed a process-global store that **nothing reads any
-more**: `CoreContext::people()` has no callers left, and `people::store::get()`
-is referenced only by a doc comment.
+Converting the callers left the *store* still being opened host-side. Four sites
+seeded a process-global that nothing read any more, so the host held a second
+connection to `<workspace>/people/people.db` — the file the module owns — purely
+to populate a global no handler consulted. All four are gone:
 
-So the host still opens `<workspace>/people/people.db` — the same file the
-module opens — purely to populate a global nobody consults. That is the same
-split brain §2.1 describes, surviving one layer below the call sites. Removing
-the four seeds and `CoreContext::people()` closes it; it touches the active-user
-switch paths and their tests, so it is its own change rather than a tail-end
-edit here.
+| Site | Was |
+| --- | --- |
+| `core/runtime/context.rs` | boot seed under `StoreInitPlan.people` |
+| `security/credentials/ops.rs` | rebind after login, and after logout |
+| `desktop/app_state/ops.rs` | rebind on active-user switch |
+
+`CoreContext::people()` and the `StoreInitPlan.people` field went with them. The
+active-user rebinds needed no replacement: people resolves through the memory
+binding now, and `rebind_default_workspace` already moves that.
+
+**No host site opens the people database any more.** The engine still compiles
+it in — that is where it belongs.
+
+**Three context tests were removed rather than repointed**, and it is worth
+being precise about what that costs. `people_store_is_isolated_per_context_workspace`
+and `rebind_workspace_updates_context_store_resolution` proved per-context
+workspace isolation *using people as the example*; that property is proved
+unchanged by `memory_binding_is_isolated_per_context_workspace` and
+`rebind_workspace_updates_context_memory_binding`, which is what people resolves
+through now — so this is redundancy removed, not coverage lost.
+`people_rpc_uses_scoped_context_store` is different: it asserted a scoped
+`people_resolve` wrote workspace A and not B by opening **both stores directly**.
+There is no second reader to check against any more, and the isolation it tested
+belongs to the binding. `degraded_context_rejects_workspace_bound_stores` now
+asserts `workspace_dir()` directly — the gate every workspace-bound store passes
+through, and what `people()` was standing in for.
+
+**Verification.** `memory::` 713 passed / 26 failed, no new failures ·
+`core::runtime` 27/0 · `core::all` 91/0 · `memory::people` 13/0 ·
+`security::credentials` 183/0 · `desktop::app_state` 32/0 · `cargo fmt` clean.
 
 ### Still open in stage 2
 
