@@ -136,14 +136,25 @@ pub async fn start_if_enabled(app_config: &Config) {
             RUNNING.store(false, Ordering::SeqCst);
             return;
         }
-    }
+    };
 
     // Privacy hook: pause capture while the screen is locked.
     spawn_lock_watcher();
 
     let onset_threshold = vad.onset_threshold;
     tokio::spawn(async move {
-        let mut seg = VadSegmenter::new(vad);
+        // The segmenter lives in the module now. Opening it is the first thing
+        // that can fail for a reason unrelated to audio, so it happens before
+        // any capture is consumed and takes the loop down cleanly if it does.
+        let session = match tinyvoice::VadSession::open(&config, vad).await {
+            Ok(session) => session,
+            Err(error) => {
+                log::warn!("{LOG_PREFIX} could not open a VAD session ({error}); capture idle");
+                RUNNING.store(false, Ordering::SeqCst);
+                return;
+            }
+        };
+
         let mut pending: Vec<f32> = Vec::new();
         let mut utterance: Vec<f32> = Vec::new();
         // Test-build diagnostics: confirm audio actually flows from the mic and
@@ -159,50 +170,119 @@ pub async fn start_if_enabled(app_config: &Config) {
                 first_chunk_logged = true;
                 log::info!(
                     "{LOG_PREFIX} first audio chunk received from mic (samples={}) — capture pipeline live",
-                    chunk.len()
+                    chunk.samples.len()
                 );
             }
             // Drop audio and abandon any in-flight utterance while paused
             // (screen locked) or toggled off — nothing is captured or sent.
             if PAUSED.load(Ordering::Relaxed) || !ENABLED.load(Ordering::Relaxed) {
-                if seg.is_speaking() {
-                    seg.reset();
+                // Reset unconditionally rather than checking `is_speaking`
+                // first: that check would be a second bus call to save a cheap
+                // idempotent one, and the privacy path should be the shortest
+                // path, not the cleverest.
+                if let Err(error) = session.reset(&config).await {
+                    log::warn!("{LOG_PREFIX} could not reset the VAD session: {error}");
                 }
                 pending.clear();
                 utterance.clear();
                 continue;
             }
-            pending.extend_from_slice(&chunk);
-            while pending.len() >= FRAME_SAMPLES {
-                let frame: Vec<f32> = pending.drain(..FRAME_SAMPLES).collect();
-                let rms = chunk_rms(&frame);
-                level_peak = level_peak.max(rms);
-                level_frames += 1;
-                if last_level_log.elapsed() >= std::time::Duration::from_secs(5) {
-                    log::info!(
-                        "{LOG_PREFIX} mic level peak_rms={level_peak:.4} onset={onset_threshold:.4} frames={level_frames} ({})",
-                        if level_peak >= onset_threshold {
-                            "speech would trigger"
-                        } else {
-                            "below onset — lower vad_onset_threshold or check mic gain"
-                        }
-                    );
-                    level_peak = 0.0;
-                    level_frames = 0;
-                    last_level_log = std::time::Instant::now();
+
+            // Downmix + resample in the module. This is the work that used to
+            // happen inside the cpal callback.
+            let mono16k = match tinyvoice::prepare_frames(
+                &config,
+                &chunk.samples,
+                format.source_rate,
+                format.channels,
+            )
+            .await
+            {
+                Ok(samples) => samples,
+                Err(error) => {
+                    log::warn!("{LOG_PREFIX} could not prepare capture frames: {error}");
+                    continue;
                 }
-                match seg.push_frame(rms, FRAME_MS) {
-                    Some(VadEvent::SpeechStart) => {
+            };
+            pending.extend_from_slice(&mono16k);
+
+            // Whole frames only; the remainder stays in `pending` for the next
+            // chunk so no audio is dropped at a chunk boundary.
+            let whole = pending.len() / FRAME_SAMPLES * FRAME_SAMPLES;
+            if whole == 0 {
+                continue;
+            }
+            let frames: Vec<f32> = pending.drain(..whole).collect();
+
+            let energies = match tinyvoice::frame_energies(
+                &config,
+                &frames,
+                FRAME_SAMPLES as u32,
+            )
+            .await
+            {
+                Ok(energies) => energies,
+                Err(error) => {
+                    log::warn!("{LOG_PREFIX} could not measure frame energies: {error}");
+                    continue;
+                }
+            };
+
+            for rms in &energies {
+                level_peak = level_peak.max(*rms);
+            }
+            level_frames += energies.len() as u32;
+            if last_level_log.elapsed() >= std::time::Duration::from_secs(5) {
+                log::info!(
+                    "{LOG_PREFIX} mic level peak_rms={level_peak:.4} onset={onset_threshold:.4} frames={level_frames} ({})",
+                    if level_peak >= onset_threshold {
+                        "speech would trigger"
+                    } else {
+                        "below onset — lower vad_onset_threshold or check mic gain"
+                    }
+                );
+                level_peak = 0.0;
+                level_frames = 0;
+                last_level_log = std::time::Instant::now();
+            }
+
+            // One push per chunk rather than per frame: same events, same
+            // order, one round trip instead of N.
+            let events = match session.push(&config, FRAME_MS, &energies).await {
+                Ok(events) => events,
+                Err(error) => {
+                    log::warn!("{LOG_PREFIX} VAD push failed: {error}");
+                    continue;
+                }
+            };
+
+            // `frame` indexes `frames`; slice the audio at the same boundaries
+            // the segmenter reported so an utterance carries exactly the
+            // samples it was measured from.
+            let mut cursor = 0usize;
+            for event in events {
+                match event {
+                    tinyvoice::VadEvent::SpeechStart { frame } => {
+                        let at = frame * FRAME_SAMPLES;
                         log::info!(
-                            "{LOG_PREFIX} speech onset rms={rms:.4} (onset={onset_threshold:.4})"
+                            "{LOG_PREFIX} speech onset rms={:.4} (onset={onset_threshold:.4})",
+                            energies.get(frame).copied().unwrap_or_default()
                         );
                         utterance.clear();
-                        utterance.extend_from_slice(&frame);
+                        cursor = at;
                         notch_status("Listening", 2500); // pill: capturing speech
                     }
-                    Some(VadEvent::SpeechEnd {
-                        emit, voiced_ms, ..
-                    }) => {
+                    tinyvoice::VadEvent::SpeechEnd {
+                        frame,
+                        emit,
+                        voiced_ms,
+                        ..
+                    } => {
+                        let upto = ((frame + 1) * FRAME_SAMPLES).min(frames.len());
+                        if upto > cursor && utterance.len() < MAX_UTTERANCE_SAMPLES {
+                            utterance.extend_from_slice(&frames[cursor..upto]);
+                        }
+                        cursor = upto;
                         let captured = std::mem::take(&mut utterance);
                         log::info!(
                             "{LOG_PREFIX} utterance end voiced_ms={voiced_ms} emit={emit} samples={}",
@@ -215,13 +295,22 @@ pub async fn start_if_enabled(app_config: &Config) {
                             });
                         }
                     }
-                    None => {
-                        if seg.is_speaking() && utterance.len() < MAX_UTTERANCE_SAMPLES {
-                            utterance.extend_from_slice(&frame);
-                        }
-                    }
                 }
             }
+
+            // Whatever is still open after the reported events belongs to the
+            // utterance in progress.
+            if cursor < frames.len()
+                && !frames.is_empty()
+                && utterance.len() < MAX_UTTERANCE_SAMPLES
+                && session.is_speaking(&config).await.unwrap_or(false)
+            {
+                utterance.extend_from_slice(&frames[cursor..]);
+            }
+        }
+
+        if let Err(error) = session.close(&config).await {
+            log::warn!("{LOG_PREFIX} could not close the VAD session: {error}");
         }
         log::info!("{LOG_PREFIX} capture channel closed; processor exiting");
         RUNNING.store(false, Ordering::SeqCst);
