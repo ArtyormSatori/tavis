@@ -349,12 +349,7 @@ fn record_on_thread(
                     .build_input_stream(
                         &stream_config,
                         move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                            let mono = to_mono(data, source_channels);
-                            update_peak_rms(&rms_tracker, &mono);
-                            let gated = gate.lock().process(&mono);
-                            if !gated.is_empty() {
-                                samples_writer.lock().extend_from_slice(&gated);
-                            }
+                            samples_writer.lock().extend_from_slice(data);
                         },
                         |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
                         None,
@@ -368,13 +363,7 @@ fn record_on_thread(
                     .build_input_stream(
                         &stream_config,
                         move |data: &[i16], _: &cpal::InputCallbackInfo| {
-                            let floats = i16_to_f32(data);
-                            let mono = to_mono(&floats, source_channels);
-                            update_peak_rms(&rms_tracker, &mono);
-                            let gated = gate.lock().process(&mono);
-                            if !gated.is_empty() {
-                                samples_writer.lock().extend_from_slice(&gated);
-                            }
+                            samples_writer.lock().extend_from_slice(&i16_to_f32(data));
                         },
                         |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
                         None,
@@ -388,13 +377,7 @@ fn record_on_thread(
                     .build_input_stream(
                         &stream_config,
                         move |data: &[u16], _: &cpal::InputCallbackInfo| {
-                            let floats = u16_to_f32(data);
-                            let mono = to_mono(&floats, source_channels);
-                            update_peak_rms(&rms_tracker, &mono);
-                            let gated = gate.lock().process(&mono);
-                            if !gated.is_empty() {
-                                samples_writer.lock().extend_from_slice(&gated);
-                            }
+                            samples_writer.lock().extend_from_slice(&u16_to_f32(data));
                         },
                         |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
                         None,
@@ -427,12 +410,7 @@ fn record_on_thread(
                             .build_input_stream(
                                 &sc,
                                 move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                                    let mono = to_mono(data, ch);
-                                    update_peak_rms(&rt, &mono);
-                                    let gated = gate.lock().process(&mono);
-                                    if !gated.is_empty() {
-                                        sw.lock().extend_from_slice(&gated);
-                                    }
+                                    sw.lock().extend_from_slice(data);
                                 },
                                 |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
                                 None,
@@ -442,13 +420,7 @@ fn record_on_thread(
                             .build_input_stream(
                                 &sc,
                                 move |data: &[i16], _: &cpal::InputCallbackInfo| {
-                                    let floats = i16_to_f32(data);
-                                    let mono = to_mono(&floats, ch);
-                                    update_peak_rms(&rt, &mono);
-                                    let gated = gate.lock().process(&mono);
-                                    if !gated.is_empty() {
-                                        sw.lock().extend_from_slice(&gated);
-                                    }
+                                    sw.lock().extend_from_slice(&i16_to_f32(data));
                                 },
                                 |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
                                 None,
@@ -458,13 +430,7 @@ fn record_on_thread(
                             .build_input_stream(
                                 &sc,
                                 move |data: &[u16], _: &cpal::InputCallbackInfo| {
-                                    let floats = u16_to_f32(data);
-                                    let mono = to_mono(&floats, ch);
-                                    update_peak_rms(&rt, &mono);
-                                    let gated = gate.lock().process(&mono);
-                                    if !gated.is_empty() {
-                                        sw.lock().extend_from_slice(&gated);
-                                    }
+                                    sw.lock().extend_from_slice(&u16_to_f32(data));
                                 },
                                 |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
                                 None,
