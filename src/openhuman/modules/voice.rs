@@ -265,6 +265,181 @@ pub async fn encode_wav(
     decode_audio(&wav)
 }
 
+/// Tuning for a VAD session, mirroring `tinyvoice::vad::VadConfig`.
+///
+/// Built from `voice_server` config by [`VadConfig::from_server_config`]. The
+/// module has no such constructor on purpose — it does not know what OpenHuman
+/// persists — so the mapping lives here.
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize)]
+pub struct VadConfig {
+    /// Peak-RMS energy above which a frame counts as speech.
+    pub onset_threshold: f32,
+    /// How long energy must stay below `onset_threshold` before the utterance
+    /// closes. Bridges natural mid-sentence pauses.
+    pub hangover_ms: u32,
+    /// Minimum voiced duration for a segment to be emitted.
+    pub min_speech_ms: u32,
+    /// Hard ceiling on a single utterance.
+    pub max_utterance_ms: u32,
+}
+
+impl VadConfig {
+    /// Build VAD tuning from the persisted voice-server config.
+    #[must_use]
+    pub fn from_server_config(c: &crate::openhuman::config::VoiceServerConfig) -> Self {
+        Self {
+            onset_threshold: c.vad_onset_threshold,
+            hangover_ms: c.vad_hangover_ms,
+            min_speech_ms: c.vad_min_speech_ms,
+            // Config stores seconds; the module speaks milliseconds. Clamped to
+            // at least 1ms so a zero or negative setting cannot make every
+            // utterance close on its first frame.
+            max_utterance_ms: (c.vad_max_utterance_secs * 1000.0).round().max(1.0) as u32,
+        }
+    }
+}
+
+/// What the segmenter reported at one frame.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum VadEvent {
+    /// Energy crossed the onset threshold — an utterance has begun.
+    SpeechStart {
+        /// Index of the frame, within the batch that was pushed.
+        frame: usize,
+    },
+    /// An utterance closed.
+    SpeechEnd {
+        /// Index of the frame, within the batch that was pushed.
+        frame: usize,
+        /// Accumulated speech duration, excluding the trailing silence.
+        voiced_ms: u32,
+        /// False when the segment was too short to be worth transcribing.
+        emit: bool,
+        /// True when the close was forced by the utterance ceiling.
+        forced: bool,
+    },
+}
+
+/// A live VAD session held by the module.
+///
+/// Not `Drop`-based: releasing it needs an async bus call, and a `Drop` impl
+/// cannot await. Call [`close`](Self::close) when the capture loop stops. A
+/// leaked session costs one map entry in the module until the process exits,
+/// and the module caps how many can accumulate.
+#[derive(Debug, Clone, Copy)]
+pub struct VadSession {
+    id: u64,
+}
+
+impl VadSession {
+    /// Open a session with the given tuning.
+    ///
+    /// # Errors
+    ///
+    /// [`VoiceCallError`] when the module is unavailable or the config is
+    /// rejected.
+    pub async fn open(config: &Config, vad: VadConfig) -> Result<Self, VoiceCallError> {
+        let json = serde_json::to_string(&vad)
+            .map_err(|e| VoiceCallError::Failed(format!("could not encode VAD config: {e}")))?;
+        let id: u64 = call(config, "VadOpen", (json,)).await?;
+        Ok(Self { id })
+    }
+
+    /// Push a batch of frame energies and collect whatever the segmenter says.
+    ///
+    /// Frame indices in the returned events are relative to `energies`.
+    ///
+    /// # Errors
+    ///
+    /// [`VoiceCallError`] when the module is unavailable, the session is not
+    /// open, or `frame_ms` is zero.
+    pub async fn push(
+        &self,
+        config: &Config,
+        frame_ms: u32,
+        energies: &[f32],
+    ) -> Result<Vec<VadEvent>, VoiceCallError> {
+        let json: String = call(config, "VadPush", (self.id, frame_ms, energies)).await?;
+        serde_json::from_str(&json)
+            .map_err(|e| VoiceCallError::Failed(format!("could not decode VAD events: {e}")))
+    }
+
+    /// Whether the session is currently inside an utterance.
+    ///
+    /// # Errors
+    ///
+    /// [`VoiceCallError`] when the module is unavailable or the session is not
+    /// open.
+    pub async fn is_speaking(&self, config: &Config) -> Result<bool, VoiceCallError> {
+        call(config, "VadIsSpeaking", (self.id,)).await
+    }
+
+    /// Abort any in-flight utterance without emitting an event.
+    ///
+    /// The privacy hook: called when the screen locks or capture is revoked, so
+    /// a partial utterance is dropped rather than completed and transcribed.
+    ///
+    /// # Errors
+    ///
+    /// [`VoiceCallError`] when the module is unavailable or the session is not
+    /// open.
+    pub async fn reset(&self, config: &Config) -> Result<(), VoiceCallError> {
+        call(config, "VadReset", (self.id,)).await
+    }
+
+    /// Release the session. Closing one that is already gone is not an error.
+    ///
+    /// # Errors
+    ///
+    /// [`VoiceCallError`] only when the module itself is unreachable.
+    pub async fn close(&self, config: &Config) -> Result<(), VoiceCallError> {
+        call(config, "VadClose", (self.id,)).await
+    }
+}
+
+/// Downmix and resample a raw capture buffer to 16 kHz mono samples.
+///
+/// The sibling of [`prepare_capture`] for a live loop, which needs samples to
+/// measure and accumulate rather than a finished container.
+///
+/// # Errors
+///
+/// [`VoiceCallError`], including a `Failed` when `samples` is not a whole
+/// number of frames for `channels`.
+pub async fn prepare_frames(
+    config: &Config,
+    samples: &[f32],
+    source_rate: u32,
+    channels: u16,
+) -> Result<Vec<f32>, VoiceCallError> {
+    let encoded: String = call(
+        config,
+        "PrepareFrames",
+        (encode_samples(samples), source_rate, channels),
+    )
+    .await?;
+    decode_samples(&encoded)
+}
+
+/// Root-mean-square energy of each fixed-size frame in a buffer.
+///
+/// # Errors
+///
+/// [`VoiceCallError`] when the module is unavailable or `frame_len` is zero.
+pub async fn frame_energies(
+    config: &Config,
+    samples: &[f32],
+    frame_len: u32,
+) -> Result<Vec<f32>, VoiceCallError> {
+    call(
+        config,
+        "FrameEnergies",
+        (encode_samples(samples), frame_len),
+    )
+    .await
+}
+
 /// Load the voice module if it is not already serving.
 ///
 /// Callers do not have to invoke this — every operation above does it — but a
