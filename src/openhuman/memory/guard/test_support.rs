@@ -22,11 +22,12 @@ use crate::openhuman::memory::api::provider::types::{
 };
 use crate::openhuman::memory::api::provider::{
     AddressBookSeedOutcome, ChunkDetail, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
-    FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
-    MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
-    MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
-    PersonHandle, PersonInteraction, PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
-    RetrievalHit, RetrievalResponse, SourceRetrievalQuery,
+    FacetType, FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments,
+    MemoryEntities, MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople,
+    MemoryPortability, MemoryProfile, MemoryProvider, MemoryRecall, MemoryRetrieval,
+    MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction, PersonRecord,
+    PersonScore, ProfileFacet, RankedPerson, ResolvedPerson, RetrievalHit, RetrievalResponse,
+    SourceRetrievalQuery, UserState,
 };
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
@@ -718,6 +719,72 @@ impl MemoryProvider for RecordingProvider {
     }
     fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
         Some(self)
+    }
+    fn as_profile(&self) -> Option<&dyn MemoryProfile> {
+        Some(self)
+    }
+}
+#[async_trait]
+impl MemoryProfile for RecordingProvider {
+    async fn list_active_facets(&self) -> Result<Vec<ProfileFacet>, MemoryError> {
+        self.record(Call::plain("profile.list_active_facets"));
+        Ok(vec![])
+    }
+    async fn list_all_facets(&self) -> Result<Vec<ProfileFacet>, MemoryError> {
+        self.record(Call::plain("profile.list_all_facets"));
+        Ok(vec![])
+    }
+    async fn get_facet(&self, _key: &str) -> Result<Option<ProfileFacet>, MemoryError> {
+        self.record(Call::plain("profile.get_facet"));
+        Ok(None)
+    }
+    async fn facets_by_type(
+        &self,
+        _facet_type: FacetType,
+    ) -> Result<Vec<ProfileFacet>, MemoryError> {
+        self.record(Call::plain("profile.facets_by_type"));
+        Ok(vec![])
+    }
+    async fn upsert_facet(&self, _facet: &ProfileFacet) -> Result<(), MemoryError> {
+        self.record(Call::plain("profile.upsert_facet"));
+        Ok(())
+    }
+    async fn upsert_provider_facet(
+        &self,
+        _facet_id: &str,
+        _facet_type: FacetType,
+        _key: &str,
+        _value: &str,
+        _confidence: f64,
+        _segment_id: Option<&str>,
+        _observed_at: f64,
+    ) -> Result<(), MemoryError> {
+        self.record(Call::plain("profile.upsert_provider_facet"));
+        Ok(())
+    }
+    async fn set_facet_user_state(
+        &self,
+        _key: &str,
+        _user_state: UserState,
+    ) -> Result<bool, MemoryError> {
+        self.record(Call::plain("profile.set_facet_user_state"));
+        Ok(false)
+    }
+    async fn delete_facet(&self, _key: &str) -> Result<bool, MemoryError> {
+        self.record(Call::plain("profile.delete_facet"));
+        Ok(false)
+    }
+    async fn delete_facet_by_id(&self, _facet_id: &str) -> Result<bool, MemoryError> {
+        self.record(Call::plain("profile.delete_facet_by_id"));
+        Ok(false)
+    }
+    async fn drop_facets_below(&self, _threshold: f64) -> Result<usize, MemoryError> {
+        self.record(Call::plain("profile.drop_facets_below"));
+        Ok(0)
+    }
+    async fn workflow_identity_matches(&self, _pattern: &str, _value: &str) -> bool {
+        self.record(Call::plain("profile.workflow_identity_matches"));
+        false
     }
 }
 
