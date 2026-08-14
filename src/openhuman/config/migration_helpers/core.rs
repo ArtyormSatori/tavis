@@ -1,5 +1,5 @@
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store as memory_store;
+use tinymemory_core::store as memory_store;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use anyhow::{bail, Context, Result};
 use directories::UserDirs;

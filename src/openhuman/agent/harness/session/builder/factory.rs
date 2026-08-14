@@ -15,7 +15,7 @@ use crate::openhuman::agent::host_runtime;
 use crate::openhuman::config::Config;
 use crate::openhuman::inference::provider;
 use crate::openhuman::memory::agent::memory_loader::DefaultMemoryLoader;
-use crate::openhuman::memory::store as memory_store;
+use tinymemory_core::store as memory_store;
 use crate::openhuman::memory::tool_memory::capture::ToolMemoryCaptureHook;
 use crate::openhuman::memory::Memory;
 use crate::openhuman::security::SecurityPolicy;

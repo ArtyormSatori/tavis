@@ -114,5 +114,5 @@ pub use traits::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSumm
 // Types that external tests and consumers historically imported from
 // `memory::*`. The definitions moved to sibling crates during the memory
 // refactor; these aliases keep the public surface stable.
-pub use store::types::NamespaceDocumentInput;
-pub use store::{MemoryClient, UnifiedMemory};
+pub use tinymemory_core::store::types::NamespaceDocumentInput;
+pub use tinymemory_core::store::{MemoryClient, UnifiedMemory};

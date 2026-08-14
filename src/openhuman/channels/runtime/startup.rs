@@ -32,7 +32,7 @@ use crate::openhuman::channels::yuanbao::YuanbaoChannel;
 use crate::openhuman::channels::Channel;
 use crate::openhuman::config::Config;
 use crate::openhuman::inference::provider;
-use crate::openhuman::memory::store as memory_store;
+use tinymemory_core::store as memory_store;
 use crate::openhuman::memory::Memory;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools;
