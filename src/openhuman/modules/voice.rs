@@ -120,6 +120,32 @@ pub enum VoiceIntent {
     Unknown,
 }
 
+impl VoiceIntent {
+    /// A stable, **non-PII** variant name, for logs and metrics.
+    ///
+    /// Never includes the `query` / `app` payloads. This path is fed by an
+    /// always-on microphone, so those fields can hold anything said in the
+    /// room: a log line naming the variant is diagnostics, and one naming the
+    /// query is a recording.
+    #[must_use]
+    pub fn kind(&self) -> &'static str {
+        match self {
+            Self::Play { .. } => "play",
+            Self::Pause => "pause",
+            Self::Resume => "resume",
+            Self::Next => "next",
+            Self::Previous => "previous",
+            Self::OpenApp { .. } => "open_app",
+            Self::SetVolume { .. } => "set_volume",
+            Self::VolumeUp => "volume_up",
+            Self::VolumeDown => "volume_down",
+            Self::Mute => "mute",
+            Self::Unmute => "unmute",
+            Self::Unknown => "unknown",
+        }
+    }
+}
+
 /// Classify a command transcript into a fast-path intent.
 ///
 /// The transcript should already have had its wake word removed by
