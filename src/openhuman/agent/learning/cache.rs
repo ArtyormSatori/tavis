@@ -4,41 +4,59 @@
 //! The stability detector uses this to persist the result of each rebuild cycle.
 //! Prompt sections use [`FacetCache::list_active`] to read the ambient cache.
 
-use crate::openhuman::agent::learning::candidate::FacetClass;
-use tinymemory_core::store::profile::{ProfileFacet, UserState};
-use tinymemory_core::store::ProfileStore;
+use std::sync::Arc;
 
-/// Thin wrapper around the `user_profile` table.
+use crate::openhuman::agent::learning::candidate::FacetClass;
+use crate::openhuman::memory::api::provider::{MemoryProfile, ProfileFacet, UserState};
+use crate::openhuman::memory::guard::MemoryGuard;
+
+/// Thin wrapper around the profile facet store.
 ///
-/// A learning-side newtype over [`ProfileStore`], which owns the SQL. This
-/// type exists because the class↔key vocabulary below (`FacetClass`) is agent
-/// domain knowledge that must not move into the memory family; everything
-/// else forwards straight to the store.
+/// A learning-side newtype over the driver's
+/// [`MemoryProfile`] family. This type exists because the class↔key vocabulary
+/// below (`FacetClass`) is agent domain knowledge that must not move into the
+/// memory contract; everything else forwards straight to the driver.
+///
+/// # Every method is async now, and that removed work rather than adding it
+///
+/// These used to be synchronous calls into an in-process SQLite handle, which
+/// is why callers wrapped them in `spawn_blocking` — see
+/// [`super::profile_md_renderer`]. With the store behind the module there is no
+/// blocking I/O left in this process to move off the executor, so those hops
+/// are gone and the calls are simply awaited.
 pub struct FacetCache {
-    store: ProfileStore,
+    guard: Arc<MemoryGuard>,
 }
 
 impl FacetCache {
-    pub fn new(store: ProfileStore) -> Self {
-        Self { store }
+    #[must_use]
+    pub fn new(guard: Arc<MemoryGuard>) -> Self {
+        Self { guard }
+    }
+
+    /// The driver's profile family, or a caller-facing error.
+    fn profile(&self) -> anyhow::Result<&dyn MemoryProfile> {
+        self.guard
+            .as_profile()
+            .ok_or_else(|| anyhow::anyhow!("memory driver does not support the profile family"))
     }
 
     /// List all facets with `state = 'active'`, ordered by stability descending.
-    pub fn list_active(&self) -> anyhow::Result<Vec<ProfileFacet>> {
-        self.store.list_active()
+    pub async fn list_active(&self) -> anyhow::Result<Vec<ProfileFacet>> {
+        Ok(self.profile()?.list_active_facets().await?)
     }
 
     /// List all facets (all states), ordered by stability descending.
-    pub fn list_all(&self) -> anyhow::Result<Vec<ProfileFacet>> {
-        self.store.list_all()
+    pub async fn list_all(&self) -> anyhow::Result<Vec<ProfileFacet>> {
+        Ok(self.profile()?.list_all_facets().await?)
     }
 
     /// List active facets belonging to a specific class.
     ///
     /// Class is determined by the `key` prefix before the first `/`.
-    pub fn list_by_class(&self, class: FacetClass) -> anyhow::Result<Vec<ProfileFacet>> {
+    pub async fn list_by_class(&self, class: FacetClass) -> anyhow::Result<Vec<ProfileFacet>> {
         let prefix = format!("{}/", class_prefix(class));
-        let all = self.list_active()?;
+        let all = self.list_active().await?;
         Ok(all
             .into_iter()
             .filter(|f| f.key.starts_with(&prefix))
@@ -46,32 +64,35 @@ impl FacetCache {
     }
 
     /// Fetch a single facet by its full key (e.g. `"style/verbosity"`).
-    pub fn get(&self, key: &str) -> anyhow::Result<Option<ProfileFacet>> {
-        self.store.get(key)
+    pub async fn get(&self, key: &str) -> anyhow::Result<Option<ProfileFacet>> {
+        Ok(self.profile()?.get_facet(key).await?)
     }
 
     /// Upsert a fully-formed facet row (rebuild path).
-    pub fn upsert(&self, facet: &ProfileFacet) -> anyhow::Result<()> {
-        self.store.upsert_full(facet)
+    pub async fn upsert(&self, facet: &ProfileFacet) -> anyhow::Result<()> {
+        Ok(self.profile()?.upsert_facet(facet).await?)
     }
 
     /// Override the `user_state` of a facet.
     ///
     /// Returns `Ok(true)` if a row was found and updated.
-    pub fn set_user_state(&self, key: &str, user_state: UserState) -> anyhow::Result<bool> {
-        self.store.set_user_state(key, user_state)
+    pub async fn set_user_state(&self, key: &str, user_state: UserState) -> anyhow::Result<bool> {
+        Ok(self
+            .profile()?
+            .set_facet_user_state(key, user_state)
+            .await?)
     }
 
     /// Delete a facet by key. Returns `true` if a row was removed.
-    pub fn delete(&self, key: &str) -> anyhow::Result<bool> {
-        self.store.delete(key)
+    pub async fn delete(&self, key: &str) -> anyhow::Result<bool> {
+        Ok(self.profile()?.delete_facet(key).await?)
     }
 
     /// Delete all `Dropped`-state facets whose stability is below `threshold`.
     ///
     /// Pinned facets are never deleted. Returns the number of rows removed.
-    pub fn drop_below_threshold(&self, threshold: f64) -> anyhow::Result<usize> {
-        self.store.drop_below_threshold(threshold)
+    pub async fn drop_below_threshold(&self, threshold: f64) -> anyhow::Result<usize> {
+        Ok(self.profile()?.drop_facets_below(threshold).await?)
     }
 }
 
