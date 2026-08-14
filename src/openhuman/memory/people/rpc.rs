@@ -265,7 +265,14 @@ mod tests {
         // The published field set, which is a compatibility surface.
         assert_eq!(arr[0]["person_id"], "id-a");
         assert_eq!(arr[0]["interaction_count"], 10);
-        assert_eq!(arr[0]["components"]["recency"], 0.9);
+        // Compared with tolerance: the contract's score components are `f32`
+        // and JSON numbers are `f64`, so 0.9f32 widens to 0.8999999761581421.
+        // An exact assertion here would pin a widening artefact, not behaviour.
+        let recency = arr[0]["components"]["recency"].as_f64().unwrap();
+        assert!(
+            (recency - 0.9).abs() < 1e-6,
+            "recency component should round-trip: {recency}"
+        );
         assert_eq!(arr[0]["handles"][0]["kind"], "email");
     }
 
@@ -330,6 +337,8 @@ mod tests {
         let outcome = handle_score(&people, "id-a").await.unwrap();
         assert_eq!(outcome.value["person_id"], "id-a");
         assert_eq!(outcome.value["interaction_count"], 7);
+        // 0.5 is exactly representable in both f32 and f64, so this one can be
+        // compared directly.
         assert_eq!(outcome.value["components"]["depth"], 0.5);
     }
 
