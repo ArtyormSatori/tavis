@@ -142,8 +142,8 @@ fn the_registry_entry_matches_the_interface_this_client_calls() {
     // the module's own source. A mismatch is not a compile error — it is a
     // `NameHasNoOwner` at first use, in the field, on whichever platform
     // nobody tested.
-    let record = crate::openhuman::modules::registry::find("tinyvoice")
-        .expect("tinyvoice is registered");
+    let record =
+        crate::openhuman::modules::registry::find("tinyvoice").expect("tinyvoice is registered");
     assert_eq!(record.bus_name, "ai.tinyhumans.tinyvoice.Voice");
     assert_eq!(record.object_path, "/ai/tinyhumans/tinyvoice/Voice");
     assert!(
@@ -175,15 +175,21 @@ async fn the_published_module_answers_through_this_client() {
 
     // The whole client surface, against the artifact the registry pins.
     assert_eq!(
-        super::route(&config, "please pause the music").await.expect("route"),
+        super::route(&config, "please pause the music")
+            .await
+            .expect("route"),
         VoiceIntent::Pause
     );
     assert_eq!(
-        super::route(&config, "set volume to 40").await.expect("route"),
+        super::route(&config, "set volume to 40")
+            .await
+            .expect("route"),
         VoiceIntent::SetVolume { percent: 40 }
     );
     assert_eq!(
-        super::route(&config, "what is the weather").await.expect("route"),
+        super::route(&config, "what is the weather")
+            .await
+            .expect("route"),
         VoiceIntent::Unknown
     );
     assert_eq!(
@@ -198,11 +204,9 @@ async fn the_published_module_answers_through_this_client() {
             .expect("extract"),
         None
     );
-    assert!(
-        super::wake_word_present(&config, "hey tiny", "Hey Tiny")
-            .await
-            .expect("present")
-    );
+    assert!(super::wake_word_present(&config, "hey tiny", "Hey Tiny")
+        .await
+        .expect("present"));
 
     // The mode split is the reason this call takes a mode at all.
     assert!(

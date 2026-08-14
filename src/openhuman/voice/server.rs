@@ -874,17 +874,22 @@ async fn process_recording_bg(
                     // inserts into the user's active text field, so a stray
                     // "Thank you." is visible and undoable, while a filter that
                     // failed closed would swallow real dictation with no trace.
-                    let hallucinated =
-                        match is_hallucinated(&config, text, HallucinationMode::Dictation).await {
-                            Ok(verdict) => verdict,
-                            Err(error) => {
-                                warn!(
-                                    "{LOG_PREFIX} [pipeline={pipeline_id}] stage=gate_hallucination \
+                    let hallucinated = match is_hallucinated(
+                        &config,
+                        text,
+                        HallucinationMode::Dictation,
+                    )
+                    .await
+                    {
+                        Ok(verdict) => verdict,
+                        Err(error) => {
+                            warn!(
+                                "{LOG_PREFIX} [pipeline={pipeline_id}] stage=gate_hallucination \
                                      UNAVAILABLE ({error}); passing text through"
-                                );
-                                false
-                            }
-                        };
+                            );
+                            false
+                        }
+                    };
                     if hallucinated {
                         warn!(
                             "{LOG_PREFIX} [pipeline={pipeline_id}] stage=gate_hallucination DROPPED text='{}'",
