@@ -875,7 +875,7 @@ async fn process_recording_bg(
                     // "Thank you." is visible and undoable, while a filter that
                     // failed closed would swallow real dictation with no trace.
                     let hallucinated = match is_hallucinated(
-                        &config,
+                        config,
                         text,
                         HallucinationMode::Dictation,
                     )
