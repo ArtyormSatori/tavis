@@ -621,7 +621,6 @@ mod tests {
             StoreInitPlan {
                 memory: true,
                 agent_attachments: true,
-                people: true,
                 skills_prune: true,
             },
             "full() must initialize every workspace-bound store"
@@ -636,7 +635,6 @@ mod tests {
             StoreInitPlan {
                 memory: false,
                 agent_attachments: false,
-                people: false,
                 skills_prune: false,
             },
             "none() must leave every workspace-bound store uninitialized"
@@ -724,8 +722,12 @@ mod tests {
             domains: crate::core::runtime::DomainSet::full(),
         };
 
-        let err = match ctx.people() {
-            Ok(_) => panic!("degraded context unexpectedly opened a people store"),
+        // `workspace_dir()` is the gate every workspace-bound store goes
+        // through, so it is asserted directly. This used to go through
+        // `CoreContext::people()`, which was simply the first such store; it
+        // resolves through the memory binding now and no longer exists.
+        let err = match ctx.workspace_dir() {
+            Ok(_) => panic!("degraded context unexpectedly resolved a workspace"),
             Err(err) => err,
         };
         assert!(
