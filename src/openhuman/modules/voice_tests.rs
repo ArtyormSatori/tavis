@@ -161,7 +161,8 @@ fn the_registry_entry_matches_the_interface_this_client_calls() {
 ///
 /// ```sh
 /// GGML_NATIVE=OFF cargo test --lib --features "$(bash scripts/ci/product-features.sh)" \
-///   modules::voice::tests::the_published_module_answers -- --ignored --exact --nocapture
+///   --ignored --exact --nocapture \
+///   openhuman::modules::voice::tests::the_published_module_answers_through_this_client
 /// ```
 ///
 /// It also downloads from the pinned release, so it needs network and is not
