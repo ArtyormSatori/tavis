@@ -577,13 +577,26 @@ async fn build_evm_payment(
     build_evm_payment_with_signer(&secret, &from_address, challenge, req)
 }
 
-/// Core EVM payment construction — separated from wallet derivation for testability.
-pub(crate) fn build_evm_payment_with_signer(
-    secret: &[u8],
+/// The EIP-712 digest to sign, and the fields the payload needs alongside it.
+///
+/// Split out from signing so that production (which signs in the wallet module)
+/// and the tests (which sign locally, to check the construction against a fixed
+/// vector) share one implementation of the part that can be wrong. Only *who
+/// holds the key* differs between them.
+pub(crate) struct EvmPaymentAuthorization {
+    /// The 32-byte EIP-712 digest.
+    pub digest: [u8; 32],
+    /// The EIP-3009 nonce, echoed into the payload.
+    pub nonce: [u8; 32],
+    valid_after_secs: u64,
+    valid_before_secs: u64,
+}
+
+/// Compute the EIP-3009 authorization and its EIP-712 digest.
+pub(crate) fn evm_payment_authorization(
     from_address: &str,
-    challenge: &PaymentRequired,
     req: &PaymentRequirements,
-) -> Result<PaymentPayload, X402Error> {
+) -> Result<EvmPaymentAuthorization, X402Error> {
     use tinywallet::eip712;
 
     let chain_id = req
@@ -642,17 +655,31 @@ pub(crate) fn build_evm_payment_with_signer(
     );
     let digest = eip712::signing_digest(domain_separator, struct_hash);
 
-    // Signed here with `k256`, over the prehashed digest. An EIP-712 signature
-    // is `r ‖ s ‖ v` where `v` is the recovery id offset by 27 — not EIP-155's
-    // chain-mixed `v`, because typed data is not a transaction.
-    let key = k256::ecdsa::SigningKey::from_slice(secret)
-        .map_err(|_| X402Error::Wallet("derived EVM key is unusable".to_string()))?;
-    let (signature, recovery_id) = key
-        .sign_prehash_recoverable(&digest)
-        .map_err(|e| X402Error::Wallet(format!("EVM sign EIP-3009: {e}")))?;
-    let mut sig_bytes = [0u8; 65];
-    sig_bytes[..64].copy_from_slice(&signature.to_bytes());
-    sig_bytes[64] = recovery_id.to_byte() + 27;
+    Ok(EvmPaymentAuthorization {
+        digest,
+        nonce,
+        valid_after_secs: 0,
+        valid_before_secs,
+    })
+}
+
+/// Assemble the payload from an authorization and its signature.
+///
+/// An EIP-712 signature is `r ‖ s ‖ v` where `v` is the recovery id offset by
+/// 27 — not EIP-155's chain-mixed `v`, because typed data is not a transaction.
+pub(crate) fn evm_payment_payload(
+    authorization: &EvmPaymentAuthorization,
+    sig_bytes: [u8; 65],
+    from_address: &str,
+    challenge: &PaymentRequired,
+    req: &PaymentRequirements,
+) -> Result<PaymentPayload, X402Error> {
+    let chain_id = req
+        .evm_chain_id()
+        .ok_or_else(|| X402Error::Protocol(format!("not an EVM network: {}", req.network)))?;
+    let valid_after = authorization.valid_after_secs;
+    let valid_before = authorization.valid_before_secs;
+    let nonce = authorization.nonce;
 
     let sig_hex = format!("0x{}", hex::encode(sig_bytes));
     let nonce_hex = format!("0x{}", hex::encode(nonce));
