@@ -57,7 +57,7 @@ impl Tool for MemoryTreeFetchLeavesTool {
                 MAX_CHUNK_IDS_PER_CALL
             );
         }
-        let hits = backend::fetch_leaves(&cfg, &req.chunk_ids[..take]).await?;
+        let hits = backend::fetch_leaves(&req.chunk_ids[..take]).await?;
         log::debug!(
             "[rpc][memory_tree] fetch_leaves completed hits={}",
             hits.len()

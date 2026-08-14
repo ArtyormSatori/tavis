@@ -57,11 +57,7 @@ impl Tool for MemoryTreeDrillDownTool {
                 "memory_tree_drill_down: max_depth must be >= 1"
             ));
         }
-        let cfg = config_rpc::load_config_with_timeout()
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_tree_drill_down: load config failed: {e}"))?;
         let hits = backend::drill_down(
-            &cfg,
             &req.node_id,
             req.max_depth.unwrap_or(1),
             req.query.as_deref(),

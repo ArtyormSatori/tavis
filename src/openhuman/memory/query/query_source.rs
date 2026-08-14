@@ -4,7 +4,7 @@ use crate::openhuman::memory::tree::retrieval::rpc::QuerySourceRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
-use tinymemory_core::store::chunks::types::SourceKind;
+use crate::openhuman::memory::api::chunks::SourceKind;
 
 pub struct MemoryTreeQuerySourceTool;
 
@@ -67,13 +67,9 @@ impl Tool for MemoryTreeQuerySourceTool {
             ),
             None => None,
         };
-        let cfg = config_rpc::load_config_with_timeout()
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_tree_query_source: load config failed: {e}"))?;
         let resp = match req.source_id.as_deref() {
             Some(source_id) => {
                 backend::query_source_scope(
-                    &cfg,
                     Some(source_id),
                     req.time_window_days,
                     req.query.as_deref(),
@@ -83,7 +79,6 @@ impl Tool for MemoryTreeQuerySourceTool {
             }
             None => {
                 backend::query_source_kind(
-                    &cfg,
                     source_kind,
                     req.time_window_days,
                     req.query.as_deref(),
