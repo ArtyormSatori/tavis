@@ -29,6 +29,45 @@ it is finishing a cutover that stopped half way.
   binding and the module client already compile against it rather than against
   `tinymemory-api`.
 
+> ## ⚠ Scope correction (2026-08-15): §2's numbers understate the surface by ~3×
+>
+> The counts below were derived by grepping for explicit `tinymemory_core::`
+> imports. That misses most of the direct-engine access, because
+> `memory/mod.rs` **re-exports the engine's modules under host-local paths**:
+>
+> ```rust
+> pub use tinymemory_core::{ chat, global, queue, search, source_scope, store,
+>                            tinycortex, tree_policy, tree_source, util, … };
+> ```
+>
+> So a call site written `crate::openhuman::memory::store::chunks::store::list_chunks(…)`
+> is engine access that looks exactly like host-local code, and never appears in
+> a `tinymemory_core` grep.
+>
+> Measured properly: **100 files** reach the engine this way — 82 production,
+> and **52 of those outside `memory/`**. The heaviest users are
+> `store::chunks` (50), `store::create_memory` (31), `store::profile` (26),
+> `tree::tree_runtime` (22) and `tree::health` (20), concentrated in the agent
+> harness (`archivist`, `learning`, `session`) and `memory/read_rpc/`.
+>
+> `memory/read_rpc/` is the sharpest example: four files serving a live RPC
+> surface straight off the memory database, one of them (`admin.rs`) opening a
+> raw `rusqlite::Connection` on the DB path. None of them names
+> `tinymemory_core`.
+>
+> **What this changes.** Stages 2–3 are roughly three times the work the plan
+> assumed, and much of it is not "swap a call for a provider method" — whole
+> subsystems (`create_memory`, `profile`, `tree_runtime`, `health`) have no
+> contract representation and would each need a design decision like the ones
+> in §1d. The staging and sequencing still hold; the size estimate does not.
+>
+> **The facade is also the thing to delete last.** While
+> `pub use tinymemory_core::{…}` stands, every new call site can reach the
+> engine without looking like it does. Removing those re-exports first — and
+> letting the compiler enumerate the breakage — is a better next move than
+> continuing to convert call sites one at a time from a list that was never
+> complete.
+
 ## 2. What actually blocks dropping the crates
 
 **Roughly half the host's memory surface never went through `MemoryProvider`.**
