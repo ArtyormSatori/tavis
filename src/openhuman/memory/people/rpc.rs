@@ -159,7 +159,8 @@ mod tests {
     use super::*;
     use crate::openhuman::memory::api::error::MemoryError;
     use crate::openhuman::memory::api::provider::{
-        AddressBookSeedOutcome, PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
+        AddressBookSeedOutcome, PersonInteraction, PersonRecord, PersonScore, RankedPerson,
+        ResolvedPerson,
     };
     use async_trait::async_trait;
 
