@@ -1101,11 +1101,11 @@ pub async fn set_enabled_rpc(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::openhuman::memory::queue as jobs;
     use chrono::Utc;
     use serde_json::json;
     use tempfile::TempDir;
     use tinycortex::memory::ingest::canonicalize::document::DocumentInput;
+    use tinymemory_core::queue as jobs;
     use tinymemory_core::store::chunks::types::SourceKind;
 
     fn test_config() -> (TempDir, Config) {
