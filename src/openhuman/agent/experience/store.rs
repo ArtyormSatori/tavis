@@ -1,7 +1,7 @@
 use crate::openhuman::agent::experience::types::{
     stable_experience_id_for_profile, AgentExperience, ExperienceHit,
 };
-use crate::openhuman::memory::store::safety::sanitize_text;
+use tinymemory_core::store::safety::sanitize_text;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use base64::Engine as _;
 use serde::{Deserialize, Serialize};
@@ -528,7 +528,7 @@ mod tests {
     #[tokio::test]
     async fn experience_survives_content_sanitizer_with_luhn_valid_timestamp() {
         use crate::openhuman::inference::embeddings::NoopEmbedding;
-        use crate::openhuman::memory::store::UnifiedMemory;
+        use tinymemory_core::store::UnifiedMemory;
         use crate::openhuman::memory::Memory;
 
         let tmp = tempfile::TempDir::new().unwrap();
@@ -571,7 +571,7 @@ mod tests {
     #[tokio::test]
     async fn secrets_in_free_text_are_redacted_before_storage() {
         use crate::openhuman::inference::embeddings::NoopEmbedding;
-        use crate::openhuman::memory::store::UnifiedMemory;
+        use tinymemory_core::store::UnifiedMemory;
         use crate::openhuman::memory::Memory;
 
         let tmp = tempfile::TempDir::new().unwrap();

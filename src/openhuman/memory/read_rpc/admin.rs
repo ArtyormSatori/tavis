@@ -2,10 +2,10 @@ use anyhow::{Context, Result};
 use rusqlite::params;
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::chunks::store::{
+use tinymemory_core::store::chunks::store::{
     delete_chunks_by_source, delete_orphaned_source_tree, with_connection,
 };
-use crate::openhuman::memory::store::chunks::types::SourceKind;
+use tinymemory_core::store::chunks::types::SourceKind;
 use crate::rpc::RpcOutcome;
 
 use super::types::{

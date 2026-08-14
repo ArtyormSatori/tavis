@@ -1,4 +1,4 @@
-use crate::openhuman::memory::store::safety;
+use tinymemory_core::store::safety;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
@@ -136,7 +136,7 @@ impl Tool for MemoryStoreTool {
 mod tests {
     use super::*;
     use crate::openhuman::inference::embeddings::NoopEmbedding;
-    use crate::openhuman::memory::store::UnifiedMemory;
+    use tinymemory_core::store::UnifiedMemory;
     use crate::openhuman::security::{AutonomyLevel, SecurityPolicy};
     use tempfile::TempDir;
 

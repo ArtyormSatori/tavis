@@ -100,7 +100,7 @@ pub fn build_runtime_tools(config: &Config) -> Result<Vec<Box<dyn Tool>>, String
     );
     trace!("[runtime_node::ops] build_runtime_tools: create_memory_with_local_ai");
     let memory: Arc<dyn Memory> = Arc::from(
-        crate::openhuman::memory::store::create_memory_with_local_ai(
+        tinymemory_core::store::create_memory_with_local_ai(
             &config.memory,
             local_embedding.as_deref(),
             &embedding_api_key,

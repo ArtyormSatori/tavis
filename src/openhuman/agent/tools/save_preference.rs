@@ -23,7 +23,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde_json::json;
 
-use crate::openhuman::memory::store::safety;
+use tinymemory_core::store::safety;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;

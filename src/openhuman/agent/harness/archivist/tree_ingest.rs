@@ -5,7 +5,7 @@ use super::helpers::strip_tool_calls_from_response;
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::ingest_pipeline;
-use crate::openhuman::memory::store::fts5;
+use tinymemory_core::store::fts5;
 #[cfg(test)]
 use std::sync::Arc;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
@@ -35,7 +35,7 @@ impl ArchivistHook {
     pub(super) async fn pipe_segment_to_tree(
         &self,
         config: &Config,
-        segment: &crate::openhuman::memory::store::segments::ConversationSegment,
+        segment: &tinymemory_core::store::segments::ConversationSegment,
         session_id: &str,
         entries: &[&fts5::EpisodicEntry],
     ) {

@@ -39,7 +39,7 @@ use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::agent::learning::candidate::{
     self, CueFamily, FacetClass, LearningCandidate,
 };
-use crate::openhuman::memory::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
+use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
 
 // ── Thresholds ────────────────────────────────────────────────────────────────
 
@@ -578,7 +578,7 @@ mod tests {
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
-    use crate::openhuman::memory::store::profile::PROFILE_INIT_SQL;
+    use tinymemory_core::store::profile::PROFILE_INIT_SQL;
     use parking_lot::Mutex;
     use rusqlite::Connection;
     use std::sync::Arc;
@@ -586,7 +586,7 @@ mod tests {
     fn make_detector() -> StabilityDetector {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(crate::openhuman::memory::store::ProfileStore::for_tests(
+        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
             Arc::new(Mutex::new(conn)),
         ));
         // Use a private buffer so tests don't interfere with the global singleton.
@@ -814,7 +814,7 @@ mod tests {
         let now = 1_000_000.0;
 
         // Manually insert a Pinned row.
-        use crate::openhuman::memory::store::profile::{FacetState, FacetType, UserState};
+        use tinymemory_core::store::profile::{FacetState, FacetType, UserState};
         let pinned = ProfileFacet {
             facet_id: "f-pinned".into(),
             facet_type: FacetType::Preference,

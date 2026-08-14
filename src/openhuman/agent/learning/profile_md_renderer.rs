@@ -43,7 +43,7 @@ use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::integrations::composio::providers::profile_md::replace_managed_block;
-use crate::openhuman::memory::store::profile::UserState;
+use tinymemory_core::store::profile::UserState;
 use tinybus::EventHandler;
 use tinybus::SubscriptionHandle;
 
@@ -218,7 +218,7 @@ impl EventHandler<DomainEvent> for RendererSubscriber {
 mod tests {
     use super::*;
     use crate::openhuman::integrations::composio::providers::profile_md::{block_end, block_start};
-    use crate::openhuman::memory::store::profile::{
+    use tinymemory_core::store::profile::{
         FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
     };
     use parking_lot::Mutex;
@@ -228,7 +228,7 @@ mod tests {
 
     fn make_cache(conn: Arc<Mutex<Connection>>) -> Arc<FacetCache> {
         Arc::new(FacetCache::new(
-            crate::openhuman::memory::store::ProfileStore::for_tests(conn),
+            tinymemory_core::store::ProfileStore::for_tests(conn),
         ))
     }
 

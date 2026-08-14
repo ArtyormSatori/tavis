@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use rusqlite::params;
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::chunks::store::with_connection;
+use tinymemory_core::store::chunks::store::with_connection;
 use crate::openhuman::memory::tree::score::store as score_store;
 use crate::rpc::RpcOutcome;
 

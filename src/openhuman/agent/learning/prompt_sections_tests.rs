@@ -8,14 +8,14 @@ use std::sync::Arc;
 
 use super::load_learned_from_cache;
 use crate::openhuman::agent::learning::cache::FacetCache;
-use crate::openhuman::memory::store::profile::{
+use tinymemory_core::store::profile::{
     FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
 };
 
 fn open_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();
     conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-    FacetCache::new(crate::openhuman::memory::store::ProfileStore::for_tests(
+    FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
         Arc::new(Mutex::new(conn)),
     ))
 }

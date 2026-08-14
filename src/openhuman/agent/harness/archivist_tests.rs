@@ -1,7 +1,7 @@
 use super::*;
 use crate::openhuman::agent::hooks::{ToolCallRecord, TurnContext};
 use crate::openhuman::memory::chat::ChatPrompt;
-use crate::openhuman::memory::store::{events as ev, fts5, segments as seg};
+use tinymemory_core::store::{events as ev, fts5, segments as seg};
 use std::sync::OnceLock;
 
 static TREE_INGEST_TEST_LOCK: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
@@ -588,7 +588,7 @@ async fn phase1_flush_open_segment_finalizes_trailing_segment() {
 //   g) flush_open_segment also triggers tree ingest.
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::chunks::store::{count_chunks, list_chunks, ListChunksQuery};
+use tinymemory_core::store::chunks::store::{count_chunks, list_chunks, ListChunksQuery};
 use tempfile::TempDir;
 
 /// Build a Config that points at a temp workspace, suitable for tree-ingest tests.
@@ -803,7 +803,7 @@ async fn phase2_provenance_stamped_on_leaf_and_source_id_is_constant_inner() {
         .iter()
         .find(|s| {
             s.session_id == session
-                && s.status != crate::openhuman::memory::store::segments::SegmentStatus::Open
+                && s.status != tinymemory_core::store::segments::SegmentStatus::Open
         })
         .expect("Expected a closed segment after flush");
 

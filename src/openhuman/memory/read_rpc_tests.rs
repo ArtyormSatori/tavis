@@ -3,8 +3,8 @@ use crate::openhuman::inference::embeddings::NoopEmbedding;
 use crate::openhuman::integrations::composio::providers::sync_state::KV_NAMESPACE;
 use crate::openhuman::memory::ingest_pipeline::ingest_chat;
 use crate::openhuman::memory::queue::drain_until_idle;
-use crate::openhuman::memory::store::content::raw::{write_raw_items, RawItem, RawKind};
-use crate::openhuman::memory::store::namespace_store::UnifiedMemory;
+use tinymemory_core::store::content::raw::{write_raw_items, RawItem, RawKind};
+use tinymemory_core::store::namespace_store::UnifiedMemory;
 use chrono::{TimeZone, Utc};
 use rusqlite::params;
 use std::sync::Arc;
@@ -1001,8 +1001,8 @@ async fn vault_health_check_reports_writable_and_obsidian_registered_when_ready(
 /// seal jobs. This pins that a wipe leaves the gate empty so re-sync works.
 #[tokio::test]
 async fn wipe_all_clears_ingest_gate() {
-    use crate::openhuman::memory::store::chunks::store as chunk_store;
-    use crate::openhuman::memory::store::chunks::types::SourceKind;
+    use tinymemory_core::store::chunks::store as chunk_store;
+    use tinymemory_core::store::chunks::types::SourceKind;
 
     let (_tmp, cfg) = test_config();
     let gate_key = "notion:conn-1:page-abc@1700000000000";

@@ -100,7 +100,7 @@ async fn open_store_in_subdir(
     memory_subdir: &str,
 ) -> Result<AgentExperienceStore, String> {
     if memory_subdir != "memory" {
-        let memory = crate::openhuman::memory::store::UnifiedMemory::new_with_memory_dir(
+        let memory = tinymemory_core::store::UnifiedMemory::new_with_memory_dir(
             &config.workspace_dir,
             memory_subdir,
             // Config-scoped so the experience store's managed embedder reads the

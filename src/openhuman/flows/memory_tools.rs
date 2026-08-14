@@ -474,7 +474,7 @@ impl Tool for FlowMemoryRememberTool {
             return Ok(ToolResult::error("key cannot be empty".to_string()));
         }
 
-        if crate::openhuman::memory::store::safety::has_likely_secret(content) {
+        if tinymemory_core::store::safety::has_likely_secret(content) {
             log::warn!(
                 "[flows:memory:safety] flow_memory_remember rejected secret-like content flow_id_chars={} key_chars={} content_chars={}",
                 flow_id.chars().count(),
@@ -518,7 +518,7 @@ impl Tool for FlowMemoryRememberTool {
 mod tests {
     use super::*;
     use crate::openhuman::inference::embeddings::NoopEmbedding;
-    use crate::openhuman::memory::store::UnifiedMemory;
+    use tinymemory_core::store::UnifiedMemory;
     use crate::openhuman::security::AutonomyLevel;
     use tempfile::TempDir;
 

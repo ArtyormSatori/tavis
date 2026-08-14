@@ -5,8 +5,8 @@
 //! Prompt sections use [`FacetCache::list_active`] to read the ambient cache.
 
 use crate::openhuman::agent::learning::candidate::FacetClass;
-use crate::openhuman::memory::store::profile::{ProfileFacet, UserState};
-use crate::openhuman::memory::store::ProfileStore;
+use tinymemory_core::store::profile::{ProfileFacet, UserState};
+use tinymemory_core::store::ProfileStore;
 
 /// Thin wrapper around the `user_profile` table.
 ///
@@ -112,7 +112,7 @@ pub fn class_prefix(class: FacetClass) -> &'static str {
 
 // ── Facet state enum re-export (convenience for callers of this module) ───────
 
-pub use crate::openhuman::memory::store::profile::{
+pub use tinymemory_core::store::profile::{
     FacetState as CacheFacetState, UserState as CacheUserState,
 };
 

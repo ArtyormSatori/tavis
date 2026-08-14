@@ -450,7 +450,7 @@ impl MemoryProvider for OpenHumanMemory {
         // up front rather than spend that approval round-trip on a write
         // that was always going to be rejected (review fix — see #5227).
         let content = value_to_content(&value);
-        if crate::openhuman::memory::store::safety::has_likely_secret(&content) {
+        if tinymemory_core::store::safety::has_likely_secret(&content) {
             tracing::warn!(
                 target: "flows",
                 key_chars = key.chars().count(),

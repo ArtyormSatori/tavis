@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::chunks::store as memory_tree_store;
-use crate::openhuman::memory::store::chunks::types::SourceKind;
+use tinymemory_core::store::chunks::store as memory_tree_store;
+use tinymemory_core::store::chunks::types::SourceKind;
 use crate::openhuman::memory::MemoryClient;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

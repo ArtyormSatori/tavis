@@ -49,11 +49,11 @@ use crate::openhuman::memory::ops::{
     GraphUpsertParams, KvGetDeleteParams, KvSetParams, NamespaceOnlyParams, PutDocParams,
 };
 use crate::openhuman::memory::rpc_models::QueryNamespaceRequest;
-use crate::openhuman::memory::store::chunks;
-use crate::openhuman::memory::store::chunks::types::{Chunk, Metadata, SourceKind, SourceRef};
-use crate::openhuman::memory::store::namespace_store::{events, fts5, profile, segments};
-use crate::openhuman::memory::store::trees;
-use crate::openhuman::memory::store::trees::types::{SummaryNode, Tree, TreeKind, TreeStatus};
+use tinymemory_core::store::chunks;
+use tinymemory_core::store::chunks::types::{Chunk, Metadata, SourceKind, SourceRef};
+use tinymemory_core::store::namespace_store::{events, fts5, profile, segments};
+use tinymemory_core::store::trees;
+use tinymemory_core::store::trees::types::{SummaryNode, Tree, TreeKind, TreeStatus};
 
 // ── Fixture identity ─────────────────────────────────────────────────────────
 //
@@ -413,7 +413,7 @@ pub async fn init_fresh_schema(workspace: &Path) -> Result<()> {
     std::fs::create_dir_all(workspace).context("[golden] create fresh workspace dir")?;
 
     // Host unified tier.
-    let memory = crate::openhuman::memory::store::UnifiedMemory::new(
+    let memory = tinymemory_core::store::UnifiedMemory::new(
         workspace,
         std::sync::Arc::new(tinymemory_api::host::NoopEmbedding),
         None,

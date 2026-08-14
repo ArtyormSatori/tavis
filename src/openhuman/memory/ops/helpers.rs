@@ -9,8 +9,8 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::GraphRelationRecord;
-use crate::openhuman::memory::store::{
+use tinymemory_core::store::GraphRelationRecord;
+use tinymemory_core::store::{
     MemoryClient, MemoryClientRef, MemoryItemKind, NamespaceMemoryHit,
 };
 use crate::openhuman::memory::{
@@ -230,7 +230,7 @@ pub(crate) fn format_llm_context_message(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::openhuman::memory::store::RetrievalScoreBreakdown;
+    use tinymemory_core::store::RetrievalScoreBreakdown;
 
     fn sample_hit(kind: MemoryItemKind) -> NamespaceMemoryHit {
         NamespaceMemoryHit {

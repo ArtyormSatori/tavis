@@ -7,7 +7,7 @@ use super::super::{traits, Channel};
 use super::common::{HistoryCaptureModel, NoopMemory, RecordingChannel};
 use crate::openhuman::inference::embeddings::NoopEmbedding;
 use crate::openhuman::inference::provider;
-use crate::openhuman::memory::store::UnifiedMemory;
+use tinymemory_core::store::UnifiedMemory;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

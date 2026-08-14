@@ -24,7 +24,7 @@ use crate::openhuman::flows::types::{
 };
 use crate::openhuman::flows::{flow_namespace, Flow, FlowRun};
 use crate::openhuman::memory::api::provider::MemoryProvider;
-use crate::openhuman::memory::store::MemoryClientRef;
+use tinymemory_core::store::MemoryClientRef;
 use crate::openhuman::security::approval::{
     ApprovalChatContext, FlowRunContext, APPROVAL_CHAT_CONTEXT, APPROVAL_COPILOT_STREAM_CONTEXT,
     APPROVAL_FLOW_RUN_CONTEXT,

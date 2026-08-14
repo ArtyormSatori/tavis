@@ -348,7 +348,7 @@ impl GuardPolicy {
                 Cow::Borrowed(content)
             }
             DriverClass::External => {
-                Cow::Owned(crate::openhuman::memory::store::safety::sanitize_text(content).value)
+                Cow::Owned(tinymemory_core::store::safety::sanitize_text(content).value)
             }
         }
     }
@@ -360,7 +360,7 @@ impl GuardPolicy {
         match self.class {
             DriverClass::Embedded | DriverClass::Module | DriverClass::Null => value,
             DriverClass::External => {
-                crate::openhuman::memory::store::safety::sanitize_json(&value).value
+                tinymemory_core::store::safety::sanitize_json(&value).value
             }
         }
     }

@@ -248,7 +248,7 @@ mod tests {
         LOCK.get_or_init(|| std::sync::Mutex::new(()))
     }
 
-    fn ensure_memory_client() -> crate::openhuman::memory::store::MemoryClientRef {
+    fn ensure_memory_client() -> tinymemory_core::store::MemoryClientRef {
         crate::openhuman::memory::ops::ensure_shared_memory_client();
         crate::openhuman::memory::global::client().expect("memory client")
     }

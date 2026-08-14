@@ -1,9 +1,9 @@
 //! Summarization and rolling recap logic for `ArchivistHook`.
 
 use super::types::ArchivistHook;
-use crate::openhuman::memory::store::fts5::{self, EpisodicEntry};
-use crate::openhuman::memory::store::segments::{self, ConversationSegment};
-use crate::openhuman::memory::store::trees::types::TreeKind;
+use tinymemory_core::store::fts5::{self, EpisodicEntry};
+use tinymemory_core::store::segments::{self, ConversationSegment};
+use tinymemory_core::store::trees::types::TreeKind;
 use crate::openhuman::memory::tree::summarise::{summarise, SummaryContext, SummaryInput};
 use parking_lot::Mutex;
 use rusqlite::Connection;
@@ -158,7 +158,7 @@ impl ArchivistHook {
             .iter()
             .filter(|e| !e.content.trim().is_empty())
             .map(|e| {
-                use crate::openhuman::memory::store::chunks::types::approx_token_count;
+                use tinymemory_core::store::chunks::types::approx_token_count;
                 let content = e.content.clone();
                 let token_count = approx_token_count(&content);
                 let ts = chrono::DateTime::from_timestamp(e.timestamp as i64, 0)
@@ -281,7 +281,7 @@ impl ArchivistHook {
         let conn = self.conn.as_ref()?;
 
         // Find the currently-open segment for this session.
-        let open_segment = match crate::openhuman::memory::store::segments::open_segment_for_session(
+        let open_segment = match tinymemory_core::store::segments::open_segment_for_session(
             conn, session_id,
         ) {
             Ok(Some(seg)) => seg,
@@ -368,7 +368,7 @@ impl ArchivistHook {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::openhuman::memory::store::segments::SegmentStatus;
+    use tinymemory_core::store::segments::SegmentStatus;
 
     fn segment() -> ConversationSegment {
         ConversationSegment {

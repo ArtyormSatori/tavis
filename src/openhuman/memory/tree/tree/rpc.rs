@@ -16,8 +16,8 @@ use crate::openhuman::memory::ingest_pipeline::{
     ingest_chat as do_ingest_chat, ingest_document as do_ingest_document,
     ingest_email as do_ingest_email, IngestResult,
 };
-use crate::openhuman::memory::store::chunks::store::{self as chunk_store, ListChunksQuery};
-use crate::openhuman::memory::store::chunks::types::{Chunk, SourceKind};
+use tinymemory_core::store::chunks::store::{self as chunk_store, ListChunksQuery};
+use tinymemory_core::store::chunks::types::{Chunk, SourceKind};
 use crate::rpc::RpcOutcome;
 use tinycortex::memory::ingest::canonicalize::{
     chat::ChatBatch, document::DocumentInput, email::EmailThread,
@@ -540,7 +540,7 @@ pub async fn pipeline_status_rpc(
                 );
                 None
             });
-            let coverage = crate::openhuman::memory::store::chunks::store::extraction_coverage(&cfg)
+            let coverage = tinymemory_core::store::chunks::store::extraction_coverage(&cfg)
                 .map_err(|e| {
                     log::warn!(
                         "[memory-tree][rpc] pipeline_status: extraction_coverage read failed: {e:#}"
@@ -1103,7 +1103,7 @@ pub async fn set_enabled_rpc(
 mod tests {
     use super::*;
     use crate::openhuman::memory::queue as jobs;
-    use crate::openhuman::memory::store::chunks::types::SourceKind;
+    use tinymemory_core::store::chunks::types::SourceKind;
     use chrono::Utc;
     use serde_json::json;
     use tempfile::TempDir;

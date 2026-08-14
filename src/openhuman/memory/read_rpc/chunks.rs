@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::chunks::store::{self as chunk_store, with_connection};
-use crate::openhuman::memory::store::content::read as content_read;
+use tinymemory_core::store::chunks::store::{self as chunk_store, with_connection};
+use tinymemory_core::store::content::read as content_read;
 use crate::openhuman::memory::tree::retrieval::types::NodeKind;
 use crate::rpc::RpcOutcome;
 

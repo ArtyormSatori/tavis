@@ -350,7 +350,7 @@ fn make_agent(visible_tool_names: Option<HashSet<String>>) -> Agent {
         ..crate::openhuman::config::MemoryConfig::default()
     };
     let mem: Arc<dyn Memory> = Arc::from(
-        crate::openhuman::memory::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
+        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
     );
 
     let mut builder = Agent::builder()
@@ -408,7 +408,7 @@ fn make_agent_with_builder_and_dispatcher(
         ..crate::openhuman::config::MemoryConfig::default()
     };
     let mem: Arc<dyn Memory> = Arc::from(
-        crate::openhuman::memory::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
+        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
     );
 
     Agent::builder()
@@ -969,7 +969,7 @@ async fn turn_triggers_configured_memory_agent_before_parent_prompt() {
         ..crate::openhuman::config::MemoryConfig::default()
     };
     let mem: Arc<dyn Memory> = Arc::from(
-        crate::openhuman::memory::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
+        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
     );
 
     let mut agent = Agent::builder()
@@ -2110,7 +2110,7 @@ fn make_agent_with_memory(
 
 fn make_real_memory(workspace: &std::path::Path) -> Arc<dyn Memory> {
     use crate::openhuman::inference::embeddings::NoopEmbedding;
-    use crate::openhuman::memory::store::UnifiedMemory;
+    use tinymemory_core::store::UnifiedMemory;
     Arc::new(UnifiedMemory::new(workspace, Arc::new(NoopEmbedding), None).unwrap())
 }
 

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::openhuman::memory::api::provider::MemoryProvider;
 use crate::openhuman::memory::api::types::NamespaceDocumentInput;
-use crate::openhuman::memory::store::NamespaceRetrievalContext;
+use tinymemory_core::store::NamespaceRetrievalContext;
 use crate::openhuman::memory::{
     ApiEnvelope, DeleteDocumentRequest, DeleteDocumentResponse, EmptyRequest, ListDocumentsRequest,
     ListDocumentsResponse, ListNamespacesResponse, MemoryIngestionConfig, MemoryIngestionResult,

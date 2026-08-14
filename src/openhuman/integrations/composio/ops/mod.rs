@@ -82,7 +82,7 @@ pub(crate) use super::connected_integrations::sync_cache_with_connections;
 #[cfg(test)]
 pub(crate) use crate::openhuman::config::Config;
 #[cfg(test)]
-pub(crate) use crate::openhuman::memory::store::MemoryClient;
+pub(crate) use tinymemory_core::store::MemoryClient;
 #[cfg(test)]
 pub(crate) use crate::openhuman::memory::sync::composio::providers::sync_state::SyncState;
 #[cfg(test)]

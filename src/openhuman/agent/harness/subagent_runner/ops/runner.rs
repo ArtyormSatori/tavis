@@ -1617,7 +1617,7 @@ mod fast_path_tests {
         apply_max_result_chars, format_deterministic_memory_hits, parse_memory_fast_path_enabled,
         MEMORY_FAST_PATH_LIMIT,
     };
-    use crate::openhuman::memory::store::trees::types::TreeKind;
+    use tinymemory_core::store::trees::types::TreeKind;
     use crate::openhuman::memory::tree::retrieval::types::{NodeKind, QueryResponse, RetrievalHit};
     use chrono::Utc;
 

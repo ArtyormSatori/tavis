@@ -8,7 +8,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::store::chunks::types::SourceKind;
+use tinymemory_core::store::chunks::types::SourceKind;
 use crate::openhuman::memory::tree::retrieval::{
     cover::cover_window,
     drill_down::drill_down,
@@ -297,9 +297,9 @@ mod tests {
     //! initialises the schema idempotently on first access, so read-only
     //! calls return empty responses rather than erroring.
     use super::*;
-    use crate::openhuman::memory::store::chunks::store::upsert_chunks;
-    use crate::openhuman::memory::store::chunks::types::{chunk_id, Chunk, Metadata, SourceRef};
-    use crate::openhuman::memory::store::content as content_store;
+    use tinymemory_core::store::chunks::store::upsert_chunks;
+    use tinymemory_core::store::chunks::types::{chunk_id, Chunk, Metadata, SourceRef};
+    use tinymemory_core::store::content as content_store;
     use chrono::{TimeZone, Utc};
     use tempfile::TempDir;
 
@@ -308,9 +308,9 @@ mod tests {
         std::fs::create_dir_all(&content_root).expect("create content_root for test");
         let staged = content_store::stage_chunks(&content_root, chunks)
             .expect("stage_chunks for test chunks");
-        crate::openhuman::memory::store::chunks::store::with_connection(cfg, |conn| {
+        tinymemory_core::store::chunks::store::with_connection(cfg, |conn| {
             let tx = conn.unchecked_transaction()?;
-            crate::openhuman::memory::store::chunks::store::upsert_staged_chunks_tx(&tx, &staged)?;
+            tinymemory_core::store::chunks::store::upsert_staged_chunks_tx(&tx, &staged)?;
             tx.commit()?;
             Ok(())
         })
