@@ -894,6 +894,33 @@ impl MemoryRetrieval for ModuleMemoryProvider {
     ) -> Result<RetrievalResponse, MemoryError> {
         module_call!(self, "cover_window", "CoverWindow", (window, scope))
     }
+    async fn retrieve_source(
+        &self,
+        query: &SourceRetrievalQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        module_call!(self, "retrieve_source", "RetrieveSource", (query, scope))
+    }
+    async fn retrieve_children(
+        &self,
+        node_id: &str,
+        max_depth: u32,
+        query: Option<&str>,
+        limit: Option<usize>,
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
+        module_call!(
+            self,
+            "retrieve_children",
+            "RetrieveChildren",
+            (node_id, max_depth, query, limit)
+        )
+    }
+    async fn retrieve_leaves(
+        &self,
+        chunk_ids: &[String],
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
+        module_call!(self, "retrieve_leaves", "RetrieveLeaves", (chunk_ids,))
+    }
     async fn search_entities(
         &self,
         query: &str,
