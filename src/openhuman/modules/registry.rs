@@ -106,6 +106,15 @@ const TINYDOCS: ModuleRecord = ModuleRecord {
 /// **The signing key is never sent to this module.** It returns the bytes that
 /// need signing and reassembles once this process has signed them — see
 /// [`super::wallet`]. Nothing in its interface accepts key material.
+///
+/// v0.2.3 changes no behaviour and no method: it is the same module rebuilt
+/// against a bus that can attest it. Attestation used to be recorded only from
+/// a `modules.toml` beside the artifact, and a release download extracts into a
+/// temporary directory that has none — so this module, which ships exactly that
+/// way, was never an attested recipient and could not have been sent a secret
+/// even if its interface had one day accepted one. The digest below is now
+/// carried into an `Attestation` instead of being verified and discarded
+/// (tinybus#15), which is the prerequisite for that interface change.
 const TINYWALLET: ModuleRecord = ModuleRecord {
     id: "tinywallet",
     description: "Transaction building and assembly for Bitcoin, EVM, Solana and Tron",
