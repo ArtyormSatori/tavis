@@ -7,7 +7,9 @@
 use std::sync::Arc;
 
 use crate::openhuman::agent::learning::candidate::FacetClass;
-use crate::openhuman::memory::api::provider::{MemoryProfile, ProfileFacet, UserState};
+use crate::openhuman::memory::api::provider::{
+    MemoryProfile, MemoryProvider, ProfileFacet, UserState,
+};
 use crate::openhuman::memory::guard::MemoryGuard;
 
 /// Thin wrapper around the profile facet store.
