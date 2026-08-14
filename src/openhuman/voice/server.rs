@@ -1081,7 +1081,7 @@ pub async fn run_standalone(
 }
 
 // Hallucination detection is now in the shared `hallucination` module.
-use super::hallucination::{is_hallucinated_output, HallucinationMode};
+use crate::openhuman::modules::voice::{is_hallucinated, HallucinationMode};
 
 fn truncate_for_log(s: &str, max: usize) -> String {
     let truncated: String = s.chars().take(max).collect();

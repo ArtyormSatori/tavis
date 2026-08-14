@@ -14,7 +14,7 @@ use crate::openhuman::inference::local::paths::{resolve_piper_binary, resolve_tt
 use crate::rpc::RpcOutcome;
 
 use super::factory::{create_stt_provider, effective_stt_provider};
-use super::hallucination::{is_hallucinated_output, HallucinationMode};
+use crate::openhuman::modules::voice::{is_hallucinated, HallucinationMode};
 use super::postprocess;
 use super::types::{VoiceSpeechResult, VoiceStatus, VoiceTtsResult};
 
