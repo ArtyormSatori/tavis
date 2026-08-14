@@ -774,17 +774,51 @@ async fn evm_signer() -> Result<
     .map_err(|e| X402Error::Wallet(format!("decrypt mnemonic: {e}")))?
     .value;
 
-    let derived = tinywallet::key::derive(
-        tinywallet::Chain::Evm,
-        mnemonic.as_str(),
-        &secret.derivation_path,
-    )
-    .map_err(|e| X402Error::Wallet(format!("derive EVM signer: {e}")))?;
+    let signing_secret = tinywallet::wire::SecretMaterial {
+        mnemonic,
+        derivation_path: secret.derivation_path.clone(),
+        chain: tinywallet::Chain::Evm,
+    };
+    let account = crate::openhuman::modules::wallet::derive_account(&config, &signing_secret)
+        .await
+        .map_err(|e| X402Error::Wallet(format!("derive EVM signer: {e}")))?;
 
-    Ok((
-        derived.secret_bytes().to_vec(),
-        derived.address().to_string(),
-    ))
+    Ok((config, signing_secret, account.address))
+}
+
+/// Sign an EIP-712 digest locally. Test-only.
+///
+/// Production signs in the wallet module; this exists so the payment
+/// construction can be checked against a fixed vector without a broker. It is
+/// the only remaining local use of a private key in this domain, and it is
+/// compiled out of the shipped binary.
+#[cfg(test)]
+pub(crate) fn sign_evm_digest_locally(
+    secret: &[u8],
+    digest: &[u8; 32],
+) -> Result<[u8; 65], X402Error> {
+    let key = k256::ecdsa::SigningKey::from_slice(secret)
+        .map_err(|_| X402Error::Wallet("derived EVM key is unusable".to_string()))?;
+    let (signature, recovery_id) = key
+        .sign_prehash_recoverable(digest)
+        .map_err(|e| X402Error::Wallet(format!("EVM sign EIP-3009: {e}")))?;
+    let mut sig_bytes = [0u8; 65];
+    sig_bytes[..64].copy_from_slice(&signature.to_bytes());
+    sig_bytes[64] = recovery_id.to_byte() + 27;
+    Ok(sig_bytes)
+}
+
+/// The construction the tests drive: authorize, sign locally, assemble.
+#[cfg(test)]
+pub(crate) fn build_evm_payment_with_signer(
+    secret: &[u8],
+    from_address: &str,
+    challenge: &PaymentRequired,
+    req: &PaymentRequirements,
+) -> Result<PaymentPayload, X402Error> {
+    let authorization = evm_payment_authorization(from_address, req)?;
+    let sig_bytes = sign_evm_digest_locally(secret, &authorization.digest)?;
+    evm_payment_payload(&authorization, sig_bytes, from_address, challenge, req)
 }
 
 /// The 20 raw bytes of an EVM address.
