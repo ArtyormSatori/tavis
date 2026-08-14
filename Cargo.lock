@@ -148,7 +148,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -391,7 +391,6 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -410,7 +409,6 @@ dependencies = [
  "sync_wrapper",
  "tower-layer",
  "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -1655,15 +1653,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dirs"
-version = "6.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
-dependencies = [
- "dirs-sys 0.5.0",
-]
-
-[[package]]
 name = "dirs-sys"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2724,7 +2713,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.57.0",
+ "windows-core 0.58.0",
 ]
 
 [[package]]
@@ -4193,7 +4182,7 @@ dependencies = [
  "curve25519-dalek",
  "dhat",
  "directories",
- "dirs 5.0.1",
+ "dirs",
  "dotenvy",
  "ed25519-dalek",
  "enigo",
@@ -4204,7 +4193,6 @@ dependencies = [
  "fs2",
  "futures",
  "futures-util",
- "git2",
  "glob",
  "hex",
  "hkdf",
@@ -4231,7 +4219,6 @@ dependencies = [
  "rdev",
  "regex",
  "reqwest",
- "ring",
  "rppal",
  "rusqlite",
  "rustls",
@@ -4255,7 +4242,6 @@ dependencies = [
  "tinycortex-api",
  "tinyflows",
  "tinyhumans-sdk",
- "tinyjuice",
  "tinymemory",
  "tinymemory-api",
  "tinymemory-core",
@@ -6548,7 +6534,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "dirs 5.0.1",
+ "dirs",
  "futures",
  "git2",
  "hex",
@@ -6566,7 +6552,7 @@ dependencies = [
  "tinyagents",
  "tinycortex-api",
  "tokio",
- "toml 0.8.23",
+ "toml 1.1.2+spec-1.1.0",
  "tracing",
  "uuid",
  "walkdir",
@@ -6588,21 +6574,18 @@ dependencies = [
 
 [[package]]
 name = "tinyflows"
-version = "0.6.1"
+version = "0.8.0"
 dependencies = [
  "async-trait",
- "axum",
  "futures-timer",
  "futures-util",
  "getrandom 0.4.2",
  "jaq-core",
  "jaq-json",
  "jaq-std",
- "reqwest",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
- "tinyagents",
  "tokio",
  "tracing",
 ]
@@ -6620,25 +6603,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "url",
-]
-
-[[package]]
-name = "tinyjuice"
-version = "0.2.1"
-dependencies = [
- "async-trait",
- "dirs 6.0.0",
- "hex",
- "log",
- "once_cell",
- "regex",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "thiserror 2.0.18",
- "tokio",
- "unicode-segmentation",
- "unicode-width",
 ]
 
 [[package]]
@@ -6677,9 +6641,8 @@ dependencies = [
  "async-trait",
  "axum",
  "chrono",
- "dirs 5.0.1",
+ "dirs",
  "futures",
- "git2",
  "log",
  "parking_lot",
  "rand 0.8.6",
@@ -7025,7 +6988,6 @@ dependencies = [
  "tokio",
  "tower-layer",
  "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -7064,7 +7026,6 @@ version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63e71662fa4b2a2c3a26f570f037eb95bb1f85397f3cd8076caed2f026a6d100"
 dependencies = [
- "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
@@ -7954,7 +7915,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
