@@ -200,7 +200,21 @@ pub async fn voice_transcribe_bytes(
     );
 
     // Filter hallucinated output before spending time on LLM cleanup.
-    if is_hallucinated_output(&raw_text, HallucinationMode::Conversation) {
+    //
+    // Falls OPEN when the module cannot be reached: passing a stock phrase
+    // through costs the user one bad transcription they can see and redo,
+    // whereas defaulting to "hallucinated" would silently delete real speech.
+    // Only one of those is recoverable.
+    let hallucinated = match is_hallucinated(config, &raw_text, HallucinationMode::Conversation)
+        .await
+    {
+        Ok(verdict) => verdict,
+        Err(error) => {
+            warn!("{LOG_PREFIX} hallucination filter unavailable ({error}); passing text through");
+            false
+        }
+    };
+    if hallucinated {
         debug!("{LOG_PREFIX} transcribe_bytes: hallucination detected, returning empty result");
         return Ok(RpcOutcome::single_log(
             VoiceSpeechResult {
