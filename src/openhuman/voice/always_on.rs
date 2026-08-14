@@ -79,7 +79,7 @@ const MAX_UTTERANCE_SAMPLES: usize = TARGET_SAMPLE_RATE as usize * 60;
 /// toggling off flips `ENABLED` so the processor immediately stops transcribing/
 /// delivering; toggling on starts capture live without a restart.
 ///
-/// Opens a continuous mic stream, segments it with the [`VadSegmenter`], and
+/// Opens a continuous mic stream, segments it through the `tinyvoice` module, and
 /// routes each finished utterance through STT and the dictation delivery bus (so
 /// it reaches the agent exactly like a hotkey dictation, and lights up the notch).
 pub async fn start_if_enabled(app_config: &Config) {
@@ -94,7 +94,7 @@ pub async fn start_if_enabled(app_config: &Config) {
         return;
     }
 
-    let vad = VadConfig::from_server_config(&app_config.voice_server);
+    let vad = tinyvoice::VadConfig::from_server_config(&app_config.voice_server);
     let config = app_config.clone();
     log::info!(
         "{LOG_PREFIX} enabled — onset={:.4} hangover={}ms min_speech={}ms max_utt={}ms",
@@ -105,22 +105,24 @@ pub async fn start_if_enabled(app_config: &Config) {
     );
 
     // The cpal stream is `!Send`, so it lives on a dedicated thread that pushes
-    // 16 kHz mono frames over a channel to the async processor below.
+    // RAW interleaved chunks over a channel to the async processor below —
+    // deliberately raw: every transform now happens off the audio callback.
     // `spawn_capture_thread` blocks on a synchronous readiness handshake while
     // the OS builds the input stream — cold WASAPI init on Windows can take a
     // while — so run it on the blocking pool. This function is polled
     // concurrently with the other login-gated services (#3490), and blocking an
     // async worker here would stall them.
-    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Vec<f32>>();
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<RawChunk>();
     log::debug!(
         "{LOG_PREFIX} starting microphone capture (blocking readiness handshake on the blocking pool)"
     );
     // Distinguish a Tokio join failure (the blocking task itself panicked) from a
     // `spawn_capture_thread` setup error (e.g. no input device), so the log points
     // at the right layer instead of flattening both into one message.
-    match tokio::task::spawn_blocking(move || spawn_capture_thread(tx)).await {
-        Ok(Ok(())) => {
+    let format = match tokio::task::spawn_blocking(move || spawn_capture_thread(tx)).await {
+        Ok(Ok(format)) => {
             log::debug!("{LOG_PREFIX} microphone capture stream ready");
+            format
         }
         Ok(Err(e)) => {
             log::warn!("{LOG_PREFIX} could not start microphone capture: {e}");
