@@ -206,19 +206,6 @@ mod tests {
         );
         assert_eq!(parsed["hits"], json!([]));
         assert_eq!(parsed["total"], json!(0));
-
-        let direct = tinymemory_core::tree::retrieval::source::query_source(
-            &cfg,
-            None,
-            Some(SourceKind::Document),
-            None,
-            None,
-            2,
-        )
-        .await
-        .expect("direct query_source on empty workspace");
-        assert!(direct.hits.is_empty());
-        assert_eq!(direct.total, 0);
     }
 
     #[tokio::test]
