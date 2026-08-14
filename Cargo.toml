@@ -708,6 +708,12 @@ modules = ["tinybus/modules"]
 # any build that just wants workflow execution.
 voice = [
     "inference",
+    # Wake-word gating, command routing and hallucination detection run in the
+    # `tinyvoice` module, so the voice domain needs the module host the same way
+    # `documents` needs it for `tinydocs`. Without this, `--features voice`
+    # alone fails to resolve `openhuman::modules` — which the product build
+    # hides, because `documents` turns `modules` on anyway.
+    "modules",
     "dep:hound",
     "dep:lettre",
     "dep:arboard",
