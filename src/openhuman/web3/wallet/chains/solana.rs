@@ -230,6 +230,69 @@ fn pubkey_to_b58(pubkey: &[u8; 32]) -> String {
     bs58::encode(pubkey).into_string()
 }
 
+/// The wallet's Solana account, and the phrase to sign with.
+///
+/// Derivation and signing both happen in the loaded wallet module; this process
+/// holds the phrase only long enough to hand it over on a confidential call,
+/// and never assembles a private key. The module is sent it only after proving
+/// it is an artifact this build pinned — see `modules::wallet::attested_proxy`.
+async fn solana_signer(
+    config: &crate::openhuman::config::Config,
+) -> Result<(tinywallet::wire::SecretMaterial, [u8; 32]), String> {
+    let secret = secret_material(WalletChain::Solana).await?;
+    let mnemonic = crate::openhuman::security::encryption::rpc::decrypt_secret(
+        config,
+        &secret.encrypted_mnemonic,
+    )
+    .await?
+    .value;
+    let signing_secret = tinywallet::wire::SecretMaterial {
+        mnemonic,
+        derivation_path: secret.derivation_path.clone(),
+        chain: tinywallet::Chain::Solana,
+    };
+    let account = crate::openhuman::modules::wallet::derive_account(config, &signing_secret)
+        .await
+        .map_err(|e| format!("failed to derive the Solana account: {e}"))?;
+    let pubkey = b58_to_pubkey(&account.address)?;
+    Ok((signing_secret, pubkey))
+}
+
+/// Sign `message` with the wallet key, inside the module.
+async fn solana_sign(
+    config: &crate::openhuman::config::Config,
+    signing_secret: &tinywallet::wire::SecretMaterial,
+    message: &[u8],
+) -> Result<[u8; 64], String> {
+    let signature = crate::openhuman::modules::wallet::sign_message(
+        config,
+        signing_secret,
+        message,
+        tinywallet::wire::Scheme::Ed25519,
+    )
+    .await
+    .map_err(|e| format!("failed to sign the Solana message: {e}"))?;
+    let tinywallet::wire::Signature::Ed25519 { signature_hex } = signature else {
+        return Err("the wallet module returned a non-ed25519 Solana signature".to_string());
+    };
+    let bytes = hex_to_bytes(&signature_hex)?;
+    <[u8; 64]>::try_from(bytes.as_slice())
+        .map_err(|_| "the wallet module returned a malformed Solana signature".to_string())
+}
+
+/// Decode lowercase hex.
+fn hex_to_bytes(value: &str) -> Result<Vec<u8>, String> {
+    if !value.len().is_multiple_of(2) {
+        return Err("odd-length hex from the wallet module".to_string());
+    }
+    (0..value.len() / 2)
+        .map(|i| {
+            u8::from_str_radix(&value[i * 2..i * 2 + 2], 16)
+                .map_err(|e| format!("invalid hex from the wallet module: {e}"))
+        })
+        .collect()
+}
+
 fn build_native_transfer_message(
     from: [u8; 32],
     to: [u8; 32],
@@ -333,8 +396,7 @@ pub async fn execute_solana_quote(
     )
     .await?
     .value;
-    let signing_key = derive_solana_keypair(&mnemonic, &secret.derivation_path)?;
-    let from_pk = signing_key.verifying_key().to_bytes();
+    let (signing_secret, from_pk) = solana_signer(&config).await?;
     let expected_from = b58_to_pubkey(&from_addr)?;
     if from_pk != expected_from {
         return Err(format!(
@@ -374,8 +436,7 @@ pub async fn execute_solana_quote(
         }
     };
 
-    let signature = signing_key.sign(&message_bytes);
-    let sig_bytes = signature.to_bytes();
+    let sig_bytes = solana_sign(&config, &signing_secret, &message_bytes).await?;
     let mut wire = Vec::with_capacity(1 + 64 + message_bytes.len());
     wire.extend(encode_shortvec(1));
     wire.extend(&sig_bytes);
@@ -458,8 +519,7 @@ pub(crate) async fn sign_and_broadcast_versioned(
     )
     .await?
     .value;
-    let signing_key = derive_solana_keypair(&mnemonic, &secret.derivation_path)?;
-    let our_pubkey = signing_key.verifying_key().to_bytes();
+    let (signing_secret, our_pubkey) = solana_signer(&config).await?;
 
     // Find our signer index.
     let mut our_index: Option<usize> = None;
@@ -481,8 +541,7 @@ pub(crate) async fn sign_and_broadcast_versioned(
     }
 
     // Sign the message bytes and write into our signature slot.
-    let signature = signing_key.sign(message);
-    let sig_bytes = signature.to_bytes();
+    let sig_bytes = solana_sign(&config, &signing_secret, message).await?;
     let slot_off = sigs_start + our_index * 64;
     wire[slot_off..slot_off + 64].copy_from_slice(&sig_bytes);
 
