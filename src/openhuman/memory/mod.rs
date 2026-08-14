@@ -82,14 +82,19 @@ mod tree_e2e_tests;
 // `tinymemory_core::` explicitly, so `grep tinymemory_core` is an honest
 // inventory of what still has to move behind the driver.
 
-pub use ingestion::{
+// Flat *type* re-exports, kept while the module facade above is gone.
+//
+// These are types, not module trees: `memory::MemoryCategory` names one value
+// type, where `memory::store::…` opened the whole engine. They still have to
+// move to `memory::api`'s equivalents, but they hide nothing in the meantime.
+pub use tinymemory_core::ingestion::{
     ExtractedEntity, ExtractedRelation, ExtractionMode, IngestionJob, IngestionQueue,
     IngestionState, IngestionStatusSnapshot, MemoryIngestionConfig, MemoryIngestionRequest,
     MemoryIngestionResult, DEFAULT_MEMORY_EXTRACTION_MODEL,
 };
 pub use ops as rpc;
 pub use ops::*;
-pub use rpc_models::*;
+pub use tinymemory_core::rpc_models::*;
 pub use schemas::{
     all_controller_schemas as all_memory_controller_schemas,
     all_core_recall_controller_schemas as all_memory_core_recall_controller_schemas,
