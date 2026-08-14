@@ -390,7 +390,6 @@ url = "2"
 socketioxide = { version = "0.15", features = ["extensions"], optional = true }
 tempfile = "3"
 cpal = { version = "0.15", optional = true }
-hound = { version = "3.5", optional = true }
 enigo = { version = "0.3", optional = true }
 arboard = { version = "3", optional = true }
 rdev = { version = "0.5", optional = true }
@@ -714,7 +713,6 @@ voice = [
     # alone fails to resolve `openhuman::modules` — which the product build
     # hides, because `documents` turns `modules` on anyway.
     "modules",
-    "dep:hound",
     "dep:lettre",
     "dep:arboard",
     "dep:enigo",
