@@ -464,6 +464,21 @@ fn encode_samples(samples: &[f32]) -> String {
     base64::engine::general_purpose::STANDARD.encode(bytes)
 }
 
+/// Decode base64 little-endian `f32` samples the module produced.
+fn decode_samples(encoded: &str) -> Result<Vec<f32>, VoiceCallError> {
+    let bytes = decode_audio(encoded)?;
+    if !bytes.len().is_multiple_of(4) {
+        return Err(VoiceCallError::Failed(format!(
+            "module returned {} bytes, not a whole number of f32 samples",
+            bytes.len()
+        )));
+    }
+    Ok(bytes
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .collect())
+}
+
 /// Decode a base64 audio payload the module produced.
 fn decode_audio(encoded: &str) -> Result<Vec<u8>, VoiceCallError> {
     use base64::Engine as _;
