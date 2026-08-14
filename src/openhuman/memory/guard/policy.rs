@@ -359,9 +359,7 @@ impl GuardPolicy {
     pub fn redact_outbound_json(&self, value: serde_json::Value) -> serde_json::Value {
         match self.class {
             DriverClass::Embedded | DriverClass::Module | DriverClass::Null => value,
-            DriverClass::External => {
-                tinymemory_core::store::safety::sanitize_json(&value).value
-            }
+            DriverClass::External => tinymemory_core::store::safety::sanitize_json(&value).value,
         }
     }
 

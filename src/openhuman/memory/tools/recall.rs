@@ -106,9 +106,9 @@ impl Tool for MemoryRecallTool {
 mod tests {
     use super::*;
     use crate::openhuman::inference::embeddings::NoopEmbedding;
-    use tinymemory_core::store::UnifiedMemory;
     use crate::openhuman::memory::MemoryCategory;
     use tempfile::TempDir;
+    use tinymemory_core::store::UnifiedMemory;
 
     fn seeded_mem() -> (TempDir, Arc<dyn Memory>) {
         let tmp = TempDir::new().unwrap();

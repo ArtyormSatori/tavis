@@ -3,8 +3,8 @@ use rusqlite::params;
 use serde::{Deserialize, Serialize};
 
 use crate::openhuman::config::Config;
-use tinymemory_core::store::chunks::store::with_connection;
 use crate::rpc::RpcOutcome;
+use tinymemory_core::store::chunks::store::with_connection;
 
 // ── wire types ────────────────────────────────────────────────────────────
 

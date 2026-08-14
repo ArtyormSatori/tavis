@@ -13,9 +13,9 @@ use tinymemory_core::store::profile::{
 fn make_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();
     conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-    FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
-        Arc::new(Mutex::new(conn)),
-    ))
+    FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
+        Mutex::new(conn),
+    )))
 }
 
 fn stub_facet(id: &str, key: &str, value: &str, state: FacetState, stability: f64) -> ProfileFacet {

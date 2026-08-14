@@ -1,13 +1,13 @@
 //! Summarization and rolling recap logic for `ArchivistHook`.
 
 use super::types::ArchivistHook;
-use tinymemory_core::store::fts5::{self, EpisodicEntry};
-use tinymemory_core::store::segments::{self, ConversationSegment};
-use tinymemory_core::store::trees::types::TreeKind;
 use crate::openhuman::memory::tree::summarise::{summarise, SummaryContext, SummaryInput};
 use parking_lot::Mutex;
 use rusqlite::Connection;
 use std::sync::Arc;
+use tinymemory_core::store::fts5::{self, EpisodicEntry};
+use tinymemory_core::store::segments::{self, ConversationSegment};
+use tinymemory_core::store::trees::types::TreeKind;
 
 /// An episodic entry paired with the stable identity exposed by its backing
 /// store. The md archivist uses a per-session sequence while the legacy FTS5
@@ -281,25 +281,24 @@ impl ArchivistHook {
         let conn = self.conn.as_ref()?;
 
         // Find the currently-open segment for this session.
-        let open_segment = match tinymemory_core::store::segments::open_segment_for_session(
-            conn, session_id,
-        ) {
-            Ok(Some(seg)) => seg,
-            Ok(None) => {
-                tracing::debug!(
-                    "[archivist] rolling_segment_recap: no open segment for \
+        let open_segment =
+            match tinymemory_core::store::segments::open_segment_for_session(conn, session_id) {
+                Ok(Some(seg)) => seg,
+                Ok(None) => {
+                    tracing::debug!(
+                        "[archivist] rolling_segment_recap: no open segment for \
                      session={session_id} — returning None"
-                );
-                return None;
-            }
-            Err(e) => {
-                tracing::warn!(
-                    "[archivist] rolling_segment_recap: failed to query open segment \
+                    );
+                    return None;
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        "[archivist] rolling_segment_recap: failed to query open segment \
                      session={session_id}: {e} — returning None"
-                );
-                return None;
-            }
-        };
+                    );
+                    return None;
+                }
+            };
 
         // Gather the episodic entries for this session so far.
         let all_entries = self.read_session_entries(conn, session_id);

@@ -163,8 +163,8 @@ pub fn load_learned_from_cache(
 
     // Group by class prefix (portion before the first '/'), then sort within
     // each class by stability descending, then by key alphabetically.
-    use tinymemory_core::store::profile::ProfileFacet;
     use std::collections::BTreeMap;
+    use tinymemory_core::store::profile::ProfileFacet;
     let mut by_class: BTreeMap<String, Vec<usize>> = BTreeMap::new();
 
     for (idx, f) in facets.iter().enumerate() {
@@ -196,12 +196,11 @@ pub fn load_learned_from_cache(
             // Phase 4: render in structured `class/key: value` form so the
             // agent can parse the source. Goal class keeps value-only (full
             // sentence, no key prefix). Pinned entries get a trailing suffix.
-            let pinned =
-                if f.user_state == tinymemory_core::store::profile::UserState::Pinned {
-                    " *(pinned)*"
-                } else {
-                    ""
-                };
+            let pinned = if f.user_state == tinymemory_core::store::profile::UserState::Pinned {
+                " *(pinned)*"
+            } else {
+                ""
+            };
             let entry = if f.key.starts_with("goal/") {
                 // Goal class: render just the value, it's a sentence.
                 format!("{}{}", f.value, pinned)
@@ -381,17 +380,17 @@ mod tests {
     #[test]
     fn load_learned_from_cache_formats_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
+        use parking_lot::Mutex;
+        use rusqlite::Connection;
         use tinymemory_core::store::profile::{
             FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
         };
-        use parking_lot::Mutex;
-        use rusqlite::Connection;
 
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
-            Arc::new(Mutex::new(conn)),
-        ));
+        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
+            Mutex::new(conn),
+        )));
 
         let make_facet = |id: &str, key: &str, value: &str, stab: f64| ProfileFacet {
             facet_id: id.into(),
@@ -463,15 +462,15 @@ mod tests {
     #[test]
     fn load_learned_from_cache_empty_when_no_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
-        use tinymemory_core::store::profile::PROFILE_INIT_SQL;
         use parking_lot::Mutex;
         use rusqlite::Connection;
+        use tinymemory_core::store::profile::PROFILE_INIT_SQL;
 
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
-            Arc::new(Mutex::new(conn)),
-        ));
+        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
+            Mutex::new(conn),
+        )));
 
         let result = load_learned_from_cache(&cache);
         assert!(result.is_empty());

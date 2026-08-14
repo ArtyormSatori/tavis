@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::openhuman::memory::api::provider::MemoryProvider;
 use crate::openhuman::memory::api::types::NamespaceDocumentInput;
-use tinymemory_core::store::NamespaceRetrievalContext;
 use crate::openhuman::memory::{
     ApiEnvelope, DeleteDocumentRequest, DeleteDocumentResponse, EmptyRequest, ListDocumentsRequest,
     ListDocumentsResponse, ListNamespacesResponse, MemoryIngestionConfig, MemoryIngestionResult,
@@ -16,6 +15,7 @@ use crate::openhuman::memory::{
     RecallMemoriesResponse,
 };
 use crate::rpc::RpcOutcome;
+use tinymemory_core::store::NamespaceRetrievalContext;
 
 use super::envelope::{envelope, error_envelope, memory_counts};
 use super::guard::active_memory_guard;

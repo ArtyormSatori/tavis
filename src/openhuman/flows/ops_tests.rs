@@ -1583,8 +1583,8 @@ async fn reconcile_schedule_triggers_on_boot_survives_a_corrupt_row() {
 
 #[tokio::test]
 async fn flows_delete_clears_flow_memory_namespace() {
-    use tinymemory_core::store::MemoryClient;
     use crate::openhuman::memory::{MemoryCategory, MemoryTaint};
+    use tinymemory_core::store::MemoryClient;
 
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);

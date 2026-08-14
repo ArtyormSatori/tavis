@@ -9,14 +9,12 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::openhuman::config::Config;
-use tinymemory_core::store::GraphRelationRecord;
-use tinymemory_core::store::{
-    MemoryClient, MemoryClientRef, MemoryItemKind, NamespaceMemoryHit,
-};
 use crate::openhuman::memory::{
     MemoryDocumentSummary, MemoryRetrievalChunk, MemoryRetrievalContext, MemoryRetrievalEntity,
     MemoryRetrievalRelation, QueryNamespaceRequest,
 };
+use tinymemory_core::store::GraphRelationRecord;
+use tinymemory_core::store::{MemoryClient, MemoryClientRef, MemoryItemKind, NamespaceMemoryHit};
 
 // ---------------------------------------------------------------------------
 // Formatting helpers

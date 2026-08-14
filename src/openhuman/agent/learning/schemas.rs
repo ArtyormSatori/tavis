@@ -478,10 +478,8 @@ mod tests {
     #[test]
     fn facet_to_json_includes_cue_families_and_evidence_refs() {
         use crate::openhuman::agent::learning::candidate::EvidenceRef;
-        use tinymemory_core::store::profile::{
-            FacetState, FacetType, ProfileFacet, UserState,
-        };
         use std::collections::HashMap;
+        use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
 
         let mut cue_families = HashMap::new();
         cue_families.insert("explicit".to_string(), 3u32);

@@ -3,8 +3,8 @@
 use super::helpers::extract_lesson_from_tools;
 use super::types::ArchivistHook;
 use crate::openhuman::agent::hooks::{PostTurnHook, TurnContext};
-use tinymemory_core::store::fts5::{self, EpisodicEntry};
 use async_trait::async_trait;
+use tinymemory_core::store::fts5::{self, EpisodicEntry};
 
 #[async_trait]
 impl PostTurnHook for ArchivistHook {

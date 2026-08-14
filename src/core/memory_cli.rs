@@ -489,9 +489,7 @@ fn read_input(path: &str) -> Result<String> {
 ///
 /// This is the single chokepoint every subcommand already funnels through, and
 /// it already loads config, so the gates cost no extra config read.
-async fn create_memory_client(
-    subcommand: &str,
-) -> Result<tinymemory_core::store::MemoryClientRef> {
+async fn create_memory_client(subcommand: &str) -> Result<tinymemory_core::store::MemoryClientRef> {
     let config = crate::openhuman::config::Config::load_or_init()
         .await
         .unwrap_or_default();

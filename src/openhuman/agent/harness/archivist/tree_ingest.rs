@@ -5,10 +5,10 @@ use super::helpers::strip_tool_calls_from_response;
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::ingest_pipeline;
-use tinymemory_core::store::fts5;
 #[cfg(test)]
 use std::sync::Arc;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
+use tinymemory_core::store::fts5;
 
 impl ArchivistHook {
     /// Pipe a closed segment's raw prose turns into the memory tree as

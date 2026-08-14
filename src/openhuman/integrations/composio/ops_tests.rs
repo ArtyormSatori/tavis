@@ -231,10 +231,6 @@ fn invalidate_connected_integrations_cache_is_safe_without_prior_insert() {
 
 // ── Mock-backend integration tests for ops ─────────────────────
 
-use tinymemory_core::store::chunks::store as memory_tree_store;
-use tinymemory_core::store::chunks::types::{
-    chunk_id, Chunk, Metadata, SourceKind, SourceRef,
-};
 use axum::{
     extract::{Path, Query, State},
     http::HeaderMap,
@@ -244,6 +240,8 @@ use axum::{
 use chrono::{TimeZone, Utc};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use tinymemory_core::store::chunks::store as memory_tree_store;
+use tinymemory_core::store::chunks::types::{chunk_id, Chunk, Metadata, SourceKind, SourceRef};
 
 struct WorkspaceEnvGuard {
     previous: Option<std::ffi::OsString>,
@@ -580,10 +578,10 @@ async fn composio_delete_connection_clear_memory_deletes_slack_source() {
 /// content file sits at the production `content_path` location.
 #[tokio::test]
 async fn composio_delete_connection_clear_memory_cascades_source_tree_and_content_file() {
-    use tinymemory_core::store::trees::store as tree_store;
-    use tinymemory_core::store::trees::types::{SummaryNode, TreeKind};
     use crate::openhuman::memory::tree_source::registry::get_or_create_source_tree;
     use rusqlite::params;
+    use tinymemory_core::store::trees::store as tree_store;
+    use tinymemory_core::store::trees::types::{SummaryNode, TreeKind};
 
     let app = Router::new()
         .route(
@@ -699,14 +697,14 @@ async fn composio_delete_connection_clear_memory_cascades_source_tree_and_conten
 /// tree, the summary row, AND the seal-produced content file away.
 #[tokio::test]
 async fn composio_delete_connection_clear_memory_cascades_live_sealed_tree_and_file() {
+    use crate::openhuman::memory::tree::tree::bucket_seal::{seal_one_level, LabelStrategy};
+    use crate::openhuman::memory::tree_source::registry::get_or_create_source_tree;
     use tinymemory_core::store::chunks::store::{
         get_summary_content_pointers, upsert_staged_chunks_tx,
     };
     use tinymemory_core::store::content::stage_chunks;
     use tinymemory_core::store::trees::store as tree_store;
     use tinymemory_core::store::trees::types::{Buffer, TreeKind};
-    use crate::openhuman::memory::tree::tree::bucket_seal::{seal_one_level, LabelStrategy};
-    use crate::openhuman::memory::tree_source::registry::get_or_create_source_tree;
 
     let app = Router::new()
         .route(

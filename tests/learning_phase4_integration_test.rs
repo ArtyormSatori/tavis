@@ -22,13 +22,13 @@ use openhuman_core::openhuman::agent::learning::candidate::{
 };
 use openhuman_core::openhuman::agent::learning::profile_md_renderer::ProfileMdRenderer;
 use openhuman_core::openhuman::agent::learning::stability_detector::StabilityDetector;
+use parking_lot::Mutex;
+use rusqlite::Connection;
+use tempfile::TempDir;
 use tinymemory_core::store::profile::{
     FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
 };
 use tinymemory_core::store::ProfileStore;
-use parking_lot::Mutex;
-use rusqlite::Connection;
-use tempfile::TempDir;
 
 fn now_secs() -> f64 {
     SystemTime::now()

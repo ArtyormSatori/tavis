@@ -16,12 +16,12 @@ use crate::openhuman::memory::ingest_pipeline::{
     ingest_chat as do_ingest_chat, ingest_document as do_ingest_document,
     ingest_email as do_ingest_email, IngestResult,
 };
-use tinymemory_core::store::chunks::store::{self as chunk_store, ListChunksQuery};
-use tinymemory_core::store::chunks::types::{Chunk, SourceKind};
 use crate::rpc::RpcOutcome;
 use tinycortex::memory::ingest::canonicalize::{
     chat::ChatBatch, document::DocumentInput, email::EmailThread,
 };
+use tinymemory_core::store::chunks::store::{self as chunk_store, ListChunksQuery};
+use tinymemory_core::store::chunks::types::{Chunk, SourceKind};
 
 /// Unified ingest request. The `payload` shape is adapter-specific and is
 /// validated inside the dispatch based on `source_kind`.
@@ -1103,11 +1103,11 @@ pub async fn set_enabled_rpc(
 mod tests {
     use super::*;
     use crate::openhuman::memory::queue as jobs;
-    use tinymemory_core::store::chunks::types::SourceKind;
     use chrono::Utc;
     use serde_json::json;
     use tempfile::TempDir;
     use tinycortex::memory::ingest::canonicalize::document::DocumentInput;
+    use tinymemory_core::store::chunks::types::SourceKind;
 
     fn test_config() -> (TempDir, Config) {
         let tmp = TempDir::new().unwrap();

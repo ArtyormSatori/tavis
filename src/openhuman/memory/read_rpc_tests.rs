@@ -3,13 +3,13 @@ use crate::openhuman::inference::embeddings::NoopEmbedding;
 use crate::openhuman::integrations::composio::providers::sync_state::KV_NAMESPACE;
 use crate::openhuman::memory::ingest_pipeline::ingest_chat;
 use crate::openhuman::memory::queue::drain_until_idle;
-use tinymemory_core::store::content::raw::{write_raw_items, RawItem, RawKind};
-use tinymemory_core::store::namespace_store::UnifiedMemory;
 use chrono::{TimeZone, Utc};
 use rusqlite::params;
 use std::sync::Arc;
 use tempfile::TempDir;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
+use tinymemory_core::store::content::raw::{write_raw_items, RawItem, RawKind};
+use tinymemory_core::store::namespace_store::UnifiedMemory;
 
 fn test_config() -> (TempDir, Config) {
     let tmp = TempDir::new().unwrap();

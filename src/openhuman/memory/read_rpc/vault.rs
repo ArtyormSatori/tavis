@@ -1,8 +1,8 @@
 use anyhow::Result;
 
 use crate::openhuman::config::Config;
-use tinymemory_core::store::content::obsidian_registry;
 use crate::rpc::RpcOutcome;
+use tinymemory_core::store::content::obsidian_registry;
 
 use super::types::{ObsidianVaultStatusResponse, VaultHealthCheckResponse};
 

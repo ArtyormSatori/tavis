@@ -32,7 +32,6 @@ use crate::openhuman::channels::yuanbao::YuanbaoChannel;
 use crate::openhuman::channels::Channel;
 use crate::openhuman::config::Config;
 use crate::openhuman::inference::provider;
-use tinymemory_core::store as memory_store;
 use crate::openhuman::memory::Memory;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools;
@@ -40,6 +39,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use tinymemory_core::store as memory_store;
 use tokio::sync::mpsc;
 
 /// How the channels runtime should construct its default chat provider.

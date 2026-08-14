@@ -23,11 +23,11 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde_json::json;
 
-use tinymemory_core::store::safety;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
+use tinymemory_core::store::safety;
 
 // Namespace constants live in `memory::preferences` so the write path (here),
 // the system-prompt builder (Lane A), and per-turn recall (Lane B) all share a

@@ -1,8 +1,8 @@
 use super::*;
 use crate::openhuman::agent::hooks::{ToolCallRecord, TurnContext};
 use crate::openhuman::memory::chat::ChatPrompt;
-use tinymemory_core::store::{events as ev, fts5, segments as seg};
 use std::sync::OnceLock;
+use tinymemory_core::store::{events as ev, fts5, segments as seg};
 
 static TREE_INGEST_TEST_LOCK: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
 
@@ -588,8 +588,8 @@ async fn phase1_flush_open_segment_finalizes_trailing_segment() {
 //   g) flush_open_segment also triggers tree ingest.
 
 use crate::openhuman::config::Config;
-use tinymemory_core::store::chunks::store::{count_chunks, list_chunks, ListChunksQuery};
 use tempfile::TempDir;
+use tinymemory_core::store::chunks::store::{count_chunks, list_chunks, ListChunksQuery};
 
 /// Build a Config that points at a temp workspace, suitable for tree-ingest tests.
 /// The memory_tree DB and content dir are created under `tmp.path()`.

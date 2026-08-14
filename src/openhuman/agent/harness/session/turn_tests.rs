@@ -349,9 +349,8 @@ fn make_agent(visible_tool_names: Option<HashSet<String>>) -> Agent {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut builder = Agent::builder()
         .chat_model(Arc::new(DummyProvider))
@@ -407,9 +406,8 @@ fn make_agent_with_builder_and_dispatcher(
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     Agent::builder()
         .chat_model(provider)
@@ -968,9 +966,8 @@ async fn turn_triggers_configured_memory_agent_before_parent_prompt() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut agent = Agent::builder()
         .chat_model(provider)

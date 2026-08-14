@@ -182,9 +182,8 @@ fn build_minimal_agent_with_definition_name(definition_name: Option<&str>) -> Ag
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut builder = Agent::builder()
         .chat_model(provider)
@@ -725,9 +724,8 @@ async fn turn_without_tools_returns_text() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut agent = Agent::builder()
         .chat_model(provider)
@@ -774,9 +772,8 @@ async fn last_turn_usage_is_public_and_non_draining() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut agent = Agent::builder()
         .chat_model(provider)
@@ -857,9 +854,8 @@ async fn turn_with_native_dispatcher_handles_tool_results_variant() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut agent = Agent::builder()
         .chat_model(provider)
@@ -910,9 +906,8 @@ async fn turn_with_native_dispatcher_persists_fallback_tool_calls() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut agent = Agent::builder()
         .chat_model(provider)
@@ -1044,9 +1039,8 @@ async fn turn_dispatches_spawn_subagent_through_full_path_inner() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     // Tools include SpawnSubagentTool so the parent can call it.
     let tools: Vec<Box<dyn Tool>> = vec![Box::new(SpawnSubagentTool::new())];
@@ -1139,9 +1133,8 @@ async fn system_prompt_and_model_are_byte_stable_across_turns() {
         backend: "none".into(),
         ..crate::openhuman::config::MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> = Arc::from(
-        tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap(),
-    );
+    let mem: Arc<dyn Memory> =
+        Arc::from(tinymemory_core::store::create_memory(&memory_cfg, &workspace_path).unwrap());
 
     let mut agent = Agent::builder()
         .chat_model(provider.clone() as Arc<dyn ChatModel<()>>)

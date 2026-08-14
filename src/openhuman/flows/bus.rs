@@ -886,9 +886,9 @@ mod tests {
     use super::*;
     use crate::openhuman::flows::Flow;
     use crate::openhuman::inference::embeddings::NoopEmbedding;
-    use tinymemory_core::store::UnifiedMemory;
     use serde_json::json;
     use tinyflows::model::{Node, NodeKind, WorkflowGraph};
+    use tinymemory_core::store::UnifiedMemory;
 
     /// A directly-constructed, isolated [`Memory`] for the digest tests — NOT
     /// the process-global `OnceLock` client. The global is one-shot, so an

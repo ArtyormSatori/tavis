@@ -578,17 +578,17 @@ mod tests {
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
-    use tinymemory_core::store::profile::PROFILE_INIT_SQL;
     use parking_lot::Mutex;
     use rusqlite::Connection;
     use std::sync::Arc;
+    use tinymemory_core::store::profile::PROFILE_INIT_SQL;
 
     fn make_detector() -> StabilityDetector {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
-            Arc::new(Mutex::new(conn)),
-        ));
+        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
+            Mutex::new(conn),
+        )));
         // Use a private buffer so tests don't interfere with the global singleton.
         let buffer: &'static Buffer = Box::leak(Box::new(Buffer::new(256)));
         StabilityDetector { cache, buffer }

@@ -30,8 +30,6 @@ pub use types::ArchivistHook;
 #[cfg(test)]
 pub(crate) use crate::openhuman::agent::hooks::PostTurnHook;
 #[cfg(test)]
-pub(crate) use tinymemory_core::store::profile;
-#[cfg(test)]
 pub(crate) use helpers::extract_profile_key;
 #[cfg(test)]
 pub(crate) use parking_lot::Mutex;
@@ -39,6 +37,8 @@ pub(crate) use parking_lot::Mutex;
 pub(crate) use rusqlite::Connection;
 #[cfg(test)]
 pub(crate) use std::sync::Arc;
+#[cfg(test)]
+pub(crate) use tinymemory_core::store::profile;
 
 #[cfg(test)]
 #[path = "../archivist_tests.rs"]

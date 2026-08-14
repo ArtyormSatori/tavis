@@ -89,9 +89,9 @@ use tinyagents::harness::host::{AgentMemory, MemoryId, MemoryItem, NewMemory, Re
 use tinyagents::harness::ids::ThreadId;
 
 use crate::openhuman::memory::agent::memory_loader::MemoryCitation;
-use tinymemory_core::store::safety::sanitize_text;
 use crate::openhuman::memory::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, RecallOpts};
 use crate::openhuman::util::truncate_with_ellipsis;
+use tinymemory_core::store::safety::sanitize_text;
 
 /// Namespace agent-produced memories are written to and recalled from when the
 /// wiring site does not choose one.

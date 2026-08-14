@@ -3,10 +3,10 @@
 use super::*;
 
 use crate::openhuman::inference::embeddings::NoopEmbedding;
-use tinymemory_core::store::UnifiedMemory;
 use crate::openhuman::security::SecurityPolicy;
 use serde_json::json;
 use tempfile::TempDir;
+use tinymemory_core::store::UnifiedMemory;
 
 fn test_security() -> Arc<SecurityPolicy> {
     Arc::new(SecurityPolicy::default())

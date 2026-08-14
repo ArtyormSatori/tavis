@@ -8,7 +8,6 @@
 use serde::{Deserialize, Serialize};
 
 use crate::openhuman::config::Config;
-use tinymemory_core::store::chunks::types::SourceKind;
 use crate::openhuman::memory::tree::retrieval::{
     cover::cover_window,
     drill_down::drill_down,
@@ -19,6 +18,7 @@ use crate::openhuman::memory::tree::retrieval::{
 };
 use crate::openhuman::memory::tree::score::extract::EntityKind;
 use crate::rpc::RpcOutcome;
+use tinymemory_core::store::chunks::types::SourceKind;
 
 // ── query_source ──────────────────────────────────────────────────────
 
@@ -297,11 +297,11 @@ mod tests {
     //! initialises the schema idempotently on first access, so read-only
     //! calls return empty responses rather than erroring.
     use super::*;
+    use chrono::{TimeZone, Utc};
+    use tempfile::TempDir;
     use tinymemory_core::store::chunks::store::upsert_chunks;
     use tinymemory_core::store::chunks::types::{chunk_id, Chunk, Metadata, SourceRef};
     use tinymemory_core::store::content as content_store;
-    use chrono::{TimeZone, Utc};
-    use tempfile::TempDir;
 
     fn stage_test_chunks(cfg: &Config, chunks: &[Chunk]) {
         let content_root = cfg.memory_tree_content_root();

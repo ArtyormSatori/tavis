@@ -27,16 +27,16 @@ use crate::openhuman::memory::ingest_pipeline::ingest_chat;
 use crate::openhuman::memory::queue::{
     self as memory_queue, count_total, drain_until_idle, JobStatus,
 };
-use tinymemory_core::store::chunks::store::{
-    count_chunks, count_chunks_by_lifecycle_status, CHUNK_STATUS_BUFFERED,
-};
-use tinymemory_core::store::trees::{store as tree_store, types::TreeKind};
 use crate::openhuman::memory::sync_events::{emit_sync_stage, MemorySyncStage, MemorySyncTrigger};
 use crate::openhuman::memory::tree::retrieval::{query_source, search_entities};
 use crate::openhuman::memory::tree::score::store::lookup_entity;
 use tinybus::EventHandler;
 use tinybus::SubscriptionHandle;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
+use tinymemory_core::store::chunks::store::{
+    count_chunks, count_chunks_by_lifecycle_status, CHUNK_STATUS_BUFFERED,
+};
+use tinymemory_core::store::trees::{store as tree_store, types::TreeKind};
 
 // ── helpers ─────────────────────────────────────────────────────────────
 

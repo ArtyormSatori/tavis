@@ -5,17 +5,17 @@ use super::helpers::{extract_profile_key, uuid_v4};
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::chat::ChatProvider;
+use crate::openhuman::memory::tree::score::embed::{build_embedder_from_config, Embedder};
+use parking_lot::Mutex;
+use rusqlite::Connection;
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tinymemory_core::store::events::{self, EventRecord, EventType};
 use tinymemory_core::store::fts5::EpisodicEntry;
 use tinymemory_core::store::profile::{self, FacetType};
 use tinymemory_core::store::segments::{
     self, BoundaryConfig, BoundaryDecision, ConversationSegment,
 };
-use crate::openhuman::memory::tree::score::embed::{build_embedder_from_config, Embedder};
-use parking_lot::Mutex;
-use rusqlite::Connection;
-use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 impl ArchivistHook {
     /// Create an Archivist hook with a shared SQLite connection.

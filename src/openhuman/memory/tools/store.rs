@@ -1,4 +1,3 @@
-use tinymemory_core::store::safety;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
@@ -6,6 +5,7 @@ use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::sync::Arc;
+use tinymemory_core::store::safety;
 
 /// Let the agent store memories — its own brain writes
 pub struct MemoryStoreTool {
@@ -136,9 +136,9 @@ impl Tool for MemoryStoreTool {
 mod tests {
     use super::*;
     use crate::openhuman::inference::embeddings::NoopEmbedding;
-    use tinymemory_core::store::UnifiedMemory;
     use crate::openhuman::security::{AutonomyLevel, SecurityPolicy};
     use tempfile::TempDir;
+    use tinymemory_core::store::UnifiedMemory;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())

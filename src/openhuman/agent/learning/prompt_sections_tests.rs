@@ -15,9 +15,9 @@ use tinymemory_core::store::profile::{
 fn open_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();
     conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-    FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(
-        Arc::new(Mutex::new(conn)),
-    ))
+    FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
+        Mutex::new(conn),
+    )))
 }
 
 fn make_active(id: &str, key: &str, value: &str, stability: f64) -> ProfileFacet {
