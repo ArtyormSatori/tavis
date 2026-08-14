@@ -422,9 +422,26 @@ mod tests {
         assert!(err.to_string().contains("handle"));
     }
 
+    /// `person_id` is opaque now — a non-UUID is **not** rejected here.
+    ///
+    /// This test previously asserted the opposite. `PersonRef` is opaque by
+    /// contract: the driver issues the id and owns its format, so validating a
+    /// UUID shape host-side would reject a perfectly good driver that
+    /// identifies people some other way. An id the driver does not recognise
+    /// comes back as `Invalid` from the driver, which is where that judgement
+    /// belongs.
     #[test]
-    fn parse_person_id_rejects_non_uuid() {
-        let err = parse_person_id(&json!({ "person_id": "not-a-uuid" })).expect_err("bad uuid");
+    fn parse_person_id_accepts_any_non_empty_token() {
+        let id = parse_person_id(&json!({ "person_id": "not-a-uuid" }))
+            .expect("an opaque id is passed through");
+        assert_eq!(id, "not-a-uuid");
+    }
+
+    /// A *missing* id is still the host's to reject: it is a malformed call,
+    /// not an unrecognised identity.
+    #[test]
+    fn parse_person_id_still_requires_the_argument() {
+        let err = parse_person_id(&json!({})).expect_err("missing person_id");
         assert!(err.to_string().contains("person_id"));
     }
 
