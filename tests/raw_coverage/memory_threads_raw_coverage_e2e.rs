@@ -45,15 +45,15 @@ use openhuman_core::openhuman::memory::sources::types::{
 use openhuman_core::openhuman::memory::sources::{
     all_memory_sources_controller_schemas, all_memory_sources_registered_controllers,
 };
-use openhuman_core::openhuman::memory::store::chunks::store::{upsert_chunks, with_connection};
-use openhuman_core::openhuman::memory::store::chunks::types::{
+use tinymemory_core::store::chunks::store::{upsert_chunks, with_connection};
+use tinymemory_core::store::chunks::types::{
     approx_token_count, chunk_id, Chunk, DataSource, Metadata, SourceKind as ChunkSourceKind,
     SourceRef,
 };
-use openhuman_core::openhuman::memory::store::trees::types::{
+use tinymemory_core::store::trees::types::{
     SummaryNode, Tree, TreeKind, TreeStatus as StoredTreeStatus,
 };
-use openhuman_core::openhuman::memory::store::{
+use tinymemory_core::store::{
     MemoryClient, NamespaceDocumentInput, UnifiedMemory,
 };
 use openhuman_core::openhuman::memory::sync::composio;
@@ -1071,7 +1071,7 @@ fn memory_tree_policy_and_source_registry_write_metadata_mirror() {
         0.0
     );
 
-    let stats = openhuman_core::openhuman::memory::store::trees::types::EntityIndexStats {
+    let stats = tinymemory_core::store::trees::types::EntityIndexStats {
         mention_count_30d: 9,
         distinct_sources: 4,
         last_seen_ms: Some(now - 4 * 86_400_000),
@@ -1687,7 +1687,7 @@ fn memory_tree_runtime_store_buffers_and_retrieval_wire_helpers() {
     );
     assert!(matches!(
         topic_factory.summary_tree_kind(),
-        openhuman_core::openhuman::memory::store::content::SummaryTreeKind::Topic
+        tinymemory_core::store::content::SummaryTreeKind::Topic
     ));
     let topic_tree = topic_factory
         .get_or_create(&config)
@@ -2265,7 +2265,7 @@ async fn memory_tools_and_user_scope_prefs_cover_public_execution_paths() {
     assert!(!forgot.is_error);
     assert!(forgot.output().contains("Forgot memory"));
 
-    let scoped_client: openhuman_core::openhuman::memory::store::MemoryClientRef =
+    let scoped_client: tinymemory_core::store::MemoryClientRef =
         Arc::new(MemoryClient::from_workspace_dir(tmp.path().join("scope-prefs")).unwrap());
     assert_eq!(
         user_scopes::load(&scoped_client, " GMAIL ").await,

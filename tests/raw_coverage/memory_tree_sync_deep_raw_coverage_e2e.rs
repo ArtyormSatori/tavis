@@ -22,13 +22,13 @@ use openhuman_core::openhuman::memory::chat::{ChatPrompt, ChatProvider};
 use openhuman_core::openhuman::memory::queue as jobs;
 use openhuman_core::openhuman::memory::queue::types::ReembedBackfillPayload;
 use openhuman_core::openhuman::memory::queue::{ExtractChunkPayload, NewJob};
-use openhuman_core::openhuman::memory::store::chunks::store::{
+use tinymemory_core::store::chunks::store::{
     set_chunk_embedding, upsert_chunks, with_connection,
 };
-use openhuman_core::openhuman::memory::store::chunks::types::{
+use tinymemory_core::store::chunks::types::{
     chunk_id, Chunk, Metadata, SourceKind, SourceRef,
 };
-use openhuman_core::openhuman::memory::store::trees::types::{SummaryNode, Tree, TreeKind};
+use tinymemory_core::store::trees::types::{SummaryNode, Tree, TreeKind};
 use openhuman_core::openhuman::memory::tree::score::embed::EMBEDDING_DIM;
 use openhuman_core::openhuman::memory::tree::score::extract::{
     EntityExtractor, EntityKind, ExtractedEntities, LlmEntityExtractor, LlmExtractorConfig,

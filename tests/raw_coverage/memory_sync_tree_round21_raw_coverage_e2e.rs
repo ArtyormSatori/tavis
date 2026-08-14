@@ -20,10 +20,10 @@ use openhuman_core::openhuman::security::credentials::{
     AuthService, APP_SESSION_PROVIDER, DEFAULT_AUTH_PROFILE_NAME,
 };
 use openhuman_core::openhuman::memory::global as memory_global;
-use openhuman_core::openhuman::memory::store::chunks::store::with_connection;
-use openhuman_core::openhuman::memory::store::content::atomic::stage_summary;
-use openhuman_core::openhuman::memory::store::content::{SummaryComposeInput, SummaryTreeKind};
-use openhuman_core::openhuman::memory::store::trees::types::{SummaryNode, Tree, TreeKind};
+use tinymemory_core::store::chunks::store::with_connection;
+use tinymemory_core::store::content::atomic::stage_summary;
+use tinymemory_core::store::content::{SummaryComposeInput, SummaryTreeKind};
+use tinymemory_core::store::trees::types::{SummaryNode, Tree, TreeKind};
 use openhuman_core::openhuman::memory::sync::composio::periodic::record_sync_success;
 use openhuman_core::openhuman::memory::sync::composio::providers::gmail::GmailProvider;
 use openhuman_core::openhuman::memory::sync::composio::providers::linear::LinearProvider;
@@ -495,7 +495,7 @@ async fn memory_tree_source_query_filters_reranks_and_hydrates_manual_summaries(
     let chat = query_source(
         &config,
         None,
-        Some(openhuman_core::openhuman::memory::store::chunks::types::SourceKind::Chat),
+        Some(tinymemory_core::store::chunks::types::SourceKind::Chat),
         None,
         Some("semantic query keeps embedded rows first"),
         10,

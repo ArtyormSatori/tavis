@@ -396,9 +396,9 @@ async fn fetch_leaves_hydrates_source_ref_for_cited_chunks() {
     let _ws_guard = set_workspace_env(&tmp);
 
     // List the ingested chunks directly to get leaf chunk ids with their refs.
-    let chunks = openhuman_core::openhuman::memory::store::chunks::store::list_chunks(
+    let chunks = tinymemory_core::store::chunks::store::list_chunks(
         &cfg,
-        &openhuman_core::openhuman::memory::store::chunks::store::ListChunksQuery::default(),
+        &tinymemory_core::store::chunks::store::ListChunksQuery::default(),
     )
     .expect("list_chunks must not error");
 
