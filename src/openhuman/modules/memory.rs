@@ -858,6 +858,9 @@ impl MemoryChunks for ModuleMemoryProvider {
     async fn get_chunk(&self, chunk_id: &str) -> Result<Option<Chunk>, MemoryError> {
         module_call!(self, "get_chunk", "GetChunk", (chunk_id,))
     }
+    async fn storage_kinds(&self) -> Result<Vec<String>, MemoryError> {
+        module_call!(self, "storage_kinds", "StorageKinds", ())
+    }
     async fn chunk_embeddings(
         &self,
         chunk_ids: &[String],
