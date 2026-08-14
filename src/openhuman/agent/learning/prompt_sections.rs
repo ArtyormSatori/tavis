@@ -142,14 +142,14 @@ const CACHE_PROMPT_CAP: usize = 25;
 /// descending within each class, then alphabetically by class. The total is capped
 /// at [`CACHE_PROMPT_CAP`] entries.
 ///
-/// This function is **synchronous** and performs only SQLite reads — safe to call
-/// from the synchronous part of the system prompt build path. The caller should
-/// keep both this path and the existing KV-namespace path active until the KV path
-/// is removed in a follow-up phase.
-pub fn load_learned_from_cache(
+/// Async because the facet store moved behind the memory driver: this used to
+/// be a synchronous SQLite read, and is now a driver call. The caller should
+/// keep both this path and the existing KV-namespace path active until the KV
+/// path is removed in a follow-up phase.
+pub async fn load_learned_from_cache(
     cache: &crate::openhuman::agent::learning::cache::FacetCache,
 ) -> Vec<String> {
-    let facets = match cache.list_active() {
+    let facets = match cache.list_active().await {
         Ok(f) => f,
         Err(e) => {
             tracing::warn!("[learning::prompt] load_learned_from_cache failed: {e}");
@@ -163,8 +163,8 @@ pub fn load_learned_from_cache(
 
     // Group by class prefix (portion before the first '/'), then sort within
     // each class by stability descending, then by key alphabetically.
+    use crate::openhuman::memory::api::provider::ProfileFacet;
     use std::collections::BTreeMap;
-    use tinymemory_core::store::profile::ProfileFacet;
     let mut by_class: BTreeMap<String, Vec<usize>> = BTreeMap::new();
 
     for (idx, f) in facets.iter().enumerate() {
@@ -196,11 +196,12 @@ pub fn load_learned_from_cache(
             // Phase 4: render in structured `class/key: value` form so the
             // agent can parse the source. Goal class keeps value-only (full
             // sentence, no key prefix). Pinned entries get a trailing suffix.
-            let pinned = if f.user_state == tinymemory_core::store::profile::UserState::Pinned {
-                " *(pinned)*"
-            } else {
-                ""
-            };
+            let pinned =
+                if f.user_state == crate::openhuman::memory::api::provider::UserState::Pinned {
+                    " *(pinned)*"
+                } else {
+                    ""
+                };
             let entry = if f.key.starts_with("goal/") {
                 // Goal class: render just the value, it's a sentence.
                 format!("{}{}", f.value, pinned)

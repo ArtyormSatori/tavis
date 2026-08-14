@@ -43,9 +43,9 @@ use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::integrations::composio::providers::profile_md::replace_managed_block;
+use crate::openhuman::memory::api::provider::UserState;
 use tinybus::EventHandler;
 use tinybus::SubscriptionHandle;
-use tinymemory_core::store::profile::UserState;
 
 // ── Class → block metadata ────────────────────────────────────────────────────
 
@@ -111,10 +111,13 @@ impl ProfileMdRenderer {
 
     /// Read all Active facets from the cache and re-render each of the five
     /// cache-owned blocks. Never touches the `connected-accounts` block.
-    pub fn render(&self) -> anyhow::Result<()> {
+    /// Async since the facet read became a driver call. The
+    /// `spawn_blocking` the subscriber used to wrap this in is gone with it —
+    /// there is no in-process SQLite left to keep off the executor.
+    pub async fn render(&self) -> anyhow::Result<()> {
         tracing::debug!("[learning::profile_md_renderer] render triggered — reading active facets");
 
-        let active_facets = self.cache.list_active()?;
+        let active_facets = self.cache.list_active().await?;
 
         for spec in BLOCK_SPECS {
             // Filter to this class, sort by stability desc then key asc.
@@ -198,16 +201,15 @@ impl EventHandler<DomainEvent> for RendererSubscriber {
 
     async fn handle(&self, event: &DomainEvent) {
         if let DomainEvent::CacheRebuilt { .. } = event {
-            let renderer = Arc::clone(&self.0);
-            // Move the blocking I/O (SQLite reads + fs writes) off the async
-            // executor thread.
-            tokio::task::spawn_blocking(move || {
-                if let Err(e) = renderer.render() {
-                    tracing::warn!(
-                        "[learning::profile_md_renderer] render on CacheRebuilt failed: {e:#}"
-                    );
-                }
-            });
+            // Awaited directly. This used to be `spawn_blocking`, because the
+            // facet read was in-process SQLite; it is a driver call now, so
+            // there is nothing blocking to move off the executor. The file
+            // write that remains is small and bounded.
+            if let Err(e) = self.0.render().await {
+                tracing::warn!(
+                    "[learning::profile_md_renderer] render on CacheRebuilt failed: {e:#}"
+                );
+            }
         }
     }
 }
