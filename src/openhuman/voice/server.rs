@@ -784,7 +784,7 @@ async fn process_recording_bg(
     .await;
 
     let stop_started = Instant::now();
-    match handle.stop().await {
+    match handle.stop(config).await {
         Ok(result) => {
             let stop_elapsed = stop_started.elapsed();
             info!(
