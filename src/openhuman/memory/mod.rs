@@ -117,7 +117,7 @@ pub use schemas::{
     all_tool_memory_controller_schemas as all_memory_tool_memory_controller_schemas,
     all_tool_memory_registered_controllers as all_memory_tool_memory_registered_controllers,
 };
-pub use traits::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary, RecallOpts};
+pub use tinymemory_core::traits::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary, RecallOpts};
 
 // Types that external tests and consumers historically imported from
 // `memory::*`. The definitions moved to sibling crates during the memory
