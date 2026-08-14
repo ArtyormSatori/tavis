@@ -65,12 +65,9 @@ it is finishing a cutover that stopped half way.
 > one of ~24 names — breaks **89 call sites across 51 files** in production
 > code alone (`cargo check`, no tests). That is one re-export.
 >
-> **The facade is also the thing to delete last.** While
-> `pub use tinymemory_core::{…}` stands, every new call site can reach the
-> engine without looking like it does. Removing those re-exports first — and
-> letting the compiler enumerate the breakage — is a better next move than
-> continuing to convert call sites one at a time from a list that was never
-> complete.
+> **The facade was deleted first — see §2g.** Converting call sites from an
+> incomplete list could never converge while the facade kept generating new
+> ones; removing it turns the compiler into the inventory.
 
 ## 2. What actually blocks dropping the crates
 
@@ -574,6 +571,35 @@ through, and what `people()` was standing in for.
 **Verification.** `memory::` 713 passed / 26 failed, no new failures ·
 `core::runtime` 27/0 · `core::all` 91/0 · `memory::people` 13/0 ·
 `security::credentials` 183/0 · `desktop::app_state` 32/0 · `cargo fmt` clean.
+
+### 2g. The re-export facade is gone
+
+`memory/mod.rs` no longer re-exports **any** engine module. All ~24 names
+(`store`, `queue`, `global`, `chat`, `search`, `tinycortex`, `source_scope`,
+`util`, …) were removed and every call site now says `tinymemory_core::`
+explicitly — ~190 references across 86 files in `src/`, plus 14 integration
+tests and 4 binaries.
+
+This is not a conversion: **no behaviour changed**, because each rewritten path
+resolved to exactly the symbol it now names. What changed is visibility. Before,
+`crate::openhuman::memory::store::chunks::store::list_chunks(…)` was engine
+access indistinguishable from host-local code; a `tinymemory_core` grep returned
+30 files and the truth was 100. Now `grep tinymemory_core src/` **is** the
+inventory: **127 production files**, plus 94 naming `tinycortex`.
+
+Flat *type* re-exports (`memory::MemoryCategory`, `memory::Memory`) were kept
+and re-pointed. They still have to move to `memory::api`'s equivalents, but a
+type name hides nothing the way a module tree does.
+
+**A latent test bug surfaced and was fixed.** `agent::learning::startup`'s tests
+build a real `MemoryClient`, which needs the host seams wired — and that module
+never called `install_for_tests`. It passed only when another test in the same
+binary happened to run first; alone, or filtered to that module, it failed with
+"no EmbeddingHost installed". Verified pre-existing (`git log -S` shows the call
+was never there, and no commit in this work touched `host_impls.rs`, the only
+caller of `set_embedding_host`). The whole-suite runs never caught it because
+the pre-existing stack overflow in `agent::harness::session::runtime` aborts
+that binary first. One `Once`-guarded call fixes it: 144 → 145 passing.
 
 ### Still open in stage 2
 
