@@ -1,179 +1,29 @@
 //! Phase 2 — always-on listening.
 //!
 //! Instead of a hotkey gating each recording, always-on mode keeps the mic
-//! open continuously and uses **voice-activity detection (VAD)** to carve the
-//! audio stream into utterances: an utterance opens when energy rises above an
-//! onset threshold and closes after a configurable run of silence (the
-//! "hangover"). Each completed utterance is transcribed and pushed onto the
-//! dictation bus, so it reaches the agent and the notch exactly like a hotkey
-//! dictation.
+//! open continuously and uses **voice-activity detection** to carve the audio
+//! stream into utterances: an utterance opens when energy rises above an onset
+//! threshold and closes after a configurable run of silence (the "hangover").
+//! Each completed utterance is transcribed and pushed onto the dictation bus,
+//! so it reaches the agent and the notch exactly like a hotkey dictation.
 //!
-//! Layers:
-//!   - [`VadSegmenter`] — a pure state machine over per-frame RMS energies,
-//!     unit-tested deterministically (no audio backend).
-//!   - [`start_if_enabled`] — opens a continuous cpal mic stream on a dedicated
-//!     thread, slices 16 kHz mono frames, drives the segmenter, transcribes each
-//!     utterance via the configured STT provider, then applies the wake-word
-//!     gate ([`extract_command`], default "Hey Tiny") before delivering the
-//!     command to the agent via `publish_transcription`.
-//!   - [`spawn_lock_watcher`] — privacy hook: pauses capture while the screen is
-//!     locked (macOS via the Quartz session dictionary).
+//! ## Where the work happens
+//!
+//! Everything that is not device I/O runs in the `tinyvoice` module — the
+//! segmenter, the downmix, the resample, the per-frame energies, the WAV
+//! framing, the wake-word gate and the intent classifier. This file owns the
+//! `cpal` stream, the thread discipline around it, and the policy decisions
+//! (what to transcribe, when to pause, what to tell the notch).
+//!
+//! The split follows the audio callback, not the cost of a call. A module call
+//! is ~15 µs against a 20 ms frame, so the bus is not the constraint; the
+//! constraint is that `cpal` delivers on a realtime thread where blocking is a
+//! dropout. So the callback does the least it can — convert the sample format
+//! and forward raw interleaved samples — and every transform happens in the
+//! async processor below.
 //!
 //! Privacy: always-on is **opt-in** (`config.voice_server.always_on_enabled`,
 //! default false) and pauses when the screen is locked.
-
-use crate::openhuman::config::VoiceServerConfig as CfgVoiceServer;
-
-const LOG_PREFIX: &str = "[voice::always_on]";
-
-/// Tuning for the VAD segmenter, distilled from [`CfgVoiceServer`].
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct VadConfig {
-    /// Peak-RMS energy above which a frame counts as speech.
-    pub onset_threshold: f32,
-    /// How long energy must stay below `onset_threshold` before the current
-    /// utterance is closed. Bridges natural mid-sentence pauses.
-    pub hangover_ms: u32,
-    /// Minimum voiced duration for a segment to be emitted; shorter blips
-    /// (cough, door) are dropped.
-    pub min_speech_ms: u32,
-    /// Hard ceiling on a single utterance — forces a flush so a continuous
-    /// noise source can't grow an unbounded recording.
-    pub max_utterance_ms: u32,
-}
-
-impl VadConfig {
-    /// Build VAD tuning from the persisted voice-server config.
-    pub fn from_server_config(c: &CfgVoiceServer) -> Self {
-        Self {
-            onset_threshold: c.vad_onset_threshold,
-            hangover_ms: c.vad_hangover_ms,
-            min_speech_ms: c.vad_min_speech_ms,
-            max_utterance_ms: (c.vad_max_utterance_secs * 1000.0).round().max(1.0) as u32,
-        }
-    }
-}
-
-/// An event emitted by the segmenter as the audio stream is consumed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VadEvent {
-    /// Energy crossed the onset threshold — an utterance has begun.
-    SpeechStart,
-    /// An utterance closed. `voiced_ms` is the accumulated speech duration
-    /// (excluding the trailing silence); `emit` is false when it fell below
-    /// `min_speech_ms` (drop it); `forced` is true when the close was caused
-    /// by the `max_utterance_ms` ceiling rather than a silence hangover.
-    SpeechEnd {
-        voiced_ms: u32,
-        emit: bool,
-        forced: bool,
-    },
-}
-
-#[derive(Debug, Clone, Copy)]
-enum State {
-    /// No active utterance — waiting for energy to cross the onset threshold.
-    Silent,
-    /// Inside an utterance.
-    Speaking {
-        /// Total elapsed time since the utterance opened (voiced + silence).
-        total_ms: u32,
-        /// Accumulated voiced time (frames above onset).
-        voiced_ms: u32,
-        /// Consecutive below-onset time since the last voiced frame.
-        silence_run_ms: u32,
-    },
-}
-
-/// Pure VAD state machine. Drive it by calling [`push_frame`](Self::push_frame)
-/// with the RMS energy of each fixed-size audio frame; it returns at most one
-/// [`VadEvent`] per frame.
-#[derive(Debug)]
-pub struct VadSegmenter {
-    cfg: VadConfig,
-    state: State,
-}
-
-impl VadSegmenter {
-    pub fn new(cfg: VadConfig) -> Self {
-        Self {
-            cfg,
-            state: State::Silent,
-        }
-    }
-
-    /// True while inside an utterance (between `SpeechStart` and `SpeechEnd`).
-    pub fn is_speaking(&self) -> bool {
-        matches!(self.state, State::Speaking { .. })
-    }
-
-    /// Abort any in-flight utterance and return to the idle state without
-    /// emitting an event. Used by the privacy hook (screen lock) and on
-    /// stream teardown.
-    pub fn reset(&mut self) {
-        self.state = State::Silent;
-    }
-
-    /// Feed one frame's RMS energy and its duration in milliseconds.
-    pub fn push_frame(&mut self, rms: f32, frame_ms: u32) -> Option<VadEvent> {
-        let above = rms >= self.cfg.onset_threshold;
-        match self.state {
-            State::Silent => {
-                if above {
-                    self.state = State::Speaking {
-                        total_ms: frame_ms,
-                        voiced_ms: frame_ms,
-                        silence_run_ms: 0,
-                    };
-                    Some(VadEvent::SpeechStart)
-                } else {
-                    None
-                }
-            }
-            State::Speaking {
-                mut total_ms,
-                mut voiced_ms,
-                mut silence_run_ms,
-            } => {
-                total_ms = total_ms.saturating_add(frame_ms);
-                if above {
-                    voiced_ms = voiced_ms.saturating_add(frame_ms);
-                    silence_run_ms = 0;
-                } else {
-                    silence_run_ms = silence_run_ms.saturating_add(frame_ms);
-                }
-
-                // Close on a silence hangover.
-                if silence_run_ms >= self.cfg.hangover_ms {
-                    self.state = State::Silent;
-                    let emit = voiced_ms >= self.cfg.min_speech_ms;
-                    return Some(VadEvent::SpeechEnd {
-                        voiced_ms,
-                        emit,
-                        forced: false,
-                    });
-                }
-                // Close on the hard utterance ceiling.
-                if total_ms >= self.cfg.max_utterance_ms {
-                    self.state = State::Silent;
-                    let emit = voiced_ms >= self.cfg.min_speech_ms;
-                    return Some(VadEvent::SpeechEnd {
-                        voiced_ms,
-                        emit,
-                        forced: true,
-                    });
-                }
-
-                self.state = State::Speaking {
-                    total_ms,
-                    voiced_ms,
-                    silence_run_ms,
-                };
-                None
-            }
-        }
-    }
-}
 
 // ── Continuous capture loop ─────────────────────────────────────────────────
 
