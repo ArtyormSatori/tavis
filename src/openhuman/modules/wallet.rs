@@ -68,9 +68,8 @@
 
 use tinywallet::wire::{
     AttachRequest, DerivedAccount, ExportedKey, PublicKey, Scheme, SecretMaterial,
-    SignMessageRequest, SignRequest,
-    Signature, SignedTransaction, SigningPayload, SigningRequest, TransactionSpec,
-    UnsignedTransaction,
+    SignMessageRequest, SignRequest, Signature, SignedTransaction, SigningPayload, SigningRequest,
+    TransactionSpec, UnsignedTransaction,
 };
 
 use super::{host, ops, registry};

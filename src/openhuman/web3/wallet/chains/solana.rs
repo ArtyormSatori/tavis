@@ -11,7 +11,7 @@
 
 use base64::engine::{general_purpose::STANDARD as B64, Engine as _};
 use curve25519_dalek::edwards::CompressedEdwardsY;
-use ed25519_dalek::{Signer, SigningKey, SECRET_KEY_LENGTH};
+use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
 use log::debug;
 use serde::Deserialize;
 use serde_json::json;
@@ -388,14 +388,7 @@ pub async fn execute_solana_quote(
         .parse()
         .map_err(|e| format!("invalid Solana amount '{}': {e}", quote.amount_raw))?;
 
-    let secret = secret_material(WalletChain::Solana).await?;
     let config = config_rpc::load_config_with_timeout().await?;
-    let mnemonic = crate::openhuman::security::encryption::rpc::decrypt_secret(
-        &config,
-        &secret.encrypted_mnemonic,
-    )
-    .await?
-    .value;
     let (signing_secret, from_pk) = solana_signer(&config).await?;
     let expected_from = b58_to_pubkey(&from_addr)?;
     if from_pk != expected_from {
@@ -511,14 +504,7 @@ pub(crate) async fn sign_and_broadcast_versioned(
     }
 
     // Derive our signing key.
-    let secret = secret_material(WalletChain::Solana).await?;
     let config = config_rpc::load_config_with_timeout().await?;
-    let mnemonic = crate::openhuman::security::encryption::rpc::decrypt_secret(
-        &config,
-        &secret.encrypted_mnemonic,
-    )
-    .await?
-    .value;
     let (signing_secret, our_pubkey) = solana_signer(&config).await?;
 
     // Find our signer index.
