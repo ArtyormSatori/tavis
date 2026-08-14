@@ -458,13 +458,59 @@ the post-merge baseline, no new failures · `memory::api` 190/0 ·
 `memory::guard` 60/0 · `core::all` 91/0 · module crate 34/0 · `cargo fmt` clean
 · both contract copies byte-identical apart from the intentional doctest path.
 
-### Still open in stage 2
+### 2e. People converted
 
-`tools/people.rs` + `people/rpc.rs` are now **unblocked** by
-`interaction_count` but not yet converted: the handlers take `&PeopleStore`, so
-the conversion is a signature change across `rpc.rs`, `schemas.rs`,
-`tools/people.rs` and `CoreContext::people()`, plus two tests that build a real
-in-memory store.
+`people/rpc.rs`, `people/schemas.rs`, `tools/people.rs` and a **third caller the
+first survey missed** — `flows/tinyflows/memory_adapter.rs`, which called
+`rpc::handle_list` directly — all now reach the driver's people family. None of
+the four names an engine crate.
+
+**`interaction_count` moved from `RankedPerson` to `PersonScore`.** `handle_score`
+needs it too, and duplicating the field would have let the two copies disagree.
+It belongs on the score anyway: the score and the sample size it was computed
+from should travel together, so every caller that gets one gets the other.
+
+Two deliberate behaviour changes, both surfaced rather than absorbed:
+
+- **`person_id` is no longer validated as a UUID host-side.** `PersonRef` is
+  opaque by contract — the driver issues the id and owns its format — so a
+  host-side UUID check would reject a driver that identifies people some other
+  way. `parse_person_id_rejects_non_uuid` was inverted into
+  `parse_person_id_accepts_any_non_empty_token`, with a companion asserting that
+  a *missing* id is still the host's to reject: that is a malformed call, not an
+  unrecognised identity.
+- **`permission_denied` in `people.refresh_address_book` is now always `false`.**
+  The contract reports a host without an address book, or without permission,
+  as `seeded: 0` rather than a distinct error — both mean the same thing to a
+  caller, and the alternative leaks a platform detail into an engine-neutral
+  contract. The field is kept so the published shape does not change, but
+  surfacing "grant Contacts access" now needs a host-side permission probe.
+
+**The RPC tests were rewritten, not gated.** They used to build a real
+in-memory `PeopleStore`; they now drive a small fake `MemoryPeople`. That is
+better coverage, not worse: ranking and scoring moved into the engine and are
+tested there, so what is left host-side is the published JSON shape and the fact
+that the driver's order is passed through rather than re-sorted — and there is
+now an explicit test that the host does **not** re-sort, since a host-side sort
+would silently override the ranking authority.
+
+### Residual split brain: the people store is still opened at boot
+
+Every *caller* now goes through the driver, but four sites still call
+`people::store::init_from_workspace` — `core/runtime/context.rs` at boot,
+`security/credentials/ops.rs` (×2) and `desktop/app_state/ops.rs` on
+active-user switch. They seed a process-global store that **nothing reads any
+more**: `CoreContext::people()` has no callers left, and `people::store::get()`
+is referenced only by a doc comment.
+
+So the host still opens `<workspace>/people/people.db` — the same file the
+module opens — purely to populate a global nobody consults. That is the same
+split brain §2.1 describes, surviving one layer below the call sites. Removing
+the four seeds and `CoreContext::people()` closes it; it touches the active-user
+switch paths and their tests, so it is its own change rather than a tail-end
+edit here.
+
+### Still open in stage 2
 
 | File | Why it is not converted |
 | --- | --- |
