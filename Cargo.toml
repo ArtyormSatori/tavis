@@ -539,6 +539,11 @@ landlock = { version = "0.4", optional = true }
 rppal = { version = "0.22", optional = true }
 
 [dev-dependencies]
+# Test fixtures derive a known account from the BIP-39 vector phrase. Production
+# does not derive at all — see the note on the main `tinywallet` entry. Cargo
+# does not link dev-dependency features into the shipped binary, so enabling
+# `key` here does not put the derivation stack back into the product.
+tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["key", "btc", "evm", "solana", "tron"] }
 # The host's own tests drive `tinymemory-core`'s test helpers
 # (`chat::test_override`, `StaticChatProvider`, `tool_memory::test_helpers`).
 # They were `#[cfg(test)]` items in this crate before the memory extraction; a
