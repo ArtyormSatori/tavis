@@ -485,6 +485,8 @@ async fn search_returns_matching_chunks() {
 }
 
 #[tokio::test]
+#[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+chunk detail is read through the bound driver, not the in-process engine"]
 async fn read_chunk_row_returns_preview_and_metadata() {
     let (_tmp, cfg) = test_config();
     seed_chat_chunk(
@@ -502,7 +504,7 @@ async fn read_chunk_row_returns_preview_and_metadata() {
         .next()
         .expect("seeded chunk");
 
-    let row = read_chunk_row(&cfg, &chunk.id).unwrap().expect("chunk row");
+    let row = read_chunk_row(&chunk.id).await.unwrap().expect("chunk row");
     assert_eq!(row.id, chunk.id);
     assert_eq!(row.source_kind, "chat");
     assert_eq!(row.source_id, "slack:#eng");
@@ -518,6 +520,8 @@ async fn read_chunk_row_returns_preview_and_metadata() {
 }
 
 #[tokio::test]
+#[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+chunk detail is read through the bound driver, not the in-process engine"]
 async fn read_chunk_row_falls_back_to_sqlite_preview_when_file_missing() {
     let (_tmp, cfg) = test_config();
     let body = "sqlite preview survives missing file";
@@ -535,7 +539,7 @@ async fn read_chunk_row_falls_back_to_sqlite_preview_when_file_missing() {
     let abs_path = cfg.memory_tree_content_root().join(rel_path);
     std::fs::remove_file(&abs_path).expect("remove chunk file");
 
-    let row = read_chunk_row(&cfg, &chunk.id).unwrap().expect("chunk row");
+    let row = read_chunk_row(&chunk.id).await.unwrap().expect("chunk row");
     assert_eq!(row.content_path, chunk.content_path);
     assert!(row.content_preview.as_deref().unwrap_or("").contains(body));
 }
@@ -612,7 +616,8 @@ async fn reset_tree_preserves_raw_archive_and_source_registry() {
         "buffer/tree rows should be removed during reset"
     );
 
-    let row = read_chunk_row(&cfg, &chunk_id)
+    let row = read_chunk_row(&chunk_id)
+        .await
         .expect("read chunk row")
         .expect("chunk row present after reset");
     assert_eq!(row.lifecycle_status, "pending_extraction");
@@ -627,10 +632,12 @@ async fn reset_tree_preserves_raw_archive_and_source_registry() {
     );
 }
 
-#[test]
-fn read_chunk_row_returns_none_for_missing_chunk() {
-    let (_tmp, cfg) = test_config();
-    assert!(read_chunk_row(&cfg, "missing-chunk").unwrap().is_none());
+#[tokio::test]
+#[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+chunk detail is read through the bound driver, not the in-process engine"]
+async fn read_chunk_row_returns_none_for_missing_chunk() {
+    let (_tmp, _cfg) = test_config();
+    assert!(read_chunk_row("missing-chunk").await.unwrap().is_none());
 }
 
 #[test]
