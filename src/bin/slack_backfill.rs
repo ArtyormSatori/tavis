@@ -183,8 +183,9 @@ async fn main() -> Result<()> {
     // Bootstrap the memory global so `SyncState` KV reads/writes work
     // from inside `SlackProvider::sync()`. `init` is idempotent and
     // returns the (possibly pre-existing) client.
-    tinymemory_core::global::init(config.workspace_dir.clone())
-        .map_err(|e| anyhow::anyhow!("[slack_backfill] tinymemory_core::global::init failed: {e}"))?;
+    tinymemory_core::global::init(config.workspace_dir.clone()).map_err(|e| {
+        anyhow::anyhow!("[slack_backfill] tinymemory_core::global::init failed: {e}")
+    })?;
 
     // Register the default Composio providers (gmail, notion, slack).
     // Idempotent — safe even if called twice.
