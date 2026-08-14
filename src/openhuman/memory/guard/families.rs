@@ -41,7 +41,8 @@ use crate::openhuman::memory::api::provider::people::{
     PersonScore, RankedPerson, ResolvedPerson,
 };
 use crate::openhuman::memory::api::provider::retrieval::{
-    CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalResponse,
+    CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalHit,
+    RetrievalResponse, SourceRetrievalQuery,
 };
 use crate::openhuman::memory::api::provider::types::{
     DiffReport, EntityHit, IngestItem, IngestOutcome, MaintenanceReport, SnapshotRef, SourceItem,
@@ -955,6 +956,51 @@ impl MemoryRetrieval for GuardedRetrieval {
         self.family()?
             .cover_window(window, effective.as_ref())
             .await
+    }
+
+    async fn retrieve_source(
+        &self,
+        query: &SourceRetrievalQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.retrieve_source",
+            NO_NAMESPACE,
+            false,
+        )?;
+        let effective = self.policy.narrow_scope(scope);
+        self.family()?
+            .retrieve_source(query, effective.as_ref())
+            .await
+    }
+
+    async fn drill_down(
+        &self,
+        node_id: &str,
+        max_depth: u32,
+        query: Option<&str>,
+        limit: Option<usize>,
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.drill_down",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?
+            .drill_down(node_id, max_depth, query, limit)
+            .await
+    }
+
+    async fn fetch_leaves(&self, chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.fetch_leaves",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.fetch_leaves(chunk_ids).await
     }
 
     async fn search_entities(

@@ -782,6 +782,36 @@ impl MemoryRetrieval for RecordingProvider {
         Ok(RetrievalResponse::default())
     }
 
+    async fn retrieve_source(
+        &self,
+        _query: &SourceRetrievalQuery,
+        scope: Option<&SourceScope>,
+    ) -> Result<RetrievalResponse, MemoryError> {
+        self.record(Call {
+            method: "retrieval.retrieve_source".into(),
+            content: rendered_scope(scope),
+            taint: None,
+            scoped: Some(scope.is_some()),
+        });
+        Ok(RetrievalResponse::default())
+    }
+
+    async fn drill_down(
+        &self,
+        _node_id: &str,
+        _max_depth: u32,
+        _query: Option<&str>,
+        _limit: Option<usize>,
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
+        self.record(Call::plain("retrieval.drill_down"));
+        Ok(vec![])
+    }
+
+    async fn fetch_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+        self.record(Call::plain("retrieval.fetch_leaves"));
+        Ok(vec![])
+    }
+
     async fn search_entities(
         &self,
         _query: &str,
