@@ -574,6 +574,8 @@ async fn flush_now_enqueues_once_and_reports_stale_buffers() {
 }
 
 #[tokio::test]
+#[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+asserts chunk lifecycle through `read_chunk_row`, which reads via the bound driver"]
 async fn reset_tree_preserves_raw_archive_and_source_registry() {
     let (_tmp, cfg) = test_config();
     let chunk_id = seed_slack_chunk_with_raw_archive(&cfg).await;
