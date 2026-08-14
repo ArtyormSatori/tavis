@@ -62,7 +62,7 @@ use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
 use crate::openhuman::memory::api::tree::{IngestRequest, QueryResult, TreeStatus};
 use crate::openhuman::memory::api::types::{
-    GraphRelationRecord, MemoryCategory, MemoryEntry, MemoryKvRecord, MemoryTaint,
+    GraphRelationRecord, MemoryCategory, NamespaceMemoryHit, MemoryEntry, MemoryKvRecord, MemoryTaint,
     NamespaceDocumentInput, NamespaceRetrievalContext, NamespaceSummary, StoredMemoryDocument,
 };
 use crate::openhuman::memory::api::wire;
@@ -926,6 +926,20 @@ impl MemoryRetrieval for ModuleMemoryProvider {
         chunk_ids: &[String],
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         module_call!(self, "retrieve_leaves", "RetrieveLeaves", (chunk_ids,))
+    }
+    async fn recall_namespace_scored(
+        &self,
+        namespace: &str,
+        query: &str,
+        limit: usize,
+        exclude_session_id: Option<&str>,
+    ) -> Result<Vec<NamespaceMemoryHit>, MemoryError> {
+        module_call!(
+            self,
+            "recall_namespace_scored",
+            "RecallNamespaceScored",
+            (namespace, query, limit, exclude_session_id)
+        )
     }
     async fn search_entities(
         &self,
