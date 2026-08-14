@@ -56,6 +56,7 @@ use crate::openhuman::memory::api::provider::{
 };
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
 use crate::openhuman::memory::api::tree::{IngestRequest, QueryResult, TreeStatus};
+use crate::openhuman::memory::api::types::NamespaceMemoryHit;
 use crate::openhuman::memory::api::types::{
     GraphRelationRecord, MemoryKvRecord, MemoryTaint, NamespaceDocumentInput,
     NamespaceRetrievalContext, StoredMemoryDocument,
@@ -1029,6 +1030,26 @@ impl MemoryRetrieval for GuardedRetrieval {
             false,
         )?;
         self.family()?.retrieve_leaves(chunk_ids).await
+    }
+
+    /// Namespace-scoped, so the namespace reaches the tier check — unlike the
+    /// other retrieval primitives, which span the store.
+    async fn recall_namespace_scored(
+        &self,
+        namespace: &str,
+        query: &str,
+        limit: usize,
+        exclude_session_id: Option<&str>,
+    ) -> Result<Vec<NamespaceMemoryHit>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Retrieval,
+            "retrieval.recall_namespace_scored",
+            namespace,
+            false,
+        )?;
+        self.family()?
+            .recall_namespace_scored(namespace, query, limit, exclude_session_id)
+            .await
     }
 
     async fn search_entities(

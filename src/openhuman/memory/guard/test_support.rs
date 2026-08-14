@@ -33,7 +33,8 @@ use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
 use crate::openhuman::memory::api::tree::{IngestRequest, QueryResult, TreeStatus};
 use crate::openhuman::memory::api::types::{
     GraphRelationRecord, MemoryCategory, MemoryEntry, MemoryKvRecord, MemoryTaint,
-    NamespaceDocumentInput, NamespaceRetrievalContext, NamespaceSummary, StoredMemoryDocument,
+    NamespaceDocumentInput, NamespaceMemoryHit, NamespaceRetrievalContext, NamespaceSummary,
+    StoredMemoryDocument,
 };
 use async_trait::async_trait;
 
@@ -822,6 +823,17 @@ impl MemoryRetrieval for RecordingProvider {
         _chunk_ids: &[String],
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.record(Call::plain("retrieval.retrieve_leaves"));
+        Ok(vec![])
+    }
+
+    async fn recall_namespace_scored(
+        &self,
+        _namespace: &str,
+        _query: &str,
+        _limit: usize,
+        _exclude_session_id: Option<&str>,
+    ) -> Result<Vec<NamespaceMemoryHit>, MemoryError> {
+        self.record(Call::plain("retrieval.recall_namespace_scored"));
         Ok(vec![])
     }
 
