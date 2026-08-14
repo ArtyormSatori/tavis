@@ -67,7 +67,8 @@
 //! the chain — so a chain that changes scheme cannot silently sign wrongly.
 
 use tinywallet::wire::{
-    AttachRequest, DerivedAccount, ExportedKey, PublicKey, Scheme, SecretMaterial, SignRequest,
+    AttachRequest, DerivedAccount, ExportedKey, PublicKey, Scheme, SecretMaterial,
+    SignMessageRequest, SignRequest,
     Signature, SignedTransaction, SigningPayload, SigningRequest, TransactionSpec,
     UnsignedTransaction,
 };
@@ -214,6 +215,43 @@ pub async fn derive_account(
     );
     proxy
         .call_confidential("DeriveAccount", (secret.clone(),))
+        .await
+        .map_err(|error| classify(&error))
+}
+
+/// Sign opaque bytes with the key derived from `secret`.
+///
+/// Blind: the module cannot check what the bytes mean, so
+/// [`sign_transaction_in_module`] is the right call wherever the request can be
+/// expressed as a `TransactionSpec`. This exists for the two encodings the wire
+/// contract does not model — Solana SPL transfers and x402 payments — where the
+/// alternative is not a verified signature but deriving the key in this process
+/// and signing here, which is what these callers used to do.
+///
+/// # Errors
+///
+/// [`WalletCallError`].
+pub async fn sign_message(
+    config: &Config,
+    secret: &SecretMaterial,
+    message: &[u8],
+    scheme: Scheme,
+) -> Result<Signature, WalletCallError> {
+    let proxy = attested_proxy(config).await?;
+    log::debug!(
+        "[modules:wallet] sign_message chain={:?} bytes={} module={MODULE_ID} (confidential)",
+        secret.chain,
+        message.len()
+    );
+    proxy
+        .call_confidential(
+            "SignMessage",
+            (SignMessageRequest {
+                secret: secret.clone(),
+                message_hex: hex(message),
+                scheme,
+            },),
+        )
         .await
         .map_err(|error| classify(&error))
 }
