@@ -214,9 +214,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn gmail_document_count(
-    memory: &tinymemory_core::store::MemoryClientRef,
-) -> Result<usize> {
+async fn gmail_document_count(memory: &tinymemory_core::store::MemoryClientRef) -> Result<usize> {
     let value = memory
         .list_documents(Some("skill-gmail"))
         .await
