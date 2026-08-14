@@ -266,7 +266,10 @@ mod attestation_guard {
         // for every user, and it would look like an attack rather than a typo.
         let record = record();
         let upper = record.assets[0].sha256.to_ascii_uppercase();
-        assert_ne!(upper, record.assets[0].sha256, "fixture must actually differ");
+        assert_ne!(
+            upper, record.assets[0].sha256,
+            "fixture must actually differ"
+        );
         assert!(digest_is_pinned(record, &upper));
     }
 }

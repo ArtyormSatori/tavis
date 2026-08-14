@@ -1,14 +1,27 @@
-//! Calling the `tinywallet` module: build a transaction there, sign it here.
+//! Calling the `tinywallet` module.
 //!
-//! The host half of `ai.tinyhumans.tinywallet.Wallet`. One entry point,
-//! [`sign_transaction`], drives both bus calls and does the signing in between,
-//! so the four chain modules stay unaware that a bus is involved at all.
+//! The host half of `ai.tinyhumans.tinywallet.Wallet`. Two ways to get a signed
+//! transaction, and which one a chain uses is a property of that chain.
 //!
-//! # The private key does not cross the bus
+//! # The confidential flow — preferred, and what BTC, EVM and Tron use
 //!
-//! This is the whole shape of the thing. The module knows how to encode a
-//! transaction for four chains and nothing about keys; this process knows the
-//! key and nothing about transaction encoding. So:
+//! [`sign_transaction_in_module`] sends the recovery phrase itself, once, and
+//! the module derives, encodes, signs and assembles. No private key is ever
+//! reassembled in this process.
+//!
+//! ```text
+//!   host  ==SignTransaction{phrase, path, fields}==>  module   (confidential)
+//!   host  <=={raw transaction, txid}================  module
+//! ```
+//!
+//! The phrase only goes to a recipient tinybus has attested, and
+//! [`attested_proxy`] additionally insists the attested digest is one
+//! `registry.rs` pinned — see there for why both checks are worth having.
+//!
+//! # The split flow — still here, still correct for some hosts
+//!
+//! [`sign_transaction`] keeps the key in this process: the module returns
+//! digests, this process signs them, the module reassembles.
 //!
 //! ```text
 //!   host  --BuildUnsigned{fields, public key}-->  module
@@ -18,19 +31,31 @@
 //!   host  <--{raw transaction, txid}-------------  module
 //! ```
 //!
-//! A loaded module shares this address space, so this is not a hard isolation
-//! boundary and is not claimed as one — a hostile module could read the seed out
-//! of process memory regardless. It is a refusal to widen what crosses a
-//! boundary that already exists, which is worth doing on its own terms and costs
-//! only a second round trip over an in-process bus.
+//! It is not deprecated. It is the only option for a backend reached across a
+//! transport, where the bus cannot say what is on the other end, and it is what
+//! Solana still uses here — Solana hand-builds SPL messages that
+//! `TransactionSpec::Solana` does not model, so there is nothing to send.
 //!
-//! # The fields are sent twice, deliberately
+//! # What the confidential flow does and does not buy
+//!
+//! A loaded module shares this address space and could read the phrase out of
+//! process memory whichever flow is used, so neither is a hard isolation
+//! boundary and neither is claimed as one.
+//!
+//! What changes is that this binary no longer performs derivation or signing at
+//! all — the key exists only inside the module, for the duration of one call,
+//! rather than being assembled here and held across two round trips. The bus
+//! also refuses to carry the phrase to anything that is not an allowlisted,
+//! hash-verified module, which the split flow could not express.
+//!
+//! # The fields are sent twice in the split flow, deliberately
 //!
 //! `AttachSignature` re-sends everything `BuildUnsigned` was given rather than a
 //! handle to something the module remembered. That is what lets the module hold
 //! no state between the calls — no store, no bound on it, no expiry for a host
 //! that never comes back. Building is deterministic, so the module rebuilds the
-//! transaction the digests were computed over.
+//! transaction the digests were computed over. The confidential flow needs none
+//! of this: it is one call.
 //!
 //! # Two signing schemes, and the difference matters
 //!
