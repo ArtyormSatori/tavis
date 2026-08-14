@@ -1,4 +1,3 @@
-use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::query::backend;
 use crate::openhuman::memory::tree::retrieval::rpc::FetchLeavesRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
@@ -46,9 +45,6 @@ impl Tool for MemoryTreeFetchLeavesTool {
             "[rpc][memory_tree] fetch_leaves invoked requested_ids={}",
             req.chunk_ids.len()
         );
-        let cfg = config_rpc::load_config_with_timeout()
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_tree_fetch_leaves: load config failed: {e}"))?;
         let take = req.chunk_ids.len().min(MAX_CHUNK_IDS_PER_CALL);
         if req.chunk_ids.len() > MAX_CHUNK_IDS_PER_CALL {
             log::debug!(

@@ -1,4 +1,3 @@
-use crate::openhuman::config::rpc as config_rpc;
 use crate::openhuman::memory::query::backend;
 use crate::openhuman::memory::tree::retrieval::rpc::DrillDownRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};

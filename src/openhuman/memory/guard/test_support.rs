@@ -807,7 +807,10 @@ impl MemoryRetrieval for RecordingProvider {
         Ok(vec![])
     }
 
-    async fn retrieve_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+    async fn retrieve_leaves(
+        &self,
+        _chunk_ids: &[String],
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.record(Call::plain("retrieval.retrieve_leaves"));
         Ok(vec![])
     }

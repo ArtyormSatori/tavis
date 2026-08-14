@@ -1,10 +1,9 @@
-use crate::openhuman::config::rpc as config_rpc;
+use crate::openhuman::memory::api::chunks::SourceKind;
 use crate::openhuman::memory::query::backend;
 use crate::openhuman::memory::tree::retrieval::rpc::QuerySourceRequest;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
-use crate::openhuman::memory::api::chunks::SourceKind;
 
 pub struct MemoryTreeQuerySourceTool;
 

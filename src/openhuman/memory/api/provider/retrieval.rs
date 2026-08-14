@@ -261,7 +261,8 @@ pub trait MemoryRetrieval: Send + Sync {
     /// # Errors
     ///
     /// Backend failures only.
-    async fn retrieve_leaves(&self, chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError>;
+    async fn retrieve_leaves(&self, chunk_ids: &[String])
+        -> Result<Vec<RetrievalHit>, MemoryError>;
 
     /// Free-text search over the entity index.
     ///

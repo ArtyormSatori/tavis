@@ -61,11 +61,11 @@ use crate::openhuman::memory::api::provider::types::{
 };
 use crate::openhuman::memory::api::provider::{
     AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
-    FastRetrieveQuery, MemoryChunks, RetrievalHit, SourceRetrievalQuery, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
+    FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
     MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
     MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
     PersonHandle, PersonInteraction, PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
-    RetrievalResponse,
+    RetrievalHit, RetrievalResponse, SourceRetrievalQuery,
 };
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
@@ -583,7 +583,10 @@ impl MemoryRetrieval for NullMemoryProvider {
         unsupported(Capability::Retrieval)
     }
 
-    async fn retrieve_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+    async fn retrieve_leaves(
+        &self,
+        _chunk_ids: &[String],
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
         unsupported(Capability::Retrieval)
     }
 

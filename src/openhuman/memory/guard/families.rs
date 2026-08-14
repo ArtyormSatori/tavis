@@ -993,7 +993,10 @@ impl MemoryRetrieval for GuardedRetrieval {
             .await
     }
 
-    async fn retrieve_leaves(&self, chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+    async fn retrieve_leaves(
+        &self,
+        chunk_ids: &[String],
+    ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.policy.admit_read(
             Capability::Retrieval,
             "retrieval.retrieve_leaves",
