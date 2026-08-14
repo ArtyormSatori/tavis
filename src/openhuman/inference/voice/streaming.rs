@@ -238,7 +238,20 @@ pub async fn handle_dictation_ws(mut socket: WebSocket, config: Arc<Config>) {
     {
         Ok(bytes) => bytes,
         Err(error) => {
+            // Tell the client before dropping the socket. WAV framing became
+            // fallible when it moved to the module, and a client waiting for
+            // `final` or `error` would otherwise get neither — every other
+            // failure path in this handler sends a frame first.
+            //
+            // The frame carries no module detail, matching the redaction the
+            // transcription-failure path below uses: the reason is a host
+            // concern and goes to the log, not to the renderer.
             log::warn!("{LOG_PREFIX} could not frame dictation audio as WAV: {error}");
+            let err_msg = serde_json::json!({
+                "type": "error",
+                "message": "Could not prepare the recording for transcription",
+            });
+            let _ = socket.send(Message::Text(err_msg.to_string().into())).await;
             return;
         }
     };
