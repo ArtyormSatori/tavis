@@ -44,8 +44,6 @@ pub use bus::publish_ptt_transcript_committed;
 #[cfg(feature = "voice")]
 pub(crate) mod cli;
 #[cfg(feature = "voice")]
-pub mod command_router;
-#[cfg(feature = "voice")]
 pub mod dictation_listener;
 #[cfg(feature = "voice")]
 pub mod factory;
