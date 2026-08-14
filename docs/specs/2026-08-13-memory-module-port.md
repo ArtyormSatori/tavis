@@ -680,6 +680,42 @@ Both surfaced because converting call sites changed which tests run together.
 Verified stable: 708 passed across three consecutive full runs, where it
 previously alternated.
 
+### 2k. The `Profile` capability family
+
+Family seventeen. `store::profile` + the `global::client_if_ready()` calls that
+existed only to reach `profile_store()` were one cluster, not two — the learning
+and archivist subsystems read and write the engine's facet table directly.
+
+`MemoryProfile` carries eleven methods over `ProfileFacet` / `FacetType` /
+`FacetState` / `UserState`. Three decisions worth keeping:
+
+- **The host owns the learning; the driver owns the rows.** `ProfileFacet`
+  carries a `stability` and a `state` the driver never computes — it records
+  what the host's stability detector decided. Extraction, scoring, promotion and
+  eviction all stay host-side; this family is only the persistence seam beneath
+  them.
+- **`user_state` outranks the score, and that is a contract obligation.**
+  `Pinned` stays active however low stability falls; `Forgotten` stays dropped
+  however much new evidence arrives — a user who says "forget that" must not
+  have it re-learned. `drop_facets_below` is documented as required to honour
+  both, so a future driver cannot quietly sweep against an override.
+- **`workflow_identity_matches` returns `bool`, not `Result<bool>`**, matching
+  the engine method it replaces. Every caller is an "is this row the user?"
+  predicate whose only sane reading of a failure is *no*; threading a `Result`
+  through them invites an `unwrap_or(true)` somewhere. The guard, the wire and
+  the client each answer `false` on refusal, absence and transport failure
+  respectively — the one place the contract deliberately swallows an error, and
+  it says so.
+
+`ProfileStore`'s methods are synchronous and hold a `parking_lot::Mutex` across
+SQLite, so every module-side call goes through `spawn_blocking` rather than
+being awaited on the runtime thread.
+
+Wired through both contract copies, the null driver, the guard, the fixture, the
+module implementation, the bus service and the host client. **Call sites are not
+converted yet** — that is the next step, and it is what makes the family
+load-bearing.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
