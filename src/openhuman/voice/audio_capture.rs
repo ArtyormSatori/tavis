@@ -9,12 +9,26 @@ use std::sync::Arc;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{SampleFormat, SampleRate, StreamConfig};
 use log::{debug, error, info, warn};
+
+use crate::openhuman::config::Config;
 use tokio::sync::oneshot;
 
 const LOG_PREFIX: &str = "[voice_capture]";
 
 /// Target sample rate for STT (16 kHz mono).
 pub(crate) const TARGET_SAMPLE_RATE: u32 = 16_000;
+
+/// Samples per measurement frame — 20 ms at [`TARGET_SAMPLE_RATE`].
+///
+/// Matches the always-on loop's framing so a "peak RMS" means the same thing
+/// in both paths; a different window would make the same audio report a
+/// different peak depending on which recorder captured it.
+const FRAME_SAMPLES: u32 = TARGET_SAMPLE_RATE / 50;
+
+/// RMS below which the module's silence gate drops audio.
+///
+/// The value the in-process gate used before this moved to the module.
+const SILENCE_GATE_THRESHOLD: f32 = 0.002;
 
 /// Result of a completed recording.
 #[derive(Debug, Clone)]
