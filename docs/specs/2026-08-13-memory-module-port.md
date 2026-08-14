@@ -417,7 +417,54 @@ reader is precisely what this port removes, so the parity half is gone rather
 than reworked. This is a real loss of local coverage until the module release
 lands, not a cleanup.
 
+### 2d. The retrieval trio, `interaction_count`, and a merge from `origin/main`
+
+**Three methods added to `MemoryRetrieval`**, unblocking `backend.rs` and its
+three tool wrappers: `retrieve_source`, `retrieve_children`, `retrieve_leaves`.
+
+**The names are deliberate, and one was forced.** `MemoryTree` already has
+`drill_down` and `query_source` with *different* semantics — the tree family
+returns a node and its direct children, or the raw chunks filed under a source;
+these return ranked hits across the summary tree, several levels deep. Beyond
+the ambiguity, both families are served on **one bus object**, so `drill_down`
+collided outright and would not compile. Renaming the trio consistently
+(`retrieve_*`) resolves both.
+
+`query_source_scoped` joins `fast_retrieve_scoped` and `cover_window_scoped` in
+`tinymemory-core` for the same reason as §2c: a task-local scope does not cross
+a transport, and reading it as absent means unrestricted.
+
+**`RankedPerson::interaction_count`** added, restoring the field the people RPC
+payload carries. It is worth carrying for its own sake: a score alone cannot be
+read honestly, since 0.9 from three exchanges and 0.9 from three hundred are the
+same number and very different facts.
+
+**Merged `origin/main`** (90 commits). One thing to know: the merge commit
+correctly recorded `tinyagents → 30d6b3b` and `tinyflows → c242184`, and then
+the **auto-commit hook committed the stale worktree submodule pointers straight
+back**, reverting both gitlinks and breaking the build with an unresolved
+`tinyagents::harness::artifacts`. Restored from the merge commit and the
+submodules checked out to match. Worth watching for on any future merge in this
+repo — the hook cannot tell a stale submodule worktree from an intended change.
+
+**Now converted:** `backend.rs` (a doc comment is all that mentions the engine),
+plus `query_source`, `drill_down` and `fetch_leaves`. Five more success-path
+tests became module-backed, for the same reason as the earlier six — each read
+the workspace store in-process, and three carried a direct-engine parity half
+that has no second reader to agree with any more.
+
+**Verification.** `memory::` 708 passed / 26 failed — failing set identical to
+the post-merge baseline, no new failures · `memory::api` 190/0 ·
+`memory::guard` 60/0 · `core::all` 91/0 · module crate 34/0 · `cargo fmt` clean
+· both contract copies byte-identical apart from the intentional doctest path.
+
 ### Still open in stage 2
+
+`tools/people.rs` + `people/rpc.rs` are now **unblocked** by
+`interaction_count` but not yet converted: the handlers take `&PeopleStore`, so
+the conversion is a signature change across `rpc.rs`, `schemas.rs`,
+`tools/people.rs` and `CoreContext::people()`, plus two tests that build a real
+in-memory store.
 
 | File | Why it is not converted |
 | --- | --- |
