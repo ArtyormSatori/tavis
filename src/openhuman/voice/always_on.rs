@@ -474,8 +474,17 @@ async fn transcribe_and_deliver(config: &Config, samples_16k: Vec<f32>) {
 /// path, no LLM turn), and fall back to the agent for `Unknown` — or when a
 /// local execution fails, so routing can only shortcut, never drop a command.
 async fn deliver_command(config: &Config, cmd: String) {
-    use crate::openhuman::voice::command_router::{route, VoiceIntent};
-    let intent = route(&cmd);
+    use crate::openhuman::modules::voice::{route, VoiceIntent};
+    // A module that will not load costs the fast path, not the command: an
+    // unroutable transcript goes to the agent, which is exactly what
+    // `VoiceIntent::Unknown` already means.
+    let intent = match route(config, &cmd).await {
+        Ok(intent) => intent,
+        Err(error) => {
+            log::warn!("{LOG_PREFIX} intent routing unavailable ({error}); deferring to agent");
+            VoiceIntent::Unknown
+        }
+    };
     // Log only the intent *kind* + lengths — never the transcript-derived query /
     // app / result text (always-on mic PII).
     if matches!(intent, VoiceIntent::Unknown) {
