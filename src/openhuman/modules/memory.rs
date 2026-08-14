@@ -52,11 +52,11 @@ use crate::openhuman::memory::api::provider::types::{
 };
 use crate::openhuman::memory::api::provider::{
     AddressBookSeedOutcome, ChunkDetail, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
-    FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
-    MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
-    MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
-    PersonHandle, PersonInteraction, PersonRecord, PersonScore, RankedPerson, ResolvedPerson,
-    RetrievalResponse,
+    FacetType, FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments,
+    MemoryEntities, MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople,
+    MemoryPortability, MemoryProfile, MemoryProvider, MemoryRecall, MemoryRetrieval,
+    MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction, PersonRecord,
+    PersonScore, ProfileFacet, RankedPerson, ResolvedPerson, RetrievalResponse, UserState,
 };
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
@@ -341,6 +341,9 @@ impl MemoryProvider for ModuleMemoryProvider {
         Some(self)
     }
     fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
+        Some(self)
+    }
+    fn as_profile(&self) -> Option<&dyn MemoryProfile> {
         Some(self)
     }
 }
@@ -954,5 +957,84 @@ impl MemoryRetrieval for ModuleMemoryProvider {
             "SearchEntities",
             (query, kinds, limit)
         )
+    }
+}
+
+#[async_trait]
+impl MemoryProfile for ModuleMemoryProvider {
+    async fn list_active_facets(&self) -> Result<Vec<ProfileFacet>, MemoryError> {
+        module_call!(self, "list_active_facets", "ListActiveFacets", ())
+    }
+    async fn list_all_facets(&self) -> Result<Vec<ProfileFacet>, MemoryError> {
+        module_call!(self, "list_all_facets", "ListAllFacets", ())
+    }
+    async fn get_facet(&self, key: &str) -> Result<Option<ProfileFacet>, MemoryError> {
+        module_call!(self, "get_facet", "GetFacet", (key,))
+    }
+    async fn facets_by_type(
+        &self,
+        facet_type: FacetType,
+    ) -> Result<Vec<ProfileFacet>, MemoryError> {
+        module_call!(self, "facets_by_type", "FacetsByType", (facet_type,))
+    }
+    async fn upsert_facet(&self, facet: &ProfileFacet) -> Result<(), MemoryError> {
+        module_call!(self, "upsert_facet", "UpsertFacet", (facet,))
+    }
+    async fn upsert_provider_facet(
+        &self,
+        facet_id: &str,
+        facet_type: FacetType,
+        key: &str,
+        value: &str,
+        confidence: f64,
+        segment_id: Option<&str>,
+        observed_at: f64,
+    ) -> Result<(), MemoryError> {
+        module_call!(
+            self,
+            "upsert_provider_facet",
+            "UpsertProviderFacet",
+            (
+                facet_id,
+                facet_type,
+                key,
+                value,
+                confidence,
+                segment_id,
+                observed_at
+            )
+        )
+    }
+    async fn set_facet_user_state(
+        &self,
+        key: &str,
+        user_state: UserState,
+    ) -> Result<bool, MemoryError> {
+        module_call!(
+            self,
+            "set_facet_user_state",
+            "SetFacetUserState",
+            (key, user_state)
+        )
+    }
+    async fn delete_facet(&self, key: &str) -> Result<bool, MemoryError> {
+        module_call!(self, "delete_facet", "DeleteFacet", (key,))
+    }
+    async fn delete_facet_by_id(&self, facet_id: &str) -> Result<bool, MemoryError> {
+        module_call!(self, "delete_facet_by_id", "DeleteFacetById", (facet_id,))
+    }
+    async fn drop_facets_below(&self, threshold: f64) -> Result<usize, MemoryError> {
+        module_call!(self, "drop_facets_below", "DropFacetsBelow", (threshold,))
+    }
+    /// Any transport failure reads as `false` — the trait's documented rule for
+    /// this predicate, and the reason it returns `bool` rather than a `Result`.
+    async fn workflow_identity_matches(&self, key_pattern: &str, canonical_value: &str) -> bool {
+        let call: Result<bool, MemoryError> = module_call!(
+            self,
+            "workflow_identity_matches",
+            "WorkflowIdentityMatches",
+            (key_pattern, canonical_value)
+        );
+        call.unwrap_or(false)
     }
 }
