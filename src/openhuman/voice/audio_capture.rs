@@ -33,25 +33,52 @@ pub struct RecordingResult {
 /// Handle to a recording in progress. Drop or call `stop()` to end recording.
 pub struct RecordingHandle {
     stop_flag: Arc<AtomicBool>,
-    result_rx: Option<oneshot::Receiver<Result<RecordingResult, String>>>,
+    result_rx: Option<oneshot::Receiver<Result<RawRecording, String>>>,
+}
+
+/// What the capture thread produces: the device's own samples, untouched.
+///
+/// The thread does no signal processing at all now — it converts the sample
+/// format and accumulates. Downmixing, resampling, silence gating and WAV
+/// framing all happen in [`RecordingHandle::stop`], through the `tinyvoice`
+/// module, off the audio thread.
+#[derive(Debug)]
+pub struct RawRecording {
+    /// Interleaved `f32` samples at the device's own rate.
+    pub samples: Vec<f32>,
+    /// Device sample rate.
+    pub source_rate: u32,
+    /// Interleaved channel count.
+    pub channels: usize,
 }
 
 impl RecordingHandle {
-    /// Signal the recording to stop and return the captured audio.
-    pub async fn stop(mut self) -> Result<RecordingResult, String> {
+    /// Signal the recording to stop, then turn the raw capture into a result.
+    ///
+    /// Takes `config` because everything after "stop the stream" is a module
+    /// call: downmix, resample, silence-gate and frame the audio. Doing that
+    /// here rather than on the capture thread is what keeps the audio callback
+    /// free of signal processing.
+    ///
+    /// # Errors
+    ///
+    /// The capture error if the recording itself failed, or the module error if
+    /// the audio cannot be prepared. Both are strings the caller surfaces.
+    pub async fn stop(mut self, config: &Config) -> Result<RecordingResult, String> {
         self.stop_flag.store(true, Ordering::SeqCst);
         debug!("{LOG_PREFIX} stop signal sent");
 
-        match self.result_rx.take() {
+        let raw = match self.result_rx.take() {
             Some(rx) => rx
                 .await
-                .map_err(|_| "recording task dropped before completing".to_string())?,
-            None => Err("recording already stopped".to_string()),
-        }
+                .map_err(|_| "recording task dropped before completing".to_string())??,
+            None => return Err("recording already stopped".to_string()),
+        };
+        finalize(config, &raw).await
     }
 
     #[cfg(test)]
-    pub(crate) fn from_test_result(result: Result<RecordingResult, String>) -> Self {
+    pub(crate) fn from_test_result(result: Result<RawRecording, String>) -> Self {
         let (tx, rx) = oneshot::channel();
         tx.send(result)
             .expect("test recording result receiver should be open");
@@ -60,6 +87,56 @@ impl RecordingHandle {
             result_rx: Some(rx),
         }
     }
+}
+
+/// Turn a raw capture into a WAV plus the metrics the caller gates on.
+///
+/// Three module calls rather than one, because the caller needs two different
+/// views of the same audio: the peak energy is measured on the *ungated*
+/// samples — silence detection has to see the silence — while the WAV is the
+/// gated version, which is what the STT engine should be billed for.
+async fn finalize(config: &Config, raw: &RawRecording) -> Result<RecordingResult, String> {
+    use crate::openhuman::modules::voice as tinyvoice;
+
+    let channels = u16::try_from(raw.channels)
+        .map_err(|_| format!("implausible channel count: {}", raw.channels))?;
+
+    // Ungated 16 kHz mono, for the energy measurement.
+    let mono = tinyvoice::prepare_frames(config, &raw.samples, raw.source_rate, channels)
+        .await
+        .map_err(|e| format!("could not prepare captured audio: {e}"))?;
+
+    // One frame's worth per measurement, matching the always-on loop's framing.
+    let peak_rms = tinyvoice::frame_energies(config, &mono, FRAME_SAMPLES)
+        .await
+        .map_err(|e| format!("could not measure captured audio: {e}"))?
+        .into_iter()
+        .fold(0.0f32, f32::max);
+
+    // Gated, framed as WAV — what actually gets uploaded.
+    let wav_bytes = tinyvoice::prepare_capture(
+        config,
+        &raw.samples,
+        raw.source_rate,
+        channels,
+        SILENCE_GATE_THRESHOLD,
+    )
+    .await
+    .map_err(|e| format!("could not encode captured audio: {e}"))?;
+
+    let sample_count = mono.len();
+    let duration_secs = sample_count as f32 / TARGET_SAMPLE_RATE as f32;
+    info!(
+        "{LOG_PREFIX} recording finalized: {duration_secs:.1}s, {} bytes WAV, peak_rms={peak_rms:.6}",
+        wav_bytes.len()
+    );
+
+    Ok(RecordingResult {
+        wav_bytes,
+        duration_secs,
+        sample_count,
+        peak_rms,
+    })
 }
 
 /// Start recording from the default microphone.
