@@ -200,7 +200,15 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
     )
     .await?
     .value;
-    let (private_key, public_key) = derive_btc_private_key(&mnemonic, &secret.derivation_path)?;
+    // Derivation and signing both happen in the loaded wallet module now, so no
+    // private key is reassembled here. The phrase travels over a confidential
+    // call to a module that has proved it is an artifact this build pinned —
+    // see `modules::wallet::attested_proxy`.
+    let signing_secret = tinywallet::wire::SecretMaterial {
+        mnemonic,
+        derivation_path: secret.derivation_path.clone(),
+        chain: tinywallet::Chain::Btc,
+    };
 
     // Selection stays here — this crate knows the fee policy and the UTXO
     // source — but the transaction itself is encoded by the loaded wallet
@@ -223,13 +231,12 @@ pub async fn execute_btc_quote(mut quote: PreparedTransaction) -> Result<Executi
             })
             .collect(),
     };
-    // One signature per selected input, produced in this process and returned
-    // to the module in input order — see `modules::wallet`.
-    let signed = crate::openhuman::modules::wallet::sign_transaction(
+    // One signature per selected input, all produced inside the module and
+    // applied there in input order — see `modules::wallet`.
+    let signed = crate::openhuman::modules::wallet::sign_transaction_in_module(
         &config,
         &transaction,
-        &private_key,
-        &public_key,
+        &signing_secret,
     )
     .await
     .map_err(|e| format!("failed to sign BTC transaction: {e}"))?;
