@@ -808,11 +808,6 @@ pub async fn clear_session(config: &Config) -> Result<RpcOutcome<serde_json::Val
             ) {
                 tracing::warn!(%error, "failed to rebind core context after logout");
             }
-            if let Err(error) =
-                crate::openhuman::memory::people::store::init_from_workspace(&workspace)
-            {
-                tracing::warn!(%error, "failed to rebind people store after logout");
-            }
             crate::openhuman::memory::conversations::register_conversation_persistence_subscriber(
                 workspace.clone(),
             );
