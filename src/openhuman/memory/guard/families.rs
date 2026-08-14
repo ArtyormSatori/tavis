@@ -35,7 +35,9 @@ use crate::openhuman::memory::api::capabilities::Capability;
 use crate::openhuman::memory::api::chunks::Chunk;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::goals::GoalsDoc;
-use crate::openhuman::memory::api::provider::chunks::{ChunkEmbedding, ChunkQuery, MemoryChunks};
+use crate::openhuman::memory::api::provider::chunks::{
+    ChunkDetail, ChunkEmbedding, ChunkQuery, MemoryChunks,
+};
 use crate::openhuman::memory::api::provider::people::{
     AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord,
     PersonScore, RankedPerson, ResolvedPerson,
@@ -898,6 +900,16 @@ impl MemoryChunks for GuardedChunks {
         self.policy
             .admit_read(Capability::Chunks, "chunks.get_chunk", NO_NAMESPACE, false)?;
         self.family()?.get_chunk(chunk_id).await
+    }
+
+    async fn chunk_detail(&self, chunk_id: &str) -> Result<Option<ChunkDetail>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Chunks,
+            "chunks.chunk_detail",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.chunk_detail(chunk_id).await
     }
 
     /// The catalog is not user content, so it takes no namespace and the

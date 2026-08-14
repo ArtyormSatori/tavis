@@ -21,7 +21,7 @@ use crate::openhuman::memory::api::provider::types::{
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
 use crate::openhuman::memory::api::provider::{
-    AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
+    AddressBookSeedOutcome, ChunkDetail, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
     FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
     MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
     MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
@@ -738,6 +738,11 @@ impl MemoryChunks for RecordingProvider {
 
     async fn get_chunk(&self, _chunk_id: &str) -> Result<Option<Chunk>, MemoryError> {
         self.record(Call::plain("chunks.get_chunk"));
+        Ok(None)
+    }
+
+    async fn chunk_detail(&self, _chunk_id: &str) -> Result<Option<ChunkDetail>, MemoryError> {
+        self.record(Call::plain("chunks.chunk_detail"));
         Ok(None)
     }
 
