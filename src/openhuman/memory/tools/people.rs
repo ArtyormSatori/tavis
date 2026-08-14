@@ -18,15 +18,26 @@ use serde_json::json;
 use crate::core::runtime::context::CoreContext;
 use crate::openhuman::memory::people::rpc;
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
-use tinymemory_core::people::store::PeopleStore;
-use tinymemory_core::people::types::{Handle, Interaction, PersonId};
+use crate::openhuman::memory::api::provider::{
+    MemoryProvider, PersonHandle, PersonInteraction,
+};
+use crate::openhuman::memory::guard::MemoryGuard;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 
-/// Acquire the people store for the current runtime context.
-fn people_store() -> anyhow::Result<std::sync::Arc<PeopleStore>> {
-    CoreContext::current()
-        .ok_or_else(|| anyhow::anyhow!("people store unavailable: core context not initialized"))?
-        .people()
-        .map_err(|e| anyhow::anyhow!("people store unavailable: {e}"))
+/// The guarded driver for this call, checked to serve the people family.
+///
+/// Returns the guard rather than the family handle because the accessor
+/// borrows from it.
+async fn people_guard() -> anyhow::Result<std::sync::Arc<MemoryGuard>> {
+    let guard = active_memory_guard()
+        .await
+        .map_err(|e| anyhow::anyhow!("people unavailable: {e}"))?;
+    if guard.as_people().is_none() {
+        return Err(anyhow::anyhow!(
+            "people unavailable: memory driver does not support the people family"
+        ));
+    }
+    Ok(guard)
 }
 
 fn read_required_str(args: &serde_json::Value, key: &str) -> anyhow::Result<String> {
@@ -38,13 +49,17 @@ fn read_required_str(args: &serde_json::Value, key: &str) -> anyhow::Result<Stri
         .ok_or_else(|| anyhow::anyhow!("missing required string argument `{key}`"))
 }
 
-fn parse_person_id(args: &serde_json::Value) -> anyhow::Result<PersonId> {
-    let raw = read_required_str(args, "person_id")?;
-    serde_json::from_value(json!(raw)).map_err(|e| anyhow::anyhow!("invalid person_id: {e}"))
+/// Read `person_id` as the opaque token the contract defines it to be.
+///
+/// It is not parsed into a `Uuid` here: `PersonRef` is opaque by contract and
+/// the driver owns its format. Validating a shape the host does not define
+/// would reject a driver that identifies people some other way.
+fn parse_person_id(args: &serde_json::Value) -> anyhow::Result<String> {
+    read_required_str(args, "person_id")
 }
 
-/// Build a [`Handle`] from `kind` + `value` args.
-fn parse_handle(args: &serde_json::Value) -> anyhow::Result<Handle> {
+/// Build a [`PersonHandle`] from `kind` + `value` args.
+fn parse_handle(args: &serde_json::Value) -> anyhow::Result<PersonHandle> {
     let kind = read_required_str(args, "kind")?;
     let value = read_required_str(args, "value")?;
     serde_json::from_value(json!({ "kind": kind, "value": value })).map_err(|e| {
@@ -92,8 +107,8 @@ impl Tool for PeopleListTool {
             .and_then(serde_json::Value::as_u64)
             .map(|v| v as usize)
             .unwrap_or(100);
-        let store = people_store()?;
-        let outcome = rpc::handle_list(&store, limit)
+        let guard = people_guard().await?;
+        let outcome = rpc::handle_list(guard.as_people().expect("checked"), limit)
             .await
             .map_err(|e| anyhow::anyhow!("people_list: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(&outcome.value)?))
@@ -143,8 +158,8 @@ impl Tool for PeopleResolveTool {
             .get("create_if_missing")
             .and_then(serde_json::Value::as_bool)
             .unwrap_or(false);
-        let store = people_store()?;
-        let outcome = rpc::handle_resolve(&store, handle, create)
+        let guard = people_guard().await?;
+        let outcome = rpc::handle_resolve(guard.as_people().expect("checked"), handle, create)
             .await
             .map_err(|e| anyhow::anyhow!("people_resolve: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(&outcome.value)?))
@@ -176,8 +191,8 @@ impl Tool for PeopleScoreTool {
     async fn execute(&self, args: serde_json::Value) -> anyhow::Result<ToolResult> {
         log::debug!("[tool][people] score invoked");
         let person_id = parse_person_id(&args)?;
-        let store = people_store()?;
-        let outcome = rpc::handle_score(&store, person_id)
+        let guard = people_guard().await?;
+        let outcome = rpc::handle_score(guard.as_people().expect("checked"), &person_id)
             .await
             .map_err(|e| anyhow::anyhow!("people_score: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(&outcome.value)?))
@@ -213,9 +228,11 @@ impl Tool for PeopleGetTool {
     async fn execute(&self, args: serde_json::Value) -> anyhow::Result<ToolResult> {
         log::debug!("[tool][people] get invoked");
         let person_id = parse_person_id(&args)?;
-        let store = people_store()?;
-        let person = store
-            .get(person_id)
+        let guard = people_guard().await?;
+        let person = guard
+            .as_people()
+            .expect("checked")
+            .get_person(&person_id)
             .await
             .map_err(|e| anyhow::anyhow!("people_get: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(&json!({
@@ -263,9 +280,11 @@ impl Tool for PeopleAddAliasTool {
         log::debug!("[tool][people] add_alias invoked");
         let person_id = parse_person_id(&args)?;
         let handle = parse_handle(&args)?;
-        let store = people_store()?;
-        store
-            .add_alias(person_id, handle)
+        let guard = people_guard().await?;
+        guard
+            .as_people()
+            .expect("checked")
+            .add_handle_alias(&person_id, &handle)
             .await
             .map_err(|e| anyhow::anyhow!("people_add_alias: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(
@@ -316,15 +335,17 @@ impl Tool for PeopleRecordInteractionTool {
             .get("length")
             .and_then(serde_json::Value::as_u64)
             .unwrap_or(0) as u32;
-        let interaction = Interaction {
+        let interaction = PersonInteraction {
             person_id,
-            ts: Utc::now(),
+            at: Utc::now().to_rfc3339(),
             is_outbound,
             length,
         };
-        let store = people_store()?;
-        store
-            .record_interaction(interaction)
+        let guard = people_guard().await?;
+        guard
+            .as_people()
+            .expect("checked")
+            .record_interaction(&interaction)
             .await
             .map_err(|e| anyhow::anyhow!("people_record_interaction: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(
@@ -360,8 +381,8 @@ impl Tool for PeopleRefreshAddressBookTool {
 
     async fn execute(&self, _args: serde_json::Value) -> anyhow::Result<ToolResult> {
         log::debug!("[tool][people] refresh_address_book invoked");
-        let store = people_store()?;
-        let outcome = rpc::handle_refresh_address_book(&store)
+        let guard = people_guard().await?;
+        let outcome = rpc::handle_refresh_address_book(guard.as_people().expect("checked"))
             .await
             .map_err(|e| anyhow::anyhow!("people_refresh_address_book: {e}"))?;
         Ok(ToolResult::success(serde_json::to_string(&outcome.value)?))
@@ -392,10 +413,10 @@ mod tests {
     #[test]
     fn parse_handle_accepts_known_kinds() {
         let h = parse_handle(&json!({ "kind": "email", "value": "a@b.com" })).expect("email");
-        assert!(matches!(h, Handle::Email(_)));
+        assert!(matches!(h, PersonHandle::Email(_)));
         let d =
             parse_handle(&json!({ "kind": "display_name", "value": "Alice" })).expect("display");
-        assert!(matches!(d, Handle::DisplayName(_)));
+        assert!(matches!(d, PersonHandle::DisplayName(_)));
     }
 
     #[test]
