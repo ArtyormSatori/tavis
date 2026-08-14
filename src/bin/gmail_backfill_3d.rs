@@ -215,7 +215,7 @@ async fn main() -> Result<()> {
 }
 
 async fn gmail_document_count(
-    memory: &openhuman_core::openhuman::memory::store::MemoryClientRef,
+    memory: &tinymemory_core::store::MemoryClientRef,
 ) -> Result<usize> {
     let value = memory
         .list_documents(Some("skill-gmail"))
