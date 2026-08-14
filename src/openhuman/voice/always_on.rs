@@ -518,9 +518,9 @@ async fn deliver_command(config: &Config, cmd: String) {
 /// routing can only *shortcut*, never *block*.
 async fn execute_intent(
     _config: &Config,
-    intent: crate::openhuman::voice::command_router::VoiceIntent,
+    intent: crate::openhuman::modules::voice::VoiceIntent,
 ) -> Result<String, String> {
-    use crate::openhuman::voice::command_router::VoiceIntent as VI;
+    use crate::openhuman::modules::voice::VoiceIntent as VI;
     match intent {
         VI::Play { .. } => Err("play has no local fast-path; defer to agent".to_string()),
         VI::OpenApp { .. } => Err("app launch has no local fast-path; defer to agent".to_string()),
