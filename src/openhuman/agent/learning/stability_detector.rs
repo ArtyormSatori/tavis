@@ -265,10 +265,10 @@ impl StabilityDetector {
             let new_refs: Vec<crate::openhuman::agent::learning::candidate::EvidenceRef> =
                 cands.iter().map(|c| c.evidence.clone()).collect();
 
-            let all_refs = merge_evidence_refs(
-                existing.map(|f| f.evidence_refs.as_slice()).unwrap_or(&[]),
-                new_refs,
-            );
+            let existing_refs = existing
+                .map(|f| evidence_from_contract(&f.evidence_refs))
+                .unwrap_or_default();
+            let all_refs = merge_evidence_refs(&existing_refs, new_refs);
 
             // Build cue-families counts from this cycle's candidates.
             let mut cue_counts: HashMap<String, u32> = HashMap::new();
@@ -299,7 +299,7 @@ impl StabilityDetector {
                     state,
                     stability: final_stability,
                     user_state,
-                    evidence_refs: all_refs,
+                    evidence_refs: evidence_to_contract(&all_refs),
                     // Class derived from the key prefix (always set for learning rows).
                     class: Some(class_prefix(*class).to_string()),
                     cue_families: if cue_counts.is_empty() {
@@ -501,6 +501,47 @@ fn dominant_cue(cands: &[LearningCandidate], _existing: Option<&ProfileFacet>) -
 /// candidate, or repeated within one cycle — would slip through and accumulate
 /// without bound across rebuilds. `EvidenceRef: Eq + Hash`, so tracking seen
 /// refs in a set removes every duplicate exactly and cheaply.
+
+/// Convert the learning domain's `EvidenceRef` to the memory contract's.
+///
+/// # Why a conversion and not one type
+///
+/// They are the *same shape* — `memory/api/host/evidence.rs` and
+/// `tinymemory-api`'s copy are byte-identical, and this round-trips through
+/// serde precisely because of that. They are nominally distinct only because
+/// the learning candidate types still live in `tinymemory_core`, so
+/// `candidate::EvidenceRef` resolves to the crate's copy while
+/// `ProfileFacet::evidence_refs` uses the host's.
+///
+/// This bridge disappears when `learning_candidate` comes home — it is agent
+/// domain knowledge, not engine storage, and belongs host-side with the rest of
+/// the learning subsystem. Tracked as stage 4 in
+/// `docs/specs/2026-08-13-memory-module-port.md`.
+fn evidence_to_contract(
+    refs: &[candidate::EvidenceRef],
+) -> Vec<crate::openhuman::memory::api::host::EvidenceRef> {
+    refs.iter()
+        .filter_map(|r| {
+            serde_json::to_value(r)
+                .ok()
+                .and_then(|v| serde_json::from_value(v).ok())
+        })
+        .collect()
+}
+
+/// The inverse of [`evidence_to_contract`].
+fn evidence_from_contract(
+    refs: &[crate::openhuman::memory::api::host::EvidenceRef],
+) -> Vec<candidate::EvidenceRef> {
+    refs.iter()
+        .filter_map(|r| {
+            serde_json::to_value(r)
+                .ok()
+                .and_then(|v| serde_json::from_value(v).ok())
+        })
+        .collect()
+}
+
 fn merge_evidence_refs(
     existing_refs: &[candidate::EvidenceRef],
     new_refs: Vec<candidate::EvidenceRef>,
