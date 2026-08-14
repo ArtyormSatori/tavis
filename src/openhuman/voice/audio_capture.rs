@@ -375,7 +375,13 @@ fn record_on_thread(
     };
 
     // If the preferred config failed, retry with the device's default config.
-    let (stream, source_sample_rate, _source_channels) = match stream {
+    //
+    // The channel count is bound here, not discarded. It used to be (`_source_channels`)
+    // because each callback closed over its own `ch` and downmixed in place. Now
+    // that downmixing happens at finalize against these values, a fallback stream
+    // with a different channel count would otherwise be de-interleaved as if it
+    // had the preferred config's — which turns stereo into garbage rather than mono.
+    let (stream, source_sample_rate, source_channels) = match stream {
         Ok(s) => (s, source_sample_rate, source_channels),
         Err(ref preferred_err) => {
             warn!(
