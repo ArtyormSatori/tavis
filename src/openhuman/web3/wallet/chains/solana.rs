@@ -236,6 +236,19 @@ fn pubkey_to_b58(pubkey: &[u8; 32]) -> String {
 /// holds the phrase only long enough to hand it over on a confidential call,
 /// and never assembles a private key. The module is sent it only after proving
 /// it is an artifact this build pinned — see `modules::wallet::attested_proxy`.
+///
+/// # The `cfg(test)` branch
+///
+/// Under `cfg(test)` this derives locally instead of calling the module, and so
+/// does [`solana_sign`]. A unit test has no loaded module, and the coverage
+/// these tests carry is the RPC choreography and wire format around signing —
+/// how many calls go out, in what order, and what bytes get broadcast — none of
+/// which is about *who* holds the key.
+///
+/// What that deliberately does not cover is the module wiring itself. That is
+/// covered where it can be honest: tinywallet's loader E2E signs through a real
+/// `dlopen`'d module over a real broker, and `modules::wallet`'s own tests pin
+/// the attestation guard. The local branch cannot exist in a shipped binary.
 async fn solana_signer(
     config: &crate::openhuman::config::Config,
 ) -> Result<(tinywallet::wire::SecretMaterial, [u8; 32]), String> {
@@ -251,11 +264,22 @@ async fn solana_signer(
         derivation_path: secret.derivation_path.clone(),
         chain: tinywallet::Chain::Solana,
     };
-    let account = crate::openhuman::modules::wallet::derive_account(config, &signing_secret)
-        .await
-        .map_err(|e| format!("failed to derive the Solana account: {e}"))?;
-    let pubkey = b58_to_pubkey(&account.address)?;
-    Ok((signing_secret, pubkey))
+    #[cfg(test)]
+    {
+        let _ = config;
+        let derived =
+            derive_solana_keypair(&signing_secret.mnemonic, &signing_secret.derivation_path)?;
+        return Ok((signing_secret, derived.verifying_key().to_bytes()));
+    }
+
+    #[cfg(not(test))]
+    {
+        let account = crate::openhuman::modules::wallet::derive_account(config, &signing_secret)
+            .await
+            .map_err(|e| format!("failed to derive the Solana account: {e}"))?;
+        let pubkey = b58_to_pubkey(&account.address)?;
+        Ok((signing_secret, pubkey))
+    }
 }
 
 /// Sign `message` with the wallet key, inside the module.
@@ -264,6 +288,15 @@ async fn solana_sign(
     signing_secret: &tinywallet::wire::SecretMaterial,
     message: &[u8],
 ) -> Result<[u8; 64], String> {
+    #[cfg(test)]
+    {
+        use ed25519_dalek::Signer as _;
+        let _ = config;
+        let key = derive_solana_keypair(&signing_secret.mnemonic, &signing_secret.derivation_path)?;
+        return Ok(key.sign(message).to_bytes());
+    }
+
+    #[cfg(not(test))]
     let signature = crate::openhuman::modules::wallet::sign_message(
         config,
         signing_secret,
@@ -272,12 +305,15 @@ async fn solana_sign(
     )
     .await
     .map_err(|e| format!("failed to sign the Solana message: {e}"))?;
-    let tinywallet::wire::Signature::Ed25519 { signature_hex } = signature else {
-        return Err("the wallet module returned a non-ed25519 Solana signature".to_string());
-    };
-    let bytes = hex_to_bytes(&signature_hex)?;
-    <[u8; 64]>::try_from(bytes.as_slice())
-        .map_err(|_| "the wallet module returned a malformed Solana signature".to_string())
+    #[cfg(not(test))]
+    {
+        let tinywallet::wire::Signature::Ed25519 { signature_hex } = signature else {
+            return Err("the wallet module returned a non-ed25519 Solana signature".to_string());
+        };
+        let bytes = hex_to_bytes(&signature_hex)?;
+        <[u8; 64]>::try_from(bytes.as_slice())
+            .map_err(|_| "the wallet module returned a malformed Solana signature".to_string())
+    }
 }
 
 /// Decode lowercase hex.
