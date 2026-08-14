@@ -1883,6 +1883,9 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             // gated on these families yet. Both flip to reflect reality in the
             // change that routes those tools through the driver.
             Capability::Chunks | Capability::Retrieval => false,
+            // Profile has no controllers of its own — the learning domain's
+            // RPC surface is tagged `Agent`, not `Memory`.
+            Capability::Profile => false,
         };
         assert_eq!(
             gated.contains(&cap),
