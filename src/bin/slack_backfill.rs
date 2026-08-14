@@ -183,8 +183,8 @@ async fn main() -> Result<()> {
     // Bootstrap the memory global so `SyncState` KV reads/writes work
     // from inside `SlackProvider::sync()`. `init` is idempotent and
     // returns the (possibly pre-existing) client.
-    memory::global::init(config.workspace_dir.clone())
-        .map_err(|e| anyhow::anyhow!("[slack_backfill] memory::global::init failed: {e}"))?;
+    tinymemory_core::global::init(config.workspace_dir.clone())
+        .map_err(|e| anyhow::anyhow!("[slack_backfill] tinymemory_core::global::init failed: {e}"))?;
 
     // Register the default Composio providers (gmail, notion, slack).
     // Idempotent — safe even if called twice.
@@ -516,7 +516,7 @@ async fn main() -> Result<()> {
     for conn in &candidates {
         if cli.reset_state {
             let key = format!("slack:{}", conn.id);
-            match memory::global::client_if_ready() {
+            match tinymemory_core::global::client_if_ready() {
                 Some(mem) => match mem.kv_delete(Some("composio-sync-state"), &key).await {
                     Ok(true) => log::info!(
                         "[slack_backfill] reset SyncState for connection={} (cleared cursors)",
