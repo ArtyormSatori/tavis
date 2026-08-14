@@ -193,12 +193,15 @@ async fn single_batch_sync_to_tree() {
     let total_jobs = count_total(&cfg).unwrap();
     assert!(total_jobs >= 1, "extract_chunk job should be queued");
 
-    // DocumentCanonicalized event.
-    tokio::task::yield_now().await;
-    let canonicalized_count = collector.count_by(|e| {
-        matches!(e, DomainEvent::DocumentCanonicalized { source_kind, source_id: sid, .. }
-            if source_kind == "chat" && sid == "gmail:alice-thread-1")
-    });
+    // DocumentCanonicalized event. Waited for, not assumed: the event crosses
+    // two task hops on tinybus, so a bare `yield_now` raced the handler and
+    // made this test flaky — it alternated pass/fail across identical runs.
+    let canonicalized_count = collector
+        .wait_for(1, |e| {
+            matches!(e, DomainEvent::DocumentCanonicalized { source_kind, source_id: sid, .. }
+                if source_kind == "chat" && sid == "gmail:alice-thread-1")
+        })
+        .await;
     assert!(canonicalized_count >= 1);
 
     // Drain: extract → admit → append_buffer.
@@ -233,7 +236,13 @@ async fn single_batch_sync_to_tree() {
         None, // channel-level — not a memory-source row
     );
 
-    tokio::task::yield_now().await;
+    // Same race as above: wait for at least one stage event before reading the
+    // whole stream, rather than yielding once and hoping.
+    collector
+        .wait_for(1, |e| {
+            matches!(e, DomainEvent::MemorySyncStageChanged { .. })
+        })
+        .await;
     let sync_stages: Vec<String> = collector
         .events
         .lock()
@@ -342,12 +351,16 @@ async fn multi_batch_volume_builds_full_tree() {
     // (The global-digest and topic-spawn steps were removed with those
     // trees — source trees plus the entity index are the substrate.)
 
-    // Verify event stream.
-    tokio::task::yield_now().await;
+    // Verify event stream. Twenty events across two task hops each — the
+    // helper exists precisely because a single yield cannot cover that.
+    let canonicalized = collector
+        .wait_for(20, |e| {
+            matches!(e, DomainEvent::DocumentCanonicalized { source_id: sid, .. }
+                if sid == "gmail:alice-volume")
+        })
+        .await;
     assert!(
-        collector.count_by(
-            |e| matches!(e, DomainEvent::DocumentCanonicalized { source_id: sid, .. }
-            if sid == "gmail:alice-volume")
-        ) >= 20
+        canonicalized >= 20,
+        "expected 20 canonicalized events, saw {canonicalized}"
     );
 }
