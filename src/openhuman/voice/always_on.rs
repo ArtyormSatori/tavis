@@ -214,19 +214,14 @@ pub async fn start_if_enabled(app_config: &Config) {
             }
             let frames: Vec<f32> = pending.drain(..whole).collect();
 
-            let energies = match tinyvoice::frame_energies(
-                &config,
-                &frames,
-                FRAME_SAMPLES as u32,
-            )
-            .await
-            {
-                Ok(energies) => energies,
-                Err(error) => {
-                    log::warn!("{LOG_PREFIX} could not measure frame energies: {error}");
-                    continue;
-                }
-            };
+            let energies =
+                match tinyvoice::frame_energies(&config, &frames, FRAME_SAMPLES as u32).await {
+                    Ok(energies) => energies,
+                    Err(error) => {
+                        log::warn!("{LOG_PREFIX} could not measure frame energies: {error}");
+                        continue;
+                    }
+                };
 
             for rms in &energies {
                 level_peak = level_peak.max(*rms);
@@ -400,21 +395,18 @@ async fn transcribe_and_deliver(config: &Config, samples_16k: Vec<f32>) {
             // to the agent: this gate is what keeps a passing conversation out
             // of the assistant, so it fails CLOSED — the opposite of the
             // hallucination filter, where the risk runs the other way.
-            let gated = match tinyvoice::extract_command(
-                config,
-                &text,
-                &config.voice_server.wake_word,
-            )
-            .await
-            {
-                Ok(gated) => gated,
-                Err(error) => {
-                    log::warn!(
+            let gated =
+                match tinyvoice::extract_command(config, &text, &config.voice_server.wake_word)
+                    .await
+                {
+                    Ok(gated) => gated,
+                    Err(error) => {
+                        log::warn!(
                         "{LOG_PREFIX} wake-word gate unavailable ({error}); dropping the utterance"
                     );
-                    return;
-                }
-            };
+                        return;
+                    }
+                };
             match gated {
                 Some(cmd) => {
                     // Redacted: never log the raw spoken command (always-on mic PII).
@@ -425,13 +417,10 @@ async fn transcribe_and_deliver(config: &Config, samples_16k: Vec<f32>) {
                 None => {
                     // Presence is only used to choose between acknowledging and
                     // staying silent, so an error here degrades to silence.
-                    let present = tinyvoice::wake_word_present(
-                        config,
-                        &text,
-                        &config.voice_server.wake_word,
-                    )
-                    .await
-                    .unwrap_or(false);
+                    let present =
+                        tinyvoice::wake_word_present(config, &text, &config.voice_server.wake_word)
+                            .await
+                            .unwrap_or(false);
                     if present {
                         // Wake word spoken with no trailing command ("Hey Tiny").
                         // Acknowledge with an agent turn so the user gets a reply
@@ -669,11 +658,7 @@ fn capture_on_thread(
         SampleFormat::U16 => device.build_input_stream(
             &stream_config,
             move |data: &[u16], _| {
-                forward(
-                    data.iter()
-                        .map(|&s| f32::from(s) / 32768.0 - 1.0)
-                        .collect(),
-                );
+                forward(data.iter().map(|&s| f32::from(s) / 32768.0 - 1.0).collect());
             },
             err_fn,
             None,

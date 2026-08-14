@@ -460,12 +460,7 @@ pub async fn encode_wav_pcm16(
     use base64::Engine as _;
     let bytes: Vec<u8> = samples.iter().flat_map(|s| s.to_le_bytes()).collect();
     let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
-    let wav: String = call(
-        config,
-        "EncodeWavPcm16",
-        (encoded, sample_rate, channels),
-    )
-    .await?;
+    let wav: String = call(config, "EncodeWavPcm16", (encoded, sample_rate, channels)).await?;
     decode_audio(&wav)
 }
 

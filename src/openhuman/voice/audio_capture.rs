@@ -317,42 +317,36 @@ fn record_on_thread(
     let stream = {
         let samples_writer = samples.clone();
         match sample_format {
-            SampleFormat::F32 => {
-                device
-                    .build_input_stream(
-                        &stream_config,
-                        move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                            samples_writer.lock().extend_from_slice(data);
-                        },
-                        |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
-                        None,
-                    )
-                    .map_err(|e| format!("failed to build f32 input stream: {e}"))
-            }
-            SampleFormat::I16 => {
-                device
-                    .build_input_stream(
-                        &stream_config,
-                        move |data: &[i16], _: &cpal::InputCallbackInfo| {
-                            samples_writer.lock().extend_from_slice(&i16_to_f32(data));
-                        },
-                        |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
-                        None,
-                    )
-                    .map_err(|e| format!("failed to build i16 input stream: {e}"))
-            }
-            SampleFormat::U16 => {
-                device
-                    .build_input_stream(
-                        &stream_config,
-                        move |data: &[u16], _: &cpal::InputCallbackInfo| {
-                            samples_writer.lock().extend_from_slice(&u16_to_f32(data));
-                        },
-                        |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
-                        None,
-                    )
-                    .map_err(|e| format!("failed to build u16 input stream: {e}"))
-            }
+            SampleFormat::F32 => device
+                .build_input_stream(
+                    &stream_config,
+                    move |data: &[f32], _: &cpal::InputCallbackInfo| {
+                        samples_writer.lock().extend_from_slice(data);
+                    },
+                    |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
+                    None,
+                )
+                .map_err(|e| format!("failed to build f32 input stream: {e}")),
+            SampleFormat::I16 => device
+                .build_input_stream(
+                    &stream_config,
+                    move |data: &[i16], _: &cpal::InputCallbackInfo| {
+                        samples_writer.lock().extend_from_slice(&i16_to_f32(data));
+                    },
+                    |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
+                    None,
+                )
+                .map_err(|e| format!("failed to build i16 input stream: {e}")),
+            SampleFormat::U16 => device
+                .build_input_stream(
+                    &stream_config,
+                    move |data: &[u16], _: &cpal::InputCallbackInfo| {
+                        samples_writer.lock().extend_from_slice(&u16_to_f32(data));
+                    },
+                    |err| warn!("{LOG_PREFIX} audio stream error: {err}"),
+                    None,
+                )
+                .map_err(|e| format!("failed to build u16 input stream: {e}")),
             other => Err(format!("unsupported sample format: {other:?}")),
         }
     };
