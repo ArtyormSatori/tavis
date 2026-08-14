@@ -246,7 +246,19 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     )
     .await?
     .value;
-    let (sk, derived_addr) = derive_tron_keypair(&mnemonic, &secret.derivation_path)?;
+    // Derivation and signing both happen in the loaded wallet module now, so
+    // this process never holds the key. The phrase goes over a confidential
+    // call, and only to a module that has proved it is an artifact this build
+    // pinned — see `modules::wallet::attested_proxy`.
+    let signing_secret = tinywallet::wire::SecretMaterial {
+        mnemonic,
+        derivation_path: secret.derivation_path.clone(),
+        chain: tinywallet::Chain::Tron,
+    };
+    let derived_addr = crate::openhuman::modules::wallet::derive_account(&config, &signing_secret)
+        .await
+        .map_err(|e| format!("failed to derive the Tron account: {e}"))?
+        .address;
     if derived_addr != quote.from_address {
         return Err(format!(
             "Tron key derivation mismatch: derived {derived_addr} but expected {}",
