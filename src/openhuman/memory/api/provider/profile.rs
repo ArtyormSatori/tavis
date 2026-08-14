@@ -152,10 +152,8 @@ pub trait MemoryProfile: Send + Sync {
     /// # Errors
     ///
     /// Backend failures only.
-    async fn facets_by_type(
-        &self,
-        facet_type: FacetType,
-    ) -> Result<Vec<ProfileFacet>, MemoryError>;
+    async fn facets_by_type(&self, facet_type: FacetType)
+        -> Result<Vec<ProfileFacet>, MemoryError>;
 
     /// Insert or replace a facet wholesale, including host-computed fields.
     ///
