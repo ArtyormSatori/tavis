@@ -39,7 +39,7 @@ use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::agent::learning::candidate::{
     self, CueFamily, FacetClass, LearningCandidate,
 };
-use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
+use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};
 
 // ── Thresholds ────────────────────────────────────────────────────────────────
 
@@ -177,7 +177,8 @@ impl StabilityDetector {
     /// 6. Apply per-class budgets (demote excess Active → Provisional).
     /// 7. Persist changes and delete Dropped rows.
     /// 8. Emit `DomainEvent::CacheRebuilt`.
-    pub fn rebuild(&self, now: f64) -> anyhow::Result<RebuildOutcome> {
+    /// Async since the facet store moved behind the memory driver.
+    pub async fn rebuild(&self, now: f64) -> anyhow::Result<RebuildOutcome> {
         tracing::debug!("[learning::stability] rebuild starting at t={now:.0}");
 
         // Step 1 — drain buffer.
@@ -188,7 +189,7 @@ impl StabilityDetector {
         );
 
         // Step 2 — load existing facets.
-        let existing_facets = self.cache.list_all()?;
+        let existing_facets = self.cache.list_all().await?;
         let existing_by_key: HashMap<String, ProfileFacet> = existing_facets
             .into_iter()
             .map(|f| (f.key.clone(), f))
@@ -367,20 +368,20 @@ impl StabilityDetector {
             } else {
                 kept += 1;
             }
-            self.cache.upsert(&cf.facet)?;
+            self.cache.upsert(&cf.facet).await?;
         }
 
         // (Existing keys not in the rebuild output are legacy/non-class rows — skip.)
 
         // Clean up Dropped rows from the table.
-        let cleaned = self.cache.drop_below_threshold(TAU_EVICT)?;
+        let cleaned = self.cache.drop_below_threshold(TAU_EVICT).await?;
         if cleaned > 0 {
             tracing::debug!(
                 "[learning::stability] cleaned {cleaned} rows below threshold from table"
             );
         }
 
-        let active_rows = self.cache.list_active()?;
+        let active_rows = self.cache.list_active().await?;
         let total_size = active_rows.len();
 
         tracing::info!(
