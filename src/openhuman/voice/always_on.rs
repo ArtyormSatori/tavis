@@ -634,8 +634,10 @@ fn levenshtein(a: &str, b: &str) -> usize {
 
 /// Spawn the dedicated cpal capture thread. Blocks until the stream is set up
 /// (or fails), mirroring `audio_capture::start_recording`'s readiness handshake.
-fn spawn_capture_thread(tx: tokio::sync::mpsc::UnboundedSender<Vec<f32>>) -> Result<(), String> {
-    let (setup_tx, setup_rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
+fn spawn_capture_thread(
+    tx: tokio::sync::mpsc::UnboundedSender<RawChunk>,
+) -> Result<CaptureFormat, String> {
+    let (setup_tx, setup_rx) = std::sync::mpsc::sync_channel::<Result<CaptureFormat, String>>(1);
     std::thread::Builder::new()
         .name("voice-always-on".into())
         .spawn(move || {
@@ -646,7 +648,7 @@ fn spawn_capture_thread(tx: tokio::sync::mpsc::UnboundedSender<Vec<f32>>) -> Res
         })
         .map_err(|e| format!("failed to spawn always-on capture thread: {e}"))?;
     match setup_rx.recv() {
-        Ok(Ok(())) => Ok(()),
+        Ok(Ok(format)) => Ok(format),
         Ok(Err(e)) => Err(e),
         Err(_) => Err("always-on capture thread exited before signalling readiness".to_string()),
     }
@@ -686,7 +688,7 @@ fn capture_on_thread(
         .default_input_config()
         .map_err(|e| format!("no default input config: {e}"))?;
     let source_rate = supported.sample_rate().0;
-    let channels = supported.channels() as usize;
+    let channels = supported.channels();
     let sample_format = supported.sample_format();
     let stream_config: StreamConfig = supported.into();
     // Name + source rate/channels/format vary across M-chip, Intel, and Windows
