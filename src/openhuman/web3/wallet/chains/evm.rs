@@ -115,11 +115,10 @@ async fn sign_and_broadcast(
         gas_price_wei: gas_price.to_string(),
         chain_id,
     };
-    let signed = crate::openhuman::modules::wallet::sign_transaction(
+    let signed = crate::openhuman::modules::wallet::sign_transaction_in_module(
         &config,
         &transaction,
-        derived.secret_bytes(),
-        &public_key,
+        &signing_secret,
     )
     .await
     .map_err(|e| format!("failed to sign EVM transaction: {e}"))?;
