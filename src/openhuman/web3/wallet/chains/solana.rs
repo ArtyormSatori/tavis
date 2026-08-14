@@ -102,6 +102,8 @@ pub async fn native_balance(address: &str) -> Result<u128, String> {
 /// its own error variant rather than folding it into a generic parse failure,
 /// because such a path is derivable-looking but underivable on ed25519 — and
 /// silently hardening it would return a different account than the path names.
+/// Test-only: production derives inside the wallet module.
+#[cfg(test)]
 fn derive_solana_keypair(mnemonic: &str, derivation_path: &str) -> Result<SigningKey, String> {
     let derived = tinywallet::key::derive(tinywallet::Chain::Solana, mnemonic, derivation_path)
         .map_err(|e| e.to_string())?;

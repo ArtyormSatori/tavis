@@ -126,6 +126,8 @@ pub async fn broadcast_raw_hex(tx_hex: &str) -> Result<String, String> {
 /// Delegates to the vendored [`tinywallet`] crate, which owns BIP-32
 /// secp256k1 derivation. Custody stays here: the mnemonic is decrypted from
 /// the keyring by this crate and handed over as a `&str` that is not retained.
+/// Test-only: production derives inside the wallet module.
+#[cfg(test)]
 fn derive_btc_private_key(
     mnemonic: &str,
     derivation_path: &str,
