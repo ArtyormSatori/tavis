@@ -13,7 +13,7 @@ use crate::openhuman::memory::api::types::MemoryTaint;
 use crate::openhuman::memory::guard::test_support::{
     document, embedded_policy, external_policy, guarded,
 };
-use crate::openhuman::memory::source_scope::with_source_scope;
+use tinymemory_core::source_scope::with_source_scope;
 use crate::openhuman::security::live_policy;
 use crate::openhuman::security::policy::{AutonomyLevel, SecurityPolicy};
 

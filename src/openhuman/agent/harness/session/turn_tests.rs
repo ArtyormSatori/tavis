@@ -2211,7 +2211,7 @@ async fn fetch_learned_context_returns_general_prefs_when_explicit_flag_on_learn
     // writes them). The explicit path now reads `user_pref_general`, not the
     // legacy `user_profile` pinned namespace.
     mem.store(
-        crate::openhuman::memory::preferences::USER_PREF_GENERAL_NAMESPACE,
+        tinymemory_core::preferences::USER_PREF_GENERAL_NAMESPACE,
         "package_manager",
         "Use pnpm for package management.",
         crate::openhuman::memory::MemoryCategory::Core,
@@ -2220,7 +2220,7 @@ async fn fetch_learned_context_returns_general_prefs_when_explicit_flag_on_learn
     .await
     .unwrap();
     mem.store(
-        crate::openhuman::memory::preferences::USER_PREF_GENERAL_NAMESPACE,
+        tinymemory_core::preferences::USER_PREF_GENERAL_NAMESPACE,
         "verbosity",
         "Keep replies terse.",
         crate::openhuman::memory::MemoryCategory::Core,
@@ -2305,7 +2305,7 @@ async fn fetch_learned_context_loads_general_prefs_when_learning_enabled() {
     let tmp = tempfile::TempDir::new().unwrap();
     let mem = make_real_memory(tmp.path());
     mem.store(
-        crate::openhuman::memory::preferences::USER_PREF_GENERAL_NAMESPACE,
+        tinymemory_core::preferences::USER_PREF_GENERAL_NAMESPACE,
         "tone",
         "Be concise and direct.",
         crate::openhuman::memory::MemoryCategory::Core,

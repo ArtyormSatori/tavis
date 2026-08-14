@@ -98,7 +98,7 @@ impl Tool for MemoryChunkContextTool {
         // Per-profile memory-source gate: if the target chunk belongs to a
         // source the active profile didn't allow, surface nothing (its window
         // shares the same source). Non-source chunks always pass.
-        if !crate::openhuman::memory::source_scope::chunk_source_allowed(
+        if !tinymemory_core::source_scope::chunk_source_allowed(
             &target.metadata.tags,
             &source_id,
         ) {

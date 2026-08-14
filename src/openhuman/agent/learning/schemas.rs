@@ -656,7 +656,7 @@ fn handle_rebuild_cache(_params: Map<String, Value>) -> ControllerFuture {
 
         tracing::debug!("[learning.rebuild_cache] manual rebuild requested via RPC");
 
-        let client = crate::openhuman::memory::global::client_if_ready()
+        let client = tinymemory_core::global::client_if_ready()
             .ok_or_else(|| "memory client not ready".to_string())?;
         let cache = FacetCache::new(client.profile_store());
         let detector = StabilityDetector::new(cache);
@@ -693,7 +693,7 @@ fn handle_cache_stats(_params: Map<String, Value>) -> ControllerFuture {
 
         tracing::debug!("[learning.cache_stats] cache stats requested via RPC");
 
-        let client = crate::openhuman::memory::global::client_if_ready()
+        let client = tinymemory_core::global::client_if_ready()
             .ok_or_else(|| "memory client not ready".to_string())?;
         let cache = FacetCache::new(client.profile_store());
 
@@ -753,7 +753,7 @@ fn handle_cache_stats(_params: Map<String, Value>) -> ControllerFuture {
 
 /// Build a [`FacetCache`] from the global memory client, or return a string error.
 fn get_cache() -> Result<crate::openhuman::agent::learning::cache::FacetCache, String> {
-    let client = crate::openhuman::memory::global::client_if_ready()
+    let client = tinymemory_core::global::client_if_ready()
         .ok_or_else(|| "memory client not ready".to_string())?;
     Ok(crate::openhuman::agent::learning::cache::FacetCache::new(
         client.profile_store(),

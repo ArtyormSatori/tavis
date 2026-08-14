@@ -28,7 +28,7 @@ use tinymemory_core::store::profile::{FacetState, ProfileFacet, UserState};
 
 /// Acquire the profile facet cache, mirroring `learning::schemas::get_cache`.
 fn get_cache() -> anyhow::Result<FacetCache> {
-    let client = crate::openhuman::memory::global::client_if_ready()
+    let client = tinymemory_core::global::client_if_ready()
         .ok_or_else(|| anyhow::anyhow!("memory client not ready"))?;
     Ok(FacetCache::new(client.profile_store()))
 }

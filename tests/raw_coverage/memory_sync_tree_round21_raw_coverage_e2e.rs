@@ -441,7 +441,7 @@ async fn slack_sync_status_rpc_reads_mock_connections_and_persisted_state() {
     state.mark_synced("C21:1714003200.000100");
     state.record_requests(7);
     let state_adapter =
-        openhuman_core::openhuman::memory::tinycortex::HostSyncAdapter::new(memory.clone());
+        tinymemory_core::tinycortex::HostSyncAdapter::new(memory.clone());
     state
         .save(&state_adapter)
         .await

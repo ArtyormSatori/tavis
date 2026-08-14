@@ -15,7 +15,7 @@ use anyhow::Result;
 use std::io::Read;
 use std::path::PathBuf;
 
-use crate::openhuman::memory::ingestion::{MemoryIngestionConfig, MemoryIngestionRequest};
+use tinymemory_core::ingestion::{MemoryIngestionConfig, MemoryIngestionRequest};
 use tinymemory_core::store::NamespaceDocumentInput;
 
 /// Entry point for `openhuman memory <subcommand>`.
@@ -516,7 +516,7 @@ async fn create_memory_client(subcommand: &str) -> Result<tinymemory_core::store
         }
     }
 
-    crate::openhuman::memory::global::init(config.workspace_dir).map_err(anyhow::Error::msg)
+    tinymemory_core::global::init(config.workspace_dir).map_err(anyhow::Error::msg)
 }
 
 fn print_memory_help() {

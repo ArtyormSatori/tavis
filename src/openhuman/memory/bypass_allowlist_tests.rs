@@ -69,7 +69,7 @@ use std::path::{Path, PathBuf};
 ///
 /// Substring needles, not regexes, and deliberately path-*suffixed*: the same
 /// call is written `memory::global::client_if_ready()`,
-/// `crate::openhuman::memory::global::client_if_ready()` and
+/// `tinymemory_core::global::client_if_ready()` and
 /// `super::super::global::client_if_ready()` in this tree, so anchoring on an
 /// absolute path would miss the third.
 ///

@@ -443,7 +443,7 @@ mod tests {
 
     #[tokio::test]
     async fn cover_window_rpc_honors_profile_source_scope() {
-        use crate::openhuman::memory::source_scope::with_source_scope;
+        use tinymemory_core::source_scope::with_source_scope;
         let (_tmp, cfg) = test_config();
         // Two memory-source chunks in different sources, both inside the window.
         let mut allowed = sample_chunk("slack:#eng", 0);

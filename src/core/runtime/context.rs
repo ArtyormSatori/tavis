@@ -501,7 +501,7 @@ pub async fn init_stores(
         // `MemoryBinding::for_workspace`.
         #[cfg(feature = "modules")]
         crate::openhuman::modules::memory::set_modules_policy(Arc::new(cfg.clone()));
-        match crate::openhuman::memory::global::init(cfg.workspace_dir.clone()) {
+        match tinymemory_core::global::init(cfg.workspace_dir.clone()) {
             Ok(_) => log::info!(
                 "[boot] memory::global initialized (workspace={})",
                 cfg.workspace_dir.display()

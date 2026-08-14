@@ -1,6 +1,6 @@
 use super::*;
 use crate::openhuman::agent::hooks::{ToolCallRecord, TurnContext};
-use crate::openhuman::memory::chat::ChatPrompt;
+use tinymemory_core::chat::ChatPrompt;
 use std::sync::OnceLock;
 use tinymemory_core::store::{events as ev, fts5, segments as seg};
 
@@ -36,8 +36,8 @@ where
     // keeps the *chat* side offline, since `build_chat_runtime` checks it
     // before building anything.
     crate::openhuman::memory::host_impls::install_for_tests();
-    crate::openhuman::memory::chat::test_override::with_provider(
-        Arc::new(crate::openhuman::memory::chat::StaticChatProvider::new(
+    tinymemory_core::chat::test_override::with_provider(
+        Arc::new(tinymemory_core::chat::StaticChatProvider::new(
             "{}",
         )),
         fut,
@@ -385,7 +385,7 @@ async fn phase0_episodic_rows_and_segment_without_learning_enabled() {
 struct StubChatProvider;
 
 #[async_trait::async_trait]
-impl crate::openhuman::memory::chat::ChatProvider for StubChatProvider {
+impl tinymemory_core::chat::ChatProvider for StubChatProvider {
     fn name(&self) -> &str {
         "stub:test"
     }

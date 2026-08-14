@@ -578,7 +578,7 @@ async fn composio_delete_connection_clear_memory_deletes_slack_source() {
 /// content file sits at the production `content_path` location.
 #[tokio::test]
 async fn composio_delete_connection_clear_memory_cascades_source_tree_and_content_file() {
-    use crate::openhuman::memory::tree_source::registry::get_or_create_source_tree;
+    use tinymemory_core::tree_source::registry::get_or_create_source_tree;
     use rusqlite::params;
     use tinymemory_core::store::trees::store as tree_store;
     use tinymemory_core::store::trees::types::{SummaryNode, TreeKind};
@@ -698,7 +698,7 @@ async fn composio_delete_connection_clear_memory_cascades_source_tree_and_conten
 #[tokio::test]
 async fn composio_delete_connection_clear_memory_cascades_live_sealed_tree_and_file() {
     use crate::openhuman::memory::tree::tree::bucket_seal::{seal_one_level, LabelStrategy};
-    use crate::openhuman::memory::tree_source::registry::get_or_create_source_tree;
+    use tinymemory_core::tree_source::registry::get_or_create_source_tree;
     use tinymemory_core::store::chunks::store::{
         get_summary_content_pointers, upsert_staged_chunks_tx,
     };
@@ -903,7 +903,7 @@ async fn notion_cleanup_targets_include_synced_page_sources() {
     let mut state = SyncState::new("notion", "conn-1");
     state.mark_synced("page-a@2026-01-01T00:00:00Z");
     state.mark_synced("page-b");
-    let adapter = crate::openhuman::memory::tinycortex::HostSyncAdapter::new(memory);
+    let adapter = tinymemory_core::tinycortex::HostSyncAdapter::new(memory);
     state.save(&adapter).await.expect("sync state should save");
 
     let targets = composio_memory_targets_for_connection(&config, Some("notion"), "conn-1")
@@ -1191,7 +1191,7 @@ async fn composio_sync_gmail_via_mock_stores_skill_document_and_updates_outcome(
     config.memory_tree.embedding_strict = false;
     let _workspace_env_guard = WorkspaceEnvGuard::set(tmp.path());
     config.save().await.unwrap();
-    let _ = crate::openhuman::memory::global::init(config.workspace_dir.clone()).unwrap();
+    let _ = tinymemory_core::global::init(config.workspace_dir.clone()).unwrap();
 
     let outcome = composio_sync(&config, "c1", Some("manual".to_string()))
         .await
@@ -1222,7 +1222,7 @@ async fn composio_sync_gmail_via_mock_stores_skill_document_and_updates_outcome(
     let documents = {
         let mut documents = Vec::new();
         for _ in 0..50 {
-            documents = crate::openhuman::memory::global::client_if_ready()
+            documents = tinymemory_core::global::client_if_ready()
                 .expect("memory client remains initialized")
                 .list_documents(Some("skill-gmail"))
                 .await
@@ -2463,7 +2463,7 @@ async fn init_memory_client(workspace: &std::path::Path) -> tokio::sync::MutexGu
     let guard = crate::openhuman::memory::ops::GLOBAL_MEMORY_TEST_LOCK
         .lock()
         .await;
-    crate::openhuman::memory::global::init(workspace.to_path_buf())
+    tinymemory_core::global::init(workspace.to_path_buf())
         .expect("global memory client should initialize for enrichment test");
     guard
 }

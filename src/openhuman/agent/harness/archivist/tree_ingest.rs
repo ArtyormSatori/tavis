@@ -4,7 +4,7 @@
 use super::helpers::strip_tool_calls_from_response;
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::ingest_pipeline;
+use tinymemory_core::ingest_pipeline;
 #[cfg(test)]
 use std::sync::Arc;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
@@ -123,7 +123,7 @@ impl ArchivistHook {
 
         #[cfg(test)]
         let ingest_result = if let Some(provider) = self.chat_provider.as_ref() {
-            crate::openhuman::memory::chat::test_override::with_provider(
+            tinymemory_core::chat::test_override::with_provider(
                 Arc::clone(provider),
                 ingest_pipeline::ingest_chat(config, source_id, owner, tags, batch),
             )

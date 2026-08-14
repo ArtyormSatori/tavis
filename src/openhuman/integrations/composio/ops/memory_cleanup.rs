@@ -94,7 +94,7 @@ async fn notion_memory_targets_for_connection(
             )
         })?,
     );
-    let adapter = crate::openhuman::memory::tinycortex::HostSyncAdapter::new(memory);
+    let adapter = tinymemory_core::tinycortex::HostSyncAdapter::new(memory);
     let state = tinycortex::memory::sync::SyncState::load(&adapter, "notion", connection_id)
         .await
         .map_err(|error| {

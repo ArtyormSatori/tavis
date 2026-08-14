@@ -10,7 +10,7 @@ use std::sync::Arc;
 use tokio::sync::broadcast::error::RecvError;
 
 use crate::core::socketio::WebChannelEvent;
-use crate::openhuman::memory::rpc_models::CreateConversationThreadRequest;
+use tinymemory_core::rpc_models::CreateConversationThreadRequest;
 use crate::openhuman::threads::ops::thread_create_new;
 use crate::openhuman::web_chat::{start_chat, subscribe_web_channel_events, ChatRequestMetadata};
 

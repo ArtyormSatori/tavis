@@ -40,7 +40,7 @@ use std::sync::Arc;
 use crate::core::runtime::context::CoreContext;
 use crate::openhuman::config::schema::MemorySubsystemConfig;
 use crate::openhuman::memory::binding;
-use crate::openhuman::memory::global;
+use tinymemory_core::global;
 use crate::openhuman::memory::guard::MemoryGuard;
 
 /// The guarded memory driver for this dispatch.

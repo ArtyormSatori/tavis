@@ -9,10 +9,10 @@ use tempfile::tempdir;
 use chrono::{TimeZone, Utc};
 
 use openhuman_core::openhuman::config::Config;
-use openhuman_core::openhuman::memory::ingest_pipeline::ingest_chat;
-use openhuman_core::openhuman::memory::queue::drain_until_idle;
+use tinymemory_core::ingest_pipeline::ingest_chat;
+use tinymemory_core::queue::drain_until_idle;
 use openhuman_core::openhuman::memory::tree::ingest::{ingest_summary, SummaryIngestInput};
-use openhuman_core::openhuman::memory::tree_source::registry::get_or_create_source_tree;
+use tinymemory_core::tree_source::registry::get_or_create_source_tree;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
 use tinymemory_core::store::content::atomic::stage_summary;
 use tinymemory_core::store::content::obsidian::ensure_obsidian_defaults;

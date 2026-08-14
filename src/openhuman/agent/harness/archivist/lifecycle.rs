@@ -4,7 +4,7 @@
 use super::helpers::{extract_profile_key, uuid_v4};
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::chat::ChatProvider;
+use tinymemory_core::chat::ChatProvider;
 use crate::openhuman::memory::tree::score::embed::{build_embedder_from_config, Embedder};
 use parking_lot::Mutex;
 use rusqlite::Connection;
@@ -46,7 +46,7 @@ impl ArchivistHook {
     pub fn with_config(mut self, config: Config) -> Self {
         // Build the LLM chat provider for segment recap.
         let chat_provider: Option<Arc<dyn ChatProvider>> =
-            match crate::openhuman::memory::chat::build_chat_provider(&config) {
+            match tinymemory_core::chat::build_chat_provider(&config) {
                 Ok(p) => {
                     tracing::debug!("[archivist] segment recap provider={} registered", p.name());
                     Some(p)

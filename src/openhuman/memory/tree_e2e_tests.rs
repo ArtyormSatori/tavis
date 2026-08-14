@@ -17,9 +17,9 @@ use chrono::{TimeZone, Utc};
 use tempfile::TempDir;
 
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::chat::{test_override, ChatProvider, StaticChatProvider};
-use crate::openhuman::memory::ingest_pipeline::ingest_chat;
-use crate::openhuman::memory::queue::drain_until_idle;
+use tinymemory_core::chat::{test_override, ChatProvider, StaticChatProvider};
+use tinymemory_core::ingest_pipeline::ingest_chat;
+use tinymemory_core::queue::drain_until_idle;
 use crate::openhuman::memory::tree::retrieval::{query_source, search_entities};
 use crate::openhuman::memory::tree::score::embed::build_embedder_from_config;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};

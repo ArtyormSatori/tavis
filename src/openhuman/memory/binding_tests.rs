@@ -281,7 +281,7 @@ async fn unrelated_test_binding_cannot_capture_the_module_workspace() {
         .await
         .expect("module-backed put");
 
-    let client = crate::openhuman::memory::global::client().expect("shared test client");
+    let client = tinymemory_core::global::client().expect("shared test client");
     let raw = client
         .list_documents(Some(&namespace))
         .await

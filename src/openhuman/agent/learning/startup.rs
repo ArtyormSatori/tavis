@@ -28,7 +28,7 @@
 use std::path::Path;
 use std::sync::OnceLock;
 
-use crate::openhuman::memory::global::client_if_ready;
+use tinymemory_core::global::client_if_ready;
 use tinybus::SubscriptionHandle;
 use tinymemory_core::store::MemoryClientRef;
 

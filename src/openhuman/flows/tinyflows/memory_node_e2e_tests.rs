@@ -240,7 +240,7 @@ async fn memory_node_remember_then_recall_round_trips_through_the_real_engine_an
     // `flow_memory_recall` agent tool for the same flow_id — proving one
     // shared store, not two namespace conventions that happen to overlap by
     // convention (see memory_adapter.rs's module doc). ──
-    let memory = crate::openhuman::memory::global::client_if_ready()
+    let memory = tinymemory_core::global::client_if_ready()
         .expect("global memory client must be initialized by lock_shared_memory")
         .memory_handle();
     let recall_tool = FlowMemoryRecallTool::new(memory);
@@ -313,7 +313,7 @@ async fn memory_node_remember_user_scope_is_rejected_and_never_touches_user_memo
 
     // ── (c) the user's real, durable GLOBAL_NAMESPACE store is untouched by
     // either attempt above. ──
-    let memory = crate::openhuman::memory::global::client_if_ready()
+    let memory = tinymemory_core::global::client_if_ready()
         .expect("global memory client must be initialized by lock_shared_memory")
         .memory_handle();
     let entry = memory
@@ -334,7 +334,7 @@ async fn memory_node_dry_run_uses_mock_memory_and_never_touches_the_real_store()
     let _serial = lock_shared_memory().await;
     let flow_id = unique_flow_id("e2e-dryrun");
 
-    let memory = crate::openhuman::memory::global::client_if_ready()
+    let memory = tinymemory_core::global::client_if_ready()
         .expect("global memory client must be initialized by lock_shared_memory")
         .memory_handle();
 

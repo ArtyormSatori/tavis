@@ -72,12 +72,15 @@ mod tree_e2e_tests;
 //
 // `pub use … as …` rather than `pub mod` — these are other crates' modules now.
 // Every one of these was a `pub mod` here before the extraction.
-pub use tinymemory_core::{
-    chat, chat_host, composio_host, config_loader, embedding_adapter, embedding_host, events,
-    global, ingest_pipeline, ingestion, learning_candidate, nlp_host, observability, preferences,
-    queue, remember, rpc_models, scheduler_gate, search, source_scope, sync_events, test_env_lock,
-    thread_context, tinycortex, traits, tree_policy, tree_source, util,
-};
+// The engine's modules are **not** re-exported here any more.
+//
+// They used to be, under their historical `memory::…` paths, which made engine
+// access indistinguishable from host-local code at every call site: a line
+// reading `crate::openhuman::memory::store::chunks::…` never appeared in a
+// `tinymemory_core` grep, so the audit that scoped this port undercounted the
+// direct-engine surface roughly threefold. Every remaining caller now names
+// `tinymemory_core::` explicitly, so `grep tinymemory_core` is an honest
+// inventory of what still has to move behind the driver.
 
 pub use ingestion::{
     ExtractedEntity, ExtractedRelation, ExtractionMode, IngestionJob, IngestionQueue,

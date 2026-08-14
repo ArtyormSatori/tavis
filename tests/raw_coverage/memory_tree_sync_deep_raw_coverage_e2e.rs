@@ -18,10 +18,10 @@ use serde_json::json;
 use tempfile::TempDir;
 
 use openhuman_core::openhuman::config::{Config, SchedulerGateMode};
-use openhuman_core::openhuman::memory::chat::{ChatPrompt, ChatProvider};
+use tinymemory_core::chat::{ChatPrompt, ChatProvider};
 use openhuman_core::openhuman::memory::queue as jobs;
-use openhuman_core::openhuman::memory::queue::types::ReembedBackfillPayload;
-use openhuman_core::openhuman::memory::queue::{ExtractChunkPayload, NewJob};
+use tinymemory_core::queue::types::ReembedBackfillPayload;
+use tinymemory_core::queue::{ExtractChunkPayload, NewJob};
 use tinymemory_core::store::chunks::store::{
     set_chunk_embedding, upsert_chunks, with_connection,
 };

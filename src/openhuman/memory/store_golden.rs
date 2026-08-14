@@ -48,7 +48,7 @@ use crate::openhuman::memory::ops::{
     doc_list, doc_put, graph_query, graph_upsert, kv_get, memory_query_namespace, GraphQueryParams,
     GraphUpsertParams, KvGetDeleteParams, KvSetParams, NamespaceOnlyParams, PutDocParams,
 };
-use crate::openhuman::memory::rpc_models::QueryNamespaceRequest;
+use tinymemory_core::rpc_models::QueryNamespaceRequest;
 use tinymemory_core::store::chunks;
 use tinymemory_core::store::chunks::types::{Chunk, Metadata, SourceKind, SourceRef};
 use tinymemory_core::store::namespace_store::{events, fts5, profile, segments};
@@ -142,7 +142,7 @@ pub async fn seed(workspace: &Path) -> Result<()> {
     seed_kv().await?;
     seed_graph().await?;
 
-    let client = crate::openhuman::memory::global::client()
+    let client = tinymemory_core::global::client()
         .map_err(|e| anyhow::anyhow!("[golden] memory client not bound: {e}"))?;
     let conn = client.profile_conn();
 
@@ -514,7 +514,7 @@ pub async fn read_back(workspace: &Path) -> Result<Readback> {
     .value
     .len();
 
-    let client = crate::openhuman::memory::global::client()
+    let client = tinymemory_core::global::client()
         .map_err(|e| anyhow::anyhow!("[golden] memory client not bound: {e}"))?;
     let conn = client.profile_conn();
 

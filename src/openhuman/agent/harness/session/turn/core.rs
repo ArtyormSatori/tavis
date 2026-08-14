@@ -738,7 +738,7 @@ impl Agent {
         // no block is injected.
         {
             let situational =
-                crate::openhuman::memory::preferences::recall_situational_preferences(
+                tinymemory_core::preferences::recall_situational_preferences(
                     &self.memory,
                     user_message,
                 )

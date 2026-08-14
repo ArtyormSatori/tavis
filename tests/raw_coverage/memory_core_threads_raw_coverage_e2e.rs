@@ -16,7 +16,7 @@ use openhuman_core::openhuman::config::Config;
 use openhuman_core::openhuman::memory::read_rpc::{
     self, ChunkFilter, GraphMode, ResetTreeResponse,
 };
-use openhuman_core::openhuman::memory::tree_source::get_or_create_source_tree;
+use tinymemory_core::tree_source::get_or_create_source_tree;
 use openhuman_core::openhuman::memory::{
     AppendConversationMessageRequest, ConversationMessageRecord, ConversationMessagesRequest,
     CreateConversationThreadRequest, DeleteConversationThreadRequest, EmptyRequest,

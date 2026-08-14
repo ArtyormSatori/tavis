@@ -23,11 +23,11 @@ use tempfile::TempDir;
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::ingest_pipeline::ingest_chat;
-use crate::openhuman::memory::queue::{
+use tinymemory_core::ingest_pipeline::ingest_chat;
+use tinymemory_core::queue::{
     self as memory_queue, count_total, drain_until_idle, JobStatus,
 };
-use crate::openhuman::memory::sync_events::{emit_sync_stage, MemorySyncStage, MemorySyncTrigger};
+use tinymemory_core::sync_events::{emit_sync_stage, MemorySyncStage, MemorySyncTrigger};
 use crate::openhuman::memory::tree::retrieval::{query_source, search_entities};
 use crate::openhuman::memory::tree::score::store::lookup_entity;
 use tinybus::EventHandler;

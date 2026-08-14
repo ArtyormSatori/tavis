@@ -3,7 +3,7 @@
 use super::*;
 use std::sync::Arc;
 
-use crate::openhuman::memory::source_scope::with_source_scope;
+use tinymemory_core::source_scope::with_source_scope;
 use crate::openhuman::security::live_policy;
 use crate::openhuman::security::policy::{AutonomyLevel, SecurityPolicy};
 

@@ -374,7 +374,7 @@ pub(crate) async fn current_workspace_dir() -> Result<PathBuf, String> {
 /// The auto-init resolves the workspace via [`current_workspace_dir`], which
 /// goes through `Config::load_or_init` — the same path startup wiring uses.
 /// It does **not** fall back to `~/.openhuman/workspace`; that hazard is the
-/// one [`crate::openhuman::memory::global::client`] guards against, and it
+/// one [`tinymemory_core::global::client`] guards against, and it
 /// remains guarded for any caller that bypasses this helper.
 pub(crate) async fn active_memory_client() -> Result<MemoryClientRef, String> {
     if let Some(client) = super::super::global::client_if_ready() {

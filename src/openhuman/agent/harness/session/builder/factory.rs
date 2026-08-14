@@ -305,7 +305,7 @@ impl Agent {
             None
         } else {
             Some(
-                crate::openhuman::memory::global::init(config.workspace_dir.clone())
+                tinymemory_core::global::init(config.workspace_dir.clone())
                     .map_err(anyhow::Error::msg)?
                     .memory_handle(),
             )

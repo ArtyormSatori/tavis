@@ -3,7 +3,7 @@
 
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::chat::ChatProvider;
+use tinymemory_core::chat::ChatProvider;
 use crate::openhuman::memory::tree::score::embed::Embedder;
 use parking_lot::Mutex;
 use rusqlite::Connection;

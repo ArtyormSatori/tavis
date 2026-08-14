@@ -71,7 +71,7 @@ impl ArchivistHook {
         session_id: &str,
     ) -> Vec<SessionEntry> {
         if let Some(cfg) = self.config.as_ref() {
-            let engine_config = crate::openhuman::memory::tinycortex::memory_config_from(
+            let engine_config = tinymemory_core::tinycortex::memory_config_from(
                 cfg,
                 cfg.workspace_dir.clone(),
             );
@@ -197,7 +197,7 @@ impl ArchivistHook {
                 );
                 #[cfg(test)]
                 let summary_result = if let Some(provider) = self.chat_provider.as_ref() {
-                    crate::openhuman::memory::chat::test_override::with_provider(
+                    tinymemory_core::chat::test_override::with_provider(
                         Arc::clone(provider),
                         summarise(config, &corpus_inputs, &summary_ctx),
                     )

@@ -29,8 +29,8 @@ use openhuman_core::openhuman::memory::query::{
     MemoryQueryTool, MemoryTreeDrillDownTool, MemoryTreeFetchLeavesTool,
     MemoryTreeIngestDocumentTool, MemoryTreeQuerySourceTool, MemoryTreeSearchEntitiesTool,
 };
-use openhuman_core::openhuman::memory::queue::types::ReembedBackfillPayload;
-use openhuman_core::openhuman::memory::queue::{
+use tinymemory_core::queue::types::ReembedBackfillPayload;
+use tinymemory_core::queue::{
     self as memory_queue, AppendBufferPayload, AppendTarget, ExtractChunkPayload,
     FlushStalePayload, JobKind, JobStatus, NewJob, NodeRef, SealPayload, DEFAULT_LOCK_DURATION_MS,
 };
@@ -121,8 +121,8 @@ use openhuman_core::openhuman::memory::tree::tree_runtime::{
     NodeLevel, TreeNode,
 };
 use openhuman_core::openhuman::memory::tree::{retrieval, score::embed};
-use openhuman_core::openhuman::memory::tree_policy::TreePolicy;
-use openhuman_core::openhuman::memory::tree_source;
+use tinymemory_core::tree_policy::TreePolicy;
+use tinymemory_core::tree_source;
 use openhuman_core::openhuman::memory::{
     all_memory_controller_schemas, all_memory_registered_controllers,
     preferences::{
@@ -2993,7 +2993,7 @@ async fn memory_sync_provider_trait_defaults_and_connection_hook_are_determinist
     // unready client and see 0 instead of 1. Bind the global to this test's
     // workspace up front so the assertion is independent of execution order.
     ensure_memory_seams();
-    openhuman_core::openhuman::memory::global::init(tmp.path().to_path_buf())
+    tinymemory_core::global::init(tmp.path().to_path_buf())
         .expect("init global memory client");
     let ctx = ProviderContext {
         config: Arc::new(config_in(&tmp)),
@@ -4708,7 +4708,7 @@ async fn memory_sources_types_registry_and_sync_state_cover_public_persistence_e
             .expect("memory client"),
     );
     let adapter =
-        openhuman_core::openhuman::memory::tinycortex::HostSyncAdapter::new(memory.clone());
+        tinymemory_core::tinycortex::HostSyncAdapter::new(memory.clone());
     let fresh = SyncState::load(&adapter, "gmail", "conn-raw")
         .await
         .expect("fresh state");
@@ -4732,7 +4732,7 @@ async fn memory_sources_types_registry_and_sync_state_cover_public_persistence_e
 
     memory
         .kv_set(
-            Some(openhuman_core::openhuman::memory::tinycortex::HOST_SYNC_STATE_NAMESPACE),
+            Some(tinymemory_core::tinycortex::HOST_SYNC_STATE_NAMESPACE),
             "composio-sync-state:gmail:bad-json",
             &json!("not a sync state"),
         )

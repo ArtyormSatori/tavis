@@ -251,7 +251,7 @@ pub async fn delete_chunk_rpc(
                     if e.kind() != std::io::ErrorKind::NotFound {
                         log::warn!(
                             "[memory_tree::read::delete] failed to remove chunk file path_hash={}: {e}",
-                            crate::openhuman::memory::util::redact::redact(&rel),
+                            tinymemory_core::util::redact::redact(&rel),
                         );
                     }
                 }

@@ -21,8 +21,8 @@
 
 use chrono::{TimeZone, Utc};
 use openhuman_core::openhuman::config::Config;
-use openhuman_core::openhuman::memory::ingest_pipeline::{ingest_chat, ingest_email};
-use openhuman_core::openhuman::memory::queue::drain_until_idle;
+use tinymemory_core::ingest_pipeline::{ingest_chat, ingest_email};
+use tinymemory_core::queue::drain_until_idle;
 use openhuman_core::openhuman::tools::{
     MemoryTreeFetchLeavesTool, MemoryTreeSearchEntitiesTool, Tool,
 };

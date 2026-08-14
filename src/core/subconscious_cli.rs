@@ -111,7 +111,7 @@ fn run_tick(args: &[String]) -> Result<()> {
         );
 
         // Init memory client
-        let _ = crate::openhuman::memory::global::init(config.workspace_dir.clone());
+        let _ = tinymemory_core::global::init(config.workspace_dir.clone());
 
         // Init scheduler gate so is_signed_out() works
         crate::openhuman::cron::scheduler_gate::init_global(&config);

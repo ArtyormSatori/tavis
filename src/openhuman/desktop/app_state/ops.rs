@@ -528,7 +528,7 @@ async fn finish_revalidated_user_activation(
     user_id: &str,
     service_rebind_source: Option<&Config>,
 ) {
-    if let Err(error) = crate::openhuman::memory::global::init(target_config.workspace_dir.clone())
+    if let Err(error) = tinymemory_core::global::init(target_config.workspace_dir.clone())
     {
         warn!(
             "{LOG_PREFIX} failed to bind memory client after pending session revalidation: {error}"
