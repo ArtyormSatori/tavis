@@ -377,11 +377,11 @@ pub(crate) async fn current_workspace_dir() -> Result<PathBuf, String> {
 /// one [`tinymemory_core::global::client`] guards against, and it
 /// remains guarded for any caller that bypasses this helper.
 pub(crate) async fn active_memory_client() -> Result<MemoryClientRef, String> {
-    if let Some(client) = super::tinymemory_core::global::client_if_ready() {
+    if let Some(client) = tinymemory_core::global::client_if_ready() {
         return Ok(client);
     }
     let workspace_dir = current_workspace_dir().await?;
-    super::tinymemory_core::global::init(workspace_dir)
+    tinymemory_core::global::init(workspace_dir)
 }
 
 // ---------------------------------------------------------------------------

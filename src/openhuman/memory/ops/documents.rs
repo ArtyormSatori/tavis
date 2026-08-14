@@ -379,7 +379,7 @@ pub async fn memory_init(
     let _ = request.jwt_token; // accepted but unused — memory is local-only
     let workspace_dir = current_workspace_dir().await?;
     // Initialise (or return existing) global singleton.
-    let _ = super::tinymemory_core::global::init(workspace_dir.clone())?;
+    let _ = tinymemory_core::global::init(workspace_dir.clone())?;
     let memory_dir = workspace_dir.join("memory");
     Ok(envelope(
         MemoryInitResponse {
