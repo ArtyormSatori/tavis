@@ -325,11 +325,10 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
             return Err(error);
         }
     };
-    let signed = crate::openhuman::modules::wallet::sign_transaction(
+    let signed = crate::openhuman::modules::wallet::sign_transaction_in_module(
         &config,
         &transaction,
-        &sk,
-        &public_key,
+        &signing_secret,
     )
     .await
     .map_err(|e| format!("failed to sign Tron transaction: {e}"))?;
