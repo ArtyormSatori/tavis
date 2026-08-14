@@ -320,8 +320,89 @@ const TINYJUICE: ModuleRecord = ModuleRecord {
     load: LoadPolicy::Lazy,
 };
 
+/// The `tinyvoice` module: the host-agnostic half of the voice pipeline.
+///
+/// Wake-word gating, fast-path command routing, STT hallucination detection,
+/// and the capture-side audio work (downmix, resample, silence gate, WAV
+/// framing).
+///
+/// Lazy, and more clearly so than the others: voice is opt-in twice over — a
+/// user has to enable dictation or always-on listening before any of this runs
+/// — so a session that never speaks should not pay a download or a `dlopen`.
+///
+/// **The VAD deliberately does not come through here.** A segmenter is driven
+/// once per 20 ms frame from inside a `cpal` callback, and a bus round trip at
+/// that cadence would cost more than the sixty-line state machine it replaces.
+/// `voice::always_on` keeps its own; see [`super::voice`].
+const TINYVOICE: ModuleRecord = ModuleRecord {
+    id: "tinyvoice",
+    description: "Wake-word gating, command routing, hallucination detection, capture audio",
+    bus_name: "ai.tinyhumans.tinyvoice.Voice",
+    object_path: "/ai/tinyhumans/tinyvoice/Voice",
+    version: "0.1.1",
+    release_url: "https://github.com/tinyhumansai/tinyvoice/releases/tag/v0.1.1",
+    assets: &[
+        PlatformAsset {
+            host_key: "ubuntu-24.04-x86_64",
+            archive: "tinyvoice-module-0.1.1-ubuntu-24.04-x86_64.tar.gz",
+            sha256: "137bf18f0c051df51884a67b4040a50990ccd91596960213876c59defebd1758",
+        },
+        PlatformAsset {
+            host_key: "ubuntu-24.04-arm64",
+            archive: "tinyvoice-module-0.1.1-ubuntu-24.04-arm64.tar.gz",
+            sha256: "13f55b44a4fdb1105acfbab32813924bf5fcd0d11bd71f2a0686a83f98d2cbf1",
+        },
+        PlatformAsset {
+            host_key: "ubuntu-22.04-x86_64",
+            archive: "tinyvoice-module-0.1.1-ubuntu-22.04-x86_64.tar.gz",
+            sha256: "aa386352223c34e7f2bf60a10326b6ebc48db7b598730fb934bcfe309a89918d",
+        },
+        PlatformAsset {
+            host_key: "ubuntu-22.04-arm64",
+            archive: "tinyvoice-module-0.1.1-ubuntu-22.04-arm64.tar.gz",
+            sha256: "9102a49e99985bb618bb395d50d78980ed5042e86c628d1fbb9af4e885bbf761",
+        },
+        PlatformAsset {
+            host_key: "macos-26-arm64",
+            archive: "tinyvoice-module-0.1.1-macos-26-arm64.tar.gz",
+            sha256: "65ff1fb14ce5ab4086f05e8fd019f39029124d4df7769dfdeed323642ced3442",
+        },
+        PlatformAsset {
+            host_key: "macos-26-x86_64",
+            archive: "tinyvoice-module-0.1.1-macos-26-x86_64.tar.gz",
+            sha256: "5e6dcb9c34e38ea8db0da6d0f3960ab78a9ac39daa08400566666726033ef5eb",
+        },
+        PlatformAsset {
+            host_key: "macos-15-arm64",
+            archive: "tinyvoice-module-0.1.1-macos-15-arm64.tar.gz",
+            sha256: "ee204151b15dcd058c8331c33dbb979d6c81152e7f1af229c0db7ab6a3e71ef0",
+        },
+        PlatformAsset {
+            host_key: "macos-15-x86_64",
+            archive: "tinyvoice-module-0.1.1-macos-15-x86_64.tar.gz",
+            sha256: "8465a904bf8f11b8a4c973e13d7a4793b702c12cac1b87efe7cbfd0a03357dff",
+        },
+        PlatformAsset {
+            host_key: "windows-2025-x86_64",
+            archive: "tinyvoice-module-0.1.1-windows-2025-x86_64.zip",
+            sha256: "6e18d62cddc19c043bf56e74a6e17935eef11c71ef3fbf09000fffb0f26b12d4",
+        },
+        PlatformAsset {
+            host_key: "windows-2022-x86_64",
+            archive: "tinyvoice-module-0.1.1-windows-2022-x86_64.zip",
+            sha256: "a6db1a7c47aea19c1a84f1f924fd6be0564bedc1369ed056434414205fe655cd",
+        },
+        PlatformAsset {
+            host_key: "windows-11-arm64",
+            archive: "tinyvoice-module-0.1.1-windows-11-arm64.zip",
+            sha256: "76532e7165f15402c9924e9e9c5ff2431320f2c8efc4a5fab22a2d0a46868b12",
+        },
+    ],
+    load: LoadPolicy::Lazy,
+};
+
 /// Every module this build can load.
-pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET, TINYMEMORY, TINYJUICE];
+pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET, TINYMEMORY, TINYJUICE, TINYVOICE];
 
 /// The record for `id`, if this build knows it.
 #[must_use]
