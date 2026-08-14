@@ -477,7 +477,17 @@ unicode-width = { version = "0.2", optional = true }
 # What stays is address validation, key derivation, the `Transport` seam, the
 # wire contract, EIP-712 hashing and ERC-20 calldata — none of which needs a
 # chain library.
-tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["btc", "evm", "solana", "tron", "keccak", "key", "net", "wire", "eip712", "abi", "x402", "tx-codec"], optional = true }
+# Key derivation (`key`) and transaction signing (`tx`) are deliberately absent:
+# both happen inside the loaded tinywallet module now, so this binary links
+# neither. What is left is the wire contract, address validation, the EIP-712 /
+# ABI encoders the x402 payment path builds with, the `Transport` seam, and
+# `tx-codec` — the Tron *verifier*, which runs host-side before a transaction is
+# sent for signing and needs no `bitcoin` build.
+#
+# `key` is re-enabled under [dev-dependencies] so test fixtures can still derive
+# a known account. Dev-dependency features are not linked into the shipped
+# binary, so that does not undo the shed.
+tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["btc", "evm", "solana", "tron", "keccak", "net", "wire", "eip712", "abi", "tx-codec"], optional = true }
 
 # secp256k1 signing over the digests the wallet module hands back. Pure Rust,
 # and already in the graph beneath `coins-bip32` (which derives the key being
