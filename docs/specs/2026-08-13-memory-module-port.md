@@ -601,6 +601,37 @@ caller of `set_embedding_host`). The whole-suite runs never caught it because
 the pre-existing stack overflow in `agent::harness::session::runtime` aborts
 that binary first. One `Once`-guarded call fixes it: 144 → 145 passing.
 
+### 2h. The measured remaining surface, after the facade came down
+
+`grep tinymemory_core src/` is now the inventory. By engine module:
+
+| Module | Refs | What it is, and what it needs |
+| --- | --- | --- |
+| `store::chunks` | 52 | Partly `MemoryChunks` already; `memory/read_rpc/` uses `with_connection` and raw SQL and needs its own design |
+| `store::create_memory` | 31 | A **constructor** — host code building its own `MemoryClient`. Fundamentally incompatible with the module owning the store; these call sites go away rather than convert |
+| `store::profile` | 26 | The learning/profile subsystem (`ProfileFacet`, `FacetState`, `UserState` + SQL). No contract representation; needs a family design like §1d |
+| `global` | 40 | The process-global memory client — the same shape as the people global just deleted |
+| `queue` | 37 | The ingest job queue |
+| `tinycortex` | 26 | Direct engine reach-through |
+| `store::safety` | 14 | **Blocked, see below** |
+| `store::{UnifiedMemory,trees,segments,fts,content}` | ~45 | Engine internals with no contract analogue |
+
+**`store::safety` cannot simply come home.** TinyMemory's README puts redaction
+on the host, and the 2,065-LOC PII/secret detector currently sits in the engine
+— but the engine *uses* it on its own write paths in 14 places (`store::kv`,
+`goals::store`, `persona`). Moving it host-side would fork it, and a forked
+redactor is the same class of hazard as §3's forked embedding signature, with
+worse consequences. It is a third-crate extraction (the `tinydocs` /
+`tinywallet` shape), not a move.
+
+**Honest sizing for the rest.** Stages 2–5 need, at minimum: a contract family
+for the profile/learning subsystem; a decision for each `create_memory` call
+site; a design for `memory/read_rpc/`'s raw-SQL surface; the `global` and
+`queue` seams; a `tinysafety` extraction; then the module release, the
+`tinymemory-api` retirement (§ordering constraint) and the dep drop. That is a
+programme measured in weeks, not a tail-end sweep — and the number is now
+trustworthy, which it was not before §2g.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
