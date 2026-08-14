@@ -573,8 +573,42 @@ async fn build_evm_payment(
     challenge: &PaymentRequired,
     req: &PaymentRequirements,
 ) -> Result<PaymentPayload, X402Error> {
-    let (secret, from_address) = derive_evm_signer().await?;
-    build_evm_payment_with_signer(&secret, &from_address, challenge, req)
+    let (config, signing_secret, from_address) = evm_signer().await?;
+    let authorization = evm_payment_authorization(&from_address, req)?;
+
+    // Signed in the wallet module over the prehashed EIP-712 digest. This
+    // process never holds the EVM key.
+    let signature = crate::openhuman::modules::wallet::sign_message(
+        &config,
+        &signing_secret,
+        &authorization.digest,
+        tinywallet::wire::Scheme::Secp256k1Prehash,
+    )
+    .await
+    .map_err(|e| X402Error::Wallet(format!("sign EIP-3009: {e}")))?;
+    let tinywallet::wire::Signature::Secp256k1 {
+        rs_hex,
+        recovery_id,
+    } = signature
+    else {
+        return Err(X402Error::Wallet(
+            "the wallet module returned a non-secp256k1 signature".to_string(),
+        ));
+    };
+    let rs = hex::decode(&rs_hex)
+        .map_err(|e| X402Error::Wallet(format!("invalid signature hex: {e}")))?;
+    if rs.len() != 64 {
+        return Err(X402Error::Wallet(
+            "the wallet module returned a malformed signature".to_string(),
+        ));
+    }
+    let mut sig_bytes = [0u8; 65];
+    sig_bytes[..64].copy_from_slice(&rs);
+    sig_bytes[64] = recovery_id
+        .checked_add(27)
+        .ok_or_else(|| X402Error::Wallet("recovery id out of range".to_string()))?;
+
+    evm_payment_payload(&authorization, sig_bytes, &from_address, challenge, req)
 }
 
 /// The EIP-712 digest to sign, and the fields the payload needs alongside it.
@@ -714,7 +748,14 @@ pub(crate) fn evm_payment_payload(
 /// goes through `tinywallet::key` — the same BIP-32 walk the wallet domain uses,
 /// so an x402 payment is signed by exactly the account the wallet reports — and
 /// the key stays in this process.
-async fn derive_evm_signer() -> Result<(Vec<u8>, String), X402Error> {
+async fn evm_signer() -> Result<
+    (
+        crate::openhuman::config::Config,
+        tinywallet::wire::SecretMaterial,
+        String,
+    ),
+    X402Error,
+> {
     use crate::openhuman::web3::wallet::WalletChain;
 
     let secret = crate::openhuman::web3::wallet::secret_material(WalletChain::Evm)
