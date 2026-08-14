@@ -51,7 +51,6 @@ use tokio::sync::Mutex;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 
 use super::postprocess;
-use super::wav::pcm16_to_wav;
 use crate::openhuman::config::Config;
 use crate::openhuman::voice::{create_stt_provider, effective_stt_provider};
 
@@ -227,8 +226,22 @@ pub async fn handle_dictation_ws(mut socket: WebSocket, config: Arc<Config>) {
     );
 
     // The client streams headerless PCM16LE; the hosted endpoint needs a
-    // container, so wrap it in a WAV before upload.
-    let wav_bytes = pcm16_to_wav(&final_samples, AUDIO_SAMPLE_RATE as u32, 1);
+    // container, so wrap it in a WAV before upload. `EncodeWavPcm16` keeps the
+    // samples exact rather than round-tripping them through `f32`.
+    let wav_bytes = match crate::openhuman::modules::voice::encode_wav_pcm16(
+        &config,
+        &final_samples,
+        AUDIO_SAMPLE_RATE as u32,
+        1,
+    )
+    .await
+    {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            log::warn!("{LOG_PREFIX} could not frame dictation audio as WAV: {error}");
+            return;
+        }
+    };
     let provider_name = effective_stt_provider(&config);
     let audio_base64 = BASE64.encode(&wav_bytes);
     let raw_text = match async {

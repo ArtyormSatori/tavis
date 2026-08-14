@@ -440,6 +440,33 @@ pub async fn frame_energies(
     .await
 }
 
+/// Frame 16-bit PCM samples as a WAV file, without touching the samples.
+///
+/// Distinct from [`encode_wav`] because a caller holding `i16` should not have
+/// to widen to `f32` and let the module narrow back: that round trip is lossy
+/// by one LSB for no reason. This path is exact.
+///
+/// # Errors
+///
+/// [`VoiceCallError`] when the module is unavailable or the call fails.
+pub async fn encode_wav_pcm16(
+    config: &Config,
+    samples: &[i16],
+    sample_rate: u32,
+    channels: u16,
+) -> Result<Vec<u8>, VoiceCallError> {
+    use base64::Engine as _;
+    let bytes: Vec<u8> = samples.iter().flat_map(|s| s.to_le_bytes()).collect();
+    let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
+    let wav: String = call(
+        config,
+        "EncodeWavPcm16",
+        (encoded, sample_rate, channels),
+    )
+    .await?;
+    decode_audio(&wav)
+}
+
 /// Load the voice module if it is not already serving.
 ///
 /// Callers do not have to invoke this — every operation above does it — but a

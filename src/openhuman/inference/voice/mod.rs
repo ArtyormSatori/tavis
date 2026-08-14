@@ -7,7 +7,6 @@
 pub mod cloud_transcribe;
 pub mod local_speech;
 pub mod postprocess;
-pub mod wav;
 // The dictation WebSocket handler (`handle_dictation_ws`) is the module's whole
 // public surface and axum-only, and its sole caller is the gated core HTTP
 // router (`core::jsonrpc::dictation_ws_handler`). The module is therefore
