@@ -258,8 +258,15 @@ pub async fn handle_402_and_pay(
 
     let payment = match chain {
         PaymentChain::Solana => {
-            let signing_key = derive_wallet_signing_key().await?;
-            build_solana_payment(&signing_key, &challenge, requirement).await?
+            let (config, signing_secret, our_pubkey) = wallet_signer().await?;
+            build_solana_payment(
+                &config,
+                &signing_secret,
+                our_pubkey,
+                &challenge,
+                requirement,
+            )
+            .await?
         }
         PaymentChain::Evm => build_evm_payment(&challenge, requirement).await?,
     };
@@ -279,7 +286,19 @@ pub async fn handle_402_and_pay(
 }
 
 /// Derive the wallet's Solana ed25519 signing key from the encrypted mnemonic.
-async fn derive_wallet_signing_key() -> Result<SigningKey, X402Error> {
+/// The phrase to sign a payment with, its config, and the wallet's public key.
+///
+/// Derivation happens in the loaded wallet module; this process never holds the
+/// private key. The phrase is handed over on a confidential call, and only to a
+/// module that has proved it is an artifact this build pinned.
+async fn wallet_signer() -> Result<
+    (
+        crate::openhuman::config::Config,
+        tinywallet::wire::SecretMaterial,
+        [u8; 32],
+    ),
+    X402Error,
+> {
     use crate::openhuman::web3::wallet::WalletChain;
 
     let secret = crate::openhuman::web3::wallet::secret_material(WalletChain::Solana)
@@ -298,7 +317,16 @@ async fn derive_wallet_signing_key() -> Result<SigningKey, X402Error> {
     .map_err(|e| X402Error::Wallet(format!("decrypt mnemonic: {e}")))?
     .value;
 
-    derive_solana_keypair_from_mnemonic(&mnemonic, &secret.derivation_path)
+    let signing_secret = tinywallet::wire::SecretMaterial {
+        mnemonic,
+        derivation_path: secret.derivation_path.clone(),
+        chain: tinywallet::Chain::Solana,
+    };
+    let account = crate::openhuman::modules::wallet::derive_account(&config, &signing_secret)
+        .await
+        .map_err(|e| X402Error::Wallet(format!("derive account: {e}")))?;
+    let pubkey = b58_to_32(&account.address)?;
+    Ok((config, signing_secret, pubkey))
 }
 
 fn derive_solana_keypair_from_mnemonic(
@@ -479,11 +507,12 @@ fn parse_settlement_response(b64_str: &str) -> Result<SettlementResponse, String
 ///   2. TransferChecked { amount, decimals=6 }
 ///   3. Memo (if extra.memo set, otherwise random 16-byte hex nonce)
 async fn build_solana_payment(
-    signing_key: &SigningKey,
+    config: &crate::openhuman::config::Config,
+    signing_secret: &tinywallet::wire::SecretMaterial,
+    our_pubkey: [u8; 32],
     challenge: &PaymentRequired,
     req: &PaymentRequirements,
 ) -> Result<PaymentPayload, X402Error> {
-    let our_pubkey = signing_key.verifying_key().to_bytes();
     let amount: u64 = req
         .amount
         .parse()
@@ -551,8 +580,23 @@ async fn build_solana_payment(
     wire.extend(encode_shortvec(2)); // 2 required signatures
     wire.extend([0u8; 64]); // slot 0: fee_payer (left zeroed for facilitator)
 
-    let sig = signing_key.sign(&message);
-    wire.extend(sig.to_bytes()); // slot 1: our signature
+    // Signed in the module: the phrase goes over a confidential call and the
+    // private key is never assembled in this process.
+    let signature = crate::openhuman::modules::wallet::sign_message(
+        config,
+        signing_secret,
+        &message,
+        tinywallet::wire::Scheme::Ed25519,
+    )
+    .await
+    .map_err(|e| X402Error::Wallet(format!("sign payment: {e}")))?;
+    let tinywallet::wire::Signature::Ed25519 { signature_hex } = signature else {
+        return Err(X402Error::Wallet(
+            "the wallet module returned a non-ed25519 signature".to_string(),
+        ));
+    };
+    let sig_bytes = hex_to_32_bytes_64(&signature_hex)?;
+    wire.extend(sig_bytes); // slot 1: our signature
     wire.extend(&message);
 
     let tx_b64 = B64.encode(&wire);
@@ -918,4 +962,19 @@ async fn fetch_recent_blockhash_for_x402() -> Result<[u8; 32], X402Error> {
     .map_err(|e| X402Error::Wallet(format!("fetch blockhash: {e}")))?;
 
     b58_to_32(&result.value.blockhash)
+}
+
+/// Decode a 64-byte signature returned as lowercase hex by the wallet module.
+fn hex_to_32_bytes_64(value: &str) -> Result<[u8; 64], X402Error> {
+    if value.len() != 128 {
+        return Err(X402Error::Wallet(
+            "the wallet module returned a malformed signature".to_string(),
+        ));
+    }
+    let mut out = [0u8; 64];
+    for (index, slot) in out.iter_mut().enumerate() {
+        *slot = u8::from_str_radix(&value[index * 2..index * 2 + 2], 16)
+            .map_err(|e| X402Error::Wallet(format!("invalid signature hex: {e}")))?;
+    }
+    Ok(out)
 }
