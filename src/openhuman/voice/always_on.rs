@@ -344,10 +344,10 @@ fn notch_status(status: &str, ttl_ms: u32) {
 async fn transcribe_and_deliver(config: &Config, samples_16k: Vec<f32>) {
     use base64::Engine as _;
     let sample_count = samples_16k.len();
-    let wav = match encode_wav_16k(&samples_16k) {
-        Ok(w) => w,
-        Err(e) => {
-            log::warn!("{LOG_PREFIX} wav encode failed: {e}");
+    let wav = match tinyvoice::encode_wav(config, &samples_16k, TARGET_SAMPLE_RATE).await {
+        Ok(wav) => wav,
+        Err(error) => {
+            log::warn!("{LOG_PREFIX} wav encode failed: {error}");
             return;
         }
     };
@@ -396,7 +396,26 @@ async fn transcribe_and_deliver(config: &Config, samples_16k: Vec<f32>) {
             }
             // Wake-word gate: only act on utterances addressed to the agent
             // ("Hey Tiny, …"). Strip the wake phrase and deliver the command.
-            match extract_command(&text, &config.voice_server.wake_word) {
+            // A module failure here must not deliver an unaddressed utterance
+            // to the agent: this gate is what keeps a passing conversation out
+            // of the assistant, so it fails CLOSED — the opposite of the
+            // hallucination filter, where the risk runs the other way.
+            let gated = match tinyvoice::extract_command(
+                config,
+                &text,
+                &config.voice_server.wake_word,
+            )
+            .await
+            {
+                Ok(gated) => gated,
+                Err(error) => {
+                    log::warn!(
+                        "{LOG_PREFIX} wake-word gate unavailable ({error}); dropping the utterance"
+                    );
+                    return;
+                }
+            };
+            match gated {
                 Some(cmd) => {
                     // Redacted: never log the raw spoken command (always-on mic PII).
                     log::info!("{LOG_PREFIX} wake word matched → cmd_len={}", cmd.len());
@@ -404,7 +423,16 @@ async fn transcribe_and_deliver(config: &Config, samples_16k: Vec<f32>) {
                     deliver_command(config, cmd).await;
                 }
                 None => {
-                    if wake_word_present(&text, &config.voice_server.wake_word) {
+                    // Presence is only used to choose between acknowledging and
+                    // staying silent, so an error here degrades to silence.
+                    let present = tinyvoice::wake_word_present(
+                        config,
+                        &text,
+                        &config.voice_server.wake_word,
+                    )
+                    .await
+                    .unwrap_or(false);
+                    if present {
                         // Wake word spoken with no trailing command ("Hey Tiny").
                         // Acknowledge with an agent turn so the user gets a reply
                         // instead of silence, then they can follow up.
