@@ -5,7 +5,7 @@
 //! standalone voice dictation server (hotkey → record → transcribe → insert).
 //!
 //! Inference implementations (local_speech, cloud_transcribe,
-//! hallucination, streaming, postprocess) now live under
+//! streaming, postprocess) now live under
 //! `crate::openhuman::inference::voice` so all inference concerns share a
 //! single domain root.
 //!
@@ -70,8 +70,6 @@ mod types;
 // `voice::cloud_transcribe`, etc. continue to resolve for existing callers.
 #[cfg(feature = "voice")]
 pub use crate::openhuman::inference::voice::cloud_transcribe;
-#[cfg(feature = "voice")]
-pub use crate::openhuman::inference::voice::hallucination;
 #[cfg(feature = "voice")]
 pub use crate::openhuman::inference::voice::local_speech;
 #[cfg(feature = "voice")]

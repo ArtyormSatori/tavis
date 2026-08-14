@@ -5,7 +5,6 @@
 //! implementations that `voice/` imports.
 
 pub mod cloud_transcribe;
-pub mod hallucination;
 pub mod local_speech;
 pub mod postprocess;
 pub mod wav;
