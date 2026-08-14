@@ -48,6 +48,14 @@ pub struct RecordingResult {
 pub struct RecordingHandle {
     stop_flag: Arc<AtomicBool>,
     result_rx: Option<oneshot::Receiver<Result<RawRecording, String>>>,
+    /// A finished result to hand back instead of preparing one.
+    ///
+    /// Test-only. `stop` now ends in module calls, so a test that wants to
+    /// exercise what the *pipeline* does with a result — the short-audio and
+    /// silence gates in `server` — would otherwise have to stand up a module
+    /// to assert something that has nothing to do with audio.
+    #[cfg(test)]
+    finalized: Option<Result<RecordingResult, String>>,
 }
 
 /// What the capture thread produces: the device's own samples, untouched.
@@ -82,6 +90,11 @@ impl RecordingHandle {
         self.stop_flag.store(true, Ordering::SeqCst);
         debug!("{LOG_PREFIX} stop signal sent");
 
+        #[cfg(test)]
+        if let Some(finalized) = self.finalized.take() {
+            return finalized;
+        }
+
         let raw = match self.result_rx.take() {
             Some(rx) => rx
                 .await
@@ -91,14 +104,13 @@ impl RecordingHandle {
         finalize(config, &raw).await
     }
 
+    /// A handle whose `stop` yields `result` without touching audio or the bus.
     #[cfg(test)]
-    pub(crate) fn from_test_result(result: Result<RawRecording, String>) -> Self {
-        let (tx, rx) = oneshot::channel();
-        tx.send(result)
-            .expect("test recording result receiver should be open");
+    pub(crate) fn from_test_result(result: Result<RecordingResult, String>) -> Self {
         Self {
             stop_flag: Arc::new(AtomicBool::new(false)),
-            result_rx: Some(rx),
+            result_rx: None,
+            finalized: Some(result),
         }
     }
 }
@@ -183,6 +195,8 @@ pub fn start_recording() -> Result<RecordingHandle, String> {
             Ok(RecordingHandle {
                 stop_flag,
                 result_rx: Some(result_rx),
+                #[cfg(test)]
+                finalized: None,
             })
         }
         Ok(Err(e)) => Err(e),
