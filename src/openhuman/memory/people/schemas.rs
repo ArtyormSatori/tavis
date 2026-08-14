@@ -348,8 +348,7 @@ fn handle_score(params: Map<String, Value>) -> ControllerFuture {
         // Still parsed here so a malformed id fails the same way it always has,
         // with the param name in the message, rather than as a driver error.
         let id_s = read_required_string(&params, "person_id")?;
-        uuid::Uuid::parse_str(&id_s)
-            .map_err(|e| format!("invalid 'person_id' '{id_s}': {e}"))?;
+        uuid::Uuid::parse_str(&id_s).map_err(|e| format!("invalid 'person_id' '{id_s}': {e}"))?;
         to_json(rpc::handle_score(people, &id_s).await?)
     })
 }

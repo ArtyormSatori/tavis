@@ -19,7 +19,10 @@ use crate::openhuman::memory::api::provider::{MemoryPeople, PersonHandle, Person
 use crate::rpc::RpcOutcome;
 
 /// Render one person plus their score into the published `people.*` shape.
-fn person_json(person: &PersonRecord, score: &crate::openhuman::memory::api::provider::PersonScore) -> Value {
+fn person_json(
+    person: &PersonRecord,
+    score: &crate::openhuman::memory::api::provider::PersonScore,
+) -> Value {
     let handles: Vec<Value> = person
         .handles
         .iter()
@@ -55,7 +58,10 @@ fn person_json(person: &PersonRecord, score: &crate::openhuman::memory::api::pro
 /// interactions the score is computed from, so ranking host-side would mean
 /// fetching every person's history across the bus to re-derive an order the
 /// driver already produced.
-pub async fn handle_list(people: &dyn MemoryPeople, limit: usize) -> Result<RpcOutcome<Value>, String> {
+pub async fn handle_list(
+    people: &dyn MemoryPeople,
+    limit: usize,
+) -> Result<RpcOutcome<Value>, String> {
     let limit = limit.clamp(1, 500);
     let ranked = people
         .list_people(Some(limit))

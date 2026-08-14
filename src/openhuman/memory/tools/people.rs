@@ -15,14 +15,11 @@ use async_trait::async_trait;
 use chrono::Utc;
 use serde_json::json;
 
-use crate::core::runtime::context::CoreContext;
-use crate::openhuman::memory::people::rpc;
-use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
-use crate::openhuman::memory::api::provider::{
-    MemoryProvider, PersonHandle, PersonInteraction,
-};
+use crate::openhuman::memory::api::provider::{MemoryProvider, PersonHandle, PersonInteraction};
 use crate::openhuman::memory::guard::MemoryGuard;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::memory::people::rpc;
+use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
 
 /// The guarded driver for this call, checked to serve the people family.
 ///

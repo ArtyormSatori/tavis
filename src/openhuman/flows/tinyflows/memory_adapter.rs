@@ -399,9 +399,10 @@ impl MemoryProvider for OpenHumanMemory {
         })?;
 
         const DEFAULT_PEOPLE_LIMIT: usize = 100;
-        let outcome = crate::openhuman::memory::people::rpc::handle_list(people, DEFAULT_PEOPLE_LIMIT)
-            .await
-            .map_err(EngineError::Capability)?;
+        let outcome =
+            crate::openhuman::memory::people::rpc::handle_list(people, DEFAULT_PEOPLE_LIMIT)
+                .await
+                .map_err(EngineError::Capability)?;
 
         let shaped = match query {
             None => outcome.value,
