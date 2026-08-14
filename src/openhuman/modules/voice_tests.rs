@@ -89,3 +89,65 @@ fn errors_render_as_their_message() {
         "bad payload"
     );
 }
+
+/// A config with modules enabled but nothing fetchable.
+fn offline_config() -> Config {
+    let mut config = Config::default();
+    config.modules.enabled = true;
+    config.modules.allow_download = false;
+    config
+}
+
+#[tokio::test]
+async fn a_disabled_host_reports_unavailable_without_starting_a_broker() {
+    // Every entry point has to reach the unavailable path on its own: they
+    // each call `ensure_loaded` separately, so one of them forgetting to
+    // would only show up as a hang or a panic in the field.
+    let mut config = offline_config();
+    config.modules.enabled = false;
+
+    assert!(matches!(
+        super::route(&config, "pause").await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+    assert!(matches!(
+        super::extract_command(&config, "hey tiny pause", "Hey Tiny").await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+    assert!(matches!(
+        super::wake_word_present(&config, "hey tiny", "Hey Tiny").await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+    assert!(matches!(
+        super::is_hallucinated(&config, "okay", HallucinationMode::Dictation).await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+    assert!(matches!(
+        super::encode_wav(&config, &[0.1, 0.2], 16_000).await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+    assert!(matches!(
+        super::prepare_capture(&config, &[0.1, 0.2], 32_000, 2, 0.0).await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+    assert!(matches!(
+        super::ensure_ready(&config).await,
+        Err(VoiceCallError::Unavailable(_))
+    ));
+}
+
+#[test]
+fn the_registry_entry_matches_the_interface_this_client_calls() {
+    // The bus name and object path are duplicated between the registry and
+    // the module's own source. A mismatch is not a compile error — it is a
+    // `NameHasNoOwner` at first use, in the field, on whichever platform
+    // nobody tested.
+    let record = crate::openhuman::modules::registry::find("tinyvoice")
+        .expect("tinyvoice is registered");
+    assert_eq!(record.bus_name, "ai.tinyhumans.tinyvoice.Voice");
+    assert_eq!(record.object_path, "/ai/tinyhumans/tinyvoice/Voice");
+    assert!(
+        record.object_path.starts_with('/') && !record.object_path.contains('.'),
+        "an object path with a dot in it is rejected by the loader, not by the compiler"
+    );
+}
