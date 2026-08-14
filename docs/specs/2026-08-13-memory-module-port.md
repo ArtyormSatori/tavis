@@ -61,6 +61,10 @@ it is finishing a cutover that stopped half way.
 > contract representation and would each need a design decision like the ones
 > in §1d. The staging and sequencing still hold; the size estimate does not.
 >
+> **Measured empirically:** deleting just `store` from that re-export list —
+> one of ~24 names — breaks **89 call sites across 51 files** in production
+> code alone (`cargo check`, no tests). That is one re-export.
+>
 > **The facade is also the thing to delete last.** While
 > `pub use tinymemory_core::{…}` stands, every new call site can reach the
 > engine without looking like it does. Removing those re-exports first — and
