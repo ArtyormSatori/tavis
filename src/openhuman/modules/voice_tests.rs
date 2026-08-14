@@ -151,3 +151,82 @@ fn the_registry_entry_matches_the_interface_this_client_calls() {
         "an object path with a dot in it is rejected by the loader, not by the compiler"
     );
 }
+
+/// Drive the real published module through OpenHuman's own module host.
+///
+/// `#[ignore]`d, and it must stay that way. The bus belongs to whichever
+/// runtime creates it, so two `#[tokio::test]`s that each load a module find
+/// the second one's broker already dead and hang rather than fail. A
+/// module-backed test has to be the only one in its process:
+///
+/// ```sh
+/// GGML_NATIVE=OFF cargo test --lib --features "$(bash scripts/ci/product-features.sh)" \
+///   modules::voice::tests::the_published_module_answers -- --ignored --exact --nocapture
+/// ```
+///
+/// It also downloads from the pinned release, so it needs network and is not
+/// something CI should carry.
+#[tokio::test]
+#[ignore = "loads a real module: needs network, and must be alone in its process"]
+async fn the_published_module_answers_through_this_client() {
+    let mut config = Config::default();
+    config.modules.enabled = true;
+    config.modules.allow_download = true;
+
+    // The whole client surface, against the artifact the registry pins.
+    assert_eq!(
+        super::route(&config, "please pause the music").await.expect("route"),
+        VoiceIntent::Pause
+    );
+    assert_eq!(
+        super::route(&config, "set volume to 40").await.expect("route"),
+        VoiceIntent::SetVolume { percent: 40 }
+    );
+    assert_eq!(
+        super::route(&config, "what is the weather").await.expect("route"),
+        VoiceIntent::Unknown
+    );
+    assert_eq!(
+        super::extract_command(&config, "hey tiny open slack", "Hey Tiny")
+            .await
+            .expect("extract"),
+        Some("open slack".to_string())
+    );
+    assert_eq!(
+        super::extract_command(&config, "open slack", "Hey Tiny")
+            .await
+            .expect("extract"),
+        None
+    );
+    assert!(
+        super::wake_word_present(&config, "hey tiny", "Hey Tiny")
+            .await
+            .expect("present")
+    );
+
+    // The mode split is the reason this call takes a mode at all.
+    assert!(
+        super::is_hallucinated(&config, "okay", HallucinationMode::Dictation)
+            .await
+            .expect("dictation")
+    );
+    assert!(
+        !super::is_hallucinated(&config, "okay", HallucinationMode::Conversation)
+            .await
+            .expect("conversation")
+    );
+
+    // 400 interleaved stereo samples at 32 kHz -> 100 mono at 16 kHz.
+    let stereo: Vec<f32> = (0..400).map(|i| ((i as f32) / 20.0).sin() * 0.5).collect();
+    let wav = super::prepare_capture(&config, &stereo, 32_000, 2, 0.0)
+        .await
+        .expect("prepare_capture");
+    assert_eq!(&wav[0..4], b"RIFF");
+    assert_eq!(&wav[8..12], b"WAVE");
+    assert_eq!(wav.len(), 44 + 100 * 2);
+    assert_eq!(
+        u32::from_le_bytes(wav[24..28].try_into().expect("4 bytes")),
+        16_000,
+        "the header must declare the rate the samples were converted to"
+    );
+}
