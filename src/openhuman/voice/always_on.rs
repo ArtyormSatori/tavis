@@ -25,12 +25,12 @@
 //! Privacy: always-on is **opt-in** (`config.voice_server.always_on_enabled`,
 //! default false) and pauses when the screen is locked.
 
-// ── Continuous capture loop ─────────────────────────────────────────────────
-
 use crate::openhuman::config::Config;
 use crate::openhuman::modules::voice as tinyvoice;
 use crate::openhuman::voice::audio_capture::TARGET_SAMPLE_RATE;
 use std::sync::atomic::{AtomicBool, Ordering};
+
+const LOG_PREFIX: &str = "[voice::always_on]";
 
 /// One chunk of raw capture, exactly as the device delivered it.
 ///
