@@ -608,7 +608,7 @@ that binary first. One `Once`-guarded call fixes it: 144 → 145 passing.
 | Module | Refs | What it is, and what it needs |
 | --- | --- | --- |
 | `store::chunks` | 52 | Partly `MemoryChunks` already; `memory/read_rpc/` uses `with_connection` and raw SQL and needs its own design |
-| `store::create_memory` | 31 | A **constructor** — host code building its own `MemoryClient`. Fundamentally incompatible with the module owning the store; these call sites go away rather than convert |
+| `store::create_memory` | 31 | **30 of these are tests.** Only *one* production site constructs a `MemoryClient` — the "31 per-site decisions" reading was wrong. Test constructions are not a split brain and go when the dep does |
 | `store::profile` | 26 | The learning/profile subsystem (`ProfileFacet`, `FacetState`, `UserState` + SQL). No contract representation; needs a family design like §1d |
 | `global` | 40 | The process-global memory client — the same shape as the people global just deleted |
 | `queue` | 37 | The ingest job queue |
@@ -623,6 +623,12 @@ on the host, and the 2,065-LOC PII/secret detector currently sits in the engine
 redactor is the same class of hazard as §3's forked embedding signature, with
 worse consequences. It is a third-crate extraction (the `tinydocs` /
 `tinywallet` shape), not a move.
+
+**Production vs test, measured.** The raw counts mix both. Split properly:
+**342 production references across 131 files**, and 125 test references. The
+split matters per cluster — `create_memory` is 1 production / 31 test, while
+`store::safety` is 14 / 0 and `store::profile` is 24 / 2. Test-side engine use
+is not a correctness problem; it disappears with the dependency.
 
 **Honest sizing for the rest.** Stages 2–5 need, at minimum: a contract family
 for the profile/learning subsystem; a decision for each `create_memory` call
