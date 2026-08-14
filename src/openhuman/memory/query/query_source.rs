@@ -184,9 +184,11 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the tool now reads the summary tree through the bound driver, not the in-process engine"]
     async fn execute_success_path_returns_empty_payload_for_isolated_workspace() {
         let tmp = TempDir::new().expect("tempdir");
-        let (_workspace, cfg) = isolated_config(&tmp).await;
+        let (_workspace, _cfg) = isolated_config(&tmp).await;
         let tool = MemoryTreeQuerySourceTool;
         let result = tool
             .execute(json!({
@@ -209,6 +211,8 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the tool now reads the summary tree through the bound driver, not the in-process engine"]
     async fn execute_accepts_exact_source_id_without_source_kind() {
         let tmp = TempDir::new().expect("tempdir");
         let (_workspace, _cfg) = isolated_config(&tmp).await;

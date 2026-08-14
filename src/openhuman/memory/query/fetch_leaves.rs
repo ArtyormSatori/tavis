@@ -158,7 +158,7 @@ mod tests {
     #[tokio::test]
     async fn execute_success_path_returns_empty_json_array_for_isolated_workspace() {
         let tmp = TempDir::new().expect("tempdir");
-        let (_workspace, cfg) = isolated_config(&tmp).await;
+        let (_workspace, _cfg) = isolated_config(&tmp).await;
         let tool = MemoryTreeFetchLeavesTool;
         let result = tool
             .execute(json!({
