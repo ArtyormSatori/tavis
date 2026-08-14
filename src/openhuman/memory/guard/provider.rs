@@ -24,7 +24,7 @@ use super::policy::GuardPolicy;
 ///
 /// It implements [`MemoryProvider`], so it is transparent to callers and cannot
 /// be "skipped" by a caller that simply keeps using the contract — there is no
-/// second, unguarded shape to hold. Its thirteen `as_*` overrides hand back
+/// second, unguarded shape to hold. Its fourteen `as_*` overrides hand back
 /// **guarded** family handles rather than the inner driver's, which is what
 /// closes the accessor bypass; see [`super::families`] for why that forces the
 /// decorators to be owned fields.
@@ -32,7 +32,7 @@ pub struct MemoryGuard {
     inner: Arc<dyn MemoryProvider>,
     policy: Arc<GuardPolicy>,
 
-    // The thirteen optional families. Each is `Some` **iff** the inner driver
+    // The fourteen optional families. Each is `Some` **iff** the inner driver
     // provides it, so `provides()` — which the contract's `audit_provider`
     // compares against `capabilities()` — answers identically for the guard and
     // for the driver underneath it.
@@ -49,12 +49,13 @@ pub struct MemoryGuard {
     people: Option<GuardedPeople>,
     chunks: Option<GuardedChunks>,
     retrieval: Option<GuardedRetrieval>,
+    profile: Option<GuardedProfile>,
 }
 
 impl MemoryGuard {
     /// Wrap `inner` in `policy`.
     ///
-    /// Builds all thirteen decorators up front. That is not an optimisation: the
+    /// Builds all fourteen decorators up front. That is not an optimisation: the
     /// `as_*` accessors return borrows, so a decorator constructed inside an
     /// accessor could not outlive the call.
     pub fn new(inner: Arc<dyn MemoryProvider>, policy: Arc<GuardPolicy>) -> Self {
@@ -79,6 +80,7 @@ impl MemoryGuard {
             people: family!(People, GuardedPeople),
             chunks: family!(Chunks, GuardedChunks),
             retrieval: family!(Retrieval, GuardedRetrieval),
+            profile: family!(Profile, GuardedProfile),
             inner,
             policy,
         }
@@ -174,6 +176,10 @@ impl MemoryProvider for MemoryGuard {
 
     fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
         self.retrieval.as_ref().map(|g| g as &dyn MemoryRetrieval)
+    }
+
+    fn as_profile(&self) -> Option<&dyn MemoryProfile> {
+        self.profile.as_ref().map(|g| g as &dyn MemoryProfile)
     }
 }
 

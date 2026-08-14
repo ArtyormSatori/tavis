@@ -42,6 +42,9 @@ use crate::openhuman::memory::api::provider::people::{
     AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord,
     PersonScore, RankedPerson, ResolvedPerson,
 };
+use crate::openhuman::memory::api::provider::profile::{
+    FacetType, MemoryProfile, ProfileFacet, UserState,
+};
 use crate::openhuman::memory::api::provider::retrieval::{
     CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalHit,
     RetrievalResponse, SourceRetrievalQuery,
@@ -189,6 +192,13 @@ decorator!(
     dyn MemoryRetrieval,
     as_retrieval,
     Retrieval
+);
+decorator!(
+    /// Guarded [`MemoryProfile`].
+    GuardedProfile,
+    dyn MemoryProfile,
+    as_profile,
+    Profile
 );
 
 // ── Ingest ───────────────────────────────────────────────────────────────────
@@ -1065,6 +1075,162 @@ impl MemoryRetrieval for GuardedRetrieval {
             false,
         )?;
         self.family()?.search_entities(query, kinds, limit).await
+    }
+}
+
+// ── Profile ──────────────────────────────────────────────────────────────────
+
+#[async_trait]
+impl MemoryProfile for GuardedProfile {
+    async fn list_active_facets(&self) -> Result<Vec<ProfileFacet>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Profile,
+            "profile.list_active_facets",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.list_active_facets().await
+    }
+
+    async fn list_all_facets(&self) -> Result<Vec<ProfileFacet>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Profile,
+            "profile.list_all_facets",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.list_all_facets().await
+    }
+
+    async fn get_facet(&self, key: &str) -> Result<Option<ProfileFacet>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Profile,
+            "profile.get_facet",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.get_facet(key).await
+    }
+
+    async fn facets_by_type(
+        &self,
+        facet_type: FacetType,
+    ) -> Result<Vec<ProfileFacet>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Profile,
+            "profile.facets_by_type",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.facets_by_type(facet_type).await
+    }
+
+    async fn upsert_facet(&self, facet: &ProfileFacet) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Profile,
+            "profile.upsert_facet",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.upsert_facet(facet).await
+    }
+
+    async fn upsert_provider_facet(
+        &self,
+        facet_id: &str,
+        facet_type: FacetType,
+        key: &str,
+        value: &str,
+        confidence: f64,
+        segment_id: Option<&str>,
+        observed_at: f64,
+    ) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Profile,
+            "profile.upsert_provider_facet",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?
+            .upsert_provider_facet(
+                facet_id,
+                facet_type,
+                key,
+                value,
+                confidence,
+                segment_id,
+                observed_at,
+            )
+            .await
+    }
+
+    async fn set_facet_user_state(
+        &self,
+        key: &str,
+        user_state: UserState,
+    ) -> Result<bool, MemoryError> {
+        self.policy.admit_write(
+            Capability::Profile,
+            "profile.set_facet_user_state",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.set_facet_user_state(key, user_state).await
+    }
+
+    async fn delete_facet(&self, key: &str) -> Result<bool, MemoryError> {
+        self.policy.admit_write(
+            Capability::Profile,
+            "profile.delete_facet",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.delete_facet(key).await
+    }
+
+    async fn delete_facet_by_id(&self, facet_id: &str) -> Result<bool, MemoryError> {
+        self.policy.admit_write(
+            Capability::Profile,
+            "profile.delete_facet_by_id",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.delete_facet_by_id(facet_id).await
+    }
+
+    async fn drop_facets_below(&self, threshold: f64) -> Result<usize, MemoryError> {
+        self.policy.admit_write(
+            Capability::Profile,
+            "profile.drop_facets_below",
+            NO_NAMESPACE,
+            true,
+        )?;
+        self.family()?.drop_facets_below(threshold).await
+    }
+
+    /// Refused reads answer `false`, matching the trait's "an error reads as
+    /// no". A tier refusal is not evidence that the row matches.
+    async fn workflow_identity_matches(&self, key_pattern: &str, canonical_value: &str) -> bool {
+        if self
+            .policy
+            .admit_read(
+                Capability::Profile,
+                "profile.workflow_identity_matches",
+                NO_NAMESPACE,
+                false,
+            )
+            .is_err()
+        {
+            return false;
+        }
+        match self.family() {
+            Ok(family) => {
+                family
+                    .workflow_identity_matches(key_pattern, canonical_value)
+                    .await
+            }
+            Err(_) => false,
+        }
     }
 }
 
