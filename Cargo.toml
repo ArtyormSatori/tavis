@@ -544,6 +544,8 @@ rppal = { version = "0.22", optional = true }
 # does not link dev-dependency features into the shipped binary, so enabling
 # `key` here does not put the derivation stack back into the product.
 tinywallet = { path = "vendor/tinywallet", default-features = false, features = ["key", "btc", "evm", "solana", "tron"] }
+k256 = { version = "0.13", default-features = false, features = ["std", "ecdsa"] }
+coins-bip39 = { version = "0.8" }
 # The host's own tests drive `tinymemory-core`'s test helpers
 # (`chat::test_override`, `StaticChatProvider`, `tool_memory::test_helpers`).
 # They were `#[cfg(test)]` items in this crate before the memory extraction; a
@@ -759,11 +761,17 @@ voice = [
 # and `tinyplace/payment` use them for agent-network identity, which has nothing
 # to do with the wallet. Measured: excluding them costs 0, because tinyplace
 # pulls them in regardless.
+# `k256` and `coins-bip39` are gone from this list: nothing in the shipped
+# binary derives a key or signs with secp256k1 any more — the wallet module
+# does both. Both crates remain under [dev-dependencies], where test fixtures
+# still derive a known account and check a signature against a fixed vector.
+#
+# `curve25519-dalek` stays: `associated_token_account` needs the off-curve check
+# to derive a Solana ATA, which is address arithmetic rather than signing, and
+# tinyplace pulls it in through `ed25519-dalek` regardless.
 web3 = [
     "dep:tinywallet",
-    "dep:k256",
     "dep:curve25519-dalek",
-    "dep:coins-bip39",
     "modules",
 ]
 
