@@ -241,11 +241,13 @@ async fn single_batch_sync_to_tree() {
         None, // channel-level — not a memory-source row
     );
 
-    // Same race as above: wait for at least one stage event before reading the
-    // whole stream, rather than yielding once and hoping.
+    // Same race as above. Waits for the **terminal** stage specifically, not
+    // merely for some stage event: the assertions below require `completed` to
+    // have arrived, and any earlier stage would satisfy a looser predicate
+    // while the pipeline was still running.
     collector
         .wait_for(1, |e| {
-            matches!(e, DomainEvent::MemorySyncStageChanged { .. })
+            matches!(e, DomainEvent::MemorySyncStageChanged { stage, .. } if stage == "completed")
         })
         .await;
     let sync_stages: Vec<String> = collector
