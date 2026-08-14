@@ -13,7 +13,7 @@ use crate::openhuman::config::rpc as config_rpc;
 
 use super::super::defaults::{explorer_tx_url, rpc_url_for_chain};
 use super::super::execution::{
-    compressed_public_key, ExecutionResult, PreparedKind, PreparedStatus, PreparedTransaction,
+     ExecutionResult, PreparedKind, PreparedStatus, PreparedTransaction,
     TxLookupInfo, TxReceiptInfo, TxState, TxStatusInfo,
 };
 use super::super::ops::{secret_material, WalletChain};
