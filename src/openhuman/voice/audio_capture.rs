@@ -328,23 +328,13 @@ fn record_on_thread(
         Vec::with_capacity(TARGET_SAMPLE_RATE as usize * 30),
     ));
 
-    // Track peak RMS energy across the recording for silence detection.
-    let peak_rms: Arc<std::sync::atomic::AtomicU32> =
-        Arc::new(std::sync::atomic::AtomicU32::new(0));
-
     let sample_format = config.sample_format();
     let stream_config: StreamConfig = config.into();
 
     let stream = {
         let samples_writer = samples.clone();
-        let rms_tracker = peak_rms.clone();
-        // Shared silence gate — suppresses sustained silence to reduce STT hallucinations.
-        let silence_gate = Arc::new(parking_lot::Mutex::new(SilenceGate::new(
-            source_sample_rate,
-        )));
         match sample_format {
             SampleFormat::F32 => {
-                let gate = silence_gate.clone();
                 device
                     .build_input_stream(
                         &stream_config,
@@ -357,8 +347,6 @@ fn record_on_thread(
                     .map_err(|e| format!("failed to build f32 input stream: {e}"))
             }
             SampleFormat::I16 => {
-                let rms_tracker = peak_rms.clone();
-                let gate = silence_gate.clone();
                 device
                     .build_input_stream(
                         &stream_config,
@@ -371,8 +359,6 @@ fn record_on_thread(
                     .map_err(|e| format!("failed to build i16 input stream: {e}"))
             }
             SampleFormat::U16 => {
-                let rms_tracker = peak_rms.clone();
-                let gate = silence_gate.clone();
                 device
                     .build_input_stream(
                         &stream_config,
@@ -402,9 +388,7 @@ fn record_on_thread(
                     let fmt = default_cfg.sample_format();
                     info!("{LOG_PREFIX} fallback config: rate={sr} channels={ch} format={fmt:?}");
                     let sc: StreamConfig = default_cfg.into();
-                    let gate = Arc::new(parking_lot::Mutex::new(SilenceGate::new(sr)));
                     let sw = samples.clone();
-                    let rt = peak_rms.clone();
                     let fallback_stream = match fmt {
                         SampleFormat::F32 => device
                             .build_input_stream(
@@ -477,10 +461,20 @@ fn record_on_thread(
     debug!("{LOG_PREFIX} stop flag detected, finalizing recording");
     drop(stream);
 
-    let raw_samples = samples.lock().clone();
-    let final_peak_rms = f32::from_bits(peak_rms.load(Ordering::Relaxed));
-    debug!("{LOG_PREFIX} peak_rms={final_peak_rms:.6}");
-    finalize_recording(raw_samples, source_sample_rate, final_peak_rms)
+    let samples = samples.lock().clone();
+    if samples.is_empty() {
+        warn!("{LOG_PREFIX} no audio samples captured");
+        return Err("no audio samples captured".to_string());
+    }
+    debug!(
+        "{LOG_PREFIX} captured {} raw interleaved samples at {source_sample_rate}Hz x{source_channels}",
+        samples.len()
+    );
+    Ok(RawRecording {
+        samples,
+        source_rate: source_sample_rate,
+        channels: source_channels,
+    })
 }
 
 /// List available input devices.
