@@ -12,7 +12,7 @@
 //!  The facilitator submits the signed authorization on-chain.
 
 use base64::engine::{general_purpose::STANDARD as B64, Engine as _};
-use ed25519_dalek::{Signer, SigningKey};
+
 use log::{debug, warn};
 use reqwest::header::HeaderMap;
 use sha2::{Digest, Sha256};
@@ -43,13 +43,16 @@ impl X402Client {
     /// Send a request. If the server returns 402 with a `PAYMENT-REQUIRED`
     /// header, attempt to pay using the wallet's Solana key and retry.
     ///
-    /// `signing_key` — the wallet's ed25519 key (caller derives from mnemonic).
+    /// The signing key is no longer a parameter: derivation and signing both
+    /// happen inside the loaded wallet module, so there is no key for a caller
+    /// to hold or pass. The wallet's phrase is resolved here and handed over on
+    /// a confidential call.
+    ///
     /// `max_amount` — optional ceiling in atomic units; rejects challenges above
     ///                this to prevent runaway spending.
     pub async fn try_paid_request(
         &self,
         request: reqwest::Request,
-        signing_key: &SigningKey,
         max_amount: Option<u64>,
     ) -> Result<reqwest::Response, X402Error> {
         let method = request.method().clone();
@@ -106,7 +109,15 @@ impl X402Client {
 
         let payment = match chain {
             PaymentChain::Solana => {
-                build_solana_payment(signing_key, &challenge, requirement).await?
+                let (config, signing_secret, our_pubkey) = wallet_signer().await?;
+                build_solana_payment(
+                    &config,
+                    &signing_secret,
+                    our_pubkey,
+                    &challenge,
+                    requirement,
+                )
+                .await?
             }
             PaymentChain::Evm => build_evm_payment(&challenge, requirement).await?,
         };
@@ -176,7 +187,6 @@ pub fn handle_402(
 /// Separated from `try_paid_request` so callers that manage their own HTTP
 /// layer can still use the payment construction.
 pub async fn try_paid_request(
-    signing_key: &SigningKey,
     challenge: &PaymentRequired,
     requirement: &PaymentRequirements,
 ) -> Result<String, X402Error> {
@@ -186,7 +196,11 @@ pub async fn try_paid_request(
         PaymentChain::Solana
     };
     let payment = match chain {
-        PaymentChain::Solana => build_solana_payment(signing_key, challenge, requirement).await?,
+        PaymentChain::Solana => {
+            let (config, signing_secret, our_pubkey) = wallet_signer().await?;
+            build_solana_payment(&config, &signing_secret, our_pubkey, challenge, requirement)
+                .await?
+        }
         PaymentChain::Evm => build_evm_payment(challenge, requirement).await?,
     };
     let json = serde_json::to_string(&payment)
