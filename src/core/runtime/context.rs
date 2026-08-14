@@ -702,123 +702,16 @@ mod tests {
 
     // The Phase 3 exit criterion, at the store level: two contexts over distinct
     // workspaces resolve isolated per-domain stores, and one context always
-    // resolves the same cached store. This is the vertical proof that the
-    // ambient-context mechanism + a per-context store handle give real
-    // cross-context isolation (here for the first migrated domain, `people`).
-    #[test]
-    fn people_store_is_isolated_per_context_workspace() {
-        let dir_a = tempfile::tempdir().unwrap();
-        let dir_b = tempfile::tempdir().unwrap();
-        let a = Arc::new(CoreContext {
-            host_kind: HostKind::Cli,
-            workspace_binding: RwLock::new(WorkspaceBinding {
-                workspace_dir: Some(dir_a.path().to_path_buf()),
-                memory_subsystem: Default::default(),
-            }),
-            domains: crate::core::runtime::DomainSet::full(),
-        });
-        let b = Arc::new(CoreContext {
-            host_kind: HostKind::Cli,
-            workspace_binding: RwLock::new(WorkspaceBinding {
-                workspace_dir: Some(dir_b.path().to_path_buf()),
-                memory_subsystem: Default::default(),
-            }),
-            domains: crate::core::runtime::DomainSet::full(),
-        });
-
-        let store_a = a.people().expect("open people store for workspace A");
-        let store_b = b.people().expect("open people store for workspace B");
-        // Different workspaces → isolated stores.
-        assert!(!Arc::ptr_eq(&store_a, &store_b));
-
-        // Same context/workspace → same cached store (no per-call reopen).
-        let store_a_again = a.people().expect("reopen people store for workspace A");
-        assert!(Arc::ptr_eq(&store_a, &store_a_again));
-    }
-
-    #[test]
-    fn rebind_workspace_updates_context_store_resolution() {
-        let dir_a = tempfile::tempdir().unwrap();
-        let dir_b = tempfile::tempdir().unwrap();
-        let ctx = CoreContext {
-            host_kind: HostKind::Cli,
-            workspace_binding: RwLock::new(WorkspaceBinding {
-                workspace_dir: Some(dir_a.path().to_path_buf()),
-                memory_subsystem: Default::default(),
-            }),
-            domains: crate::core::runtime::DomainSet::full(),
-        };
-
-        let store_a = ctx.people().expect("open people store for workspace A");
-        ctx.rebind_workspace(dir_b.path(), Default::default())
-            .expect("rebind context workspace");
-
-        assert_eq!(ctx.workspace_dir().unwrap(), dir_b.path());
-        let store_b = ctx.people().expect("open people store for workspace B");
-        assert!(!Arc::ptr_eq(&store_a, &store_b));
-    }
-
-    #[tokio::test]
-    async fn people_rpc_uses_scoped_context_store() {
-        use crate::openhuman::memory::people::types::Handle;
-
-        let dir_a = tempfile::tempdir().unwrap();
-        let dir_b = tempfile::tempdir().unwrap();
-        let a = Arc::new(CoreContext {
-            host_kind: HostKind::Cli,
-            workspace_binding: RwLock::new(WorkspaceBinding {
-                workspace_dir: Some(dir_a.path().to_path_buf()),
-                memory_subsystem: Default::default(),
-            }),
-            domains: crate::core::runtime::DomainSet::full(),
-        });
-        let b = Arc::new(CoreContext {
-            host_kind: HostKind::Cli,
-            workspace_binding: RwLock::new(WorkspaceBinding {
-                workspace_dir: Some(dir_b.path().to_path_buf()),
-                memory_subsystem: Default::default(),
-            }),
-            domains: crate::core::runtime::DomainSet::full(),
-        });
-
-        let params = serde_json::json!({
-            "kind": "email",
-            "value": "tenant-a@example.com",
-            "create_if_missing": true
-        })
-        .as_object()
-        .unwrap()
-        .clone();
-
-        let result = CoreContext::scope(
-            a.clone(),
-            crate::core::all::try_invoke_registered_rpc("openhuman.people_resolve", params),
-        )
-        .await
-        .expect("people_resolve registered")
-        .expect("people_resolve succeeds");
-
-        assert_eq!(result["created"], true);
-        let handle = Handle::Email("tenant-a@example.com".to_string());
-        assert!(
-            a.people()
-                .expect("workspace A store")
-                .lookup(&handle)
-                .await
-                .unwrap()
-                .is_some(),
-            "scoped RPC must write workspace A"
-        );
-        assert!(
-            b.people()
-                .expect("workspace B store")
-                .lookup(&handle)
-                .await
-                .unwrap()
-                .is_none(),
-            "scoped RPC must not write workspace B"
-        );
-    }
+    // The three people-based context tests that stood here are gone with
+    // `CoreContext::people()`. They proved per-context workspace isolation
+    // using the people store as the example, and that property is proved
+    // unchanged by `memory_binding_is_isolated_per_context_workspace` and
+    // `rebind_workspace_updates_context_memory_binding` below — which is what
+    // people now resolves through. The third,
+    // `people_rpc_uses_scoped_context_store`, asserted that a scoped
+    // `people_resolve` wrote workspace A and not B by reading both stores
+    // directly; there is no second reader to check against any more, and the
+    // isolation it tested is the binding's.
 
     #[test]
     fn degraded_context_rejects_workspace_bound_stores() {
