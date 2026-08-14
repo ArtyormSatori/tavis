@@ -5,19 +5,21 @@
 //! have to know about proxies, base64 framing, or wire error names — a caller
 //! asks a question about a transcript or a buffer and gets an answer.
 //!
-//! # Everything here is per-utterance, on purpose
+//! # A call costs about 15 microseconds
 //!
-//! A transcript in, a verdict out; a recording in, a container out. Nothing in
-//! this file is called at frame rate, and that is the boundary the module was
-//! designed around.
+//! Measured on the real loaded module (`bench_call` in the `tinyvoice` repo):
+//! ~15 µs per round trip, against a 20 ms audio frame. A TinyBus module shares
+//! this address space — a call is a channel send and a JSON hop, not IPC.
 //!
-//! **The VAD is the deliberate exception and stays host-side.**
-//! [`crate::openhuman::voice::always_on`] drives a segmenter once per 20 ms
-//! frame from inside a `cpal` callback, and routing that through a bus would
-//! put a serialization round trip on the one path measured in milliseconds —
-//! to move a sixty-line state machine that has no dependencies to shed. The
-//! module offers a batch `Segment` for offline use; the always-on loop is not
-//! that. See the note in `tinyvoice-module`'s crate docs.
+//! So there is no per-call budget to protect and nothing here is too hot to go
+//! over the bus, including the VAD, which runs as a
+//! [`VadSession`] driven from the always-on capture loop.
+//!
+//! **What stays on this side is decided by the audio callback, not by cost.**
+//! `cpal` delivers on a realtime thread where blocking is a dropout, so the
+//! callback converts the sample format and forwards raw interleaved samples;
+//! every transform happens in an async worker that calls this module. That is
+//! *less* work on the audio thread than the in-process version did, not more.
 //!
 //! # Failure is not fatal here
 //!
