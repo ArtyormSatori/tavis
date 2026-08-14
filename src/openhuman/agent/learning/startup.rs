@@ -180,6 +180,13 @@ mod tests {
     /// Build a real `MemoryClient` against a fresh temp workspace. The temp dir
     /// is returned so callers keep it alive for the client's lifetime.
     fn test_client() -> (TempDir, MemoryClientRef) {
+        // Building a real `MemoryClient` needs the host seams wired — an
+        // unwired embedding host fails loudly by design. This module never
+        // installed them, so it passed only when some *other* test in the same
+        // binary happened to run first; alone, or filtered to this module, it
+        // failed. `install_for_tests` is `Once`-guarded, so calling it here is
+        // free when another test already has.
+        crate::openhuman::memory::host_impls::install_for_tests();
         let tmp = TempDir::new().expect("tempdir");
         let client = Arc::new(
             MemoryClient::from_workspace_dir(tmp.path().join("workspace"))
