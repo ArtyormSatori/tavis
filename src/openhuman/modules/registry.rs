@@ -103,18 +103,26 @@ const TINYDOCS: ModuleRecord = ModuleRecord {
 /// touch a wallet, and this artifact carries `bitcoin` and a native `secp256k1`
 /// build that would otherwise be resident for all of them.
 ///
-/// **The signing key is never sent to this module.** It returns the bytes that
+/// **This host does not send it a signing key.** It asks for the bytes that
 /// need signing and reassembles once this process has signed them — see
-/// [`super::wallet`]. Nothing in its interface accepts key material.
+/// [`super::wallet`].
 ///
-/// v0.2.3 changes no behaviour and no method: it is the same module rebuilt
-/// against a bus that can attest it. Attestation used to be recorded only from
-/// a `modules.toml` beside the artifact, and a release download extracts into a
-/// temporary directory that has none — so this module, which ships exactly that
-/// way, was never an attested recipient and could not have been sent a secret
-/// even if its interface had one day accepted one. The digest below is now
-/// carried into an `Attestation` instead of being verified and discarded
-/// (tinybus#15), which is the prerequisite for that interface change.
+/// That is a statement about this host, not about the module. As of v0.3.0 the
+/// module *does* export methods that accept a recovery phrase
+/// (`SignTransaction`, `DeriveAccount`, `ExportKey`), reachable only by a
+/// confidential call. [`super::wallet`] does not call them yet; when it does,
+/// this paragraph is what has to change.
+///
+/// Two releases got us here, and the order mattered. v0.2.3 changed no method
+/// at all — it was the same module rebuilt against a bus that can attest it.
+/// Attestation used to be recorded only from a `modules.toml` beside the
+/// artifact, and a release download extracts into a temporary directory that
+/// has none, so this module could never be an attested recipient however
+/// carefully the digest below was pinned. tinybus#15 carries that verified pin
+/// into an `Attestation` instead of discarding it. Only then was it safe for
+/// v0.3.0 to add methods that take a secret: without it they would have been
+/// unreachable in production and reachable in a developer's tree, which is the
+/// worst of both.
 const TINYWALLET: ModuleRecord = ModuleRecord {
     id: "tinywallet",
     description: "Transaction building and assembly for Bitcoin, EVM, Solana and Tron",
