@@ -305,7 +305,6 @@ pub async fn execute_tron_quote(mut quote: PreparedTransaction) -> Result<Execut
     // before the module hands back a digest to sign. The module independently
     // rechecks the locally recomputed txid and recipient; the host additionally
     // binds the native amount or full TRC20 parameter.
-    let public_key = compressed_public_key(&sk)?;
     let transfer_kind = match &transfer {
         TronTransferVerification::Native { .. } => "native",
         TronTransferVerification::Trc20 { .. } => "trc20",
