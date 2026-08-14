@@ -230,8 +230,8 @@ async fn a_disabled_host_reports_unavailable_without_starting_a_broker() {
 /// handed over. The rest of the guard — that an attestation exists at all — is
 /// enforced by tinybus and covered by its own tests against a real `dlopen`.
 mod attestation_guard {
-    use super::super::registry;
-    use super::super::wallet::digest_is_pinned;
+    use super::super::digest_is_pinned;
+    use crate::openhuman::modules::registry;
 
     fn record() -> &'static crate::openhuman::modules::ModuleRecord {
         registry::find("tinywallet").expect("the tinywallet record is compiled in")
