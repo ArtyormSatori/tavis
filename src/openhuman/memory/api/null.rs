@@ -60,7 +60,7 @@ use crate::openhuman::memory::api::provider::types::{
     MaintenanceReport, SnapshotRef, SourceItem, SourceScope,
 };
 use crate::openhuman::memory::api::provider::{
-    AddressBookSeedOutcome, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
+    AddressBookSeedOutcome, ChunkDetail, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
     FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments, MemoryEntities,
     MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryPortability,
     MemoryProvider, MemoryRecall, MemoryRetrieval, MemorySourceSink, MemoryToolMemory, MemoryTree,
@@ -534,6 +534,10 @@ impl MemoryChunks for NullMemoryProvider {
         &self,
         _chunk_id: &str,
     ) -> Result<Option<crate::openhuman::memory::api::chunks::Chunk>, MemoryError> {
+        unsupported(Capability::Chunks)
+    }
+
+    async fn chunk_detail(&self, _chunk_id: &str) -> Result<Option<ChunkDetail>, MemoryError> {
         unsupported(Capability::Chunks)
     }
 
