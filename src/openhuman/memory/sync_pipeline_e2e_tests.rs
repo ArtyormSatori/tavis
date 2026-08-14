@@ -39,6 +39,11 @@ use tinymemory_core::sync_events::{emit_sync_stage, MemorySyncStage, MemorySyncT
 // ── helpers ─────────────────────────────────────────────────────────────
 
 fn test_config() -> (TempDir, Config) {
+    // Ingestion canonicalises through the host seams, so they must be wired.
+    // This module never installed them and passed only when some other test in
+    // the binary had; filtered to this file it failed outright. `Once`-guarded,
+    // so this is free when another test got there first.
+    crate::openhuman::memory::host_impls::install_for_tests();
     let tmp = TempDir::new().unwrap();
     let mut cfg = Config::default();
     cfg.workspace_dir = tmp.path().to_path_buf();
