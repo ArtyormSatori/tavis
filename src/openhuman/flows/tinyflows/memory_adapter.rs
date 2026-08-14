@@ -384,23 +384,24 @@ impl MemoryProvider for OpenHumanMemory {
         tracing::debug!(target: "flows", has_query = query.is_some(), "{LOG_PREFIX} people: entry");
         self.tier_gate_read("people")?;
 
-        let store = crate::core::runtime::context::CoreContext::current()
-            .ok_or_else(|| {
-                EngineError::Capability(
-                    "memory node: people store unavailable: core context not initialized"
-                        .to_string(),
-                )
-            })?
-            .people()
+        // Reads people through the bound driver, like every other people caller
+        // — the store moved behind the loaded module.
+        use crate::openhuman::memory::api::provider::MemoryProvider;
+        let guard = crate::openhuman::memory::ops::guard::active_memory_guard()
+            .await
             .map_err(|e| {
-                EngineError::Capability(format!("memory node: people store unavailable: {e}"))
+                EngineError::Capability(format!("memory node: people unavailable: {e}"))
             })?;
+        let people = guard.as_people().ok_or_else(|| {
+            EngineError::Capability(
+                "memory node: memory driver does not support the people family".to_string(),
+            )
+        })?;
 
         const DEFAULT_PEOPLE_LIMIT: usize = 100;
-        let outcome =
-            crate::openhuman::memory::people::rpc::handle_list(&store, DEFAULT_PEOPLE_LIMIT)
-                .await
-                .map_err(EngineError::Capability)?;
+        let outcome = crate::openhuman::memory::people::rpc::handle_list(people, DEFAULT_PEOPLE_LIMIT)
+            .await
+            .map_err(EngineError::Capability)?;
 
         let shaped = match query {
             None => outcome.value,
