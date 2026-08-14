@@ -8,15 +8,12 @@ use async_trait::async_trait;
 use serde::Deserialize;
 use serde_json::json;
 use std::fmt::Write;
-use std::sync::Arc;
 
-use crate::openhuman::config::rpc as config_rpc;
-use crate::openhuman::inference::embeddings::{provider_from_config, EmbeddingProvider};
-use crate::openhuman::tools::traits::{Tool, ToolResult};
-use tinycortex::memory::WeightProfile;
 use crate::openhuman::memory::api::provider::MemoryProvider;
 use crate::openhuman::memory::api::types::MemoryItemKind;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
+use crate::openhuman::tools::traits::{Tool, ToolResult};
+use tinycortex::memory::WeightProfile;
 
 pub struct MemoryHybridSearchTool;
 
@@ -131,10 +128,6 @@ impl Tool for MemoryHybridSearchTool {
             limit,
         );
 
-        let config = config_rpc::load_config_with_timeout()
-            .await
-            .map_err(|e| anyhow::anyhow!("memory_hybrid_search: load config failed: {e}"))?;
-
         // Reads through the bound driver. This used to call
         // `UnifiedMemory::new(&config.workspace_dir, …)` — constructing a
         // *whole second engine* over the workspace the loaded module already
@@ -143,7 +136,9 @@ impl Tool for MemoryHybridSearchTool {
             .await
             .map_err(|e| anyhow::anyhow!("memory_hybrid_search: {e}"))?;
         let retrieval = guard.as_retrieval().ok_or_else(|| {
-            anyhow::anyhow!("memory_hybrid_search: memory driver does not support the retrieval family")
+            anyhow::anyhow!(
+                "memory_hybrid_search: memory driver does not support the retrieval family"
+            )
         })?;
 
         // Self-echo guard (agent-agnostic, mirrors `UnifiedMemory::recall`):

@@ -62,8 +62,9 @@ use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::tool_memory::ToolMemoryRule;
 use crate::openhuman::memory::api::tree::{IngestRequest, QueryResult, TreeStatus};
 use crate::openhuman::memory::api::types::{
-    GraphRelationRecord, MemoryCategory, NamespaceMemoryHit, MemoryEntry, MemoryKvRecord, MemoryTaint,
-    NamespaceDocumentInput, NamespaceRetrievalContext, NamespaceSummary, StoredMemoryDocument,
+    GraphRelationRecord, MemoryCategory, MemoryEntry, MemoryKvRecord, MemoryTaint,
+    NamespaceDocumentInput, NamespaceMemoryHit, NamespaceRetrievalContext, NamespaceSummary,
+    StoredMemoryDocument,
 };
 use crate::openhuman::memory::api::wire;
 use async_trait::async_trait;
