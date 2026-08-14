@@ -194,7 +194,7 @@ pub fn start_recording() -> Result<RecordingHandle, String> {
 fn record_on_thread(
     stop_flag: Arc<AtomicBool>,
     setup_tx: std::sync::mpsc::SyncSender<Result<(), String>>,
-) -> Result<RecordingResult, String> {
+) -> Result<RawRecording, String> {
     // --- Cross-platform microphone permission pre-check ---
     use crate::openhuman::desktop::accessibility::{
         detect_microphone_permission, microphone_denied_message, request_microphone_access,
