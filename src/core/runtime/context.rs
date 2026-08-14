@@ -209,19 +209,6 @@ impl CoreContext {
             })
     }
 
-    /// The people store for this context's workspace — the first per-domain
-    /// store handle carved off the process globals (Phase 2 Stage C /
-    /// store-trait seam). Two contexts over different workspaces get isolated
-    /// stores; the same context always gets the same cached store. Handlers
-    /// migrate off `people::store::get()` by reading through
-    /// `CoreContext::current()?.people()` instead.
-    pub fn people(
-        &self,
-    ) -> Result<Arc<crate::openhuman::memory::people::store::PeopleStore>, String> {
-        let workspace_dir = self.workspace_dir()?;
-        crate::openhuman::memory::people::store::for_workspace(&workspace_dir)
-    }
-
     /// The bound memory driver for this context's workspace — the memory
     /// subsystem's binding seam (`docs/specs/kernel.md` §3.1). Deliberately the
     /// same shape as [`CoreContext::people`]: two contexts over different
@@ -464,13 +451,6 @@ pub struct StoreInitPlan {
     pub memory: bool,
     /// `agent::multimodal` attachments sidecar dir — gated on [`DomainGroup::Agent`].
     pub agent_attachments: bool,
-    /// `memory::people::store` — gated on [`DomainGroup::Memory`].
-    ///
-    /// Was `Platform` while `people` was a top-level domain. The reorg moved it
-    /// to `memory/people` and its controllers are tagged `Memory`; leaving the
-    /// store on `Platform` would register those controllers under `harness()`
-    /// with no store behind them.
-    pub people: bool,
     /// legacy-workflow prune under `skills::registry` — gated on [`DomainGroup::Skills`].
     pub skills_prune: bool,
 }
@@ -482,7 +462,6 @@ impl StoreInitPlan {
         Self {
             memory: domains.allows(DomainGroup::Memory),
             agent_attachments: domains.allows(DomainGroup::Agent),
-            people: domains.allows(DomainGroup::Memory),
             skills_prune: domains.allows(DomainGroup::Skills),
         }
     }
@@ -575,23 +554,12 @@ pub async fn init_stores(
     // (The WhatsApp data store moved to the Tauri shell; the core no longer
     // initializes it here. The shell lazily opens it from its own workspace
     // dir when the first ingest / query arrives.)
-    // Seed the people store so people controllers + `people_*`
-    // tools can read/write. Without this the process-global stays
-    // empty and every call fails with "people store not
-    // initialised" (Sentry TAURI-RUST-8NM). Sits inside this
-    // Ok(cfg) arm so it inherits the wrong-workspace guard above
-    // (never seed against a Config::default fallback).
-    if plan.people {
-        match crate::openhuman::memory::people::store::init_from_workspace(&cfg.workspace_dir) {
-            Ok(_) => log::info!(
-                "[boot] people::store initialized (workspace={})",
-                cfg.workspace_dir.display()
-            ),
-            Err(e) => log::warn!("[boot] people::store init failed: {e}"),
-        }
-    } else {
-        log::debug!("[boot] people::store init SKIPPED — Memory domain disabled");
-    }
+    // The people store is NOT seeded here any more. People is served by the
+    // bound memory driver (`MemoryPeople`), so the engine owns that database —
+    // and the module opens it. Seeding a host-side process-global as well meant
+    // two readers over one SQLite file, with nothing left reading the host's:
+    // `CoreContext::people()` is gone and no handler consults
+    // `people::store::get()`.
     // Prune legacy bundled skills (dev-workflow / github-issue-crusher
     // / pr-review-shepherd) that older builds seeded into
     // <workspace>/skills/. OpenHuman no longer ships bundled defaults;
@@ -683,15 +651,6 @@ mod tests {
         assert!(
             plan.agent_attachments,
             "harness keeps agent attachments sidecar (Agent)"
-        );
-        // `people` moved to `memory/people` in the domain reorg (#5328) and its
-        // controllers are tagged `Memory`, so harness — which enables Memory —
-        // must now initialize its store too. Before the realignment it keyed on
-        // `Platform`, which meant harness registered the people controllers with
-        // no store behind them.
-        assert!(
-            plan.people,
-            "harness keeps memory::people::store (Memory) — it moved under memory/"
         );
         // Skills is NOT in harness → its store work stays off.
         assert!(

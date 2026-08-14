@@ -1556,10 +1556,6 @@ fn every_domain_group_is_accounted_for_in_store_init_plan() {
     only_memory.memory = true;
     let plan = StoreInitPlan::for_domains(only_memory);
     assert!(plan.memory, "Memory on ⇒ memory store initialized");
-    assert!(
-        plan.people,
-        "Memory on ⇒ people store initialized (people lives under memory/)"
-    );
     assert!(!plan.agent_attachments, "Agent off ⇒ attachments store off");
     assert!(!plan.skills_prune, "Skills off ⇒ skills prune off");
 }

@@ -568,18 +568,11 @@ async fn store_session_inner(
             logs.push(format!("core context bind warning: {e}"));
         }
     }
-    // Rebind the people store to the per-user workspace too — the boot seed may
-    // have bound it to the pre-login workspace, and it must follow the active
-    // user like the memory client does (#4378).
-    match crate::openhuman::memory::people::store::init_from_workspace(
-        &effective_config.workspace_dir,
-    ) {
-        Ok(_) => logs.push(format!(
-            "people store bound to workspace {}",
-            effective_config.workspace_dir.display()
-        )),
-        Err(e) => {
-            tracing::warn!(error = %e, "[credentials] failed to bind people store after login");
+    // No people-store rebind: people follows the active user through the
+    // memory binding, which `rebind_default_workspace` above already moved.
+    #[allow(clippy::needless_late_init)]
+    {
+        let _unused = ();
             logs.push(format!("people store bind warning: {e}"));
         }
     }
