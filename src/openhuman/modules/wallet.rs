@@ -42,8 +42,9 @@
 //! the chain — so a chain that changes scheme cannot silently sign wrongly.
 
 use tinywallet::wire::{
-    AttachRequest, PublicKey, Scheme, Signature, SignedTransaction, SigningPayload, SigningRequest,
-    TransactionSpec, UnsignedTransaction,
+    AttachRequest, DerivedAccount, ExportedKey, PublicKey, Scheme, SecretMaterial, SignRequest,
+    Signature, SignedTransaction, SigningPayload, SigningRequest, TransactionSpec,
+    UnsignedTransaction,
 };
 
 use super::{host, ops, registry};
