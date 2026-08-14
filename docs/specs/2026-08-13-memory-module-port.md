@@ -638,6 +638,48 @@ site; a design for `memory/read_rpc/`'s raw-SQL surface; the `global` and
 programme measured in weeks, not a tail-end sweep — and the number is now
 trustworthy, which it was not before §2g.
 
+### 2i. `hybrid_search` — the worst split brain, removed
+
+`memory_hybrid_search` called `UnifiedMemory::new(&config.workspace_dir, …)`:
+it constructed **an entire second engine** over the workspace the loaded module
+already owns. Not a stray query — a whole store instance, with its own
+embedder and its own SQLite handles.
+
+It needed scored hits with their signal breakdown so it could re-rank under a
+weight profile, which `MemoryRecall` does not expose — it returns ranked
+entries and keeps its scoring private. Added
+`MemoryRetrieval::recall_namespace_scored`, returning
+`NamespaceMemoryHit` (whose `score_breakdown` the contract *already* defined),
+so re-ranking is host policy over engine signals rather than a second retrieval
+implementation. Also added `MemoryChunks::chunk_detail`, a one-call inspection
+view — four accessors would have been four bus round trips per rendered row.
+
+**Adding methods to `MemoryRetrieval` keeps the version at (2, 1)**, which looks
+like it violates the major-bump rule. It does not: the rule protects *deployed*
+drivers, and `(2, 1)` has never shipped — `Retrieval` itself is new in it. Once
+the module release goes out, this stops being true.
+
+`MemoryClient::unified_handle` was added beside the existing `memory_handle`
+for the module's scored-recall path, documented as the narrower-surface
+exception it is.
+
+### 2j. Two pre-existing test defects, diagnosed and fixed
+
+Both surfaced because converting call sites changed which tests run together.
+
+- **`sync_pipeline_e2e_tests` was flaky**, alternating pass/fail across
+  identical runs (708/707). It counted events published across two tinybus task
+  hops after a single `yield_now()`. The file already had a `wait_for` helper
+  written for exactly this, with a doc comment explaining the two-hop problem —
+  three call sites just did not use it. One of them additionally needed to wait
+  for the **terminal** `completed` stage rather than any stage event.
+- **The same module never installed the host seams**, so it passed only when
+  another test in the binary had. Same defect as `agent::learning::startup`
+  (§2g), same one-line fix.
+
+Verified stable: 708 passed across three consecutive full runs, where it
+previously alternated.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
