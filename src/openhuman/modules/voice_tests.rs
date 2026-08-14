@@ -233,4 +233,62 @@ async fn the_published_module_answers_through_this_client() {
         16_000,
         "the header must declare the rate the samples were converted to"
     );
+
+    // The capture-side pipeline the always-on loop now runs entirely remotely.
+    let mono = super::prepare_frames(&config, &stereo, 32_000, 2)
+        .await
+        .expect("prepare_frames");
+    assert_eq!(mono.len(), 100, "samples, not a container");
+
+    let energies = super::frame_energies(&config, &mono, 320)
+        .await
+        .expect("frame_energies");
+    assert!(!energies.is_empty());
+
+    // PCM16 framing must return the caller's samples untouched.
+    let pcm: Vec<i16> = vec![0, 1, -1, i16::MAX];
+    let wav = super::encode_wav_pcm16(&config, &pcm, 16_000, 1)
+        .await
+        .expect("encode_wav_pcm16");
+    let expected: Vec<u8> = pcm.iter().flat_map(|s| s.to_le_bytes()).collect();
+    assert_eq!(&wav[44..], &expected[..]);
+
+    // A VAD session must segment across separate pushes — the whole reason it
+    // is a session and not a batch.
+    let vad = super::VadConfig {
+        onset_threshold: 0.1,
+        hangover_ms: 100,
+        min_speech_ms: 60,
+        max_utterance_ms: 5_000,
+    };
+    let session = super::VadSession::open(&config, vad)
+        .await
+        .expect("VadOpen");
+
+    let events = session
+        .push(&config, 20, &[0.5f32; 6])
+        .await
+        .expect("VadPush");
+    assert!(
+        matches!(events.as_slice(), [super::VadEvent::SpeechStart { .. }]),
+        "expected a single speech start, got {events:?}"
+    );
+    assert!(session.is_speaking(&config).await.expect("is_speaking"));
+
+    let events = session
+        .push(&config, 20, &[0.0f32; 6])
+        .await
+        .expect("VadPush");
+    match events.as_slice() {
+        [super::VadEvent::SpeechEnd {
+            voiced_ms, emit, ..
+        }] => {
+            assert_eq!(*voiced_ms, 120, "voiced time carries across pushes");
+            assert!(emit);
+        }
+        other => panic!("expected a single speech end, got {other:?}"),
+    }
+
+    session.reset(&config).await.expect("VadReset");
+    session.close(&config).await.expect("VadClose");
 }
