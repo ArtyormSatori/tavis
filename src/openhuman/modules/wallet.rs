@@ -140,6 +140,148 @@ pub async fn sign_transaction(
         .map_err(|error| classify(&error))
 }
 
+/// Derive, build, sign and assemble entirely inside the module.
+///
+/// The counterpart to [`sign_transaction`], and the one to prefer: the phrase
+/// crosses the bus once and no key material is ever reassembled here.
+///
+/// # Errors
+///
+/// [`WalletCallError`]. `Unavailable` if the module is not an attested
+/// recipient — see [`attested_proxy`], which refuses to send the phrase at all
+/// in that case.
+pub async fn sign_transaction_in_module(
+    config: &Config,
+    transaction: &TransactionSpec,
+    secret: &SecretMaterial,
+) -> Result<SignedTransaction, WalletCallError> {
+    let proxy = attested_proxy(config).await?;
+    log::debug!(
+        "[modules:wallet] sign_transaction chain={:?} module={MODULE_ID} (confidential)",
+        transaction.chain()
+    );
+    proxy
+        .call_confidential(
+            "SignTransaction",
+            (SignRequest {
+                secret: secret.clone(),
+                transaction: transaction.clone(),
+            },),
+        )
+        .await
+        .map_err(|error| classify(&error))
+}
+
+/// Ask the module for an address and public key.
+///
+/// # Errors
+///
+/// [`WalletCallError`].
+pub async fn derive_account(
+    config: &Config,
+    secret: &SecretMaterial,
+) -> Result<DerivedAccount, WalletCallError> {
+    let proxy = attested_proxy(config).await?;
+    log::debug!(
+        "[modules:wallet] derive_account chain={:?} module={MODULE_ID} (confidential)",
+        secret.chain
+    );
+    proxy
+        .call_confidential("DeriveAccount", (secret.clone(),))
+        .await
+        .map_err(|error| classify(&error))
+}
+
+/// Ask the module for the raw derived key.
+///
+/// The one call that brings key material back into this process. It exists for
+/// signers this host must drive itself — tinyplace's `LocalSigner`, which takes
+/// a seed and cannot be handed a transaction instead. Anything that can use
+/// [`sign_transaction_in_module`] must.
+///
+/// # Errors
+///
+/// [`WalletCallError`].
+pub async fn export_key(
+    config: &Config,
+    secret: &SecretMaterial,
+) -> Result<ExportedKey, WalletCallError> {
+    let proxy = attested_proxy(config).await?;
+    log::debug!(
+        "[modules:wallet] export_key chain={:?} module={MODULE_ID} (confidential)",
+        secret.chain
+    );
+    proxy
+        .call_confidential("ExportKey", (secret.clone(),))
+        .await
+        .map_err(|error| classify(&error))
+}
+
+/// A proxy that has proved it is the artifact this build pinned.
+///
+/// # Why check here when the broker already refuses
+///
+/// The broker will not route a confidential call to an unattested recipient, so
+/// omitting this would still be safe against the case it covers. Two reasons to
+/// check anyway.
+///
+/// The first is the error. A broker refusal arrives after the request has been
+/// serialized, which means a frame containing the recovery phrase was built and
+/// handed to the bus before anything said no. Checking first means the phrase is
+/// never put into a buffer on a call that was always going to fail.
+///
+/// The second is that this compares the digest against **this build's own
+/// table**, which the broker cannot do — it only knows the host vouched for
+/// something. Here we can insist it vouched for one of the artifacts
+/// `registry.rs` names. That closes the gap where a host is somehow induced to
+/// attest a different artifact for this bus name.
+///
+/// Both are belt-and-braces over a check that already exists. That is the right
+/// posture for the one code path that hands over a recovery phrase.
+async fn attested_proxy(config: &Config) -> Result<tinybus::Proxy, WalletCallError> {
+    let (runtime, record) = ready(config).await?;
+    let proxy = proxy(runtime, record)?;
+
+    let attestation = proxy
+        .attestation()
+        .await
+        .map_err(|error| WalletCallError::Failed(error.to_string()))?
+        .ok_or_else(|| {
+            WalletCallError::Unavailable(
+                "the wallet module is loaded but not an attested recipient, so it cannot be sent \
+                 key material. This host is running a build whose module loader does not record \
+                 an attestation for pinned releases; upgrade it rather than working around this."
+                    .to_string(),
+            )
+        })?;
+
+    if attestation.name.as_str() != record.bus_name {
+        return Err(WalletCallError::Failed(format!(
+            "the wallet module's attestation names '{}' rather than '{}'",
+            attestation.name.as_str(),
+            record.bus_name
+        )));
+    }
+
+    // Digest comparison is ASCII-case-insensitive because the manifest and the
+    // pinned table are written by different hands; both are hex of the same
+    // bytes. Nothing here is a secret, so a constant-time compare would buy
+    // nothing.
+    if !record
+        .assets
+        .iter()
+        .any(|asset| asset.sha256.eq_ignore_ascii_case(&attestation.sha256))
+    {
+        return Err(WalletCallError::Failed(
+            "the loaded wallet module is not one of the artifacts this build pinned, so it will \
+             not be sent key material"
+                .to_string(),
+        ));
+    }
+
+    Ok(proxy)
+}
+
 /// Sign one payload with whichever scheme it declares.
 ///
 /// Dispatches on the payload's own tag, never on the chain: the module is the
