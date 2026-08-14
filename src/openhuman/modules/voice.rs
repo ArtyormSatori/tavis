@@ -161,8 +161,28 @@ impl VoiceIntent {
 /// trip rather than the request.
 pub async fn route(config: &Config, transcript: &str) -> Result<VoiceIntent, VoiceCallError> {
     let json: String = call(config, "Route", (transcript,)).await?;
-    serde_json::from_str(&json)
-        .map_err(|e| VoiceCallError::Failed(format!("could not decode intent: {e}")))
+    let intent: VoiceIntent = serde_json::from_str(&json)
+        .map_err(|e| VoiceCallError::Failed(format!("could not decode intent: {e}")))?;
+    Ok(intent.clamped())
+}
+
+impl VoiceIntent {
+    /// Bring payloads back inside the range the executors assume.
+    ///
+    /// The module already clamps a spoken volume to `0..=100`, so in practice
+    /// this changes nothing. It runs anyway because *this* type is decoded from
+    /// a wire payload, and `percent` is interpolated straight into an
+    /// `osascript` command by `voice::always_on::execute_intent`. A value the
+    /// host never checked reaching a shell command is the shape of bug worth
+    /// spending three lines to make impossible, rather than one that depends on
+    /// a remote clamp staying correct.
+    #[must_use]
+    fn clamped(self) -> Self {
+        match self {
+            Self::SetVolume { percent } if percent > 100 => Self::SetVolume { percent: 100 },
+            other => other,
+        }
+    }
 }
 
 /// Apply the wake-word gate, returning the command that followed it.
