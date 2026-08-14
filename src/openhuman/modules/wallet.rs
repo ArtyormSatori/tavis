@@ -264,15 +264,7 @@ async fn attested_proxy(config: &Config) -> Result<tinybus::Proxy, WalletCallErr
         )));
     }
 
-    // Digest comparison is ASCII-case-insensitive because the manifest and the
-    // pinned table are written by different hands; both are hex of the same
-    // bytes. Nothing here is a secret, so a constant-time compare would buy
-    // nothing.
-    if !record
-        .assets
-        .iter()
-        .any(|asset| asset.sha256.eq_ignore_ascii_case(&attestation.sha256))
-    {
+    if !digest_is_pinned(record, &attestation.sha256) {
         return Err(WalletCallError::Failed(
             "the loaded wallet module is not one of the artifacts this build pinned, so it will \
              not be sent key material"
@@ -281,6 +273,22 @@ async fn attested_proxy(config: &Config) -> Result<tinybus::Proxy, WalletCallErr
     }
 
     Ok(proxy)
+}
+
+/// Whether `sha256` is one of the artifacts this build pinned for `record`.
+///
+/// Case-insensitive because the release manifest and the pinned table are
+/// written by different hands and both are hex of the same bytes. Nothing
+/// compared here is a secret, so a constant-time comparison would buy nothing.
+///
+/// Every asset is checked rather than just the one for this platform: which
+/// artifact loaded is not recorded, and a host that fell through to an older
+/// build after an admission failure is running a pinned artifact either way.
+fn digest_is_pinned(record: &super::ModuleRecord, sha256: &str) -> bool {
+    record
+        .assets
+        .iter()
+        .any(|asset| asset.sha256.eq_ignore_ascii_case(sha256))
 }
 
 /// Sign one payload with whichever scheme it declares.

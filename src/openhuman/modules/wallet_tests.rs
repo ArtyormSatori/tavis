@@ -220,3 +220,53 @@ async fn a_disabled_host_reports_unavailable_without_starting_a_broker() {
         Err(WalletCallError::Unavailable(_))
     ));
 }
+
+// ---------------------------------------------------------------------------
+// The attestation guard
+// ---------------------------------------------------------------------------
+
+/// The digest check is the one part of `attested_proxy` that does not need a
+/// live broker, and it is the part that decides whether a recovery phrase is
+/// handed over. The rest of the guard — that an attestation exists at all — is
+/// enforced by tinybus and covered by its own tests against a real `dlopen`.
+mod attestation_guard {
+    use super::super::registry;
+    use super::super::wallet::digest_is_pinned;
+
+    fn record() -> &'static crate::openhuman::modules::ModuleRecord {
+        registry::find("tinywallet").expect("the tinywallet record is compiled in")
+    }
+
+    #[test]
+    fn every_pinned_artifact_is_accepted() {
+        let record = record();
+        assert!(!record.assets.is_empty());
+        for asset in record.assets {
+            assert!(
+                digest_is_pinned(record, asset.sha256),
+                "pinned artifact {} was not accepted by its own table",
+                asset.archive
+            );
+        }
+    }
+
+    #[test]
+    fn a_digest_this_build_did_not_pin_is_refused() {
+        // The case that matters: an artifact the host attested but this build
+        // never named. Without the check, "the host vouched for something"
+        // would be enough to be sent a key.
+        assert!(!digest_is_pinned(record(), &"a".repeat(64)));
+        assert!(!digest_is_pinned(record(), ""));
+    }
+
+    #[test]
+    fn a_pinned_digest_is_matched_regardless_of_hex_case() {
+        // The release manifest and this table are written by different hands.
+        // A case mismatch refusing a legitimate artifact would break signing
+        // for every user, and it would look like an attack rather than a typo.
+        let record = record();
+        let upper = record.assets[0].sha256.to_ascii_uppercase();
+        assert_ne!(upper, record.assets[0].sha256, "fixture must actually differ");
+        assert!(digest_is_pinned(record, &upper));
+    }
+}
