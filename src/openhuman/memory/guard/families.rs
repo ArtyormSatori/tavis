@@ -900,6 +900,19 @@ impl MemoryChunks for GuardedChunks {
         self.family()?.get_chunk(chunk_id).await
     }
 
+    /// The catalog is not user content, so it takes no namespace and the
+    /// lightest read check — refusing it under `readonly` would stop an
+    /// operator finding out what the store can even hold.
+    async fn storage_kinds(&self) -> Result<Vec<String>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Chunks,
+            "chunks.storage_kinds",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.storage_kinds().await
+    }
+
     /// Vectors, not content — but still a read of stored material, so it takes
     /// the same tier check rather than being waved through as metadata.
     async fn chunk_embeddings(

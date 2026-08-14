@@ -741,6 +741,11 @@ impl MemoryChunks for RecordingProvider {
         Ok(None)
     }
 
+    async fn storage_kinds(&self) -> Result<Vec<String>, MemoryError> {
+        self.record(Call::plain("chunks.storage_kinds"));
+        Ok(vec![])
+    }
+
     async fn chunk_embeddings(
         &self,
         _chunk_ids: &[String],
