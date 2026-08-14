@@ -3,11 +3,11 @@
 
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
-use tinymemory_core::chat::ChatProvider;
 use crate::openhuman::memory::tree::score::embed::Embedder;
 use parking_lot::Mutex;
 use rusqlite::Connection;
 use std::sync::Arc;
+use tinymemory_core::chat::ChatProvider;
 use tinymemory_core::store::segments::BoundaryConfig;
 
 #[cfg(test)]

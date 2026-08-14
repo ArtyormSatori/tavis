@@ -87,14 +87,8 @@ mod tree_e2e_tests;
 // These are types, not module trees: `memory::MemoryCategory` names one value
 // type, where `memory::store::…` opened the whole engine. They still have to
 // move to `memory::api`'s equivalents, but they hide nothing in the meantime.
-pub use tinymemory_core::ingestion::{
-    ExtractedEntity, ExtractedRelation, ExtractionMode, IngestionJob, IngestionQueue,
-    IngestionState, IngestionStatusSnapshot, MemoryIngestionConfig, MemoryIngestionRequest,
-    MemoryIngestionResult, DEFAULT_MEMORY_EXTRACTION_MODEL,
-};
 pub use ops as rpc;
 pub use ops::*;
-pub use tinymemory_core::rpc_models::*;
 pub use schemas::{
     all_controller_schemas as all_memory_controller_schemas,
     all_core_recall_controller_schemas as all_memory_core_recall_controller_schemas,
@@ -117,7 +111,15 @@ pub use schemas::{
     all_tool_memory_controller_schemas as all_memory_tool_memory_controller_schemas,
     all_tool_memory_registered_controllers as all_memory_tool_memory_registered_controllers,
 };
-pub use tinymemory_core::traits::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary, RecallOpts};
+pub use tinymemory_core::ingestion::{
+    ExtractedEntity, ExtractedRelation, ExtractionMode, IngestionJob, IngestionQueue,
+    IngestionState, IngestionStatusSnapshot, MemoryIngestionConfig, MemoryIngestionRequest,
+    MemoryIngestionResult, DEFAULT_MEMORY_EXTRACTION_MODEL,
+};
+pub use tinymemory_core::rpc_models::*;
+pub use tinymemory_core::traits::{
+    Memory, MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary, RecallOpts,
+};
 
 // Types that external tests and consumers historically imported from
 // `memory::*`. The definitions moved to sibling crates during the memory

@@ -4,10 +4,10 @@
 use super::helpers::strip_tool_calls_from_response;
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
-use tinymemory_core::ingest_pipeline;
 #[cfg(test)]
 use std::sync::Arc;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
+use tinymemory_core::ingest_pipeline;
 use tinymemory_core::store::fts5;
 
 impl ArchivistHook {

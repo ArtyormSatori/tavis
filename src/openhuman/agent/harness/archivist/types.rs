@@ -1,11 +1,11 @@
 //! Core type definition for the Archivist hook.
 
 use crate::openhuman::config::Config;
-use tinymemory_core::chat::ChatProvider;
 use crate::openhuman::memory::tree::score::embed::Embedder;
 use parking_lot::Mutex;
 use rusqlite::Connection;
 use std::sync::Arc;
+use tinymemory_core::chat::ChatProvider;
 use tinymemory_core::store::segments::BoundaryConfig;
 
 /// Background Archivist that indexes turns into FTS5 episodic memory

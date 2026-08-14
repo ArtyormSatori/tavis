@@ -578,10 +578,10 @@ async fn composio_delete_connection_clear_memory_deletes_slack_source() {
 /// content file sits at the production `content_path` location.
 #[tokio::test]
 async fn composio_delete_connection_clear_memory_cascades_source_tree_and_content_file() {
-    use tinymemory_core::tree_source::registry::get_or_create_source_tree;
     use rusqlite::params;
     use tinymemory_core::store::trees::store as tree_store;
     use tinymemory_core::store::trees::types::{SummaryNode, TreeKind};
+    use tinymemory_core::tree_source::registry::get_or_create_source_tree;
 
     let app = Router::new()
         .route(
@@ -698,13 +698,13 @@ async fn composio_delete_connection_clear_memory_cascades_source_tree_and_conten
 #[tokio::test]
 async fn composio_delete_connection_clear_memory_cascades_live_sealed_tree_and_file() {
     use crate::openhuman::memory::tree::tree::bucket_seal::{seal_one_level, LabelStrategy};
-    use tinymemory_core::tree_source::registry::get_or_create_source_tree;
     use tinymemory_core::store::chunks::store::{
         get_summary_content_pointers, upsert_staged_chunks_tx,
     };
     use tinymemory_core::store::content::stage_chunks;
     use tinymemory_core::store::trees::store as tree_store;
     use tinymemory_core::store::trees::types::{Buffer, TreeKind};
+    use tinymemory_core::tree_source::registry::get_or_create_source_tree;
 
     let app = Router::new()
         .route(

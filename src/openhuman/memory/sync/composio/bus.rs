@@ -918,9 +918,11 @@ impl EventHandler<DomainEvent> for ComposioConfigChangedSubscriber {
                         .collect();
                     toolkits.sort();
                     toolkits.dedup();
-                    tinymemory_core::events::publish(tinymemory_core::events::MemoryEvent::ComposioIntegrationsChanged {
-                        toolkits: toolkits.clone(),
-                    });
+                    tinymemory_core::events::publish(
+                        tinymemory_core::events::MemoryEvent::ComposioIntegrationsChanged {
+                            toolkits: toolkits.clone(),
+                        },
+                    );
                     tracing::debug!(
                         active_toolkits = ?toolkits,
                         "[composio-cache] config changed eager warm complete; published integrations changed"

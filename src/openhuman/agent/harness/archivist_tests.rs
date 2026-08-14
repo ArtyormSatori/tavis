@@ -1,7 +1,7 @@
 use super::*;
 use crate::openhuman::agent::hooks::{ToolCallRecord, TurnContext};
-use tinymemory_core::chat::ChatPrompt;
 use std::sync::OnceLock;
+use tinymemory_core::chat::ChatPrompt;
 use tinymemory_core::store::{events as ev, fts5, segments as seg};
 
 static TREE_INGEST_TEST_LOCK: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
@@ -37,9 +37,7 @@ where
     // before building anything.
     crate::openhuman::memory::host_impls::install_for_tests();
     tinymemory_core::chat::test_override::with_provider(
-        Arc::new(tinymemory_core::chat::StaticChatProvider::new(
-            "{}",
-        )),
+        Arc::new(tinymemory_core::chat::StaticChatProvider::new("{}")),
         fut,
     )
     .await

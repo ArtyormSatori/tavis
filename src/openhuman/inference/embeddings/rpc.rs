@@ -460,8 +460,7 @@ pub async fn set_api_key(
     // separately discovers the "Retry failed" button. A store failure is
     // surfaced (not reported as `0`) so the key-stored response can't imply the
     // parked queue was recovered when it wasn't.
-    let requeue_result =
-        tinymemory_core::queue::requeue_failed_after_provider_change(config);
+    let requeue_result = tinymemory_core::queue::requeue_failed_after_provider_change(config);
     let requeued_count = *requeue_result.as_ref().unwrap_or(&0);
     let requeue_error = requeue_result.as_ref().err().cloned();
     let requeued_note = match &requeue_error {

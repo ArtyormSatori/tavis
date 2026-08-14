@@ -21,8 +21,6 @@
 
 use chrono::{TimeZone, Utc};
 use openhuman_core::openhuman::config::Config;
-use tinymemory_core::ingest_pipeline::{ingest_chat, ingest_email};
-use tinymemory_core::queue::drain_until_idle;
 use openhuman_core::openhuman::tools::{
     MemoryTreeFetchLeavesTool, MemoryTreeSearchEntitiesTool, Tool,
 };
@@ -30,6 +28,8 @@ use serde_json::{json, Value};
 use tempfile::TempDir;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
 use tinycortex::memory::ingest::canonicalize::email::{EmailMessage, EmailThread};
+use tinymemory_core::ingest_pipeline::{ingest_chat, ingest_email};
+use tinymemory_core::queue::drain_until_idle;
 
 /// Build a Config rooted at `tmp/workspace`. The nested `workspace` dir
 /// matches what `resolve_config_dir_for_workspace` would derive when

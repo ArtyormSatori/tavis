@@ -87,10 +87,8 @@ impl PostTurnHook for ArchivistHook {
         // segment ops can store it alongside the FTS5 episodic id.
         let mut current_seq: Option<u32> = None;
         if let Some(cfg) = self.config.as_ref() {
-            let engine_config = tinymemory_core::tinycortex::memory_config_from(
-                cfg,
-                cfg.workspace_dir.clone(),
-            );
+            let engine_config =
+                tinymemory_core::tinycortex::memory_config_from(cfg, cfg.workspace_dir.clone());
             let ts_ms = (timestamp * 1000.0) as i64;
             let user_turn = tinycortex::memory::archivist::types::ArchivedTurn {
                 session_id: session_id.to_string(),

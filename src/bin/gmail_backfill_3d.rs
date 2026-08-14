@@ -107,8 +107,8 @@ async fn main() -> Result<()> {
         .await
         .context("[gmail_backfill_3d] Config::load_or_init failed")?;
 
-    let memory = tinymemory_core::global::init(config.workspace_dir.clone())
-        .map_err(anyhow::Error::msg)?;
+    let memory =
+        tinymemory_core::global::init(config.workspace_dir.clone()).map_err(anyhow::Error::msg)?;
     if cli.wipe {
         log::info!("[gmail_backfill_3d] clearing skill-gmail documents");
         memory

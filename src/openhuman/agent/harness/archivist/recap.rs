@@ -71,10 +71,8 @@ impl ArchivistHook {
         session_id: &str,
     ) -> Vec<SessionEntry> {
         if let Some(cfg) = self.config.as_ref() {
-            let engine_config = tinymemory_core::tinycortex::memory_config_from(
-                cfg,
-                cfg.workspace_dir.clone(),
-            );
+            let engine_config =
+                tinymemory_core::tinycortex::memory_config_from(cfg, cfg.workspace_dir.clone());
             match tinycortex::memory::archivist::store::session_entries(&engine_config, session_id)
             {
                 Ok(turns) => {

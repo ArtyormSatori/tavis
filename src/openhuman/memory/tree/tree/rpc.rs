@@ -12,13 +12,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::openhuman::config::Config;
-use tinymemory_core::ingest_pipeline::{
-    ingest_chat as do_ingest_chat, ingest_document as do_ingest_document,
-    ingest_email as do_ingest_email, IngestResult,
-};
 use crate::rpc::RpcOutcome;
 use tinycortex::memory::ingest::canonicalize::{
     chat::ChatBatch, document::DocumentInput, email::EmailThread,
+};
+use tinymemory_core::ingest_pipeline::{
+    ingest_chat as do_ingest_chat, ingest_document as do_ingest_document,
+    ingest_email as do_ingest_email, IngestResult,
 };
 use tinymemory_core::store::chunks::store::{self as chunk_store, ListChunksQuery};
 use tinymemory_core::store::chunks::types::{Chunk, SourceKind};
@@ -403,9 +403,9 @@ pub struct PipelineStatusResponse {
 pub async fn pipeline_status_rpc(
     config: &Config,
 ) -> Result<RpcOutcome<PipelineStatusResponse>, String> {
+    use tinymemory_api::host::SchedulerGateMode;
     use tinymemory_core::queue::store as queue_store;
     use tinymemory_core::queue::types::JobStatus;
-    use tinymemory_api::host::SchedulerGateMode;
 
     log::debug!("[memory-tree][rpc] pipeline_status: entry");
 
@@ -628,12 +628,11 @@ pub struct RetryFailedResponse {
 /// re-run without re-ingesting source data. Backs the "Retry failed" button.
 pub async fn retry_failed_rpc(config: &Config) -> Result<RpcOutcome<RetryFailedResponse>, String> {
     let cfg = config.clone();
-    let requeued = tokio::task::spawn_blocking(move || {
-        tinymemory_core::queue::store::requeue_failed(&cfg)
-    })
-    .await
-    .map_err(|e| format!("retry_failed join error: {e}"))?
-    .map_err(|e| format!("retry_failed: {e:#}"))?;
+    let requeued =
+        tokio::task::spawn_blocking(move || tinymemory_core::queue::store::requeue_failed(&cfg))
+            .await
+            .map_err(|e| format!("retry_failed join error: {e}"))?
+            .map_err(|e| format!("retry_failed: {e:#}"))?;
     // Wake the worker pool so the requeued jobs are picked up promptly.
     tinymemory_core::queue::wake_workers();
     Ok(RpcOutcome::single_log(

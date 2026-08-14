@@ -315,9 +315,9 @@ pub async fn flush_source_tree_rpc(
 // ── flush_now ─────────────────────────────────────────────────────────────
 
 pub async fn flush_now_rpc(config: &Config) -> Result<RpcOutcome<FlushNowResponse>, String> {
+    use crate::openhuman::memory::tree::tree::store as tree_store;
     use tinymemory_core::queue::store as jobs_store;
     use tinymemory_core::queue::types::{FlushStalePayload, NewJob};
-    use crate::openhuman::memory::tree::tree::store as tree_store;
 
     let cfg = config.clone();
     let resp = tokio::task::spawn_blocking(move || -> Result<FlushNowResponse> {

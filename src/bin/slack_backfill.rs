@@ -203,8 +203,8 @@ async fn main() -> Result<()> {
 
     if cli.seal_probe {
         use chrono::{Duration, Utc};
-        use tinymemory_core::ingest_pipeline::ingest_chat;
         use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
+        use tinymemory_core::ingest_pipeline::ingest_chat;
 
         let connection_id = cli.connection_id.clone().ok_or_else(|| {
             anyhow::anyhow!(

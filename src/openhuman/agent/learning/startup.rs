@@ -28,8 +28,8 @@
 use std::path::Path;
 use std::sync::OnceLock;
 
-use tinymemory_core::global::client_if_ready;
 use tinybus::SubscriptionHandle;
+use tinymemory_core::global::client_if_ready;
 use tinymemory_core::store::MemoryClientRef;
 
 static EMAIL_SIG_HANDLE: OnceLock<Option<SubscriptionHandle>> = OnceLock::new();

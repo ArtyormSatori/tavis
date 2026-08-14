@@ -17,12 +17,12 @@ use chrono::{TimeZone, Utc};
 use tempfile::TempDir;
 
 use crate::openhuman::config::Config;
-use tinymemory_core::chat::{test_override, ChatProvider, StaticChatProvider};
-use tinymemory_core::ingest_pipeline::ingest_chat;
-use tinymemory_core::queue::drain_until_idle;
 use crate::openhuman::memory::tree::retrieval::{query_source, search_entities};
 use crate::openhuman::memory::tree::score::embed::build_embedder_from_config;
 use tinycortex::memory::ingest::canonicalize::chat::{ChatBatch, ChatMessage};
+use tinymemory_core::chat::{test_override, ChatProvider, StaticChatProvider};
+use tinymemory_core::ingest_pipeline::ingest_chat;
+use tinymemory_core::queue::drain_until_idle;
 
 fn test_config() -> (TempDir, Config) {
     let tmp = TempDir::new().unwrap();

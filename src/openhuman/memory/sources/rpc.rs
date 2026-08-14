@@ -17,10 +17,9 @@ pub struct CodingSessionStatusResponse {
 pub async fn coding_session_status_rpc() -> Result<RpcOutcome<CodingSessionStatusResponse>, String>
 {
     tracing::debug!("[memory_sources] coding_session_status_rpc: entry");
-    let sources =
-        tokio::task::spawn_blocking(tinymemory_core::tinycortex::coding_session_status)
-            .await
-            .map_err(|error| format!("join coding-session discovery: {error}"))?;
+    let sources = tokio::task::spawn_blocking(tinymemory_core::tinycortex::coding_session_status)
+        .await
+        .map_err(|error| format!("join coding-session discovery: {error}"))?;
     tracing::debug!(
         sources = sources.len(),
         files = sources
