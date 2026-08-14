@@ -796,19 +796,19 @@ impl MemoryRetrieval for RecordingProvider {
         Ok(RetrievalResponse::default())
     }
 
-    async fn drill_down(
+    async fn retrieve_children(
         &self,
         _node_id: &str,
         _max_depth: u32,
         _query: Option<&str>,
         _limit: Option<usize>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
-        self.record(Call::plain("retrieval.drill_down"));
+        self.record(Call::plain("retrieval.retrieve_children"));
         Ok(vec![])
     }
 
-    async fn fetch_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
-        self.record(Call::plain("retrieval.fetch_leaves"));
+    async fn retrieve_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+        self.record(Call::plain("retrieval.retrieve_leaves"));
         Ok(vec![])
     }
 

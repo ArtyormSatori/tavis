@@ -975,7 +975,7 @@ impl MemoryRetrieval for GuardedRetrieval {
             .await
     }
 
-    async fn drill_down(
+    async fn retrieve_children(
         &self,
         node_id: &str,
         max_depth: u32,
@@ -984,23 +984,23 @@ impl MemoryRetrieval for GuardedRetrieval {
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.policy.admit_read(
             Capability::Retrieval,
-            "retrieval.drill_down",
+            "retrieval.retrieve_children",
             NO_NAMESPACE,
             false,
         )?;
         self.family()?
-            .drill_down(node_id, max_depth, query, limit)
+            .retrieve_children(node_id, max_depth, query, limit)
             .await
     }
 
-    async fn fetch_leaves(&self, chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+    async fn retrieve_leaves(&self, chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.policy.admit_read(
             Capability::Retrieval,
-            "retrieval.fetch_leaves",
+            "retrieval.retrieve_leaves",
             NO_NAMESPACE,
             false,
         )?;
-        self.family()?.fetch_leaves(chunk_ids).await
+        self.family()?.retrieve_leaves(chunk_ids).await
     }
 
     async fn search_entities(

@@ -573,7 +573,7 @@ impl MemoryRetrieval for NullMemoryProvider {
         unsupported(Capability::Retrieval)
     }
 
-    async fn drill_down(
+    async fn retrieve_children(
         &self,
         _node_id: &str,
         _max_depth: u32,
@@ -583,7 +583,7 @@ impl MemoryRetrieval for NullMemoryProvider {
         unsupported(Capability::Retrieval)
     }
 
-    async fn fetch_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
+    async fn retrieve_leaves(&self, _chunk_ids: &[String]) -> Result<Vec<RetrievalHit>, MemoryError> {
         unsupported(Capability::Retrieval)
     }
 
