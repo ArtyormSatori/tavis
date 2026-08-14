@@ -103,15 +103,16 @@ const TINYDOCS: ModuleRecord = ModuleRecord {
 /// touch a wallet, and this artifact carries `bitcoin` and a native `secp256k1`
 /// build that would otherwise be resident for all of them.
 ///
-/// **This host does not send it a signing key.** It asks for the bytes that
-/// need signing and reassembles once this process has signed them — see
-/// [`super::wallet`].
+/// **This host sends it the recovery phrase, over confidential calls.** Bitcoin,
+/// EVM and Tron derive and sign entirely inside the module; no private key for
+/// those chains is reassembled in this process. Solana still uses the older
+/// split flow, where the module returns digests and this process signs them,
+/// because Solana hand-builds SPL messages the wire contract does not model.
+/// See [`super::wallet`] for both paths.
 ///
-/// That is a statement about this host, not about the module. As of v0.3.0 the
-/// module *does* export methods that accept a recovery phrase
-/// (`SignTransaction`, `DeriveAccount`, `ExportKey`), reachable only by a
-/// confidential call. [`super::wallet`] does not call them yet; when it does,
-/// this paragraph is what has to change.
+/// The phrase is only sent to a module tinybus has attested *and* whose digest
+/// matches one of the entries below — `super::wallet::attested_proxy` checks
+/// this table itself rather than trusting that some check happened.
 ///
 /// Two releases got us here, and the order mattered. v0.2.3 changed no method
 /// at all — it was the same module rebuilt against a bus that can attest it.
