@@ -28,10 +28,28 @@
 // ── Continuous capture loop ─────────────────────────────────────────────────
 
 use crate::openhuman::config::Config;
-use crate::openhuman::voice::audio_capture::{
-    chunk_rms, encode_wav_16k, resample, to_mono, TARGET_SAMPLE_RATE,
-};
+use crate::openhuman::modules::voice as tinyvoice;
+use crate::openhuman::voice::audio_capture::TARGET_SAMPLE_RATE;
 use std::sync::atomic::{AtomicBool, Ordering};
+
+/// One chunk of raw capture, exactly as the device delivered it.
+///
+/// Interleaved and at the device's own rate: the callback converts the sample
+/// format and nothing else, so `channels` and `source_rate` travel with the
+/// samples for the processor to hand to the module.
+struct RawChunk {
+    /// Interleaved `f32` samples.
+    samples: Vec<f32>,
+}
+
+/// The device format, learned once when the stream is built.
+#[derive(Debug, Clone, Copy)]
+struct CaptureFormat {
+    /// Device sample rate, before resampling to [`TARGET_SAMPLE_RATE`].
+    source_rate: u32,
+    /// Interleaved channel count.
+    channels: u16,
+}
 
 /// The capture thread + processor have been spawned (once per process).
 static RUNNING: AtomicBool = AtomicBool::new(false);
