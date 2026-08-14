@@ -568,14 +568,11 @@ async fn store_session_inner(
             logs.push(format!("core context bind warning: {e}"));
         }
     }
-    // No people-store rebind: people follows the active user through the
-    // memory binding, which `rebind_default_workspace` above already moved.
-    #[allow(clippy::needless_late_init)]
-    {
-        let _unused = ();
-            logs.push(format!("people store bind warning: {e}"));
-        }
-    }
+    // No people-store rebind here any more: people is served by the bound
+    // memory driver, and `rebind_default_workspace` above already moved that
+    // binding to the per-user workspace. Seeding a host-side global as well
+    // opened the engine's database a second time in this process (#4378 fixed
+    // the workspace it pointed at; the module port removes the second reader).
     crate::openhuman::memory::conversations::register_conversation_persistence_subscriber(
         effective_config.workspace_dir.clone(),
     );
