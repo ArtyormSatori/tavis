@@ -191,6 +191,8 @@ the tool now reads the summary tree through the bound driver, not the in-process
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the tool now reads the summary tree through the bound driver, not the in-process engine"]
     async fn execute_accepts_query_and_limit_together() {
         let tmp = TempDir::new().expect("tempdir");
         let (_workspace, _cfg) = isolated_config(&tmp).await;
