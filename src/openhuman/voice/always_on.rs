@@ -652,11 +652,15 @@ fn spawn_capture_thread(tx: tokio::sync::mpsc::UnboundedSender<Vec<f32>>) -> Res
     }
 }
 
-/// Owns the cpal stream for the process lifetime. Each callback downmixes to
-/// mono, resamples to 16 kHz, and forwards samples to the async processor.
+/// Owns the cpal stream for the process lifetime.
+///
+/// Each callback converts the device's sample format to `f32` and forwards the
+/// interleaved buffer untouched. Downmixing and resampling used to happen here;
+/// they now happen in the async processor, because this runs on a realtime
+/// audio thread where the right amount of work is the least possible.
 fn capture_on_thread(
-    tx: tokio::sync::mpsc::UnboundedSender<Vec<f32>>,
-    setup_tx: &std::sync::mpsc::SyncSender<Result<(), String>>,
+    tx: tokio::sync::mpsc::UnboundedSender<RawChunk>,
+    setup_tx: &std::sync::mpsc::SyncSender<Result<CaptureFormat, String>>,
 ) -> Result<(), String> {
     use crate::openhuman::desktop::accessibility::{detect_microphone_permission, PermissionState};
     use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
@@ -692,26 +696,24 @@ fn capture_on_thread(
         "{LOG_PREFIX} capture device ready name='{device_name}' rate={source_rate}->{TARGET_SAMPLE_RATE} channels={channels} format={sample_format:?}"
     );
 
-    // Forward one resampled-to-16k mono chunk per callback.
-    let forward = move |mono_src: Vec<f32>| {
-        let mono16k = resample(&mono_src, source_rate);
+    // Forward one raw interleaved chunk per callback.
+    let forward = move |samples: Vec<f32>| {
         // Ignore send errors — they mean the processor task is gone (shutdown).
-        let _ = tx.send(mono16k);
+        let _ = tx.send(RawChunk { samples });
     };
 
     let err_fn = |e| log::warn!("{LOG_PREFIX} cpal stream error: {e}");
     let stream = match sample_format {
         SampleFormat::F32 => device.build_input_stream(
             &stream_config,
-            move |data: &[f32], _| forward(to_mono(data, channels)),
+            move |data: &[f32], _| forward(data.to_vec()),
             err_fn,
             None,
         ),
         SampleFormat::I16 => device.build_input_stream(
             &stream_config,
             move |data: &[i16], _| {
-                let floats: Vec<f32> = data.iter().map(|&s| s as f32 / 32768.0).collect();
-                forward(to_mono(&floats, channels));
+                forward(data.iter().map(|&s| f32::from(s) / 32768.0).collect());
             },
             err_fn,
             None,
@@ -719,8 +721,11 @@ fn capture_on_thread(
         SampleFormat::U16 => device.build_input_stream(
             &stream_config,
             move |data: &[u16], _| {
-                let floats: Vec<f32> = data.iter().map(|&s| s as f32 / 32768.0 - 1.0).collect();
-                forward(to_mono(&floats, channels));
+                forward(
+                    data.iter()
+                        .map(|&s| f32::from(s) / 32768.0 - 1.0)
+                        .collect(),
+                );
             },
             err_fn,
             None,
@@ -732,7 +737,10 @@ fn capture_on_thread(
     stream
         .play()
         .map_err(|e| format!("failed to start stream: {e}"))?;
-    let _ = setup_tx.send(Ok(()));
+    let _ = setup_tx.send(Ok(CaptureFormat {
+        source_rate,
+        channels,
+    }));
     log::info!("{LOG_PREFIX} microphone stream live");
 
     // Keep the stream (and thus this thread) alive for the process lifetime.
