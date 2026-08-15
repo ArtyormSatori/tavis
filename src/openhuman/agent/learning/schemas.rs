@@ -672,6 +672,7 @@ fn handle_rebuild_cache(_params: Map<String, Value>) -> ControllerFuture {
 
         let outcome = detector
             .rebuild(now)
+            .await
             .map_err(|e| format!("rebuild failed: {e:#}"))?;
 
         let log = vec![format!(
