@@ -478,8 +478,10 @@ mod tests {
     #[test]
     fn facet_to_json_includes_cue_families_and_evidence_refs() {
         use crate::openhuman::agent::learning::candidate::EvidenceRef;
+        use crate::openhuman::memory::api::provider::{
+            FacetState, FacetType, ProfileFacet, UserState,
+        };
         use std::collections::HashMap;
-        use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
 
         let mut cue_families = HashMap::new();
         cue_families.insert("explicit".to_string(), 3u32);
@@ -656,9 +658,11 @@ fn handle_rebuild_cache(_params: Map<String, Value>) -> ControllerFuture {
 
         tracing::debug!("[learning.rebuild_cache] manual rebuild requested via RPC");
 
-        let client = tinymemory_core::global::client_if_ready()
-            .ok_or_else(|| "memory client not ready".to_string())?;
-        let cache = FacetCache::new(client.profile_store());
+        let cache = FacetCache::new(
+            crate::openhuman::memory::ops::guard::active_memory_guard()
+                .await
+                .map_err(|e| format!("memory unavailable: {e}"))?,
+        );
         let detector = StabilityDetector::new(cache);
 
         let now = SystemTime::now()
@@ -689,13 +693,15 @@ fn handle_rebuild_cache(_params: Map<String, Value>) -> ControllerFuture {
 fn handle_cache_stats(_params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
         use crate::openhuman::agent::learning::cache::FacetCache;
-        use tinymemory_core::store::profile::FacetState;
+        use crate::openhuman::memory::api::provider::FacetState;
 
         tracing::debug!("[learning.cache_stats] cache stats requested via RPC");
 
-        let client = tinymemory_core::global::client_if_ready()
-            .ok_or_else(|| "memory client not ready".to_string())?;
-        let cache = FacetCache::new(client.profile_store());
+        let cache = FacetCache::new(
+            crate::openhuman::memory::ops::guard::active_memory_guard()
+                .await
+                .map_err(|e| format!("memory unavailable: {e}"))?,
+        );
 
         let all_facets = cache
             .list_all()
@@ -792,7 +798,7 @@ fn facet_to_json(f: &tinymemory_core::store::profile::ProfileFacet) -> serde_jso
 
 fn handle_list_facets(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
-        use tinymemory_core::store::profile::FacetState;
+        use crate::openhuman::memory::api::provider::FacetState;
 
         tracing::debug!("[learning.list_facets] called");
 
