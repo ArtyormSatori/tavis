@@ -22,8 +22,10 @@ use openhuman_core::openhuman::agent::learning::candidate::{
 };
 use openhuman_core::openhuman::agent::learning::profile_md_renderer::ProfileMdRenderer;
 use openhuman_core::openhuman::agent::learning::stability_detector::StabilityDetector;
+use openhuman_core::openhuman::memory::api::provider::{
+    FacetState, FacetType, ProfileFacet, UserState,
+};
 use tempfile::TempDir;
-use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
 
 fn now_secs() -> f64 {
     SystemTime::now()
