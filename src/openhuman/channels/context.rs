@@ -344,8 +344,7 @@ mod tests {
                     &"x".repeat(MEMORY_CONTEXT_ENTRY_MAX_CHARS + 50),
                     Some(0.9),
                 ),
-            ],
-        };
+        ]);
 
         let rendered = build_memory_context(&mem, "hello", 0.4).await;
         assert!(rendered.starts_with("[Memory context]\n"));
