@@ -1014,14 +1014,29 @@ reason string. Three joined that set here: the two `tool_stats` tests, the
 an autosaved turn is later recalled by a differently-worded question — ranking,
 not substring).
 
-### 2v. A large async body can overflow a debug stack
+### 2v. A pre-existing debug-stack overflow in the whole-lib run
 
 `agent::harness::session::runtime::tests::run_single_publishes_completed_and_error_events`
-overflows a 2 MiB test thread's stack in a debug build and passes under
-`RUST_MIN_STACK=16777216` — deep frames, not recursion. Worth knowing when
-adding an `await` to the turn body: `situational_preferences` and
-`standing_preferences` are free functions rather than inline blocks so their
-state machines stay off the caller's frame.
+aborts the **entire** `cargo test --lib` run with a stack overflow. It is deep
+frames, not recursion: it passes under `RUST_MIN_STACK=16777216`.
+
+**It is not this port's.** Verified by building the branch's merge-base with
+`main` (`c5d5eaab6`) in a scratch worktree and running the single test there —
+same overflow, same abort. Reverting this port's two edits to the turn body did
+not change it either.
+
+It matters here for one practical reason: because the abort kills the process,
+**a whole-lib run reports nothing at all** — no counts, no failure list. Every
+verification in this port is therefore module-scoped, and a claim of "no new
+failures" rests on comparing per-module failing sets against the recorded
+baseline, not on a green whole-suite run. Anyone re-checking this work should
+know that the suite cannot currently be run end to end, and that this is true
+of `main` as well.
+
+Worth knowing separately when adding an `await` to the turn body, since it is
+already close to the edge: `situational_preferences` and `standing_preferences`
+are free functions rather than inline blocks so their state machines stay off
+the caller's frame.
 
 ### Still open in stage 2
 
