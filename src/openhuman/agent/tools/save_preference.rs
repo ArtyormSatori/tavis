@@ -82,13 +82,15 @@ impl PrefScope {
 
 /// Agent tool that saves an explicit user preference into the two-lane store.
 pub struct SavePreferenceTool {
-    memory: Arc<dyn Memory>,
+    /// No memory handle: the guarded driver is resolved per call, so building
+    /// the tool registry no longer requires an engine.
     security: Arc<SecurityPolicy>,
 }
 
 impl SavePreferenceTool {
-    pub fn new(memory: Arc<dyn Memory>, security: Arc<SecurityPolicy>) -> Self {
-        Self { memory, security }
+    #[must_use]
+    pub fn new(security: Arc<SecurityPolicy>) -> Self {
+        Self { security }
     }
 }
 
@@ -255,7 +257,11 @@ impl Tool for SavePreferenceTool {
                 // re-categorised preference doesn't linger in both lanes. Done
                 // *after* the store (not before) so a store failure can never
                 // leave the user with neither copy.
-                if let Err(e) = self.memory.forget(category.other_namespace(), topic).await {
+                let forget_result = match active_memory_guard() {
+                    Some(guard) => guard.forget(category.other_namespace(), topic).await,
+                    None => Ok(false),
+                };
+                if let Err(e) = forget_result {
                     tracing::debug!(
                         "[tool][save_preference] clearing other-scope copy failed (non-fatal) ns={} topic={}: {e}",
                         category.other_namespace(),

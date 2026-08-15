@@ -1,18 +1,25 @@
 //! Tool that lets the agent query its own tool effectiveness data.
 
 use crate::openhuman::agent::learning::tool_tracker::ToolStats;
-use crate::openhuman::memory::{Memory, MemoryCategory};
+use crate::openhuman::memory::api::types::MemoryCategory;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
-use std::sync::Arc;
 
-pub struct ToolStatsTool {
-    memory: Arc<dyn Memory>,
-}
+/// Holds no memory handle: it resolves the guarded driver per call, so the
+/// tool registry no longer has to be handed an engine just to build this.
+pub struct ToolStatsTool;
 
 impl ToolStatsTool {
-    pub fn new(memory: Arc<dyn Memory>) -> Self {
-        Self { memory }
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Default for ToolStatsTool {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -49,8 +56,9 @@ impl Tool for ToolStatsTool {
             filter.as_deref()
         );
 
-        let entries = self
-            .memory
+        let guard = active_memory_guard()
+            .ok_or_else(|| anyhow::anyhow!("memory is not available"))?;
+        let entries = guard
             .list(
                 Some("tool_effectiveness"),
                 Some(&MemoryCategory::Custom("tool_effectiveness".into())),
