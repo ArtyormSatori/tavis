@@ -1,7 +1,8 @@
 use crate::openhuman::agent::experience::types::{
     stable_experience_id_for_profile, AgentExperience, ExperienceHit,
 };
-use crate::openhuman::memory::{Memory, MemoryCategory};
+use crate::openhuman::memory::api::types::MemoryCategory;
+use crate::openhuman::memory::guard::MemoryGuard;
 use base64::Engine as _;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
