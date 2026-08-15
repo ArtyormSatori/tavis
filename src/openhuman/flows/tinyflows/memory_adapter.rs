@@ -41,8 +41,10 @@ use crate::openhuman::agent::harness::memory_context_safety::{
 use crate::openhuman::agent::turn_origin::{self, AgentTurnOrigin, TrustedAutomationSource};
 use crate::openhuman::config::Config;
 use crate::openhuman::flows::{cross_flow_recall, flow_namespace};
+use crate::openhuman::memory::api::provider::{MemoryCore, MemoryRecall};
+use crate::openhuman::memory::api::recall::OwnedRecallOpts;
+use crate::openhuman::memory::api::types::{MemoryCategory, MemoryEntry, MemoryTaint};
 use crate::openhuman::memory::tools::flavour::{lookup_flavour, FlavourLookup};
-use crate::openhuman::memory::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, RecallOpts};
 use crate::openhuman::security::approval::{
     redact_args, summarize_action, ApprovalGate, ExecutionOutcome, GateOutcome,
 };
