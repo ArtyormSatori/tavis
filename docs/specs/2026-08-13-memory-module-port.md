@@ -879,6 +879,43 @@ Everything downstream of these four sites is mechanical once that is settled —
 §2o shows the receivers need only what the contract already has. But the roots
 themselves cannot be converted until per-profile memory has an answer.
 
+### 2q. An in-memory provider, so conversions stop costing coverage
+
+Every seam conversion had been paying the same toll: the consumer's tests handed
+it a real `UnifiedMemory` over a temp dir and asserted a genuine round trip, and
+converting to the guard turned them into `#[ignore]`d module-backed tests. That
+is ~36 tests parked so far.
+
+`memory/guard/in_memory.rs` ends that. It is a `HashMap` behind a mutex
+implementing the **mandatory three**, so it can be wrapped in a *real*
+`MemoryGuard` — `guarded_in_memory()` returns both. A converted consumer's tests
+keep their round-trip assertions, and gain the policy layer on the path where
+production has it.
+
+`RecordingProvider` could not serve: it records calls and answers empty, which
+proves a call was made but never that the data came back.
+
+Two deliberate limits, stated in the module so nobody mistakes it for the
+engine: `recall` is a substring match, not ranked retrieval (a test about
+*ordering* must use the real engine), and `list`/`namespaces` sort explicitly
+because a `HashMap`'s iteration order would make otherwise-identical assertions
+flaky. It is `#[doc(hidden)] pub`, not `#[cfg(test)]`, for the integration-test
+reason this port has already tripped over twice.
+
+**First use: `flows/bus.rs`.** The run-digest subscriber now resolves the guard,
+and its `store_with_taint` call became `store` — the contract carries taint on
+the one door, so the engine trait's second door is unnecessary. All 33 bus tests
+keep their assertions and pass.
+
+The bypass allowlist lost its two `flows/bus.rs` entries with it.
+
+**A third order-dependent test defect surfaced** — `flows::ops` tests build an
+agent, which constructs a memory client, which needs the host seams; they had
+never installed them and passed only on ordering. Same one-line fix as
+`agent::learning::startup` and `sync_pipeline_e2e_tests`. That is three
+independent instances of the same latent defect this port has now found and
+fixed.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
