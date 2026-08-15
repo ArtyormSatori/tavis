@@ -737,11 +737,20 @@ impl Agent {
         // cost). An unrelated message clears the similarity gate to nothing, so
         // no block is injected.
         {
-            let situational = crate::openhuman::memory::preferences::recall_situational_preferences(
-                &self.memory,
-                user_message,
-            )
-            .await;
+            let situational =
+                match crate::openhuman::memory::ops::guard::active_memory_guard().await {
+                    Ok(guard) => {
+                        crate::openhuman::memory::preferences::recall_situational_preferences(
+                            &guard,
+                            user_message,
+                        )
+                        .await
+                    }
+                    Err(e) => {
+                        log::debug!("[pref_recall] situational preferences unavailable: {e}");
+                        Vec::new()
+                    }
+                };
             if !situational.is_empty() {
                 log::info!(
                     "[pref_recall] situational block injected: {} item(s)",

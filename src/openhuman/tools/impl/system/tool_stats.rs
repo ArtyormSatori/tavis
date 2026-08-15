@@ -2,6 +2,7 @@
 
 use crate::openhuman::agent::learning::tool_tracker::ToolStats;
 use crate::openhuman::memory::api::types::MemoryCategory;
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
@@ -57,7 +58,8 @@ impl Tool for ToolStatsTool {
         );
 
         let guard = active_memory_guard()
-            .ok_or_else(|| anyhow::anyhow!("memory is not available"))?;
+            .await
+            .map_err(|e| anyhow::anyhow!("tool_stats: memory unavailable: {e}"))?;
         let entries = guard
             .list(
                 Some("tool_effectiveness"),
