@@ -384,9 +384,6 @@ mod tests {
         use crate::openhuman::memory::api::provider::{
             FacetState, FacetType, ProfileFacet, UserState,
         };
-
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch().unwrap();
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let make_facet = |id: &str, key: &str, value: &str, stab: f64| ProfileFacet {
@@ -459,9 +456,6 @@ mod tests {
     #[test]
     fn load_learned_from_cache_empty_when_no_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
-
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch().unwrap();
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let result = load_learned_from_cache(&cache);

@@ -9,8 +9,6 @@ use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};
 
 fn open_cache() -> FacetCache {
-    let conn = Connection::open_in_memory().unwrap();
-    conn.execute_batch().unwrap();
     crate::openhuman::agent::learning::test_profile::in_memory_cache()
 }
 

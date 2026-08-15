@@ -623,8 +623,6 @@ mod tests {
     use std::sync::Arc;
 
     fn make_detector() -> StabilityDetector {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch().unwrap();
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
         // Use a private buffer so tests don't interfere with the global singleton.
         let buffer: &'static Buffer = Box::leak(Box::new(Buffer::new(256)));
