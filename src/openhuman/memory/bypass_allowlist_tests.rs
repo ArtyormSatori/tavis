@@ -183,17 +183,12 @@ const ALLOWED: &[(&str, &str, &str)] = &[
         ".memory_handle(",
         "session builder needs Arc<dyn Memory>; no contract door for it",
     ),
-    // ── Unguarded (but no longer raw) profile/facet access ──
-    (
-        "src/openhuman/agent/learning/schemas.rs",
-        ".profile_store(",
-        "typed profile/facet reads; the contract has no profile family, so still unguarded",
-    ),
-    (
-        "src/openhuman/agent/learning/schemas.rs",
-        "global::client_if_ready(",
-        "resolved only to reach profile_store() on the line below",
-    ),
+    // ── Profile/facet access ──
+    //
+    // The five `.profile_store(` / `global::client_if_ready(` entries that
+    // stood here are gone: they were justified by "the contract has no profile
+    // family", and it now has one. The learning subsystem reads facets through
+    // `MemoryProfile` on the bound driver.
     (
         "src/openhuman/agent/learning/startup.rs",
         "MemoryClient::from_workspace_dir(",
@@ -201,18 +196,10 @@ const ALLOWED: &[(&str, &str, &str)] = &[
     ),
     (
         "src/openhuman/agent/learning/startup.rs",
-        ".profile_store(",
-        "typed facet bootstrap; the contract has no profile family, so still unguarded",
-    ),
-    (
-        "src/openhuman/agent/learning/tools.rs",
-        ".profile_store(",
-        "typed facet read from an agent tool; the contract has no profile family",
-    ),
-    (
-        "src/openhuman/agent/learning/tools.rs",
-        "global::client_if_ready(",
-        "resolved only to reach profile_store() on the line below",
+        "binding::for_workspace(",
+        "boot-time facet cache: resolves a *guard* for a known workspace, exactly as \
+         `active_memory_guard`'s own no-ambient-context fallback does. Not a raw client, \
+         and not async-reachable — the caller is a sync `OnceLock` initialiser",
     ),
     // ── Flows: foreign trait shapes and a test-override seam ──
     (
