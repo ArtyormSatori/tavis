@@ -914,8 +914,17 @@ mod tests {
     /// subscriber via [`FlowRunDigestSubscriber::with_memory`] makes writes and
     /// read-backs go through the SAME store deterministically — the same shape
     /// `flows::memory_tools`' tests use.
-    fn digest_test_memory(tmp: &tempfile::TempDir) -> Arc<dyn Memory> {
-        Arc::new(UnifiedMemory::new(tmp.path(), Arc::new(NoopEmbedding), None).unwrap())
+    /// A guard over an in-memory store.
+    ///
+    /// This used to build a real `UnifiedMemory` over `tmp` so writes and
+    /// read-backs went through one store. The digest writes through the guarded
+    /// driver now, so the fake sits behind a real `MemoryGuard` — same
+    /// determinism, same round trip, and the policy layer is on the path where
+    /// production has it.
+    fn digest_test_memory(
+        _tmp: &tempfile::TempDir,
+    ) -> Arc<crate::openhuman::memory::guard::MemoryGuard> {
+        crate::openhuman::memory::guard::in_memory::guarded_in_memory().1
     }
 
     fn test_config(tmp: &tempfile::TempDir) -> Arc<Config> {
