@@ -31,9 +31,7 @@ use parking_lot::Mutex;
 
 use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::memory::api::error::MemoryError;
-use crate::openhuman::memory::api::provider::{
-    FacetType, MemoryProfile, ProfileFacet, UserState,
-};
+use crate::openhuman::memory::api::provider::{FacetType, MemoryProfile, ProfileFacet, UserState};
 
 /// Facets held in memory, keyed by [`ProfileFacet::key`].
 #[derive(Default)]
@@ -93,9 +91,7 @@ impl MemoryProfile for InMemoryProfile {
     }
 
     async fn upsert_facet(&self, facet: &ProfileFacet) -> Result<(), MemoryError> {
-        self.facets
-            .lock()
-            .insert(facet.key.clone(), facet.clone());
+        self.facets.lock().insert(facet.key.clone(), facet.clone());
         Ok(())
     }
 
@@ -110,23 +106,25 @@ impl MemoryProfile for InMemoryProfile {
         observed_at: f64,
     ) -> Result<(), MemoryError> {
         let mut facets = self.facets.lock();
-        let entry = facets.entry(key.to_string()).or_insert_with(|| ProfileFacet {
-            facet_id: facet_id.to_string(),
-            facet_type,
-            key: key.to_string(),
-            value: value.to_string(),
-            confidence,
-            evidence_count: 0,
-            source_segment_ids: None,
-            first_seen_at: observed_at,
-            last_seen_at: observed_at,
-            state: Default::default(),
-            stability: 0.0,
-            user_state: Default::default(),
-            evidence_refs: Vec::new(),
-            class: None,
-            cue_families: None,
-        });
+        let entry = facets
+            .entry(key.to_string())
+            .or_insert_with(|| ProfileFacet {
+                facet_id: facet_id.to_string(),
+                facet_type,
+                key: key.to_string(),
+                value: value.to_string(),
+                confidence,
+                evidence_count: 0,
+                source_segment_ids: None,
+                first_seen_at: observed_at,
+                last_seen_at: observed_at,
+                state: Default::default(),
+                stability: 0.0,
+                user_state: Default::default(),
+                evidence_refs: Vec::new(),
+                class: None,
+                cue_families: None,
+            });
         // Confidence-aware, like the engine: a weaker observation must not
         // overwrite a stronger one.
         if confidence >= entry.confidence {

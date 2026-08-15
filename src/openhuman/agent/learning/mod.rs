@@ -32,6 +32,8 @@ pub mod scheduler;
 pub mod schemas;
 pub mod stability_detector;
 pub mod startup;
+#[cfg(test)]
+pub mod test_profile;
 pub mod tool_tracker;
 pub mod tools;
 pub mod transcript_ingest;

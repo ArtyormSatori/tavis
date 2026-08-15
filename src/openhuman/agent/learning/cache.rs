@@ -27,20 +27,51 @@ use crate::openhuman::memory::guard::MemoryGuard;
 /// blocking I/O left in this process to move off the executor, so those hops
 /// are gone and the calls are simply awaited.
 pub struct FacetCache {
-    guard: Arc<MemoryGuard>,
+    source: Source,
+}
+
+/// Where a cache reads its facets from.
+///
+/// Production always takes [`Source::Guard`] — the bound driver, policy layer
+/// included. [`Source::Direct`] exists for tests, which need somewhere to put
+/// facets without standing up a driver; see
+/// [`super::test_profile`] for why that is the right trade rather than parking
+/// the learning tests on a module artifact.
+enum Source {
+    Guard(Arc<MemoryGuard>),
+    #[cfg(test)]
+    Direct(Arc<dyn MemoryProfile>),
 }
 
 impl FacetCache {
     #[must_use]
     pub fn new(guard: Arc<MemoryGuard>) -> Self {
-        Self { guard }
+        Self {
+            source: Source::Guard(guard),
+        }
     }
 
-    /// The driver's profile family, or a caller-facing error.
+    /// A cache over a caller-supplied profile family.
+    ///
+    /// Test-only: production must go through the guard so the policy layer is
+    /// on the path.
+    #[cfg(test)]
+    #[must_use]
+    pub fn for_tests(profile: Arc<dyn MemoryProfile>) -> Self {
+        Self {
+            source: Source::Direct(profile),
+        }
+    }
+
+    /// The profile family, or a caller-facing error.
     fn profile(&self) -> anyhow::Result<&dyn MemoryProfile> {
-        self.guard
-            .as_profile()
-            .ok_or_else(|| anyhow::anyhow!("memory driver does not support the profile family"))
+        match &self.source {
+            Source::Guard(guard) => guard.as_profile().ok_or_else(|| {
+                anyhow::anyhow!("memory driver does not support the profile family")
+            }),
+            #[cfg(test)]
+            Source::Direct(profile) => Ok(profile.as_ref()),
+        }
     }
 
     /// List all facets with `state = 'active'`, ordered by stability descending.
