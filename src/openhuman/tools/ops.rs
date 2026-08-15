@@ -419,7 +419,7 @@ pub fn all_tools_with_runtime(
         // cross-flow exception — it can see every flow's namespace by
         // design, but can never be used to write outside a flow's own.
         #[cfg(feature = "flows")]
-        Box::new(FlowMemoryRecallTool::new(memory.clone())),
+        Box::new(FlowMemoryRecallTool::new()),
         #[cfg(feature = "flows")]
         Box::new(FlowMemoryRememberTool::new(
             memory.clone(),
