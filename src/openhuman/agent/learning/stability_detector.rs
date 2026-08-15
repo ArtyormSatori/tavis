@@ -620,7 +620,6 @@ mod tests {
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
-    use crate::openhuman::memory::api::provider::;
             use std::sync::Arc;
 
     fn make_detector() -> StabilityDetector {
