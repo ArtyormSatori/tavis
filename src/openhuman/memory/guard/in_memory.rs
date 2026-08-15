@@ -154,7 +154,8 @@ impl MemoryCore for InMemoryProvider {
             .into_iter()
             .map(|(namespace, count)| NamespaceSummary {
                 namespace,
-                count: count as u64,
+                count,
+                last_updated: None,
             })
             .collect();
         out.sort_by(|a, b| a.namespace.cmp(&b.namespace));
