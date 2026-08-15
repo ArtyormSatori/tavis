@@ -407,8 +407,13 @@ impl FlowRunDigestSubscriber {
         let namespace = flow_namespace(flow_id);
         let digest_key = format!("run_digest:{run_id}");
 
+        // `store` carries the taint on the contract, so the separate
+        // `store_with_taint` door the engine trait needed is gone. The guard
+        // still stamps the effective value — `ExternalSync` here is the
+        // request, and it is the honest one: a digest is machine-generated
+        // from a flow run, not user-authored.
         if let Err(e) = memory
-            .store_with_taint(
+            .store(
                 &namespace,
                 &digest_key,
                 &digest,
@@ -427,7 +432,11 @@ impl FlowRunDigestSubscriber {
 
     /// Best-effort prune: keeps at most [`DIGEST_RETENTION_CAP`] `run_digest:*`
     /// entries per flow namespace, evicting the oldest (by `timestamp`) first.
-    async fn enforce_retention_cap(&self, memory: &Arc<dyn Memory>, namespace: &str) {
+    async fn enforce_retention_cap(
+        &self,
+        memory: &Arc<crate::openhuman::memory::guard::MemoryGuard>,
+        namespace: &str,
+    ) {
         let entries = match memory.list(Some(namespace), None, None).await {
             Ok(entries) => entries,
             Err(e) => {
