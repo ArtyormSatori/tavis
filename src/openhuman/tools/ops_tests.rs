@@ -19,17 +19,6 @@ fn test_config(tmp: &TempDir) -> Config {
     }
 }
 
-fn test_memory(tmp: &TempDir) -> Arc<dyn Memory> {
-    let mem_cfg = MemoryConfig {
-        backend: "markdown".into(),
-        ..MemoryConfig::default()
-    };
-    // The embedding seam fails loudly when unwired; before the memory
-    // extraction this was a direct call and needed no setup.
-    crate::openhuman::memory::host_impls::install_for_tests();
-    Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap())
-}
-
 fn tool_names(tools: &[Box<dyn Tool>]) -> Vec<String> {
     tools.iter().map(|t| t.name().to_string()).collect()
 }
@@ -88,7 +77,6 @@ fn integration_tools_for_config(tmp: &TempDir, cfg: &Config) -> Vec<Box<dyn Tool
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -126,8 +114,6 @@ fn all_tools_includes_spawn_subagent() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig {
         enabled: false,
@@ -142,7 +128,6 @@ fn all_tools_includes_spawn_subagent() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -177,7 +162,6 @@ fn whatsapp_data_tools_present_when_channels_on() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -218,7 +202,6 @@ fn whatsapp_data_tools_absent_when_channels_off() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -248,8 +231,6 @@ fn all_tools_includes_spawn_async_subagent() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
     let browser = BrowserConfig {
         enabled: false,
         allowed_domains: vec![],
@@ -263,7 +244,6 @@ fn all_tools_includes_spawn_async_subagent() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -287,8 +267,6 @@ fn all_tools_includes_spawn_parallel_agents() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
     let browser = BrowserConfig {
         enabled: false,
         allowed_domains: vec![],
@@ -302,7 +280,6 @@ fn all_tools_includes_spawn_parallel_agents() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -332,8 +309,6 @@ fn all_tools_always_registers_curl() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -343,7 +318,6 @@ fn all_tools_always_registers_curl() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -411,7 +385,6 @@ fn document_tools_registered_when_feature_on() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -445,7 +418,6 @@ fn document_tools_absent_when_feature_off() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -471,8 +443,6 @@ fn all_tools_registers_gitbooks_when_enabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
     let mut cfg = test_config(&tmp);
@@ -482,7 +452,6 @@ fn all_tools_registers_gitbooks_when_enabled() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -589,8 +558,6 @@ fn all_tools_skips_gitbooks_when_disabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
     let mut cfg = test_config(&tmp);
@@ -600,7 +567,6 @@ fn all_tools_skips_gitbooks_when_disabled() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -628,8 +594,6 @@ fn all_tools_includes_current_time() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -639,7 +603,6 @@ fn all_tools_includes_current_time() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -669,7 +632,6 @@ fn all_tools_default_registry_contains_expected_baseline_surface() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -761,7 +723,6 @@ fn all_tools_default_registry_has_no_duplicate_tool_names() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -787,8 +748,6 @@ fn all_tools_excludes_browser_when_disabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig {
         enabled: false,
@@ -803,7 +762,6 @@ fn all_tools_excludes_browser_when_disabled() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -853,8 +811,6 @@ fn all_tools_includes_browser_when_enabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig {
         enabled: true,
@@ -869,7 +825,6 @@ fn all_tools_includes_browser_when_enabled() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -977,8 +932,6 @@ fn all_tools_includes_delegate_when_agents_configured() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -999,7 +952,6 @@ fn all_tools_includes_delegate_when_agents_configured() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1020,8 +972,6 @@ fn all_tools_excludes_delegate_when_no_agents() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -1031,7 +981,6 @@ fn all_tools_excludes_delegate_when_no_agents() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1057,8 +1006,6 @@ fn all_tools_registers_node_exec_when_node_enabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -1068,7 +1015,6 @@ fn all_tools_registers_node_exec_when_node_enabled() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1098,8 +1044,6 @@ fn all_tools_registers_python_exec_when_python_enabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -1109,7 +1053,6 @@ fn all_tools_registers_python_exec_when_python_enabled() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1133,8 +1076,6 @@ fn all_tools_excludes_node_exec_when_node_disabled() {
         backend: "markdown".into(),
         ..MemoryConfig::default()
     };
-    let mem: Arc<dyn Memory> =
-        Arc::from(tinymemory_core::store::create_memory(&mem_cfg, tmp.path()).unwrap());
 
     let browser = BrowserConfig::default();
     let http = crate::openhuman::config::HttpRequestConfig::default();
@@ -1145,7 +1086,6 @@ fn all_tools_excludes_node_exec_when_node_disabled() {
         Arc::new(Config::default()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1188,7 +1128,6 @@ fn all_tools_registers_integration_families_when_enabled_and_signed_in() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1260,7 +1199,6 @@ fn all_tools_registers_brave_engine_lsp_and_tool_stats_when_enabled() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1300,7 +1238,6 @@ fn all_tools_registers_querit_engine_when_enabled() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1330,7 +1267,6 @@ fn all_tools_omits_search_surface_when_search_is_disabled() {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
@@ -1820,7 +1756,6 @@ fn expansion_tools_for(tmp: &TempDir) -> Vec<Box<dyn Tool>> {
         Arc::new(cfg.clone()),
         &security,
         AuditLogger::disabled(),
-        mem,
         &browser,
         &http,
         tmp.path(),
