@@ -206,16 +206,6 @@ const ALLOWED: &[(&str, &str, &str)] = &[
     // `flows/bus.rs`'s two entries are gone: the run-digest subscriber resolves
     // the guarded driver, and its `#[cfg(test)]` override now injects a real
     // `MemoryGuard` over an in-memory provider rather than a raw handle.
-    (
-        "src/openhuman/flows/tinyflows/memory_adapter.rs",
-        ".memory_handle(",
-        "returns Arc<dyn Memory> to satisfy a tinyflows engine trait",
-    ),
-    (
-        "src/openhuman/flows/tinyflows/memory_adapter.rs",
-        "active_memory_client(",
-        "same adapter; the tinyflows trait names the engine type, not the contract",
-    ),
     // ── Composio integration: &MemoryClientRef parameter shape ──
     (
         "src/openhuman/integrations/composio/ops/memory_cleanup.rs",
