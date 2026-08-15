@@ -240,10 +240,9 @@ async fn memory_node_remember_then_recall_round_trips_through_the_real_engine_an
     // `flow_memory_recall` agent tool for the same flow_id — proving one
     // shared store, not two namespace conventions that happen to overlap by
     // convention (see memory_adapter.rs's module doc). ──
-    let memory = tinymemory_core::global::client_if_ready()
-        .expect("global memory client must be initialized by lock_shared_memory")
-        .memory_handle();
-    let recall_tool = FlowMemoryRecallTool::new(memory);
+    // The tool resolves the bound driver itself now, so no handle is threaded
+    // in; `lock_shared_memory` still pins the workspace the driver binds to.
+    let recall_tool = FlowMemoryRecallTool::new();
     let tool_result = turn_origin::with_origin(
         workflow_origin(&flow_id),
         recall_tool.execute(json!({ "query": "item-42", "flow_id": flow_id })),

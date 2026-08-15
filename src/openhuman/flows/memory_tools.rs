@@ -781,7 +781,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             .unwrap()
             .expect("entry should be stored");
         assert_eq!(entry.content, "Sent item 42");
-        assert_eq!(entry.taint, MemoryTaint::ExternalSync);
+        assert_eq!(entry.taint, EngineTaint::ExternalSync);
     }
 
     #[tokio::test]
