@@ -491,7 +491,7 @@ impl Tool for LearningResetCacheTool {
             .count();
         let mut deleted = 0usize;
         for f in &all {
-            if f.user_state != UserState::Pinned && cache.delete(&f.key).unwrap_or(false) {
+            if f.user_state != UserState::Pinned && cache.delete(&f.key).await.unwrap_or(false) {
                 deleted += 1;
             }
         }
