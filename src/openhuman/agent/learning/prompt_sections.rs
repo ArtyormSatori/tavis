@@ -427,7 +427,7 @@ mod tests {
         prov.state = FacetState::Provisional;
         cache.upsert(&prov).await.unwrap();
 
-        let result = load_learned_from_cache(&cache);
+        let result = load_learned_from_cache(&cache).await;
 
         assert!(
             !result.is_empty(),
@@ -461,7 +461,7 @@ mod tests {
         use crate::openhuman::agent::learning::cache::FacetCache;
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
-        let result = load_learned_from_cache(&cache);
+        let result = load_learned_from_cache(&cache).await;
         assert!(result.is_empty());
     }
 

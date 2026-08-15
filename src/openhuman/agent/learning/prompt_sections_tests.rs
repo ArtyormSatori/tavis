@@ -51,7 +51,7 @@ fn load_learned_from_cache_caps_at_25_entries() {
             .unwrap();
     }
 
-    let result = load_learned_from_cache(&cache);
+    let result = load_learned_from_cache(&cache).await;
     assert_eq!(
         result.len(),
         25,
@@ -80,7 +80,7 @@ async fn load_learned_from_cache_ranks_by_stability_descending() {
         .await
         .unwrap();
 
-    let result = load_learned_from_cache(&cache);
+    let result = load_learned_from_cache(&cache).await;
     assert!(!result.is_empty());
 
     // Find positions of high / low in the result list.
@@ -115,7 +115,7 @@ async fn load_learned_from_cache_marks_pinned_facets() {
         .await
         .unwrap();
 
-    let result = load_learned_from_cache(&cache);
+    let result = load_learned_from_cache(&cache).await;
     let pinned_entry = result
         .iter()
         .find(|s| s.contains("identity/name"))
@@ -137,7 +137,7 @@ async fn load_learned_from_cache_excludes_dropped_facets() {
     dropped.state = FacetState::Dropped;
     cache.upsert(&dropped).await.unwrap();
 
-    let result = load_learned_from_cache(&cache);
+    let result = load_learned_from_cache(&cache).await;
     assert!(
         !result.iter().any(|s| s.contains("style/dropped")),
         "dropped facet must not appear in output"
@@ -165,7 +165,7 @@ fn load_learned_from_cache_includes_facets_from_all_classes() {
         cache.upsert(&make_active(id, key, val, 1.8)).unwrap();
     }
 
-    let result = load_learned_from_cache(&cache);
+    let result = load_learned_from_cache(&cache).await;
 
     // Goal class renders value-only; others render "**key**: value".
     assert!(result.iter().any(|s| s.contains("Learn Rust")));
@@ -182,7 +182,7 @@ fn load_learned_from_cache_includes_facets_from_all_classes() {
 #[test]
 fn load_learned_from_cache_returns_empty_for_empty_cache() {
     let cache = open_cache();
-    assert!(load_learned_from_cache(&cache).is_empty());
+    assert!(load_learned_from_cache(&cache).await.is_empty());
 }
 
 // ── drop_below_threshold does not touch Active rows ───────────────────────────
