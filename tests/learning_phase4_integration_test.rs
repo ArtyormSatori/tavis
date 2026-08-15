@@ -80,7 +80,8 @@ impl TestHarness {
         // this test's results.
         let _ = candidate::global().drain();
 
-        let detector = StabilityDetector::new(FacetCache::new(ProfileStore::for_tests(conn)));
+        let detector =
+            StabilityDetector::new(FacetCache::for_tests(Arc::clone(&profile) as Arc<_>));
 
         TestHarness {
             cache,
@@ -261,9 +262,7 @@ async fn phase4_end_to_end_pin_forget_profile_md_list() {
 
 #[tokio::test]
 async fn list_facets_cache_direct_active_vs_all() {
-    let conn = Connection::open_in_memory().unwrap();
-    conn.execute_batch().unwrap();
-    let cache = FacetCache::new(ProfileStore::for_tests(Arc::new(Mutex::new(conn))));
+    let cache = openhuman_core::openhuman::agent::learning::test_profile::in_memory_cache();
 
     let make = |id: &str, key: &str, state: FacetState| ProfileFacet {
         facet_id: id.into(),
