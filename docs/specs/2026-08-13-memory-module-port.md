@@ -942,6 +942,87 @@ has now shed nine: five profile/facet, two `flows/bus.rs`, two
 `memory_adapter.rs` — against one added (a boot-time guard resolution, with a
 reason). Its own rule is that it may shrink and must never grow.
 
+### 2s. The tool registry stopped taking a memory handle
+
+`all_tools` / `all_tools_with_runtime` took an `Arc<dyn Memory>` and threaded it
+into exactly **two** tools: `SavePreferenceTool` and `ToolStatsTool`. Each used
+one mandatory-family method (`forget`, `list`). Converting those two to resolve
+the guarded driver per call made the parameter dead, and dropping it collapsed
+**both remaining engine-construction sites** in one step:
+
+| Site | Was |
+| --- | --- |
+| `channels/runtime/startup.rs` | `create_memory_with_local_ai(...)`, plus a second fallback construction with `embedding_provider = "none"` when the embedder failed (#3712) |
+| `runtime/node/ops.rs` | `tinymemory_core::store::create_memory_with_local_ai(...)` |
+
+The #3712 fallback goes away with the construction it protected: there is no
+embedder to fail to build here any more, because the host no longer builds a
+store at all. The degradation it bought — channels still start when the
+embedding provider is misconfigured — now belongs to the driver, which is a
+better place for it: it applied to one of the four construction sites, and the
+other three had no such protection.
+
+`ChannelRuntimeContext.memory` became `Arc<MemoryGuard>` in the same change,
+and `build_memory_context` with it.
+
+### 2t. `preferences` came home, and cost the contract nothing
+
+`tinymemory_core::preferences` was host policy living in the engine: which two
+namespaces the lanes use, how many standing preferences a prompt may carry, and
+the similarity floors for Lane-B recall and the contradiction check. A second
+engine would have had to reimplement all of it identically or the product would
+change underneath it. It is now `src/openhuman/memory/preferences.rs`.
+
+**The move needed no new contract surface**, which is worth recording because
+the reflex was to add a `recall_relevant_by_vector` method. The engine's
+version was itself a *default* method over `query_namespace_hits` — the query
+the contract already exposes as `MemoryRetrieval::recall_namespace_scored` — so
+the filter (keep hits whose `score_breakdown.vector_similarity` clears the
+floor) is reproduced host-side verbatim. Check for a default implementation
+before widening the contract; twice now the surface was already there.
+
+A driver without `Capability::Retrieval` yields **no** preferences rather than
+an error, preserving the engine default that let keyword-only backends opt out.
+Both callers degrade correctly: an absent Lane-B block and an absent
+contradiction check, rather than a failed chat turn or a failed preference
+write.
+
+The two `KwEmbedder`-based contradiction tests were deleted, not ported. They
+existed to make vector similarity move at all through a real `UnifiedMemory`;
+the new tests script the score breakdown directly, which pins the similarity
+gate the embedder was only an indirect way of reaching.
+
+### 2u. Two reusable test providers now exist
+
+Conversions kept costing test coverage, so `memory/guard/in_memory.rs` now
+carries two, both `#[doc(hidden)] pub` rather than `#[cfg(test)]` so integration
+tests under `tests/` can see them:
+
+- **`InMemoryProvider`** — real storage; for round trips. `recall` substring-matches.
+- **`FixedRecallProvider`** — `recall` answers a scripted list whatever the
+  query; everything else inert. For the channel/context tests that assert on
+  what the *caller* does with a result set (scoring filter, truncation, budget),
+  where recall itself must be a constant.
+
+`guard_over(provider)` wraps either — or a test's own provider — in a real
+`MemoryGuard`, so these run through the same policy decorator production uses.
+
+**Where a fake is not enough.** A test whose assertion turns on *ranked* recall
+cannot use either, and gets parked on `OPENHUMAN_MODULE_PATH` with the existing
+reason string. Three joined that set here: the two `tool_stats` tests, the
+`save_preference` storage tests, and the channels autosave test (which asserts
+an autosaved turn is later recalled by a differently-worded question — ranking,
+not substring).
+
+### 2v. A large async body can overflow a debug stack
+
+`agent::harness::session::runtime::tests::run_single_publishes_completed_and_error_events`
+overflows a 2 MiB test thread's stack in a debug build and passes under
+`RUST_MIN_STACK=16777216` — deep frames, not recursion. Worth knowing when
+adding an `await` to the turn body: `situational_preferences` and
+`standing_preferences` are free functions rather than inline blocks so their
+state machines stay off the caller's frame.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
