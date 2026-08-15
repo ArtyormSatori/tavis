@@ -333,8 +333,8 @@ impl Tool for FlowMemoryRecallTool {
             "flow" => {
                 let namespace = flow_namespace(flow_id);
                 let opts = RecallOpts {
-                    namespace: Some(namespace.as_str()),
-                    ..RecallOpts::default()
+                    namespace: Some(namespace.clone()),
+                    ..Default::default()
                 };
                 let guard = active_memory_guard()
                     .await
@@ -349,11 +349,12 @@ impl Tool for FlowMemoryRecallTool {
                     .await
                     .map_err(|e| anyhow::anyhow!("flow_memory_recall: {e}"))?;
                 match cross_flow_recall(&guard, query, limit, None).await {
-                Ok(merged) => Ok(ToolResult::success(render_entries(&merged))),
-                Err(e) => Ok(ToolResult::error(format!(
-                    "Failed to list flow memory namespaces: {e}"
-                ))),
-            },
+                    Ok(merged) => Ok(ToolResult::success(render_entries(&merged))),
+                    Err(e) => Ok(ToolResult::error(format!(
+                        "Failed to list flow memory namespaces: {e}"
+                    ))),
+                }
+            }
             other => Ok(ToolResult::error(format!(
                 "Unknown scope '{other}': expected 'flow' or 'flows'"
             ))),
