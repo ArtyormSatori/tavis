@@ -1,4 +1,3 @@
-use crate::openhuman::memory::api::provider::MemoryCore as _;
 //! Core message processing loop for the channel runtime.
 //!
 //! Contains:
@@ -11,6 +10,7 @@ use crate::openhuman::memory::api::provider::MemoryCore as _;
 //! * [`run_message_dispatch_loop`] — bounded-concurrency worker loop that feeds
 //!   messages into [`process_channel_message`].
 
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::agent::bus::{AgentTurnRequest, AgentTurnResponse, AGENT_RUN_TURN_METHOD};
