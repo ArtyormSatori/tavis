@@ -256,3 +256,119 @@ pub fn guard_over(provider: Arc<dyn MemoryProvider>) -> Arc<super::MemoryGuard> 
     ));
     Arc::new(super::MemoryGuard::new(provider, policy))
 }
+
+/// A provider whose `recall` answers with a fixed entry list, whatever the
+/// query.
+///
+/// # Why this is not [`InMemoryProvider`]
+///
+/// That one substring-matches, which is right for a round-trip test and wrong
+/// for the several channel/context tests that script a specific result set —
+/// scored entries, an over-long entry, ten entries to overflow a budget — and
+/// assert on what the *caller* does with it. Those tests are about rendering
+/// and filtering downstream of recall, so recall itself has to be a constant.
+///
+/// Everything else is inert: writes are accepted and dropped, reads answer
+/// empty. A test needing real storage wants [`InMemoryProvider`].
+pub struct FixedRecallProvider {
+    entries: Vec<MemoryEntry>,
+}
+
+impl FixedRecallProvider {
+    #[must_use]
+    pub fn new(entries: Vec<MemoryEntry>) -> Self {
+        Self { entries }
+    }
+
+    /// The provider wrapped in a real guard, ready to drop into a context.
+    #[must_use]
+    pub fn guarded(entries: Vec<MemoryEntry>) -> Arc<super::MemoryGuard> {
+        guard_over(Arc::new(Self::new(entries)) as Arc<dyn MemoryProvider>)
+    }
+}
+
+#[async_trait]
+impl MemoryCore for FixedRecallProvider {
+    async fn store(
+        &self,
+        _namespace: &str,
+        _key: &str,
+        _content: &str,
+        _category: MemoryCategory,
+        _session_id: Option<&str>,
+        _taint: MemoryTaint,
+    ) -> Result<(), MemoryError> {
+        Ok(())
+    }
+
+    async fn get(&self, _namespace: &str, _key: &str) -> Result<Option<MemoryEntry>, MemoryError> {
+        Ok(None)
+    }
+
+    async fn forget(&self, _namespace: &str, _key: &str) -> Result<bool, MemoryError> {
+        Ok(false)
+    }
+
+    async fn list(
+        &self,
+        _namespace: Option<&str>,
+        _category: Option<&MemoryCategory>,
+        _session_id: Option<&str>,
+    ) -> Result<Vec<MemoryEntry>, MemoryError> {
+        Ok(Vec::new())
+    }
+
+    async fn namespaces(&self) -> Result<Vec<NamespaceSummary>, MemoryError> {
+        Ok(Vec::new())
+    }
+}
+
+#[async_trait]
+impl MemoryRecall for FixedRecallProvider {
+    async fn recall(
+        &self,
+        _query: &str,
+        _limit: usize,
+        _opts: &OwnedRecallOpts,
+        _scope: Option<&SourceScope>,
+    ) -> Result<Vec<MemoryEntry>, MemoryError> {
+        Ok(self.entries.clone())
+    }
+}
+
+#[async_trait]
+impl MemoryPortability for FixedRecallProvider {
+    async fn export_page(
+        &self,
+        _cursor: Option<&str>,
+        _limit: usize,
+    ) -> Result<ExportPage, MemoryError> {
+        Err(MemoryError::Other(anyhow::anyhow!(
+            "FixedRecallProvider does not implement export"
+        )))
+    }
+
+    async fn import_records(
+        &self,
+        _records: Vec<ExportRecord>,
+    ) -> Result<ImportOutcome, MemoryError> {
+        Err(MemoryError::Other(anyhow::anyhow!(
+            "FixedRecallProvider does not implement import"
+        )))
+    }
+}
+
+#[async_trait]
+impl MemoryProvider for FixedRecallProvider {
+    fn driver_id(&self) -> &str {
+        "fixed-recall"
+    }
+
+    fn capabilities(&self) -> Capabilities {
+        Capabilities::mandatory()
+    }
+
+    async fn health(&self) -> MemoryHealth {
+        MemoryHealth::Ready
+    }
+}
