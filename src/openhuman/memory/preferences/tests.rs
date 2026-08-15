@@ -256,9 +256,8 @@ impl MemoryProvider for RetrievalProvider {
     }
 
     fn capabilities(&self) -> Capabilities {
-        Capabilities::mandatory() | Capabilities::from(
-            crate::openhuman::memory::api::capabilities::Capability::Retrieval,
-        )
+        Capabilities::mandatory()
+            .with(crate::openhuman::memory::api::capabilities::Capability::Retrieval)
     }
 
     fn as_retrieval(&self) -> Option<&dyn MemoryRetrieval> {
