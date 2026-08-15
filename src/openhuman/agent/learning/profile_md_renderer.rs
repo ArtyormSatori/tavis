@@ -220,13 +220,13 @@ impl EventHandler<DomainEvent> for RendererSubscriber {
 mod tests {
     use super::*;
     use crate::openhuman::integrations::composio::providers::profile_md::{block_end, block_start};
+    use crate::openhuman::memory::api::provider::{
+        FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
+    };
     use parking_lot::Mutex;
     use rusqlite::Connection;
     use std::sync::Arc;
     use tempfile::TempDir;
-    use tinymemory_core::store::profile::{
-        FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
-    };
 
     fn make_cache(conn: Arc<Mutex<Connection>>) -> Arc<FacetCache> {
         Arc::new(FacetCache::new(

@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use super::*;
 use crate::openhuman::agent::learning::candidate::{EvidenceRef, FacetClass};
-use tinymemory_core::store::profile::{
+use crate::openhuman::memory::api::provider::{
     FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
 };
 

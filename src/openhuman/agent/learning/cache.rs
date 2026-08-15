@@ -135,7 +135,7 @@ pub fn class_prefix(class: FacetClass) -> &'static str {
 
 // ── Facet state enum re-export (convenience for callers of this module) ───────
 
-pub use tinymemory_core::store::profile::{
+pub use crate::openhuman::memory::api::provider::{
     FacetState as CacheFacetState, UserState as CacheUserState,
 };
 

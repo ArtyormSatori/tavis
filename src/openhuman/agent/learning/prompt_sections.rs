@@ -381,11 +381,11 @@ mod tests {
     #[test]
     fn load_learned_from_cache_formats_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
-        use parking_lot::Mutex;
-        use rusqlite::Connection;
-        use tinymemory_core::store::profile::{
+        use crate::openhuman::memory::api::provider::{
             FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
         };
+        use parking_lot::Mutex;
+        use rusqlite::Connection;
 
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
@@ -463,9 +463,9 @@ mod tests {
     #[test]
     fn load_learned_from_cache_empty_when_no_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
+        use crate::openhuman::memory::api::provider::PROFILE_INIT_SQL;
         use parking_lot::Mutex;
         use rusqlite::Connection;
-        use tinymemory_core::store::profile::PROFILE_INIT_SQL;
 
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();

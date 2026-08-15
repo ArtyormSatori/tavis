@@ -1029,7 +1029,7 @@ fn handle_unpin_facet(params: Map<String, Value>) -> ControllerFuture {
 
 fn handle_forget_facet(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
-        use tinymemory_core::store::profile::{FacetState, UserState};
+        use crate::openhuman::memory::api::provider::{FacetState, UserState};
 
         let class_str = params
             .get("class")

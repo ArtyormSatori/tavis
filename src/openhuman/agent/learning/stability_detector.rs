@@ -620,10 +620,10 @@ mod tests {
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
+    use crate::openhuman::memory::api::provider::PROFILE_INIT_SQL;
     use parking_lot::Mutex;
     use rusqlite::Connection;
     use std::sync::Arc;
-    use tinymemory_core::store::profile::PROFILE_INIT_SQL;
 
     fn make_detector() -> StabilityDetector {
         let conn = Connection::open_in_memory().unwrap();
@@ -856,7 +856,7 @@ mod tests {
         let now = 1_000_000.0;
 
         // Manually insert a Pinned row.
-        use tinymemory_core::store::profile::{FacetState, FacetType, UserState};
+        use crate::openhuman::memory::api::provider::{FacetState, FacetType, UserState};
         let pinned = ProfileFacet {
             facet_id: "f-pinned".into(),
             facet_type: FacetType::Preference,
