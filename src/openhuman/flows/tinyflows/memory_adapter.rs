@@ -207,7 +207,7 @@ impl OpenHumanMemory {
         let results: Vec<Value> = entries
             .iter()
             .map(|entry| {
-                let text = if is_potentially_untrusted(entry) {
+                let text = if is_potentially_untrusted(entry.namespace.as_deref(), &entry.key) {
                     let hint = entry.namespace.as_deref().unwrap_or(scope);
                     wrap_untrusted_for_agent(&entry.content, hint)
                 } else {
