@@ -4,13 +4,9 @@ use std::sync::Arc;
 
 use super::*;
 use crate::openhuman::agent::learning::candidate::{EvidenceRef, FacetClass};
-use crate::openhuman::memory::api::provider::{
-    FacetState, FacetType, ProfileFacet, UserState,
-};
+use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};
 
 fn make_cache() -> FacetCache {
-    let conn = Connection::open_in_memory().unwrap();
-    conn.execute_batch().unwrap();
     crate::openhuman::agent::learning::test_profile::in_memory_cache()
 }
 

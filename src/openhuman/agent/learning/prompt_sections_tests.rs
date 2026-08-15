@@ -6,9 +6,7 @@ use std::sync::Arc;
 
 use super::load_learned_from_cache;
 use crate::openhuman::agent::learning::cache::FacetCache;
-use crate::openhuman::memory::api::provider::{
-    FacetState, FacetType, ProfileFacet, UserState,
-};
+use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};
 
 fn open_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();

@@ -620,7 +620,7 @@ mod tests {
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
-            use std::sync::Arc;
+    use std::sync::Arc;
 
     fn make_detector() -> StabilityDetector {
         let conn = Connection::open_in_memory().unwrap();
@@ -837,7 +837,11 @@ mod tests {
 
         detector.rebuild(now).await.unwrap();
 
-        let by_class = detector.cache.list_by_class(FacetClass::Style).await.unwrap();
+        let by_class = detector
+            .cache
+            .list_by_class(FacetClass::Style)
+            .await
+            .unwrap();
         assert!(
             by_class.len() <= BUDGET_STYLE,
             "style class should have at most {BUDGET_STYLE} active rows, got {}",

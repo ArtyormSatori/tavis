@@ -220,16 +220,12 @@ impl EventHandler<DomainEvent> for RendererSubscriber {
 mod tests {
     use super::*;
     use crate::openhuman::integrations::composio::providers::profile_md::{block_end, block_start};
-    use crate::openhuman::memory::api::provider::{
-        FacetState, FacetType, ProfileFacet, UserState,
-    };
-            use std::sync::Arc;
+    use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};
+    use std::sync::Arc;
     use tempfile::TempDir;
 
-    fn make_cache(conn: Arc<Mutex<Connection>>) -> Arc<FacetCache> {
-        Arc::new(FacetCache::new(
-            tinymemory_core::store::ProfileStore::for_tests(conn),
-        ))
+    fn make_cache() -> Arc<FacetCache> {
+        Arc::new(crate::openhuman::agent::learning::test_profile::in_memory_cache())
     }
 
     fn insert_facet(
@@ -262,9 +258,7 @@ mod tests {
 
     fn make_renderer() -> (Arc<FacetCache>, ProfileMdRenderer, TempDir) {
         let tmp = TempDir::new().unwrap();
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch().unwrap();
-        let cache = make_cache(Arc::new(Mutex::new(conn)));
+        let cache = make_cache();
         let renderer = ProfileMdRenderer::new(Arc::clone(&cache), tmp.path().to_path_buf());
         (cache, renderer, tmp)
     }
@@ -504,9 +498,7 @@ mod tests {
         // Verify that ProfileMdRenderer::subscribe compiles and returns a handle.
         // Full async event delivery is tested in the integration test.
         let tmp = TempDir::new().unwrap();
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch().unwrap();
-        let cache = make_cache(Arc::new(Mutex::new(conn)));
+        let cache = make_cache();
         let renderer = Arc::new(ProfileMdRenderer::new(cache, tmp.path().to_path_buf()));
         // subscribe_global requires a running runtime; just verify the type works.
         let _renderer_ref = Arc::clone(&renderer);
