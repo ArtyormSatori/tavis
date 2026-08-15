@@ -166,6 +166,8 @@ fn unique_flow_id(prefix: &str) -> String {
 // with the sibling `flow_memory_recall` agent tool ─────────────────────────
 
 #[tokio::test]
+#[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+the adapter writes through the bound driver, so the round trip needs the real artifact"]
 async fn memory_node_remember_then_recall_round_trips_through_the_real_engine_and_adapter() {
     let _serial = lock_shared_memory().await;
     let (_tmp, config) = full_autonomy_config();
