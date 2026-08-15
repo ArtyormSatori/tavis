@@ -155,7 +155,7 @@ mod tests {
 
     // The read-back below goes through the engine handle directly, so its
     // entries carry the *engine's* category type, not the contract's.
-    use tinymemory_core::rpc_models::MemoryCategory as EngineMemoryCategory;
+    use tinymemory_core::MemoryCategory as EngineMemoryCategory;
 
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())
