@@ -445,6 +445,7 @@ impl Tool for LearningRebuildCacheTool {
             .unwrap_or(0.0);
         let outcome = detector
             .rebuild(now)
+            .await
             .map_err(|e| anyhow::anyhow!("learning_rebuild_cache: rebuild failed: {e:#}"))?;
         Ok(ToolResult::success(serde_json::to_string(&json!({
             "added": outcome.added,
