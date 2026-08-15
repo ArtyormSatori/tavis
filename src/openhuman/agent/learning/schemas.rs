@@ -706,6 +706,7 @@ fn handle_cache_stats(_params: Map<String, Value>) -> ControllerFuture {
 
         let all_facets = cache
             .list_all()
+            .await
             .map_err(|e| format!("list_all failed: {e:#}"))?;
 
         let total = all_facets.len();
@@ -808,11 +809,12 @@ fn handle_list_facets(params: Map<String, Value>) -> ControllerFuture {
             .and_then(Value::as_str)
             .map(str::to_string);
 
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
 
         // list_all returns all states (active + provisional + candidate + dropped).
         let all = cache
             .list_all()
+            .await
             .map_err(|e| format!("list_all failed: {e:#}"))?;
 
         let facets: Vec<serde_json::Value> = all
@@ -861,8 +863,11 @@ fn handle_get_facet(params: Map<String, Value>) -> ControllerFuture {
         let fk = full_key(&class_str, &key_suffix);
         tracing::debug!("[learning.get_facet] key={fk}");
 
-        let cache = get_cache()?;
-        let facet = cache.get(&fk).map_err(|e| format!("get failed: {e:#}"))?;
+        let cache = get_cache().await?;
+        let facet = cache
+            .get(&fk)
+            .await
+            .map_err(|e| format!("get failed: {e:#}"))?;
 
         let (found, facet_val) = match &facet {
             Some(f) => (true, facet_to_json(f)),
@@ -900,10 +905,11 @@ fn handle_update_facet(params: Map<String, Value>) -> ControllerFuture {
         let fk = full_key(&class_str, &key_suffix);
         tracing::debug!("[learning.update_facet] key={fk} value={new_value}");
 
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
 
         let mut facet = cache
             .get(&fk)
+            .await
             .map_err(|e| format!("get failed: {e:#}"))?
             .ok_or_else(|| format!("facet not found: {fk}"))?;
 
@@ -913,10 +919,12 @@ fn handle_update_facet(params: Map<String, Value>) -> ControllerFuture {
 
         cache
             .upsert(&facet)
+            .await
             .map_err(|e| format!("upsert failed: {e:#}"))?;
 
         let updated = cache
             .get(&fk)
+            .await
             .map_err(|e| format!("re-read failed: {e:#}"))?
             .ok_or_else(|| "facet disappeared after upsert".to_string())?;
 
@@ -948,9 +956,10 @@ fn handle_pin_facet(params: Map<String, Value>) -> ControllerFuture {
         let fk = full_key(&class_str, &key_suffix);
         tracing::debug!("[learning.pin_facet] key={fk}");
 
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let updated = cache
             .set_user_state(&fk, UserState::Pinned)
+            .await
             .map_err(|e| format!("set_user_state failed: {e:#}"))?;
 
         if !updated {
@@ -959,6 +968,7 @@ fn handle_pin_facet(params: Map<String, Value>) -> ControllerFuture {
 
         let facet = cache
             .get(&fk)
+            .await
             .map_err(|e| format!("re-read failed: {e:#}"))?
             .ok_or_else(|| "facet disappeared after update".to_string())?;
 
@@ -988,9 +998,10 @@ fn handle_unpin_facet(params: Map<String, Value>) -> ControllerFuture {
         let fk = full_key(&class_str, &key_suffix);
         tracing::debug!("[learning.unpin_facet] key={fk}");
 
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let updated = cache
             .set_user_state(&fk, UserState::Auto)
+            .await
             .map_err(|e| format!("set_user_state failed: {e:#}"))?;
 
         if !updated {
@@ -999,6 +1010,7 @@ fn handle_unpin_facet(params: Map<String, Value>) -> ControllerFuture {
 
         let facet = cache
             .get(&fk)
+            .await
             .map_err(|e| format!("re-read failed: {e:#}"))?
             .ok_or_else(|| "facet disappeared after update".to_string())?;
 
@@ -1028,9 +1040,12 @@ fn handle_forget_facet(params: Map<String, Value>) -> ControllerFuture {
         let fk = full_key(&class_str, &key_suffix);
         tracing::debug!("[learning.forget_facet] key={fk}");
 
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
 
-        let facet_before = cache.get(&fk).map_err(|e| format!("get failed: {e:#}"))?;
+        let facet_before = cache
+            .get(&fk)
+            .await
+            .map_err(|e| format!("get failed: {e:#}"))?;
 
         let facet_json = if let Some(mut f) = facet_before {
             // Mark Forgotten + Dropped so it doesn't resurface.
@@ -1038,9 +1053,11 @@ fn handle_forget_facet(params: Map<String, Value>) -> ControllerFuture {
             f.state = FacetState::Dropped;
             cache
                 .upsert(&f)
+                .await
                 .map_err(|e| format!("upsert failed: {e:#}"))?;
             let updated = cache
                 .get(&fk)
+                .await
                 .map_err(|e| format!("re-read failed: {e:#}"))?
                 .unwrap_or(f);
             facet_to_json(&updated)
@@ -1064,10 +1081,11 @@ fn handle_reset_cache(_params: Map<String, Value>) -> ControllerFuture {
 
         tracing::debug!("[learning.reset_cache] called");
 
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
 
         let all = cache
             .list_all()
+            .await
             .map_err(|e| format!("list_all failed: {e:#}"))?;
 
         let pinned_preserved = all

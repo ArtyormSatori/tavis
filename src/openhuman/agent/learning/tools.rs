@@ -89,6 +89,7 @@ impl Tool for LearningListFacetsTool {
         let cache = get_cache().await?;
         let all = cache
             .list_all()
+            .await
             .map_err(|e| anyhow::anyhow!("learning_list_facets: {e:#}"))?;
         let facets: Vec<serde_json::Value> = all
             .iter()
@@ -146,6 +147,7 @@ impl Tool for LearningGetFacetTool {
         let cache = get_cache().await?;
         let facet = cache
             .get(&fk)
+            .await
             .map_err(|e| anyhow::anyhow!("learning_get_facet: {e:#}"))?;
         Ok(ToolResult::success(serde_json::to_string(&json!({
             "found": facet.is_some(),
@@ -182,6 +184,7 @@ impl Tool for LearningCacheStatsTool {
         let cache = get_cache().await?;
         let all = cache
             .list_all()
+            .await
             .map_err(|e| anyhow::anyhow!("learning_cache_stats: {e:#}"))?;
         let count_state = |s: FacetState| all.iter().filter(|f| f.state == s).count();
         let mut by_class: std::collections::HashMap<String, usize> =
@@ -249,12 +252,14 @@ impl Tool for LearningUpdateFacetTool {
         let cache = get_cache().await?;
         let mut facet = cache
             .get(&fk)
+            .await
             .map_err(|e| anyhow::anyhow!("learning_update_facet: {e:#}"))?
             .ok_or_else(|| anyhow::anyhow!("learning_update_facet: facet not found: {fk}"))?;
         facet.value = value;
         facet.user_state = UserState::Pinned;
         cache
             .upsert(&facet)
+            .await
             .map_err(|e| anyhow::anyhow!("learning_update_facet: upsert failed: {e:#}"))?;
         Ok(ToolResult::success(serde_json::to_string(&json!({
             "facet": facet_to_json(&facet),
@@ -274,12 +279,14 @@ async fn set_pin(
     let cache = get_cache().await?;
     let updated = cache
         .set_user_state(&fk, state)
+        .await
         .map_err(|e| anyhow::anyhow!("{tool}: set_user_state failed: {e:#}"))?;
     if !updated {
         return Err(anyhow::anyhow!("{tool}: facet not found: {fk}"));
     }
     let facet = cache
         .get(&fk)
+        .await
         .map_err(|e| anyhow::anyhow!("{tool}: re-read failed: {e:#}"))?;
     Ok(ToolResult::success(serde_json::to_string(&json!({
         "facet": facet.as_ref().map(facet_to_json),
@@ -385,6 +392,7 @@ impl Tool for LearningForgetFacetTool {
         let cache = get_cache().await?;
         let facet_json = match cache
             .get(&fk)
+            .await
             .map_err(|e| anyhow::anyhow!("learning_forget_facet: {e:#}"))?
         {
             Some(mut f) => {
@@ -392,6 +400,7 @@ impl Tool for LearningForgetFacetTool {
                 f.state = FacetState::Dropped;
                 cache
                     .upsert(&f)
+                    .await
                     .map_err(|e| anyhow::anyhow!("learning_forget_facet: upsert failed: {e:#}"))?;
                 facet_to_json(&f)
             }
@@ -474,6 +483,7 @@ impl Tool for LearningResetCacheTool {
         let cache = get_cache().await?;
         let all = cache
             .list_all()
+            .await
             .map_err(|e| anyhow::anyhow!("learning_reset_cache: {e:#}"))?;
         let pinned_preserved = all
             .iter()
