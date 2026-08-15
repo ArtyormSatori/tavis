@@ -421,10 +421,7 @@ pub fn all_tools_with_runtime(
         #[cfg(feature = "flows")]
         Box::new(FlowMemoryRecallTool::new()),
         #[cfg(feature = "flows")]
-        Box::new(FlowMemoryRememberTool::new(
-            memory.clone(),
-            security.clone(),
-        )),
+        Box::new(FlowMemoryRememberTool::new(security.clone())),
         // Wallet tools — expose wallet operations to the agent tool-call pipeline
         // so the crypto sub-agent can prepare transfers, check status, etc.
         // Gated with the `web3` feature (the wallet domain is compiled out when
