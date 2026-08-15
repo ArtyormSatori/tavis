@@ -79,10 +79,9 @@ impl OpenHumanMemory {
     /// initialised global client when ready, else lazily initialises it for
     /// the current workspace. No adapter-local memory instance is ever
     /// constructed, so there is exactly one on-disk store in play.
-    async fn memory(&self) -> Result<Arc<dyn Memory>> {
-        crate::openhuman::memory::ops::helpers::active_memory_client()
+    async fn memory(&self) -> Result<Arc<crate::openhuman::memory::guard::MemoryGuard>> {
+        crate::openhuman::memory::ops::guard::active_memory_guard()
             .await
-            .map(|client| client.memory_handle())
             .map_err(EngineError::Capability)
     }
 

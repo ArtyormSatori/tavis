@@ -516,9 +516,14 @@ impl Tool for FlowMemoryRememberTool {
         // or another flow's namespace.
         let namespace = flow_namespace(flow_id);
         let display_key = format!("{namespace}/{key}");
-        match self
-            .memory
-            .store_with_taint(
+        let guard = active_memory_guard()
+            .await
+            .map_err(|e| anyhow::anyhow!("flow_memory_remember: {e}"))?;
+        // `store` carries the taint on the contract, so the engine trait's
+        // separate `store_with_taint` door is unnecessary. `ExternalSync` is
+        // the honest request: a flow wrote this, not the user.
+        match guard
+            .store(
                 &namespace,
                 key,
                 content,
