@@ -551,6 +551,10 @@ mod tests {
     use tempfile::TempDir;
     use tinymemory_core::store::UnifiedMemory;
 
+    // These tests seed through the engine handle directly, so the seed calls
+    // take the *engine's* category/taint types, not the contract's.
+    use tinymemory_core::{MemoryCategory as EngineCategory, MemoryTaint as EngineTaint};
+
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())
     }
@@ -610,9 +614,9 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             &flow_namespace("f1"),
             "sent_item_42",
             "Sent newsletter item 42 to subscribers",
-            MemoryCategory::Core,
+            EngineCategory::Core,
             None,
-            MemoryTaint::ExternalSync,
+            EngineTaint::ExternalSync,
         )
         .await
         .unwrap();
@@ -636,9 +640,9 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             &flow_namespace("f1"),
             "k",
             "shared keyword hit",
-            MemoryCategory::Core,
+            EngineCategory::Core,
             None,
-            MemoryTaint::ExternalSync,
+            EngineTaint::ExternalSync,
         )
         .await
         .unwrap();
@@ -646,9 +650,9 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             &flow_namespace("f2"),
             "k",
             "shared keyword hit",
-            MemoryCategory::Core,
+            EngineCategory::Core,
             None,
-            MemoryTaint::ExternalSync,
+            EngineTaint::ExternalSync,
         )
         .await
         .unwrap();
@@ -672,9 +676,9 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             &flow_namespace("f1"),
             "k",
             "shared keyword hit from f1",
-            MemoryCategory::Core,
+            EngineCategory::Core,
             None,
-            MemoryTaint::ExternalSync,
+            EngineTaint::ExternalSync,
         )
         .await
         .unwrap();
@@ -682,9 +686,9 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             &flow_namespace("f2"),
             "k",
             "shared keyword hit from f2",
-            MemoryCategory::Core,
+            EngineCategory::Core,
             None,
-            MemoryTaint::ExternalSync,
+            EngineTaint::ExternalSync,
         )
         .await
         .unwrap();
