@@ -271,7 +271,7 @@ fn parent_context(max_parallel_tools: usize) -> ParentExecutionContext {
         model_name: "test-model".into(),
         temperature: 0.2,
         workspace_dir: std::env::temp_dir(),
-        memory: crate::openhuman::memory::guard::in_memory::FixedRecallProvider::guarded(Vec::new()),
+        memory: Arc::new(NoopMemory),
         agent_config,
         workflows: Arc::new(Vec::new()),
         memory_context: Arc::new(None),

@@ -1423,7 +1423,7 @@ mod tests {
             model_name: "test-model".into(),
             temperature: 0.0,
             workspace_dir: workspace_dir.to_path_buf(),
-            memory: crate::openhuman::memory::guard::in_memory::FixedRecallProvider::guarded(Vec::new()),
+            memory: Arc::new(NoopMemory),
             agent_config: AgentConfig::default(),
             workflows: Arc::new(Vec::new()),
             memory_context: Arc::new(None),
