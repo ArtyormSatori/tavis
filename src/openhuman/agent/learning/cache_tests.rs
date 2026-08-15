@@ -13,9 +13,7 @@ use crate::openhuman::memory::api::provider::{
 fn make_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();
     conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-    FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
-        Mutex::new(conn),
-    )))
+    crate::openhuman::agent::learning::test_profile::in_memory_cache()
 }
 
 fn stub_facet(id: &str, key: &str, value: &str, state: FacetState, stability: f64) -> ProfileFacet {

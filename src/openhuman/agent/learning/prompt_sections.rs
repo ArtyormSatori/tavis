@@ -389,9 +389,7 @@ mod tests {
 
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
-            Mutex::new(conn),
-        )));
+        let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let make_facet = |id: &str, key: &str, value: &str, stab: f64| ProfileFacet {
             facet_id: id.into(),
@@ -469,9 +467,7 @@ mod tests {
 
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
-            Mutex::new(conn),
-        )));
+        let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let result = load_learned_from_cache(&cache);
         assert!(result.is_empty());

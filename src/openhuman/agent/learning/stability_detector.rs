@@ -628,9 +628,7 @@ mod tests {
     fn make_detector() -> StabilityDetector {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(PROFILE_INIT_SQL).unwrap();
-        let cache = FacetCache::new(tinymemory_core::store::ProfileStore::for_tests(Arc::new(
-            Mutex::new(conn),
-        )));
+        let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
         // Use a private buffer so tests don't interfere with the global singleton.
         let buffer: &'static Buffer = Box::leak(Box::new(Buffer::new(256)));
         StabilityDetector { cache, buffer }
