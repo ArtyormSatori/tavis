@@ -98,6 +98,67 @@ impl MemoryRetrieval for ScriptedRetrieval {
             .collect())
     }
 }
+    // The family's other methods are irrelevant here — this stub exists to feed
+    // `recall_namespace_scored` a scripted breakdown. They are unreachable, so
+    // they say so rather than returning a plausible empty value that could make
+    // a future test pass for the wrong reason.
+    async fn fast_retrieve(
+        &self,
+        _query: &str,
+        _options: crate::openhuman::memory::api::provider::retrieval::FastRetrieveQuery,
+        _scope: Option<&crate::openhuman::memory::api::provider::types::SourceScope>,
+    ) -> Result<crate::openhuman::memory::api::provider::retrieval::RetrievalResponse, MemoryError>
+    {
+        unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
+    }
+
+    async fn cover_window(
+        &self,
+        _window: &crate::openhuman::memory::api::provider::retrieval::CoverWindowQuery,
+        _scope: Option<&crate::openhuman::memory::api::provider::types::SourceScope>,
+    ) -> Result<crate::openhuman::memory::api::provider::retrieval::RetrievalResponse, MemoryError>
+    {
+        unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
+    }
+
+    async fn retrieve_source(
+        &self,
+        _query: &crate::openhuman::memory::api::provider::retrieval::SourceRetrievalQuery,
+        _scope: Option<&crate::openhuman::memory::api::provider::types::SourceScope>,
+    ) -> Result<crate::openhuman::memory::api::provider::retrieval::RetrievalResponse, MemoryError>
+    {
+        unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
+    }
+
+    async fn retrieve_children(
+        &self,
+        _node_id: &str,
+        _max_depth: u32,
+        _query: Option<&str>,
+        _limit: Option<usize>,
+    ) -> Result<Vec<crate::openhuman::memory::api::provider::retrieval::RetrievalHit>, MemoryError>
+    {
+        unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
+    }
+
+    async fn retrieve_leaves(
+        &self,
+        _chunk_ids: &[String],
+    ) -> Result<Vec<crate::openhuman::memory::api::provider::retrieval::RetrievalHit>, MemoryError>
+    {
+        unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
+    }
+
+    async fn search_entities(
+        &self,
+        _query: &str,
+        _kinds: Option<&[String]>,
+        _limit: usize,
+    ) -> Result<Vec<crate::openhuman::memory::api::provider::retrieval::EntityMatch>, MemoryError>
+    {
+        unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
+    }
+}
 
 /// Wraps [`InMemoryProvider`] so the mandatory three are real, and adds
 /// retrieval on top.
