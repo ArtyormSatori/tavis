@@ -87,13 +87,17 @@ impl MemoryRetrieval for ScriptedRetrieval {
                 // a filter that read this instead would pass everything.
                 score: 1.0,
                 score_breakdown: RetrievalScoreBreakdown {
+                    keyword_relevance: 0.0,
                     vector_similarity: *vector,
+                    graph_relevance: 0.0,
+                    episodic_relevance: 0.0,
+                    freshness: 0.0,
                     final_score: 1.0,
-                    ..Default::default()
                 },
                 document_id: None,
                 chunk_id: None,
-                ..Default::default()
+                supporting_relations: Vec::new(),
+                taint: MemoryTaint::Internal,
             })
             .collect())
     }
