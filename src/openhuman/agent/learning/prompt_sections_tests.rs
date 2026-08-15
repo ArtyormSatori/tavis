@@ -48,6 +48,7 @@ async fn load_learned_from_cache_caps_at_25_entries() {
                 &format!("val{i}"),
                 1.5 + (i as f64) * 0.01,
             ))
+            .await
             .unwrap();
     }
 
@@ -162,7 +163,7 @@ async fn load_learned_from_cache_includes_facets_from_all_classes() {
         ("fv", "veto/no_sports", "true"),
     ];
     for (id, key, val) in &entries {
-        cache.upsert(&make_active(id, key, val, 1.8)).unwrap();
+        cache.upsert(&make_active(id, key, val, 1.8)).await.unwrap();
     }
 
     let result = load_learned_from_cache(&cache).await;
