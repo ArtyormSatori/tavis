@@ -326,7 +326,7 @@ pub struct FlowRunDigestSubscriber {
     /// [`Memory`] here lets the digest tests write and read back through the
     /// SAME instance deterministically, exactly as `flows::memory_tools`'
     /// tests do with `UnifiedMemory::new`.
-    memory_override: Option<Arc<dyn Memory>>,
+    memory_override: Option<Arc<crate::openhuman::memory::guard::MemoryGuard>>,
 }
 
 impl FlowRunDigestSubscriber {
@@ -340,7 +340,10 @@ impl FlowRunDigestSubscriber {
     /// Test constructor: run the digest against an explicitly-provided memory
     /// instance instead of the process-global client. See [`Self::memory_override`].
     #[cfg(test)]
-    fn with_memory(config: Arc<Config>, memory: Arc<dyn Memory>) -> Self {
+    fn with_memory(
+        config: Arc<Config>,
+        memory: Arc<crate::openhuman::memory::guard::MemoryGuard>,
+    ) -> Self {
         Self {
             config,
             memory_override: Some(memory),
@@ -351,14 +354,16 @@ impl FlowRunDigestSubscriber {
     /// override when present, else the process-global client
     /// ([`active_memory_client`]). Returns `None` (best-effort skip) when the
     /// global client is unavailable.
-    async fn resolve_memory(&self) -> Option<Arc<dyn Memory>> {
+    async fn resolve_memory(&self) -> Option<Arc<crate::openhuman::memory::guard::MemoryGuard>> {
         if let Some(memory) = &self.memory_override {
             return Some(memory.clone());
         }
-        match crate::openhuman::memory::ops::helpers::active_memory_client().await {
-            Ok(client) => Some(client.memory_handle()),
+        // The guarded driver, not the raw engine client. The digest writes
+        // through the policy layer like every other write.
+        match crate::openhuman::memory::ops::guard::active_memory_guard().await {
+            Ok(guard) => Some(guard),
             Err(e) => {
-                tracing::warn!(target: "flows", error = %e, "[flows] digest: memory client unavailable — skipping");
+                tracing::warn!(target: "flows", error = %e, "[flows] digest: memory unavailable — skipping");
                 None
             }
         }
