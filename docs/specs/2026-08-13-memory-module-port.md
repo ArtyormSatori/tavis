@@ -770,6 +770,39 @@ store, and it has to be replaced as one design rather than file by file. That
 is the largest single item left, and it is the reason the remaining `global`
 sites cannot simply be deleted the way the people global was.
 
+### 2n. A way through the `Arc<dyn Memory>` seam
+
+The seam looked un-splittable in §2m because every consumer is *handed* a
+memory handle by `build_tools(memory: Arc<dyn Memory>, …)`, which is fed from
+the session builder. Converting one consumer meant converting the constructor,
+which meant converting the builder.
+
+There is a way through, and this port already established it: **a converted tool
+resolves the guard itself**. `vector_search`, `chunk_context`, `raw_chunks`,
+`fast_walk` and the rest hold no handle — they call `active_memory_guard()` per
+invocation. Applying that to a seam consumer removes its dependency on the
+constructor parameter entirely, and the parameter dies of disuse once the last
+consumer stops reading it.
+
+`memory_recall`, `memory_store` and `memory_forget` are converted on that
+pattern: each is now a unit struct (or holds only its `SecurityPolicy`), and
+`build_tools` no longer passes them a handle. Holder count 33 → 30.
+
+Two details the conversion surfaced:
+
+- **`recall`'s options changed shape.** The engine trait takes a borrowed
+  `RecallOpts`; the contract takes `&OwnedRecallOpts` plus an explicit `scope`.
+  `None` is passed for scope, which is not "unrestricted" — the guard
+  intersects it with the ambient allowlist, so it can only narrow.
+- **`store` gained a taint argument.** The engine's `store` has none; the
+  contract requires one because a driver that could default provenance could
+  launder external content as internal. The tool passes `MemoryTaint::default()`
+  as a *request*, and the guard stamps the effective value.
+
+Their engine-backed tests join the module-backed set (the read-back goes through
+a real `UnifiedMemory`, so those assertions need the artifact). `name_and_schema`
+stopped needing a store at all.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
