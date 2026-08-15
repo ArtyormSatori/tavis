@@ -803,6 +803,35 @@ Their engine-backed tests join the module-backed set (the read-back goes through
 a real `UnifiedMemory`, so those assertions need the artifact). `name_and_schema`
 stopped needing a store at all.
 
+### 2o. The seam's root is four call sites, not thirty
+
+Triaging the remaining `Arc<dyn Memory>` holders against the contract:
+
+| What they need | Files | Status |
+| --- | --- | --- |
+| `store` / `get` / `forget` / `list` / `recall` | most | **covered** — `MemoryCore` + `MemoryRecall` |
+| `namespace_summaries()` | 7 | **covered** — the contract's `namespaces()` has the identical signature and return type; it is a rename |
+| `count()` | 3 | **test-only.** No production call site uses the trait's `count` |
+| `recall_relevant_by_vector()` | 0 | unused anywhere |
+| `memory_handle()` | 4 | **the root** |
+| `tool_memory_store(…)` / `preferences::…` | 3 | engine helpers taking `&Arc<dyn Memory>` |
+
+So the seam is not thirty independent conversions. Nearly every holder just
+*receives* a handle; only four production sites **mint** one —
+`agent/experience/ops.rs` (×2), `agent/harness/session/builder/factory.rs`,
+`flows/bus.rs` and `flows/tinyflows/memory_adapter.rs`, each calling
+`MemoryClient::memory_handle()`.
+
+Convert those four to hand out the guard and the downstream holders change type
+mechanically, because what they call is already in the contract. That is the
+finish line for the seam, and it is a much smaller target than the holder count
+suggests.
+
+Two consumers need engine helpers that take `&Arc<dyn Memory>` —
+`tool_memory_store` and `preferences::recall_related_preferences`. Those are
+host-layer helpers living engine-side; they come home with stage 4 rather than
+being wrapped.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
