@@ -114,7 +114,7 @@ async fn build_memory_context_includes_recalled_entries() {
         "",
         "age_fact",
         "Age is 45",
-        MemoryCategory::Conversation,
+        crate::openhuman::memory::api::types::MemoryCategory::Conversation,
         None,
         crate::openhuman::memory::api::types::MemoryTaint::Internal,
     )
