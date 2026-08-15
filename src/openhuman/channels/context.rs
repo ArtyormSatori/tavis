@@ -360,7 +360,7 @@ mod tests {
         let entries = (0..10)
             .map(|idx| memory_entry(&format!("k{idx}"), &"x".repeat(700), Some(0.9)))
             .collect();
-        let mem = MockMemory { entries };
+        let mem = crate::openhuman::memory::guard::in_memory::FixedRecallProvider::guarded(entries);
 
         let rendered = build_memory_context(&mem, "hello", 0.4).await;
         assert!(rendered.chars().count() <= MEMORY_CONTEXT_MAX_CHARS + 32);
