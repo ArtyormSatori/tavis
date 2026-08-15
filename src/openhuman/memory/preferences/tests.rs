@@ -297,7 +297,9 @@ async fn situational_recall_filters_on_the_vector_component_not_the_final_score(
 #[tokio::test]
 async fn an_empty_query_recalls_nothing_without_asking_the_driver() {
     let guard = scripted(vec![("editor", "Prefers vim.", 0.99)]);
-    assert!(recall_situational_preferences(&guard, "   ").await.is_empty());
+    assert!(recall_situational_preferences(&guard, "   ")
+        .await
+        .is_empty());
 }
 
 #[tokio::test]

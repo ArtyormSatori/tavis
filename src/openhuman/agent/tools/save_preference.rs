@@ -23,8 +23,8 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde_json::json;
 
-use crate::openhuman::memory::api::types::MemoryCategory;
 use crate::openhuman::memory::api::provider::MemoryCore as _;
+use crate::openhuman::memory::api::types::MemoryCategory;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
@@ -284,10 +284,7 @@ impl Tool for SavePreferenceTool {
                 // agent (which captured this preference) can spot and resolve a
                 // contradiction itself — no separate model call.
                 let related = crate::openhuman::memory::preferences::recall_related_preferences(
-                    &guard,
-                    value,
-                    topic,
-                    4,
+                    &guard, value, topic, 4,
                 )
                 .await;
                 let mut msg = format!("Saved {} preference: {topic} = {value}", category.as_str());

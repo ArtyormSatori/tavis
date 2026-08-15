@@ -1,4 +1,3 @@
-use crate::openhuman::memory::api::provider::MemoryCore as _;
 use super::super::context::{
     build_memory_context, clear_sender_history, conversation_history_key, conversation_memory_key,
     ChannelRuntimeContext, CHANNEL_MESSAGE_TIMEOUT_SECS,
@@ -8,6 +7,7 @@ use super::super::{traits, Channel};
 use super::common::{HistoryCaptureModel, NoopMemory, RecordingChannel};
 use crate::openhuman::inference::embeddings::NoopEmbedding;
 use crate::openhuman::inference::provider;
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::openhuman::memory::{Memory, MemoryCategory};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -221,7 +221,8 @@ async fn process_channel_message_uses_autosaved_memory_after_history_is_cleared(
     channels_by_name.insert(channel.name().to_string(), channel);
 
     let provider_impl = Arc::new(HistoryCaptureModel::default());
-    let (_memory_provider, memory) = crate::openhuman::memory::guard::in_memory::guarded_in_memory();
+    let (_memory_provider, memory) =
+        crate::openhuman::memory::guard::in_memory::guarded_in_memory();
 
     let runtime_ctx = Arc::new(ChannelRuntimeContext {
         channels_by_name: Arc::new(channels_by_name),

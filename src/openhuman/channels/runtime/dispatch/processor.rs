@@ -10,7 +10,6 @@
 //! * [`run_message_dispatch_loop`] — bounded-concurrency worker loop that feeds
 //!   messages into [`process_channel_message`].
 
-use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::agent::bus::{AgentTurnRequest, AgentTurnResponse, AGENT_RUN_TURN_METHOD};
@@ -27,6 +26,7 @@ use crate::openhuman::channels::routes::{
 use crate::openhuman::channels::traits;
 use crate::openhuman::channels::{ChannelSendExt, SendMessage};
 use crate::openhuman::inference::provider;
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::openhuman::util::truncate_with_ellipsis;
 use std::sync::Arc;
 use std::time::{Duration, Instant};

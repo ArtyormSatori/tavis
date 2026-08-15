@@ -335,14 +335,14 @@ mod tests {
     #[tokio::test]
     async fn build_memory_context_filters_entries_and_truncates_content() {
         let mem = crate::openhuman::memory::guard::in_memory::FixedRecallProvider::guarded(vec![
-                memory_entry("keep", "v", Some(0.9)),
-                memory_entry("drop_history", "ignored", Some(0.9)),
-                memory_entry("low", "too low", Some(0.1)),
-                memory_entry(
-                    "long",
-                    &"x".repeat(MEMORY_CONTEXT_ENTRY_MAX_CHARS + 50),
-                    Some(0.9),
-                ),
+            memory_entry("keep", "v", Some(0.9)),
+            memory_entry("drop_history", "ignored", Some(0.9)),
+            memory_entry("low", "too low", Some(0.1)),
+            memory_entry(
+                "long",
+                &"x".repeat(MEMORY_CONTEXT_ENTRY_MAX_CHARS + 50),
+                Some(0.9),
+            ),
         ]);
 
         let rendered = build_memory_context(&mem, "hello", 0.4).await;

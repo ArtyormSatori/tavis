@@ -165,8 +165,8 @@ pub async fn recall_related_preferences(
         if remaining == 0 {
             break;
         }
-        for (topic, val) in recall_by_vector(memory, ns, value, remaining, CONTRADICTION_SIMILARITY)
-            .await
+        for (topic, val) in
+            recall_by_vector(memory, ns, value, remaining, CONTRADICTION_SIMILARITY).await
         {
             if topic != exclude_topic {
                 out.push((topic, val));
