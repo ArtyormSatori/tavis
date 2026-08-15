@@ -169,13 +169,22 @@ impl MemoryProfile for InMemoryProfile {
         Ok(key.map(|k| facets.remove(&k)).is_some())
     }
 
-    /// Honours the user override, as the contract requires: a pinned or
-    /// forgotten facet is never swept.
+    /// Matches the engine's predicate exactly:
+    /// `stability < threshold AND user_state != 'pinned' AND state = 'dropped'`.
+    ///
+    /// Only **Dropped** rows are swept — an Active row below the threshold
+    /// stays — and only **Pinned** is protected. A `Forgotten` facet is already
+    /// Dropped and is meant to go.
     async fn drop_facets_below(&self, threshold: f64) -> Result<usize, MemoryError> {
+        use crate::openhuman::memory::api::provider::FacetState;
         let mut facets = self.facets.lock();
         let doomed: Vec<String> = facets
             .values()
-            .filter(|f| f.stability < threshold && f.user_state == UserState::Auto)
+            .filter(|f| {
+                f.stability < threshold
+                    && f.user_state != UserState::Pinned
+                    && f.state == FacetState::Dropped
+            })
             .map(|f| f.key.clone())
             .collect();
         let removed = doomed.len();
