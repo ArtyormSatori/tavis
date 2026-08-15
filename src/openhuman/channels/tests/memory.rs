@@ -212,6 +212,8 @@ async fn process_channel_message_restores_per_sender_history_on_follow_ups() {
 }
 
 #[tokio::test]
+#[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH): the assertion turns on \
+ranked recall finding the autosaved turn, which the in-memory fake\'s substring match cannot do"]
 async fn process_channel_message_uses_autosaved_memory_after_history_is_cleared() {
     let _bus_guard = super::common::use_real_agent_handler().await;
     let channel_impl = Arc::new(RecordingChannel::default());

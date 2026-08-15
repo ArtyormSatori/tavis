@@ -188,6 +188,8 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+    the tool resolves the bound driver rather than being handed a memory handle"]
     async fn returns_stats_for_a_recorded_tool() {
         let _serial = GLOBAL_MEMORY_TEST_LOCK.lock().await;
         ensure_shared_memory_client();
@@ -212,6 +214,8 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
+    the tool resolves the bound driver rather than being handed a memory handle"]
     async fn filter_by_tool_name_reports_no_data_for_an_unrecorded_tool() {
         let _serial = GLOBAL_MEMORY_TEST_LOCK.lock().await;
         ensure_shared_memory_client();
