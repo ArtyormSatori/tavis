@@ -1038,6 +1038,33 @@ already close to the edge: `situational_preferences` and `standing_preferences`
 are free functions rather than inline blocks so their state machines stay off
 the caller's frame.
 
+A second pre-existing failure surfaced by the same sweep, verified the same way
+against `c5d5eaab6`:
+`agent::harness::session::turn::tests::turn_triggers_configured_memory_agent_before_parent_prompt`
+asserts the parent turn answers `"parent final"` and gets the *memory agent's*
+scripted reply instead. Only one model call reaches the test's `SequenceProvider`,
+because `run_subagent` builds the memory agent its own model from config rather
+than inheriting the parent's — so the subagent never consumes response #0 and
+the parent does. Identical on the merge-base; not this port's, and not fixed
+here.
+
+### 2w. Twelve more `install_for_tests` order-dependence defects
+
+The module-by-module sweep found twelve tests that build an agent or a memory
+client without calling `host_impls::install_for_tests()` — nine in
+`integrations::composio::ops_tests`, three in `cron::scheduler_tests`. Each
+fails with *"no EmbeddingHost installed"* when its module is run on its own and
+passes in a bigger run, because the installer is `Once`-guarded and some earlier
+test happened to call it.
+
+That brings this port's total to **fifteen** (after `agent::learning::startup`,
+`sync_pipeline_e2e_tests` and `flows::ops`). The pattern is consistent enough to
+state as a rule: **a test that builds an agent, a memory client or a cron job
+must install the seam itself.** Relying on a sibling makes the test's own
+scoped run a false negative, which is exactly how these survived — nobody runs
+`cargo test --lib openhuman::cron` in CI, and the whole-lib run aborts (§2v)
+before the counts print.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
