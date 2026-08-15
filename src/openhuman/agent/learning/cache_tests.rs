@@ -143,7 +143,11 @@ async fn drop_below_threshold_removes_facets() {
             FacetState::Dropped,
             0.1,
         ))
-        .and_then(|_| cache.set_user_state("style/pinned_one", UserState::Pinned))
+        .await
+        .unwrap();
+    cache
+        .set_user_state("style/pinned_one", UserState::Pinned)
+        .await
         .unwrap();
 
     let removed = cache.drop_below_threshold(0.3).await.unwrap();

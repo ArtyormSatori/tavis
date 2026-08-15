@@ -63,8 +63,8 @@ fn load_learned_from_cache_caps_at_25_entries() {
 // ── Stability ranking ─────────────────────────────────────────────────────────
 
 /// Within the same class, higher-stability facets appear before lower ones.
-#[test]
-fn load_learned_from_cache_ranks_by_stability_descending() {
+#[tokio::test]
+async fn load_learned_from_cache_ranks_by_stability_descending() {
     let cache = open_cache();
 
     cache
