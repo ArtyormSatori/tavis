@@ -479,10 +479,7 @@ pub fn all_tools_with_runtime(
         // inference-based learning subsystem is enabled.  The preference
         // injection into the system prompt is controlled independently by
         // `config.learning.explicit_preferences_enabled`.
-        Box::new(RememberPreferenceTool::new(
-            memory.clone(),
-            security.clone(),
-        )),
+        Box::new(RememberPreferenceTool::new(security.clone())),
         // Two-lane explicit preferences (general → system prompt, situational →
         // per-query recall). Written verbatim to user_pref_{general,situational};
         // bypasses the inference/stability pipeline. Always registered.
