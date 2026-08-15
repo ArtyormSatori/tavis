@@ -832,6 +832,53 @@ Two consumers need engine helpers that take `&Arc<dyn Memory>` —
 host-layer helpers living engine-side; they come home with stage 4 rather than
 being wrapped.
 
+### 2p. ⚠ The seam root is blocked on an architectural decision, not on typing
+
+Converting the four `memory_handle()` roots turns out not to be mechanical, and
+the reason is worth stating precisely because it is **not in the original plan
+and it gates the rest of the port**.
+
+`agent/harness/session/builder/factory.rs` does not take a handle to the
+workspace's memory. It **constructs its own engine instance**:
+
+```rust
+let session_memory = memory_store::factories::create_session_memory_with_local_ai(
+    …, &config.workspace_dir, &memory_subdir,   // "memory" | "memory-<profile-id>"
+)?;
+let archivist_connection = session_memory.sqlite_connection;
+let memory: Arc<dyn Memory> = Arc::from(session_memory.memory);
+```
+
+Two things fall out, and the module architecture accommodates neither:
+
+1. **Per-profile memory subtrees.** A profile with `dedicated_memory` gets its
+   own store at `<workspace>/memory-<id>`, which is the whole point of that
+   feature — isolation. The contract and the binding address a **workspace**
+   (`binding::for_workspace(workspace_dir, cfg)`); there is no notion of "open
+   the store rooted at subdirectory X". One loaded module serving one store per
+   workspace cannot express this.
+2. **A raw `sqlite_connection` handed to the archivist.** `ArchivistHook::new`
+   takes the live SQLite connection out of the session's memory. A connection
+   cannot cross a bus, so there is no forwarding fix — the archivist's storage
+   has to be re-homed, not re-routed.
+
+There is also a third store in play: a dedicated-memory session *additionally*
+holds `shared_experience_memory`, a handle to the **global** store, so
+pre-profile unstamped experiences stay recallable. So one session can legitimately
+hold two stores plus a raw connection.
+
+**This is a design decision, not a conversion.** The options are roughly:
+extend the contract so a driver can serve named stores within a workspace
+(a real widening, and the module would need to load or multiplex per subtree);
+or bind one module per memory subtree; or re-scope `dedicated_memory` so
+isolation is expressed inside one store rather than by a separate database. Each
+changes user-visible behaviour or the module's lifecycle, and none should be
+picked without an explicit call.
+
+Everything downstream of these four sites is mechanical once that is settled —
+§2o shows the receivers need only what the contract already has. But the roots
+themselves cannot be converted until per-profile memory has an answer.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
