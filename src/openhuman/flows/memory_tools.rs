@@ -32,7 +32,11 @@ use async_trait::async_trait;
 use serde_json::json;
 
 use crate::openhuman::agent::turn_origin::{self, AgentTurnOrigin, TrustedAutomationSource};
-use crate::openhuman::memory::{Memory, MemoryCategory, MemoryEntry, MemoryTaint, RecallOpts};
+use crate::openhuman::memory::api::provider::{MemoryCore, MemoryRecall};
+use crate::openhuman::memory::api::recall::OwnedRecallOpts;
+use crate::openhuman::memory::api::types::{MemoryCategory, MemoryEntry, MemoryTaint};
+use crate::openhuman::memory::guard::MemoryGuard;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
@@ -190,13 +194,19 @@ pub async fn cross_flow_recall(
 /// `scope: "flows"` is intentionally still read-only and still confined to
 /// `flow_*` namespaces — it can never see the user's personal/global memory,
 /// only other flows' own automation output.
-pub struct FlowMemoryRecallTool {
-    memory: Arc<dyn Memory>,
-}
+pub struct FlowMemoryRecallTool;
 
 impl FlowMemoryRecallTool {
-    pub fn new(memory: Arc<dyn Memory>) -> Self {
-        Self { memory }
+    /// Holds no memory handle — the guarded driver is resolved per call.
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Default for FlowMemoryRecallTool {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -326,12 +336,19 @@ impl Tool for FlowMemoryRecallTool {
                     namespace: Some(namespace.as_str()),
                     ..RecallOpts::default()
                 };
-                match self.memory.recall(query, limit, opts).await {
+                let guard = active_memory_guard()
+                    .await
+                    .map_err(|e| anyhow::anyhow!("flow_memory_recall: {e}"))?;
+                match guard.recall(query, limit, &opts, None).await {
                     Ok(entries) => Ok(ToolResult::success(render_entries(&entries))),
                     Err(e) => Ok(ToolResult::error(format!("Flow memory recall failed: {e}"))),
                 }
             }
-            "flows" => match cross_flow_recall(&self.memory, query, limit, None).await {
+            "flows" => {
+                let guard = active_memory_guard()
+                    .await
+                    .map_err(|e| anyhow::anyhow!("flow_memory_recall: {e}"))?;
+                match cross_flow_recall(&guard, query, limit, None).await {
                 Ok(merged) => Ok(ToolResult::success(render_entries(&merged))),
                 Err(e) => Ok(ToolResult::error(format!(
                     "Failed to list flow memory namespaces: {e}"
@@ -352,13 +369,14 @@ impl Tool for FlowMemoryRecallTool {
 /// own. See the module doc for the security invariant this tool exists to
 /// preserve.
 pub struct FlowMemoryRememberTool {
-    memory: Arc<dyn Memory>,
     security: Arc<SecurityPolicy>,
 }
 
 impl FlowMemoryRememberTool {
-    pub fn new(memory: Arc<dyn Memory>, security: Arc<SecurityPolicy>) -> Self {
-        Self { memory, security }
+    /// Holds no memory handle — the guarded driver is resolved per call.
+    #[must_use]
+    pub fn new(security: Arc<SecurityPolicy>) -> Self {
+        Self { security }
     }
 }
 
