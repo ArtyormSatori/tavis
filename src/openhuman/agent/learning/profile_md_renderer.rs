@@ -228,7 +228,7 @@ mod tests {
         Arc::new(crate::openhuman::agent::learning::test_profile::in_memory_cache())
     }
 
-    fn insert_facet(
+    async fn insert_facet(
         cache: &FacetCache,
         key: &str,
         value: &str,
@@ -273,7 +273,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             2.0,
-        );
+        )
+        .await;
         insert_facet(
             &cache,
             "identity/name",
@@ -281,7 +282,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             1.8,
-        );
+        )
+        .await;
         insert_facet(
             &cache,
             "tooling/editor",
@@ -289,7 +291,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             1.5,
-        );
+        )
+        .await;
         insert_facet(
             &cache,
             "veto/no-em-dashes",
@@ -297,7 +300,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             1.2,
-        );
+        )
+        .await;
         insert_facet(
             &cache,
             "goal/learn-rust",
@@ -305,7 +309,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             1.0,
-        );
+        )
+        .await;
 
         renderer.render().await.unwrap();
 
@@ -343,7 +348,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             2.0,
-        );
+        )
+        .await;
 
         renderer.render().await.unwrap();
 
@@ -367,7 +373,8 @@ mod tests {
             FacetState::Active,
             UserState::Pinned,
             1.0,
-        );
+        )
+        .await;
 
         renderer.render().await.unwrap();
 
@@ -389,7 +396,8 @@ mod tests {
             FacetState::Provisional,
             UserState::Auto,
             0.8,
-        );
+        )
+        .await;
         insert_facet(
             &cache,
             "style/verbosity",
@@ -397,7 +405,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             2.0,
-        );
+        )
+        .await;
 
         renderer.render().await.unwrap();
 
@@ -419,7 +428,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             2.0,
-        );
+        )
+        .await;
 
         renderer.render().await.unwrap();
         let body1 = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
@@ -448,7 +458,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             2.0,
-        );
+        )
+        .await;
         renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(&profile_path).unwrap();
@@ -482,7 +493,8 @@ mod tests {
             FacetState::Active,
             UserState::Auto,
             2.0,
-        );
+        )
+        .await;
         renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(&profile_path).unwrap();

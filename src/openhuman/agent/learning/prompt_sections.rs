@@ -406,9 +406,11 @@ mod tests {
 
         cache
             .upsert(&make_facet("f1", "style/verbosity", "terse", 2.0))
+            .await
             .unwrap();
         cache
             .upsert(&make_facet("f2", "identity/name", "Alice", 1.8))
+            .await
             .unwrap();
         cache
             .upsert(&make_facet(
@@ -417,6 +419,7 @@ mod tests {
                 "Learn Rust this year",
                 1.6,
             ))
+            .await
             .unwrap();
 
         // Provisional — should NOT appear.

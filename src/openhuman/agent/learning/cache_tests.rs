@@ -44,6 +44,7 @@ async fn upsert_then_list_active() {
             FacetState::Active,
             1.8,
         ))
+        .await
         .unwrap();
     cache
         .upsert(&stub_facet(
@@ -53,6 +54,7 @@ async fn upsert_then_list_active() {
             FacetState::Provisional,
             0.8,
         ))
+        .await
         .unwrap();
 
     let active = cache.list_active().await.unwrap();
@@ -94,6 +96,7 @@ async fn set_user_state_pinned_persists() {
             FacetState::Active,
             2.0,
         ))
+        .await
         .unwrap();
 
     let updated = cache
@@ -120,6 +123,7 @@ async fn drop_below_threshold_removes_facets() {
             FacetState::Dropped,
             0.1,
         ))
+        .await
         .unwrap();
     cache
         .upsert(&stub_facet(
@@ -129,6 +133,7 @@ async fn drop_below_threshold_removes_facets() {
             FacetState::Active,
             0.1, // low stability but Active state — should NOT be deleted
         ))
+        .await
         .unwrap();
     cache
         .upsert(&stub_facet(
@@ -165,6 +170,7 @@ async fn list_by_class_filters_correctly() {
     ] {
         cache
             .upsert(&stub_facet(id, key, val, FacetState::Active, 1.6))
+            .await
             .unwrap();
     }
 
@@ -235,6 +241,7 @@ async fn delete_removes_facet_by_key() {
             FacetState::Active,
             1.5,
         ))
+        .await
         .unwrap();
 
     let deleted = cache.delete("goal/learn_rust").await.unwrap();

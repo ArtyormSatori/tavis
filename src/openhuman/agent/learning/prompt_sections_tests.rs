@@ -69,12 +69,15 @@ fn load_learned_from_cache_ranks_by_stability_descending() {
 
     cache
         .upsert(&make_active("f-lo", "style/low_stab", "lo", 0.5))
+        .await
         .unwrap();
     cache
         .upsert(&make_active("f-hi", "style/high_stab", "hi", 2.5))
+        .await
         .unwrap();
     cache
         .upsert(&make_active("f-mid", "style/mid_stab", "mid", 1.5))
+        .await
         .unwrap();
 
     let result = load_learned_from_cache(&cache);
@@ -105,6 +108,7 @@ async fn load_learned_from_cache_marks_pinned_facets() {
 
     cache
         .upsert(&make_active("f-pin", "identity/name", "Alice", 2.0))
+        .await
         .unwrap();
     cache
         .set_user_state("identity/name", UserState::Pinned)
@@ -192,6 +196,7 @@ async fn drop_below_threshold_skips_active_rows() {
     // Insert an Active row with very low stability — it must survive eviction.
     cache
         .upsert(&make_active("f-active-low", "style/keep_me", "v", 0.01))
+        .await
         .unwrap();
 
     let removed = cache.drop_below_threshold(10.0).await.unwrap(); // aggressive threshold
