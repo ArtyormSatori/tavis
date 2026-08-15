@@ -67,8 +67,13 @@ impl TestHarness {
         // In-memory profile rather than an in-memory SQLite store: the facet
         // store moved behind the memory driver, and this test is about the
         // learning pipeline, not persistence.
-        let cache =
-            Arc::new(openhuman_core::openhuman::agent::learning::test_profile::in_memory_cache());
+        // One shared profile behind both handles — the cache and the detector
+        // must see the same facets, exactly as they shared one SQLite
+        // connection before.
+        let profile: Arc<
+            openhuman_core::openhuman::agent::learning::test_profile::InMemoryProfile,
+        > = Arc::new(Default::default());
+        let cache = Arc::new(FacetCache::for_tests(Arc::clone(&profile) as Arc<_>));
 
         let workspace = TempDir::new().unwrap();
         let renderer = Arc::new(ProfileMdRenderer::new(
