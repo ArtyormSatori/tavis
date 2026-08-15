@@ -1,18 +1,27 @@
-use crate::openhuman::memory::Memory;
+use crate::openhuman::memory::api::provider::MemoryRecall;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
 use async_trait::async_trait;
 use serde_json::json;
 use std::fmt::Write;
-use std::sync::Arc;
 
-/// Let the agent search its own memory
-pub struct MemoryRecallTool {
-    memory: Arc<dyn Memory>,
-}
+/// Let the agent search its own memory.
+///
+/// Holds no memory handle: it resolves the guarded driver per call, like every
+/// other memory tool in this port. That is what lets the session builder stop
+/// threading an `Arc<dyn Memory>` through tool construction.
+pub struct MemoryRecallTool;
 
 impl MemoryRecallTool {
-    pub fn new(memory: Arc<dyn Memory>) -> Self {
-        Self { memory }
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Default for MemoryRecallTool {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -75,11 +84,16 @@ impl Tool for MemoryRecallTool {
         // string would add a redundant token matching almost every row. Instead,
         // namespace scoping belongs in RecallOpts so the backend restricts the
         // search to the correct namespace column.
-        let recall_opts = crate::openhuman::memory::RecallOpts {
-            namespace: Some(namespace),
-            ..crate::openhuman::memory::RecallOpts::default()
+        let recall_opts = crate::openhuman::memory::api::recall::OwnedRecallOpts {
+            namespace: Some(namespace.to_string()),
+            ..Default::default()
         };
-        match self.memory.recall(query, limit, recall_opts).await {
+        let guard = active_memory_guard()
+            .await
+            .map_err(|e| anyhow::anyhow!("memory_recall: {e}"))?;
+        // `None` scope: the guard intersects it with the ambient per-turn
+        // allowlist, so this can only ever be narrowed, never widened.
+        match guard.recall(query, limit, &recall_opts, None).await {
             Ok(entries) if entries.is_empty() => Ok(ToolResult::success(
                 "No memories found matching that query.",
             )),
