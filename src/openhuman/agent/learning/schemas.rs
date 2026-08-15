@@ -780,7 +780,7 @@ fn full_key(class_str: &str, key_suffix: &str) -> String {
 }
 
 /// Serialize a [`ProfileFacet`] to a serde_json [`Value`] for RPC output.
-fn facet_to_json(f: &tinymemory_core::store::profile::ProfileFacet) -> serde_json::Value {
+fn facet_to_json(f: &crate::openhuman::memory::api::provider::ProfileFacet) -> serde_json::Value {
     serde_json::json!({
         "key": f.key,
         "value": f.value,
@@ -889,7 +889,7 @@ fn handle_get_facet(params: Map<String, Value>) -> ControllerFuture {
 
 fn handle_update_facet(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
-        use tinymemory_core::store::profile::UserState;
+        use crate::openhuman::memory::api::provider::UserState;
 
         let class_str = params
             .get("class")
@@ -945,7 +945,7 @@ fn handle_update_facet(params: Map<String, Value>) -> ControllerFuture {
 
 fn handle_pin_facet(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
-        use tinymemory_core::store::profile::UserState;
+        use crate::openhuman::memory::api::provider::UserState;
 
         let class_str = params
             .get("class")
@@ -987,7 +987,7 @@ fn handle_pin_facet(params: Map<String, Value>) -> ControllerFuture {
 
 fn handle_unpin_facet(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
-        use tinymemory_core::store::profile::UserState;
+        use crate::openhuman::memory::api::provider::UserState;
 
         let class_str = params
             .get("class")
@@ -1082,7 +1082,7 @@ fn handle_forget_facet(params: Map<String, Value>) -> ControllerFuture {
 
 fn handle_reset_cache(_params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
-        use tinymemory_core::store::profile::UserState;
+        use crate::openhuman::memory::api::provider::UserState;
 
         tracing::debug!("[learning.reset_cache] called");
 
