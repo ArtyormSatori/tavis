@@ -97,7 +97,7 @@ impl MemoryRetrieval for ScriptedRetrieval {
             })
             .collect())
     }
-}
+
     // The family's other methods are irrelevant here — this stub exists to feed
     // `recall_namespace_scored` a scripted breakdown. They are unreachable, so
     // they say so rather than returning a plausible empty value that could make
