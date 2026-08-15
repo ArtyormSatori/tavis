@@ -93,6 +93,31 @@ where
 ///
 /// Taking the client as a parameter (rather than reading
 /// `memory::global::client_if_ready()` internally) keeps both arms testable
+
+/// The profile facet cache for `workspace_dir`.
+///
+/// Resolved through the memory binding rather than the process-global client:
+/// facets live behind the driver now, and `binding::for_workspace` is
+/// synchronous and cached, so this stays callable from the boot path without
+/// an await.
+fn facet_cache_for(
+    workspace_dir: &std::path::Path,
+) -> Option<crate::openhuman::agent::learning::cache::FacetCache> {
+    use crate::openhuman::config::schema::MemorySubsystemConfig;
+    match crate::openhuman::memory::binding::for_workspace(
+        workspace_dir,
+        &MemorySubsystemConfig::default(),
+    ) {
+        Ok(binding) => Some(crate::openhuman::agent::learning::cache::FacetCache::new(
+            binding.guard(),
+        )),
+        Err(error) => {
+            tracing::warn!("[learning::startup] no memory binding for facet cache: {error}");
+            None
+        }
+    }
+}
+
 /// without initialising the process-global memory singleton.
 fn register_with_client(
     client: Option<MemoryClientRef>,
@@ -118,7 +143,9 @@ fn register_with_client(
         use crate::openhuman::agent::learning::scheduler::register_event_trigger;
         use crate::openhuman::agent::learning::StabilityDetector;
         use std::sync::Arc;
-        let cache = FacetCache::new(client.profile_store());
+        let Some(cache) = facet_cache_for(workspace_dir) else {
+            return (None, None);
+        };
         let detector = Arc::new(StabilityDetector::new(cache));
         // Also spawn the periodic rebuild loop (30-minute cadence).
         let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);
@@ -148,7 +175,10 @@ fn register_with_client(
         use crate::openhuman::agent::learning::cache::FacetCache;
         use crate::openhuman::agent::learning::ProfileMdRenderer;
         use std::sync::Arc;
-        let cache = Arc::new(FacetCache::new(client.profile_store()));
+        let Some(cache) = facet_cache_for(workspace_dir) else {
+            return (rebuild_trigger, None);
+        };
+        let cache = Arc::new(cache);
         let renderer = Arc::new(ProfileMdRenderer::new(cache, workspace_dir.to_path_buf()));
         let handle = ProfileMdRenderer::subscribe(renderer);
         if handle.is_some() {

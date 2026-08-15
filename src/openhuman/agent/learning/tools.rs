@@ -23,14 +23,18 @@ use serde_json::json;
 use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::agent::learning::stability_detector::StabilityDetector;
 use crate::openhuman::config::rpc as config_rpc;
+use crate::openhuman::memory::api::provider::{FacetState, ProfileFacet, UserState};
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
-use tinymemory_core::store::profile::{FacetState, ProfileFacet, UserState};
 
 /// Acquire the profile facet cache, mirroring `learning::schemas::get_cache`.
-fn get_cache() -> anyhow::Result<FacetCache> {
-    let client = tinymemory_core::global::client_if_ready()
-        .ok_or_else(|| anyhow::anyhow!("memory client not ready"))?;
-    Ok(FacetCache::new(client.profile_store()))
+///
+/// Goes through the bound driver: facets moved behind the memory module, so
+/// there is no process-global client to ask any more.
+async fn get_cache() -> anyhow::Result<FacetCache> {
+    let guard = crate::openhuman::memory::ops::guard::active_memory_guard()
+        .await
+        .map_err(|e| anyhow::anyhow!("memory unavailable: {e}"))?;
+    Ok(FacetCache::new(guard))
 }
 
 /// Compose the full facet key from a class string + key suffix.
@@ -82,7 +86,7 @@ impl Tool for LearningListFacetsTool {
             .get("class")
             .and_then(serde_json::Value::as_str)
             .map(str::to_string);
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let all = cache
             .list_all()
             .map_err(|e| anyhow::anyhow!("learning_list_facets: {e:#}"))?;
@@ -139,7 +143,7 @@ impl Tool for LearningGetFacetTool {
         let class_str = read_required_str(&args, "class")?;
         let key_suffix = read_required_str(&args, "key")?;
         let fk = full_key(&class_str, &key_suffix);
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let facet = cache
             .get(&fk)
             .map_err(|e| anyhow::anyhow!("learning_get_facet: {e:#}"))?;
@@ -175,7 +179,7 @@ impl Tool for LearningCacheStatsTool {
 
     async fn execute(&self, _args: serde_json::Value) -> anyhow::Result<ToolResult> {
         log::debug!("[tool][learning] cache_stats invoked");
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let all = cache
             .list_all()
             .map_err(|e| anyhow::anyhow!("learning_cache_stats: {e:#}"))?;
@@ -242,7 +246,7 @@ impl Tool for LearningUpdateFacetTool {
         let key_suffix = read_required_str(&args, "key")?;
         let value = read_required_str(&args, "value")?;
         let fk = full_key(&class_str, &key_suffix);
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let mut facet = cache
             .get(&fk)
             .map_err(|e| anyhow::anyhow!("learning_update_facet: {e:#}"))?
@@ -267,7 +271,7 @@ async fn set_pin(
     let class_str = read_required_str(&args, "class")?;
     let key_suffix = read_required_str(&args, "key")?;
     let fk = full_key(&class_str, &key_suffix);
-    let cache = get_cache()?;
+    let cache = get_cache().await?;
     let updated = cache
         .set_user_state(&fk, state)
         .map_err(|e| anyhow::anyhow!("{tool}: set_user_state failed: {e:#}"))?;
@@ -378,7 +382,7 @@ impl Tool for LearningForgetFacetTool {
         let class_str = read_required_str(&args, "class")?;
         let key_suffix = read_required_str(&args, "key")?;
         let fk = full_key(&class_str, &key_suffix);
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let facet_json = match cache
             .get(&fk)
             .map_err(|e| anyhow::anyhow!("learning_forget_facet: {e:#}"))?
@@ -424,7 +428,7 @@ impl Tool for LearningRebuildCacheTool {
 
     async fn execute(&self, _args: serde_json::Value) -> anyhow::Result<ToolResult> {
         log::debug!("[tool][learning] rebuild_cache invoked");
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let detector = StabilityDetector::new(cache);
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -467,7 +471,7 @@ impl Tool for LearningResetCacheTool {
 
     async fn execute(&self, _args: serde_json::Value) -> anyhow::Result<ToolResult> {
         log::debug!("[tool][learning] reset_cache invoked");
-        let cache = get_cache()?;
+        let cache = get_cache().await?;
         let all = cache
             .list_all()
             .map_err(|e| anyhow::anyhow!("learning_reset_cache: {e:#}"))?;
