@@ -35,8 +35,8 @@ fn make_active(id: &str, key: &str, value: &str, stability: f64) -> ProfileFacet
 // ── Top-K cap (CACHE_PROMPT_CAP = 25) ────────────────────────────────────────
 
 /// When more than 25 Active facets exist, output is capped at 25 entries.
-#[test]
-fn load_learned_from_cache_caps_at_25_entries() {
+#[tokio::test]
+async fn load_learned_from_cache_caps_at_25_entries() {
     let cache = open_cache();
 
     // Insert 30 active style facets.
@@ -149,8 +149,8 @@ async fn load_learned_from_cache_excludes_dropped_facets() {
 /// When multiple classes are present, output is grouped by class (BTreeMap
 /// order — alphabetical: channel, goal, identity, style, tooling, veto).
 /// We only assert that facets from every class are present.
-#[test]
-fn load_learned_from_cache_includes_facets_from_all_classes() {
+#[tokio::test]
+async fn load_learned_from_cache_includes_facets_from_all_classes() {
     let cache = open_cache();
 
     let entries = [
@@ -179,8 +179,8 @@ fn load_learned_from_cache_includes_facets_from_all_classes() {
 // ── Empty-cache short-circuit ─────────────────────────────────────────────────
 
 /// An empty cache (no Active facets) must return an empty vec, not an error.
-#[test]
-fn load_learned_from_cache_returns_empty_for_empty_cache() {
+#[tokio::test]
+async fn load_learned_from_cache_returns_empty_for_empty_cache() {
     let cache = open_cache();
     assert!(load_learned_from_cache(&cache).await.is_empty());
 }
