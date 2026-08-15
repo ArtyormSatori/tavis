@@ -34,7 +34,9 @@
 //! component.  The preference is authoritative from the moment the tool
 //! returns `Ok`.
 
-use crate::openhuman::memory::{Memory, MemoryCategory};
+use crate::openhuman::memory::api::provider::MemoryCore;
+use crate::openhuman::memory::api::types::{MemoryCategory, MemoryTaint};
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolResult};
@@ -113,13 +115,14 @@ pub fn pinned_content(class: FacetClass, key: &str, value: &str) -> String {
 /// remembered.  All arguments (`class`, `key`, `value`) are supplied by the
 /// model — it maps the user's natural-language intent to the structured triple.
 pub struct RememberPreferenceTool {
-    memory: Arc<dyn Memory>,
     security: Arc<SecurityPolicy>,
 }
 
 impl RememberPreferenceTool {
-    pub fn new(memory: Arc<dyn Memory>, security: Arc<SecurityPolicy>) -> Self {
-        Self { memory, security }
+    /// Holds no memory handle — the guarded driver is resolved per call.
+    #[must_use]
+    pub fn new(security: Arc<SecurityPolicy>) -> Self {
+        Self { security }
     }
 }
 
@@ -275,8 +278,10 @@ impl Tool for RememberPreferenceTool {
             value.len()
         );
 
-        match self
-            .memory
+        let guard = active_memory_guard()
+            .await
+            .map_err(|e| anyhow::anyhow!("remember_preference: {e}"))?;
+        match guard
             .store(
                 PINNED_PREFERENCES_NAMESPACE,
                 &mem_key,
@@ -284,6 +289,8 @@ impl Tool for RememberPreferenceTool {
                 // Core category — pinned preferences are permanent user facts.
                 MemoryCategory::Core,
                 None,
+                // Requested provenance; the guard stamps the effective value.
+                MemoryTaint::default(),
             )
             .await
         {
