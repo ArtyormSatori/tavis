@@ -2,7 +2,6 @@ use super::*;
 
 use crate::openhuman::agent::host_runtime::{NativeRuntime, RuntimeAdapter};
 use crate::openhuman::config::{Config, DelegateAgentConfig};
-use crate::openhuman::memory::Memory;
 use crate::openhuman::runtime::javascript::NodeBootstrap;
 use crate::openhuman::runtime::python::PythonBootstrap;
 use crate::openhuman::security::{AuditLogger, SecurityPolicy};
@@ -58,7 +57,6 @@ pub fn all_tools(
     config: Arc<Config>,
     security: &Arc<SecurityPolicy>,
     audit: Arc<AuditLogger>,
-    memory: Arc<dyn Memory>,
     browser_config: &crate::openhuman::config::BrowserConfig,
     http_config: &crate::openhuman::config::HttpRequestConfig,
     action_dir: &std::path::Path,
@@ -70,7 +68,6 @@ pub fn all_tools(
         security,
         Arc::new(NativeRuntime::new()),
         audit,
-        memory,
         browser_config,
         http_config,
         action_dir,
@@ -95,7 +92,6 @@ pub fn all_tools_with_runtime(
     security: &Arc<SecurityPolicy>,
     runtime: Arc<dyn RuntimeAdapter>,
     audit: Arc<AuditLogger>,
-    memory: Arc<dyn Memory>,
     browser_config: &crate::openhuman::config::BrowserConfig,
     http_config: &crate::openhuman::config::HttpRequestConfig,
     action_dir: &std::path::Path,
@@ -480,7 +476,7 @@ pub fn all_tools_with_runtime(
         // Two-lane explicit preferences (general → system prompt, situational →
         // per-query recall). Written verbatim to user_pref_{general,situational};
         // bypasses the inference/stability pipeline. Always registered.
-        Box::new(SavePreferenceTool::new(memory.clone(), security.clone())),
+        Box::new(SavePreferenceTool::new(security.clone())),
         Box::new(MonitorTool::new(
             security.clone(),
             Arc::clone(&runtime),
@@ -1074,7 +1070,7 @@ pub fn all_tools_with_runtime(
         "evaluating ToolStatsTool registration"
     );
     if root_config.learning.enabled && root_config.learning.tool_tracking_enabled {
-        tools.push(Box::new(ToolStatsTool::new(memory.clone())));
+        tools.push(Box::new(ToolStatsTool::new()));
         tracing::debug!("ToolStatsTool registered");
     }
 
