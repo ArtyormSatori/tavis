@@ -90,12 +90,24 @@ pub fn experience_matches_profile(
 
 #[derive(Clone)]
 pub struct AgentExperienceStore {
-    memory: Arc<dyn Memory>,
+    guard: Arc<MemoryGuard>,
 }
 
 impl AgentExperienceStore {
-    pub fn new(memory: Arc<dyn Memory>) -> Self {
-        Self { memory }
+    /// Wrap the guarded memory driver.
+    ///
+    /// This used to take a raw `Arc<dyn Memory>` — the engine's storage trait,
+    /// reached through the process-global client. It takes the guard now, so
+    /// experience writes go through the policy layer like every other write:
+    /// tier check, taint stamping, redaction.
+    #[must_use]
+    pub fn new(guard: Arc<MemoryGuard>) -> Self {
+        Self { guard }
+    }
+
+    /// The mandatory core family, always present on a bound driver.
+    fn core(&self) -> &dyn crate::openhuman::memory::api::provider::MemoryCore {
+        self.guard.as_ref()
     }
 
     pub async fn put(&self, mut experience: AgentExperience) -> Result<AgentExperience, String> {
@@ -125,13 +137,16 @@ impl AgentExperienceStore {
 
         let content = serde_json::to_string(&experience).map_err(|e| e.to_string())?;
         let content = encode_experience_payload(&content);
-        self.memory
+        self.core()
             .store(
                 AGENT_EXPERIENCE_NAMESPACE,
                 &key,
                 &content,
                 MemoryCategory::Custom(AGENT_EXPERIENCE_NAMESPACE.into()),
                 None,
+                // The guard stamps the effective provenance — passing the
+                // default here is a request, not a decision.
+                crate::openhuman::memory::api::types::MemoryTaint::default(),
             )
             .await
             .map_err(|e| format!("store agent experience: {e:#}"))?;
@@ -141,7 +156,7 @@ impl AgentExperienceStore {
 
     pub async fn list(&self) -> Result<Vec<AgentExperience>, String> {
         let entries = self
-            .memory
+            .core()
             .list(Some(AGENT_EXPERIENCE_NAMESPACE), None, None)
             .await
             .map_err(|e| format!("list agent experiences: {e:#}"))?;
@@ -263,7 +278,7 @@ impl AgentExperienceStore {
 
     async fn fetch(&self, key: &str) -> Result<Option<AgentExperience>, String> {
         let entry = self
-            .memory
+            .core()
             .get(AGENT_EXPERIENCE_NAMESPACE, key)
             .await
             .map_err(|e| format!("get agent experience: {e:#}"))?;
