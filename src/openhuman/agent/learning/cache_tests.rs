@@ -1,18 +1,16 @@
 //! Tests for `learning::cache::FacetCache`.
 
-use parking_lot::Mutex;
-use rusqlite::Connection;
 use std::sync::Arc;
 
 use super::*;
 use crate::openhuman::agent::learning::candidate::{EvidenceRef, FacetClass};
 use crate::openhuman::memory::api::provider::{
-    FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
+    FacetState, FacetType, ProfileFacet, UserState,
 };
 
 fn make_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();
-    conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+    conn.execute_batch().unwrap();
     crate::openhuman::agent::learning::test_profile::in_memory_cache()
 }
 
@@ -61,7 +59,7 @@ fn upsert_then_list_active() {
         ))
         .unwrap();
 
-    let active = cache.list_active().unwrap();
+    let active = cache.list_active().await.unwrap();
     assert_eq!(active.len(), 1, "only Active state should be listed");
     assert_eq!(active[0].key, "style/verbosity");
 }
@@ -104,10 +102,11 @@ fn set_user_state_pinned_persists() {
 
     let updated = cache
         .set_user_state("identity/name", UserState::Pinned)
+        .await
         .unwrap();
     assert!(updated, "row should exist and be updated");
 
-    let f = cache.get("identity/name").unwrap().unwrap();
+    let f = cache.get("identity/name").await.unwrap().unwrap();
     assert_eq!(f.user_state, UserState::Pinned);
 }
 
@@ -146,14 +145,14 @@ fn drop_below_threshold_removes_facets() {
         .and_then(|_| cache.set_user_state("style/pinned_one", UserState::Pinned))
         .unwrap();
 
-    let removed = cache.drop_below_threshold(0.3).unwrap();
+    let removed = cache.drop_below_threshold(0.3).await.unwrap();
     assert_eq!(
         removed, 1,
         "only the non-pinned Dropped row should be removed"
     );
 
     // Active and Pinned rows survive.
-    let all = cache.list_all().unwrap();
+    let all = cache.list_all().await.unwrap();
     assert_eq!(all.len(), 2);
 }
 
@@ -173,15 +172,15 @@ fn list_by_class_filters_correctly() {
             .unwrap();
     }
 
-    let style = cache.list_by_class(FacetClass::Style).unwrap();
+    let style = cache.list_by_class(FacetClass::Style).await.unwrap();
     assert_eq!(style.len(), 2);
     assert!(style.iter().all(|f| f.key.starts_with("style/")));
 
-    let identity = cache.list_by_class(FacetClass::Identity).unwrap();
+    let identity = cache.list_by_class(FacetClass::Identity).await.unwrap();
     assert_eq!(identity.len(), 1);
     assert_eq!(identity[0].key, "identity/name");
 
-    let tooling = cache.list_by_class(FacetClass::Tooling).unwrap();
+    let tooling = cache.list_by_class(FacetClass::Tooling).await.unwrap();
     assert!(tooling.is_empty());
 }
 
@@ -213,9 +212,9 @@ fn evidence_refs_survive_upsert_round_trip() {
         },
         EvidenceRef::Episodic { episodic_id: 7 },
     ];
-    cache.upsert(&f).unwrap();
+    cache.upsert(&f).await.unwrap();
 
-    let loaded = cache.get("identity/email").unwrap().unwrap();
+    let loaded = cache.get("identity/email").await.unwrap().unwrap();
     assert_eq!(loaded.evidence_refs.len(), 2);
     assert_eq!(
         loaded.evidence_refs[0],
@@ -242,9 +241,9 @@ fn delete_removes_facet_by_key() {
         ))
         .unwrap();
 
-    let deleted = cache.delete("goal/learn_rust").unwrap();
+    let deleted = cache.delete("goal/learn_rust").await.unwrap();
     assert!(deleted);
 
-    let loaded = cache.get("goal/learn_rust").unwrap();
+    let loaded = cache.get("goal/learn_rust").await.unwrap();
     assert!(loaded.is_none());
 }

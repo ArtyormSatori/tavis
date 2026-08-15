@@ -221,11 +221,9 @@ mod tests {
     use super::*;
     use crate::openhuman::integrations::composio::providers::profile_md::{block_end, block_start};
     use crate::openhuman::memory::api::provider::{
-        FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
+        FacetState, FacetType, ProfileFacet, UserState,
     };
-    use parking_lot::Mutex;
-    use rusqlite::Connection;
-    use std::sync::Arc;
+            use std::sync::Arc;
     use tempfile::TempDir;
 
     fn make_cache(conn: Arc<Mutex<Connection>>) -> Arc<FacetCache> {
@@ -259,13 +257,13 @@ mod tests {
             class: key.split('/').next().map(|s| s.to_string()),
             cue_families: None,
         };
-        cache.upsert(&facet).unwrap();
+        cache.upsert(&facet).await.unwrap();
     }
 
     fn make_renderer() -> (Arc<FacetCache>, ProfileMdRenderer, TempDir) {
         let tmp = TempDir::new().unwrap();
         let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+        conn.execute_batch().unwrap();
         let cache = make_cache(Arc::new(Mutex::new(conn)));
         let renderer = ProfileMdRenderer::new(Arc::clone(&cache), tmp.path().to_path_buf());
         (cache, renderer, tmp)
@@ -315,7 +313,7 @@ mod tests {
             1.0,
         );
 
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
         assert!(
@@ -353,7 +351,7 @@ mod tests {
             2.0,
         );
 
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
         // Empty classes get the placeholder.
@@ -377,7 +375,7 @@ mod tests {
             1.0,
         );
 
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
         assert!(
@@ -407,7 +405,7 @@ mod tests {
             2.0,
         );
 
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
         assert!(
@@ -429,9 +427,9 @@ mod tests {
             2.0,
         );
 
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
         let body1 = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
         let body2 = std::fs::read_to_string(tmp.path().join("PROFILE.md")).unwrap();
 
         assert_eq!(body1, body2, "second render should be idempotent");
@@ -457,7 +455,7 @@ mod tests {
             UserState::Auto,
             2.0,
         );
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(&profile_path).unwrap();
         // connected-accounts block preserved.
@@ -491,7 +489,7 @@ mod tests {
             UserState::Auto,
             2.0,
         );
-        renderer.render().unwrap();
+        renderer.render().await.unwrap();
 
         let body = std::fs::read_to_string(&profile_path).unwrap();
         assert!(
@@ -507,7 +505,7 @@ mod tests {
         // Full async event delivery is tested in the integration test.
         let tmp = TempDir::new().unwrap();
         let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+        conn.execute_batch().unwrap();
         let cache = make_cache(Arc::new(Mutex::new(conn)));
         let renderer = Arc::new(ProfileMdRenderer::new(cache, tmp.path().to_path_buf()));
         // subscribe_global requires a running runtime; just verify the type works.

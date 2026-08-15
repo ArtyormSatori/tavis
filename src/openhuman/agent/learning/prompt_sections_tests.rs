@@ -2,19 +2,17 @@
 //! `load_learned_from_cache` top-K ranking cap and pinned-facet rendering,
 //! not covered by the inline tests in `prompt_sections.rs`.
 
-use parking_lot::Mutex;
-use rusqlite::Connection;
 use std::sync::Arc;
 
 use super::load_learned_from_cache;
 use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::memory::api::provider::{
-    FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
+    FacetState, FacetType, ProfileFacet, UserState,
 };
 
 fn open_cache() -> FacetCache {
     let conn = Connection::open_in_memory().unwrap();
-    conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+    conn.execute_batch().unwrap();
     crate::openhuman::agent::learning::test_profile::in_memory_cache()
 }
 
@@ -114,6 +112,7 @@ fn load_learned_from_cache_marks_pinned_facets() {
         .unwrap();
     cache
         .set_user_state("identity/name", UserState::Pinned)
+        .await
         .unwrap();
 
     let result = load_learned_from_cache(&cache);
@@ -136,7 +135,7 @@ fn load_learned_from_cache_excludes_dropped_facets() {
 
     let mut dropped = make_active("f-drop", "style/dropped", "x", 3.0);
     dropped.state = FacetState::Dropped;
-    cache.upsert(&dropped).unwrap();
+    cache.upsert(&dropped).await.unwrap();
 
     let result = load_learned_from_cache(&cache);
     assert!(
@@ -199,10 +198,10 @@ fn drop_below_threshold_skips_active_rows() {
         .upsert(&make_active("f-active-low", "style/keep_me", "v", 0.01))
         .unwrap();
 
-    let removed = cache.drop_below_threshold(10.0).unwrap(); // aggressive threshold
+    let removed = cache.drop_below_threshold(10.0).await.unwrap(); // aggressive threshold
     assert_eq!(removed, 0, "Active rows must never be evicted");
 
-    let entry = cache.get("style/keep_me").unwrap();
+    let entry = cache.get("style/keep_me").await.unwrap();
     assert!(
         entry.is_some(),
         "Active row must still exist after eviction"

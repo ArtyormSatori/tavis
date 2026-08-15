@@ -382,13 +382,11 @@ mod tests {
     fn load_learned_from_cache_formats_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
         use crate::openhuman::memory::api::provider::{
-            FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
+            FacetState, FacetType, ProfileFacet, UserState,
         };
-        use parking_lot::Mutex;
-        use rusqlite::Connection;
-
+                
         let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+        conn.execute_batch().unwrap();
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let make_facet = |id: &str, key: &str, value: &str, stab: f64| ProfileFacet {
@@ -427,7 +425,7 @@ mod tests {
         // Provisional — should NOT appear.
         let mut prov = make_facet("f4", "style/tone", "formal", 0.8);
         prov.state = FacetState::Provisional;
-        cache.upsert(&prov).unwrap();
+        cache.upsert(&prov).await.unwrap();
 
         let result = load_learned_from_cache(&cache);
 
@@ -461,12 +459,10 @@ mod tests {
     #[test]
     fn load_learned_from_cache_empty_when_no_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
-        use crate::openhuman::memory::api::provider::PROFILE_INIT_SQL;
-        use parking_lot::Mutex;
-        use rusqlite::Connection;
-
+        use crate::openhuman::memory::api::provider::;
+                
         let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+        conn.execute_batch().unwrap();
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let result = load_learned_from_cache(&cache);

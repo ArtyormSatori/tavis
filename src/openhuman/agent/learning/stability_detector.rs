@@ -620,14 +620,12 @@ mod tests {
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
-    use crate::openhuman::memory::api::provider::PROFILE_INIT_SQL;
-    use parking_lot::Mutex;
-    use rusqlite::Connection;
-    use std::sync::Arc;
+    use crate::openhuman::memory::api::provider::;
+            use std::sync::Arc;
 
     fn make_detector() -> StabilityDetector {
         let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+        conn.execute_batch().unwrap();
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
         // Use a private buffer so tests don't interfere with the global singleton.
         let buffer: &'static Buffer = Box::leak(Box::new(Buffer::new(256)));
@@ -748,7 +746,7 @@ mod tests {
         let detector = make_detector();
         let now = 1_000_000.0;
         // No candidates, no existing rows → rebuild is a no-op.
-        let outcome = detector.rebuild(now).unwrap();
+        let outcome = detector.rebuild(now).await.unwrap();
         assert_eq!(outcome.added, 0);
         assert_eq!(outcome.evicted, 0);
         assert_eq!(outcome.kept, 0);
@@ -771,10 +769,10 @@ mod tests {
             ));
         }
 
-        let outcome = detector.rebuild(now).unwrap();
+        let outcome = detector.rebuild(now).await.unwrap();
         assert_eq!(outcome.added, 1);
 
-        let actives = detector.cache.list_active().unwrap();
+        let actives = detector.cache.list_active().await.unwrap();
         assert_eq!(actives.len(), 1);
         assert_eq!(actives[0].key, "style/verbosity");
         assert_eq!(actives[0].value, "terse");
@@ -804,8 +802,8 @@ mod tests {
             now - 5.0,
         ));
 
-        detector.rebuild(now).unwrap();
-        let actives = detector.cache.list_active().unwrap();
+        detector.rebuild(now).await.unwrap();
+        let actives = detector.cache.list_active().await.unwrap();
         assert!(!actives.is_empty(), "should have at least one active row");
         let verbosity = actives.iter().find(|f| f.key == "style/verbosity").unwrap();
         assert_eq!(
@@ -838,9 +836,9 @@ mod tests {
             }
         }
 
-        detector.rebuild(now).unwrap();
+        detector.rebuild(now).await.unwrap();
 
-        let by_class = detector.cache.list_by_class(FacetClass::Style).unwrap();
+        let by_class = detector.cache.list_by_class(FacetClass::Style).await.unwrap();
         assert!(
             by_class.len() <= BUDGET_STYLE,
             "style class should have at most {BUDGET_STYLE} active rows, got {}",
@@ -872,14 +870,15 @@ mod tests {
             class: Some("style".into()),
             cue_families: None,
         };
-        detector.cache.upsert(&pinned).unwrap();
+        detector.cache.upsert(&pinned).await.unwrap();
 
         // No new candidates for this key → only decay applies.
-        detector.rebuild(now).unwrap();
+        detector.rebuild(now).await.unwrap();
 
         let f = detector
             .cache
             .get("style/format")
+            .await
             .unwrap()
             .expect("pinned row must survive");
         assert_eq!(f.state, FacetState::Active);

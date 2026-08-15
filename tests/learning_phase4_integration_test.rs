@@ -22,12 +22,8 @@ use openhuman_core::openhuman::agent::learning::candidate::{
 };
 use openhuman_core::openhuman::agent::learning::profile_md_renderer::ProfileMdRenderer;
 use openhuman_core::openhuman::agent::learning::stability_detector::StabilityDetector;
-use parking_lot::Mutex;
-use rusqlite::Connection;
 use tempfile::TempDir;
-use tinymemory_core::store::profile::{
-    FacetState, FacetType, ProfileFacet, UserState, PROFILE_INIT_SQL,
-};
+use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
 use tinymemory_core::store::ProfileStore;
 
 fn now_secs() -> f64 {
@@ -70,7 +66,7 @@ struct TestHarness {
 impl TestHarness {
     fn new() -> Self {
         let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+        conn.execute_batch().unwrap();
         let conn = Arc::new(Mutex::new(conn));
 
         let cache = Arc::new(FacetCache::new(ProfileStore::for_tests(Arc::clone(&conn))));
@@ -131,14 +127,14 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
     }
 
     // Step 2: Run rebuild.
-    let outcome = harness.detector.rebuild(now).unwrap();
+    let outcome = harness.detector.rebuild(now).await.unwrap();
     assert!(
         outcome.added >= 1,
         "rebuild should have added rows: {outcome:?}"
     );
 
     // Step 3: Verify all 5 candidates are now Active.
-    let active = harness.cache.list_active().unwrap();
+    let active = harness.cache.list_active().await.unwrap();
     assert!(
         active.len() >= 5,
         "expected ≥ 5 active rows, got {}: {:?}",
@@ -147,7 +143,7 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
     );
 
     // Step 4: Render PROFILE.md via the renderer.
-    harness.renderer.render().unwrap();
+    harness.renderer.render().await.unwrap();
 
     let profile_path = harness.workspace.path().join("PROFILE.md");
     assert!(profile_path.exists(), "PROFILE.md was not created");
@@ -190,12 +186,13 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
     harness
         .cache
         .set_user_state(&style_key, UserState::Pinned)
+        .await
         .unwrap();
 
     // Re-rebuild with no new candidates (only decay applies).
-    let outcome2 = harness.detector.rebuild(now).unwrap();
+    let outcome2 = harness.detector.rebuild(now).await.unwrap();
     // The pinned row should remain Active regardless of decay.
-    let pinned_facet = harness.cache.get(&style_key).unwrap();
+    let pinned_facet = harness.cache.get(&style_key).await.unwrap();
     assert!(pinned_facet.is_some(), "pinned row must survive re-rebuild");
     let pf = pinned_facet.unwrap();
     assert_eq!(
@@ -207,7 +204,7 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
     let _ = outcome2; // used for assertion comment
 
     // Re-render and verify pin marker.
-    harness.renderer.render().unwrap();
+    harness.renderer.render().await.unwrap();
     let profile_after_pin = std::fs::read_to_string(&profile_path).unwrap();
     assert!(
         profile_after_pin.contains("*(pinned)*"),
@@ -216,13 +213,13 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
 
     // Step 6: Forget the identity/name facet.
     let identity_key = format!("{}/name", class_prefix(FacetClass::Identity));
-    let mut identity_facet = harness.cache.get(&identity_key).unwrap().unwrap();
+    let mut identity_facet = harness.cache.get(&identity_key).await.unwrap().unwrap();
     identity_facet.user_state = UserState::Forgotten;
     identity_facet.state = FacetState::Dropped;
-    harness.cache.upsert(&identity_facet).unwrap();
+    harness.cache.upsert(&identity_facet).await.unwrap();
 
     // Re-render.
-    harness.renderer.render().unwrap();
+    harness.renderer.render().await.unwrap();
     let profile_after_forget = std::fs::read_to_string(&profile_path).unwrap();
     // identity/name=Alice should no longer appear in the visible sections.
     // (The identity block placeholder renders if all identity rows are non-active.)
@@ -240,7 +237,7 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
     );
 
     // Step 7: list_facets — verify shape.
-    let all_active = harness.cache.list_active().unwrap();
+    let all_active = harness.cache.list_active().await.unwrap();
     // The style facet should be present (pinned, Active).
     assert!(
         all_active.iter().any(|f| f.key == style_key),
@@ -266,7 +263,7 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
 #[test]
 fn list_facets_cache_direct_active_vs_all() {
     let conn = Connection::open_in_memory().unwrap();
-    conn.execute_batch(PROFILE_INIT_SQL).unwrap();
+    conn.execute_batch().unwrap();
     let cache = FacetCache::new(ProfileStore::for_tests(Arc::new(Mutex::new(conn))));
 
     let make = |id: &str, key: &str, state: FacetState| ProfileFacet {
@@ -297,7 +294,7 @@ fn list_facets_cache_direct_active_vs_all() {
         .upsert(&make("f3", "identity/name", FacetState::Dropped))
         .unwrap();
 
-    let active = cache.list_active().unwrap();
+    let active = cache.list_active().await.unwrap();
     assert_eq!(
         active.len(),
         1,
@@ -305,7 +302,7 @@ fn list_facets_cache_direct_active_vs_all() {
     );
     assert_eq!(active[0].key, "style/verbosity");
 
-    let all = cache.list_all().unwrap();
+    let all = cache.list_all().await.unwrap();
     // All 3 rows (Active + Provisional + Dropped).
     assert_eq!(all.len(), 3, "list_all should return all rows");
 }
