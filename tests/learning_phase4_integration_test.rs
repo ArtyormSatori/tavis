@@ -291,12 +291,15 @@ async fn list_facets_cache_direct_active_vs_all() {
 
     cache
         .upsert(&make("f1", "style/verbosity", FacetState::Active))
+        .await
         .unwrap();
     cache
         .upsert(&make("f2", "style/tone", FacetState::Provisional))
+        .await
         .unwrap();
     cache
         .upsert(&make("f3", "identity/name", FacetState::Dropped))
+        .await
         .unwrap();
 
     let active = cache.list_active().await.unwrap();
