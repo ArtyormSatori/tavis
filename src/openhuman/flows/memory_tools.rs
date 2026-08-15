@@ -143,23 +143,28 @@ const FLOW_MEMORY_NAMESPACE_LISTED_PREFIX: &str = FLOW_MEMORY_NAMESPACE_PREFIX;
 /// so one corrupt/unavailable flow namespace can't blank out every other
 /// flow's results.
 pub async fn cross_flow_recall(
-    memory: &Arc<dyn Memory>,
+    memory: &Arc<crate::openhuman::memory::guard::MemoryGuard>,
     query: &str,
     limit: usize,
     min_score: Option<f64>,
 ) -> anyhow::Result<Vec<MemoryEntry>> {
-    let summaries = memory.namespace_summaries().await?;
+    use crate::openhuman::memory::api::provider::{MemoryCore, MemoryRecall};
+    // `namespaces()` is the contract's name for what the engine trait called
+    // `namespace_summaries()` — identical signature and return type.
+    let summaries = memory.namespaces().await?;
     let mut merged: Vec<MemoryEntry> = Vec::new();
     for summary in summaries
         .iter()
         .filter(|s| s.namespace.starts_with(FLOW_MEMORY_NAMESPACE_LISTED_PREFIX))
     {
-        let opts = RecallOpts {
-            namespace: Some(summary.namespace.as_str()),
+        let opts = crate::openhuman::memory::api::recall::OwnedRecallOpts {
+            namespace: Some(summary.namespace.clone()),
             min_score,
-            ..RecallOpts::default()
+            ..Default::default()
         };
-        match memory.recall(query, limit, opts).await {
+        // `None` scope: the guard intersects it with the ambient per-turn
+        // allowlist, so this can only narrow.
+        match memory.recall(query, limit, &opts, None).await {
             Ok(entries) => merged.extend(entries),
             Err(e) => {
                 log::warn!(
