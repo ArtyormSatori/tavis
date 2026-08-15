@@ -803,7 +803,8 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         turn_model_source: None,
         default_provider: Arc::new(provider_name),
         memory: crate::openhuman::memory::ops::guard::active_memory_guard()
-            .ok_or_else(|| anyhow::anyhow!("memory is not available"))?,
+            .await
+            .map_err(|e| anyhow::anyhow!("channels startup: memory unavailable: {e}"))?,
         tools_registry: Arc::clone(&tools_registry),
         system_prompt: Arc::new(system_prompt),
         model: Arc::new(model.clone()),

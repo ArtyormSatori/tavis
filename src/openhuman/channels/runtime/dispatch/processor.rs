@@ -1,3 +1,4 @@
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 //! Core message processing loop for the channel runtime.
 //!
 //! Contains:
@@ -277,7 +278,7 @@ pub(crate) async fn process_channel_runtime_message(
                 &msg.content,
                 crate::openhuman::memory::api::types::MemoryCategory::Conversation,
                 None,
-                crate::openhuman::memory::api::types::MemoryTaint::Trusted,
+                crate::openhuman::memory::api::types::MemoryTaint::Internal,
             )
             .await;
     }

@@ -108,6 +108,8 @@ pub(crate) fn is_context_window_overflow_error(err: &anyhow::Error) -> bool {
     tinychannels::context::is_context_window_overflow_message(&err.to_string())
 }
 
+use crate::openhuman::memory::api::provider::MemoryRecall as _;
+
 pub(crate) async fn build_memory_context(
     mem: &crate::openhuman::memory::guard::MemoryGuard,
     user_msg: &str,
