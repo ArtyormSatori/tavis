@@ -165,11 +165,11 @@ impl Agent {
         // via per-turn recall (Lane B). The legacy `user_profile` pinned namespace
         // is no longer read here; explicit prefs now live in `user_pref_general`.
         if !self.learning_enabled && self.explicit_preferences_enabled {
-            // Preferences are user-scoped, not session-scoped: both namespaces
-            // are unqualified by profile or session, so they are read through
-            // the ambient guarded driver rather than this session's handle —
-            // the same store `save_preference` writes to.
-            let general = standing_preferences().await;
+            let general = tinymemory_core::preferences::load_general_preferences(
+                &self.memory,
+                tinymemory_core::preferences::STANDING_PREFS_LIMIT,
+            )
+            .await;
             tracing::debug!(
                 "[learning] fetch_learned_context: explicit_preferences_enabled — loaded {} general preference(s) for the system prompt",
                 general.len()
@@ -210,7 +210,11 @@ impl Agent {
         // injected as ground truth. A high-confidence inferred facet should be
         // *proposed* to the user (and pinned via `save_preference` on
         // confirmation), not silently treated as a standing preference.
-        let general = standing_preferences().await;
+        let general = tinymemory_core::preferences::load_general_preferences(
+            &self.memory,
+            tinymemory_core::preferences::STANDING_PREFS_LIMIT,
+        )
+        .await;
 
         // Explicit user reflections — privileged memory class. Pulled
         // separately from observations/patterns so the prompt assembly
@@ -336,27 +340,5 @@ impl Agent {
             prompt = format!("{boundary}\n\n{prompt}");
         }
         Ok(prompt)
-    }
-}
-
-/// Lane-A standing preferences, or nothing when memory is unavailable.
-///
-/// Kept out of the two context-assembly bodies for the same reason as
-/// [`super::core::situational_preferences`]: those futures are large enough
-/// that an inlined `await` over a `Result` match measurably grows their state
-/// machines.
-async fn standing_preferences() -> Vec<String> {
-    match crate::openhuman::memory::ops::guard::active_memory_guard().await {
-        Ok(guard) => {
-            crate::openhuman::memory::preferences::load_general_preferences(
-                &guard,
-                crate::openhuman::memory::preferences::STANDING_PREFS_LIMIT,
-            )
-            .await
-        }
-        Err(e) => {
-            tracing::debug!("[learning] standing preferences unavailable: {e}");
-            Vec::new()
-        }
     }
 }
