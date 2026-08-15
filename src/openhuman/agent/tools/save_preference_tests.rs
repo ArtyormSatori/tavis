@@ -213,96 +213,14 @@ async fn recategorising_moves_pref_between_namespaces() {
 }
 
 // ── Contradiction surfacing (chat-affirmed) ──────────────────────────────────
-
-use async_trait::async_trait;
-
-/// Keyword-sensitive embedder so prefs about the same theme embed close together
-/// (high cosine) and unrelated ones don't.
-struct KwEmbedder;
-
-#[async_trait]
-impl crate::openhuman::inference::embeddings::EmbeddingProvider for KwEmbedder {
-    fn name(&self) -> &str {
-        "kw"
-    }
-    fn model_id(&self) -> &str {
-        "kw"
-    }
-    fn dimensions(&self) -> usize {
-        2
-    }
-    async fn embed(&self, texts: &[&str]) -> anyhow::Result<Vec<Vec<f32>>> {
-        Ok(texts
-            .iter()
-            .map(|t| {
-                let l = t.to_lowercase();
-                vec![
-                    if l.contains("terse") || l.contains("verbose") || l.contains("detail") {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                    if l.contains("rust") { 1.0 } else { 0.0 },
-                ]
-            })
-            .collect())
-    }
-}
-
-fn kw_mem() -> (TempDir, Arc<dyn Memory>) {
-    let tmp = TempDir::new().unwrap();
-    let mem = UnifiedMemory::new(tmp.path(), Arc::new(KwEmbedder), None).unwrap();
-    (tmp, Arc::new(mem))
-}
-
-#[tokio::test]
-async fn save_surfaces_related_preference_for_contradiction_check() {
-    let (_tmp, mem) = kw_mem();
-    let tool = SavePreferenceTool::new(mem.clone(), test_security());
-
-    tool.execute(json!({"topic": "verbosity", "value": "always be terse", "category": "general"}))
-        .await
-        .unwrap();
-
-    // A semantically-related pref under a different topic.
-    let r = tool
-        .execute(json!({
-            "topic": "explanation_style",
-            "value": "give detailed verbose explanations",
-            "category": "general"
-        }))
-        .await
-        .unwrap();
-    assert!(!r.is_error);
-    assert!(
-        r.output().contains("verbosity") && r.output().contains("always be terse"),
-        "expected the related pref to be surfaced for a contradiction check, got: {}",
-        r.output()
-    );
-}
-
-#[tokio::test]
-async fn save_unrelated_preference_surfaces_nothing() {
-    let (_tmp, mem) = kw_mem();
-    let tool = SavePreferenceTool::new(mem.clone(), test_security());
-
-    tool.execute(json!({"topic": "verbosity", "value": "always be terse", "category": "general"}))
-        .await
-        .unwrap();
-
-    // An unrelated pref (rust) — no contradiction note.
-    let r = tool
-        .execute(json!({
-            "topic": "rust_edition",
-            "value": "use rust 2021 edition",
-            "category": "situational"
-        }))
-        .await
-        .unwrap();
-    assert!(!r.is_error);
-    assert!(
-        !r.output().contains("check for contradictions"),
-        "an unrelated pref should surface no related prefs, got: {}",
-        r.output()
-    );
-}
+//
+// These two tests used to live here, over a bespoke `KwEmbedder` and a private
+// `UnifiedMemory` built so vector similarity would move at all. Both the logic
+// and the coverage moved with `recall_related_preferences` into
+// `memory::preferences` — `related_preferences_exclude_the_just_saved_topic`
+// and `situational_recall_filters_on_the_vector_component_not_the_final_score`
+// script the score breakdown directly, so they pin the similarity gate the
+// embedder was only ever an indirect way of reaching.
+//
+// The tool-side half of that behaviour — that the message threads the related
+// preferences back to the model — is covered by the success path above.
