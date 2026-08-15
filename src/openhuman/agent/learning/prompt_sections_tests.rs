@@ -99,8 +99,8 @@ fn load_learned_from_cache_ranks_by_stability_descending() {
 // ── Pinned marker ─────────────────────────────────────────────────────────────
 
 /// Pinned facets must carry the `*(pinned)*` marker in the output.
-#[test]
-fn load_learned_from_cache_marks_pinned_facets() {
+#[tokio::test]
+async fn load_learned_from_cache_marks_pinned_facets() {
     let cache = open_cache();
 
     cache
@@ -125,8 +125,8 @@ fn load_learned_from_cache_marks_pinned_facets() {
 // ── Dropped state excluded ────────────────────────────────────────────────────
 
 /// Dropped-state facets must not appear even when their stability is high.
-#[test]
-fn load_learned_from_cache_excludes_dropped_facets() {
+#[tokio::test]
+async fn load_learned_from_cache_excludes_dropped_facets() {
     let cache = open_cache();
 
     let mut dropped = make_active("f-drop", "style/dropped", "x", 3.0);
@@ -185,8 +185,8 @@ fn load_learned_from_cache_returns_empty_for_empty_cache() {
 
 /// Eviction via `FacetCache::drop_below_threshold` must leave Active rows
 /// untouched regardless of their stability value.
-#[test]
-fn drop_below_threshold_skips_active_rows() {
+#[tokio::test]
+async fn drop_below_threshold_skips_active_rows() {
     let cache = open_cache();
 
     // Insert an Active row with very low stability — it must survive eviction.

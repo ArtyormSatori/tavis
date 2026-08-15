@@ -378,8 +378,8 @@ mod tests {
 
     // ── load_learned_from_cache ───────────────────────────────────────────────
 
-    #[test]
-    fn load_learned_from_cache_formats_active_facets() {
+    #[tokio::test]
+    async fn load_learned_from_cache_formats_active_facets() {
         use crate::openhuman::agent::learning::cache::FacetCache;
         use crate::openhuman::memory::api::provider::{
             FacetState, FacetType, ProfileFacet, UserState,

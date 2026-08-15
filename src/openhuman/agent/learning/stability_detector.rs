@@ -738,8 +738,8 @@ mod tests {
 
     // ── rebuild ──────────────────────────────────────────────────────────────
 
-    #[test]
-    fn rebuild_empty_buffer_no_candidates_is_noop() {
+    #[tokio::test]
+    async fn rebuild_empty_buffer_no_candidates_is_noop() {
         let detector = make_detector();
         let now = 1_000_000.0;
         // No candidates, no existing rows → rebuild is a no-op.
@@ -750,8 +750,8 @@ mod tests {
         assert_eq!(outcome.total_size, 0);
     }
 
-    #[test]
-    fn rebuild_strong_candidate_becomes_active() {
+    #[tokio::test]
+    async fn rebuild_strong_candidate_becomes_active() {
         let detector = make_detector();
         let now = 1_000_000.0;
 
@@ -776,8 +776,8 @@ mod tests {
         assert_eq!(actives[0].state, FacetState::Active);
     }
 
-    #[test]
-    fn rebuild_conflict_resolution_picks_stronger_value() {
+    #[tokio::test]
+    async fn rebuild_conflict_resolution_picks_stronger_value() {
         let detector = make_detector();
         let now = 1_000_000.0;
 
@@ -809,8 +809,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn rebuild_class_budget_respected() {
+    #[tokio::test]
+    async fn rebuild_class_budget_respected() {
         let detector = make_detector();
         let now = 1_000_000.0;
 
@@ -847,8 +847,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn rebuild_pinned_facet_stays_active_regardless_of_stability() {
+    #[tokio::test]
+    async fn rebuild_pinned_facet_stays_active_regardless_of_stability() {
         let detector = make_detector();
         let now = 1_000_000.0;
 

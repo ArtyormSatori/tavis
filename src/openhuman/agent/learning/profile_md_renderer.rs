@@ -263,8 +263,8 @@ mod tests {
         (cache, renderer, tmp)
     }
 
-    #[test]
-    fn renders_active_facets_to_class_blocks() {
+    #[tokio::test]
+    async fn renders_active_facets_to_class_blocks() {
         let (cache, renderer, tmp) = make_renderer();
         insert_facet(
             &cache,
@@ -332,8 +332,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn skips_empty_classes_renders_placeholder() {
+    #[tokio::test]
+    async fn skips_empty_classes_renders_placeholder() {
         let (cache, renderer, tmp) = make_renderer();
         // Only insert a style facet; all other classes will be empty.
         insert_facet(
@@ -357,8 +357,8 @@ mod tests {
         assert!(body.contains("- **verbosity**: terse"));
     }
 
-    #[test]
-    fn pinned_facets_marked_in_output() {
+    #[tokio::test]
+    async fn pinned_facets_marked_in_output() {
         let (cache, renderer, tmp) = make_renderer();
         insert_facet(
             &cache,
@@ -379,8 +379,8 @@ mod tests {
         assert!(body.contains("- **format**: markdown *(pinned)*"));
     }
 
-    #[test]
-    fn provisional_facets_excluded_from_output() {
+    #[tokio::test]
+    async fn provisional_facets_excluded_from_output() {
         let (cache, renderer, tmp) = make_renderer();
         insert_facet(
             &cache,
@@ -409,8 +409,8 @@ mod tests {
         assert!(body.contains("terse"));
     }
 
-    #[test]
-    fn re_renders_idempotently_on_repeated_cache_rebuilt() {
+    #[tokio::test]
+    async fn re_renders_idempotently_on_repeated_cache_rebuilt() {
         let (cache, renderer, tmp) = make_renderer();
         insert_facet(
             &cache,
@@ -429,8 +429,8 @@ mod tests {
         assert_eq!(body1, body2, "second render should be idempotent");
     }
 
-    #[test]
-    fn renders_dont_clobber_connected_accounts_block() {
+    #[tokio::test]
+    async fn renders_dont_clobber_connected_accounts_block() {
         let (cache, renderer, tmp) = make_renderer();
         // Manually write a connected-accounts block first.
         let ca_content = format!(
@@ -465,8 +465,8 @@ mod tests {
         assert!(body.contains("terse"));
     }
 
-    #[test]
-    fn renders_dont_touch_user_authored_text_outside_blocks() {
+    #[tokio::test]
+    async fn renders_dont_touch_user_authored_text_outside_blocks() {
         let (cache, renderer, tmp) = make_renderer();
         let profile_path = tmp.path().join("PROFILE.md");
         std::fs::write(

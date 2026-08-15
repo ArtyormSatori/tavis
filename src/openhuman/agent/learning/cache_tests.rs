@@ -32,8 +32,8 @@ fn stub_facet(id: &str, key: &str, value: &str, state: FacetState, stability: f6
 
 // ── upsert_then_list_active ───────────────────────────────────────────────────
 
-#[test]
-fn upsert_then_list_active() {
+#[tokio::test]
+async fn upsert_then_list_active() {
     let cache = make_cache();
 
     cache
@@ -82,8 +82,8 @@ fn class_from_key_parses_known_classes() {
 
 // ── set_user_state_pinned_persists ────────────────────────────────────────────
 
-#[test]
-fn set_user_state_pinned_persists() {
+#[tokio::test]
+async fn set_user_state_pinned_persists() {
     let cache = make_cache();
 
     cache
@@ -108,8 +108,8 @@ fn set_user_state_pinned_persists() {
 
 // ── drop_below_threshold_removes_facets ───────────────────────────────────────
 
-#[test]
-fn drop_below_threshold_removes_facets() {
+#[tokio::test]
+async fn drop_below_threshold_removes_facets() {
     let cache = make_cache();
 
     cache
@@ -154,8 +154,8 @@ fn drop_below_threshold_removes_facets() {
 
 // ── list_by_class_filters_correctly ───────────────────────────────────────────
 
-#[test]
-fn list_by_class_filters_correctly() {
+#[tokio::test]
+async fn list_by_class_filters_correctly() {
     let cache = make_cache();
 
     for (id, key, val) in [
@@ -196,8 +196,8 @@ fn key_with_class_produces_prefixed_key() {
 
 // ── Evidence refs round-trip ──────────────────────────────────────────────────
 
-#[test]
-fn evidence_refs_survive_upsert_round_trip() {
+#[tokio::test]
+async fn evidence_refs_survive_upsert_round_trip() {
     let cache = make_cache();
     let mut f = stub_facet("f-ev", "identity/email", "a@b.com", FacetState::Active, 2.0);
     f.evidence_refs = vec![
@@ -224,8 +224,8 @@ fn evidence_refs_survive_upsert_round_trip() {
 
 // ── delete helper ─────────────────────────────────────────────────────────────
 
-#[test]
-fn delete_removes_facet_by_key() {
+#[tokio::test]
+async fn delete_removes_facet_by_key() {
     let cache = make_cache();
     cache
         .upsert(&stub_facet(
