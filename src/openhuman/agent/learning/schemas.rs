@@ -477,7 +477,7 @@ mod tests {
 
     #[test]
     fn facet_to_json_includes_cue_families_and_evidence_refs() {
-        use crate::openhuman::agent::learning::candidate::EvidenceRef;
+        use crate::openhuman::memory::api::host::EvidenceRef;
         use crate::openhuman::memory::api::provider::{
             FacetState, FacetType, ProfileFacet, UserState,
         };
