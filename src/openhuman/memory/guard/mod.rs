@@ -88,6 +88,10 @@
 pub mod audit;
 pub mod budget;
 pub mod families;
+/// In-memory provider fake for tests. Not `#[cfg(test)]` — integration tests
+/// link the lib without it.
+#[doc(hidden)]
+pub mod in_memory;
 mod mandatory;
 pub mod policy;
 pub mod provider;

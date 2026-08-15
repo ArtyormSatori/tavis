@@ -41,11 +41,11 @@ use parking_lot::Mutex;
 use crate::openhuman::memory::api::capabilities::Capabilities;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::health::MemoryHealth;
+use crate::openhuman::memory::api::provider::types::SourceScope;
 use crate::openhuman::memory::api::provider::types::{ExportPage, ExportRecord, ImportOutcome};
 use crate::openhuman::memory::api::provider::{
     MemoryCore, MemoryPortability, MemoryProvider, MemoryRecall,
 };
-use crate::openhuman::memory::api::provider::types::SourceScope;
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::types::{
     MemoryCategory, MemoryEntry, MemoryTaint, NamespaceSummary,
