@@ -1,3 +1,4 @@
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 use super::super::context::{
     build_memory_context, clear_sender_history, conversation_history_key, conversation_memory_key,
     ChannelRuntimeContext, CHANNEL_MESSAGE_TIMEOUT_SECS,
@@ -108,14 +109,14 @@ async fn autosave_keys_preserve_multiple_conversation_facts() {
 
 #[tokio::test]
 async fn build_memory_context_includes_recalled_entries() {
-    let tmp = TempDir::new().unwrap();
-    let mem = UnifiedMemory::new(tmp.path(), Arc::new(NoopEmbedding), None).unwrap();
+    let (_provider, mem) = crate::openhuman::memory::guard::in_memory::guarded_in_memory();
     mem.store(
         "",
         "age_fact",
         "Age is 45",
         MemoryCategory::Conversation,
         None,
+        crate::openhuman::memory::api::types::MemoryTaint::Internal,
     )
     .await
     .unwrap();
@@ -142,7 +143,7 @@ async fn process_channel_message_restores_per_sender_history_on_follow_ups() {
             crate::openhuman::agent::tinyagents::TurnModelSource::from_model(provider_impl.clone()),
         ),
         default_provider: Arc::new("test-provider".to_string()),
-        memory: Arc::new(NoopMemory),
+        memory: crate::openhuman::memory::guard::in_memory::FixedRecallProvider::guarded(Vec::new()),
         tools_registry: Arc::new(vec![]),
         system_prompt: Arc::new("test-system-prompt".to_string()),
         model: Arc::new("test-model".to_string()),
@@ -220,8 +221,7 @@ async fn process_channel_message_uses_autosaved_memory_after_history_is_cleared(
     channels_by_name.insert(channel.name().to_string(), channel);
 
     let provider_impl = Arc::new(HistoryCaptureModel::default());
-    let tmp = TempDir::new().unwrap();
-    let memory = Arc::new(UnifiedMemory::new(tmp.path(), Arc::new(NoopEmbedding), None).unwrap());
+    let (_memory_provider, memory) = crate::openhuman::memory::guard::in_memory::guarded_in_memory();
 
     let runtime_ctx = Arc::new(ChannelRuntimeContext {
         channels_by_name: Arc::new(channels_by_name),
