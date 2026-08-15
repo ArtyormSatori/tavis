@@ -37,7 +37,7 @@
 //! degradations, whereas an error would fail a chat turn or a preference write
 //! over a capability the operator chose not to have.
 
-use crate::openhuman::memory::api::provider::MemoryCore as _;
+use crate::openhuman::memory::api::provider::{MemoryCore as _, MemoryProvider as _};
 use crate::openhuman::memory::guard::MemoryGuard;
 
 /// Always-on preferences — injected into the system prompt every thread.
