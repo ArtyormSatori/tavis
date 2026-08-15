@@ -202,16 +202,10 @@ const ALLOWED: &[(&str, &str, &str)] = &[
          and not async-reachable — the caller is a sync `OnceLock` initialiser",
     ),
     // ── Flows: foreign trait shapes and a test-override seam ──
-    (
-        "src/openhuman/flows/bus.rs",
-        ".memory_handle(",
-        "resolve_memory() -> Option<Arc<dyn Memory>>; no contract door for it",
-    ),
-    (
-        "src/openhuman/flows/bus.rs",
-        "active_memory_client(",
-        "carries a #[cfg(test)] memory_override seam the guard would bypass",
-    ),
+    //
+    // `flows/bus.rs`'s two entries are gone: the run-digest subscriber resolves
+    // the guarded driver, and its `#[cfg(test)]` override now injects a real
+    // `MemoryGuard` over an in-memory provider rather than a raw handle.
     (
         "src/openhuman/flows/tinyflows/memory_adapter.rs",
         ".memory_handle(",
