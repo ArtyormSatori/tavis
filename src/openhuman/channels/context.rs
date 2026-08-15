@@ -2,7 +2,6 @@
 
 use crate::openhuman::agent::messages::ChatMessage;
 use crate::openhuman::agent::tinyagents::TurnModelSource;
-use crate::openhuman::memory::Memory;
 use crate::openhuman::tools::Tool;
 use crate::openhuman::util::truncate_with_ellipsis;
 use std::collections::HashMap;
@@ -176,7 +175,7 @@ pub(crate) async fn build_memory_context(
 mod tests {
     use super::*;
     use crate::openhuman::channels::traits;
-    use crate::openhuman::memory::{Memory, MemoryCategory, MemoryEntry};
+    use crate::openhuman::memory::api::types::{MemoryCategory, MemoryEntry};
     use crate::openhuman::tools::{Tool, ToolResult};
     use async_trait::async_trait;
 
