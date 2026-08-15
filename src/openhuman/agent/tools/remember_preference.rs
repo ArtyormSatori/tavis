@@ -330,6 +330,10 @@ mod tests {
     use tempfile::TempDir;
     use tinymemory_core::store::UnifiedMemory;
 
+    // The read-back goes through the engine handle directly, so its entries
+    // carry the engine's category type rather than the contract's.
+    use tinymemory_core::MemoryCategory as EngineMemoryCategory;
+
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())
     }
@@ -531,7 +535,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
             entry.content,
             "[pinned] (class=tooling) package_manager: pnpm"
         );
-        assert_eq!(entry.category, MemoryCategory::Core);
+        assert_eq!(entry.category, EngineMemoryCategory::Core);
     }
 
     #[tokio::test]
