@@ -14,14 +14,20 @@
 //! provides exactly that: a `HashMap` behind a mutex, implementing the same
 //! contract the driver does.
 //!
+//! # Not `#[cfg(test)]`, deliberately
+//!
+//! Integration tests under `tests/` link the library compiled *without*
+//! `cfg(test)`, so a test-gated helper is invisible to them — which is exactly
+//! how `tests/learning_phase4_integration_test.rs` was left uncompilable once
+//! before. `ProfileStore::for_tests` carries the same note and the same
+//! `#[doc(hidden)]` treatment for the same reason.
+//!
 //! # It mimics the engine's ordering, because the tests depend on it
 //!
 //! `list_active` and `list_all` sort by stability descending, which is what the
 //! engine's SQL does and what several assertions rely on. A fake that returned
 //! insertion order would pass its own tests and quietly diverge from the thing
 //! it stands in for.
-
-#![cfg(test)]
 
 use std::collections::HashMap;
 use std::sync::Arc;

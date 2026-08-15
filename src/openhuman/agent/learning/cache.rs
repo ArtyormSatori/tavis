@@ -39,7 +39,6 @@ pub struct FacetCache {
 /// the learning tests on a module artifact.
 enum Source {
     Guard(Arc<MemoryGuard>),
-    #[cfg(test)]
     Direct(Arc<dyn MemoryProfile>),
 }
 
@@ -55,7 +54,11 @@ impl FacetCache {
     ///
     /// Test-only: production must go through the guard so the policy layer is
     /// on the path.
-    #[cfg(test)]
+    ///
+    /// Not `#[cfg(test)]` — integration tests link the lib without it, and a
+    /// gated constructor is invisible to them. `#[doc(hidden)]` keeps it off
+    /// the public docs instead.
+    #[doc(hidden)]
     #[must_use]
     pub fn for_tests(profile: Arc<dyn MemoryProfile>) -> Self {
         Self {
@@ -69,7 +72,6 @@ impl FacetCache {
             Source::Guard(guard) => guard.as_profile().ok_or_else(|| {
                 anyhow::anyhow!("memory driver does not support the profile family")
             }),
-            #[cfg(test)]
             Source::Direct(profile) => Ok(profile.as_ref()),
         }
     }
