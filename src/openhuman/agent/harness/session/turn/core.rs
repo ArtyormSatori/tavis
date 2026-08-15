@@ -737,20 +737,7 @@ impl Agent {
         // cost). An unrelated message clears the similarity gate to nothing, so
         // no block is injected.
         {
-            let situational =
-                match crate::openhuman::memory::ops::guard::active_memory_guard().await {
-                    Ok(guard) => {
-                        crate::openhuman::memory::preferences::recall_situational_preferences(
-                            &guard,
-                            user_message,
-                        )
-                        .await
-                    }
-                    Err(e) => {
-                        log::debug!("[pref_recall] situational preferences unavailable: {e}");
-                        Vec::new()
-                    }
-                };
+            let situational = situational_preferences(user_message).await;
             if !situational.is_empty() {
                 log::info!(
                     "[pref_recall] situational block injected: {} item(s)",
@@ -2239,5 +2226,29 @@ mod super_context_gate_tests {
         assert!(note.contains("memory agent context retrieval"));
         assert!(note.contains("super context preparation"));
         assert!(note.contains("Do not call `agent_prepare_context` again"));
+    }
+}
+
+/// Lane-B situational preferences for this message, or nothing when memory is
+/// unavailable.
+///
+/// A free function rather than an inline block inside the turn body on purpose.
+/// That body is already one of the largest futures in the crate, and inlining
+/// another `await` over a `Result` match grew its state machine enough to
+/// overflow a 2 MiB test thread's stack. Keeping this in its own future keeps
+/// the frame off the caller's.
+async fn situational_preferences(user_message: &str) -> Vec<String> {
+    match crate::openhuman::memory::ops::guard::active_memory_guard().await {
+        Ok(guard) => {
+            crate::openhuman::memory::preferences::recall_situational_preferences(
+                &guard,
+                user_message,
+            )
+            .await
+        }
+        Err(e) => {
+            log::debug!("[pref_recall] situational preferences unavailable: {e}");
+            Vec::new()
+        }
     }
 }
