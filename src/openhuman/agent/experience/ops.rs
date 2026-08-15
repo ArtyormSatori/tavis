@@ -75,13 +75,13 @@ fn profile_memory_subdir(
 async fn open_store(profile_id: Option<&str>) -> Result<AgentExperienceStore, String> {
     let profile_id = profile_id.map(str::trim).filter(|id| !id.is_empty());
     if profile_id.is_none() {
-        let client = match tinymemory_core::global::client_if_ready() {
+        let client = match crate::openhuman::memory::global::client_if_ready() {
             Some(client) => client,
             None => {
                 let config = Config::load_or_init()
                     .await
                     .map_err(|e| format!("load config: {e}"))?;
-                tinymemory_core::global::init(config.workspace_dir)?
+                crate::openhuman::memory::global::init(config.workspace_dir)?
             }
         };
         return Ok(AgentExperienceStore::new(client.memory_handle()));
@@ -113,12 +113,11 @@ async fn open_store_in_subdir(
         return Ok(AgentExperienceStore::new(Arc::new(memory)));
     }
 
-    // Guarded driver rather than the process-global engine client: experience
-    // writes go through the policy layer like every other write.
-    let guard = crate::openhuman::memory::ops::guard::active_memory_guard()
-        .await
-        .map_err(|e| format!("memory unavailable: {e}"))?;
-    Ok(AgentExperienceStore::new(guard))
+    let client = match crate::openhuman::memory::global::client_if_ready() {
+        Some(client) => client,
+        None => crate::openhuman::memory::global::init(config.workspace_dir.clone())?,
+    };
+    Ok(AgentExperienceStore::new(client.memory_handle()))
 }
 
 fn query_memory_subdirs(
