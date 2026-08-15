@@ -261,10 +261,10 @@ impl MemoryProvider for OpenHumanMemory {
         let entries = match scope {
             "user" => {
                 let memory = self.memory().await?;
-                let recall_opts = RecallOpts {
-                    namespace: Some(USER_NAMESPACE),
+                let recall_opts = OwnedRecallOpts {
+                    namespace: Some(USER_NAMESPACE.to_string()),
                     min_score,
-                    ..RecallOpts::default()
+                    ..Default::default()
                 };
                 tracing::debug!(
                     target: "flows",
@@ -273,7 +273,7 @@ impl MemoryProvider for OpenHumanMemory {
                     "{LOG_PREFIX} recall: querying user-scope namespace"
                 );
                 memory
-                    .recall(query, limit, recall_opts)
+                    .recall(query, limit, &recall_opts, None)
                     .await
                     .map_err(|e| {
                         EngineError::Capability(format!("memory node: recall failed: {e}"))
@@ -282,10 +282,10 @@ impl MemoryProvider for OpenHumanMemory {
             "flow" => {
                 let namespace = self.flow_memory_namespace()?;
                 let memory = self.memory().await?;
-                let recall_opts = RecallOpts {
-                    namespace: Some(namespace.as_str()),
+                let recall_opts = OwnedRecallOpts {
+                    namespace: Some(namespace.as_str().to_string()),
                     min_score,
-                    ..RecallOpts::default()
+                    ..Default::default()
                 };
                 tracing::debug!(
                     target: "flows",
@@ -294,7 +294,7 @@ impl MemoryProvider for OpenHumanMemory {
                     "{LOG_PREFIX} recall: querying this flow's own namespace"
                 );
                 memory
-                    .recall(query, limit, recall_opts)
+                    .recall(query, limit, &recall_opts, None)
                     .await
                     .map_err(|e| {
                         EngineError::Capability(format!("memory node: recall failed: {e}"))
@@ -467,7 +467,7 @@ impl MemoryProvider for OpenHumanMemory {
         let namespace = self.flow_memory_namespace()?;
         let memory = self.memory().await?;
         let store_result = memory
-            .store_with_taint(
+            .store(
                 &namespace,
                 key,
                 &content,
