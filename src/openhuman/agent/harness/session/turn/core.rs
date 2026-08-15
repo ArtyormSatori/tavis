@@ -1832,7 +1832,6 @@ impl Agent {
                 )
             }
             Err(err) => {
-                eprintln!("PROBE agent_memory trigger failed: {err:#}");
                 log::warn!(
                     "[agent_memory:trigger] failed agent_id={} task_id={}: {err:#}",
                     self.agent_definition_id,
