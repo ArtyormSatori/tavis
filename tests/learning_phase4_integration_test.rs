@@ -24,7 +24,6 @@ use openhuman_core::openhuman::agent::learning::profile_md_renderer::ProfileMdRe
 use openhuman_core::openhuman::agent::learning::stability_detector::StabilityDetector;
 use tempfile::TempDir;
 use tinymemory_core::store::profile::{FacetState, FacetType, ProfileFacet, UserState};
-use tinymemory_core::store::ProfileStore;
 
 fn now_secs() -> f64 {
     SystemTime::now()
@@ -65,11 +64,11 @@ struct TestHarness {
 
 impl TestHarness {
     fn new() -> Self {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch().unwrap();
-        let conn = Arc::new(Mutex::new(conn));
-
-        let cache = Arc::new(FacetCache::new(ProfileStore::for_tests(Arc::clone(&conn))));
+        // In-memory profile rather than an in-memory SQLite store: the facet
+        // store moved behind the memory driver, and this test is about the
+        // learning pipeline, not persistence.
+        let cache =
+            Arc::new(openhuman_core::openhuman::agent::learning::test_profile::in_memory_cache());
 
         let workspace = TempDir::new().unwrap();
         let renderer = Arc::new(ProfileMdRenderer::new(
@@ -94,8 +93,8 @@ impl TestHarness {
 
 // ── The integration test ──────────────────────────────────────────────────────
 
-#[test]
-fn phase4_end_to_end_pin_forget_profile_md_list() {
+#[tokio::test]
+async fn phase4_end_to_end_pin_forget_profile_md_list() {
     let harness = TestHarness::new();
     let now = now_secs();
 
@@ -260,8 +259,8 @@ fn phase4_end_to_end_pin_forget_profile_md_list() {
 
 // ── list_facets unit-level smoke test (no RPC server needed) ─────────────────
 
-#[test]
-fn list_facets_cache_direct_active_vs_all() {
+#[tokio::test]
+async fn list_facets_cache_direct_active_vs_all() {
     let conn = Connection::open_in_memory().unwrap();
     conn.execute_batch().unwrap();
     let cache = FacetCache::new(ProfileStore::for_tests(Arc::new(Mutex::new(conn))));
