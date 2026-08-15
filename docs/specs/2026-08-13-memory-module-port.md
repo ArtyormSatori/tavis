@@ -916,6 +916,32 @@ never installed them and passed only on ordering. Same one-line fix as
 independent instances of the same latent defect this port has now found and
 fixed.
 
+### 2r. Both flows roots converted
+
+`flows/tinyflows/memory_adapter.rs` and the `flows/memory_tools.rs` helpers it
+delegates to (`cross_flow_recall`, `FlowMemoryRecallTool`,
+`FlowMemoryRememberTool`) now go through the guarded driver. Two of the four
+`memory_handle()` roots are gone; the remaining two are the ones downstream of
+the per-profile decision in §2p.
+
+Three shape changes, each removing a door rather than adding one:
+
+- **`namespace_summaries()` → `namespaces()`.** Identical signature and return
+  type; the contract simply names it differently. This is what makes the seven
+  files that call it mechanical.
+- **`store_with_taint(…)` → `store(…)`.** The contract carries taint on the one
+  store method, so the engine trait's second door has no counterpart and needs
+  none.
+- **`is_potentially_untrusted` stopped taking a `MemoryEntry`.** Two entry types
+  are in play during the port, and the predicate needs neither — it reads a
+  namespace and a key. It takes those now, so callers on either side use it
+  without conversion, and the signature states what it depends on.
+
+The bypass allowlist lost both `memory_adapter.rs` entries. Across this port it
+has now shed nine: five profile/facet, two `flows/bus.rs`, two
+`memory_adapter.rs` — against one added (a boot-time guard resolution, with a
+reason). Its own rule is that it may shrink and must never grow.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
