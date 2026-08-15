@@ -442,7 +442,7 @@ pub fn all_tools_with_runtime(
         #[cfg(feature = "web3")]
         Box::new(WalletLookupTxTool::new()),
         Box::new(MemoryStoreTool::new(memory.clone(), security.clone())),
-        Box::new(MemoryRecallTool::new(memory.clone())),
+        Box::new(MemoryRecallTool::new()),
         Box::new(MemoryForgetTool::new(memory.clone(), security.clone())),
         // #4458: the memory read→dedupe→write→update-index protocol
         // (`agent::harness::memory_protocol`) can only close its write cycle via a
