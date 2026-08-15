@@ -32,7 +32,6 @@ use crate::openhuman::channels::yuanbao::YuanbaoChannel;
 use crate::openhuman::channels::Channel;
 use crate::openhuman::config::Config;
 use crate::openhuman::inference::provider;
-use crate::openhuman::memory::Memory;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools;
 use anyhow::Result;
@@ -304,7 +303,8 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         &security,
         runtime,
         audit,
-        Arc::clone(&mem),
+        // `all_tools_with_runtime` no longer takes a memory handle — the two
+        // tools that needed one resolve the guarded driver per call.
         &config.browser,
         &config.http_request,
         &config.action_dir,
@@ -802,7 +802,8 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         channels_by_name,
         turn_model_source: None,
         default_provider: Arc::new(provider_name),
-        memory: Arc::clone(&mem),
+        memory: crate::openhuman::memory::ops::guard::active_memory_guard()
+            .ok_or_else(|| anyhow::anyhow!("memory is not available"))?,
         tools_registry: Arc::clone(&tools_registry),
         system_prompt: Arc::new(system_prompt),
         model: Arc::new(model.clone()),

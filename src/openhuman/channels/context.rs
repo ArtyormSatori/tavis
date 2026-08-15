@@ -34,7 +34,7 @@ pub(crate) struct ChannelRuntimeContext {
     /// Production contexts carry `config` and construct crate-native sources.
     pub(crate) turn_model_source: Option<TurnModelSource>,
     pub(crate) default_provider: Arc<String>,
-    pub(crate) memory: Arc<dyn Memory>,
+    pub(crate) memory: Arc<crate::openhuman::memory::guard::MemoryGuard>,
     pub(crate) tools_registry: Arc<Vec<Box<dyn Tool>>>,
     pub(crate) system_prompt: Arc<String>,
     pub(crate) model: Arc<String>,
@@ -109,14 +109,21 @@ pub(crate) fn is_context_window_overflow_error(err: &anyhow::Error) -> bool {
 }
 
 pub(crate) async fn build_memory_context(
-    mem: &dyn Memory,
+    mem: &crate::openhuman::memory::guard::MemoryGuard,
     user_msg: &str,
     min_relevance_score: f64,
 ) -> String {
     let mut context = String::new();
 
     if let Ok(entries) = mem
-        .recall(user_msg, 5, crate::openhuman::memory::RecallOpts::default())
+        .recall(
+            user_msg,
+            5,
+            &crate::openhuman::memory::api::recall::OwnedRecallOpts::default(),
+            // Unrestricted: a channel turn carries no ambient source scope, and
+            // the guard narrows against its own allowlist regardless.
+            None,
+        )
         .await
     {
         let mut included = 0usize;
