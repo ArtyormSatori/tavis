@@ -153,6 +153,10 @@ mod tests {
     use tempfile::TempDir;
     use tinymemory_core::store::UnifiedMemory;
 
+    // The read-back below goes through the engine handle directly, so its
+    // entries carry the *engine's* category type, not the contract's.
+    use tinymemory_core::rpc_models::MemoryCategory as EngineMemoryCategory;
+
     fn test_security() -> Arc<SecurityPolicy> {
         Arc::new(SecurityPolicy::default())
     }
@@ -232,7 +236,10 @@ the tool resolves the bound driver rather than being handed a memory handle"]
 
         let entry = mem.get("global", "proj_note").await.unwrap().unwrap();
         assert_eq!(entry.content, "Uses async runtime");
-        assert_eq!(entry.category, MemoryCategory::Custom("project".into()));
+        assert_eq!(
+            entry.category,
+            EngineMemoryCategory::Custom("project".into())
+        );
     }
 
     /// Regression: a `custom:<name>` wire value (the form `memory_recall` and
@@ -259,7 +266,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
         let entry = mem.get("global", "proj_note").await.unwrap().unwrap();
         assert_eq!(
             entry.category,
-            MemoryCategory::Custom("project".into()),
+            EngineMemoryCategory::Custom("project".into()),
             "the `custom:` wire prefix must be stripped, not double-stored"
         );
     }
