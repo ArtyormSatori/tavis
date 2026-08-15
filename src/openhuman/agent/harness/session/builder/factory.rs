@@ -365,7 +365,6 @@ impl Agent {
             &security,
             runtime,
             audit,
-            memory.clone(),
             &tool_config.browser,
             &tool_config.http_request,
             &tool_config.action_dir,

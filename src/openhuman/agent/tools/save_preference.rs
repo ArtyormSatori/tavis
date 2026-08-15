@@ -24,6 +24,7 @@ use async_trait::async_trait;
 use serde_json::json;
 
 use crate::openhuman::memory::api::types::MemoryCategory;
+use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
@@ -241,9 +242,23 @@ impl Tool for SavePreferenceTool {
             value.len()
         );
 
-        match self
-            .memory
-            .store(namespace, topic, value, MemoryCategory::Core, None)
+        let guard = match active_memory_guard().await {
+            Ok(guard) => guard,
+            Err(e) => {
+                return Ok(ToolResult::error(format!(
+                    "save_preference: memory unavailable: {e}"
+                )))
+            }
+        };
+        match guard
+            .store(
+                namespace,
+                topic,
+                value,
+                MemoryCategory::Core,
+                None,
+                crate::openhuman::memory::api::types::MemoryTaint::Internal,
+            )
             .await
         {
             Ok(()) => {
@@ -258,11 +273,7 @@ impl Tool for SavePreferenceTool {
                 // re-categorised preference doesn't linger in both lanes. Done
                 // *after* the store (not before) so a store failure can never
                 // leave the user with neither copy.
-                let forget_result = match active_memory_guard() {
-                    Some(guard) => guard.forget(category.other_namespace(), topic).await,
-                    None => Ok(false),
-                };
-                if let Err(e) = forget_result {
+                if let Err(e) = guard.forget(category.other_namespace(), topic).await {
                     tracing::debug!(
                         "[tool][save_preference] clearing other-scope copy failed (non-fatal) ns={} topic={}: {e}",
                         category.other_namespace(),
@@ -273,7 +284,7 @@ impl Tool for SavePreferenceTool {
                 // agent (which captured this preference) can spot and resolve a
                 // contradiction itself — no separate model call.
                 let related = crate::openhuman::memory::preferences::recall_related_preferences(
-                    &self.memory,
+                    &guard,
                     value,
                     topic,
                     4,
