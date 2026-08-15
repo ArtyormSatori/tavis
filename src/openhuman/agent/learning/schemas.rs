@@ -759,12 +759,17 @@ fn handle_cache_stats(_params: Map<String, Value>) -> ControllerFuture {
 
 // ── Helper: shared cache access ───────────────────────────────────────────────
 
-/// Build a [`FacetCache`] from the global memory client, or return a string error.
-fn get_cache() -> Result<crate::openhuman::agent::learning::cache::FacetCache, String> {
-    let client = tinymemory_core::global::client_if_ready()
-        .ok_or_else(|| "memory client not ready".to_string())?;
+/// Build a [`FacetCache`] from the bound memory driver, or return a string
+/// error.
+///
+/// Async since facets moved behind the module: there is no process-global
+/// memory client to ask any more.
+async fn get_cache() -> Result<crate::openhuman::agent::learning::cache::FacetCache, String> {
+    let guard = crate::openhuman::memory::ops::guard::active_memory_guard()
+        .await
+        .map_err(|e| format!("memory unavailable: {e}"))?;
     Ok(crate::openhuman::agent::learning::cache::FacetCache::new(
-        client.profile_store(),
+        guard,
     ))
 }
 
