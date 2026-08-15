@@ -2,23 +2,39 @@
 
 use super::*;
 
-use crate::openhuman::inference::embeddings::NoopEmbedding;
+use crate::openhuman::memory::api::provider::MemoryCore as _;
+use crate::openhuman::memory::guard::MemoryGuard;
+use crate::openhuman::memory::ops::{ensure_shared_memory_client, GLOBAL_MEMORY_TEST_LOCK};
 use crate::openhuman::security::SecurityPolicy;
 use serde_json::json;
-use tempfile::TempDir;
-use tinymemory_core::store::UnifiedMemory;
+use std::sync::Arc;
 
 fn test_security() -> Arc<SecurityPolicy> {
     Arc::new(SecurityPolicy::default())
 }
 
-fn test_mem() -> (TempDir, Arc<dyn Memory>) {
-    let tmp = TempDir::new().unwrap();
-    let mem = UnifiedMemory::new(tmp.path(), Arc::new(NoopEmbedding), None).unwrap();
-    (tmp, Arc::new(mem))
+/// Bind the shared test workspace and hand back its guard, with both preference
+/// namespaces emptied first.
+///
+/// The tool resolves the ambient guarded driver per call, so there is no
+/// per-test store to isolate into any more — every test in this file writes to
+/// the one process-wide binding. Callers hold [`GLOBAL_MEMORY_TEST_LOCK`] for
+/// the duration, and this clears the two lanes so a leftover row from an
+/// earlier test cannot satisfy (or break) an assertion here.
+async fn fresh_guard() -> Arc<MemoryGuard> {
+    ensure_shared_memory_client();
+    let guard = crate::openhuman::memory::ops::guard::active_memory_guard()
+        .await
+        .expect("guard resolves");
+    for ns in [USER_PREF_GENERAL_NAMESPACE, USER_PREF_SITUATIONAL_NAMESPACE] {
+        for key in keys_in(&guard, ns).await {
+            let _ = guard.forget(ns, &key).await;
+        }
+    }
+    guard
 }
 
-async fn keys_in(mem: &Arc<dyn Memory>, namespace: &str) -> Vec<String> {
+async fn keys_in(mem: &Arc<MemoryGuard>, namespace: &str) -> Vec<String> {
     mem.list(Some(namespace), None, None)
         .await
         .unwrap()
@@ -65,16 +81,14 @@ fn pref_scope_namespace_mapping() {
 
 #[test]
 fn tool_name_and_permission() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem, test_security());
+    let tool = SavePreferenceTool::new(test_security());
     assert_eq!(tool.name(), "save_preference");
     assert_eq!(tool.permission_level(), PermissionLevel::Write);
 }
 
 #[test]
 fn schema_has_required_fields() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem, test_security());
+    let tool = SavePreferenceTool::new(test_security());
     let schema = tool.parameters_schema();
     let required: Vec<&str> = schema["required"]
         .as_array()
@@ -91,8 +105,7 @@ fn schema_has_required_fields() {
 
 #[tokio::test]
 async fn invalid_category_returns_error() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem, test_security());
+    let tool = SavePreferenceTool::new(test_security());
     let r = tool
         .execute(json!({"topic": "x", "value": "y", "category": "bogus"}))
         .await
@@ -103,8 +116,7 @@ async fn invalid_category_returns_error() {
 
 #[tokio::test]
 async fn invalid_topic_chars_returns_error() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem, test_security());
+    let tool = SavePreferenceTool::new(test_security());
     let r = tool
         .execute(json!({"topic": "Bad Topic!", "value": "y", "category": "general"}))
         .await
@@ -114,8 +126,7 @@ async fn invalid_topic_chars_returns_error() {
 
 #[tokio::test]
 async fn empty_value_returns_error() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem, test_security());
+    let tool = SavePreferenceTool::new(test_security());
     let r = tool
         .execute(json!({"topic": "topic", "value": "   ", "category": "general"}))
         .await
@@ -125,8 +136,9 @@ async fn empty_value_returns_error() {
 
 #[tokio::test]
 async fn secret_like_value_is_rejected_before_write() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem.clone(), test_security());
+    let _serial = GLOBAL_MEMORY_TEST_LOCK.lock().await;
+    let mem = fresh_guard().await;
+    let tool = SavePreferenceTool::new(test_security());
     let r = tool
         .execute(json!({
             "topic": "api",
@@ -148,8 +160,9 @@ async fn secret_like_value_is_rejected_before_write() {
 
 #[tokio::test]
 async fn saves_general_pref_to_general_namespace() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem.clone(), test_security());
+    let _serial = GLOBAL_MEMORY_TEST_LOCK.lock().await;
+    let mem = fresh_guard().await;
+    let tool = SavePreferenceTool::new(test_security());
     let r = tool
         .execute(json!({
             "topic": "reply_language",
@@ -170,8 +183,9 @@ async fn saves_general_pref_to_general_namespace() {
 
 #[tokio::test]
 async fn recategorising_moves_pref_between_namespaces() {
-    let (_tmp, mem) = test_mem();
-    let tool = SavePreferenceTool::new(mem.clone(), test_security());
+    let _serial = GLOBAL_MEMORY_TEST_LOCK.lock().await;
+    let mem = fresh_guard().await;
+    let tool = SavePreferenceTool::new(test_security());
 
     // Save as general.
     tool.execute(json!({"topic": "tone", "value": "be terse", "category": "general"}))
