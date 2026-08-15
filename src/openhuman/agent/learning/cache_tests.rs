@@ -3,7 +3,8 @@
 use std::sync::Arc;
 
 use super::*;
-use crate::openhuman::agent::learning::candidate::{EvidenceRef, FacetClass};
+use crate::openhuman::agent::learning::candidate::FacetClass;
+use crate::openhuman::memory::api::host::EvidenceRef;
 use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};
 
 fn make_cache() -> FacetCache {
