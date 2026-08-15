@@ -439,7 +439,7 @@ fn parent_context(
         model_name: "test-model".into(),
         temperature: 0.2,
         workspace_dir: workspace_dir.to_path_buf(),
-        memory: Arc::new(NoopMemory),
+        memory: crate::openhuman::memory::guard::in_memory::FixedRecallProvider::guarded(Vec::new()),
         agent_config: Default::default(),
         workflows: Arc::new(Vec::new()),
         memory_context: Arc::new(None),
