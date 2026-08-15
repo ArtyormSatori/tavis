@@ -931,6 +931,7 @@ async fn turn_runs_full_tool_cycle_with_context_and_hooks() {
 
 #[tokio::test]
 async fn turn_triggers_configured_memory_agent_before_parent_prompt() {
+    crate::openhuman::memory::host_impls::install_for_tests();
     // The embedding seam fails loudly when unwired; before the memory
     // extraction this was a direct call and needed no setup.
     crate::openhuman::memory::host_impls::install_for_tests();
