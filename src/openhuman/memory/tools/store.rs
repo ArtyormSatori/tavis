@@ -1,4 +1,6 @@
-use crate::openhuman::memory::{Memory, MemoryCategory};
+use crate::openhuman::memory::api::provider::MemoryCore;
+use crate::openhuman::memory::api::types::{MemoryCategory, MemoryTaint};
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
@@ -9,13 +11,14 @@ use tinymemory_core::store::safety;
 
 /// Let the agent store memories — its own brain writes
 pub struct MemoryStoreTool {
-    memory: Arc<dyn Memory>,
     security: Arc<SecurityPolicy>,
 }
 
 impl MemoryStoreTool {
-    pub fn new(memory: Arc<dyn Memory>, security: Arc<SecurityPolicy>) -> Self {
-        Self { memory, security }
+    /// Holds no memory handle — the guarded driver is resolved per call.
+    #[must_use]
+    pub fn new(security: Arc<SecurityPolicy>) -> Self {
+        Self { security }
     }
 }
 
@@ -121,9 +124,19 @@ impl Tool for MemoryStoreTool {
         }
 
         let display_key = format!("{namespace}/{key}");
-        match self
-            .memory
-            .store(namespace, key, content, category, None)
+        let guard = active_memory_guard()
+            .await
+            .map_err(|e| anyhow::anyhow!("memory_store: {e}"))?;
+        match guard
+            .store(
+                namespace,
+                key,
+                content,
+                category,
+                None,
+                // Requested provenance; the guard stamps the effective value.
+                MemoryTaint::default(),
+            )
             .await
         {
             Ok(()) => Ok(ToolResult::success(format!("Stored memory: {display_key}"))),

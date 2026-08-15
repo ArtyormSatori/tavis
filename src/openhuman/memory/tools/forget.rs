@@ -1,4 +1,5 @@
-use crate::openhuman::memory::Memory;
+use crate::openhuman::memory::api::provider::MemoryCore;
+use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
 use crate::openhuman::tools::traits::{Tool, ToolResult};
@@ -8,13 +9,14 @@ use std::sync::Arc;
 
 /// Let the agent forget/delete a memory entry
 pub struct MemoryForgetTool {
-    memory: Arc<dyn Memory>,
     security: Arc<SecurityPolicy>,
 }
 
 impl MemoryForgetTool {
-    pub fn new(memory: Arc<dyn Memory>, security: Arc<SecurityPolicy>) -> Self {
-        Self { memory, security }
+    /// Holds no memory handle — the guarded driver is resolved per call.
+    #[must_use]
+    pub fn new(security: Arc<SecurityPolicy>) -> Self {
+        Self { security }
     }
 }
 
@@ -71,9 +73,12 @@ impl Tool for MemoryForgetTool {
         // Try the new split namespace/key first (covers post-migration rows),
         // then fall back to the legacy packed-key shape for rows that were
         // stored before the boot migration ran (Phase A compatibility).
-        let deleted = match self.memory.forget(namespace, key).await {
+        let guard = active_memory_guard()
+            .await
+            .map_err(|e| anyhow::anyhow!("memory_forget: {e}"))?;
+        let deleted = match guard.forget(namespace, key).await {
             Ok(true) => true,
-            Ok(false) => match self.memory.forget("", &legacy_key).await {
+            Ok(false) => match guard.forget("", &legacy_key).await {
                 Ok(deleted) => deleted,
                 Err(e) => return Ok(ToolResult::error(format!("Failed to forget memory: {e}"))),
             },
