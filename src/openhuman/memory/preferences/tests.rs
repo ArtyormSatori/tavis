@@ -16,7 +16,9 @@ use crate::openhuman::memory::api::capabilities::Capabilities;
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::health::MemoryHealth;
 use crate::openhuman::memory::api::provider::retrieval::MemoryRetrieval;
-use crate::openhuman::memory::api::provider::MemoryProvider;
+use crate::openhuman::memory::api::provider::{
+    MemoryCore, MemoryPortability, MemoryProvider, MemoryRecall,
+};
 use crate::openhuman::memory::api::types::{
     MemoryCategory, MemoryItemKind, MemoryTaint, NamespaceMemoryHit, RetrievalScoreBreakdown,
 };
@@ -104,7 +106,83 @@ struct RetrievalProvider {
     retrieval: ScriptedRetrieval,
 }
 
-crate::impl_memory_core_by_delegation!(RetrievalProvider, base);
+// Delegates the mandatory families to the in-memory base. Written out rather
+// than reached for via a macro: it is three small traits, and the explicit form
+// makes it obvious that only `as_retrieval` below is new behaviour.
+#[async_trait]
+impl MemoryCore for RetrievalProvider {
+    async fn store(
+        &self,
+        namespace: &str,
+        key: &str,
+        content: &str,
+        category: MemoryCategory,
+        session_id: Option<&str>,
+        taint: MemoryTaint,
+    ) -> Result<(), MemoryError> {
+        self.base
+            .store(namespace, key, content, category, session_id, taint)
+            .await
+    }
+
+    async fn get(
+        &self,
+        namespace: &str,
+        key: &str,
+    ) -> Result<Option<crate::openhuman::memory::api::types::MemoryEntry>, MemoryError> {
+        self.base.get(namespace, key).await
+    }
+
+    async fn forget(&self, namespace: &str, key: &str) -> Result<bool, MemoryError> {
+        self.base.forget(namespace, key).await
+    }
+
+    async fn list(
+        &self,
+        namespace: Option<&str>,
+        category: Option<&MemoryCategory>,
+        session_id: Option<&str>,
+    ) -> Result<Vec<crate::openhuman::memory::api::types::MemoryEntry>, MemoryError> {
+        self.base.list(namespace, category, session_id).await
+    }
+
+    async fn namespaces(
+        &self,
+    ) -> Result<Vec<crate::openhuman::memory::api::types::NamespaceSummary>, MemoryError> {
+        self.base.namespaces().await
+    }
+}
+
+#[async_trait]
+impl MemoryRecall for RetrievalProvider {
+    async fn recall(
+        &self,
+        query: &str,
+        limit: usize,
+        opts: &crate::openhuman::memory::api::recall::OwnedRecallOpts,
+        scope: Option<&crate::openhuman::memory::api::provider::types::SourceScope>,
+    ) -> Result<Vec<crate::openhuman::memory::api::types::MemoryEntry>, MemoryError> {
+        self.base.recall(query, limit, opts, scope).await
+    }
+}
+
+#[async_trait]
+impl MemoryPortability for RetrievalProvider {
+    async fn export_page(
+        &self,
+        cursor: Option<&str>,
+        limit: usize,
+    ) -> Result<crate::openhuman::memory::api::provider::types::ExportPage, MemoryError> {
+        self.base.export_page(cursor, limit).await
+    }
+
+    async fn import_records(
+        &self,
+        records: Vec<crate::openhuman::memory::api::provider::types::ExportRecord>,
+    ) -> Result<crate::openhuman::memory::api::provider::types::ImportOutcome, MemoryError> {
+        self.base.import_records(records).await
+    }
+}
 
 #[async_trait]
 impl MemoryProvider for RetrievalProvider {

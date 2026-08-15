@@ -737,7 +737,7 @@ impl Agent {
         // cost). An unrelated message clears the similarity gate to nothing, so
         // no block is injected.
         {
-            let situational = tinymemory_core::preferences::recall_situational_preferences(
+            let situational = crate::openhuman::memory::preferences::recall_situational_preferences(
                 &self.memory,
                 user_message,
             )

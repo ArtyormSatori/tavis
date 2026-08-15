@@ -33,7 +33,7 @@ use tinymemory_core::store::safety;
 // Namespace constants live in `memory::preferences` so the write path (here),
 // the system-prompt builder (Lane A), and per-turn recall (Lane B) all share a
 // single definition.
-pub use tinymemory_core::preferences::{
+pub use crate::openhuman::memory::preferences::{
     USER_PREF_GENERAL_NAMESPACE, USER_PREF_SITUATIONAL_NAMESPACE,
 };
 
@@ -272,7 +272,7 @@ impl Tool for SavePreferenceTool {
                 // Surface semantically-related existing preferences so the chat
                 // agent (which captured this preference) can spot and resolve a
                 // contradiction itself — no separate model call.
-                let related = tinymemory_core::preferences::recall_related_preferences(
+                let related = crate::openhuman::memory::preferences::recall_related_preferences(
                     &self.memory,
                     value,
                     topic,

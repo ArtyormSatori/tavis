@@ -28,6 +28,7 @@ pub mod api;
 pub mod binding;
 pub mod driver;
 pub mod guard;
+pub mod preferences;
 pub mod host;
 pub mod host_impls;
 pub mod ops;

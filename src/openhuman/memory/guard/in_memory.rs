@@ -235,15 +235,24 @@ impl MemoryProvider for InMemoryProvider {
 #[must_use]
 pub fn guarded_in_memory() -> (Arc<InMemoryProvider>, Arc<super::MemoryGuard>) {
     let provider = Arc::new(InMemoryProvider::new());
+    let guard = guard_over(Arc::clone(&provider) as Arc<dyn MemoryProvider>);
+    (provider, guard)
+}
+
+/// Wrap any provider in a real [`MemoryGuard`](super::MemoryGuard) at the
+/// trusted tier.
+///
+/// Split out of [`guarded_in_memory`] so a test that needs an optional family
+/// — retrieval, say — can supply its own provider and still be exercised
+/// through the same policy decorator production uses, rather than calling the
+/// provider directly and skipping the guard entirely.
+#[must_use]
+pub fn guard_over(provider: Arc<dyn MemoryProvider>) -> Arc<super::MemoryGuard> {
     let policy = Arc::new(super::GuardPolicy::new(
         "in-memory",
         crate::core::subsystem::DriverClass::Embedded,
         crate::openhuman::config::schema::MemoryHooksConfig::default(),
         super::policy::TRUSTED,
     ));
-    let guard = Arc::new(super::MemoryGuard::new(
-        Arc::clone(&provider) as Arc<dyn MemoryProvider>,
-        policy,
-    ));
-    (provider, guard)
+    Arc::new(super::MemoryGuard::new(provider, policy))
 }
