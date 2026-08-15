@@ -332,7 +332,7 @@ impl Tool for FlowMemoryRecallTool {
         match scope {
             "flow" => {
                 let namespace = flow_namespace(flow_id);
-                let opts = RecallOpts {
+                let opts = OwnedRecallOpts {
                     namespace: Some(namespace.clone()),
                     ..Default::default()
                 };
