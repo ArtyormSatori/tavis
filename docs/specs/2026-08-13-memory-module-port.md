@@ -716,6 +716,60 @@ module implementation, the bus service and the host client. **Call sites are not
 converted yet** — that is the next step, and it is what makes the family
 load-bearing.
 
+### 2l. The learning subsystem converted onto `MemoryProfile`
+
+`FacetCache` reads and writes through the driver now, and the subsystem went
+async with it: `load_learned_from_cache`, `StabilityDetector::rebuild`,
+`ProfileMdRenderer::render`, and every call site in `schemas`, `tools`,
+`scheduler` and `startup`.
+
+**Async-ifying removed work.** `render()` was wrapped in `spawn_blocking`
+specifically to keep in-process SQLite off the executor. With the store behind
+the module there is no blocking I/O left to move, so the hop is gone.
+
+**No coverage was lost.** The ~50 learning tests built real in-memory SQLite
+stores. Rather than park them on `OPENHUMAN_MODULE_PATH`, they drive an
+in-memory `MemoryProfile` (`agent/learning/test_profile.rs`) — those tests are
+about stability scoring and prompt rendering, not persistence. 145 pass.
+
+Two defects the tests caught in this work:
+
+- **The fake's `drop_facets_below` was wrong**, and the existing assertions
+  failed on it. The engine sweeps only rows already in `FacetState::Dropped`,
+  and protects only `Pinned`. The contract doc had **overstated the guarantee**
+  by claiming `Forgotten` was protected too; corrected, with the reason the
+  asymmetry is deliberate — a Forgotten facet is already Dropped and is meant to
+  be collected.
+- **`test_profile` was first written `#[cfg(test)]`**, which integration tests
+  cannot see — the exact trap `ProfileStore::for_tests` documents. Now
+  `#[doc(hidden)] pub`.
+
+**The bypass allowlist shrank.** Five entries justified by *"the contract has no
+profile family"* are gone. One was added — a boot-time `binding::for_workspace`
+that resolves a **guard** (not a raw client) for a known workspace, as
+`active_memory_guard`'s own fallback does — with that reason recorded in both
+the test and `docs/specs/memory-guard-allowlist.md`.
+
+### 2m. The `Arc<dyn Memory>` seam — attempted, reverted, and why
+
+`AgentExperienceStore` looked like the next bounded conversion: it uses only
+`get` / `list` / `store`, all in `MemoryCore`. It was converted, and then
+reverted.
+
+`agent/harness/session/turn/core.rs` builds experience stores from the
+session's own `Arc<dyn Memory>` **and** from a second, *shared* experience
+memory. The guard is per-workspace; the session may legitimately hold two
+memory handles. Converting only the `ops.rs` door would have left
+`AgentExperienceStore` with two constructors, one guarded and one not — which
+the bypass allowlist would rightly flag, and which is worse than the current
+state.
+
+So `Arc<dyn Memory>` is not a call-site cluster at all: it is a **seam**
+threaded through the session builder, the flows adapter and the experience
+store, and it has to be replaced as one design rather than file by file. That
+is the largest single item left, and it is the reason the remaining `global`
+sites cannot simply be deleted the way the people global was.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
