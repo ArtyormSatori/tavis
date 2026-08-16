@@ -1027,6 +1027,7 @@ impl MemoryRetrieval for GuardedRetrieval {
         max_depth: u32,
         query: Option<&str>,
         limit: Option<usize>,
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.policy.admit_read(
             Capability::Retrieval,
@@ -1034,14 +1035,18 @@ impl MemoryRetrieval for GuardedRetrieval {
             NO_NAMESPACE,
             false,
         )?;
+        // Intersected with the ambient allowlist, never passed through — same
+        // rule as `list_chunks`. See `GuardPolicy::narrow_scope`.
+        let effective = self.policy.narrow_scope(scope);
         self.family()?
-            .retrieve_children(node_id, max_depth, query, limit)
+            .retrieve_children(node_id, max_depth, query, limit, effective.as_ref())
             .await
     }
 
     async fn retrieve_leaves(
         &self,
         chunk_ids: &[String],
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.policy.admit_read(
             Capability::Retrieval,
@@ -1049,7 +1054,10 @@ impl MemoryRetrieval for GuardedRetrieval {
             NO_NAMESPACE,
             false,
         )?;
-        self.family()?.retrieve_leaves(chunk_ids).await
+        let effective = self.policy.narrow_scope(scope);
+        self.family()?
+            .retrieve_leaves(chunk_ids, effective.as_ref())
+            .await
     }
 
     /// Namespace-scoped, so the namespace reaches the tier check — unlike the
