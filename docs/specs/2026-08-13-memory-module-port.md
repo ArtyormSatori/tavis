@@ -1125,18 +1125,62 @@ that talk to the same store.
 
 That means the `dedicated_memory` question is not "how do we keep the existing
 per-subtree behaviour through the bus" — there is no per-subtree behaviour on
-the module path to keep. It is a design choice, and the two candidates differ in
-kind:
+the module path to keep.
 
-- **A store selector on the wire.** The module object is a singleton by
-  construction, so selecting a store means a parameter on every method — a major
-  contract bump touching all 18 families.
-- **Profile subtrees become namespaces.** Memory is already namespaced;
-  `dedicated_memory` becomes a reserved prefix inside the one store. No contract
-  change and no second store, but it moves data on disk and needs a migration.
+### 2z. `OpenStore` — the module opens stores, so the contract does not change
 
-The second changes where a user's data lives, so it is not mine to pick
-silently. Everything that does not depend on it is done.
+Two candidates presented themselves first, and both were wrong:
+
+- **A store selector on the wire** — the object is a singleton by construction,
+  so selecting a store means a parameter on *every method of all 18 families*: a
+  major contract bump, to express something that is not a property of a memory
+  operation at all.
+- **Profile subtrees become namespaces** — no contract change, but it relocates
+  user data on disk and needs a migration.
+
+The third dissolves the problem. **Which store you are talking to is settled
+when you are handed a driver**, exactly like which workspace you are bound to —
+it was never a per-call fact. tinybus already supports `serve_at` on many paths,
+so the module's root object gained one method:
+
+```text
+OpenStore(memory_subdir) -> object_path
+```
+
+Each opened store is an ordinary `MemoryService` exporting the identical
+interface. `MemoryProvider` still describes one store; a proxy still talks to
+one store. **No contract change, no migration, and paths on disk are exactly
+where they already were.**
+
+What landed:
+
+| Side | Change |
+| --- | --- |
+| `tinymemory-core` | `create_memory_client_in_subdir` — the existing client factory hardcoded `"memory"` |
+| `tinymemory-module` | `StoreOpener`, `OpenStore`, per-subtree object paths, `MemoryService::root` vs `::new` |
+| host | `ModuleMemoryProvider::in_subdir` + lazy `OpenStore` resolution; `binding::for_subtree`; the cache key gained the subtree |
+
+Four decisions worth keeping:
+
+- **Only the root object opens stores.** An opened store has no `StoreOpener`,
+  so the recursion is finite by construction rather than by a depth check.
+- **Idempotent per subtree, and recorded only after `serve_at` succeeds.** Two
+  live handles to one SQLite file is not hypothetical — the engine migrates on
+  open, and concurrent migrations on one file corrupt it invisibly. Caching the
+  path before the serve succeeded would strand callers on a path nothing
+  answers.
+- **The object path is derived and character-checked, never free-form.** A
+  subdir arrives from a profile id; an id that fails validation must produce a
+  refusal, not a malformed bus path. The rejection message does not echo it —
+  it is user data.
+- **`in_subdir("memory")` is `None`.** Callers pass whatever
+  `memory_subdir_for_suffix` produced without special-casing the shared tree,
+  and the shared tree costs nothing extra because the root object is served
+  eagerly at setup.
+
+This also fixes the workspace-ignoring bug above for the axis that matters: the
+workspace still comes from the boot policy (the module is loaded once per
+process and captures it at setup), but the **subtree** is now per binding.
 
 ### Still open in stage 2
 
