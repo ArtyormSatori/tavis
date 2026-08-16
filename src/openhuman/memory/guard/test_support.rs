@@ -976,6 +976,7 @@ impl MemoryRetrieval for RecordingProvider {
         _max_depth: u32,
         _query: Option<&str>,
         _limit: Option<usize>,
+        _scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.record(Call::plain("retrieval.retrieve_children"));
         Ok(vec![])
@@ -984,6 +985,7 @@ impl MemoryRetrieval for RecordingProvider {
     async fn retrieve_leaves(
         &self,
         _chunk_ids: &[String],
+        _scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         self.record(Call::plain("retrieval.retrieve_leaves"));
         Ok(vec![])
