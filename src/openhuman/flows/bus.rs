@@ -16,6 +16,7 @@ use crate::openhuman::flows::store;
 use crate::openhuman::flows::{flow_namespace, Flow, FlowRun};
 use crate::openhuman::memory::api::provider::MemoryCore;
 use crate::openhuman::memory::api::types::{MemoryCategory, MemoryTaint};
+use crate::openhuman::memory::Memory;
 use async_trait::async_trait;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
@@ -900,8 +901,10 @@ fn store_key_set(
 mod tests {
     use super::*;
     use crate::openhuman::flows::Flow;
+    use crate::openhuman::inference::embeddings::NoopEmbedding;
     use serde_json::json;
     use tinyflows::model::{Node, NodeKind, WorkflowGraph};
+    use tinymemory_core::store::UnifiedMemory;
 
     /// A directly-constructed, isolated [`Memory`] for the digest tests — NOT
     /// the process-global `OnceLock` client. The global is one-shot, so an

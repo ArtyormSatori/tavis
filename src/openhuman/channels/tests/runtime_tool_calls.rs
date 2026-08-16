@@ -5,7 +5,7 @@ use super::super::context::{
 use super::super::runtime::process_channel_message;
 use super::super::{traits, Channel};
 use super::common::{
-    IterativeToolModel, MockPriceTool, ModelCaptureModel, RecordingChannel,
+    IterativeToolModel, MockPriceTool, ModelCaptureModel, NoopMemory, RecordingChannel,
     TelegramRecordingChannel, ToolCallingModel,
 };
 use crate::openhuman::inference::provider;

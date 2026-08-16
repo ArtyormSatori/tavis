@@ -27,6 +27,8 @@
 //! toward over-wrapping: it is safer to tag a user-authored row as
 //! untrusted than to leave a connector-synced one bare.
 
+use crate::openhuman::memory::MemoryEntry;
+
 /// Conservative classifier — returns `true` when the entry is unlikely to
 /// be locally-authored and therefore SHOULD be wrapped before reaching
 /// the agent prompt.

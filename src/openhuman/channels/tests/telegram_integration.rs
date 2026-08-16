@@ -11,6 +11,7 @@ use super::super::context::{
 use super::super::runtime::process_channel_message;
 use super::super::traits;
 use super::super::{Channel, SendMessage};
+use super::common::{NoopMemory, SlowModel};
 use crate::openhuman::agent::bus::{mock_agent_run_turn, AgentTurnResponse};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};

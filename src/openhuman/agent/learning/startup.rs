@@ -139,6 +139,7 @@ fn register_with_client(
 
     // Phase 3 learning: event-driven rebuild trigger + periodic 30-minute loop.
     let rebuild_trigger = {
+        use crate::openhuman::agent::learning::cache::FacetCache;
         use crate::openhuman::agent::learning::scheduler::register_event_trigger;
         use crate::openhuman::agent::learning::StabilityDetector;
         use std::sync::Arc;
@@ -171,6 +172,7 @@ fn register_with_client(
     // re-renders the five cache-derived PROFILE.md blocks (style, identity,
     // tooling, vetoes, goals).
     let profile_md = {
+        use crate::openhuman::agent::learning::cache::FacetCache;
         use crate::openhuman::agent::learning::ProfileMdRenderer;
         use std::sync::Arc;
         let Some(cache) = facet_cache_for(workspace_dir) else {
@@ -202,6 +204,7 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
     use tempfile::TempDir;
+    use tinybus::EventBus;
     use tinymemory_core::store::MemoryClient;
 
     /// Build a real `MemoryClient` against a fresh temp workspace. The temp dir

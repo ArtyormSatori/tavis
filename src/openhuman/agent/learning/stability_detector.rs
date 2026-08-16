@@ -616,9 +616,11 @@ fn class_prefix(class: FacetClass) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::openhuman::agent::learning::cache::FacetCache;
     use crate::openhuman::agent::learning::candidate::{
         Buffer, EvidenceRef, FacetClass, LearningCandidate,
     };
+    use std::sync::Arc;
 
     fn make_detector() -> StabilityDetector {
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
