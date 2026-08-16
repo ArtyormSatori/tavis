@@ -146,7 +146,7 @@ impl ArchivistHook {
                 "[archivist] summarize_entries: no entries for segment={segment_id} — \
                  returning empty fallback"
             );
-            return (segments::fallback_summary("", "", turn_count), false);
+            return (super::boundary::fallback_summary("", "", turn_count), false);
         }
 
         // Build a full prose corpus from ALL entries (user + assistant prose;
@@ -240,7 +240,10 @@ impl ArchivistHook {
                  heuristic fallback segment={segment_id}"
             );
         }
-        (segments::fallback_summary(first, last, turn_count), false)
+        (
+            super::boundary::fallback_summary(first, last, turn_count),
+            false,
+        )
     }
 
     /// Produce a rolling recap of the **currently-open** segment for
