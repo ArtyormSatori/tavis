@@ -122,7 +122,7 @@ fn register_with_client(
     client: Option<MemoryClientRef>,
     workspace_dir: &Path,
 ) -> (Option<SubscriptionHandle>, Option<SubscriptionHandle>) {
-    let Some(client) = client else {
+    let Some(_client) = client else {
         tracing::warn!(
             "[learning::scheduler] memory client not ready at boot — skipping event-trigger + \
              periodic-rebuild registration; learning rebuilds will not fire until the client \

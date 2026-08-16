@@ -402,7 +402,7 @@ mod tests {
 
     #[test]
     fn tool_name_and_permission() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         assert_eq!(tool.name(), "remember_preference");
         assert_eq!(tool.permission_level(), PermissionLevel::Write);
@@ -410,7 +410,7 @@ mod tests {
 
     #[test]
     fn schema_has_required_fields() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let schema = tool.parameters_schema();
         assert_eq!(schema["type"], "object");
@@ -427,7 +427,7 @@ mod tests {
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn missing_class_returns_error() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"key": "timezone", "value": "IST"}))
@@ -441,7 +441,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn invalid_class_returns_error() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"class": "bogus", "key": "timezone", "value": "IST"}))
@@ -455,7 +455,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn missing_key_returns_error() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"class": "style", "value": "terse"}))
@@ -469,7 +469,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn empty_key_returns_error() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"class": "style", "key": "   ", "value": "terse"}))
@@ -483,7 +483,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn key_with_spaces_returns_error() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"class": "style", "key": "my pref", "value": "terse"}))
@@ -497,7 +497,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn missing_value_returns_error() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"class": "tooling", "key": "pkg_mgr"}))
@@ -513,7 +513,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn stores_preference_in_user_profile_namespace() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
         let result = tool
             .execute(json!({"class": "tooling", "key": "package_manager", "value": "pnpm"}))
@@ -542,7 +542,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn idempotent_overwrite_does_not_create_duplicate() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
 
         // First write.
@@ -588,7 +588,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn stores_all_six_classes() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = RememberPreferenceTool::new(test_security());
 
         for (class, key, value) in [
@@ -623,7 +623,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn blocked_in_readonly_mode() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let readonly = Arc::new(SecurityPolicy {
             autonomy: AutonomyLevel::ReadOnly,
             ..SecurityPolicy::default()
