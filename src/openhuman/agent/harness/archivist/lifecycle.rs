@@ -1,6 +1,7 @@
 //! Constructor methods, segment lifecycle management, and flush logic for
 //! `ArchivistHook`.
 
+use super::boundary::{BoundaryConfig, BoundaryDecision};
 use super::helpers::{extract_profile_key, uuid_v4};
 use super::types::ArchivistHook;
 use crate::openhuman::config::Config;
@@ -13,10 +14,7 @@ use tinymemory_core::chat::ChatProvider;
 use tinymemory_core::store::events::{self, EventRecord, EventType};
 use tinymemory_core::store::fts5::EpisodicEntry;
 use tinymemory_core::store::profile::{self, FacetType};
-use super::boundary::{BoundaryConfig, BoundaryDecision};
-use tinymemory_core::store::segments::{
-    self, ConversationSegment,
-};
+use tinymemory_core::store::segments::{self, ConversationSegment};
 
 impl ArchivistHook {
     /// Create an Archivist hook with a shared SQLite connection.
