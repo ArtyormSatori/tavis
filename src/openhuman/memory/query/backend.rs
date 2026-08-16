@@ -94,7 +94,10 @@ pub async fn drill_down(
     Ok(guard
         .as_retrieval()
         .expect("checked above")
-        .retrieve_children(node_id, max_depth, query, limit)
+        // `None` here is not "unrestricted": the guard resolves the ambient
+        // task-local scope for a caller that names none, and forwards it
+        // explicitly. This is host-side code, so the task-local is present.
+        .retrieve_children(node_id, max_depth, query, limit, None)
         .await?)
 }
 
@@ -103,6 +106,6 @@ pub async fn fetch_leaves(chunk_ids: &[String]) -> Result<Vec<RetrievalHit>> {
     Ok(guard
         .as_retrieval()
         .expect("checked above")
-        .retrieve_leaves(chunk_ids)
+        .retrieve_leaves(chunk_ids, None)
         .await?)
 }
