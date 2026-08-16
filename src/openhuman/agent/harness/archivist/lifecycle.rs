@@ -13,8 +13,9 @@ use tinymemory_core::chat::ChatProvider;
 use tinymemory_core::store::events::{self, EventRecord, EventType};
 use tinymemory_core::store::fts5::EpisodicEntry;
 use tinymemory_core::store::profile::{self, FacetType};
+use super::boundary::{BoundaryConfig, BoundaryDecision};
 use tinymemory_core::store::segments::{
-    self, BoundaryConfig, BoundaryDecision, ConversationSegment,
+    self, ConversationSegment,
 };
 
 impl ArchivistHook {
@@ -168,9 +169,18 @@ impl ArchivistHook {
         match open_segment {
             Some(segment) => {
                 // Run boundary detection.
-                let decision = segments::detect_boundary(
+                // Boundary detection is host policy and lives in
+                // `archivist::boundary`; the engine only persists what it
+                // decides. `SegmentBoundaryState` names the four fields the
+                // decision actually reads.
+                let decision = super::boundary::detect_boundary(
                     &self.boundary_config,
-                    &segment,
+                    &super::boundary::SegmentBoundaryState {
+                        turn_count: segment.turn_count,
+                        start_timestamp: segment.start_timestamp,
+                        end_timestamp: segment.end_timestamp,
+                        embedding: segment.embedding.clone(),
+                    },
                     timestamp,
                     user_message,
                     None, // No embedding for now — cosine drift skipped without embedder access.
