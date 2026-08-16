@@ -1142,7 +1142,7 @@ impl MemoryEpisodic for GuardedEpisodic {
         self.policy.admit_write(
             Capability::Episodic,
             "episodic.create_segment",
-            Some(namespace),
+            namespace,
             false,
         )?;
         self.family()?
