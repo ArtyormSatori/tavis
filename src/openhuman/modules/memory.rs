@@ -263,7 +263,7 @@ impl ModuleMemoryProvider {
             return Ok(root);
         }
         runtime
-            .proxy(record.bus_name, path)
+            .proxy(record.bus_name, &path)
             .map_err(|error| MemoryError::Other(anyhow::anyhow!(error.to_string())))
     }
 
