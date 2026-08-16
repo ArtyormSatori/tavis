@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn name_and_schema() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryStoreTool::new(test_security());
         assert_eq!(tool.name(), "memory_store");
         let schema = tool.parameters_schema();
@@ -209,7 +209,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn store_with_category() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryStoreTool::new(test_security());
         let result = tool
             .execute(
@@ -294,7 +294,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn store_missing_key() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryStoreTool::new(test_security());
         let result = tool.execute(json!({"content": "no key"})).await;
         assert!(result.is_err());
@@ -304,7 +304,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn store_missing_content() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryStoreTool::new(test_security());
         let result = tool.execute(json!({"key": "no_content"})).await;
         assert!(result.is_err());

@@ -594,7 +594,7 @@ mod tests {
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn recall_empty_returns_no_results() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRecallTool::new();
         let result = tool
             .execute(json!({"query": "anything", "flow_id": "f1"}))
@@ -711,7 +711,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn recall_missing_query_errs() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRecallTool::new();
         let result = tool.execute(json!({"flow_id": "f1"})).await.unwrap();
         assert!(result.is_error);
@@ -722,7 +722,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn recall_missing_flow_id_errs() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRecallTool::new();
         let result = tool.execute(json!({"query": "anything"})).await.unwrap();
         assert!(result.is_error);
@@ -733,7 +733,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
 
     #[test]
     fn remember_name_and_schema() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRememberTool::new(test_security());
         assert_eq!(tool.name(), "flow_memory_remember");
         let schema = tool.parameters_schema();
@@ -940,7 +940,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn remember_missing_flow_id_outside_trusted_run_is_refused() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRememberTool::new(test_security());
         let result = tool
             .execute(json!({"key": "k", "content": "c"}))
@@ -959,7 +959,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn remember_missing_key_errs() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRememberTool::new(test_security());
         let result = tool
             .execute(json!({"flow_id": "f1", "content": "c"}))
@@ -973,7 +973,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn remember_missing_content_errs() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = FlowMemoryRememberTool::new(test_security());
         let result = tool
             .execute(json!({"flow_id": "f1", "key": "k"}))

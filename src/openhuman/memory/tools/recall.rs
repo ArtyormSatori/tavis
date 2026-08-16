@@ -137,7 +137,7 @@ mod tests {
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn recall_empty() {
-        let (_tmp, mem) = seeded_mem();
+        let (_tmp, _mem) = seeded_mem();
         let tool = MemoryRecallTool::new();
         let result = tool
             .execute(json!({"namespace": "global", "query": "anything"}))
@@ -211,7 +211,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn recall_missing_query() {
-        let (_tmp, mem) = seeded_mem();
+        let (_tmp, _mem) = seeded_mem();
         let tool = MemoryRecallTool::new();
         let result = tool.execute(json!({})).await;
         assert!(result.is_err());

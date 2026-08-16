@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn name_and_schema() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryForgetTool::new(test_security());
         assert_eq!(tool.name(), "memory_forget");
         assert!(tool.parameters_schema()["properties"]["key"].is_object());
@@ -155,7 +155,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn forget_nonexistent() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryForgetTool::new(test_security());
         let result = tool
             .execute(json!({"namespace": "global", "key": "nope"}))
@@ -169,7 +169,7 @@ the tool resolves the bound driver rather than being handed a memory handle"]
     #[ignore = "needs a built tinymemory module (OPENHUMAN_MODULE_PATH) and its own process: \
 the tool resolves the bound driver rather than being handed a memory handle"]
     async fn forget_missing_key() {
-        let (_tmp, mem) = test_mem();
+        let (_tmp, _mem) = test_mem();
         let tool = MemoryForgetTool::new(test_security());
         let result = tool.execute(json!({})).await;
         assert!(result.is_err());
