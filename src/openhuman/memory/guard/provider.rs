@@ -14,7 +14,8 @@ use async_trait::async_trait;
 
 use super::families::{
     GuardedChunks, GuardedDiff, GuardedDocuments, GuardedEntities, GuardedGoals, GuardedGraph,
-    GuardedIngest, GuardedMaintenance, GuardedPeople, GuardedProfile, GuardedRetrieval,
+    GuardedEpisodic, GuardedIngest, GuardedMaintenance, GuardedPeople, GuardedProfile,
+    GuardedRetrieval,
     GuardedSources, GuardedToolMemory, GuardedTree,
 };
 use super::policy::GuardPolicy;
@@ -50,6 +51,7 @@ pub struct MemoryGuard {
     chunks: Option<GuardedChunks>,
     retrieval: Option<GuardedRetrieval>,
     profile: Option<GuardedProfile>,
+    episodic: Option<GuardedEpisodic>,
 }
 
 impl MemoryGuard {
@@ -81,6 +83,7 @@ impl MemoryGuard {
             chunks: family!(Chunks, GuardedChunks),
             retrieval: family!(Retrieval, GuardedRetrieval),
             profile: family!(Profile, GuardedProfile),
+            episodic: family!(Episodic, GuardedEpisodic),
             inner,
             policy,
         }
@@ -180,6 +183,10 @@ impl MemoryProvider for MemoryGuard {
 
     fn as_profile(&self) -> Option<&dyn MemoryProfile> {
         self.profile.as_ref().map(|g| g as &dyn MemoryProfile)
+    }
+
+    fn as_episodic(&self) -> Option<&dyn MemoryEpisodic> {
+        self.episodic.as_ref().map(|g| g as &dyn MemoryEpisodic)
     }
 }
 
