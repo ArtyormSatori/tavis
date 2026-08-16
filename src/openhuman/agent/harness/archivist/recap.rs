@@ -6,7 +6,7 @@ use parking_lot::Mutex;
 use rusqlite::Connection;
 use std::sync::Arc;
 use tinymemory_core::store::fts5::{self, EpisodicEntry};
-use tinymemory_core::store::segments::{self, ConversationSegment};
+use tinymemory_core::store::segments::ConversationSegment;
 use tinymemory_core::store::trees::types::TreeKind;
 
 /// An episodic entry paired with the stable identity exposed by its backing
