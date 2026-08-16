@@ -1886,6 +1886,10 @@ fn every_capability_family_is_accounted_for_in_the_rpc_surface() {
             // Profile has no controllers of its own — the learning domain's
             // RPC surface is tagged `Agent`, not `Memory`.
             Capability::Profile => false,
+            // Episodic has no controllers either, and is unlikely to get any:
+            // its only caller is the archivist post-turn hook, which runs
+            // in-process on the turn path rather than answering an RPC.
+            Capability::Episodic => false,
         };
         assert_eq!(
             gated.contains(&cap),
