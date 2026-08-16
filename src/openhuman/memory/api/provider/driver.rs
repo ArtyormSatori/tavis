@@ -193,6 +193,11 @@ pub trait MemoryProvider: MemoryCore + MemoryRecall + MemoryPortability + 'stati
         None
     }
 
+    /// The turn-by-turn conversation record, when advertised.
+    fn as_episodic(&self) -> Option<&dyn MemoryEpisodic> {
+        None
+    }
+
     /// Whether `capability` is actually **reachable** on this driver.
     ///
     /// This is the implementation-side truth, as opposed to
@@ -222,6 +227,7 @@ pub trait MemoryProvider: MemoryCore + MemoryRecall + MemoryPortability + 'stati
             Capability::Chunks => self.as_chunks().is_some(),
             Capability::Retrieval => self.as_retrieval().is_some(),
             Capability::Profile => self.as_profile().is_some(),
+            Capability::Episodic => self.as_episodic().is_some(),
         }
     }
 }
