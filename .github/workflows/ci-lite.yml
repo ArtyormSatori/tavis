@@ -540,6 +540,7 @@ jobs:
           openhuman/agent/registry/agents/loader.rs
           openhuman/config/migrations/retire_local_whisper_stt_tests.rs
           openhuman/mcp/server/resources.rs
+          openhuman/memory/people/mod.rs
           openhuman/platform/socket/event_handlers.rs
           openhuman/platform/socket/ops.rs
           openhuman/tinyplace/manifest.rs
