@@ -7,10 +7,12 @@
 use super::*;
 
 #[test]
-fn contract_version_is_two_one() {
-    // (2, 1): the `people` family was added, which the version rule makes a
+fn contract_version_is_two_two() {
+    // (2, 2): the `episodic` family was added, which the version rule makes a
     // minor bump — capability negotiation is what keeps an older driver safe.
-    assert_eq!(CONTRACT_VERSION, (2, 1));
+    // (2, 1) added `people`, and then `chunks`, `retrieval` and `profile`
+    // joined it before the minor had shipped, so those four share it.
+    assert_eq!(CONTRACT_VERSION, (2, 2));
 }
 
 #[test]

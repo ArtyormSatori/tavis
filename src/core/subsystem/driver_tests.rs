@@ -195,10 +195,11 @@ fn every_memory_contract_capability_string_maps_into_driver_capabilities() {
     assert_eq!(caps.len(), Capability::ALL.len());
     // A literal, so adding a family forces a look at this test rather than
     // sliding past it. 13 → 17 when the port added People, Chunks, Retrieval
-    // and Profile. The assertion above is the load-bearing one: it says the
-    // mapping is lossless, which is what makes the kernel's opaque-string set
-    // able to carry the contract without knowing what a memory capability is.
-    assert_eq!(caps.len(), 17);
+    // and Profile, then 18 with Episodic. The assertion above is the
+    // load-bearing one: it says the mapping is lossless, which is what makes
+    // the kernel's opaque-string set able to carry the contract without
+    // knowing what a memory capability is.
+    assert_eq!(caps.len(), 18);
     assert!(
         caps.contains("tool_memory"),
         "the one non-identity snake_case family must survive"
