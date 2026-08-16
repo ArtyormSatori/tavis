@@ -125,6 +125,15 @@ pub struct ModuleMemoryProvider {
     /// Set once the module has answered `Capabilities`, so the cross-check runs
     /// once rather than per call.
     verified: std::sync::OnceLock<()>,
+    /// Memory subtree this driver is bound to, when it is not the shared one.
+    ///
+    /// `None` means `<workspace>/memory` — the root object the module serves
+    /// eagerly at setup. `Some("memory-<id>")` is a profile that opted into
+    /// dedicated memory; the first call asks the root object to open it and
+    /// caches the object path it answers with.
+    memory_subdir: Option<String>,
+    /// Object path resolved for [`Self::memory_subdir`], once asked for.
+    resolved_path: tokio::sync::OnceCell<String>,
 }
 
 impl std::fmt::Debug for ModuleMemoryProvider {
@@ -162,7 +171,46 @@ impl ModuleMemoryProvider {
                 .map_or_else(|| MODULE_ID.to_string(), |record| record.id.to_string()),
             config,
             verified: std::sync::OnceLock::new(),
+            memory_subdir: None,
+            resolved_path: tokio::sync::OnceCell::new(),
         }
+    }
+
+    /// Bind this driver to a named memory subtree rather than the shared one.
+    ///
+    /// `"memory"` is the shared tree and is treated as `None`, so a caller can
+    /// pass whatever `memory_subdir_for_suffix` produced without special-casing
+    /// the default.
+    #[must_use]
+    pub fn in_subdir(mut self, memory_subdir: &str) -> Self {
+        if memory_subdir != "memory" && !memory_subdir.is_empty() {
+            self.memory_subdir = Some(memory_subdir.to_string());
+        }
+        self
+    }
+
+    /// The object path this driver talks to, opening the subtree on first use.
+    ///
+    /// The root object is served eagerly at module setup, so the shared tree
+    /// costs nothing here. A dedicated subtree is opened once and cached; the
+    /// module is idempotent per subtree, so a lost race re-uses the same store
+    /// rather than opening the database twice.
+    async fn object_path(&self, proxy_root: &tinybus::Proxy) -> Result<String, MemoryError> {
+        let record = registry::find(MODULE_ID)
+            .ok_or_else(|| MemoryError::Other(anyhow::anyhow!("unknown module '{MODULE_ID}'")))?;
+        let Some(subdir) = self.memory_subdir.as_deref() else {
+            return Ok(record.object_path.to_string());
+        };
+        self.resolved_path
+            .get_or_try_init(|| async {
+                log::debug!("[modules:memory] opening a dedicated memory subtree");
+                proxy_root
+                    .call::<String>("OpenStore", (subdir.to_string(),))
+                    .await
+                    .map_err(|error| from_bus(&error))
+            })
+            .await
+            .cloned()
     }
 
     /// Ensure the module is serving, and hand back a proxy for its object.
@@ -201,12 +249,21 @@ impl ModuleMemoryProvider {
 
         let record = registry::find(MODULE_ID)
             .ok_or_else(|| MemoryError::Other(anyhow::anyhow!("unknown module '{MODULE_ID}'")))?;
-        let proxy = runtime
+        let root = runtime
             .proxy(record.bus_name, record.object_path)
             .map_err(|error| MemoryError::Other(anyhow::anyhow!(error.to_string())))?;
 
-        self.verify(&proxy).await;
-        Ok(proxy)
+        self.verify(&root).await;
+
+        // The shared tree is the root object itself, so this is a no-op for
+        // every caller that did not ask for a dedicated subtree.
+        let path = self.object_path(&root).await?;
+        if path == record.object_path {
+            return Ok(root);
+        }
+        runtime
+            .proxy(record.bus_name, path)
+            .map_err(|error| MemoryError::Other(anyhow::anyhow!(error.to_string())))
     }
 
     /// Cross-check the module's advertised capabilities against what this build
