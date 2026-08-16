@@ -62,6 +62,7 @@ use crate::openhuman::memory::api::provider::mandatory::{
     MemoryCore, MemoryPortability, MemoryRecall,
 };
 use crate::openhuman::memory::api::provider::people::MemoryPeople;
+use crate::openhuman::memory::api::provider::episodic::MemoryEpisodic;
 use crate::openhuman::memory::api::provider::profile::MemoryProfile;
 use crate::openhuman::memory::api::provider::records::{
     MemoryGoals, MemoryMaintenance, MemorySourceSink, MemoryToolMemory,
