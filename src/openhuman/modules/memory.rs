@@ -975,19 +975,21 @@ impl MemoryRetrieval for ModuleMemoryProvider {
         max_depth: u32,
         query: Option<&str>,
         limit: Option<usize>,
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
         module_call!(
             self,
             "retrieve_children",
             "RetrieveChildren",
-            (node_id, max_depth, query, limit)
+            (node_id, max_depth, query, limit, scope)
         )
     }
     async fn retrieve_leaves(
         &self,
         chunk_ids: &[String],
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
-        module_call!(self, "retrieve_leaves", "RetrieveLeaves", (chunk_ids,))
+        module_call!(self, "retrieve_leaves", "RetrieveLeaves", (chunk_ids, scope))
     }
     async fn recall_namespace_scored(
         &self,
