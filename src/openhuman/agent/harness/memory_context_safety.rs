@@ -139,7 +139,10 @@ fn escape_untrusted_content(content: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // Only the tests build entries; the predicate itself takes a namespace and
+    // a key, which is what decoupled it from either `MemoryEntry` type.
     use crate::openhuman::memory::MemoryCategory;
+    use crate::openhuman::memory::MemoryEntry;
 
     fn entry(namespace: Option<&str>, key: &str) -> MemoryEntry {
         MemoryEntry {
