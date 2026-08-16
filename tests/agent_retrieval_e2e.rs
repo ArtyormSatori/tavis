@@ -31,6 +31,39 @@ use tinycortex::memory::ingest::canonicalize::email::{EmailMessage, EmailThread}
 use tinymemory_core::ingest_pipeline::{ingest_chat, ingest_email};
 use tinymemory_core::queue::drain_until_idle;
 
+/// Install the host seams the memory subsystem needs.
+///
+/// These tests drive the retrieval tools against a real ingested workspace, and
+/// those tools resolve a memory driver — which since the module port means
+/// binding one, against a policy that only `boot` publishes. An integration
+/// test has no boot, so without this the driver refuses to load and the tool
+/// returns "the module host policy was never published" instead of retrieving.
+///
+/// `host_impls::install_for_tests` cannot be used here: it is `#[cfg(test)]`,
+/// which the crate's own unit tests see and a `tests/` binary does not. This
+/// mirrors `ensure_memory_seams` in `memory_sources_e2e.rs`, including the
+/// thread — `Config` is large enough that materialising it inline overflows a
+/// 2 MiB test stack inside an already-deep async fn.
+fn ensure_memory_seams() {
+    static MEMORY_SEAMS_INIT: std::sync::OnceLock<()> = std::sync::OnceLock::new();
+    MEMORY_SEAMS_INIT.get_or_init(|| {
+        std::thread::Builder::new()
+            .name("agent-retrieval-e2e-seams".to_string())
+            .stack_size(8 * 1024 * 1024)
+            .spawn(|| {
+                let config = std::sync::Arc::new(Config::default());
+                openhuman_core::openhuman::memory::host_impls::install_memory_host_seams(
+                    config.clone(),
+                );
+                #[cfg(feature = "modules")]
+                openhuman_core::openhuman::modules::memory::set_modules_policy(config);
+            })
+            .expect("spawn agent retrieval seam installer")
+            .join()
+            .expect("agent retrieval seam installer panicked");
+    });
+}
+
 /// Build a Config rooted at `tmp/workspace`. The nested `workspace` dir
 /// matches what `resolve_config_dir_for_workspace` would derive when
 /// `OPENHUMAN_WORKSPACE` points at `tmp` — so the same workspace_dir is
@@ -240,6 +273,7 @@ fn orchestrator_reaches_memory_agent_on_demand() {
 /// channel the current conversation did not originate in.
 #[tokio::test]
 async fn cross_chat_entity_index_spans_source_boundaries() {
+    ensure_memory_seams();
     let (tmp, cfg) = test_config();
 
     // Chat A — channel #eng seeds a fact about alice
