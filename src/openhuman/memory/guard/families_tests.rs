@@ -326,3 +326,93 @@ async fn cover_window_intersects_an_explicit_scope_with_the_ambient_one() {
     .await;
     assert_eq!(driver.only_call().content.as_deref(), Some(""));
 }
+
+// ── Scope narrowing on the two id-addressed retrieval primitives ────────────
+//
+// `retrieve_children` and `retrieve_leaves` took no scope argument until the
+// review of the module port pointed out what that meant. In-process they were
+// still restricted, because the engine reads the ambient task-local — but the
+// task-local belongs to the *host's* task and does not cross a bus, so the same
+// two methods reached over the module transport were unrestricted. A source
+// gate that holds embedded and fails open over a transport is worse than one
+// that does neither, because nothing about the call site says which you have.
+//
+// The scope is an argument now, and these pin that it arrives.
+
+#[tokio::test]
+async fn retrieve_children_inherits_the_ambient_scope_when_none_is_requested() {
+    let (driver, guard) = guarded(embedded_policy());
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_retrieval()
+            .unwrap()
+            .retrieve_children("node", 2, None, None, None)
+            .await
+            .expect("retrieve_children");
+    })
+    .await;
+    assert_eq!(
+        driver.only_call().content.as_deref(),
+        Some("slack:#eng"),
+        "the ambient allowlist must reach the driver as an explicit argument"
+    );
+}
+
+#[tokio::test]
+async fn retrieve_children_intersects_an_explicit_scope_with_the_ambient_one() {
+    let (driver, guard) = guarded(embedded_policy());
+    let explicit = SourceScope::new(["gmail:me"]);
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_retrieval()
+            .unwrap()
+            .retrieve_children("node", 2, None, None, Some(&explicit))
+            .await
+            .expect("retrieve_children");
+    })
+    .await;
+    assert_eq!(
+        driver.only_call().content.as_deref(),
+        Some(""),
+        "a walk outside the ambient allowlist must fail closed, not widen"
+    );
+}
+
+#[tokio::test]
+async fn retrieve_leaves_inherits_the_ambient_scope_when_none_is_requested() {
+    let (driver, guard) = guarded(embedded_policy());
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_retrieval()
+            .unwrap()
+            .retrieve_leaves(&["chunk-1".to_string()], None)
+            .await
+            .expect("retrieve_leaves");
+    })
+    .await;
+    assert_eq!(
+        driver.only_call().content.as_deref(),
+        Some("slack:#eng"),
+        "naming a chunk id directly must not read around a source restriction"
+    );
+}
+
+#[tokio::test]
+async fn retrieve_leaves_intersects_an_explicit_scope_with_the_ambient_one() {
+    let (driver, guard) = guarded(embedded_policy());
+    let explicit = SourceScope::new(["gmail:me"]);
+    with_source_scope(Some(vec!["slack:#eng".into()]), async {
+        guard
+            .as_retrieval()
+            .unwrap()
+            .retrieve_leaves(&["chunk-1".to_string()], Some(&explicit))
+            .await
+            .expect("retrieve_leaves");
+    })
+    .await;
+    assert_eq!(
+        driver.only_call().content.as_deref(),
+        Some(""),
+        "an explicit scope outside the ambient one must fail closed"
+    );
+}
