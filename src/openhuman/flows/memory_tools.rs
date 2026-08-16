@@ -35,7 +35,6 @@ use crate::openhuman::agent::turn_origin::{self, AgentTurnOrigin, TrustedAutomat
 use crate::openhuman::memory::api::provider::{MemoryCore, MemoryRecall};
 use crate::openhuman::memory::api::recall::OwnedRecallOpts;
 use crate::openhuman::memory::api::types::{MemoryCategory, MemoryEntry, MemoryTaint};
-use crate::openhuman::memory::guard::MemoryGuard;
 use crate::openhuman::memory::ops::guard::active_memory_guard;
 use crate::openhuman::security::policy::ToolOperation;
 use crate::openhuman::security::SecurityPolicy;
