@@ -1065,6 +1065,79 @@ scoped run a false negative, which is exactly how these survived — nobody runs
 `cargo test --lib openhuman::cron` in CI, and the whole-lib run aborts (§2v)
 before the counts print.
 
+### 2x. The raw SQLite connection is gone — `Episodic`, the 18th family
+
+The archivist post-turn hook held the last live `rusqlite::Connection` in the
+host, handed to it straight out of the session factory. A connection cannot
+cross a bus, so this was the hard half of the blocker: while it existed, the
+engine could not leave regardless of what happened to the store selector.
+
+It turned out to be much less entangled than "a raw connection" suggests. The
+hook issued **no ad-hoc SQL** and knew nothing of the schema; it called ten
+typed free functions, and **two of those took no connection at all**. So the
+split was already there, waiting to be named:
+
+| Went to the contract (`Capability::Episodic`) | Stayed host-side (`archivist::boundary`) |
+| --- | --- |
+| `insert_turn`, `session_turns` | `detect_boundary` + its `BoundaryConfig` / `BoundaryDecision` / `BoundaryReason` |
+| `open_segment`, `create_segment`, `append_turn` | `incremental_mean_embedding` |
+| `close_segment`, `set_segment_summary`, `upsert_segment_embedding` | `fallback_summary` |
+
+Persisting a segment is storage. Deciding *that a segment should end* — how long
+a pause means the subject moved on, how many turns is too many, which phrases
+announce a change of topic — is a product judgement about what a conversation
+is, and the host that renders these segments is the only thing that can tune it
+against what users see. The thresholds are carried over verbatim: this is a
+move, not a retune, so a regression stays attributable.
+
+**`insert_turn` returns the id, and that is a bug fix, not just a round trip
+saved.** The old code inserted a row and then asked `SELECT last_insert_rowid()`
+on the same connection. That is *connection-local* state: any interleaved insert
+from another task yields the wrong id and files the turn under the wrong
+segment. Returning the id from the insert removes the race and the second hop
+together.
+
+`ConversationSegment` carries `embedding` for the same reason the family exists
+at all — boundary detection is host policy but reads the driver's centroid, so
+it comes back on the read rather than costing a second call.
+
+Version: **(2, 1) → (2, 2)**, a minor bump, per the rule that a new family is
+made safe by capability negotiation alone.
+
+Both contract copies, the guard decorator (`GuardedEpisodic`), the
+`RecordingProvider` fake and the four count pins moved together. The count pins
+are worth keeping literal: each one forced a deliberate look rather than sliding
+past, which is exactly what caught `every_capability_family_is_accounted_for_in_the_rpc_surface`
+needing an entry.
+
+### 2y. The module driver ignores the workspace it is bound for
+
+Found while sizing the store-selector half, and it is worth stating plainly
+because it changes what that work is:
+
+`binding::for_workspace` caches on `(workspace_dir, cfg)` and `build()` logs
+`workspace=…`, but `module_provider(_workspace_dir)` **discards the argument**.
+`ModuleMemoryProvider` resolves against the `Config` published once at boot by
+`set_modules_policy`, and reaches a single object path on the bus. So today the
+module serves exactly **one store per process** — not one per workspace, and
+certainly not one per profile subtree. Two workspaces get two `MemoryBinding`s
+that talk to the same store.
+
+That means the `dedicated_memory` question is not "how do we keep the existing
+per-subtree behaviour through the bus" — there is no per-subtree behaviour on
+the module path to keep. It is a design choice, and the two candidates differ in
+kind:
+
+- **A store selector on the wire.** The module object is a singleton by
+  construction, so selecting a store means a parameter on every method — a major
+  contract bump touching all 18 families.
+- **Profile subtrees become namespaces.** Memory is already namespaced;
+  `dedicated_memory` becomes a reserved prefix inside the one store. No contract
+  change and no second store, but it moves data on disk and needs a migration.
+
+The second changes where a user's data lives, so it is not mine to pick
+silently. Everything that does not depend on it is done.
+
 ### Still open in stage 2
 
 | File | Why it is not converted |
