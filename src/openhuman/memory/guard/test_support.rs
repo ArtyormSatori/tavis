@@ -976,18 +976,28 @@ impl MemoryRetrieval for RecordingProvider {
         _max_depth: u32,
         _query: Option<&str>,
         _limit: Option<usize>,
-        _scope: Option<&SourceScope>,
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
-        self.record(Call::plain("retrieval.retrieve_children"));
+        self.record(Call {
+            method: "retrieval.retrieve_children".into(),
+            content: rendered_scope(scope),
+            taint: None,
+            scoped: Some(scope.is_some()),
+        });
         Ok(vec![])
     }
 
     async fn retrieve_leaves(
         &self,
         _chunk_ids: &[String],
-        _scope: Option<&SourceScope>,
+        scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
-        self.record(Call::plain("retrieval.retrieve_leaves"));
+        self.record(Call {
+            method: "retrieval.retrieve_leaves".into(),
+            content: rendered_scope(scope),
+            taint: None,
+            scoped: Some(scope.is_some()),
+        });
         Ok(vec![])
     }
 
