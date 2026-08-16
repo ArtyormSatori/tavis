@@ -103,6 +103,14 @@ pub struct ConversationSegment {
     /// Summary, once the segment has been closed and summarised.
     #[serde(default)]
     pub summary: Option<String>,
+    /// The segment's running embedding centroid, when it has one.
+    ///
+    /// Carried on the read so the host can run boundary detection against it
+    /// without a second call: deciding whether the next turn still belongs to
+    /// this segment is host policy, but it needs the centroid the driver
+    /// holds.
+    #[serde(default)]
+    pub embedding: Option<Vec<f32>>,
     /// Whether the segment is still open.
     pub open: bool,
 }

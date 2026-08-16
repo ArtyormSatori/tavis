@@ -16,6 +16,7 @@
 //! 6. `flush_open_segment` force-closes the trailing open segment at session
 //!    end so the last segment always gets a recap + embedding + tree ingest.
 
+pub mod boundary;
 mod helpers;
 mod hook_impl;
 mod lifecycle;

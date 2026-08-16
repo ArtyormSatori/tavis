@@ -53,7 +53,10 @@ fn a_long_pause_starts_a_new_segment() {
         "carry on",
         None,
     );
-    assert_eq!(decision, BoundaryDecision::Boundary(BoundaryReason::TimeGap));
+    assert_eq!(
+        decision,
+        BoundaryDecision::Boundary(BoundaryReason::TimeGap)
+    );
 }
 
 #[test]
