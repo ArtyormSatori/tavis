@@ -723,6 +723,102 @@ impl MemoryProvider for RecordingProvider {
     fn as_profile(&self) -> Option<&dyn MemoryProfile> {
         Some(self)
     }
+    fn as_episodic(&self) -> Option<&dyn MemoryEpisodic> {
+        Some(self)
+    }
+}
+
+#[async_trait]
+impl MemoryEpisodic for RecordingProvider {
+    async fn insert_turn(
+        &self,
+        turn: &crate::openhuman::memory::api::provider::episodic::EpisodicTurn,
+    ) -> Result<i64, MemoryError> {
+        // Records the turn text, so a guard that failed to redact one would be
+        // visible here rather than only in a live store.
+        self.record(Call {
+            method: "episodic.insert_turn".into(),
+            content: Some(turn.content.clone()),
+            taint: None,
+            scoped: None,
+        });
+        Ok(1)
+    }
+
+    async fn session_turns(
+        &self,
+        _session_id: &str,
+    ) -> Result<Vec<crate::openhuman::memory::api::provider::episodic::EpisodicTurn>, MemoryError>
+    {
+        self.record(Call::plain("episodic.session_turns"));
+        Ok(vec![])
+    }
+
+    async fn open_segment(
+        &self,
+        _session_id: &str,
+    ) -> Result<
+        Option<crate::openhuman::memory::api::provider::episodic::ConversationSegment>,
+        MemoryError,
+    > {
+        self.record(Call::plain("episodic.open_segment"));
+        Ok(None)
+    }
+
+    async fn create_segment(
+        &self,
+        _segment_id: &str,
+        _session_id: &str,
+        _namespace: &str,
+        _start_episodic_id: i64,
+        _start_timestamp: f64,
+        _now: f64,
+    ) -> Result<(), MemoryError> {
+        self.record(Call::plain("episodic.create_segment"));
+        Ok(())
+    }
+
+    async fn append_turn(
+        &self,
+        _segment_id: &str,
+        _episodic_id: i64,
+        _timestamp: f64,
+        _now: f64,
+    ) -> Result<(), MemoryError> {
+        self.record(Call::plain("episodic.append_turn"));
+        Ok(())
+    }
+
+    async fn close_segment(&self, _segment_id: &str, _now: f64) -> Result<(), MemoryError> {
+        self.record(Call::plain("episodic.close_segment"));
+        Ok(())
+    }
+
+    async fn set_segment_summary(
+        &self,
+        _segment_id: &str,
+        summary: &str,
+        _now: f64,
+    ) -> Result<(), MemoryError> {
+        self.record(Call {
+            method: "episodic.set_segment_summary".into(),
+            content: Some(summary.to_string()),
+            taint: None,
+            scoped: None,
+        });
+        Ok(())
+    }
+
+    async fn upsert_segment_embedding(
+        &self,
+        _segment_id: &str,
+        _model_signature: &str,
+        _embedding: &[f32],
+        _created_at: f64,
+    ) -> Result<(), MemoryError> {
+        self.record(Call::plain("episodic.upsert_segment_embedding"));
+        Ok(())
+    }
 }
 #[async_trait]
 impl MemoryProfile for RecordingProvider {
