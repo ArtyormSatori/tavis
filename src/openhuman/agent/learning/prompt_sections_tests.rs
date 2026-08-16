@@ -2,8 +2,6 @@
 //! `load_learned_from_cache` top-K ranking cap and pinned-facet rendering,
 //! not covered by the inline tests in `prompt_sections.rs`.
 
-use std::sync::Arc;
-
 use super::load_learned_from_cache;
 use crate::openhuman::agent::learning::cache::FacetCache;
 use crate::openhuman::memory::api::provider::{FacetState, FacetType, ProfileFacet, UserState};

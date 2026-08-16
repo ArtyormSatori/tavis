@@ -380,7 +380,6 @@ mod tests {
 
     #[tokio::test]
     async fn load_learned_from_cache_formats_active_facets() {
-        use crate::openhuman::agent::learning::cache::FacetCache;
         use crate::openhuman::memory::api::provider::{
             FacetState, FacetType, ProfileFacet, UserState,
         };
@@ -458,7 +457,6 @@ mod tests {
 
     #[tokio::test]
     async fn load_learned_from_cache_empty_when_no_active_facets() {
-        use crate::openhuman::agent::learning::cache::FacetCache;
         let cache = crate::openhuman::agent::learning::test_profile::in_memory_cache();
 
         let result = load_learned_from_cache(&cache).await;

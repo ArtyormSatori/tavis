@@ -1,7 +1,5 @@
 //! Tests for `learning::cache::FacetCache`.
 
-use std::sync::Arc;
-
 use super::*;
 use crate::openhuman::agent::learning::candidate::FacetClass;
 use crate::openhuman::memory::api::host::EvidenceRef;

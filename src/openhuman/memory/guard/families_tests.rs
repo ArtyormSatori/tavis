@@ -1,10 +1,7 @@
 //! The wrapped-accessor property — the reason this milestone exists — plus
 //! step 2, which lives on `GuardedTree::query_source`.
 
-use crate::openhuman::memory::api::provider::chunks::{ChunkQuery, MemoryChunks};
-use crate::openhuman::memory::api::provider::retrieval::{
-    CoverWindowQuery, FastRetrieveQuery, MemoryRetrieval,
-};
+use crate::openhuman::memory::api::provider::retrieval::{CoverWindowQuery, FastRetrieveQuery};
 use crate::openhuman::memory::api::provider::types::SourceScope;
 use crate::openhuman::memory::api::provider::{MemoryProvider, MemoryTree};
 use crate::openhuman::memory::api::tree::IngestRequest;

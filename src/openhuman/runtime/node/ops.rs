@@ -5,7 +5,6 @@ use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::agent::host_runtime::{NativeRuntime, RuntimeAdapter};
 use crate::openhuman::config::Config;
-use crate::openhuman::memory::Memory;
 use crate::openhuman::runtime::node::types::{ExecuteToolOutcome, RuntimeToolSummary};
 use crate::openhuman::security::{CommandClass, SecurityPolicy};
 use crate::openhuman::tools::{self, PermissionLevel, Tool, ToolCallOptions, ToolScope};

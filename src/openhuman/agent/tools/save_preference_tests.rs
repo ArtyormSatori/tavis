@@ -2,7 +2,6 @@
 
 use super::*;
 
-use crate::openhuman::memory::api::provider::MemoryCore as _;
 use crate::openhuman::memory::guard::MemoryGuard;
 use crate::openhuman::memory::ops::{ensure_shared_memory_client, GLOBAL_MEMORY_TEST_LOCK};
 use crate::openhuman::security::SecurityPolicy;
