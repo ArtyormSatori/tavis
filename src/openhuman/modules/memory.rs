@@ -1087,12 +1087,16 @@ impl MemoryProfile for ModuleMemoryProvider {
     /// Any transport failure reads as `false` — the trait's documented rule for
     /// this predicate, and the reason it returns `bool` rather than a `Result`.
     async fn workflow_identity_matches(&self, key_pattern: &str, canonical_value: &str) -> bool {
-        let call: Result<bool, MemoryError> = module_call!(
-            self,
-            "workflow_identity_matches",
-            "WorkflowIdentityMatches",
-            (key_pattern, canonical_value)
-        );
-        call.unwrap_or(false)
+        // Written out rather than via `module_call!`: that macro uses `?`, which
+        // needs a `Result`-returning body, and this one returns `bool` on
+        // purpose. Both failure points — resolving the proxy and the call
+        // itself — collapse to `false`, which is the rule above.
+        let Ok(proxy) = self.proxy("workflow_identity_matches").await else {
+            return false;
+        };
+        proxy
+            .call::<bool>("WorkflowIdentityMatches", (key_pattern, canonical_value))
+            .await
+            .unwrap_or(false)
     }
 }

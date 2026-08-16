@@ -291,11 +291,6 @@ pub async fn start_channels(mut config: Config) -> Result<()> {
         config.workspace_dir.clone(),
     )?;
     let temperature = config.default_temperature;
-    let local_embedding = config.workload_local_model("embeddings");
-    let embedding_api_key = crate::openhuman::inference::embeddings::resolve_api_key(
-        &config,
-        &config.memory.embedding_provider,
-    );
     // Build system prompt from workspace identity files + skills
     let workspace = config.workspace_dir.clone();
     let tools_registry = Arc::new(tools::all_tools_with_runtime(
