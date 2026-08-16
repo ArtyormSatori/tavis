@@ -83,17 +83,6 @@ where
 
 /// Register the client-dependent learning subscribers.
 ///
-/// Returns `(rebuild_trigger_handle, profile_md_renderer_handle)`.
-///
-/// When `client` is `Some`, both the Phase 3 rebuild trigger (plus its periodic
-/// 30-minute loop) and the Phase 4 `ProfileMdRenderer` are registered. When
-/// `client` is `None` (the memory client is not yet initialised) both are
-/// skipped and the skip is logged at **warn** — the *silent* skip was the #5003
-/// bug, so this must be loud.
-///
-/// Taking the client as a parameter (rather than reading
-/// `memory::global::client_if_ready()` internally) keeps both arms testable
-
 /// The profile facet cache for `workspace_dir`.
 ///
 /// Resolved through the memory binding rather than the process-global client:
@@ -118,6 +107,16 @@ fn facet_cache_for(
     }
 }
 
+/// Returns `(rebuild_trigger_handle, profile_md_renderer_handle)`.
+///
+/// When `client` is `Some`, both the Phase 3 rebuild trigger (plus its periodic
+/// 30-minute loop) and the Phase 4 `ProfileMdRenderer` are registered. When
+/// `client` is `None` (the memory client is not yet initialised) both are
+/// skipped and the skip is logged at **warn** — the *silent* skip was the #5003
+/// bug, so this must be loud.
+///
+/// Taking the client as a parameter (rather than reading
+/// `memory::global::client_if_ready()` internally) keeps both arms testable
 /// without initialising the process-global memory singleton.
 fn register_with_client(
     client: Option<MemoryClientRef>,

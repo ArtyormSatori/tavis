@@ -493,15 +493,6 @@ fn dominant_cue(cands: &[LearningCandidate], _existing: Option<&ProfileFacet>) -
         .unwrap_or(CueFamily::Behavioral)
 }
 
-/// Merge the existing row's evidence refs with this cycle's new refs,
-/// deduplicating while preserving first-seen order.
-///
-/// `Vec::dedup_by` only collapses *consecutive* equal elements, so a ref that
-/// recurs non-adjacently — present in the existing row and re-emitted by a new
-/// candidate, or repeated within one cycle — would slip through and accumulate
-/// without bound across rebuilds. `EvidenceRef: Eq + Hash`, so tracking seen
-/// refs in a set removes every duplicate exactly and cheaply.
-
 /// Convert the learning domain's `EvidenceRef` to the memory contract's.
 ///
 /// # Why a conversion and not one type
@@ -542,6 +533,14 @@ fn evidence_from_contract(
         .collect()
 }
 
+/// Merge the existing row's evidence refs with this cycle's new refs,
+/// deduplicating while preserving first-seen order.
+///
+/// `Vec::dedup_by` only collapses *consecutive* equal elements, so a ref that
+/// recurs non-adjacently — present in the existing row and re-emitted by a new
+/// candidate, or repeated within one cycle — would slip through and accumulate
+/// without bound across rebuilds. `EvidenceRef: Eq + Hash`, so tracking seen
+/// refs in a set removes every duplicate exactly and cheaply.
 fn merge_evidence_refs(
     existing_refs: &[candidate::EvidenceRef],
     new_refs: Vec<candidate::EvidenceRef>,
