@@ -140,6 +140,7 @@ impl MemoryRetrieval for ScriptedRetrieval {
         _max_depth: u32,
         _query: Option<&str>,
         _limit: Option<usize>,
+        _scope: Option<&crate::openhuman::memory::api::provider::SourceScope>,
     ) -> Result<Vec<crate::openhuman::memory::api::provider::retrieval::RetrievalHit>, MemoryError>
     {
         unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
@@ -148,6 +149,7 @@ impl MemoryRetrieval for ScriptedRetrieval {
     async fn retrieve_leaves(
         &self,
         _chunk_ids: &[String],
+        _scope: Option<&crate::openhuman::memory::api::provider::SourceScope>,
     ) -> Result<Vec<crate::openhuman::memory::api::provider::retrieval::RetrievalHit>, MemoryError>
     {
         unimplemented!("ScriptedRetrieval only serves recall_namespace_scored")
