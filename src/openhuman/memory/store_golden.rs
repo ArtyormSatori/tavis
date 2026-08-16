@@ -234,7 +234,10 @@ fn seed_episodic(conn: &SharedConn) -> Result<()> {
             cost_microdollars: 0,
         },
     )
-    .context("[golden] episodic_insert")
+    .context("[golden] episodic_insert")?;
+    // The insert now answers with the assigned row id; the golden fixture only
+    // needs the row to exist.
+    Ok(())
 }
 
 /// A sealed (summarised) conversation segment with both embedding tiers.
