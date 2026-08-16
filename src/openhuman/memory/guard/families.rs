@@ -38,15 +38,15 @@ use crate::openhuman::memory::api::goals::GoalsDoc;
 use crate::openhuman::memory::api::provider::chunks::{
     ChunkDetail, ChunkEmbedding, ChunkQuery, MemoryChunks,
 };
+use crate::openhuman::memory::api::provider::episodic::{
+    ConversationSegment, EpisodicTurn, MemoryEpisodic,
+};
 use crate::openhuman::memory::api::provider::people::{
     AddressBookSeedOutcome, MemoryPeople, PersonHandle, PersonInteraction, PersonRecord,
     PersonScore, RankedPerson, ResolvedPerson,
 };
 use crate::openhuman::memory::api::provider::profile::{
     FacetType, MemoryProfile, ProfileFacet, UserState,
-};
-use crate::openhuman::memory::api::provider::episodic::{
-    ConversationSegment, EpisodicTurn, MemoryEpisodic,
 };
 use crate::openhuman::memory::api::provider::retrieval::{
     CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalHit,

@@ -23,8 +23,8 @@ use crate::openhuman::memory::api::provider::types::{
 use crate::openhuman::memory::api::provider::{
     AddressBookSeedOutcome, ChunkDetail, ChunkEmbedding, ChunkQuery, CoverWindowQuery, EntityMatch,
     FacetType, FastRetrieveQuery, MemoryChunks, MemoryCore, MemoryDiff, MemoryDocuments,
-    MemoryEntities, MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance, MemoryPeople,
-    MemoryPortability, MemoryProfile, MemoryProvider, MemoryRecall, MemoryRetrieval,
+    MemoryEntities, MemoryEpisodic, MemoryGoals, MemoryGraph, MemoryIngest, MemoryMaintenance,
+    MemoryPeople, MemoryPortability, MemoryProfile, MemoryProvider, MemoryRecall, MemoryRetrieval,
     MemorySourceSink, MemoryToolMemory, MemoryTree, PersonHandle, PersonInteraction, PersonRecord,
     PersonScore, ProfileFacet, RankedPerson, ResolvedPerson, RetrievalHit, RetrievalResponse,
     SourceRetrievalQuery, UserState,
