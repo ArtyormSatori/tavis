@@ -38,6 +38,7 @@ fn capability_has_exactly_the_eighteen_contract_families() {
             "chunks",
             "retrieval",
             "profile",
+            "episodic",
         ]
     );
 }
