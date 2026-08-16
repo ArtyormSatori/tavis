@@ -6,8 +6,10 @@ use crate::openhuman::memory::api::capabilities::{Capabilities, Capability};
 use crate::openhuman::memory::api::error::MemoryError;
 use crate::openhuman::memory::api::health::MemoryHealth;
 use crate::openhuman::memory::api::provider::{
-    MemoryChunks, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryGoals, MemoryGraph,
-    MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryProfile, MemoryProvider, MemoryRetrieval,
+    MemoryChunks, MemoryDiff, MemoryDocuments, MemoryEntities, MemoryEpisodic, MemoryGoals,
+    MemoryGraph,
+    MemoryIngest, MemoryMaintenance, MemoryPeople, MemoryProfile, MemoryProvider,
+    MemoryRetrieval,
     MemorySourceSink, MemoryToolMemory, MemoryTree,
 };
 use async_trait::async_trait;
