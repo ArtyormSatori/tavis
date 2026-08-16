@@ -45,6 +45,9 @@ use crate::openhuman::memory::api::provider::people::{
 use crate::openhuman::memory::api::provider::profile::{
     FacetType, MemoryProfile, ProfileFacet, UserState,
 };
+use crate::openhuman::memory::api::provider::episodic::{
+    ConversationSegment, EpisodicTurn, MemoryEpisodic,
+};
 use crate::openhuman::memory::api::provider::retrieval::{
     CoverWindowQuery, EntityMatch, FastRetrieveQuery, MemoryRetrieval, RetrievalHit,
     RetrievalResponse, SourceRetrievalQuery,
@@ -192,6 +195,13 @@ decorator!(
     dyn MemoryRetrieval,
     as_retrieval,
     Retrieval
+);
+decorator!(
+    /// Guarded [`MemoryEpisodic`].
+    GuardedEpisodic,
+    dyn MemoryEpisodic,
+    as_episodic,
+    Episodic
 );
 decorator!(
     /// Guarded [`MemoryProfile`].
@@ -1079,6 +1089,137 @@ impl MemoryRetrieval for GuardedRetrieval {
 }
 
 // ── Profile ──────────────────────────────────────────────────────────────────
+
+#[async_trait]
+impl MemoryEpisodic for GuardedEpisodic {
+    async fn insert_turn(&self, turn: &EpisodicTurn) -> Result<i64, MemoryError> {
+        // A recorded turn is user-authored conversation content, so this is a
+        // write and is admitted as one — the read/write split here is about
+        // what the tier permits, not about how much data moves.
+        self.policy.admit_write(
+            Capability::Episodic,
+            "episodic.insert_turn",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.insert_turn(turn).await
+    }
+
+    async fn session_turns(&self, session_id: &str) -> Result<Vec<EpisodicTurn>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Episodic,
+            "episodic.session_turns",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.session_turns(session_id).await
+    }
+
+    async fn open_segment(
+        &self,
+        session_id: &str,
+    ) -> Result<Option<ConversationSegment>, MemoryError> {
+        self.policy.admit_read(
+            Capability::Episodic,
+            "episodic.open_segment",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.open_segment(session_id).await
+    }
+
+    async fn create_segment(
+        &self,
+        segment_id: &str,
+        session_id: &str,
+        namespace: &str,
+        start_episodic_id: i64,
+        start_timestamp: f64,
+        now: f64,
+    ) -> Result<(), MemoryError> {
+        // The only episodic call that names a namespace, so it is the only one
+        // that can be admitted against it.
+        self.policy.admit_write(
+            Capability::Episodic,
+            "episodic.create_segment",
+            Some(namespace),
+            false,
+        )?;
+        self.family()?
+            .create_segment(
+                segment_id,
+                session_id,
+                namespace,
+                start_episodic_id,
+                start_timestamp,
+                now,
+            )
+            .await
+    }
+
+    async fn append_turn(
+        &self,
+        segment_id: &str,
+        episodic_id: i64,
+        timestamp: f64,
+        now: f64,
+    ) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Episodic,
+            "episodic.append_turn",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?
+            .append_turn(segment_id, episodic_id, timestamp, now)
+            .await
+    }
+
+    async fn close_segment(&self, segment_id: &str, now: f64) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Episodic,
+            "episodic.close_segment",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?.close_segment(segment_id, now).await
+    }
+
+    async fn set_segment_summary(
+        &self,
+        segment_id: &str,
+        summary: &str,
+        now: f64,
+    ) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Episodic,
+            "episodic.set_segment_summary",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?
+            .set_segment_summary(segment_id, summary, now)
+            .await
+    }
+
+    async fn upsert_segment_embedding(
+        &self,
+        segment_id: &str,
+        model_signature: &str,
+        embedding: &[f32],
+        created_at: f64,
+    ) -> Result<(), MemoryError> {
+        self.policy.admit_write(
+            Capability::Episodic,
+            "episodic.upsert_segment_embedding",
+            NO_NAMESPACE,
+            false,
+        )?;
+        self.family()?
+            .upsert_segment_embedding(segment_id, model_signature, embedding, created_at)
+            .await
+    }
+}
 
 #[async_trait]
 impl MemoryProfile for GuardedProfile {
