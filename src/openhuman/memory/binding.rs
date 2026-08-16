@@ -346,7 +346,10 @@ fn module_provider(
 }
 
 #[cfg(all(feature = "modules", test))]
-fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
+fn module_provider(
+    _workspace_dir: &Path,
+    memory_subdir: &str,
+) -> (Arc<dyn MemoryProvider>, DriverClass) {
     // Unit tests do not run the full boot sequence that publishes the module
     // policy. A native module is loaded once per process and therefore captures
     // the first workspace it receives. Pin every test binding to the same
@@ -367,13 +370,19 @@ fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverCla
             });
     }
     (
-        Arc::new(crate::openhuman::modules::memory::ModuleMemoryProvider::new(Arc::new(config))),
+        Arc::new(
+            crate::openhuman::modules::memory::ModuleMemoryProvider::new(Arc::new(config))
+                .in_subdir(memory_subdir),
+        ),
         DriverClass::Module,
     )
 }
 
 #[cfg(not(feature = "modules"))]
-fn module_provider(_workspace_dir: &Path) -> (Arc<dyn MemoryProvider>, DriverClass) {
+fn module_provider(
+    _workspace_dir: &Path,
+    _memory_subdir: &str,
+) -> (Arc<dyn MemoryProvider>, DriverClass) {
     log::warn!(
         "[memory:binding] the 'modules' feature is disabled; binding the null memory provider"
     );
