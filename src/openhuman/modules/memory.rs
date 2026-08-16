@@ -989,7 +989,12 @@ impl MemoryRetrieval for ModuleMemoryProvider {
         chunk_ids: &[String],
         scope: Option<&SourceScope>,
     ) -> Result<Vec<RetrievalHit>, MemoryError> {
-        module_call!(self, "retrieve_leaves", "RetrieveLeaves", (chunk_ids, scope))
+        module_call!(
+            self,
+            "retrieve_leaves",
+            "RetrieveLeaves",
+            (chunk_ids, scope)
+        )
     }
     async fn recall_namespace_scored(
         &self,
