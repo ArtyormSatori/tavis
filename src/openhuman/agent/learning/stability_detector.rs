@@ -177,6 +177,7 @@ impl StabilityDetector {
     /// 6. Apply per-class budgets (demote excess Active → Provisional).
     /// 7. Persist changes and delete Dropped rows.
     /// 8. Emit `DomainEvent::CacheRebuilt`.
+    ///
     /// Async since the facet store moved behind the memory driver.
     pub async fn rebuild(&self, now: f64) -> anyhow::Result<RebuildOutcome> {
         tracing::debug!("[learning::stability] rebuild starting at t={now:.0}");
