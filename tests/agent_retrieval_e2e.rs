@@ -385,6 +385,7 @@ async fn cross_chat_entity_index_spans_source_boundaries() {
 /// set at ingest time.
 #[tokio::test]
 async fn fetch_leaves_hydrates_source_ref_for_cited_chunks() {
+    ensure_memory_seams();
     let (tmp, cfg) = test_config();
 
     // Ingest an email thread with explicit source_refs on every message.
