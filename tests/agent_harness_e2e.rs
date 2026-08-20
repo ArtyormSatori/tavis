@@ -2512,17 +2512,6 @@ mod streaming_support {
         Arc::from(memory_store::create_memory(&cfg, path).unwrap())
     }
 
-    
-    #[async_trait]
-    impl MemoryLoader for NullMemoryLoader {
-        async fn load_context(
-            &self,
-            _memory: &dyn Memory,
-            _user_message: &str,
-        ) -> anyhow::Result<String> {
-            Ok(String::new())
-        }
-    }
 
     pub fn agent_with_s(
         provider: Arc<dyn ChatModel<()>>,
