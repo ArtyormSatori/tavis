@@ -124,6 +124,7 @@ pub async fn collect_recall_citations(
 mod tests {
     use super::*;
     use crate::openhuman::memory::{Memory, MemoryCategory, MemoryEntry};
+    use async_trait::async_trait;
 
     struct MockMemory {
         entries: Vec<MemoryEntry>,
