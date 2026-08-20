@@ -599,6 +599,7 @@ impl AgentBuilder {
             auto_save: self.auto_save.unwrap_or(false),
             last_memory_context: None,
             last_turn_citations: Vec::new(),
+            pending_citations: None,
             last_turn_usage_totals: None,
             last_turn_hit_cap: false,
             history: Vec::new(),
