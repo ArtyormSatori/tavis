@@ -717,16 +717,23 @@ impl Agent {
                 self.last_turn_citations.clear();
             }
         }
-        let context = self
-            .memory_loader
-            .load_context(self.memory.as_ref(), user_message)
-            .await
-            .unwrap_or_default();
-
-        // ── Phase 3 STM preemptive recall ────────────────────────────
-        // On the very first turn only, assemble a bounded cross-thread
-        // context block from the FTS5 episodic arm (keyword match) and the
-        let mut context = context;
+        // No per-turn memory-context block is assembled here any more.
+        //
+        // `memory_loader.load_context()` used to prepend `[User working
+        // memory]`, `[Prior conversations]` and `[Cross-chat context]` to every
+        // user message. It cost two full scans of the `global` namespace per
+        // turn — every document and every vector chunk, decoded and scored — to
+        // contribute at most nine lines, and the cost grew with everything the
+        // user had ever said. Benchmarked at ~10k memories it was the dominant
+        // per-turn cost by a wide margin, and the `[User working memory]` arm
+        // in particular scanned the whole namespace only to filter the results
+        // down to a `working.user.` key prefix, so it returned nothing at all
+        // once ordinary chat crowded the ranking.
+        //
+        // Memory is still available to the agent — `memory_recall` and the rest
+        // of the memory tools are unchanged, so the model fetches what it needs
+        // when it needs it, rather than every turn paying for a broad guess.
+        let mut context = String::new();
 
         // ── Lane B: situational preferences (every turn) ─────────────────────
         // Recall topic-scoped preferences semantically relevant to THIS message
