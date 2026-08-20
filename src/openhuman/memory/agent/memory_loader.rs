@@ -1,15 +1,6 @@
-use std::path::PathBuf;
-
 use crate::openhuman::memory::Memory;
 use crate::openhuman::util::provenance_tag;
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-
-use crate::openhuman::agent::harness::memory_context::{
-    CROSS_CHAT_LIMIT, CROSS_CHAT_SNIPPET_CHARS, WORKING_MEMORY_KEY_PREFIX, WORKING_MEMORY_LIMIT,
-};
-use crate::openhuman::agent::learning::transcript_ingest::CONVERSATION_MEMORY_NAMESPACE;
-use crate::openhuman::memory::conversations::blocking as conversations_blocking;
 
 /// Maximum number of `[Prior conversations]` lines surfaced into the prompt
 /// at the start of a fresh chat. Tight cap on purpose: this block is meant
