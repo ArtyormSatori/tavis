@@ -88,6 +88,21 @@ pub struct Agent {
     /// Consumed by web-channel delivery to render source chips in the UI.
     pub(super) last_turn_citations:
         Vec<crate::openhuman::memory::agent::memory_loader::MemoryCitation>,
+    /// In-flight citation recall for the current turn.
+    ///
+    /// Citations are UI-only — they render source chips and never enter the
+    /// prompt — but collecting them is a full recall, which on a large memory
+    /// store is one of the most expensive things a turn does. Running it inline
+    /// before the model call meant every reply waited on a scan whose result the
+    /// model never sees.
+    ///
+    /// It is spawned instead, so the scan overlaps the inference round-trip, and
+    /// joined only when a consumer actually asks for the citations — which
+    /// happens after the turn returns. The contract is unchanged: callers still
+    /// get the citations for the turn they just ran.
+    pub(super) pending_citations: Option<
+        tokio::task::JoinHandle<Vec<crate::openhuman::memory::agent::memory_loader::MemoryCitation>>,
+    >,
     /// Holistic token/cost/context accounting for the most recent turn (parent +
     /// any sub-agents spawned during it). Consumed by web-channel delivery to
     /// surface session token/cost/context meters in the UI footer. `None` until
