@@ -142,14 +142,6 @@ impl AgentBuilder {
         self
     }
 
-    /// Sets the memory loader for the agent.
-    pub fn memory_loader(
-        mut self,
-        memory_loader: Box<dyn crate::openhuman::memory::agent::memory_loader::MemoryLoader>,
-    ) -> Self {
-        self.memory_loader = Some(memory_loader);
-        self
-    }
 
     /// Sets the agent configuration.
     pub fn config(mut self, config: crate::openhuman::config::AgentConfig) -> Self {
@@ -598,9 +590,6 @@ impl AgentBuilder {
                 self.tool_dispatcher
                     .ok_or_else(|| anyhow::anyhow!("tool_dispatcher is required"))?,
             ),
-            memory_loader: self
-                .memory_loader
-                .unwrap_or_else(|| Box::new(DefaultMemoryLoader::default())),
             config,
             model_name,
             model_vision: self.model_vision.unwrap_or(false),

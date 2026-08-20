@@ -16,7 +16,6 @@ use crate::openhuman::agent::messages::{ChatMessage, ConversationMessage};
 use crate::openhuman::agent::progress::AgentProgress;
 use crate::openhuman::agent::tinyagents::TurnModelSource;
 use crate::openhuman::agent::tool_policy::ToolPolicy;
-use crate::openhuman::memory::agent::memory_loader::MemoryLoader;
 use crate::openhuman::memory::Memory;
 use crate::openhuman::tools::agent_policy::ToolPolicySession;
 use crate::openhuman::tools::{Tool, ToolSpec};
@@ -63,7 +62,6 @@ pub struct Agent {
     // `Arc` (not `Box`) so the tinyagents turn path can hold a cheap clone of
     // the dispatcher without borrowing the `Agent` while session state mutates.
     pub(super) tool_dispatcher: Arc<dyn ToolDispatcher>,
-    pub(super) memory_loader: Box<dyn MemoryLoader>,
     pub(super) config: crate::openhuman::config::AgentConfig,
     pub(super) model_name: String,
     /// User-configured vision capability for [`Self::model_name`], evaluated at
@@ -419,7 +417,6 @@ pub struct AgentBuilder {
     pub(super) shared_experience_memory: Option<Arc<dyn Memory>>,
     pub(super) prompt_builder: Option<SystemPromptBuilder>,
     pub(super) tool_dispatcher: Option<Box<dyn ToolDispatcher>>,
-    pub(super) memory_loader: Option<Box<dyn MemoryLoader>>,
     pub(super) config: Option<crate::openhuman::config::AgentConfig>,
     /// Optional [`ContextConfig`] override threaded through from
     /// `Agent::from_config`. When unset the builder falls back to
