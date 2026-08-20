@@ -1,5 +1,4 @@
 use crate::openhuman::memory::Memory;
-use crate::openhuman::util::provenance_tag;
 use serde::{Deserialize, Serialize};
 
 /// Maximum number of `[Prior conversations]` lines surfaced into the prompt
