@@ -697,26 +697,39 @@ impl Agent {
         log::info!("[agent] loading memory context for user message");
         const MEMORY_CITATION_LIMIT: usize = 5;
         const MEMORY_CITATION_MIN_RELEVANCE: f64 = 0.4;
-        match collect_recall_citations(
-            self.memory.as_ref(),
-            user_message,
-            MEMORY_CITATION_LIMIT,
-            MEMORY_CITATION_MIN_RELEVANCE,
-        )
-        .await
-        {
-            Ok(citations) => {
-                log::debug!(
-                    "[agent_loop] memory citations collected count={}",
-                    citations.len()
-                );
-                self.last_turn_citations = citations;
-            }
-            Err(err) => {
-                log::warn!("[agent_loop] memory citation collection failed: {err}");
-                self.last_turn_citations.clear();
-            }
+        // Spawned, not awaited: see `Agent::pending_citations`. The result is
+        // UI-only, so the turn must not wait for it before calling the model.
+        self.last_turn_citations.clear();
+        if let Some(previous) = self.pending_citations.take() {
+            // A turn that never had its citations collected leaves a task
+            // behind; abort it rather than letting a stale recall outlive the
+            // turn it belonged to.
+            previous.abort();
         }
+        let citation_memory = self.memory.clone();
+        let citation_query = user_message.to_string();
+        self.pending_citations = Some(tokio::spawn(async move {
+            match collect_recall_citations(
+                citation_memory.as_ref(),
+                &citation_query,
+                MEMORY_CITATION_LIMIT,
+                MEMORY_CITATION_MIN_RELEVANCE,
+            )
+            .await
+            {
+                Ok(citations) => {
+                    log::debug!(
+                        "[agent_loop] memory citations collected count={}",
+                        citations.len()
+                    );
+                    citations
+                }
+                Err(err) => {
+                    log::warn!("[agent_loop] memory citation collection failed: {err}");
+                    Vec::new()
+                }
+            }
+        }));
         // No per-turn memory-context block is assembled here any more.
         //
         // `memory_loader.load_context()` used to prepend `[User working
