@@ -878,7 +878,7 @@ async fn turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_e
     assert_eq!(err_calls.load(Ordering::SeqCst), 1);
     assert_eq!(boom_calls.load(Ordering::SeqCst), 1);
     assert_eq!(write_calls.load(Ordering::SeqCst), 0);
-    assert!(agent.take_last_turn_citations().is_empty());
+    assert!(agent.take_last_turn_citations().await.is_empty());
 
     timeout(Duration::from_secs(1), async {
         loop {
