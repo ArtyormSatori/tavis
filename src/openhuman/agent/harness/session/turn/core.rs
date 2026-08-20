@@ -676,7 +676,7 @@ impl Agent {
             tokio::spawn(async move {
                 match memory
                     .store(
-                        "",
+                        crate::openhuman::agent::learning::transcript_ingest::CONVERSATION_RAW_NAMESPACE,
                         &autosave_key,
                         &user_msg,
                         MemoryCategory::Conversation,
