@@ -14,7 +14,6 @@ use crate::openhuman::agent::harness::session::types::Agent;
 use crate::openhuman::agent::host_runtime;
 use crate::openhuman::config::Config;
 use crate::openhuman::inference::provider;
-use crate::openhuman::memory::agent::memory_loader::DefaultMemoryLoader;
 use crate::openhuman::memory::tool_memory::capture::ToolMemoryCaptureHook;
 use crate::openhuman::memory::Memory;
 use crate::openhuman::security::SecurityPolicy;

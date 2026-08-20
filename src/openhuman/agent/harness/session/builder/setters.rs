@@ -8,7 +8,6 @@ use crate::openhuman::agent::context::ContextManager;
 use crate::openhuman::agent::harness::session::types::{Agent, AgentBuilder};
 use crate::openhuman::agent::harness::TriggerMemoryAgent;
 use crate::openhuman::config::ContextConfig;
-use crate::openhuman::memory::agent::memory_loader::DefaultMemoryLoader;
 use crate::openhuman::memory::Memory;
 use crate::openhuman::tools::agent_policy::ToolPolicyEngine;
 use crate::openhuman::tools::{Tool, ToolSpec};
@@ -27,7 +26,6 @@ impl AgentBuilder {
             shared_experience_memory: None,
             prompt_builder: None,
             tool_dispatcher: None,
-            memory_loader: None,
             config: None,
             context_config: None,
             model_name: None,
