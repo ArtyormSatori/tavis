@@ -2512,7 +2512,6 @@ mod streaming_support {
         Arc::from(memory_store::create_memory(&cfg, path).unwrap())
     }
 
-
     pub fn agent_with_s(
         provider: Arc<dyn ChatModel<()>>,
         tools: Vec<Box<dyn Tool>>,

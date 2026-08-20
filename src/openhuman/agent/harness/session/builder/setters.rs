@@ -140,7 +140,6 @@ impl AgentBuilder {
         self
     }
 
-
     /// Sets the agent configuration.
     pub fn config(mut self, config: crate::openhuman::config::AgentConfig) -> Self {
         self.config = Some(config);

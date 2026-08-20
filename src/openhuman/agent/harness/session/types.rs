@@ -101,7 +101,9 @@ pub struct Agent {
     /// happens after the turn returns. The contract is unchanged: callers still
     /// get the citations for the turn they just ran.
     pub(super) pending_citations: Option<
-        tokio::task::JoinHandle<Vec<crate::openhuman::memory::agent::memory_loader::MemoryCitation>>,
+        tokio::task::JoinHandle<
+            Vec<crate::openhuman::memory::agent::memory_loader::MemoryCitation>,
+        >,
     >,
     /// Holistic token/cost/context accounting for the most recent turn (parent +
     /// any sub-agents spawned during it). Consumed by web-channel delivery to

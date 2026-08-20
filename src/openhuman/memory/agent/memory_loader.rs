@@ -51,8 +51,6 @@ fn memory_entry_date_label(timestamp: &str) -> Option<String> {
 pub const CROSS_CHAT_HEADER: &str =
     "[Cross-chat context — historical; capabilities may have changed since]\n";
 
-
-
 /// Lightweight citation object derived from recalled memory entries.
 ///
 /// These citations are attached to agent responses so the UI can show
@@ -68,8 +66,6 @@ pub struct MemoryCitation {
     pub timestamp: String,
     pub snippet: String,
 }
-
-
 
 /// Collect citation metadata from semantic memory recall for a user turn.
 ///
@@ -118,7 +114,6 @@ pub async fn collect_recall_citations(
 
     Ok(citations)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -243,5 +238,4 @@ mod tests {
     }
 
     // ── Cross-chat context (#1505) ───────────────────────────────────────
-
 }
