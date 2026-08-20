@@ -12,7 +12,6 @@ use openhuman_core::openhuman::agent::tool_policy::{
     ToolPolicy, ToolPolicyDecision, ToolPolicyRequest,
 };
 use openhuman_core::openhuman::agent::Agent;
-use openhuman_core::openhuman::memory::agent::memory_loader::MemoryLoader;
 use openhuman_core::openhuman::config::{AgentConfig, Config, ContextConfig, MemoryConfig};
 use openhuman_core::openhuman::agent::messages::ConversationMessage;
 use openhuman_core::openhuman::memory::{
@@ -323,25 +322,6 @@ impl Memory for StaticMemory {
     }
 }
 
-struct StaticMemoryLoader {
-    context: String,
-    fail: bool,
-}
-
-#[async_trait]
-impl MemoryLoader for StaticMemoryLoader {
-    async fn load_context(
-        &self,
-        _memory: &dyn Memory,
-        _user_message: &str,
-    ) -> anyhow::Result<String> {
-        if self.fail {
-            anyhow::bail!("forced loader failure");
-        }
-        Ok(self.context.clone())
-    }
-}
-
 struct RecordingHook {
     calls: Arc<AsyncMutex<Vec<TurnContext>>>,
     notify: Arc<Notify>,
@@ -612,10 +592,6 @@ fn agent_with(
         .chat_model(model)
         .tools(tools)
         .memory(memory_for_workspace(&workspace_path))
-        .memory_loader(Box::new(StaticMemoryLoader {
-            context: String::new(),
-            fail: false,
-        }))
         .tool_dispatcher(dispatcher)
         .workspace_dir(workspace_path)
         .event_context("round17-session", "round17-channel")
@@ -846,10 +822,6 @@ async fn turn_xml_failures_checkpoint_policy_visibility_and_hooks_are_publicly_e
                 taint: Default::default(),
             }]),
             fail_recall: true,
-        }))
-        .memory_loader(Box::new(StaticMemoryLoader {
-            context: "[round17 injected context]\n".to_string(),
-            fail: true,
         }))
         .tool_dispatcher(Box::new(XmlToolDispatcher))
         .workspace_dir(workspace_path)
