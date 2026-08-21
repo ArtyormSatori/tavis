@@ -80,9 +80,8 @@ impl CoreContext {
     /// workspace-bound init. Order is load-bearing and mirrors the original
     /// `run_server_inner` sequence:
     ///
-    /// 1. register controllers, 2. master key, 3. AgentBox GMI provider,
-    /// 4. seed RPC bearer, 5. workspace stores ([`init_stores`]),
-    /// 6. pure runtime registration.
+    /// 1. register controllers, 2. master key, 3. seed RPC bearer,
+    /// 4. workspace stores ([`init_stores`]), 5. pure runtime registration.
     pub async fn init(
         host_kind: HostKind,
         token: &TokenSource,
