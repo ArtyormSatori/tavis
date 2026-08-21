@@ -313,17 +313,16 @@ const AppearancePanel = () => {
               data-testid="font-size-custom-number"
             />
           </div>
-          <input
+          <Slider
             id="font-size-slider"
-            type="range"
             min={MIN_FONT_SIZE_PX}
             max={MAX_FONT_SIZE_PX}
             step={1}
-            value={effectiveFontSizePx}
-            onChange={handleFontSizeSlider}
-            aria-label={t('settings.appearance.fontSizeCustomSliderAria')}
+            value={[effectiveFontSizePx]}
+            onValueChange={handleFontSizeSlider}
+            thumbLabels={[t('settings.appearance.fontSizeCustomSliderAria')]}
             aria-valuetext={`${effectiveFontSizePx}${t('settings.appearance.fontSizeUnit')}`}
-            className="w-full mt-3 accent-primary-500 cursor-pointer"
+            className="mt-3"
             data-testid="font-size-slider"
           />
           <div className="flex items-center justify-between mt-1 text-[11px] text-content-faint">
