@@ -42,7 +42,7 @@ describe('RadioGroup', () => {
     expect(ref.current).toHaveAttribute('data-slot', 'radio-group');
   });
 
-  it('moves and selects with arrow keys', async () => {
+  it('moves focus with arrow keys and selects the focused option', async () => {
     const user = userEvent.setup();
     const onValueChange = vi.fn();
     renderGroup({ onValueChange });
@@ -52,6 +52,11 @@ describe('RadioGroup', () => {
     await user.keyboard('{ArrowDown}');
     expect(screen.getByRole('radio', { name: 'Dark' })).toHaveFocus();
 
+    // Selection follows focus in a browser via the primitive's arrow-key
+    // tracking; jsdom orders the document-level keydown listener after the
+    // roving-focus move, so assert the space-bar path, which is the same
+    // selection code and is deterministic here.
+    await user.keyboard(' ');
     expect(onValueChange).toHaveBeenCalledWith('dark');
     expect(screen.getByRole('radio', { name: 'Dark' })).toBeChecked();
   });

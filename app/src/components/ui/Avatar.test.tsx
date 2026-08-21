@@ -11,7 +11,7 @@ describe('Avatar', () => {
     render(
       <AvatarRoot data-testid="avatar">
         <AvatarImage src="https://example.test/a.png" alt="Ada" />
-        <AvatarFallback delayMs={0}>AD</AvatarFallback>
+        <AvatarFallback>AD</AvatarFallback>
       </AvatarRoot>
     );
 
@@ -70,7 +70,7 @@ describe('Avatar', () => {
     const { container } = render(
       <AvatarRoot>
         <AvatarImage src="https://example.test/a.png" alt="Ada" />
-        <AvatarFallback delayMs={0}>AD</AvatarFallback>
+        <AvatarFallback>AD</AvatarFallback>
       </AvatarRoot>
     );
 
