@@ -272,13 +272,10 @@ const TeamManagementPanel = () => {
                 <p className="text-xs text-coral-600 dark:text-coral-300">{error}</p>
               </div>
             )}
-            <label
-              htmlFor="team-name-input"
-              className="block text-sm font-medium text-content-secondary mb-2">
+            <label className="block text-sm font-medium text-content-secondary mb-2">
               {t('team.teamName')}
             </label>
             <SettingsTextField
-              id="team-name-input"
               value={editTeamName}
               onChange={e => setEditTeamName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && void handleUpdateTeam()}
