@@ -462,75 +462,20 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
         )}
 
         {/* Model & dimensions (for active provider with catalog models) */}
-        {currentModels.length > 0 &&
-          selectedProvider !== 'custom' &&
-          selectedProvider !== 'none' && (
-            <SettingsSection>
-              {currentModels.length > 1 && (
-                <SettingsRow
-                  htmlFor="embeddings-model"
-                  label={t('settings.embeddings.model')}
-                  stacked
-                  control={
-                    <SettingsSelect
-                      id="embeddings-model"
-                      value={settings.model}
-                      onChange={e => void handleModelChange(e.target.value)}
-                      className="w-full">
-                      {currentModels.map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.label} ({m.id})
-                        </option>
-                      ))}
-                    </SettingsSelect>
-                  }
-                />
-              )}
-
-              {allowedDims.length > 1 && (
-                <SettingsRow
-                  htmlFor="embeddings-dims"
-                  label={t('settings.embeddings.dimensions')}
-                  stacked
-                  control={
-                    <SettingsSelect
-                      id="embeddings-dims"
-                      value={settings.dimensions}
-                      onChange={e => void handleDimsChange(Number(e.target.value))}
-                      className="w-full">
-                      {allowedDims.map(d => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </SettingsSelect>
-                  }
-                />
-              )}
-
-              {/* Active provider info + actions */}
-              <div className="flex items-center gap-2 px-4 py-3">
-                {currentEntry?.requires_api_key && currentEntry.has_api_key && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    tone="danger"
-                    size="xs"
-                    onClick={() => void handleClearKey()}>
-                    {t('settings.embeddings.clearKey')}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="xs"
-                  onClick={() => void handleTestConnection()}
-                  disabled={selectedProvider === 'none' || managedRequiresLogin}>
-                  {t('settings.embeddings.testConnection')}
-                </Button>
-              </div>
-            </SettingsSection>
-          )}
+        {currentModels.length > 0 && selectedProvider !== 'custom' && selectedProvider !== 'none' && (
+          <EmbeddingsModelSection
+            currentModels={currentModels}
+            allowedDims={allowedDims}
+            model={settings.model}
+            dimensions={settings.dimensions}
+            onModelChange={modelId => void handleModelChange(modelId)}
+            onDimsChange={dims => void handleDimsChange(dims)}
+            canClearKey={Boolean(currentEntry?.requires_api_key && currentEntry.has_api_key)}
+            onClearKey={() => void handleClearKey()}
+            onTestConnection={() => void handleTestConnection()}
+            testConnectionDisabled={selectedProvider === 'none' || managedRequiresLogin}
+          />
+        )}
 
         {/* Status bar */}
         <SettingsStatusLine
