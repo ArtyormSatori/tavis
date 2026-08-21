@@ -18,6 +18,7 @@ import {
   setPersonaDisplayName,
 } from '../../../store/personaSlice';
 import Button from '../../ui/Button';
+import { ToggleGroupItem, ToggleGroupRoot } from '../../ui/ToggleGroup';
 import { SettingsRow, SettingsSection, SettingsTextArea, SettingsTextField } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import SettingsPanel from '../layout/SettingsPanel';
