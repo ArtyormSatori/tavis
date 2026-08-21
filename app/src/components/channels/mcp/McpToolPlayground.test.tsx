@@ -12,6 +12,26 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import McpToolPlayground, { parseToolArgs } from './McpToolPlayground';
 import type { McpTool } from './types';
 
+/**
+ * Radix registers its outside-pointer listener in a macrotask, so the render
+ * that opened the dialog cannot immediately be dismissed by it. Tests that act
+ * synchronously right after render observe no listener at all, so they flush
+ * first — same helper as `ui/ModalShell.test.tsx`.
+ */
+async function flushDeferredWork(): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/**
+ * Radix treats an outside interaction as pointerdown *followed by* a click —
+ * it waits for the click so dragging out of a dialog doesn't dismiss it.
+ * Firing pointerdown alone dismisses nothing.
+ */
+function dismissByOutsideClick(overlay: HTMLElement): void {
+  fireEvent.pointerDown(overlay);
+  fireEvent.click(overlay);
+}
+
 const TOOL: McpTool = {
   name: 'read_file',
   description: 'Reads a file from disk and returns its contents.',
