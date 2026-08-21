@@ -34,3 +34,14 @@ pub mod store;
 pub mod types;
 
 pub use types::{ActiveGateway, Gateway, GatewaySpec, GatewayStatus};
+
+// Test modules are declared here rather than beside each file so they resolve
+// as siblings in this directory. Each is named for the module it covers.
+#[cfg(test)]
+mod ops_tests;
+#[cfg(test)]
+mod registry_tests;
+#[cfg(test)]
+mod store_tests;
+#[cfg(test)]
+mod types_tests;

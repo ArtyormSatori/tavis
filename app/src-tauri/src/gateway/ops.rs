@@ -524,5 +524,3 @@ async fn destroy_quietly(sandbox: &dyn Sandbox, box_id: &BoxId) {
     }
 }
 
-#[cfg(test)]
-mod ops_tests;

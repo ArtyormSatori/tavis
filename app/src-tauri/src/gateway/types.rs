@@ -216,5 +216,3 @@ pub enum GatewayStatus {
     },
 }
 
-#[cfg(test)]
-mod types_tests;

@@ -175,5 +175,3 @@ pub async fn shutdown() {
     }
 }
 
-#[cfg(test)]
-mod registry_tests;

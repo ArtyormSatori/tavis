@@ -139,5 +139,3 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(test)]
-mod store_tests;
