@@ -133,13 +133,14 @@ const TransportBadge = ({ transport }: { transport: Transport }) => {
  * a server's website/repo never also triggers the row's install action.
  */
 const ExternalLink = ({ href, label }: { href: string; label: string }) => (
-  <button
-    type="button"
+  <Button
+    variant="tertiary"
+    size="xs"
     onClick={e => {
       e.stopPropagation();
       void openUrl(href).catch(() => {});
     }}
-    className="inline-flex items-center gap-0.5 text-[11px] text-primary-600 dark:text-primary-400 hover:underline">
+    className="h-auto gap-0.5 p-0 text-[11px] font-normal text-primary-600 hover:underline dark:text-primary-400">
     {label}
     <svg
       className="w-2.5 h-2.5"
@@ -154,7 +155,7 @@ const ExternalLink = ({ href, label }: { href: string; label: string }) => (
         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
       />
     </svg>
-  </button>
+  </Button>
 );
 
 /**
