@@ -839,7 +839,6 @@ mod tests {
     #[tokio::test]
     async fn inline_code_cannot_write_to_sibling_profile() {
         use crate::openhuman::agent::host_runtime::NativeRuntime;
-        use crate::openhuman::config::schema::NodeConfig;
         use crate::openhuman::security::policy::ActiveProfileGuard;
         use crate::openhuman::security::AutonomyLevel;
 

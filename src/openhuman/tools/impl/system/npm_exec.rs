@@ -636,7 +636,6 @@ mod tests {
     #[tokio::test]
     async fn args_cannot_target_sibling_profile() {
         use crate::openhuman::agent::host_runtime::NativeRuntime;
-        use crate::openhuman::config::schema::NodeConfig;
         use crate::openhuman::security::policy::ActiveProfileGuard;
         use crate::openhuman::security::AutonomyLevel;
 
@@ -677,7 +676,6 @@ mod tests {
     #[tokio::test]
     async fn symlinked_cwd_cannot_target_sibling_profile() {
         use crate::openhuman::agent::host_runtime::NativeRuntime;
-        use crate::openhuman::config::schema::NodeConfig;
         use crate::openhuman::security::policy::ActiveProfileGuard;
         use crate::openhuman::security::AutonomyLevel;
         use std::os::unix::fs::symlink;

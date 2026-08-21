@@ -17,7 +17,7 @@
 //! paths and sandboxed runs always use the per-call spawn.
 
 use crate::openhuman::agent::host_runtime::RuntimeAdapter;
-use crate::openhuman::runtime::python::{PythonBootstrap, ResolvedPython};
+use crate::openhuman::runtime::python::PythonBootstrap;
 use crate::openhuman::security::{CommandClass, GateDecision, SecurityPolicy};
 use crate::openhuman::tools::traits::{
     PermissionLevel, Tool, ToolCallOptions, ToolResult, ToolTimeout,
