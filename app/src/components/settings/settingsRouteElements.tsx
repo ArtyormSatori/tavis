@@ -6,7 +6,6 @@ import AboutPanel from './panels/AboutPanel';
 import AccountPanel from './panels/AccountPanel';
 import AgentAccessPanel from './panels/AgentAccessPanel';
 import AgentActivityPanel from './panels/AgentActivityPanel';
-import AgentBoxPanel from './panels/AgentBoxPanel';
 import AgentEditorPage from './panels/AgentEditorPage';
 import AgentsPanel from './panels/AgentsPanel';
 import AppearancePanel from './panels/AppearancePanel';
@@ -152,8 +151,7 @@ export function settingsRouteElements(): ReactNode {
       <Route
         path="tool-policy-diagnostics"
         element={wrapSettingsPage(<ToolPolicyDiagnosticsPanel />)}
-      />
-      <Route path="agentbox" element={wrapSettingsPage(<AgentBoxPanel />)} />
+      />)} />
       <Route path="mcp-server" element={wrapSettingsPage(<McpServerPanel />)} />
       {/* Search engine settings moved to the Connections page. */}
       <Route path="search" element={<Navigate to="/connections?tab=search" replace />} />

@@ -43,7 +43,6 @@ type SettingsNavGroup =
   | 'connections'
   | 'knowledgeMemory'
   | 'agentsAutonomy'
-  | 'modelsInference'
   | 'automationIntegrations'
   | 'diagnosticsLogs';
 
@@ -54,7 +53,6 @@ const NAV_GROUP_ORDER: SettingsNavGroup[] = [
   'connections',
   'knowledgeMemory',
   'agentsAutonomy',
-  'modelsInference',
   'automationIntegrations',
   'diagnosticsLogs',
 ];
@@ -68,7 +66,6 @@ export const NAV_GROUP_LABEL_KEY: Record<SettingsNavGroup, string> = {
   // Promoted from the old Developer & Diagnostics sub-sections.
   knowledgeMemory: 'settings.devGroups.knowledgeMemory',
   agentsAutonomy: 'settings.devGroups.agentsAutonomy',
-  modelsInference: 'settings.devGroups.modelsInference',
   automationIntegrations: 'settings.devGroups.automationIntegrations',
   diagnosticsLogs: 'settings.devGroups.diagnosticsLogs',
 };
@@ -557,15 +554,6 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
     section: 'developer',
     devOnly: true,
     navGroup: 'diagnosticsLogs',
-  },
-  {
-    id: 'agentbox',
-    titleKey: 'settings.agentbox.title',
-    descriptionKey: 'settings.agentbox.desc',
-    section: 'developer',
-    devOnly: true,
-    navGroup: 'modelsInference',
-    searchKeywords: ['agentbox', 'gmi', 'maas', 'marketplace'],
   },
   // Automation & Integrations (debug)
   {

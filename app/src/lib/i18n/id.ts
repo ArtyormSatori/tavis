@@ -775,7 +775,6 @@ const messages: TranslationMap = {
   'settings.notifications.menuDesc': 'Kotak masuk peringatan dan preferensi notifikasi',
   'settings.devGroups.knowledgeMemory': 'Pengetahuan & Memori',
   'settings.devGroups.agentsAutonomy': 'Agen & Otonomi',
-  'settings.devGroups.modelsInference': 'Model & Inferensi',
   'settings.devGroups.automationIntegrations': 'Otomasi & Integrasi',
   'settings.devGroups.toolsCapabilities': 'Alat & Kemampuan',
   'settings.devGroups.council': 'Dewan',
@@ -5980,18 +5979,6 @@ const messages: TranslationMap = {
     'Jendela memori terkecil. Termurah, tercepat, kontinuitas paling sedikit antar run.',
   'settings.memoryWindow.minimal.label': 'Ringkas',
   'settings.memoryWindow.title': 'Jendela memori jangka panjang',
-  'settings.agentbox.title': 'AgentBox',
-  'settings.agentbox.desc': 'Status adaptor pasar GMI Cloud dan konfigurasi penyedia',
-  'settings.agentbox.intro':
-    'Status hanya-baca dari adaptor pasar AgentBox. Mode dan penyedia GMI MaaS diatur oleh variabel lingkungan saat inti dimulai.',
-  'settings.agentbox.modeLabel': 'Mode pasar',
-  'settings.agentbox.providerHeading': 'Penyedia GMI MaaS',
-  'settings.agentbox.slug': 'Slug penyedia',
-  'settings.agentbox.baseUrl': 'URL dasar',
-  'settings.agentbox.model': 'Model',
-  'settings.agentbox.notConfigured':
-    'Belum dikonfigurasi. Atur variabel lingkungan GMI_MAAS_BASE_URL, GMI_MAAS_API_KEY, dan GMI_MODELS.',
-  'settings.agentbox.unavailable': 'Status AgentBox tidak tersedia',
   'settings.modelHealth.title': 'Model Kesehatan',
   'settings.modelHealth.desc':
     'Kualitas permodel, tingkat halusinasi, dan perbandingan biaya di seluruh model aktif',

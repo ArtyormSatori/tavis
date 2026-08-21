@@ -781,7 +781,6 @@ const messages: TranslationMap = {
   'settings.notifications.menuDesc': 'Skrzynka odbiorcza alertów i preferencje powiadomień',
   'settings.devGroups.knowledgeMemory': 'Wiedza i pamięć',
   'settings.devGroups.agentsAutonomy': 'Agenci i autonomia',
-  'settings.devGroups.modelsInference': 'Modele i wnioskowanie',
   'settings.devGroups.automationIntegrations': 'Automatyzacja i integracje',
   'settings.devGroups.toolsCapabilities': 'Narzędzia i możliwości',
   'settings.devGroups.council': 'Rada',
@@ -6037,18 +6036,6 @@ const messages: TranslationMap = {
     'Najmniejsze okno pamięci. Najtańsze, najszybsze, najmniejsza ciągłość między uruchomieniami.',
   'settings.memoryWindow.minimal.label': 'Minimalne',
   'settings.memoryWindow.title': 'Okno pamięci długoterminowej',
-  'settings.agentbox.title': 'AgentBox',
-  'settings.agentbox.desc': 'Stan adaptera platformy handlowej GMI Cloud i konfiguracja dostawcy',
-  'settings.agentbox.intro':
-    'Stan tylko do odczytu adaptera platformy handlowej AgentBox. Tryb oraz dostawca GMI MaaS są ustawiane przez zmienne środowiskowe podczas uruchamiania rdzenia.',
-  'settings.agentbox.modeLabel': 'Tryb platformy handlowej',
-  'settings.agentbox.providerHeading': 'Dostawca GMI MaaS',
-  'settings.agentbox.slug': 'Identyfikator dostawcy',
-  'settings.agentbox.baseUrl': 'Podstawowy adres URL',
-  'settings.agentbox.model': 'Model',
-  'settings.agentbox.notConfigured':
-    'Nie skonfigurowano. Ustaw zmienne środowiskowe GMI_MAAS_BASE_URL, GMI_MAAS_API_KEY oraz GMI_MODELS.',
-  'settings.agentbox.unavailable': 'Stan AgentBox niedostępny',
   'settings.modelHealth.title': 'Kondycja modeli',
   'settings.modelHealth.desc':
     'Jakość, współczynnik halucynacji i porównanie kosztów aktywnych modeli',

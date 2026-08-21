@@ -752,7 +752,6 @@ const messages: TranslationMap = {
   'settings.notifications.menuDesc': 'صندوق التنبيهات وتفضيلات الإشعارات',
   'settings.devGroups.knowledgeMemory': 'المعرفة والذاكرة',
   'settings.devGroups.agentsAutonomy': 'الوكلاء والاستقلالية',
-  'settings.devGroups.modelsInference': 'النماذج والاستنتاج',
   'settings.devGroups.automationIntegrations': 'الأتمتة والتكاملات',
   'settings.devGroups.toolsCapabilities': 'الأدوات والقدرات',
   'settings.devGroups.council': 'المجلس',
@@ -5821,18 +5820,6 @@ const messages: TranslationMap = {
     'أصغر نافذة ذاكرة. الأرخص والأسرع وأقل استمرارية بين عمليات التشغيل.',
   'settings.memoryWindow.minimal.label': 'الحد الأدنى',
   'settings.memoryWindow.title': 'نافذة الذاكرة طويلة الأمد',
-  'settings.agentbox.title': 'AgentBox',
-  'settings.agentbox.desc': 'حالة محول سوق GMI Cloud وإعداد المزود',
-  'settings.agentbox.intro':
-    'حالة للقراءة فقط لمحول سوق AgentBox. يتم تعيين الوضع ومزود GMI MaaS عبر متغيرات البيئة عند بدء تشغيل النواة.',
-  'settings.agentbox.modeLabel': 'وضع السوق',
-  'settings.agentbox.providerHeading': 'مزود GMI MaaS',
-  'settings.agentbox.slug': 'معرّف المزود',
-  'settings.agentbox.baseUrl': 'عنوان URL الأساسي',
-  'settings.agentbox.model': 'النموذج',
-  'settings.agentbox.notConfigured':
-    'غير مُهيأ. عيّن متغيرات البيئة GMI_MAAS_BASE_URL وGMI_MAAS_API_KEY وGMI_MODELS.',
-  'settings.agentbox.unavailable': 'حالة AgentBox غير متوفرة',
   'settings.modelHealth.title': 'نموذج الصحة',
   'settings.modelHealth.desc':
     'الجودة حسب النموذج، ومعدل الهلوسة، ومقارنة التكاليف بين النماذج النشطة',

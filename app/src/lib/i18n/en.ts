@@ -537,7 +537,6 @@ const en: TranslationMap = {
   // Developer & Diagnostics: 7 sub-section group labels
   'settings.devGroups.knowledgeMemory': 'Knowledge & Memory',
   'settings.devGroups.agentsAutonomy': 'Agents & Autonomy',
-  'settings.devGroups.modelsInference': 'Models & Inference',
   'settings.devGroups.automationIntegrations': 'Automation & Integrations',
   'settings.devGroups.toolsCapabilities': 'Tools & Capabilities',
   'settings.devGroups.council': 'Council',
@@ -6552,18 +6551,6 @@ const en: TranslationMap = {
     'Smallest memory window. Cheapest, fastest, least continuity between runs.',
   'settings.memoryWindow.minimal.label': 'Minimal',
   'settings.memoryWindow.title': 'Long-term memory window',
-  'settings.agentbox.title': 'AgentBox',
-  'settings.agentbox.desc': 'GMI Cloud marketplace adapter status and provider wiring',
-  'settings.agentbox.intro':
-    'Read-only status of the AgentBox marketplace adapter. Mode and the GMI MaaS provider are set by environment variables when the core starts.',
-  'settings.agentbox.modeLabel': 'Marketplace mode',
-  'settings.agentbox.providerHeading': 'GMI MaaS provider',
-  'settings.agentbox.slug': 'Provider slug',
-  'settings.agentbox.baseUrl': 'Base URL',
-  'settings.agentbox.model': 'Model',
-  'settings.agentbox.notConfigured':
-    'Not configured. Set the GMI_MAAS_BASE_URL, GMI_MAAS_API_KEY, and GMI_MODELS environment variables.',
-  'settings.agentbox.unavailable': 'AgentBox status unavailable',
   'settings.modelHealth.title': 'Model Health',
   'settings.modelHealth.desc':
     'Per-model quality, hallucination rate, and cost comparison across active models',
