@@ -9,11 +9,12 @@
  * `.claude/rules/15-settings-modal-system.md`.
  *
  * The form fields + submit pipeline live in `CreateWorkflowForm` so the
- * `/skills/new` page can share the exact same body. This file is the
- * modal chrome: header, close-button, backdrop, Escape handler,
- * focus-return, submit/cancel footer. The footer's submit button is
- * wired to the form via the standard HTML `form=` attribute so we
- * don't need an imperative handle here.
+ * `/skills/new` page can share the exact same body. This file supplies
+ * the chrome through the shared `ModalShell` primitive — which owns the
+ * backdrop, Escape handling, focus trap and focus-return — plus the
+ * submit/cancel footer. The footer's submit button is wired to the form
+ * via the standard HTML `form=` attribute so we don't need an imperative
+ * handle here.
  */
 import debug from 'debug';
 import { useCallback, useState } from 'react';
@@ -39,6 +40,7 @@ export default function CreateSkillModal({ onClose, onCreated, editing }: Props)
   const { t } = useT();
   const [formValid, setFormValid] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
   const handleStateChange = useCallback((state: { valid: boolean; submitting: boolean }) => {
     setFormValid(state.valid);
     setSubmitting(state.submitting);
