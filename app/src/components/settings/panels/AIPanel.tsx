@@ -2207,7 +2207,10 @@ const CustomRoutingDialog = ({
     <ModalShell
       titleId="workload-routing-dialog-title"
       title={t('settings.ai.customRouting')}
-      subtitle={t(workload.labelKey)}
+      subtitle={<span id="workload-routing-dialog-subtitle">{t(workload.labelKey)}</span>}
+      // The dialog used to name itself "Custom routing for <workload>"; the
+      // title alone drops the workload, so keep the subtitle in the name.
+      labelledBy="workload-routing-dialog-title workload-routing-dialog-subtitle"
       onClose={onClose}
       contentClassName="px-6 py-4"
       footer={
@@ -3919,6 +3922,11 @@ const CloudProviderEditor = ({
         </>
       }
       onClose={onClose}
+      // The hand-rolled dialog had no backdrop, escape or close affordance at
+      // all: Cancel was the only way out and it was `disabled` while saving.
+      // Radix supplies all three, so re-apply that guard or an in-flight save
+      // can be dismissed out from under itself.
+      closePolicy={saving ? { escape: false, backdrop: false, button: false } : undefined}
       contentClassName="space-y-3 px-4 py-3"
       footer={
         <div className="flex items-center justify-end gap-2">
