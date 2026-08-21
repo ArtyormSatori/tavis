@@ -107,7 +107,6 @@ export function useAISettings() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload();
   }, [reload]);
 
@@ -217,7 +216,6 @@ export function useOllamaStatus() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
     const id = window.setInterval(() => void refresh(), 5000);
     return () => window.clearInterval(id);
