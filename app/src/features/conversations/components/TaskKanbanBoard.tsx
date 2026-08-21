@@ -397,7 +397,7 @@ function TaskBoardArticle({
               aria-label={t('conversations.taskKanban.moveLeft')}
               disabled={disabled || columnStatus === 'todo'}
               onClick={() => onMove(card, -1)}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-content-faint transition-colors hover:bg-surface-hover dark:bg-surface-muted hover:text-content-secondary dark:text-neutral-200 disabled:opacity-25">
+              className="flex h-7 w-7 items-center justify-center rounded-md text-content-faint transition-colors hover:bg-surface-hover hover:text-content-secondary disabled:opacity-25">
               <LuArrowLeft className="h-4 w-4" />
             </button>
             <button
@@ -406,7 +406,7 @@ function TaskBoardArticle({
               aria-label={t('conversations.taskKanban.moveRight')}
               disabled={disabled || columnStatus === 'done'}
               onClick={() => onMove(card, 1)}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-content-faint transition-colors hover:bg-surface-hover dark:bg-surface-muted hover:text-content-secondary dark:text-neutral-200 disabled:opacity-25">
+              className="flex h-7 w-7 items-center justify-center rounded-md text-content-faint transition-colors hover:bg-surface-hover hover:text-content-secondary disabled:opacity-25">
               <LuArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -876,7 +876,7 @@ function TaskBriefDialog({
   // over it. Portaling lifts it into the root stacking context, where `z-50`
   // means what it reads like. Same pattern as `components/ui/ModalShell`.
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 py-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay/30 px-4 py-6">
       <section className="max-h-full w-full max-w-xl overflow-y-auto rounded-lg border border-line bg-surface p-4 shadow-xl">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
