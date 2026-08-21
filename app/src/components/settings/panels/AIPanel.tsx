@@ -2211,7 +2211,7 @@ const CustomRoutingDialog = ({
       onClose={onClose}
       contentClassName="px-6 py-4"
       footer={
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             {t('common.cancel')}
           </Button>
@@ -3921,7 +3921,7 @@ const CloudProviderEditor = ({
       onClose={onClose}
       contentClassName="space-y-3 px-4 py-3"
       footer={
-        <div className="flex items-center justify-end gap-2 border-t border-line px-4 py-3">
+        <div className="flex items-center justify-end gap-2">
           <Button variant="secondary" size="xs" onClick={onClose} disabled={saving}>
             {t('common.cancel')}
           </Button>

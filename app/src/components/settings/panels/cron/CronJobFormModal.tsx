@@ -304,7 +304,7 @@ const CronJobFormModal = ({
       panelClassName="flex max-h-[90vh] flex-col"
       contentClassName="overflow-y-auto px-6 py-4"
       footer={
-        <div className="px-6 py-4 border-t border-line flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3">
           <Button
             type="button"
             variant="secondary"
