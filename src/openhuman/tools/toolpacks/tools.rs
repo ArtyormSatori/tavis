@@ -270,6 +270,26 @@ impl Tool for UseSkillTool {
         true
     }
 
+    fn external_effect_with_args(&self, args: &Value) -> bool {
+        match self.resolve(args) {
+            Some((tools, idx)) => {
+                let inner_args = args.get("args").cloned().unwrap_or_else(|| json!({}));
+                tools[idx].external_effect_with_args(&inner_args)
+            }
+            None => false,
+        }
+    }
+
+    fn timeout_policy(&self, args: &Value) -> crate::openhuman::tools::traits::ToolTimeout {
+        match self.resolve(args) {
+            Some((tools, idx)) => {
+                let inner_args = args.get("args").cloned().unwrap_or_else(|| json!({}));
+                tools[idx].timeout_policy(&inner_args)
+            }
+            None => crate::openhuman::tools::traits::ToolTimeout::Inherit,
+        }
+    }
+
     fn permission_level(&self) -> PermissionLevel {
         let Some(tools) = self.handle.tools() else {
             return PermissionLevel::Dangerous;
