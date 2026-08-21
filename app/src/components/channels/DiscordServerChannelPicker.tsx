@@ -239,7 +239,7 @@ const DiscordServerChannelPicker = ({
                 </optgroup>
               );
             })}
-          </select>
+          </NativeSelect>
         </div>
       )}
 
