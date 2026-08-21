@@ -99,7 +99,7 @@ export const UsageLedgerSection = ({
       <MetricTile
         label={t('settings.ai.weekBudget')}
         value={usage ? formatUsd(usage.cycleBudgetUsd) : 'n/a'}
-        detail={`resets ${usage ? new Date(usage.cycleEndsAt).toLocaleString() : 'n/a'}`}
+        detail={`resets ${formatDateTime(usage?.cycleEndsAt)}`}
       />
       <MetricTile
         label={t('settings.ai.cycleRemaining')}

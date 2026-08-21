@@ -467,14 +467,17 @@ export default function WorkflowCopilotPanel({
           <p className="text-sm font-semibold text-content">{t('flows.copilot.title')}</p>
           <p className="text-[11px] text-content-muted">{t('flows.copilot.subtitle')}</p>
         </div>
-        <button
+        <Button
           type="button"
+          variant="tertiary"
+          size="xs"
+          iconOnly
           data-testid="workflow-copilot-close"
           aria-label={t('flows.copilot.close')}
           onClick={onClose}
-          className="shrink-0 rounded-full p-1.5 text-content-faint hover:bg-surface-hover hover:text-content-secondary">
+          className="shrink-0 rounded-full">
           ✕
-        </button>
+        </Button>
       </header>
 
       {/* Full builder transcript — the SAME rich renderer the home composer
