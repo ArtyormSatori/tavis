@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { type NavTab } from '../../../config/navConfig';
-import { useNavTabs } from '../../../hooks/useNavTabs';
+import { NAV_TABS, type NavTab } from '../../../config/navConfig';
 import { registry } from '../../../lib/commands/registry';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { trackEvent } from '../../../services/analytics';
