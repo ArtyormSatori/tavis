@@ -30,8 +30,8 @@ vi.mock('../../services/coreProcessControl', () => ({
 describe('ChatNewWindowHero', () => {
   it('renders the greeting card without the core-recovery button by default', () => {
     blockingStateMock.current = 'ok';
-    render(<ChatNewWindowHero />);
-    expect(screen.getByTestId('home-card')).toBeTruthy();
+    const { container } = render(<ChatNewWindowHero />);
+    expect(container.querySelector('[data-walkthrough="home-card"]')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /restart/i })).toBeNull();
   });
 
