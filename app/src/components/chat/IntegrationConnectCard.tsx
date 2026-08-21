@@ -13,7 +13,7 @@ import {
   getRequiredFieldsForToolkit,
   validateRequiredFieldValues,
 } from '../composio/toolkitRequiredFields';
-import Button from '../ui/Button';
+import { Button, TextField } from '../ui';
 
 /**
  * Inline OAuth connect card (#3993).
