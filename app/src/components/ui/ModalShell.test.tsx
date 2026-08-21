@@ -3,6 +3,18 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { ModalShell } from './ModalShell';
 
+/**
+ * The dialog is backed by Radix, which portals the overlay and the panel as
+ * siblings — so the backdrop is no longer the panel's `parentElement`. These
+ * helpers name the contract ("the thing a user clicks to dismiss") instead of a
+ * particular DOM shape, so the tests survive the next implementation swap too.
+ */
+function overlay(): HTMLElement {
+  const element = document.querySelector('[data-slot="dialog-overlay"]');
+  if (!element) throw new Error('dialog overlay not rendered');
+  return element as HTMLElement;
+}
+
 vi.mock('../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (key: string) => key }) }));
 
 function renderModal(props: Partial<React.ComponentProps<typeof ModalShell>> = {}) {
@@ -22,7 +34,10 @@ describe('ModalShell', () => {
     trigger.focus();
 
     const { unmount } = renderModal();
-    expect(screen.getByRole('dialog')).toHaveFocus();
+    // Radix moves focus to the first focusable element inside the panel rather
+    // than to the panel itself, which is why this asserts containment rather
+    // than `toHaveFocus()` on the dialog node.
+    expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true);
 
     unmount();
     expect(trigger).toHaveFocus();
@@ -33,8 +48,9 @@ describe('ModalShell', () => {
     const { onClose } = renderModal();
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.pointerDown(screen.getByRole('dialog').parentElement!);
+    expect(onClose).toHaveBeenCalledTimes(1);
 
+    fireEvent.pointerDown(overlay());
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
@@ -44,7 +60,7 @@ describe('ModalShell', () => {
     });
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.pointerDown(screen.getByRole('dialog').parentElement!);
+    fireEvent.pointerDown(overlay());
     expect(onClose).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'common.close' }));
@@ -57,7 +73,7 @@ describe('ModalShell', () => {
     });
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.pointerDown(screen.getByRole('dialog').parentElement!);
+    fireEvent.pointerDown(overlay());
 
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'common.close' })).not.toBeInTheDocument();
