@@ -103,8 +103,9 @@ export default function CollapsedNavRail() {
         const showBadge = tab.id === 'notifications' && unreadCount > 0;
         return (
           <Tooltip key={tab.id} label={tab.label}>
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              iconOnly
               data-walkthrough={tab.walkthroughAttr}
               onClick={() => handleClick(tab, active)}
               aria-label={tab.label}
