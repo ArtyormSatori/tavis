@@ -75,7 +75,6 @@ export const UsageLedgerSection = ({
   subconsciousModelCallsPerWeek: number;
   subconsciousEnabled: boolean;
   activeConnectionsCount: number;
-  learningTicksPerWeek: number;
 }) => (
   <div className="rounded-lg border border-line bg-surface p-3">
     <div className="flex items-center justify-between gap-3">
