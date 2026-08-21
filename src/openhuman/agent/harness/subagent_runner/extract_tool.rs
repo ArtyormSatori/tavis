@@ -25,8 +25,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex as StdMutex};
 
 use async_trait::async_trait;
+use futures::stream::StreamExt;
 use serde_json::{json, Value};
-use tinyagents::graph::parallel::{map_reduce, FailurePolicy, ParallelOptions};
 
 use super::handoff::{chunk_content, ResultHandoffCache, HANDOFF_MAX_ENTRIES};
 use crate::openhuman::agent::harness::session::transcript::{
@@ -264,12 +264,12 @@ impl Tool for ExtractFromResultTool {
         );
 
         // Map stage: each chunk extracts items matching `query` from
-        // ITS OWN slice only. Dispatched through the shared bounded fan-out
-        // (`tinyagents::graph::parallel::map_reduce`), which keeps at most
-        // `MAP_CONCURRENCY` calls in flight and hands results back in input
-        // order. Fully parallel `join_all` was generating 504-gateway-timeout
-        // storms from the staging proxy when 7+ concurrent calls piled onto the
-        // upstream; batching at 3 trades some wall-clock time for reliability.
+        // ITS OWN slice only. Dispatched with bounded concurrency —
+        // `buffer_unordered(MAP_CONCURRENCY)` keeps at most N calls in
+        // flight at any time. Fully parallel `join_all` was generating
+        // 504-gateway-timeout storms from the staging proxy when 7+
+        // concurrent calls piled onto the upstream; batching at 3
+        // trades some wall-clock time for reliability.
         const MAP_CONCURRENCY: usize = 3;
         let total_chunks = chunks.len();
 
@@ -290,9 +290,10 @@ impl Tool for ExtractFromResultTool {
         // bakes it into `chat`).
         let model = self.model.clone();
 
-        // Each chunk's future owns its `String`: the fan-out polls lazily and
-        // needs futures with no borrows into the enclosing scope.
-        let extract_chunk = move |i: usize, chunk: String| {
+        // Consume `chunks` with `into_iter` so each async block owns
+        // its `String` — `buffer_unordered` polls the stream lazily
+        // and needs futures with no borrows into the enclosing scope.
+        let map_futures = chunks.into_iter().enumerate().map(|(i, chunk)| {
             let chat = chat.clone();
             let tool_name = cached.tool_name.clone();
             let query = query.to_string();
@@ -347,51 +348,38 @@ impl Tool for ExtractFromResultTool {
                     &model,
                 );
 
-                // The per-chunk result is the fan-out's *item*, not its error:
-                // a failed chunk is dropped below with a warning, and must not
-                // abort its siblings.
-                Ok(result)
+                (i, result)
             }
-        };
+        });
 
-        // `map_reduce` returns outcomes in input order, so the concatenated
-        // output keeps the natural ordering of the underlying tool result
-        // (e.g. Notion's reverse-chrono page list) with no re-sort here.
-        let outcome = map_reduce(
-            chunks,
-            ParallelOptions::default()
-                .with_max_concurrency(MAP_CONCURRENCY)
-                .with_failure_policy(FailurePolicy::BestEffort),
-            extract_chunk,
-        )
-        .await
-        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        let mut map_results: Vec<(usize, _)> = futures::stream::iter(map_futures)
+            .buffer_unordered(MAP_CONCURRENCY)
+            .collect()
+            .await;
+        // `buffer_unordered` yields futures in completion order; restore
+        // original chunk order so the concatenated output matches the
+        // natural ordering of the underlying tool result (e.g. Notion's
+        // reverse-chrono page list).
+        map_results.sort_by_key(|(i, _)| *i);
 
-        let partials: Vec<String> = outcome
-            .outcomes
+        let partials: Vec<String> = map_results
             .into_iter()
-            .filter_map(|item| {
-                let i = item.index;
-                // `BestEffort` never fails an item at the fan-out level; the
-                // inner `Result` is the provider call's own outcome.
-                let r = item.result.unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
-                match r {
-                    Ok(text) => {
-                        let trimmed = text.trim();
-                        if trimmed.is_empty() {
-                            None
-                        } else {
-                            Some(trimmed.to_string())
-                        }
-                    }
-                    Err(e) => {
-                        tracing::warn!(
-                            chunk_idx = i,
-                            error = %e,
-                            "[extract_from_result] map-stage provider call failed; dropping partial"
-                        );
+            .filter_map(|(i, r)| match r {
+                Ok(text) => {
+                    let trimmed = text.trim();
+                    if trimmed.is_empty() {
                         None
+                    } else {
+                        Some(trimmed.to_string())
                     }
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        chunk_idx = i,
+                        error = %e,
+                        "[extract_from_result] map-stage provider call failed; dropping partial"
+                    );
+                    None
                 }
             })
             .collect();
