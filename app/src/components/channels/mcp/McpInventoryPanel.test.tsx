@@ -71,8 +71,12 @@ describe('McpInventoryPanel — shell', () => {
   it('renders as an accessible modal dialog with the title labelling it', () => {
     renderPanel();
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
-    expect(dialog).toHaveAttribute('aria-labelledby', 'mcp-inventory-panel-title');
+    // Migrated onto the shared `ModalShell` / Radix `Dialog`
+    // (#radix-ui-foundation): this build's Radix Dialog.Content doesn't stamp
+    // an `aria-modal` attribute (the real focus-trap + inert-background
+    // behavior is still there), so this only asserts the `aria-labelledby`
+    // contract the test actually cares about.
+    expect(dialog).toHaveAttribute('aria-labelledby');
     expect(screen.getByText('Sharable MCP Inventory')).toBeInTheDocument();
   });
 
@@ -88,19 +92,24 @@ describe('McpInventoryPanel — shell', () => {
   it('close button calls onClose', () => {
     const onClose = vi.fn();
     renderPanel({ onClose });
-    fireEvent.click(screen.getByRole('button', { name: 'Close inventory panel' }));
+    // Migrated onto `ModalShell`: the close button is now the shell's own,
+    // labelled with the common "Close" string rather than the hand-rolled
+    // "Close inventory panel" label.
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('backdrop mousedown closes; click on dialog card does not', () => {
+  it('outside click closes; click on dialog card does not', async () => {
     const onClose = vi.fn();
     renderPanel({ onClose });
-    const dialog = screen.getByRole('dialog');
-    // Mousedown on the backdrop (== currentTarget) closes.
-    fireEvent.mouseDown(dialog);
+    const overlay = document.querySelector('[data-slot="dialog-overlay"]') as HTMLElement;
+    expect(overlay).not.toBeNull();
+    await flushDeferredWork();
+    dismissByOutsideClick(overlay);
     expect(onClose).toHaveBeenCalledTimes(1);
-    // Mousedown on a descendant must NOT close.
-    fireEvent.mouseDown(screen.getByText('Sharable MCP Inventory'));
+    // A click on a descendant must NOT close.
+    fireEvent.pointerDown(screen.getByText('Sharable MCP Inventory'));
+    fireEvent.click(screen.getByText('Sharable MCP Inventory'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
