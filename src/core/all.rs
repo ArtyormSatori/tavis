@@ -62,7 +62,7 @@ impl RegisteredController {
 ///
 /// The harness families (`Agent`/`Memory`/`Threads`/`Config`/`Security`) are on
 /// under [`crate::core::runtime::DomainSet::harness`]; the gate families
-/// (`Flows`/`Skills`/`Mcp`/`Meet`/`Channels`/`Web3`/`Voice`/`Media`) are the
+/// (`Flows`/`Skills`/`Mcp`/`Channels`/`Web3`/`Voice`/`Media`) are the
 /// per-feature axes the child issues (#4797–#4804) additionally narrow at
 /// compile time. `Platform` is the catch-all for everything not in a named
 /// family — always on in `full()`, off in `harness()`/`none()`.
@@ -100,7 +100,6 @@ pub enum DomainGroup {
     Flows,
     Skills,
     Mcp,
-    Meet,
     Channels,
     Web3,
     Voice,
@@ -1001,30 +1000,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Desktop,
         crate::openhuman::desktop::notifications::all_notifications_registered_controllers(),
     );
-    // Google Meet call-join request validation (shell handles the webview).
-    // Gated behind the `meet` feature.
-    #[cfg(feature = "meet")]
-    push(
-        &mut controllers,
-        DomainGroup::Meet,
-        crate::openhuman::meet::all_meet_registered_controllers(),
-    );
-    // Agent meetings — backend-delegated Meet bot via Socket.IO
-    // (gated with meet).
-    #[cfg(feature = "meet")]
-    push(
-        &mut controllers,
-        DomainGroup::Meet,
-        crate::openhuman::meet::backend_bot::all_agent_meetings_registered_controllers(),
-    );
-    // Live meet-agent loop: STT/LLM/TTS over the open call's audio
-    // (gated with meet).
-    #[cfg(feature = "meet")]
-    push(
-        &mut controllers,
-        DomainGroup::Meet,
-        crate::openhuman::meet::agent::all_meet_agent_registered_controllers(),
-    );
     // Structured WhatsApp Web data has NO core RPC controllers: the SQLite
     // store + ingest + list/search moved to the Tauri shell
     // (`app/src-tauri/src/whatsapp_data/`). The agent's read-only query tools
@@ -1296,19 +1271,6 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         "notification" => Some(
             "Integration notification ingest, triage scoring, listing, read-state, \
              and per-provider routing settings.",
-        ),
-        "meet" => Some(
-            "Validate Google Meet call-join requests and mint a request_id; the desktop \
-             shell opens the embedded CEF webview that joins the call as an anonymous guest. \
-             Also provides meet_list_upcoming to fetch upcoming calendar meetings with \
-             conferencing links from connected Google Calendar accounts.",
-        ),
-        "meet_agent" => Some(
-            "Live agent loop for an open Google Meet call: shell streams inbound PCM, \
-             core runs VAD-segmented STT → LLM → TTS, shell pulls synthesized PCM back.",
-        ),
-        "agent_meetings" => Some(
-            "Backend-delegated meeting bot (Google Meet, Zoom, Teams, Webex) via Socket.IO — join, leave, and harness response.",
         ),
         "devices" => Some(
             "Paired mobile device management — pairing channel creation, listing, and revocation.",
