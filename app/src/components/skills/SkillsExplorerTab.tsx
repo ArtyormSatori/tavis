@@ -13,6 +13,7 @@ import EmptyStateCard from '../EmptyStateCard';
 import ChipTabs from '../layout/ChipTabs';
 import { ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
+import { ToggleGroupItem, ToggleGroupRoot } from '../ui/ToggleGroup';
 import InstallSkillDialog from './InstallSkillDialog';
 import UninstallSkillConfirmDialog from './UninstallSkillConfirmDialog';
 

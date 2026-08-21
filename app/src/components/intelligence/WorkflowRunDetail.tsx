@@ -103,8 +103,6 @@ const WorkflowRunDetail: React.FC<Props> = ({
   const isRunning = run.status === 'running' || run.status === 'pending';
   const canResume = run.status === 'interrupted';
 
-  const toggle = (name: string) => setExpanded(prev => ({ ...prev, [name]: !prev[name] }));
-
   return (
     <div className="space-y-4" data-testid="workflow-run-detail">
       {/* Header: status + controls */}
