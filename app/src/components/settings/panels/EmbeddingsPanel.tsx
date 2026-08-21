@@ -23,6 +23,7 @@ import {
 import { isLocalSessionToken } from '../../../utils/localSession';
 import PanelPage from '../../layout/PanelPage';
 import Button from '../../ui/Button';
+import { ConfirmDialog, ModalShell } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
 import {
   SettingsBadge,
@@ -791,33 +792,16 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
       )}
       {/* ── Confirm wipe dialog ── */}
       {pendingWipe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 max-w-sm w-full rounded-2xl bg-surface border border-line dark:border-line-strong p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-semibold text-content">
-              {t('settings.embeddings.wipeTitle')}
-            </h3>
-            <p className="text-xs text-content-secondary dark:text-content-muted leading-relaxed">
-              {t('settings.embeddings.wipeBody')}
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="tertiary"
-                size="xs"
-                onClick={() => setPendingWipe(null)}>
-                {t('settings.embeddings.cancel')}
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                tone="danger"
-                size="xs"
-                onClick={() => void confirmWipe()}>
-                {t('settings.embeddings.confirmWipe')}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          titleId="embeddings-wipe-title"
+          title={t('settings.embeddings.wipeTitle')}
+          body={t('settings.embeddings.wipeBody')}
+          confirmLabel={t('settings.embeddings.confirmWipe')}
+          cancelLabel={t('settings.embeddings.cancel')}
+          destructive
+          onConfirm={() => void confirmWipe()}
+          onCancel={() => setPendingWipe(null)}
+        />
       )}
     </PanelPage>
   );
