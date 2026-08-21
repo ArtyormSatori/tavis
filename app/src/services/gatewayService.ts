@@ -80,7 +80,16 @@ export const DESKTOP_GATEWAY_ID = 'desktop';
  * never gets rendered as "that gateway is broken".
  */
 export function gatewaysAvailable(): boolean {
-  return isTauri();
+  // Guarded, not because `isTauri` is expected to throw, but because this is a
+  // *capability probe* called during render: a probe that can throw turns
+  // "gateways are unavailable here" into a blank settings panel. The repo's
+  // Tauri rule asks for exactly this shape — `isTauri()` or a try/catch — and a
+  // probe deserves both.
+  try {
+    return isTauri();
+  } catch {
+    return false;
+  }
 }
 
 /** Every configured gateway, the desktop one first. */
