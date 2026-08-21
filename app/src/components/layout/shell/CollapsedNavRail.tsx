@@ -21,8 +21,13 @@ function matchActive(path: string, pathname: string): boolean {
   return pathname === path;
 }
 
-const RAIL_BTN =
-  'group relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer';
+/**
+ * Rail footprint layered on top of `<Button variant="tertiary" iconOnly>`: the
+ * rail is 32px square where the `md` icon-only button is 36px, and the badge
+ * needs a positioning context. Everything else (focus ring, transition) comes
+ * from the primitive.
+ */
+const RAIL_BTN = 'group relative h-8 w-8 rounded-lg cursor-pointer';
 
 /**
  * Icon-only navigation shown in the collapsed root-shell rail: the Home action
