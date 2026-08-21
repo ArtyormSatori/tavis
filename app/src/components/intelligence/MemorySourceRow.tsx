@@ -7,22 +7,17 @@
  * budget.
  */
 import { useT } from '../../lib/i18n/I18nContext';
-import type {
-  FreshnessLabel,
-  MemorySourceEntry,
+import {
   SOURCE_KIND_ICONS,
   SOURCE_KIND_LABEL_KEYS,
-  SourceStatus,
-} from '../../services/memorySourcesService';
-import {
-  SOURCE_KIND_ICONS as SOURCE_KIND_ICONS_MAP,
-  SOURCE_KIND_LABEL_KEYS as SOURCE_KIND_LABEL_KEYS_MAP,
+  type FreshnessLabel,
+  type MemorySourceEntry,
+  type SourceStatus,
 } from '../../services/memorySourcesService';
 import type { ToastNotification } from '../../types/intelligence';
 import type { MemoryTreePipelineStatus } from '../../utils/tauriCommands/memoryTree';
 import Button from '../ui/Button';
 import Switch from '../ui/Switch';
-import { memorySourcesRowHelpers } from './memorySourcesRowHelpers';
 import {
   BuildIcon,
   CheckIcon,
@@ -33,8 +28,7 @@ import {
   WarnIcon,
 } from './memorySourcesIcons';
 import { relativeTimestamp, sourceDetail } from './memorySourcesRowHelpers';
-import type { SyncProgress, SyncResult } from './memorySourcesSyncTypes';
-import { STAGE_FALLBACK_PERCENT } from './memorySourcesSyncTypes';
+import { STAGE_FALLBACK_PERCENT, type SyncProgress, type SyncResult } from './memorySourcesSyncTypes';
 import {
   deriveSourcePipelineHealth,
   pipelineIssueMessageKey,
