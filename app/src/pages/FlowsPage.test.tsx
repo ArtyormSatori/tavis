@@ -218,7 +218,7 @@ describe('FlowsPage', () => {
 
     // "View runs" is a secondary action behind the row's overflow menu now.
     await waitFor(() => expect(screen.getByTestId('flow-menu-flow-1')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('flow-menu-flow-1'));
+    openRowMenu();
     fireEvent.click(screen.getByTestId('flow-view-runs-flow-1'));
 
     expect(await screen.findByTestId('flow-runs-drawer')).toBeInTheDocument();
