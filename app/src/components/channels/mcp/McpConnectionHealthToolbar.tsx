@@ -210,38 +210,29 @@ const McpConnectionHealthToolbar = ({
         </p>
       )}
 
-      {confirmDisconnect && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="mcp-disconnect-all-title"
-          aria-describedby="mcp-disconnect-all-body"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-surface rounded-xl shadow-xl max-w-sm w-full p-4">
-            <h2 id="mcp-disconnect-all-title" className="text-sm font-semibold text-content mb-2">
-              {t('mcp.health.disconnectConfirm.title')}
-            </h2>
-            <p id="mcp-disconnect-all-body" className="text-xs text-content-secondary mb-4">
-              {t('mcp.health.disconnectConfirm.body').replace(
-                '{count}',
-                String(counts.connectedCount)
-              )}
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setConfirmDisconnect(false)}>
+      <AlertDialogRoot open={confirmDisconnect} onOpenChange={setConfirmDisconnect}>
+        <AlertDialogContent>
+          <AlertDialogTitle>{t('mcp.health.disconnectConfirm.title')}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('mcp.health.disconnectConfirm.body').replace(
+              '{count}',
+              String(counts.connectedCount)
+            )}
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="secondary" size="sm">
                 {t('mcp.health.disconnectConfirm.cancel')}
               </Button>
-              <Button
-                variant="primary"
-                tone="danger"
-                size="sm"
-                onClick={() => void runDisconnectAll()}>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button variant="primary" tone="danger" size="sm" onClick={() => void runDisconnectAll()}>
                 {t('mcp.health.disconnectConfirm.confirm')}
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogRoot>
     </div>
   );
 };
