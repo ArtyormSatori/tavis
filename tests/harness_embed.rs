@@ -46,7 +46,6 @@ fn chat_completion(content: &str) -> serde_json::Value {
 /// which is the recipe already proven against real turns.
 fn offline_config() -> Config {
     let mut config = Config::default();
-    config.local_ai.enabled = false;
     config.local_ai.runtime_enabled = false;
     config.runtime_python.enabled = false;
     config.memory_tree.spacy_enabled = false;
