@@ -111,10 +111,6 @@ const PUBLIC_PATHS: &[&str] = &[
     "/oauth/mcp/callback",
     "/schema",
     "/events",
-    // AgentBox marketplace surface — see `openhuman::agent::agentbox::http`.
-    // Mounted only when `OPENHUMAN_AGENTBOX_MODE=1`; the public-path entry is
-    // unconditional so the matcher remains a pure function of the path string.
-    "/run",
 ];
 
 /// Public path prefixes — match when the request path begins with any entry.
@@ -123,8 +119,6 @@ const PUBLIC_PATHS: &[&str] = &[
 /// add to [`PUBLIC_PATHS`] instead.
 #[cfg(feature = "http-server")]
 const PUBLIC_PATH_PREFIXES: &[&str] = &[
-    // AgentBox `GET /jobs/{job_id}` — `{job_id}` is a UUID per submission.
-    "/jobs/",
 ];
 
 /// Returns `true` when `path` bypasses bearer-token authentication.

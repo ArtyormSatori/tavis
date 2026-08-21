@@ -101,10 +101,6 @@ impl CoreContext {
         //    run_core_from_args for the CLI).
         crate::openhuman::security::keyring::init_master_key();
 
-        // 3. AgentBox GMI MaaS provider bridge — no-op when env vars absent. Must
-        //    run before the router mounts the AgentBox routes so the inference
-        //    catalog knows about "gmi-maas" by the time `/run` accepts traffic.
-        crate::openhuman::agent::agentbox::register_gmi_provider_if_present();
 
         // 4. Seed the per-process RPC bearer. `Fixed` seeds the in-memory value
         //    directly (never touches the env); `EnvOrFile` reads

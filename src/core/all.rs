@@ -73,7 +73,7 @@ impl RegisteredController {
 /// of a family to name. That made two things wrong which are now fixed:
 ///
 /// - `harness()` claimed "agent + memory + threads + config + security" but
-///   silently dropped `agent::{agentbox, harness_init, artifacts, learning}`,
+///   silently dropped `agent::{harness_init, artifacts, learning}`,
 ///   `security::{credentials, devices}`, `config::{workspace, migration_helpers}`,
 ///   `memory::people` and `skills::webhooks`, all of which sat in `Platform`.
 ///   An agent harness that does not register `harness_init` is a latent bug.
@@ -400,12 +400,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         &mut controllers,
         DomainGroup::Platform,
         crate::openhuman::platform::about_app::all_about_app_registered_controllers(),
-    );
-    // AgentBox marketplace adapter status
-    push(
-        &mut controllers,
-        DomainGroup::Agent,
-        crate::openhuman::agent::agentbox::all_agentbox_registered_controllers(),
     );
     // Core application shell state
     push(
@@ -1181,7 +1175,6 @@ pub fn rpc_method_name(schema: &ControllerSchema) -> String {
 pub fn namespace_description(namespace: &str) -> Option<&'static str> {
     match namespace {
         "about_app" => Some("Catalog the app's user-facing capabilities and where to find them."),
-        "agentbox" => Some("AgentBox marketplace adapter status — mode flag and GMI MaaS provider wiring."),
         "ai" => Some("Agent-generated artifact storage, retrieval, and lifecycle management."),
         "app_state" => Some("Expose core-owned app shell state for frontend polling."),
         "auth" => Some("Manage app session and provider credentials."),
