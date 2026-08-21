@@ -1,7 +1,7 @@
 /**
- * Brain — the centerpiece memory + subconscious surface.
+ * Brain — the centerpiece memory surface.
  *
- * Sub-tabs: Welcome, Graph, Goals, Sources, Sync, Subconscious, and
+ * Sub-tabs: Welcome, Graph, Goals, Sources, Sync, and
  * **Orchestration** (the TinyPlace multi-agent surface, folded back in from the
  * former top-level `/orchestration` tab — see {@link OrchestrationView}).
  */
@@ -11,12 +11,10 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import TinyPlaceSunsetNotice from '../agentworld/TinyPlaceSunsetNotice';
 import { CodingSessionsCard } from '../components/intelligence/CodingSessionsCard';
 import GoalsPanel from '../components/intelligence/GoalsPanel';
-import IntelligenceSubconsciousTab from '../components/intelligence/IntelligenceSubconsciousTab';
 import { MemoryControls } from '../components/intelligence/MemoryControls';
 import { MemoryGraph } from '../components/intelligence/MemoryGraph';
 import { MemorySourcesRegistry } from '../components/intelligence/MemorySourcesRegistry';
 import { MemoryTreeStatusPanel } from '../components/intelligence/MemoryTreeStatusPanel';
-import SubconsciousTriggersPanel from '../components/intelligence/SubconsciousTriggersPanel';
 import { SyncAuditPanel } from '../components/intelligence/SyncAuditPanel';
 import { ToastContainer } from '../components/intelligence/Toast';
 import PageWelcome from '../components/layout/PageWelcome';
@@ -25,7 +23,6 @@ import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import OrchestrationView from '../components/orchestration/OrchestrationView';
 import BetaBanner from '../components/ui/BetaBanner';
-import { useSubconscious } from '../hooks/useSubconscious';
 import { useTinyPlaceIdentity } from '../hooks/useTinyPlaceIdentity';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';
@@ -42,7 +39,6 @@ type BrainTab =
   | 'goals'
   | 'sources'
   | 'sync'
-  | 'subconscious'
   | 'orchestration';
 
 /** Small inline icon helper for the Brain sidebar nav. */
@@ -58,7 +54,6 @@ const BRAIN_TABS: readonly BrainTab[] = [
   'goals',
   'sources',
   'sync',
-  'subconscious',
   'orchestration',
 ];
 
@@ -75,7 +70,6 @@ const BRAIN_HEADERS: Record<
   goals: { titleKey: 'brain.tabs.goals', descKey: 'brain.header.goals' },
   sources: { titleKey: 'brain.tabs.sources', descKey: 'brain.header.sources' },
   sync: { titleKey: 'brain.tabs.sync', descKey: 'brain.header.sync' },
-  subconscious: { titleKey: 'brain.tabs.subconscious', descKey: 'brain.header.subconscious' },
 };
 
 export default function Brain() {
@@ -242,13 +236,6 @@ export default function Brain() {
                       'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
                     ),
                   },
-                  {
-                    value: 'subconscious',
-                    label: t('brain.tabs.subconscious'),
-                    icon: navIcon(
-                      'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z'
-                    ),
-                  },
                   // TinyPlace multi-agent orchestration, folded back under Brain
                   // from the former top-level `/orchestration` tab. Hidden from
                   // users without a tiny.place identity (#5424).
@@ -396,26 +383,6 @@ export default function Brain() {
                   </div>
                 )}
 
-                {activeTab === 'subconscious' && (
-                  <div className="space-y-3 animate-fade-up">
-                    <BetaBanner />
-                    <div className={cardClass}>
-                      <IntelligenceSubconsciousTab
-                        status={sub.status}
-                        instances={sub.instances}
-                        mode={sub.mode}
-                        intervalMinutes={sub.intervalMinutes}
-                        triggerTick={sub.triggerTick}
-                        triggering={sub.triggering}
-                        isTriggering={sub.isTriggering}
-                        settingMode={sub.settingMode}
-                        setMode={sub.setMode}
-                        setIntervalMinutes={sub.setIntervalMinutes}
-                      />
-                    </div>
-                    <SubconsciousTriggersPanel />
-                  </div>
-                )}
               </div>
             </PanelPage>
           )}
