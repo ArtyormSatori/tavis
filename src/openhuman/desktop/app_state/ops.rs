@@ -545,9 +545,6 @@ async fn finish_revalidated_user_activation(
     crate::openhuman::memory::conversations::register_conversation_persistence_subscriber(
         target_config.workspace_dir.clone(),
     );
-    if let Err(error) = crate::openhuman::subconscious::registry::bootstrap_after_login().await {
-        warn!("{LOG_PREFIX} subconscious bootstrap failed after pending session revalidation: {error}");
-    }
     if let Some(source_config) = service_rebind_source {
         crate::openhuman::security::credentials::stop_login_gated_services(source_config).await;
         crate::openhuman::security::credentials::start_login_gated_services(target_config).await;
@@ -688,7 +685,6 @@ async fn clear_deferred_session_after_backend_rejection(
         Err(_) => {}
     }
     crate::openhuman::security::credentials::stop_login_gated_services(config).await;
-    crate::openhuman::subconscious::registry::reset_engine_for_user_switch().await;
     crate::openhuman::security::credentials::sentry_scope::clear();
 
     clear_result
