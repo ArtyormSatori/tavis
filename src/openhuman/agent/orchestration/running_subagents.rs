@@ -225,6 +225,19 @@ fn list_task_records(workspace_dir: &Path) -> Vec<OrchestrationTaskRecord> {
 /// run ledger finalizes. Best-effort and non-fatal: per-task transition errors
 /// (e.g. a record that raced to terminal) are logged and skipped, and a
 /// store-open failure simply reconciles nothing. Returns the count reconciled.
+/// The reason an orphaned sub-agent record is settled with.
+///
+/// Built in one place because it is written twice — into the store by the
+/// reconciler, and into the lifecycle event the run ledger reads. If those two
+/// ever disagreed, the ledger would explain a failure differently from the
+/// record behind it.
+fn orphaned_subagent_reason(prior_status: OrchestrationTaskStatus) -> String {
+    format!(
+        "sub-agent orphaned by core restart (was `{}`)",
+        task_status_label(prior_status)
+    )
+}
+
 pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
     let store = task_store_for_workspace(workspace_dir);
 
@@ -235,12 +248,7 @@ pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
     let report = reconcile_orphaned_tasks(
         store.as_ref(),
         OrchestrationTaskFilter::default().with_kind("sub_agent"),
-        &|record| {
-            format!(
-                "sub-agent orphaned by core restart (was `{}`)",
-                task_status_label(record.status)
-            )
-        },
+        &|record| orphaned_subagent_reason(record.status),
     );
 
     if report.is_empty() {
@@ -254,7 +262,7 @@ pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
     for task in report.settled() {
         let task_id = task.task_id.as_str().to_string();
         let prior = task_status_label(task.prior_status);
-        let reason = format!("sub-agent orphaned by core restart (was `{prior}`)");
+        let reason = orphaned_subagent_reason(task.prior_status);
         let parent_session = record_parent_session(&task.record)
             .unwrap_or_default()
             .to_string();
