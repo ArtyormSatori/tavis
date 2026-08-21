@@ -33,10 +33,13 @@ const Progress = ({
       aria-label={ariaLabel}
       className={cn(
         'relative h-1.5 w-full overflow-hidden rounded-full bg-surface-strong',
-        className,
+        className
       )}>
       {indeterminate ? (
-        <ProgressPrimitive.Indicator className="h-full w-1/3 rounded-full bg-primary-500 motion-safe:animate-shimmer" />
+        // The shared `shimmer` keyframe animates `background-position`, so the
+        // fill has to be a gradient wider than its box for it to move at all —
+        // on a solid colour the animation runs and nothing appears to happen.
+        <ProgressPrimitive.Indicator className="h-full w-full bg-gradient-to-r from-primary-500/25 via-primary-500 to-primary-500/25 bg-[length:200%_100%] motion-safe:animate-shimmer" />
       ) : (
         <ProgressPrimitive.Indicator
           className="h-full w-full flex-1 bg-primary-500 transition-transform duration-300 motion-reduce:transition-none"
