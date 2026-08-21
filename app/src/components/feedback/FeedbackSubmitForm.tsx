@@ -44,11 +44,7 @@ interface FeedbackSubmitFormProps {
   onAccepted: (result: CreateFeedbackResult) => void;
 }
 
-const INPUT_CLASS =
-  'w-full rounded-xl border border-line bg-surface-muted px-4 py-2.5 text-sm text-content ' +
-  'placeholder:text-neutral-400 transition-all focus:border-primary-500/50 focus:bg-white focus:outline-none ' +
-  'focus:ring-2 focus:ring-primary-500/30 dark:border-line-strong dark:bg-white/[0.03] dark:text-content ' +
-  'dark:placeholder:text-neutral-500 dark:focus:bg-white/[0.06]';
+const INPUT_CLASS = 'w-full rounded-xl bg-surface-muted px-4 py-2.5';
 
 export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormProps) {
   const { t } = useT();
