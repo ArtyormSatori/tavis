@@ -1,69 +1,77 @@
-//! MCP family — Model Context Protocol client and server support.
+//! MCP family — the host half of Model Context Protocol support.
 //!
-//! One directory, one gate. Every member of this family is compiled out
-//! together by the default-ON `mcp` Cargo feature, with two deliberate
-//! carve-outs called out below.
+//! The client moved out to `tinymcp`: both transports, the static
+//! config-declared server set, the dynamic registry with its store, supervisor
+//! and browser sign-in, and the write-audit log all live there now.
+//!
+//! What is here is what belongs to this application.
 //!
 //! # Members
 //!
-//! - [`server`]         — the `openhuman mcp` stdio/HTTP server that exposes a
-//!   curated OpenHuman tool surface to MCP hosts (facade + `stub`).
-//! - [`registry`]       — the **dynamic**, user-installed Smithery servers:
-//!   live connection map, SQLite persistence, boot spawn, supervisor, OAuth,
-//!   and the `mcp_clients` RPC namespace (facade + `stub`).
-//! - [`audit`]          — the persistent write-audit log (facade + `stub`).
-//! - [`config_servers`] — the **static**, config-declared server set read from
-//!   `[[mcp_client.servers]]` in TOML, plus the stdio transport and the
-//!   `mcp_setup` agent. Leaf-gated: every consumer is itself gated.
-//! - [`http_client`]    — [`http_client::McpHttpClient`], the Streamable-HTTP +
-//!   OAuth + SSE transport primitive. **Always compiled** (see below).
+//! - [`host`] — the one `tinymcp` service this process holds, and the
+//!   conversion from this application's configuration into what it takes.
+//! - [`registry`] — the `mcp_clients` and `mcp_setup` RPC surface, the
+//!   agent-facing tools, and the prompt-injection scan over remote tool
+//!   definitions.
+//! - [`audit`] — the RPC surface over the write-audit log.
+//! - [`server`] — the `openhuman mcp` stdio and HTTP server that exposes this
+//!   application's own tools to external MCP hosts. This is the *server* side
+//!   and did not move: it is bound to the tool registry, the permission model
+//!   and the agent turn machinery, none of which a client library should know
+//!   about.
 //!
-//! > **The naming is inverted from intuition.** `registry` is the *dynamic*
-//! > half (SQLite-backed installs); `config_servers` is the *static* half
-//! > (TOML-declared). The RPC namespace and db filename remain `mcp_clients`
-//! > for backwards compatibility regardless of module path.
+//! # Where the boundary fell
+//!
+//! Three things stayed on purpose, and each is host policy rather than
+//! protocol:
+//!
+//! **Prompt-injection detection** over remote tool definitions. The detector,
+//! its rules, and what a hit means belong to this application's threat model. A
+//! module dropping tools by criteria of its own would be making a decision it
+//! could not explain. The *lexical* half — control characters, prompt-template
+//! fences, length caps — does live in the contract, applied by the display
+//! accessors on every remote description.
+//!
+//! **Events.** `tinymcp` reports what happened in its return values. Turning
+//! that into a `DomainEvent` happens here, where the vocabulary is known.
+//!
+//! **The proxy decision.** Whether a proxy applies to MCP traffic is decided by
+//! this application's scope setting, per-service list and no-proxy list.
+//! [`host::proxy_for_mcp`] consults them and hands `tinymcp` the answer.
 //!
 //! # Compile-time gate (`mcp` feature)
 //!
-//! **`pub mod mcp;` is ALWAYS compiled — the family root is a facade.** It
-//! cannot carry `#[cfg(feature = "mcp")]` for two independent reasons:
-//!
-//! 1. [`http_client`] is a mis-housed shared utility with always-compiled
-//!    consumers that have nothing to do with MCP. The bespoke `gitbooks` docs
-//!    tool dials [`http_client::McpHttpClient`] + [`http_client::redact_endpoint`]
-//!    directly (GitBook is modelled as a legacy MCP server), and
-//!    `core::observability` names [`http_client::McpUnauthorizedError`] in its
-//!    always-compiled `McpServerNeedsAuth` classifier coupling test. Gating it
-//!    would break a docs tool in slim builds and leak wording drift into the
-//!    classifier.
-//! 2. `server`, `registry`, and `audit` each ship a `stub.rs` that must resolve
-//!    in an `mcp`-less build, which requires their parent to stay compiled.
-//!
-//! So the gate is pushed **down onto each member**: the three facades keep
-//! their own internal `#[cfg]` + `stub`, `config_servers` is leaf-gated here,
-//! and `http_client` stays ungated. The same rule the `meet/` pilot proved.
-//!
-//! The gate follows the real dependency graph, not the directory name.
-//!
-//! # Ungated type carve-outs
-//!
-//! `registry::types`, `audit::types`, and `server::tools::types`
-//! ([`server::McpToolSpec`]) stay compiled in **both** builds: they are inert
-//! `serde`/`serde_json`-only data consumed by always-compiled callers (the
-//! orchestrator prompt builder, `tool_registry`). Both builds share the one
-//! real definition, so struct fields cannot drift between them — the stubs
-//! carry behaviour only.
-//!
-//! # Dependencies
-//!
-//! The `mcp` gate sheds **zero** dependencies. There is no MCP SDK in this
-//! crate: the entire protocol stack is hand-rolled over tokio process stdio +
-//! `reqwest` + `axum`, all of which are load-bearing for non-MCP domains. The
-//! `mcp = []` feature list is intentionally empty — do not "fix" it.
+//! `pub mod mcp;` is always compiled — the family root is a facade. `registry`
+//! and `audit` keep their own gate and their `stub`, so a build without the
+//! feature still serves `/rpc` without those namespaces.
 
 pub mod audit;
 #[cfg(feature = "mcp")]
-pub mod config_servers;
-pub mod http_client;
+pub mod host;
 pub mod registry;
 pub mod server;
+
+/// The Streamable HTTP transport, from the wire contract's implementation.
+///
+/// Re-exported under the path this module used to define it at. The bespoke
+/// documentation tool and the observability classifier both name these.
+#[cfg(feature = "mcp")]
+pub mod http_client {
+    pub use tinymcp::transport::http::{McpHttpClient, McpHttpClientBuilder};
+    pub use tinymcp::{redact_endpoint, render_tool_result};
+    pub use tinymcp_bus::{
+        AuthorizationServerMetadata, McpAuthChallenge, McpAuthorizationContext,
+        McpInitializeResult, McpRemoteTool, McpServerToolResult, McpSseEvent,
+        ProtectedResourceMetadata,
+    };
+}
+
+/// The statically declared server set, from the wire contract's
+/// implementation.
+#[cfg(feature = "mcp")]
+pub mod config_servers {
+    pub use tinymcp::transport::stdio::McpStdioClient;
+    pub use tinymcp::{
+        McpRegistrySource, McpServerDefinition, McpServerRegistry, McpTransportClient,
+    };
+}

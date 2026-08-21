@@ -2355,7 +2355,6 @@ fn register_domain_subscribers(
     // connect events are observed (issue #3039 gap A1).
     if plan.mcp {
         if group_first_time(DomainGroup::Mcp) {
-            crate::openhuman::mcp::registry::bus::init();
         }
     } else {
         log::debug!("[event_bus] mcp_registry bus init SKIPPED — Mcp domain disabled");

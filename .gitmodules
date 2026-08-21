@@ -31,3 +31,7 @@
 	path = vendor/tinyhosts
 	url = https://github.com/tinyhumansai/tinyhosts.git
 	branch = main
+[submodule "vendor/tinymcp"]
+	path = vendor/tinymcp
+	url = https://github.com/tinyhumansai/tinymcp
+	branch = mcp-extraction

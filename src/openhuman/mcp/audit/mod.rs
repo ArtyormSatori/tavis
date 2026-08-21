@@ -1,24 +1,31 @@
-//! Persistent audit log for MCP write-tool calls.
+//! The RPC surface over the write-audit log.
 //!
-//! The audit table is stored in the existing memory-tree SQLite database so
-//! writes and their query surface reuse the same local workspace persistence.
-
+//! The log itself moved to `tinymcp`. What is here is the `mcp_audit`
+//! controller family and the types it speaks, re-exported from the wire
+//! contract.
+//!
+//! # Where the rows are now
+//!
+//! The table used to be created inside this application's memory-tree database,
+//! which is precisely what made it unmovable. It has its own file now,
+//! `mcp_audit/mcp_audit.db`, under the same workspace directory. Rows written
+//! before the move stay where they were: an audit log is history rather than
+//! operational state, and nothing reads the old table any more.
+//!
 //! ## Compile-time gate (`mcp` feature)
 //!
-//! `pub mod audit;` is ALWAYS compiled — it is a facade. The SQLite store
-//! and RPC surface are gated behind the default-ON `mcp` Cargo feature; when
-//! it is off, [`stub`] mirrors the consumed surface with no-op / empty bodies.
-//!
-//! [`types`] stays UNGATED: it is inert serde data (`serde` + `serde_json`
-//! only), so both builds share the one real definition and cannot drift.
+//! `pub mod audit;` is always compiled — it is a facade. The RPC surface is
+//! gated; when the feature is off, [`stub`] mirrors the consumed surface.
 
 #[cfg(feature = "mcp")]
 mod schemas;
-#[cfg(feature = "mcp")]
-pub mod store;
 
-// Inert serde types — always compiled (see the module note above).
-pub mod types;
+/// The audit payload types, from the wire contract.
+pub mod types {
+    pub use tinymcp_bus::{McpWriteListQuery, McpWriteRecord, NewMcpWriteRecord};
+}
+
+pub use types::{McpWriteListQuery, McpWriteRecord, NewMcpWriteRecord};
 
 #[cfg(feature = "mcp")]
 pub use schemas::{
@@ -27,9 +34,42 @@ pub use schemas::{
     all_registered_controllers as all_mcp_audit_registered_controllers,
     schemas as mcp_audit_schemas,
 };
+
+/// Records one write.
+///
+/// # Errors
+///
+/// Returns an error when the service is not up or the row cannot be written.
 #[cfg(feature = "mcp")]
-pub use store::{list_writes, record_write};
-pub use types::{McpWriteListQuery, McpWriteRecord, NewMcpWriteRecord};
+pub fn record_write(
+    _config: &crate::openhuman::config::Config,
+    record: NewMcpWriteRecord,
+) -> anyhow::Result<i64> {
+    let service = crate::openhuman::mcp::host::service().map_err(|error| anyhow::anyhow!(error))?;
+
+    service
+        .audit()
+        .record(&record)
+        .map_err(|error| anyhow::anyhow!("failed to record an mcp write: {error}"))
+}
+
+/// Lists recorded writes.
+///
+/// # Errors
+///
+/// Returns an error when the service is not up or the query fails.
+#[cfg(feature = "mcp")]
+pub fn list_writes(
+    _config: &crate::openhuman::config::Config,
+    query: &McpWriteListQuery,
+) -> anyhow::Result<Vec<McpWriteRecord>> {
+    let service = crate::openhuman::mcp::host::service().map_err(|error| anyhow::anyhow!(error))?;
+
+    service
+        .audit()
+        .list(query)
+        .map_err(|error| anyhow::anyhow!("failed to list mcp writes: {error}"))
+}
 
 // ---------------------------------------------------------------------------
 // Disabled facade — compiled only when the `mcp` feature is OFF.
