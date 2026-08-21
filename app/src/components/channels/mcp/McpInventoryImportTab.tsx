@@ -22,6 +22,7 @@ import { type ChangeEvent, useCallback, useMemo, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import Button from '../../ui/Button';
+import TextArea from '../../ui/TextArea';
 import {
   type ClassifiedImportEntry,
   classifyImport,
