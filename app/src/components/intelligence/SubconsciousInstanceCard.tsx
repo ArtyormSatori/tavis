@@ -96,12 +96,13 @@ export default function SubconsciousInstanceCard({
                   {providerUnavailableReason}
                 </p>
                 {onProviderSettings && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={onProviderSettings}
-                    className="flex-shrink-0 rounded-md bg-amber-600 px-2.5 py-1.5 text-xs font-medium text-content-inverted hover:bg-amber-700 transition-colors">
+                    className="flex-shrink-0 bg-amber-600 hover:bg-amber-700">
                     {t('subconscious.providerSettings')}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

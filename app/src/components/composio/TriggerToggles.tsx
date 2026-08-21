@@ -11,7 +11,7 @@ import type { ComposioActiveTrigger, ComposioAvailableTrigger } from '../../lib/
 import { useT } from '../../lib/i18n/I18nContext';
 import { useCoreState } from '../../providers/CoreStateProvider';
 import { CoreRpcError } from '../../services/coreRpcClient';
-import { Button, Switch } from '../ui';
+import { Alert, Button, Switch } from '../ui';
 
 /**
  * Stable signature for matching an `AvailableTrigger` to an

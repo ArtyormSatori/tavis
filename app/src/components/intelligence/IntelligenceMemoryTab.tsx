@@ -44,23 +44,22 @@ export default function IntelligenceMemoryTab({
           <label htmlFor="actionable-search" className="sr-only">
             {t('memory.searchAria')}
           </label>
-          <input
+          <TextField
             id="actionable-search"
             type="text"
             placeholder={t('memory.search')}
             value={searchFilter}
             onChange={e => setSearchFilter(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-surface border border-line rounded-lg text-content placeholder-content-faint focus:outline-none focus:border-primary-500/50 transition-colors"
+            className="w-full"
           />
         </div>
         <label htmlFor="actionable-source" className="sr-only">
           {t('memory.sourceFilterAria')}
         </label>
-        <select
+        <NativeSelect
           id="actionable-source"
           value={sourceFilter}
-          onChange={e => setSourceFilter(e.target.value as ActionableItemSource | 'all')}
-          className="px-3 py-2 text-sm bg-surface border border-line rounded-lg text-content focus:outline-none focus:border-primary-500/50 transition-colors">
+          onChange={e => setSourceFilter(e.target.value as ActionableItemSource | 'all')}>
           <option value="all">{t('memory.sourceFilter.all')}</option>
           <option value="email">{t('memory.sourceFilter.email')}</option>
           <option value="calendar">{t('memory.sourceFilter.calendar')}</option>
@@ -69,7 +68,7 @@ export default function IntelligenceMemoryTab({
           <option value="system">{t('memory.sourceFilter.system')}</option>
           <option value="trading">{t('memory.sourceFilter.trading')}</option>
           <option value="security">{t('memory.sourceFilter.security')}</option>
-        </select>
+        </NativeSelect>
       </div>
 
       {itemsLoading && !usingMemoryData ? (
