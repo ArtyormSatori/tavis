@@ -888,21 +888,23 @@ function SourceRow({
               ))}
               <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-[18px]">
                 {health.authRelated && !isAuthenticated && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="tertiary"
+                    size="xs"
                     onClick={onSignIn}
                     data-testid={`memory-source-signin-${source.id}`}
-                    className="font-medium text-amber-900 underline underline-offset-2 hover:text-amber-950 dark:text-amber-100 dark:hover:text-white">
+                    className="h-auto px-0 font-medium text-amber-900 underline underline-offset-2 hover:bg-transparent hover:text-amber-950 dark:text-amber-100 dark:hover:text-white">
                     {t('sync.pipeline.signInToEnable')}
-                  </button>
+                  </Button>
                 )}
-                <button
-                  type="button"
+                <Button
+                  variant="tertiary"
+                  size="xs"
                   onClick={onViewHealth}
                   data-testid={`memory-source-view-health-${source.id}`}
-                  className="font-medium text-amber-900 underline underline-offset-2 hover:text-amber-950 dark:text-amber-100 dark:hover:text-white">
+                  className="h-auto px-0 font-medium text-amber-900 underline underline-offset-2 hover:bg-transparent hover:text-amber-950 dark:text-amber-100 dark:hover:text-white">
                   {t('sync.pipeline.viewHealth')}
-                </button>
+                </Button>
               </div>
             </div>
           )}

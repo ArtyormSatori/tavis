@@ -34,7 +34,7 @@ import {
   openhumanCronRuns,
   openhumanCronUpdate,
 } from '../../utils/tauriCommands/cron';
-import { Checkbox, NativeSelect, TextField } from '../ui';
+import { Badge, type BadgeVariant, Checkbox, NativeSelect, TextField } from '../ui';
 import Button from '../ui/Button';
 import CreateSkillModal from './CreateSkillModal';
 import BranchPicker from './inputs/BranchPicker';
