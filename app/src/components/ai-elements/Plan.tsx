@@ -153,7 +153,12 @@ export const PlanTrigger = ({ className, ...props }: PlanTriggerProps) => {
   const label = t('aiElements.plan.toggle', 'Toggle plan');
 
   return (
-    <CollapsibleTrigger asChild>
+    // The shared trigger primitive's own padding / weight / hover fill are
+    // merged away inside it (its `cn`) before `asChild` hands the class string
+    // to `Button`, which otherwise ends up with two competing paddings.
+    <CollapsibleTrigger
+      asChild
+      className="w-auto justify-center p-0 font-normal hover:bg-transparent">
       <Button
         data-slot="plan-trigger"
         className={cn('h-8 w-8', className)}
@@ -173,7 +178,6 @@ export const PlanTrigger = ({ className, ...props }: PlanTriggerProps) => {
           viewBox="0 0 24 24">
           <path d="m7 15 5 5 5-5M7 9l5-5 5 5" />
         </svg>
-        <span className="sr-only">{label}</span>
       </Button>
     </CollapsibleTrigger>
   );
