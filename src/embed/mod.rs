@@ -50,12 +50,14 @@
 //! [`CoreError::Unavailable`] so a host can hide the surface instead of
 //! reporting a failure.
 
+mod agent;
 mod call;
 mod config;
 mod error;
 #[cfg(feature = "medulla")]
 mod medulla;
 
+pub use agent::{absolute, Agent, Route, Turn, TurnOutcome, TurnRequest};
 pub use config::{Config, RuntimeFlags};
 pub use error::CoreError;
 #[cfg(feature = "medulla")]
@@ -91,6 +93,19 @@ impl Core {
     /// Typed configuration access.
     pub fn config(&self) -> Config<'_> {
         Config(&self.rt)
+    }
+
+    /// Typed access to the agent harness — run a turn, get a reply.
+    ///
+    /// Requires the `inference` domain family at runtime; with it off the turn
+    /// returns [`CoreError::Unavailable`], because the routed chat entry point
+    /// is registered under that group. Note
+    /// [`DomainSet::harness`](crate::core::runtime::DomainSet::harness) leaves
+    /// `inference` **off** despite its name — use
+    /// [`DomainSet::embedded`](crate::core::runtime::DomainSet::embedded), or
+    /// set the field.
+    pub fn agent(&self) -> Agent<'_> {
+        Agent(&self.rt)
     }
 
     /// Typed access to the Medulla orchestration backend.
