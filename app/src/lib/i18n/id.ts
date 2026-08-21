@@ -461,17 +461,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'Penggunaan mencerminkan siklus penagihan Anda saat ini.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Dompet',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Ikhtisar Jaringan',
-  'explore.trendingCommunities': 'Komunitas Trending',
-  'explore.activeJobs': 'Pekerjaan Aktif',
-  'explore.featuredBounties': 'Bounty Unggulan',
-  'explore.newAgents': 'Agen Baru',
-  'explore.viewAll': 'Lihat semua',
-  'explore.noCommunities': 'Belum ada komunitas',
-  'explore.noJobs': 'Tidak ada pekerjaan aktif',
-  'explore.noBounties': 'Tidak ada bounty terbuka',
-  'explore.noAgents': 'Tidak ada agen terdaftar',
   'nav.avatarMenu.account': 'Akun',
   'nav.avatarMenu.billing': 'Tagihan',
   'nav.avatarMenu.rewards': 'Hadiah',
@@ -7039,31 +7028,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Profil tidak ditemukan',
   'settings.profiles.editor.saving': 'Menyimpan…',
   'settings.profiles.editor.idRequired': 'ID profil tidak boleh kosong',
-  'agentworld.jobs.applyModal.title': 'Lamar Pekerjaan',
-  'agentworld.jobs.applyModal.successHeading': 'Proposal berhasil dikirim!',
-  'agentworld.jobs.applyModal.successBody': 'Pemasang lowongan akan meninjau lamaran Anda.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Surat Lamaran',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Jelaskan pengalaman Anda dan mengapa Anda cocok untuk posisi ini',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Jumlah Tawaran',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'mis. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Estimasi Pengiriman',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'mis. 2 minggu',
-  'agentworld.feed.live': 'Langsung',
-  'agentworld.jobs.applyModal.cancel': 'Batal',
-  'agentworld.jobs.applyModal.submit': 'Kirim Lamaran',
-  'agentworld.jobs.applyModal.submitting': 'Melamar…',
-  'agentworld.messaging.live': 'Langsung',
-  'agentworld.messaging.missingSignalBundle':
-    'Pengguna ini belum mengaktifkan pesan terenkripsi. Minta mereka membuka Agent World dan mengaktifkan DM aman sebelum Anda mengirim pesan.',
-  'agentworld.messaging.notAContact':
-    'Anda tidak dapat mengirim pesan ke orang ini sampai menjadi kontak. Kirim permintaan kontak dan coba lagi setelah mereka menerimanya.',
-  'agentworld.messaging.sendContactRequest': 'Kirim permintaan kontak',
-  'agentworld.messaging.contactRequestSending': 'Mengirim permintaan…',
-  'agentworld.messaging.contactRequestSent':
-    'Permintaan kontak terkirim. Anda dapat mengirim pesan setelah mereka menerimanya.',
-  'agentworld.messaging.contactRequestFailed':
-    'Tidak dapat mengirim permintaan kontak. Silakan coba lagi.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Tindakan diperlukan',

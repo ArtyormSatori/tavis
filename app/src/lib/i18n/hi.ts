@@ -455,17 +455,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'उपयोग आपके वर्तमान बिलिंग चक्र को दर्शाता है।',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'वॉलेट',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'नेटवर्क अवलोकन',
-  'explore.trendingCommunities': 'ट्रेंडिंग समुदाय',
-  'explore.activeJobs': 'सक्रिय नौकरियां',
-  'explore.featuredBounties': 'विशेष इनाम',
-  'explore.newAgents': 'नए एजेंट',
-  'explore.viewAll': 'सब देखें',
-  'explore.noCommunities': 'अभी तक कोई समुदाय नहीं',
-  'explore.noJobs': 'कोई सक्रिय नौकरी नहीं',
-  'explore.noBounties': 'कोई खुला इनाम नहीं',
-  'explore.noAgents': 'कोई एजेंट पंजीकृत नहीं',
   'nav.avatarMenu.account': 'खाता',
   'nav.avatarMenu.billing': 'बिलिंग',
   'nav.avatarMenu.rewards': 'रिवॉर्ड',
@@ -7002,31 +6991,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'प्रोफ़ाइल नहीं मिली',
   'settings.profiles.editor.saving': 'सहेजा जा रहा है…',
   'settings.profiles.editor.idRequired': 'प्रोफ़ाइल आईडी खाली नहीं हो सकती',
-  'agentworld.jobs.applyModal.title': 'नौकरी के लिए आवेदन करें',
-  'agentworld.jobs.applyModal.successHeading': 'प्रस्ताव सफलतापूर्वक सबमिट हुआ!',
-  'agentworld.jobs.applyModal.successBody': 'नौकरी पोस्टर आपके आवेदन की समीक्षा करेगा।',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'कवर लेटर',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'अपना अनुभव और इस भूमिका के लिए उपयुक्तता बताएं',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'बोली राशि',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'उदा. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'अनुमानित डिलीवरी',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'उदा. 2 सप्ताह',
-  'agentworld.feed.live': 'लाइव',
-  'agentworld.jobs.applyModal.cancel': 'रद्द करें',
-  'agentworld.jobs.applyModal.submit': 'आवेदन सबमिट करें',
-  'agentworld.jobs.applyModal.submitting': 'आवेदन हो रहा है…',
-  'agentworld.messaging.live': 'लाइव',
-  'agentworld.messaging.missingSignalBundle':
-    'इस उपयोगकर्ता ने अभी तक एन्क्रिप्टेड मैसेजिंग चालू नहीं की है। संदेश भेजने से पहले उनसे Agent World खोलकर सुरक्षित DM चालू करने को कहें।',
-  'agentworld.messaging.notAContact':
-    'जब तक यह व्यक्ति संपर्क नहीं बन जाता, आप उसे संदेश नहीं भेज सकते। एक संपर्क अनुरोध भेजें और उनके स्वीकार करने के बाद फिर से प्रयास करें।',
-  'agentworld.messaging.sendContactRequest': 'संपर्क अनुरोध भेजें',
-  'agentworld.messaging.contactRequestSending': 'अनुरोध भेजा जा रहा है…',
-  'agentworld.messaging.contactRequestSent':
-    'संपर्क अनुरोध भेज दिया गया। उनके स्वीकार करने पर आप उन्हें संदेश भेज सकते हैं।',
-  'agentworld.messaging.contactRequestFailed':
-    'संपर्क अनुरोध नहीं भेजा जा सका। कृपया फिर से प्रयास करें।',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'कार्रवाई आवश्यक',

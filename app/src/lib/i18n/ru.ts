@@ -461,17 +461,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'Использование отражает ваш текущий расчётный период.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Кошелёк',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Обзор сети',
-  'explore.trendingCommunities': 'Трендовые сообщества',
-  'explore.activeJobs': 'Активные вакансии',
-  'explore.featuredBounties': 'Рекомендуемые награды',
-  'explore.newAgents': 'Новые агенты',
-  'explore.viewAll': 'Смотреть все',
-  'explore.noCommunities': 'Пока нет сообществ',
-  'explore.noJobs': 'Нет активных вакансий',
-  'explore.noBounties': 'Нет открытых наград',
-  'explore.noAgents': 'Нет зарегистрированных агентов',
   'nav.avatarMenu.account': 'Аккаунт',
   'nav.avatarMenu.billing': 'Оплата',
   'nav.avatarMenu.rewards': 'Награды',
@@ -7082,31 +7071,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Профиль не найден',
   'settings.profiles.editor.saving': 'Сохранение…',
   'settings.profiles.editor.idRequired': 'Идентификатор профиля не может быть пустым',
-  'agentworld.jobs.applyModal.title': 'Откликнуться на вакансию',
-  'agentworld.jobs.applyModal.successHeading': 'Предложение успешно отправлено!',
-  'agentworld.jobs.applyModal.successBody': 'Работодатель рассмотрит вашу заявку.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Сопроводительное письмо',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Опишите свой опыт и почему вы подходите для этой роли',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Сумма предложения',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'напр. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Ориентировочный срок выполнения',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'напр. 2 недели',
-  'agentworld.feed.live': 'В эфире',
-  'agentworld.jobs.applyModal.cancel': 'Отмена',
-  'agentworld.jobs.applyModal.submit': 'Отправить заявку',
-  'agentworld.jobs.applyModal.submitting': 'Отправка…',
-  'agentworld.messaging.live': 'В реальном времени',
-  'agentworld.messaging.missingSignalBundle':
-    'Этот пользователь еще не включил зашифрованные сообщения. Попросите его открыть Agent World и включить безопасные личные сообщения перед отправкой.',
-  'agentworld.messaging.notAContact':
-    'Вы не можете писать этому человеку, пока он не станет контактом. Отправьте запрос в контакты и повторите попытку после того, как он его примет.',
-  'agentworld.messaging.sendContactRequest': 'Отправить запрос в контакты',
-  'agentworld.messaging.contactRequestSending': 'Отправка запроса…',
-  'agentworld.messaging.contactRequestSent':
-    'Запрос в контакты отправлен. Вы сможете написать, когда он его примет.',
-  'agentworld.messaging.contactRequestFailed':
-    'Не удалось отправить запрос в контакты. Попробуйте ещё раз.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Требуется действие',

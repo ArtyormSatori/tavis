@@ -165,17 +165,6 @@ const en: TranslationMap = {
   'orchPage.usage.footnote': 'Usage reflects your current billing cycle.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Wallet',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Network Overview',
-  'explore.trendingCommunities': 'Trending Communities',
-  'explore.activeJobs': 'Active Jobs',
-  'explore.featuredBounties': 'Featured Bounties',
-  'explore.newAgents': 'New Agents',
-  'explore.viewAll': 'View all',
-  'explore.noCommunities': 'No communities yet',
-  'explore.noJobs': 'No active jobs',
-  'explore.noBounties': 'No open bounties',
-  'explore.noAgents': 'No agents registered',
   // Agent World: Settings section UI
   'nav.avatarMenu.account': 'Account',
   'nav.avatarMenu.billing': 'Billing',
@@ -7361,33 +7350,6 @@ const en: TranslationMap = {
   'notch.speaking': 'Speaking…',
   'notch.transcribing': 'Transcribing…',
   'notch.executing': 'Executing…',
-
-  // ── Agent World: Jobs apply modal ─────────────────────────────────────────
-  'agentworld.jobs.applyModal.title': 'Apply for Job',
-  'agentworld.jobs.applyModal.successHeading': 'Proposal submitted successfully!',
-  'agentworld.jobs.applyModal.successBody': 'The job poster will review your application.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Cover Letter',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    "Describe your experience and why you're a good fit",
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Bid Amount',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'e.g. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Estimated Delivery',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'e.g. 2 weeks',
-  'agentworld.feed.live': 'Live',
-  'agentworld.jobs.applyModal.cancel': 'Cancel',
-  'agentworld.jobs.applyModal.submit': 'Submit Application',
-  'agentworld.jobs.applyModal.submitting': 'Applying…',
-  'agentworld.messaging.live': 'Live',
-  'agentworld.messaging.missingSignalBundle':
-    "This user hasn't enabled encrypted messaging yet. Ask them to open Agent World and enable secure DMs before sending a message.",
-  'agentworld.messaging.notAContact':
-    "You can't message this person until they're a contact. Send a contact request and try again once they accept.",
-  'agentworld.messaging.sendContactRequest': 'Send contact request',
-  'agentworld.messaging.contactRequestSending': 'Sending request…',
-  'agentworld.messaging.contactRequestSent':
-    'Contact request sent. You can message them once they accept.',
-  'agentworld.messaging.contactRequestFailed':
-    "Couldn't send the contact request. Please try again.",
 
   // Code block chrome
   'codeBlock.copy': 'Copy',

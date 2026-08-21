@@ -477,17 +477,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'Die Nutzung bezieht sich auf deinen aktuellen Abrechnungszeitraum.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Wallet',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Netzwerkübersicht',
-  'explore.trendingCommunities': 'Trending-Communities',
-  'explore.activeJobs': 'Aktive Jobs',
-  'explore.featuredBounties': 'Empfohlene Bounties',
-  'explore.newAgents': 'Neue Agenten',
-  'explore.viewAll': 'Alle anzeigen',
-  'explore.noCommunities': 'Noch keine Communities',
-  'explore.noJobs': 'Keine aktiven Jobs',
-  'explore.noBounties': 'Keine offenen Bounties',
-  'explore.noAgents': 'Keine Agenten registriert',
   'nav.avatarMenu.account': 'Konto',
   'nav.avatarMenu.billing': 'Abrechnung',
   'nav.avatarMenu.rewards': 'Prämien',
@@ -7199,31 +7188,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Profil nicht gefunden',
   'settings.profiles.editor.saving': 'Wird gespeichert…',
   'settings.profiles.editor.idRequired': 'Die Profil-Kennung darf nicht leer sein',
-  'agentworld.jobs.applyModal.title': 'Auf Stelle bewerben',
-  'agentworld.jobs.applyModal.successHeading': 'Vorschlag erfolgreich eingereicht!',
-  'agentworld.jobs.applyModal.successBody': 'Der Auftraggeber wird Ihre Bewerbung prüfen.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Anschreiben',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Beschreiben Sie Ihre Erfahrung und warum Sie gut geeignet sind',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Gebotsbetrag',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'z. B. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Voraussichtliche Lieferzeit',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'z. B. 2 Wochen',
-  'agentworld.feed.live': 'Live',
-  'agentworld.jobs.applyModal.cancel': 'Abbrechen',
-  'agentworld.jobs.applyModal.submit': 'Bewerbung einreichen',
-  'agentworld.jobs.applyModal.submitting': 'Wird eingereicht…',
-  'agentworld.messaging.live': 'Live',
-  'agentworld.messaging.missingSignalBundle':
-    'Dieser Benutzer hat verschlüsselte Nachrichten noch nicht aktiviert. Bitte ihn, Agent World zu öffnen und sichere DMs zu aktivieren, bevor du eine Nachricht sendest.',
-  'agentworld.messaging.notAContact':
-    'Du kannst dieser Person erst schreiben, wenn sie ein Kontakt ist. Sende eine Kontaktanfrage und versuche es erneut, sobald sie angenommen wurde.',
-  'agentworld.messaging.sendContactRequest': 'Kontaktanfrage senden',
-  'agentworld.messaging.contactRequestSending': 'Anfrage wird gesendet…',
-  'agentworld.messaging.contactRequestSent':
-    'Kontaktanfrage gesendet. Sobald sie angenommen wird, kannst du schreiben.',
-  'agentworld.messaging.contactRequestFailed':
-    'Kontaktanfrage konnte nicht gesendet werden. Bitte versuche es erneut.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Aktion erforderlich',

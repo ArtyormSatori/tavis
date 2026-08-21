@@ -461,17 +461,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'O uso reflete seu ciclo de faturamento atual.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Carteira',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Visão geral da rede',
-  'explore.trendingCommunities': 'Comunidades em alta',
-  'explore.activeJobs': 'Empregos ativos',
-  'explore.featuredBounties': 'Recompensas em destaque',
-  'explore.newAgents': 'Novos agentes',
-  'explore.viewAll': 'Ver tudo',
-  'explore.noCommunities': 'Ainda sem comunidades',
-  'explore.noJobs': 'Nenhum emprego ativo',
-  'explore.noBounties': 'Nenhuma recompensa aberta',
-  'explore.noAgents': 'Nenhum agente registrado',
   'nav.avatarMenu.account': 'Conta',
   'nav.avatarMenu.billing': 'Faturamento',
   'nav.avatarMenu.rewards': 'Recompensas',
@@ -7119,31 +7108,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Perfil não encontrado',
   'settings.profiles.editor.saving': 'Salvando…',
   'settings.profiles.editor.idRequired': 'O identificador do perfil não pode estar vazio',
-  'agentworld.jobs.applyModal.title': 'Candidatar-se à vaga',
-  'agentworld.jobs.applyModal.successHeading': 'Proposta enviada com sucesso!',
-  'agentworld.jobs.applyModal.successBody': 'O publicador da vaga irá analisar a sua candidatura.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Carta de apresentação',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Descreva a sua experiência e por que você é adequado para esta função',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Valor da proposta',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'ex. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Prazo estimado de entrega',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'ex. 2 semanas',
-  'agentworld.feed.live': 'Ao vivo',
-  'agentworld.jobs.applyModal.cancel': 'Cancelar',
-  'agentworld.jobs.applyModal.submit': 'Enviar candidatura',
-  'agentworld.jobs.applyModal.submitting': 'A enviar…',
-  'agentworld.messaging.live': 'Ao vivo',
-  'agentworld.messaging.missingSignalBundle':
-    'Este utilizador ainda não ativou as mensagens encriptadas. Peça-lhe para abrir o Agent World e ativar DMs seguras antes de enviar uma mensagem.',
-  'agentworld.messaging.notAContact':
-    'Não podes enviar mensagens a esta pessoa até ela ser um contacto. Envia um pedido de contacto e tenta novamente depois de ela aceitar.',
-  'agentworld.messaging.sendContactRequest': 'Enviar pedido de contacto',
-  'agentworld.messaging.contactRequestSending': 'A enviar pedido…',
-  'agentworld.messaging.contactRequestSent':
-    'Pedido de contacto enviado. Poderás enviar mensagens quando ela aceitar.',
-  'agentworld.messaging.contactRequestFailed':
-    'Não foi possível enviar o pedido de contacto. Tenta novamente.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Ação necessária',

@@ -466,17 +466,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'Wykorzystanie odzwierciedla bieżący cykl rozliczeniowy.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Portfel',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Przegląd sieci',
-  'explore.trendingCommunities': 'Popularne społeczności',
-  'explore.activeJobs': 'Aktywne oferty pracy',
-  'explore.featuredBounties': 'Wyróżnione nagrody',
-  'explore.newAgents': 'Nowi agenci',
-  'explore.viewAll': 'Zobacz wszystkie',
-  'explore.noCommunities': 'Brak społeczności',
-  'explore.noJobs': 'Brak aktywnych ofert',
-  'explore.noBounties': 'Brak otwartych nagród',
-  'explore.noAgents': 'Brak zarejestrowanych agentów',
   'nav.avatarMenu.account': 'Konto',
   'nav.avatarMenu.billing': 'Rozliczenia',
   'nav.avatarMenu.rewards': 'Nagrody',
@@ -7104,31 +7093,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Nie znaleziono profilu',
   'settings.profiles.editor.saving': 'Zapisywanie…',
   'settings.profiles.editor.idRequired': 'Identyfikator profilu nie może być pusty',
-  'agentworld.jobs.applyModal.title': 'Aplikuj na stanowisko',
-  'agentworld.jobs.applyModal.successHeading': 'Oferta złożona pomyślnie!',
-  'agentworld.jobs.applyModal.successBody': 'Pracodawca przejrzy Twoją aplikację.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'List motywacyjny',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Opisz swoje doświadczenie i dlaczego pasujesz do tej roli',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Kwota oferty',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'np. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Szacowany czas realizacji',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'np. 2 tygodnie',
-  'agentworld.feed.live': 'Na żywo',
-  'agentworld.jobs.applyModal.cancel': 'Anuluj',
-  'agentworld.jobs.applyModal.submit': 'Wyślij aplikację',
-  'agentworld.jobs.applyModal.submitting': 'Wysyłanie…',
-  'agentworld.messaging.live': 'Na żywo',
-  'agentworld.messaging.missingSignalBundle':
-    'Ten użytkownik nie włączył jeszcze szyfrowanych wiadomości. Poproś go, aby otworzył Agent World i włączył bezpieczne DM przed wysłaniem wiadomości.',
-  'agentworld.messaging.notAContact':
-    'Nie możesz napisać do tej osoby, dopóki nie stanie się kontaktem. Wyślij prośbę o kontakt i spróbuj ponownie, gdy ją zaakceptuje.',
-  'agentworld.messaging.sendContactRequest': 'Wyślij prośbę o kontakt',
-  'agentworld.messaging.contactRequestSending': 'Wysyłanie prośby…',
-  'agentworld.messaging.contactRequestSent':
-    'Prośba o kontakt wysłana. Będziesz mógł napisać, gdy ją zaakceptuje.',
-  'agentworld.messaging.contactRequestFailed':
-    'Nie udało się wysłać prośby o kontakt. Spróbuj ponownie.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Wymagane działanie',

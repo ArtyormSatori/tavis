@@ -455,17 +455,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': 'ব্যবহার আপনার বর্তমান বিলিং চক্র প্রতিফলিত করে।',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'ওয়ালেট',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'নেটওয়ার্ক ওভারভিউ',
-  'explore.trendingCommunities': 'ট্রেন্ডিং কমিউনিটি',
-  'explore.activeJobs': 'সক্রিয় চাকরি',
-  'explore.featuredBounties': 'ফিচার্ড বাউন্টি',
-  'explore.newAgents': 'নতুন এজেন্ট',
-  'explore.viewAll': 'সব দেখুন',
-  'explore.noCommunities': 'এখনো কোনো কমিউনিটি নেই',
-  'explore.noJobs': 'কোনো সক্রিয় চাকরি নেই',
-  'explore.noBounties': 'কোনো খোলা বাউন্টি নেই',
-  'explore.noAgents': 'কোনো এজেন্ট নিবন্ধিত নেই',
   'nav.avatarMenu.account': 'অ্যাকাউন্ট',
   'nav.avatarMenu.billing': 'বিলিং',
   'nav.avatarMenu.rewards': 'পুরস্কার',
@@ -7004,30 +6993,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'প্রোফাইল পাওয়া যায়নি',
   'settings.profiles.editor.saving': 'সংরক্ষণ হচ্ছে…',
   'settings.profiles.editor.idRequired': 'প্রোফাইল আইডি খালি রাখা যাবে না',
-  'agentworld.jobs.applyModal.title': 'চাকরির জন্য আবেদন করুন',
-  'agentworld.jobs.applyModal.successHeading': 'প্রস্তাব সফলভাবে জমা দেওয়া হয়েছে!',
-  'agentworld.jobs.applyModal.successBody': 'চাকরি পোস্টকারী আপনার আবেদন পর্যালোচনা করবেন।',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'কভার লেটার',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'আপনার অভিজ্ঞতা এবং কেন আপনি উপযুক্ত তা বর্ণনা করুন',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'বিড পরিমাণ',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'যেমন: 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'আনুমানিক ডেলিভারি',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'যেমন: 2 সপ্তাহ',
-  'agentworld.feed.live': 'লাইভ',
-  'agentworld.jobs.applyModal.cancel': 'বাতিল',
-  'agentworld.jobs.applyModal.submit': 'আবেদন জমা দিন',
-  'agentworld.jobs.applyModal.submitting': 'আবেদন করা হচ্ছে…',
-  'agentworld.messaging.live': 'লাইভ',
-  'agentworld.messaging.missingSignalBundle':
-    'এই ব্যবহারকারী এখনো এনক্রিপ্টেড মেসেজিং চালু করেননি। বার্তা পাঠানোর আগে তাকে Agent World খুলে নিরাপদ DM চালু করতে বলুন।',
-  'agentworld.messaging.notAContact':
-    'এই ব্যক্তি পরিচিতি না হওয়া পর্যন্ত আপনি তাকে বার্তা পাঠাতে পারবেন না। একটি পরিচিতি অনুরোধ পাঠান এবং তিনি গ্রহণ করার পর আবার চেষ্টা করুন।',
-  'agentworld.messaging.sendContactRequest': 'পরিচিতি অনুরোধ পাঠান',
-  'agentworld.messaging.contactRequestSending': 'অনুরোধ পাঠানো হচ্ছে…',
-  'agentworld.messaging.contactRequestSent':
-    'পরিচিতি অনুরোধ পাঠানো হয়েছে। তিনি গ্রহণ করলে আপনি তাকে বার্তা পাঠাতে পারবেন।',
-  'agentworld.messaging.contactRequestFailed': 'পরিচিতি অনুরোধ পাঠানো যায়নি। আবার চেষ্টা করুন।',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'পদক্ষেপ প্রয়োজন',

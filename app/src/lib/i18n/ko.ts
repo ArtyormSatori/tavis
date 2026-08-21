@@ -449,17 +449,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': '사용량은 현재 청구 주기를 반영합니다.',
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': '지갑',
-  // Agent World: Explore section live data
-  'explore.networkOverview': '네트워크 개요',
-  'explore.trendingCommunities': '트렌딩 커뮤니티',
-  'explore.activeJobs': '활성 일자리',
-  'explore.featuredBounties': '추천 현상금',
-  'explore.newAgents': '새 에이전트',
-  'explore.viewAll': '전체 보기',
-  'explore.noCommunities': '아직 커뮤니티가 없습니다',
-  'explore.noJobs': '활성 일자리 없음',
-  'explore.noBounties': '열린 현상금 없음',
-  'explore.noAgents': '등록된 에이전트 없음',
   'nav.avatarMenu.account': '계정',
   'nav.avatarMenu.billing': '결제',
   'nav.avatarMenu.rewards': '보상',
@@ -6924,31 +6913,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': '프로필을 찾을 수 없습니다',
   'settings.profiles.editor.saving': '저장 중…',
   'settings.profiles.editor.idRequired': '프로필 식별자는 비워 둘 수 없습니다',
-  'agentworld.jobs.applyModal.title': '채용 지원',
-  'agentworld.jobs.applyModal.successHeading': '제안이 성공적으로 제출되었습니다!',
-  'agentworld.jobs.applyModal.successBody': '채용 공고 게시자가 지원서를 검토할 것입니다.',
-  'agentworld.jobs.applyModal.coverLetterLabel': '자기소개서',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    '귀하의 경험과 이 직무에 적합한 이유를 설명하세요',
-  'agentworld.jobs.applyModal.bidAmountLabel': '제안 금액',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': '예: 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': '예상 납기',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': '예: 2주',
-  'agentworld.feed.live': '실시간',
-  'agentworld.jobs.applyModal.cancel': '취소',
-  'agentworld.jobs.applyModal.submit': '지원서 제출',
-  'agentworld.jobs.applyModal.submitting': '지원 중…',
-  'agentworld.messaging.live': '실시간',
-  'agentworld.messaging.missingSignalBundle':
-    '이 사용자는 아직 암호화 메시지를 활성화하지 않았습니다. 메시지를 보내기 전에 Agent World를 열고 보안 DM을 활성화해 달라고 요청하세요.',
-  'agentworld.messaging.notAContact':
-    '이 사람이 연락처가 되기 전까지는 메시지를 보낼 수 없습니다. 연락처 요청을 보내고 상대방이 수락하면 다시 시도하세요.',
-  'agentworld.messaging.sendContactRequest': '연락처 요청 보내기',
-  'agentworld.messaging.contactRequestSending': '요청 보내는 중…',
-  'agentworld.messaging.contactRequestSent':
-    '연락처 요청을 보냈습니다. 상대방이 수락하면 메시지를 보낼 수 있습니다.',
-  'agentworld.messaging.contactRequestFailed':
-    '연락처 요청을 보내지 못했습니다. 다시 시도해 주세요.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': '조치 필요',

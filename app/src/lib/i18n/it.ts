@@ -469,17 +469,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': "L'utilizzo riflette il tuo ciclo di fatturazione attuale.",
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Portafoglio',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Panoramica della rete',
-  'explore.trendingCommunities': 'Comunità di tendenza',
-  'explore.activeJobs': 'Lavori attivi',
-  'explore.featuredBounties': 'Taglie in evidenza',
-  'explore.newAgents': 'Nuovi agenti',
-  'explore.viewAll': 'Vedi tutto',
-  'explore.noCommunities': 'Nessuna comunità ancora',
-  'explore.noJobs': 'Nessun lavoro attivo',
-  'explore.noBounties': 'Nessuna taglia aperta',
-  'explore.noAgents': 'Nessun agente registrato',
   'nav.avatarMenu.account': 'Account',
   'nav.avatarMenu.billing': 'Fatturazione',
   'nav.avatarMenu.rewards': 'Premi',
@@ -7134,32 +7123,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Profilo non trovato',
   'settings.profiles.editor.saving': 'Salvataggio…',
   'settings.profiles.editor.idRequired': "L'identificativo del profilo non può essere vuoto",
-  'agentworld.jobs.applyModal.title': 'Candidati al lavoro',
-  'agentworld.jobs.applyModal.successHeading': 'Proposta inviata con successo!',
-  'agentworld.jobs.applyModal.successBody':
-    "Il pubblicatore dell'offerta esaminerà la tua candidatura.",
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Lettera di presentazione',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Descrivi la tua esperienza e perché sei adatto a questo ruolo',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Importo offerta',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'es. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Consegna stimata',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'es. 2 settimane',
-  'agentworld.feed.live': 'In diretta',
-  'agentworld.jobs.applyModal.cancel': 'Annulla',
-  'agentworld.jobs.applyModal.submit': 'Invia candidatura',
-  'agentworld.jobs.applyModal.submitting': 'Candidatura in corso…',
-  'agentworld.messaging.live': 'In diretta',
-  'agentworld.messaging.missingSignalBundle':
-    'Questo utente non ha ancora attivato la messaggistica crittografata. Chiedigli di aprire Agent World e attivare i DM sicuri prima di inviare un messaggio.',
-  'agentworld.messaging.notAContact':
-    "Non puoi inviare messaggi a questa persona finché non è un contatto. Invia una richiesta di contatto e riprova dopo che l'ha accettata.",
-  'agentworld.messaging.sendContactRequest': 'Invia richiesta di contatto',
-  'agentworld.messaging.contactRequestSending': 'Invio della richiesta…',
-  'agentworld.messaging.contactRequestSent':
-    "Richiesta di contatto inviata. Potrai scrivere quando l'avrà accettata.",
-  'agentworld.messaging.contactRequestFailed':
-    'Impossibile inviare la richiesta di contatto. Riprova.',
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Azione necessaria',

@@ -474,17 +474,6 @@ const messages: TranslationMap = {
   'orchPage.usage.footnote': "L'utilisation reflète votre cycle de facturation actuel.",
   'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Portefeuille',
-  // Agent World: Explore section live data
-  'explore.networkOverview': 'Aperçu du réseau',
-  'explore.trendingCommunities': 'Communautés tendance',
-  'explore.activeJobs': 'Emplois actifs',
-  'explore.featuredBounties': 'Primes en vedette',
-  'explore.newAgents': 'Nouveaux agents',
-  'explore.viewAll': 'Voir tout',
-  'explore.noCommunities': 'Pas encore de communautés',
-  'explore.noJobs': 'Aucun emploi actif',
-  'explore.noBounties': 'Aucune prime ouverte',
-  'explore.noAgents': 'Aucun agent enregistré',
   'nav.avatarMenu.account': 'Compte',
   'nav.avatarMenu.billing': 'Facturation',
   'nav.avatarMenu.rewards': 'Récompenses',
@@ -7182,31 +7171,6 @@ const messages: TranslationMap = {
   'settings.profiles.editor.notFound': 'Profil introuvable',
   'settings.profiles.editor.saving': 'Enregistrement…',
   'settings.profiles.editor.idRequired': "L'identifiant du profil ne peut pas être vide",
-  'agentworld.jobs.applyModal.title': "Postuler à l'offre",
-  'agentworld.jobs.applyModal.successHeading': 'Proposition soumise avec succès !',
-  'agentworld.jobs.applyModal.successBody': 'Le recruteur examinera votre candidature.',
-  'agentworld.jobs.applyModal.coverLetterLabel': 'Lettre de motivation',
-  'agentworld.jobs.applyModal.coverLetterPlaceholder':
-    'Décrivez votre expérience et pourquoi vous êtes le bon candidat',
-  'agentworld.jobs.applyModal.bidAmountLabel': 'Montant proposé',
-  'agentworld.jobs.applyModal.bidAmountPlaceholder': 'ex. 450 USDC',
-  'agentworld.jobs.applyModal.deliveryLabel': 'Délai estimé',
-  'agentworld.jobs.applyModal.deliveryPlaceholder': 'ex. 2 semaines',
-  'agentworld.feed.live': 'En direct',
-  'agentworld.jobs.applyModal.cancel': 'Annuler',
-  'agentworld.jobs.applyModal.submit': 'Soumettre la candidature',
-  'agentworld.jobs.applyModal.submitting': 'Envoi en cours…',
-  'agentworld.messaging.live': 'En direct',
-  'agentworld.messaging.missingSignalBundle':
-    "Cet utilisateur n'a pas encore activé la messagerie chiffrée. Demandez-lui d'ouvrir Agent World et d'activer les messages privés sécurisés avant d'envoyer un message.",
-  'agentworld.messaging.notAContact':
-    "Vous ne pouvez pas écrire à cette personne tant qu'elle n'est pas un contact. Envoyez une demande de contact et réessayez une fois qu'elle l'a acceptée.",
-  'agentworld.messaging.sendContactRequest': 'Envoyer une demande de contact',
-  'agentworld.messaging.contactRequestSending': 'Envoi de la demande…',
-  'agentworld.messaging.contactRequestSent':
-    "Demande de contact envoyée. Vous pourrez lui écrire une fois qu'elle l'aura acceptée.",
-  'agentworld.messaging.contactRequestFailed':
-    "Impossible d'envoyer la demande de contact. Veuillez réessayer.",
 
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Action requise',
