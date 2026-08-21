@@ -59,7 +59,7 @@ describe('<FeedbackFilterSelect />', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('opens on ArrowDown and marks the current selection with aria-selected', () => {
+  it('opens on ArrowDown and marks the current selection as checked', () => {
     render(
       <FeedbackFilterSelect
         value="feature"
@@ -73,9 +73,13 @@ describe('<FeedbackFilterSelect />', () => {
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });
 
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    // `data-state` is Radix's is-this-the-selected-value signal for an item;
+    // `aria-selected` is `isSelected && isFocused` (roving DOM focus), which
+    // jsdom's layout-less focus handling makes unreliable to assert here —
+    // see the "Keyboard only" note in ui/Select.test.tsx for the same caveat.
     const selected = screen.getByRole('option', { name: 'Feature' });
-    expect(selected).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('option', { name: 'Bug' })).toHaveAttribute('aria-selected', 'false');
+    expect(selected).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByRole('option', { name: 'Bug' })).toHaveAttribute('data-state', 'unchecked');
   });
 
   it('commits the highlighted option with Enter', () => {

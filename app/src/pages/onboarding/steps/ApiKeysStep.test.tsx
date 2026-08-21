@@ -17,8 +17,10 @@ describe('Onboarding ApiKeysStep', () => {
     const separators = document.querySelectorAll('[data-slot="separator"]');
     expect(separators).toHaveLength(2);
     separators.forEach(separator => {
-      expect(separator).toHaveAttribute('aria-hidden', 'true');
-      expect(separator).not.toHaveAttribute('role', 'separator');
+      // Decorative (the default): Radix renders `role="none"` rather than
+      // `role="separator"`, keeping it out of the a11y tree the same way the
+      // hand-rolled `aria-hidden` div it replaced did.
+      expect(separator).toHaveAttribute('role', 'none');
     });
   });
 });
