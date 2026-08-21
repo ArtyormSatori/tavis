@@ -157,11 +157,12 @@ export default function FlowRunsSidebar({ flowId }: FlowRunsSidebarProps) {
             const displayStatus = resolveDisplayStatus(run, pendingRunIds);
             return (
               <li key={run.id}>
-                <button
+                <Button
                   type="button"
+                  variant="tertiary"
                   data-testid={`flow-runs-sidebar-run-${run.id}`}
                   onClick={() => setSelectedRunId(run.id)}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-hover ${
+                  className={`h-auto w-full justify-start gap-2 rounded-lg px-2 py-1.5 text-left font-normal ${
                     selectedRunId === run.id ? 'bg-surface-hover' : ''
                   }`}>
                   <FlowRunStatus
@@ -179,7 +180,7 @@ export default function FlowRunsSidebar({ flowId }: FlowRunsSidebarProps) {
                       {relativeTime(run.started_at, t)}
                     </span>
                   </span>
-                </button>
+                </Button>
               </li>
             );
           })}

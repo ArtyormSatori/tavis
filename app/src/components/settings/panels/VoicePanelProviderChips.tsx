@@ -7,20 +7,9 @@ export const BUILTIN_VOICE_PROVIDER_META: Record<
   string,
   { label: string; capability: 'stt' | 'tts' | 'both'; comingSoon?: boolean }
 > = {
-  deepgram: {
-    label: 'Deepgram',
-    capability: 'stt',
-    comingSoon: true,
-  },
-  elevenlabs: {
-    label: 'ElevenLabs',
-    capability: 'both',
-  },
-  openai: {
-    label: 'OpenAI',
-    capability: 'both',
-    comingSoon: true,
-  },
+  deepgram: { label: 'Deepgram', capability: 'stt', comingSoon: true },
+  elevenlabs: { label: 'ElevenLabs', capability: 'both' },
+  openai: { label: 'OpenAI', capability: 'both', comingSoon: true },
 };
 
 /** Shared pill shell for every provider chip — semantic tokens only. */

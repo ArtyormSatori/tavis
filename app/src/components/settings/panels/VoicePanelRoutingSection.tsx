@@ -211,7 +211,10 @@ const VoicePanelRoutingSection = ({
                       setTtsVoice(next);
                       void persistProviders({ tts_voice: next });
                       void installPiper({ voiceId: next }).catch(err =>
-                        console.warn('[voice-install:piper] auto-install on voice change failed:', err)
+                        console.warn(
+                          '[voice-install:piper] auto-install on voice change failed:',
+                          err
+                        )
                       );
                     }}
                     className="w-full">
@@ -259,7 +262,9 @@ const VoicePanelRoutingSection = ({
                   <SettingsSelect
                     aria-label={t('voice.routing.elevenlabsVoiceAria')}
                     data-testid="elevenlabs-voice-select"
-                    value={isCuratedVoicePreset(elevenlabsVoiceId) ? elevenlabsVoiceId : '__custom__'}
+                    value={
+                      isCuratedVoicePreset(elevenlabsVoiceId) ? elevenlabsVoiceId : '__custom__'
+                    }
                     disabled={isSavingProviders}
                     onChange={e => {
                       const next = e.target.value;

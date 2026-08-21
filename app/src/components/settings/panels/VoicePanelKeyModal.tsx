@@ -20,7 +20,8 @@ const installButtonLabel = (
   // the RPC return. The real "is install running?" signal comes from the
   // polled status table, which lags behind by at most one 2s tick.
   if (status?.state === 'installing') {
-    const pct = typeof status.progress === 'number' ? `${status.progress}%` : t('voice.providers.ellipsis');
+    const pct =
+      typeof status.progress === 'number' ? `${status.progress}%` : t('voice.providers.ellipsis');
     return `${t('voice.providers.installing')} ${pct}`;
   }
   if (busy) return t('voice.providers.installingBusy');
@@ -178,7 +179,11 @@ const VoicePanelKeyModal = ({
                     await handleEnableExternalProvider(pendingKeySlug, pendingKeyValue);
                     const meta = BUILTIN_VOICE_PROVIDER_META[pendingKeySlug];
                     const workload = meta?.capability === 'tts' ? 'tts' : 'stt';
-                    const result = await testVoiceProvider(workload as 'stt' | 'tts', pendingKeySlug, true);
+                    const result = await testVoiceProvider(
+                      workload as 'stt' | 'tts',
+                      pendingKeySlug,
+                      true
+                    );
                     setKeyTestResult(result);
                   } catch (err) {
                     setKeyTestResult({
