@@ -15,10 +15,11 @@
  * Esc closes the modal; backdrop mousedown closes; clicks inside the
  * card do not.
  */
-import { useEffect, useState } from 'react';
+import { useId, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
-import Button from '../../ui/Button';
+import { ModalShell } from '../../ui/ModalShell';
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from '../../ui/Tabs';
 import McpInventoryExportTab from './McpInventoryExportTab';
 import McpInventoryImportTab from './McpInventoryImportTab';
 import type { InstalledServer } from './types';

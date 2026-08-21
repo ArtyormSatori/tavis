@@ -41,7 +41,6 @@ export const UsageLedgerSection = ({
   subconsciousModelCallsPerWeek,
   subconsciousEnabled,
   activeConnectionsCount,
-  learningTicksPerWeek,
 }: {
   t: (key: string, fallback?: string) => string;
   loading: boolean;
