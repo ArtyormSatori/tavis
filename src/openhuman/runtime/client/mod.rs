@@ -15,9 +15,12 @@
 #[cfg(not(feature = "modules"))]
 mod disabled;
 
+// Only what `runtime/` actually calls. `modules::runtime` exposes more — the
+// `Languages` listing, for one — but a facade that re-exported the whole surface
+// would oblige the stub to grow a twin of every member nothing here uses.
 #[cfg(feature = "modules")]
 pub(crate) use crate::openhuman::modules::runtime::{
-    execute, languages, pool_stats, resolve, RuntimeCallError,
+    execute, pool_stats, resolve, RuntimeCallError,
 };
 #[cfg(not(feature = "modules"))]
-pub(crate) use disabled::{execute, languages, pool_stats, resolve, RuntimeCallError};
+pub(crate) use disabled::{execute, pool_stats, resolve, RuntimeCallError};
