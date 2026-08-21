@@ -41,8 +41,6 @@ import { STAGE_FALLBACK_PERCENT, type SyncProgress, type SyncResult } from './me
 import { MemorySourceRow } from './MemorySourceRow';
 import { MemorySyncSchedule } from './MemorySyncSchedule';
 
-const log = debug('intelligence:memory-sync');
-
 interface MemorySourcesRegistryProps {
   onToast?: (toast: Omit<ToastNotification, 'id'>) => void;
   pollIntervalMs?: number;
