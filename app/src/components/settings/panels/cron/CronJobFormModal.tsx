@@ -16,8 +16,16 @@ import type {
   CoreCronSchedule,
   CronAddParams,
 } from '../../../../utils/tauriCommands/cron';
-import { Button, Checkbox, ModalShell, NativeSelect, TextArea, TextField } from '../../../ui';
-import { RadioGroupItem, RadioGroupRoot } from '../../../ui/RadioGroup';
+import {
+  Button,
+  Checkbox,
+  ModalShell,
+  NativeSelect,
+  RadioGroupItem,
+  RadioGroupRoot,
+  TextArea,
+  TextField,
+} from '../../../ui';
 
 const log = createDebug('app:settings:CronJobFormModal');
 
