@@ -434,9 +434,9 @@ const ProfileEditorPage = () => {
           </SettingsSection>
 
           {error && (
-            <p className="rounded-md border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700 dark:border-coral-500/30 dark:bg-coral-500/10 dark:text-coral-300">
+            <Alert variant="destructive" className="text-xs">
               {error}
-            </p>
+            </Alert>
           )}
 
           <div className="flex justify-end gap-2 pt-1">
