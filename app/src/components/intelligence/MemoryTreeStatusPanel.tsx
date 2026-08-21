@@ -191,7 +191,7 @@ function statusDotClass(kind: MemoryTreePipelineStatus['status']): string {
     case 'syncing':
       return 'bg-sage-500 animate-pulse';
     case 'paused':
-      return 'bg-stone-400 dark:bg-neutral-500';
+      return 'bg-content-faint';
     case 'error':
       return 'bg-coral-500';
     case 'degraded':
@@ -199,7 +199,7 @@ function statusDotClass(kind: MemoryTreePipelineStatus['status']): string {
       return 'bg-amber-500';
     case 'idle':
     default:
-      return 'bg-stone-400 dark:bg-neutral-500';
+      return 'bg-content-faint';
   }
 }
 

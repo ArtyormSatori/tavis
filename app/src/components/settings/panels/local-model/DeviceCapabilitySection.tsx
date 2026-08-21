@@ -6,6 +6,7 @@ import {
   openhumanLocalAiApplyPreset,
   type PresetsResponse,
 } from '../../../../utils/tauriCommands';
+import { cn } from '../../../../lib/cn';
 import { Alert, AlertDescription } from '../../../ui/Alert';
 import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
@@ -289,7 +290,6 @@ const DeviceCapabilitySection = ({
               <TierTile
                 key={preset.tier}
                 active={isCurrent}
-                locked={locked}
                 disabled={applying !== null || locked}
                 onClick={() => void handleApply(preset.tier)}
                 title={
