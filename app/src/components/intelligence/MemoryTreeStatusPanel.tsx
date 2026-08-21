@@ -42,6 +42,10 @@ import {
 
 export { classifyIntegration, providerIconChar };
 
+interface MemoryTreeStatusPanelProps {
+  onToast?: (toast: Omit<ToastNotification, 'id'>) => void;
+}
+
 /**
  * Memory Tree status panel — render the four-tile dashboard plus the
  * auto-sync toggle. Designed to mount above `<MemorySources>` in

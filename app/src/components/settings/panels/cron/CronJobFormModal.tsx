@@ -352,34 +352,20 @@ const CronJobFormModal = ({
           <div className="text-xs font-medium text-content-secondary mb-1.5">
             {t('settings.cron.jobs.formJobType')}
           </div>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-              <input
-                data-testid="cron-form-job-type-agent"
-                type="radio"
-                name="cron-job-type"
-                value="agent"
-                checked={jobType === 'agent'}
-                onChange={() => setJobType('agent')}
-                disabled={mode === 'edit' || saving}
-                className="accent-primary-600"
-              />
+          <RadioGroupRoot
+            className="flex flex-row gap-4"
+            value={jobType}
+            onValueChange={value => setJobType(value as JobType)}
+            disabled={mode === 'edit' || saving}>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-content-secondary">
+              <RadioGroupItem data-testid="cron-form-job-type-agent" value="agent" />
               {t('settings.cron.jobs.formJobTypeAgent')}
             </label>
-            <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-              <input
-                data-testid="cron-form-job-type-shell"
-                type="radio"
-                name="cron-job-type"
-                value="shell"
-                checked={jobType === 'shell'}
-                onChange={() => setJobType('shell')}
-                disabled={mode === 'edit' || saving}
-                className="accent-primary-600"
-              />
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-content-secondary">
+              <RadioGroupItem data-testid="cron-form-job-type-shell" value="shell" />
               {t('settings.cron.jobs.formJobTypeShell')}
             </label>
-          </div>
+          </RadioGroupRoot>
         </div>
 
         {/* Schedule type */}

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { GraphRelation } from '../../utils/tauriCommands';
+import Button from '../ui/Button';
 
 interface MemoryInsightsProps {
   relations: GraphRelation[];
