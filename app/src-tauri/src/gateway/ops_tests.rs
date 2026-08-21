@@ -9,7 +9,8 @@
 
 use std::collections::BTreeMap;
 
-use super::ops::{box_spec, core_command, endpoint_of, is_port_conflict};
+use super::ops::endpoint_of;
+use super::provision::{box_spec, core_command, is_port_conflict};
 use super::types::{Confinement, Reach, SshReach, CORE_PORT_IN_BOX};
 
 fn docker() -> Confinement {
