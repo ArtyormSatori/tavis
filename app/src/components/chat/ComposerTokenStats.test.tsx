@@ -95,12 +95,15 @@ describe('<ComposerTokenStats />', () => {
 
     fireEvent.click(screen.getByRole('button'));
     expect(screen.getByTestId('composer-token-breakdown')).toBeInTheDocument();
-    // Radix's dismissable layer listens for `pointerdown`, not `mousedown` (the
-    // hand-rolled listener this used to have), and defers attaching that
-    // listener by one macrotask (`setTimeout(…, 0)`) so the same pointerdown
-    // that opened the popover can't immediately close it again.
+    // Radix's dismissable layer treats an outside interaction as pointerdown
+    // *followed by* a click (not a bare `mousedown`, the hand-rolled listener
+    // this used to have) and defers attaching its listener by one macrotask
+    // (`setTimeout(…, 0)`) so the same pointerdown that opened the popover
+    // can't immediately close it again — see the same pattern documented in
+    // ui/ModalShell.test.tsx.
     await new Promise(resolve => setTimeout(resolve, 0));
     fireEvent.pointerDown(document.body);
+    fireEvent.click(document.body);
     expect(screen.queryByTestId('composer-token-breakdown')).not.toBeInTheDocument();
   });
 
