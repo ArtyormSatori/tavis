@@ -117,8 +117,8 @@ const AppearancePanel = () => {
       setPxDraft(String(effectiveFontSizePx));
     }
   };
-  const handleFontSizeSlider = (event: ChangeEvent<HTMLInputElement>) => {
-    const px = Number(event.target.value);
+  const handleFontSizeSlider = (values: number[]) => {
+    const px = values[0];
     console.debug('[appearance] custom font-size slider', { px });
     dispatch(setCustomFontSizePx(px));
   };
