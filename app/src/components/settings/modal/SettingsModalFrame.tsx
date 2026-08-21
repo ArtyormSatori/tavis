@@ -42,7 +42,10 @@ export function SettingsModalFrame({ onClose, children, labelledBy }: SettingsMo
         if (!next) onClose();
       }}>
       <DialogPrimitive.Portal container={portalTarget}>
-        <DialogOverlay data-testid="settings-modal-backdrop" className="flex items-center justify-center" />
+        <DialogOverlay
+          data-testid="settings-modal-backdrop"
+          className="flex items-center justify-center"
+        />
         {/* Positioning wrapper sized to the card, rendered as a sibling of the
             overlay so it sits above the scrim without needing its own click
             handler — Radix's dismissable layer already treats a click on the

@@ -145,15 +145,12 @@ export default function ScheduledCronCard({
           <span>
             {t('skills.dashboard.lastRun')}: {new Date(job.last_run).toLocaleString()}
             {job.last_status && (
-              <span
+              <Badge
+                variant={job.last_status === 'ok' ? 'success' : 'danger'}
                 data-testid={`${rootId}-last-status`}
-                className={`ml-1.5 px-1 py-0.5 rounded text-[10px] font-medium ${
-                  job.last_status === 'ok'
-                    ? 'bg-sage-100 dark:bg-sage-500/20 text-sage-700 dark:text-sage-300'
-                    : 'bg-coral-100 dark:bg-coral-500/20 text-coral-700 dark:text-coral-300'
-                }`}>
+                className="ml-1.5">
                 {job.last_status}
-              </span>
+              </Badge>
             )}
           </span>
         )}
