@@ -767,4 +767,3 @@ fn sanitize_identity_field(s: &str) -> String {
         .collect::<Vec<_>>()
         .join(" ")
 }
-

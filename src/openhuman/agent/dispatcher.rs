@@ -142,7 +142,9 @@ fn from_native_call(call: &NativeToolCall) -> ToolCall {
     }
 }
 
-fn from_parsed_calls(calls: Vec<tinyagents::harness::tool_calling::ParsedToolCall>) -> Vec<ParsedToolCall> {
+fn from_parsed_calls(
+    calls: Vec<tinyagents::harness::tool_calling::ParsedToolCall>,
+) -> Vec<ParsedToolCall> {
     calls
         .into_iter()
         .map(|call| ParsedToolCall {
@@ -262,7 +264,9 @@ fn schemas_from_tools(tools: &[Box<dyn Tool>]) -> Vec<ToolSchema> {
         .collect()
 }
 
-fn from_format(format: tinyagents::harness::tool_calling::dialect::ToolCallFormat) -> ToolCallFormat {
+fn from_format(
+    format: tinyagents::harness::tool_calling::dialect::ToolCallFormat,
+) -> ToolCallFormat {
     use tinyagents::harness::tool_calling::dialect::ToolCallFormat as Crate;
     match format {
         Crate::PFormat => ToolCallFormat::PFormat,
@@ -274,7 +278,10 @@ fn from_format(format: tinyagents::harness::tool_calling::dialect::ToolCallForma
 /// Shared body of every `ToolDispatcher` impl below: convert in, delegate,
 /// convert out. Written once as functions rather than repeated per dispatcher
 /// so a new dialect is a `impl ToolDispatcher` of five one-line forwards.
-fn dispatch_parse(dialect: &dyn ToolDialect, response: &ChatResponse) -> (String, Vec<ParsedToolCall>) {
+fn dispatch_parse(
+    dialect: &dyn ToolDialect,
+    response: &ChatResponse,
+) -> (String, Vec<ParsedToolCall>) {
     let (text, calls) = dialect.parse_response(&to_dialect_response(response));
     (text, from_parsed_calls(calls))
 }
