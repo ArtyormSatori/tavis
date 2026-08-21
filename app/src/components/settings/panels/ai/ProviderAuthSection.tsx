@@ -25,8 +25,6 @@ import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
 import { ProviderToggleChip } from './ProviderConnectControls';
 import type { ConnectCredentialMode } from './useProviderConnect';
 
-void presentProviderSetupError; // referenced only for the re-export shape, keep tree-shakeable
-
 export const ProviderAuthSection = ({
   draft,
   persist,
@@ -36,6 +34,7 @@ export const ProviderAuthSection = ({
   providerAuthErrors,
   providerSaveNotice,
   onDismissProviderSaveNotice,
+  onProviderRemoved,
   codexAuthError,
   onConnectCodex,
   onConnectProvider,
@@ -49,7 +48,11 @@ export const ProviderAuthSection = ({
   busyAction: string | null;
   providerAuthErrors: ProviderAuthError[];
   providerSaveNotice: { slug: string; message: string } | null;
+  /** Unconditional dismiss — the banner's own "Dismiss" button. */
   onDismissProviderSaveNotice: () => void;
+  /** Clears the advisory only if it's about the given slug (#5341) — called
+   *  when that provider is removed, so an unrelated advisory survives. */
+  onProviderRemoved: (slug: string) => void;
   codexAuthError: string | null;
   onConnectCodex: () => void;
   onConnectProvider: (args: {
@@ -132,7 +135,7 @@ export const ProviderAuthSection = ({
                   if (enabled && existing) {
                     // Toggle OFF: remove the provider + scrub any routing
                     // entries that pin to it. Drop its advisory too (#5341).
-                    onDismissProviderSaveNoticeIfMatching(existing.slug, onDismissProviderSaveNotice);
+                    onProviderRemoved(existing.slug);
                     const remaining = draft.cloudProviders.filter(cp => cp.id !== existing.id);
                     const nextRouting = routingWithProviderRemoved(
                       draft.routing,
