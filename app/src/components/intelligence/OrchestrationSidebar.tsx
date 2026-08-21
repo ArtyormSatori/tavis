@@ -22,6 +22,7 @@ import type {
   SelfIdentity,
 } from '../../lib/orchestration/orchestrationClient';
 import type { ChatWindow } from '../../lib/orchestration/useOrchestrationChats';
+import { AccordionContent, AccordionItem, AccordionRoot, AccordionTrigger } from '../ui/Accordion';
 import Button from '../ui/Button';
 import TextField from '../ui/TextField';
 import AttentionQueueView from './AttentionQueue';
