@@ -7327,7 +7327,8 @@ const messages: TranslationMap = {
     'File pengaturan Anda tidak dapat dibaca, jadi dipulihkan dari cadangan atau disetel ulang ke default. File yang tidak terbaca disimpan dengan akhiran ".corrupted" jika Anda membutuhkannya.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Jalankan core di tempat lain',
-  'settings.gateway.description': 'Core bisa berjalan di dalam kontainer, di mesin lain lewat SSH, atau di kontainer pada mesin lain. OpenHuman menyalakannya, menyambung ke sana, dan mematikannya saat kamu berpindah.',
+  'settings.gateway.description':
+    'Core bisa berjalan di dalam kontainer, di mesin lain lewat SSH, atau di kontainer pada mesin lain. OpenHuman menyalakannya, menyambung ke sana, dan mematikannya saat kamu berpindah.',
   'settings.gateway.add': 'Tambah lokasi',
   'settings.gateway.save': 'Simpan lokasi',
   'settings.gateway.remove': 'Hapus',
@@ -7343,10 +7344,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'Di komputer ini',
   'settings.gateway.where.ssh': 'Di mesin lain, lewat SSH',
   'settings.gateway.destinationLabel': 'Tujuan SSH',
-  'settings.gateway.destinationHelp': 'Host dari konfigurasi SSH kamu, atau pengguna@host. Port, kunci, dan jump host yang sudah diatur di sana dipakai apa adanya.',
+  'settings.gateway.destinationHelp':
+    'Host dari konfigurasi SSH kamu, atau pengguna@host. Port, kunci, dan jump host yang sudah diatur di sana dipakai apa adanya.',
   'settings.gateway.identityLabel': 'Kunci privat (opsional)',
   'settings.gateway.acceptNewHostKey': 'Percayai mesin ini saat pertama kali menyambung',
-  'settings.gateway.acceptNewHostKeyHelp': 'Menerima kunci host yang belum pernah dilihat. Kunci yang berubah tetap ditolak, karena justru itulah tanda ada yang tidak beres.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Menerima kunci host yang belum pernah dilihat. Kunci yang berubah tetap ditolak, karena justru itulah tanda ada yang tidak beres.',
   'settings.gateway.containedLabel': 'Jalankan di dalam kontainer',
   'settings.gateway.imageLabel': 'Image kontainer',
   'settings.gateway.binaryLabel': 'Path ke openhuman-core',
@@ -7366,7 +7369,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Lokasi',
   'devOptions.provisionedCore': 'Core yang dijalankan aplikasi ini',
   'devOptions.gatewayId': 'Lokasi',
-
 };
 
 export default messages;

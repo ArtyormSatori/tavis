@@ -28,7 +28,15 @@ import { isTauri } from '../utils/tauriCommands/common';
 const log = debug('gateway');
 
 /** How to reach the machine a core runs on. */
-export type GatewayReach = { kind: 'local' } | { kind: 'ssh'; destination: string; port?: number; identity?: string; acceptNewHostKey?: boolean };
+export type GatewayReach =
+  | { kind: 'local' }
+  | {
+      kind: 'ssh';
+      destination: string;
+      port?: number;
+      identity?: string;
+      acceptNewHostKey?: boolean;
+    };
 
 /** What confines the core on that machine. */
 export type GatewayConfinement =
@@ -46,7 +54,12 @@ export type GatewayConfinement =
 export type GatewaySpec =
   | { kind: 'desktop' }
   | { kind: 'remote'; url: string; token?: string }
-  | { kind: 'box'; reach: GatewayReach; confinement: GatewayConfinement; env?: Record<string, string> };
+  | {
+      kind: 'box';
+      reach: GatewayReach;
+      confinement: GatewayConfinement;
+      env?: Record<string, string>;
+    };
 
 export interface Gateway {
   id: string;

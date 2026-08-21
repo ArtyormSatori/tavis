@@ -174,4 +174,3 @@ pub async fn shutdown() {
         provisioned.tear_down().await;
     }
 }
-

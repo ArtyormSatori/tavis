@@ -7287,7 +7287,8 @@ const messages: TranslationMap = {
     'आपकी सेटिंग फ़ाइल पढ़ी नहीं जा सकी, इसलिए इसे बैकअप से पुनर्स्थापित किया गया या डिफ़ॉल्ट पर रीसेट कर दिया गया। न पढ़ी जा सकने वाली फ़ाइल को, ज़रूरत पड़ने पर, ".corrupted" प्रत्यय के साथ रखा गया है।',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'कोर को कहीं और चलाएँ',
-  'settings.gateway.description': 'कोर किसी कंटेनर में, SSH के ज़रिए किसी दूसरी मशीन पर, या दूसरी मशीन के कंटेनर में चल सकता है। OpenHuman उसे शुरू करता है, उससे जुड़ता है, और आपके कहीं और जाने पर बंद कर देता है।',
+  'settings.gateway.description':
+    'कोर किसी कंटेनर में, SSH के ज़रिए किसी दूसरी मशीन पर, या दूसरी मशीन के कंटेनर में चल सकता है। OpenHuman उसे शुरू करता है, उससे जुड़ता है, और आपके कहीं और जाने पर बंद कर देता है।',
   'settings.gateway.add': 'एक जगह जोड़ें',
   'settings.gateway.save': 'जगह सहेजें',
   'settings.gateway.remove': 'हटाएँ',
@@ -7303,10 +7304,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'इसी कंप्यूटर पर',
   'settings.gateway.where.ssh': 'SSH के ज़रिए किसी दूसरी मशीन पर',
   'settings.gateway.destinationLabel': 'SSH गंतव्य',
-  'settings.gateway.destinationHelp': 'आपकी SSH कॉन्फ़िगरेशन का कोई होस्ट, या उपयोगकर्ता@होस्ट। वहाँ पहले से तय पोर्ट, कुंजियाँ और जंप होस्ट जैसे हैं वैसे ही इस्तेमाल होते हैं।',
+  'settings.gateway.destinationHelp':
+    'आपकी SSH कॉन्फ़िगरेशन का कोई होस्ट, या उपयोगकर्ता@होस्ट। वहाँ पहले से तय पोर्ट, कुंजियाँ और जंप होस्ट जैसे हैं वैसे ही इस्तेमाल होते हैं।',
   'settings.gateway.identityLabel': 'निजी कुंजी (वैकल्पिक)',
   'settings.gateway.acceptNewHostKey': 'पहली बार जुड़ने पर इस मशीन पर भरोसा करें',
-  'settings.gateway.acceptNewHostKeyHelp': 'ऐसी होस्ट कुंजी स्वीकार करता है जो पहले कभी नहीं देखी गई। बदली हुई कुंजी फिर भी अस्वीकार होती है, क्योंकि वही स्थिति बताती है कि कुछ गड़बड़ है।',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'ऐसी होस्ट कुंजी स्वीकार करता है जो पहले कभी नहीं देखी गई। बदली हुई कुंजी फिर भी अस्वीकार होती है, क्योंकि वही स्थिति बताती है कि कुछ गड़बड़ है।',
   'settings.gateway.containedLabel': 'इसे कंटेनर के अंदर चलाएँ',
   'settings.gateway.imageLabel': 'कंटेनर इमेज',
   'settings.gateway.binaryLabel': 'openhuman-core का पथ',
@@ -7326,7 +7329,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'स्थान',
   'devOptions.provisionedCore': 'इस ऐप द्वारा शुरू किया गया कोर',
   'devOptions.gatewayId': 'स्थान',
-
 };
 
 export default messages;

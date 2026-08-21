@@ -146,7 +146,10 @@ async fn core_rpc_token(
         // meaningless to a core in a container, so the two must be answered
         // from the same place or every call to a provisioned gateway 401s.
         let active = gateway::registry::current(state.inner()).await;
-        log::debug!("[auth] core_rpc_token: returning token for gateway {}", active.id);
+        log::debug!(
+            "[auth] core_rpc_token: returning token for gateway {}",
+            active.id
+        );
         return Ok(active.token.unwrap_or_default());
     }
     #[cfg(not(feature = "gateways"))]

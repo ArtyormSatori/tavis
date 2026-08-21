@@ -7475,7 +7475,8 @@ const messages: TranslationMap = {
     'Votre fichier de paramètres n\'a pas pu être lu ; il a donc été restauré à partir d\'une sauvegarde ou réinitialisé aux valeurs par défaut. Le fichier illisible a été conservé avec le suffixe ".corrupted" au cas où vous en auriez besoin.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Exécuter le cœur ailleurs',
-  'settings.gateway.description': 'Le cœur peut s’exécuter dans un conteneur, sur une autre machine via SSH, ou dans un conteneur sur une autre machine. OpenHuman le démarre, s’y connecte et l’arrête quand vous changez d’emplacement.',
+  'settings.gateway.description':
+    'Le cœur peut s’exécuter dans un conteneur, sur une autre machine via SSH, ou dans un conteneur sur une autre machine. OpenHuman le démarre, s’y connecte et l’arrête quand vous changez d’emplacement.',
   'settings.gateway.add': 'Ajouter un emplacement',
   'settings.gateway.save': 'Enregistrer l’emplacement',
   'settings.gateway.remove': 'Supprimer',
@@ -7491,10 +7492,13 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'Sur cet ordinateur',
   'settings.gateway.where.ssh': 'Sur une autre machine, via SSH',
   'settings.gateway.destinationLabel': 'Destination SSH',
-  'settings.gateway.destinationHelp': 'Un hôte de votre configuration SSH, ou utilisateur@hôte. Les ports, clés et rebonds déjà configurés là-bas sont utilisés tels quels.',
+  'settings.gateway.destinationHelp':
+    'Un hôte de votre configuration SSH, ou utilisateur@hôte. Les ports, clés et rebonds déjà configurés là-bas sont utilisés tels quels.',
   'settings.gateway.identityLabel': 'Clé privée (facultatif)',
-  'settings.gateway.acceptNewHostKey': 'Faire confiance à cette machine lors de la première connexion',
-  'settings.gateway.acceptNewHostKeyHelp': 'Accepte une clé d’hôte jamais vue. Une clé qui a changé reste refusée, car c’est le cas qui signale un vrai problème.',
+  'settings.gateway.acceptNewHostKey':
+    'Faire confiance à cette machine lors de la première connexion',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Accepte une clé d’hôte jamais vue. Une clé qui a changé reste refusée, car c’est le cas qui signale un vrai problème.',
   'settings.gateway.containedLabel': 'L’exécuter dans un conteneur',
   'settings.gateway.imageLabel': 'Image du conteneur',
   'settings.gateway.binaryLabel': 'Chemin vers openhuman-core',
@@ -7514,7 +7518,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Emplacement',
   'devOptions.provisionedCore': 'Cœur démarré par cette application',
   'devOptions.gatewayId': 'Emplacement',
-
 };
 
 export default messages;

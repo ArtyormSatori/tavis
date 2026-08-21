@@ -7428,7 +7428,8 @@ const messages: TranslationMap = {
     'Non è stato possibile leggere il tuo file delle impostazioni, quindi è stato ripristinato da un backup o reimpostato ai valori predefiniti. Il file illeggibile è stato conservato con il suffisso ".corrupted" nel caso ti servisse.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Esegui il core altrove',
-  'settings.gateway.description': 'Il core può girare in un container, su un’altra macchina via SSH o in un container su un’altra macchina. OpenHuman lo avvia, si collega e lo arresta quando passi ad altro.',
+  'settings.gateway.description':
+    'Il core può girare in un container, su un’altra macchina via SSH o in un container su un’altra macchina. OpenHuman lo avvia, si collega e lo arresta quando passi ad altro.',
   'settings.gateway.add': 'Aggiungi una posizione',
   'settings.gateway.save': 'Salva posizione',
   'settings.gateway.remove': 'Rimuovi',
@@ -7444,10 +7445,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'Su questo computer',
   'settings.gateway.where.ssh': 'Su un’altra macchina, via SSH',
   'settings.gateway.destinationLabel': 'Destinazione SSH',
-  'settings.gateway.destinationHelp': 'Un host dalla tua configurazione SSH, oppure utente@host. Porte, chiavi e jump host già configurati lì vengono usati così come sono.',
+  'settings.gateway.destinationHelp':
+    'Un host dalla tua configurazione SSH, oppure utente@host. Porte, chiavi e jump host già configurati lì vengono usati così come sono.',
   'settings.gateway.identityLabel': 'Chiave privata (facoltativa)',
   'settings.gateway.acceptNewHostKey': 'Fidati di questa macchina alla prima connessione',
-  'settings.gateway.acceptNewHostKeyHelp': 'Accetta una chiave host mai vista prima. Una chiave cambiata viene comunque rifiutata, perché è quello il caso che segnala un problema reale.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Accetta una chiave host mai vista prima. Una chiave cambiata viene comunque rifiutata, perché è quello il caso che segnala un problema reale.',
   'settings.gateway.containedLabel': 'Eseguilo dentro un container',
   'settings.gateway.imageLabel': 'Immagine del container',
   'settings.gateway.binaryLabel': 'Percorso di openhuman-core',
@@ -7467,7 +7470,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Posizione',
   'devOptions.provisionedCore': 'Core avviato da questa app',
   'devOptions.gatewayId': 'Posizione',
-
 };
 
 export default messages;

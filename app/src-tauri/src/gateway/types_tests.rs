@@ -44,21 +44,17 @@ fn only_provisioned_gateways_provision() {
     // `Desktop` and `Remote` have nothing to create and nothing to tear down,
     // which is why `activate` returns no handle for them.
     assert!(!GatewaySpec::Desktop.provisions());
-    assert!(
-        !GatewaySpec::Remote {
-            url: "https://core.example.com/rpc".to_owned(),
-            token: None,
-        }
-        .provisions()
-    );
-    assert!(
-        GatewaySpec::Box {
-            reach: Reach::Local,
-            confinement: docker(),
-            env: Default::default(),
-        }
-        .provisions()
-    );
+    assert!(!GatewaySpec::Remote {
+        url: "https://core.example.com/rpc".to_owned(),
+        token: None,
+    }
+    .provisions());
+    assert!(GatewaySpec::Box {
+        reach: Reach::Local,
+        confinement: docker(),
+        env: Default::default(),
+    }
+    .provisions());
 }
 
 #[test]

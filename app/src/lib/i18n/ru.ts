@@ -7369,7 +7369,8 @@ const messages: TranslationMap = {
     'Не удалось прочитать файл настроек, поэтому он был восстановлен из резервной копии или сброшен к значениям по умолчанию. Нечитаемый файл сохранён с суффиксом ".corrupted" на случай, если он вам понадобится.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Запустить ядро в другом месте',
-  'settings.gateway.description': 'Ядро может работать в контейнере, на другой машине по SSH или в контейнере на другой машине. OpenHuman запускает его, подключается к нему и останавливает, когда вы переключаетесь.',
+  'settings.gateway.description':
+    'Ядро может работать в контейнере, на другой машине по SSH или в контейнере на другой машине. OpenHuman запускает его, подключается к нему и останавливает, когда вы переключаетесь.',
   'settings.gateway.add': 'Добавить размещение',
   'settings.gateway.save': 'Сохранить размещение',
   'settings.gateway.remove': 'Удалить',
@@ -7385,10 +7386,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'На этом компьютере',
   'settings.gateway.where.ssh': 'На другой машине, по SSH',
   'settings.gateway.destinationLabel': 'Адрес SSH',
-  'settings.gateway.destinationHelp': 'Хост из вашей конфигурации SSH или пользователь@хост. Порты, ключи и промежуточные хосты, уже настроенные там, используются как есть.',
+  'settings.gateway.destinationHelp':
+    'Хост из вашей конфигурации SSH или пользователь@хост. Порты, ключи и промежуточные хосты, уже настроенные там, используются как есть.',
   'settings.gateway.identityLabel': 'Закрытый ключ (необязательно)',
   'settings.gateway.acceptNewHostKey': 'Доверять этой машине при первом подключении',
-  'settings.gateway.acceptNewHostKeyHelp': 'Принимает ключ хоста, который вы раньше не видели. Изменившийся ключ по-прежнему отклоняется, потому что именно это означает, что что-то не так.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Принимает ключ хоста, который вы раньше не видели. Изменившийся ключ по-прежнему отклоняется, потому что именно это означает, что что-то не так.',
   'settings.gateway.containedLabel': 'Запускать внутри контейнера',
   'settings.gateway.imageLabel': 'Образ контейнера',
   'settings.gateway.binaryLabel': 'Путь к openhuman-core',
@@ -7408,7 +7411,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Размещение',
   'devOptions.provisionedCore': 'Ядро, запущенное этим приложением',
   'devOptions.gatewayId': 'Размещение',
-
 };
 
 export default messages;

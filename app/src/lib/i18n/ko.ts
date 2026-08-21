@@ -7208,7 +7208,8 @@ const messages: TranslationMap = {
     '설정 파일을 읽을 수 없어 백업에서 복원하거나 기본값으로 재설정했습니다. 읽을 수 없는 파일은 필요할 경우를 대비해 ".corrupted" 접미사를 붙여 보관했습니다.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': '코어를 다른 곳에서 실행',
-  'settings.gateway.description': '코어는 컨테이너에서, SSH로 연결한 다른 컴퓨터에서, 또는 다른 컴퓨터의 컨테이너에서 실행할 수 있습니다. OpenHuman이 코어를 시작하고 연결하며, 다른 곳으로 전환하면 종료합니다.',
+  'settings.gateway.description':
+    '코어는 컨테이너에서, SSH로 연결한 다른 컴퓨터에서, 또는 다른 컴퓨터의 컨테이너에서 실행할 수 있습니다. OpenHuman이 코어를 시작하고 연결하며, 다른 곳으로 전환하면 종료합니다.',
   'settings.gateway.add': '위치 추가',
   'settings.gateway.save': '위치 저장',
   'settings.gateway.remove': '제거',
@@ -7224,10 +7225,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': '이 컴퓨터에서',
   'settings.gateway.where.ssh': 'SSH로 다른 컴퓨터에서',
   'settings.gateway.destinationLabel': 'SSH 대상',
-  'settings.gateway.destinationHelp': 'SSH 설정에 있는 호스트 또는 사용자@호스트입니다. 그곳에 이미 설정해 둔 포트, 키, 점프 호스트를 그대로 사용합니다.',
+  'settings.gateway.destinationHelp':
+    'SSH 설정에 있는 호스트 또는 사용자@호스트입니다. 그곳에 이미 설정해 둔 포트, 키, 점프 호스트를 그대로 사용합니다.',
   'settings.gateway.identityLabel': '개인 키 (선택)',
   'settings.gateway.acceptNewHostKey': '처음 연결할 때 이 컴퓨터를 신뢰',
-  'settings.gateway.acceptNewHostKeyHelp': '한 번도 본 적 없는 호스트 키를 받아들입니다. 바뀐 키는 여전히 거부되는데, 바로 그 경우가 무언가 잘못되었다는 뜻이기 때문입니다.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    '한 번도 본 적 없는 호스트 키를 받아들입니다. 바뀐 키는 여전히 거부되는데, 바로 그 경우가 무언가 잘못되었다는 뜻이기 때문입니다.',
   'settings.gateway.containedLabel': '컨테이너 안에서 실행',
   'settings.gateway.imageLabel': '컨테이너 이미지',
   'settings.gateway.binaryLabel': 'openhuman-core 경로',
@@ -7247,7 +7250,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': '위치',
   'devOptions.provisionedCore': '이 앱이 시작한 코어',
   'devOptions.gatewayId': '위치',
-
 };
 
 export default messages;

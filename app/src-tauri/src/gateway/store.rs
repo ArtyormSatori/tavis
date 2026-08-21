@@ -15,7 +15,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use super::types::{DESKTOP_ID, Gateway};
+use super::types::{Gateway, DESKTOP_ID};
 
 /// The file gateway records are written to.
 const STORE_FILE: &str = "gateways.json";
@@ -138,4 +138,3 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
     );
     Ok(())
 }
-

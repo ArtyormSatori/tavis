@@ -76,7 +76,10 @@ fn a_saved_gateway_survives_and_is_listed_after_the_desktop_one() {
     assert_eq!(listed.len(), 2);
     assert_eq!(listed[0].id, DESKTOP_ID);
     assert_eq!(listed[1].id, "builder");
-    assert_eq!(store::get("builder").map(|g| g.label), Some("Build server".to_owned()));
+    assert_eq!(
+        store::get("builder").map(|g| g.label),
+        Some("Build server".to_owned())
+    );
 }
 
 #[test]
@@ -89,7 +92,10 @@ fn saving_an_existing_id_replaces_it_rather_than_duplicating() {
     store::save(renamed).expect("saved again");
 
     assert_eq!(store::list().len(), 2);
-    assert_eq!(store::get("builder").map(|g| g.label), Some("Renamed".to_owned()));
+    assert_eq!(
+        store::get("builder").map(|g| g.label),
+        Some("Renamed".to_owned())
+    );
 }
 
 #[test]
@@ -103,7 +109,10 @@ fn the_desktop_id_cannot_be_taken_over() {
 
     assert!(store::save(impostor).is_err());
     assert!(store::delete(DESKTOP_ID).is_err());
-    assert_eq!(store::get(DESKTOP_ID).map(|g| g.spec), Some(GatewaySpec::Desktop));
+    assert_eq!(
+        store::get(DESKTOP_ID).map(|g| g.spec),
+        Some(GatewaySpec::Desktop)
+    );
 }
 
 #[test]

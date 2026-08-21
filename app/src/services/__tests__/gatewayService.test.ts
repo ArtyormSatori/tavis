@@ -8,20 +8,20 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  activeGatewayId,
+  DESKTOP_GATEWAY_ID,
+  gatewayKind,
+  type GatewaySpec,
+  gatewayStatus,
+  listGateways,
+} from '../gatewayService';
+
 const invoke = vi.fn();
 const isTauri = vi.fn(() => true);
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => invoke(...args) }));
 vi.mock('../../utils/tauriCommands/common', () => ({ isTauri: () => isTauri() }));
-
-import {
-  DESKTOP_GATEWAY_ID,
-  activeGatewayId,
-  gatewayKind,
-  gatewayStatus,
-  listGateways,
-  type GatewaySpec,
-} from '../gatewayService';
 
 beforeEach(() => {
   invoke.mockReset();

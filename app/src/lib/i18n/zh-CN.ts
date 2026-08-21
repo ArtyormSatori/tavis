@@ -6900,7 +6900,8 @@ const messages: TranslationMap = {
     '无法读取你的设置文件，因此已从备份恢复或重置为默认值。无法读取的文件已保留并加上 ".corrupted" 后缀，以备你需要。',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': '在别处运行内核',
-  'settings.gateway.description': '内核可以在容器中运行，也可以通过 SSH 在另一台机器上运行，或者在另一台机器的容器中运行。OpenHuman 会启动它、连接它，并在你切换到别处时把它关闭。',
+  'settings.gateway.description':
+    '内核可以在容器中运行，也可以通过 SSH 在另一台机器上运行，或者在另一台机器的容器中运行。OpenHuman 会启动它、连接它，并在你切换到别处时把它关闭。',
   'settings.gateway.add': '添加一个位置',
   'settings.gateway.save': '保存位置',
   'settings.gateway.remove': '移除',
@@ -6916,10 +6917,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': '在这台电脑上',
   'settings.gateway.where.ssh': '通过 SSH 在另一台机器上',
   'settings.gateway.destinationLabel': 'SSH 目标',
-  'settings.gateway.destinationHelp': '你的 SSH 配置中的主机，或者 用户@主机。那里已经配置好的端口、密钥和跳板机会被原样沿用。',
+  'settings.gateway.destinationHelp':
+    '你的 SSH 配置中的主机，或者 用户@主机。那里已经配置好的端口、密钥和跳板机会被原样沿用。',
   'settings.gateway.identityLabel': '私钥（可选）',
   'settings.gateway.acceptNewHostKey': '首次连接时信任这台机器',
-  'settings.gateway.acceptNewHostKeyHelp': '接受一个从未见过的主机密钥。已经变更的密钥仍会被拒绝，因为那种情况才说明确实出了问题。',
+  'settings.gateway.acceptNewHostKeyHelp':
+    '接受一个从未见过的主机密钥。已经变更的密钥仍会被拒绝，因为那种情况才说明确实出了问题。',
   'settings.gateway.containedLabel': '在容器中运行',
   'settings.gateway.imageLabel': '容器镜像',
   'settings.gateway.binaryLabel': 'openhuman-core 的路径',
@@ -6939,7 +6942,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': '位置',
   'devOptions.provisionedCore': '由本应用启动的内核',
   'devOptions.gatewayId': '位置',
-
 };
 
 export default messages;

@@ -7410,7 +7410,8 @@ const messages: TranslationMap = {
     'Não foi possível ler seu arquivo de configurações, então ele foi restaurado de um backup ou redefinido para os padrões. O arquivo ilegível foi mantido com o sufixo ".corrupted" caso você precise dele.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Executar o núcleo noutro sítio',
-  'settings.gateway.description': 'O núcleo pode correr num contentor, noutra máquina por SSH ou num contentor noutra máquina. O OpenHuman inicia-o, liga-se a ele e encerra-o quando mudas de sítio.',
+  'settings.gateway.description':
+    'O núcleo pode correr num contentor, noutra máquina por SSH ou num contentor noutra máquina. O OpenHuman inicia-o, liga-se a ele e encerra-o quando mudas de sítio.',
   'settings.gateway.add': 'Adicionar um local',
   'settings.gateway.save': 'Guardar local',
   'settings.gateway.remove': 'Remover',
@@ -7426,10 +7427,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'Neste computador',
   'settings.gateway.where.ssh': 'Noutra máquina, por SSH',
   'settings.gateway.destinationLabel': 'Destino SSH',
-  'settings.gateway.destinationHelp': 'Um anfitrião da tua configuração de SSH, ou utilizador@anfitrião. Portas, chaves e anfitriões de salto já configurados aí são usados tal como estão.',
+  'settings.gateway.destinationHelp':
+    'Um anfitrião da tua configuração de SSH, ou utilizador@anfitrião. Portas, chaves e anfitriões de salto já configurados aí são usados tal como estão.',
   'settings.gateway.identityLabel': 'Chave privada (opcional)',
   'settings.gateway.acceptNewHostKey': 'Confiar nesta máquina na primeira ligação',
-  'settings.gateway.acceptNewHostKeyHelp': 'Aceita uma chave de anfitrião nunca vista. Uma chave que mudou continua a ser recusada, porque é esse o caso que indica que algo está errado.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Aceita uma chave de anfitrião nunca vista. Uma chave que mudou continua a ser recusada, porque é esse o caso que indica que algo está errado.',
   'settings.gateway.containedLabel': 'Executar dentro de um contentor',
   'settings.gateway.imageLabel': 'Imagem do contentor',
   'settings.gateway.binaryLabel': 'Caminho para openhuman-core',
@@ -7449,7 +7452,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Local',
   'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicação',
   'devOptions.gatewayId': 'Local',
-
 };
 
 export default messages;

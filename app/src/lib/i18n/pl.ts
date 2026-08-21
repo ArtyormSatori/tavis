@@ -7397,7 +7397,8 @@ const messages: TranslationMap = {
     'Nie można było odczytać pliku ustawień, więc został przywrócony z kopii zapasowej lub zresetowany do wartości domyślnych. Nieczytelny plik zachowano z sufiksem ".corrupted" na wypadek, gdybyś go potrzebował.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Uruchom rdzeń gdzie indziej',
-  'settings.gateway.description': 'Rdzeń może działać w kontenerze, na innej maszynie przez SSH albo w kontenerze na innej maszynie. OpenHuman go uruchamia, łączy się z nim i zatrzymuje go, gdy przełączysz się gdzie indziej.',
+  'settings.gateway.description':
+    'Rdzeń może działać w kontenerze, na innej maszynie przez SSH albo w kontenerze na innej maszynie. OpenHuman go uruchamia, łączy się z nim i zatrzymuje go, gdy przełączysz się gdzie indziej.',
   'settings.gateway.add': 'Dodaj lokalizację',
   'settings.gateway.save': 'Zapisz lokalizację',
   'settings.gateway.remove': 'Usuń',
@@ -7413,10 +7414,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'Na tym komputerze',
   'settings.gateway.where.ssh': 'Na innej maszynie, przez SSH',
   'settings.gateway.destinationLabel': 'Cel SSH',
-  'settings.gateway.destinationHelp': 'Host z Twojej konfiguracji SSH albo użytkownik@host. Porty, klucze i hosty pośredniczące już tam ustawione są używane bez zmian.',
+  'settings.gateway.destinationHelp':
+    'Host z Twojej konfiguracji SSH albo użytkownik@host. Porty, klucze i hosty pośredniczące już tam ustawione są używane bez zmian.',
   'settings.gateway.identityLabel': 'Klucz prywatny (opcjonalnie)',
   'settings.gateway.acceptNewHostKey': 'Zaufaj tej maszynie przy pierwszym połączeniu',
-  'settings.gateway.acceptNewHostKeyHelp': 'Akceptuje klucz hosta, którego nigdy wcześniej nie widziano. Zmieniony klucz nadal jest odrzucany, bo to właśnie ten przypadek oznacza, że coś jest nie tak.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Akceptuje klucz hosta, którego nigdy wcześniej nie widziano. Zmieniony klucz nadal jest odrzucany, bo to właśnie ten przypadek oznacza, że coś jest nie tak.',
   'settings.gateway.containedLabel': 'Uruchom go w kontenerze',
   'settings.gateway.imageLabel': 'Obraz kontenera',
   'settings.gateway.binaryLabel': 'Ścieżka do openhuman-core',
@@ -7436,7 +7439,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Lokalizacja',
   'devOptions.provisionedCore': 'Rdzeń uruchomiony przez tę aplikację',
   'devOptions.gatewayId': 'Lokalizacja',
-
 };
 
 export default messages;

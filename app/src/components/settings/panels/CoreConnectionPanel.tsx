@@ -36,6 +36,7 @@ import {
   clearCoreRpcUrlCache,
   testCoreRpcConnection,
 } from '../../../services/coreRpcClient';
+import { gatewaysAvailable } from '../../../services/gatewayService';
 import { type CoreMode, setCoreMode } from '../../../store/coreModeSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { CORE_RPC_URL } from '../../../utils/config';
@@ -49,7 +50,6 @@ import {
   storeRpcUrl,
 } from '../../../utils/configPersistence';
 import { restartApp } from '../../../utils/tauriCommands/core';
-import { gatewaysAvailable } from '../../../services/gatewayService';
 import Button from '../../ui/Button';
 import { SettingsRow, SettingsSection, SettingsSwitch, SettingsTextField } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';

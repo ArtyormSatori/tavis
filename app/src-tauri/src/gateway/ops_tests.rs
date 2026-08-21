@@ -40,8 +40,7 @@ fn a_docker_box_permits_the_network_its_published_port_needs() {
     // denied — a container with no network has nowhere for a published port to
     // lead. Denied here would produce a box that looks configured, publishes
     // nothing, and is unreachable with no error anywhere.
-    let spec = box_spec(&Reach::Local, &docker(), &BTreeMap::new(), 54321)
-        .expect("a spec");
+    let spec = box_spec(&Reach::Local, &docker(), &BTreeMap::new(), 54321).expect("a spec");
 
     assert!(spec.network.allows_egress());
     let published = spec
@@ -56,8 +55,7 @@ fn the_host_port_is_named_rather_than_left_to_docker() {
     // `PortMapping::dynamic` would let Docker choose, and the number it chose
     // would live only in Docker's own state — tinybox has no call that reports
     // it back, and a forward needs that number.
-    let spec = box_spec(&Reach::Local, &docker(), &BTreeMap::new(), 54321)
-        .expect("a spec");
+    let spec = box_spec(&Reach::Local, &docker(), &BTreeMap::new(), 54321).expect("a spec");
 
     assert!(spec.ports.iter().all(|mapping| mapping.host.is_some()));
 }
@@ -66,8 +64,7 @@ fn the_host_port_is_named_rather_than_left_to_docker() {
 fn a_passthrough_box_publishes_nothing_because_there_is_no_boundary() {
     // The core listens on the machine's own port; there is nothing to publish
     // across and nothing that could collide beyond the core itself.
-    let spec = box_spec(&Reach::Local, &passthrough(), &BTreeMap::new(), 54321)
-        .expect("a spec");
+    let spec = box_spec(&Reach::Local, &passthrough(), &BTreeMap::new(), 54321).expect("a spec");
 
     assert!(spec.ports.is_empty());
 }
@@ -76,8 +73,7 @@ fn a_passthrough_box_publishes_nothing_because_there_is_no_boundary() {
 fn the_placement_records_both_axes_independently() {
     // Which is what makes "a container on the build server" need no code of
     // its own: it is these two fields, chosen separately.
-    let spec =
-        box_spec(&ssh(), &docker(), &BTreeMap::new(), 54321).expect("a spec");
+    let spec = box_spec(&ssh(), &docker(), &BTreeMap::new(), 54321).expect("a spec");
 
     assert_eq!(spec.workspace.host.as_str(), "ssh");
     assert_eq!(spec.workspace.sandbox.as_str(), "docker");
@@ -85,8 +81,7 @@ fn the_placement_records_both_axes_independently() {
 
 #[test]
 fn a_passthrough_box_runs_in_the_configured_workspace() {
-    let spec = box_spec(&Reach::Local, &passthrough(), &BTreeMap::new(), 1)
-        .expect("a spec");
+    let spec = box_spec(&Reach::Local, &passthrough(), &BTreeMap::new(), 1).expect("a spec");
 
     assert_eq!(
         spec.source,
@@ -97,7 +92,10 @@ fn a_passthrough_box_runs_in_the_configured_workspace() {
 #[test]
 fn configured_environment_reaches_the_box() {
     let mut env = BTreeMap::new();
-    env.insert("BACKEND_URL".to_owned(), "https://api.example.com".to_owned());
+    env.insert(
+        "BACKEND_URL".to_owned(),
+        "https://api.example.com".to_owned(),
+    );
 
     let spec = box_spec(&Reach::Local, &docker(), &env, 1).expect("a spec");
 
@@ -169,9 +167,7 @@ fn an_unrelated_failure_is_not_mistaken_for_a_taken_port() {
     assert!(!is_port_conflict(
         "Unable to find image 'openhuman-core:latest' locally"
     ));
-    assert!(!is_port_conflict(
-        "Cannot connect to the Docker daemon"
-    ));
+    assert!(!is_port_conflict("Cannot connect to the Docker daemon"));
 }
 
 #[test]

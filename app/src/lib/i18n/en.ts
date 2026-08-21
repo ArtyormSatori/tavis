@@ -1755,7 +1755,8 @@ const en: TranslationMap = {
   'devOptions.provisionedCore': 'Core provisioned by this app',
   'devOptions.gatewayId': 'Gateway',
   'settings.gateway.title': 'Run the core somewhere else',
-  'settings.gateway.description': 'The core can run in a container, on another machine over SSH, or in a container on another machine. OpenHuman starts it, connects to it, and shuts it down when you switch away.',
+  'settings.gateway.description':
+    'The core can run in a container, on another machine over SSH, or in a container on another machine. OpenHuman starts it, connects to it, and shuts it down when you switch away.',
   'settings.gateway.add': 'Add a location',
   'settings.gateway.save': 'Save location',
   'settings.gateway.remove': 'Remove',
@@ -1771,10 +1772,12 @@ const en: TranslationMap = {
   'settings.gateway.where.here': 'On this computer',
   'settings.gateway.where.ssh': 'On another machine, over SSH',
   'settings.gateway.destinationLabel': 'SSH destination',
-  'settings.gateway.destinationHelp': 'A host from your SSH config, or user@host. Ports, keys and jump hosts already configured there are used as they are.',
+  'settings.gateway.destinationHelp':
+    'A host from your SSH config, or user@host. Ports, keys and jump hosts already configured there are used as they are.',
   'settings.gateway.identityLabel': 'Private key (optional)',
   'settings.gateway.acceptNewHostKey': 'Trust this machine the first time it connects',
-  'settings.gateway.acceptNewHostKeyHelp': 'Accepts a host key you have never seen. A key that has changed is still refused, because that is the case that means something is wrong.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Accepts a host key you have never seen. A key that has changed is still refused, because that is the case that means something is wrong.',
   'settings.gateway.containedLabel': 'Run it inside a container',
   'settings.gateway.imageLabel': 'Container image',
   'settings.gateway.binaryLabel': 'Path to openhuman-core',

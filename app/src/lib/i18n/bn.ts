@@ -7288,7 +7288,8 @@ const messages: TranslationMap = {
     'আপনার সেটিংস ফাইল পড়া যায়নি, তাই এটি একটি ব্যাকআপ থেকে পুনরুদ্ধার করা হয়েছে বা ডিফল্টে রিসেট করা হয়েছে। অপঠনযোগ্য ফাইলটি, প্রয়োজনে ব্যবহারের জন্য, ".corrupted" প্রত্যয় সহ রাখা হয়েছে।',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'কোরটি অন্য কোথাও চালান',
-  'settings.gateway.description': 'কোর একটি কনটেইনারে, SSH দিয়ে অন্য একটি মেশিনে, বা অন্য মেশিনের কনটেইনারে চলতে পারে। OpenHuman সেটি চালু করে, সংযোগ করে, এবং আপনি অন্য কোথাও গেলে বন্ধ করে দেয়।',
+  'settings.gateway.description':
+    'কোর একটি কনটেইনারে, SSH দিয়ে অন্য একটি মেশিনে, বা অন্য মেশিনের কনটেইনারে চলতে পারে। OpenHuman সেটি চালু করে, সংযোগ করে, এবং আপনি অন্য কোথাও গেলে বন্ধ করে দেয়।',
   'settings.gateway.add': 'একটি অবস্থান যোগ করুন',
   'settings.gateway.save': 'অবস্থান সংরক্ষণ করুন',
   'settings.gateway.remove': 'সরান',
@@ -7304,10 +7305,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'এই কম্পিউটারে',
   'settings.gateway.where.ssh': 'SSH দিয়ে অন্য একটি মেশিনে',
   'settings.gateway.destinationLabel': 'SSH গন্তব্য',
-  'settings.gateway.destinationHelp': 'আপনার SSH কনফিগারেশনের একটি হোস্ট, বা ব্যবহারকারী@হোস্ট। সেখানে আগে থেকে ঠিক করা পোর্ট, কী এবং জাম্প হোস্ট যেমন আছে তেমনই ব্যবহার হয়।',
+  'settings.gateway.destinationHelp':
+    'আপনার SSH কনফিগারেশনের একটি হোস্ট, বা ব্যবহারকারী@হোস্ট। সেখানে আগে থেকে ঠিক করা পোর্ট, কী এবং জাম্প হোস্ট যেমন আছে তেমনই ব্যবহার হয়।',
   'settings.gateway.identityLabel': 'ব্যক্তিগত কী (ঐচ্ছিক)',
   'settings.gateway.acceptNewHostKey': 'প্রথমবার সংযোগের সময় এই মেশিনকে বিশ্বাস করুন',
-  'settings.gateway.acceptNewHostKeyHelp': 'আগে কখনও দেখা হয়নি এমন একটি হোস্ট কী গ্রহণ করে। বদলে যাওয়া কী তবুও প্রত্যাখ্যান করা হয়, কারণ সেটিই বোঝায় যে কিছু একটা গণ্ডগোল হয়েছে।',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'আগে কখনও দেখা হয়নি এমন একটি হোস্ট কী গ্রহণ করে। বদলে যাওয়া কী তবুও প্রত্যাখ্যান করা হয়, কারণ সেটিই বোঝায় যে কিছু একটা গণ্ডগোল হয়েছে।',
   'settings.gateway.containedLabel': 'একটি কনটেইনারের ভিতরে চালান',
   'settings.gateway.imageLabel': 'কনটেইনার ইমেজ',
   'settings.gateway.binaryLabel': 'openhuman-core-এর পথ',
@@ -7327,7 +7330,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'অবস্থান',
   'devOptions.provisionedCore': 'এই অ্যাপের চালু করা কোর',
   'devOptions.gatewayId': 'অবস্থান',
-
 };
 
 export default messages;

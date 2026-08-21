@@ -7497,7 +7497,8 @@ const messages: TranslationMap = {
     'Deine Einstellungsdatei konnte nicht gelesen werden und wurde daher aus einer Sicherung wiederhergestellt oder auf die Standardwerte zurückgesetzt. Die unlesbare Datei wurde mit der Endung ".corrupted" aufbewahrt, falls du sie noch brauchst.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Den Kern woanders ausführen',
-  'settings.gateway.description': 'Der Kern kann in einem Container laufen, auf einem anderen Rechner über SSH oder in einem Container auf einem anderen Rechner. OpenHuman startet ihn, verbindet sich und fährt ihn herunter, sobald du wechselst.',
+  'settings.gateway.description':
+    'Der Kern kann in einem Container laufen, auf einem anderen Rechner über SSH oder in einem Container auf einem anderen Rechner. OpenHuman startet ihn, verbindet sich und fährt ihn herunter, sobald du wechselst.',
   'settings.gateway.add': 'Ort hinzufügen',
   'settings.gateway.save': 'Ort speichern',
   'settings.gateway.remove': 'Entfernen',
@@ -7513,10 +7514,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'Auf diesem Computer',
   'settings.gateway.where.ssh': 'Auf einem anderen Rechner, über SSH',
   'settings.gateway.destinationLabel': 'SSH-Ziel',
-  'settings.gateway.destinationHelp': 'Ein Host aus deiner SSH-Konfiguration oder benutzer@host. Ports, Schlüssel und Jump-Hosts, die dort schon eingerichtet sind, werden unverändert übernommen.',
+  'settings.gateway.destinationHelp':
+    'Ein Host aus deiner SSH-Konfiguration oder benutzer@host. Ports, Schlüssel und Jump-Hosts, die dort schon eingerichtet sind, werden unverändert übernommen.',
   'settings.gateway.identityLabel': 'Privater Schlüssel (optional)',
   'settings.gateway.acceptNewHostKey': 'Diesem Rechner beim ersten Verbinden vertrauen',
-  'settings.gateway.acceptNewHostKeyHelp': 'Akzeptiert einen noch nie gesehenen Hostschlüssel. Ein geänderter Schlüssel wird weiterhin abgelehnt, denn genau das deutet auf ein echtes Problem hin.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Akzeptiert einen noch nie gesehenen Hostschlüssel. Ein geänderter Schlüssel wird weiterhin abgelehnt, denn genau das deutet auf ein echtes Problem hin.',
   'settings.gateway.containedLabel': 'In einem Container ausführen',
   'settings.gateway.imageLabel': 'Container-Image',
   'settings.gateway.binaryLabel': 'Pfad zu openhuman-core',
@@ -7536,7 +7539,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Ort',
   'devOptions.provisionedCore': 'Von dieser App gestarteter Kern',
   'devOptions.gatewayId': 'Ort',
-
 };
 
 export default messages;

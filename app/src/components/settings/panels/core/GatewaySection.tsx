@@ -21,25 +21,25 @@
  * Lives beside `CoreConnectionPanel` rather than inside it because that file is
  * already near the repo's ~500-line guidance.
  */
-import { useCallback, useEffect, useState } from 'react';
 import debug from 'debug';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
+import { clearCoreRpcTokenCache, clearCoreRpcUrlCache } from '../../../../services/coreRpcClient';
 import {
-  DESKTOP_GATEWAY_ID,
   activateGateway,
   activeGatewayId,
   deleteGateway,
+  DESKTOP_GATEWAY_ID,
+  type Gateway,
   gatewayKind,
   gatewayStatus,
+  type GatewayStatus,
   listGateways,
   saveGateway,
-  type Gateway,
-  type GatewayStatus,
 } from '../../../../services/gatewayService';
 import { setCoreMode } from '../../../../store/coreModeSlice';
 import { useAppDispatch } from '../../../../store/hooks';
-import { clearCoreRpcTokenCache, clearCoreRpcUrlCache } from '../../../../services/coreRpcClient';
 import { storeCoreMode, storeGatewayId } from '../../../../utils/configPersistence';
 import Button from '../../../ui/Button';
 import { SettingsRow, SettingsSection, SettingsTextField } from '../../controls';
@@ -253,7 +253,9 @@ const GatewaySection = ({ available }: Props) => {
         <SettingsRow
           key={gateway.id}
           label={gateway.label}
-          description={statusLine(gateway) ?? t(`settings.gateway.kind.${gatewayKind(gateway.spec)}`)}
+          description={
+            statusLine(gateway) ?? t(`settings.gateway.kind.${gatewayKind(gateway.spec)}`)
+          }
           control={
             <div className="flex items-center gap-2">
               {gateway.id === activeId && (
@@ -276,9 +278,7 @@ const GatewaySection = ({ available }: Props) => {
                 disabled={busy || gateway.id === activeId}
                 onClick={() => void handleActivate(gateway.id)}
                 data-testid={`gateway-use-${gateway.id}`}>
-                {gateway.id === activeId
-                  ? t('settings.gateway.inUse')
-                  : t('settings.gateway.use')}
+                {gateway.id === activeId ? t('settings.gateway.inUse') : t('settings.gateway.use')}
               </Button>
               {gateway.id !== DESKTOP_GATEWAY_ID && (
                 <Button
@@ -312,7 +312,12 @@ const GatewaySection = ({ available }: Props) => {
                   label: e.target.value,
                   // Derive the id from the name until the user has one, so the
                   // form asks one question instead of two.
-                  id: draft.id || e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-'),
+                  id:
+                    draft.id ||
+                    e.target.value
+                      .trim()
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]+/g, '-'),
                 })
               }
             />

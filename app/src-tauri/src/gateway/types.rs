@@ -215,4 +215,3 @@ pub enum GatewayStatus {
         reason: String,
     },
 }
-

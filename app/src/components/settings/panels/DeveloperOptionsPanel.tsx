@@ -280,9 +280,7 @@ const CoreModeBadge = () => {
         </div>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
           <dt className="text-sage-700 dark:text-sage-300">{t('devOptions.gatewayId')}:</dt>
-          <dd className="font-mono text-sage-900 dark:text-sage-200 truncate">
-            {mode.gatewayId}
-          </dd>
+          <dd className="font-mono text-sage-900 dark:text-sage-200 truncate">{mode.gatewayId}</dd>
         </dl>
       </div>
     );

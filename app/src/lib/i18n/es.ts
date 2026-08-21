@@ -7443,7 +7443,8 @@ const messages: TranslationMap = {
     'No se pudo leer tu archivo de configuración, por lo que se restauró desde una copia de seguridad o se restableció a los valores predeterminados. El archivo ilegible se conservó con el sufijo ".corrupted" por si lo necesitas.',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Ejecutar el núcleo en otro lugar',
-  'settings.gateway.description': 'El núcleo puede ejecutarse en un contenedor, en otra máquina mediante SSH o en un contenedor de otra máquina. OpenHuman lo inicia, se conecta a él y lo detiene cuando cambias a otro sitio.',
+  'settings.gateway.description':
+    'El núcleo puede ejecutarse en un contenedor, en otra máquina mediante SSH o en un contenedor de otra máquina. OpenHuman lo inicia, se conecta a él y lo detiene cuando cambias a otro sitio.',
   'settings.gateway.add': 'Añadir una ubicación',
   'settings.gateway.save': 'Guardar ubicación',
   'settings.gateway.remove': 'Quitar',
@@ -7459,10 +7460,12 @@ const messages: TranslationMap = {
   'settings.gateway.where.here': 'En este ordenador',
   'settings.gateway.where.ssh': 'En otra máquina, mediante SSH',
   'settings.gateway.destinationLabel': 'Destino SSH',
-  'settings.gateway.destinationHelp': 'Un host de tu configuración de SSH, o usuario@host. Los puertos, las claves y los hosts de salto que ya tengas configurados allí se usan tal cual.',
+  'settings.gateway.destinationHelp':
+    'Un host de tu configuración de SSH, o usuario@host. Los puertos, las claves y los hosts de salto que ya tengas configurados allí se usan tal cual.',
   'settings.gateway.identityLabel': 'Clave privada (opcional)',
   'settings.gateway.acceptNewHostKey': 'Confiar en esta máquina la primera vez que se conecte',
-  'settings.gateway.acceptNewHostKeyHelp': 'Acepta una clave de host que nunca has visto. Una clave que ha cambiado se sigue rechazando, porque ese es el caso que indica que algo va mal.',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Acepta una clave de host que nunca has visto. Una clave que ha cambiado se sigue rechazando, porque ese es el caso que indica que algo va mal.',
   'settings.gateway.containedLabel': 'Ejecutarlo dentro de un contenedor',
   'settings.gateway.imageLabel': 'Imagen del contenedor',
   'settings.gateway.binaryLabel': 'Ruta a openhuman-core',
@@ -7473,7 +7476,8 @@ const messages: TranslationMap = {
   'settings.gateway.kind.ssh+docker': 'En un contenedor de otra máquina',
   'settings.gateway.kind.local-process': 'En este ordenador',
   'settings.gateway.idRequired': 'Ponle un nombre a esta ubicación.',
-  'settings.gateway.idReserved': 'Ese nombre está reservado para el núcleo propio de la aplicación.',
+  'settings.gateway.idReserved':
+    'Ese nombre está reservado para el núcleo propio de la aplicación.',
   'settings.gateway.destinationRequired': 'Indica la máquina a la que conectarse.',
   'settings.gateway.imageRequired': 'Indica la imagen de contenedor que se va a ejecutar.',
   'settings.gateway.binaryRequired': 'Indica la ruta a openhuman-core en esa máquina.',
@@ -7482,7 +7486,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Ubicación',
   'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicación',
   'devOptions.gatewayId': 'Ubicación',
-
 };
 
 export default messages;

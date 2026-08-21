@@ -40,7 +40,7 @@ use tinybox_host::LocalHost;
 use tinybox_ssh::{SshHost, SshTarget};
 
 use super::types::{
-    ActiveGateway, CORE_PORT_IN_BOX, Confinement, Gateway, GatewaySpec, Reach, SshReach,
+    ActiveGateway, Confinement, Gateway, GatewaySpec, Reach, SshReach, CORE_PORT_IN_BOX,
 };
 
 /// How long to wait for a provisioned core to answer `/health`.
@@ -141,7 +141,10 @@ pub async fn activate(
         GatewaySpec::Desktop => {
             progress("starting the local core");
             desktop.ensure_running().await?;
-            log::debug!("[gateway][activate] desktop core ready on {}", desktop.port());
+            log::debug!(
+                "[gateway][activate] desktop core ready on {}",
+                desktop.port()
+            );
             Ok(None)
         }
         GatewaySpec::Remote { url, .. } => {
@@ -246,7 +249,10 @@ async fn provision(
         return Err(error);
     }
 
-    log::info!("[gateway][provision] {} ready at {rpc_base}/rpc", gateway.id);
+    log::info!(
+        "[gateway][provision] {} ready at {rpc_base}/rpc",
+        gateway.id
+    );
     Ok(Provisioned {
         active: ActiveGateway {
             id: gateway.id.clone(),
@@ -540,4 +546,3 @@ async fn destroy_quietly(sandbox: &dyn Sandbox, box_id: &BoxId) {
         log::warn!("[gateway][provision] could not clean up box {box_id}: {error}");
     }
 }
-
