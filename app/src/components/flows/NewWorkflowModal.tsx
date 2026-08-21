@@ -129,13 +129,15 @@ export default function NewWorkflowModal({ onClose }: NewWorkflowModalProps) {
           </>
         ) : (
           <>
-            <button
+            <Button
               type="button"
+              variant="tertiary"
+              size="xs"
               data-testid="new-workflow-gallery-back"
               onClick={backToChooser}
-              className="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
+              className="h-auto px-0 text-xs font-medium text-primary-600 hover:bg-transparent hover:underline dark:text-primary-400">
               {t('flows.templates.back')}
-            </button>
+            </Button>
             <FlowTemplateGallery onSelect={startFromTemplate} busyId={busyKey} />
           </>
         )}

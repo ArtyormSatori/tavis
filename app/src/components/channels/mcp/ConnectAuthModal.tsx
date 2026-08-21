@@ -469,7 +469,7 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
     []
   );
 
-  return (
+  const modal = (
     <ModalShell
       onClose={onClose}
       titleId={titleId}
