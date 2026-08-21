@@ -806,23 +806,20 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
 
       {/* Source toggles */}
       {view === 'registry' && sources.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-1 pb-3">
+        <ToggleGroupRoot
+          type="multiple"
+          variant="secondary"
+          size="xs"
+          value={[...activeSources]}
+          onValueChange={next => setActiveSources(new Set(next))}
+          aria-label={t('skills.explorer.sourceFilterAria', 'Filter by source')}
+          className="flex flex-wrap gap-1.5 px-1 pb-3">
           {sources.map(src => {
             const active = activeSources.has(src);
             return (
-              <Button
+              <ToggleGroupItem
                 key={src}
-                variant="secondary"
-                size="xs"
-                aria-pressed={active}
-                onClick={() => {
-                  setActiveSources(prev => {
-                    const next = new Set(prev);
-                    if (next.has(src)) next.delete(src);
-                    else next.add(src);
-                    return next;
-                  });
-                }}
+                value={src}
                 className={cn(
                   'h-auto rounded-full px-2.5 py-1 text-[10px] font-medium',
                   active
@@ -830,10 +827,10 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
                     : 'border-line bg-surface-muted text-content-faint hover:text-content-secondary'
                 )}>
                 {src}
-              </Button>
+              </ToggleGroupItem>
             );
           })}
-        </div>
+        </ToggleGroupRoot>
       )}
 
       {/* Search */}
