@@ -11,6 +11,7 @@ import { BubbleMarkdown } from '../../../features/conversations/components/Agent
 import { useT } from '../../../lib/i18n/I18nContext';
 import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import Button from '../../ui/Button';
+import TextArea from '../../ui/TextArea';
 
 const log = debug('mcp-clients:config-assist');
 
