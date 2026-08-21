@@ -20,8 +20,13 @@ interface ConfirmationModalProps {
 export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
   const { t } = useT();
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  // Radix closes an AlertDialog on both Cancel and Action clicks, firing the
+  // same `onOpenChange(false)`. Confirm must not also run the cancel path, so
+  // the confirm handler flags one close as "already handled" before it fires.
+  const skipNextCancelRef = useRef(false);
 
   const handleConfirm = () => {
+    skipNextCancelRef.current = true;
     modal.onConfirm(dontShowAgain);
     onClose();
 
@@ -43,7 +48,12 @@ export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
     <AlertDialogRoot
       open={modal.isOpen}
       onOpenChange={next => {
-        if (!next) handleCancel();
+        if (next) return;
+        if (skipNextCancelRef.current) {
+          skipNextCancelRef.current = false;
+          return;
+        }
+        handleCancel();
       }}>
       <AlertDialogContent className="max-w-md p-0">
         {/* Header */}
@@ -90,9 +100,9 @@ export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
 
         {/* Actions */}
         <AlertDialogFooter className="p-6 pt-4 border-t border-line mt-0">
-          <AlertDialogCancel onClick={handleCancel}>
-            {modal.cancelText || t('common.cancel')}
-          </AlertDialogCancel>
+          {/* No onClick here: Radix's Cancel already closes the dialog, which
+              routes through the Root's onOpenChange -> handleCancel above. */}
+          <AlertDialogCancel>{modal.cancelText || t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction tone={modal.destructive ? 'danger' : 'default'} onClick={handleConfirm}>
             {modal.confirmText || t('common.confirm')}
           </AlertDialogAction>
