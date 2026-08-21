@@ -139,7 +139,7 @@ pub mod connections {
         config: &crate::openhuman::config::Config,
         server: &tinymcp_bus::InstalledServer,
     ) -> anyhow::Result<Vec<tinymcp_bus::McpTool>> {
-        let service = host::service().map_err(|error| anyhow::anyhow!(error))?;
+        let service = host::for_config(config)?;
         let client = host::client_config(config);
 
         service
@@ -188,9 +188,12 @@ pub mod boot {
     /// Never fails: a server that cannot connect is logged and skipped, because
     /// one broken third-party integration must not stop the core coming up.
     pub async fn spawn_installed_servers(config: &Config) {
-        let Some(service) = host::try_service() else {
-            tracing::warn!("[mcp] the service is not initialised; skipping the startup connect");
-            return;
+        let service = match host::for_config(config) {
+            Ok(service) => service,
+            Err(error) => {
+                tracing::warn!("[mcp] the service could not be opened: {error}");
+                return;
+            }
         };
 
         let client = host::client_config(config);
@@ -220,9 +223,12 @@ pub mod supervisor {
 
     /// Runs the reconnect supervisor until the process ends.
     pub async fn run(config: Config) {
-        let Some(service) = host::try_service() else {
-            tracing::warn!("[mcp] the service is not initialised; the supervisor will not run");
-            return;
+        let service = match host::for_config(&config) {
+            Ok(service) => service,
+            Err(error) => {
+                tracing::warn!("[mcp] the service could not be opened: {error}");
+                return;
+            }
         };
 
         let client = host::client_config(&config);
@@ -254,8 +260,9 @@ pub mod oauth {
     ///
     /// Returns a message when the state is unknown or expired, or when the
     /// token exchange fails.
-    pub async fn complete(_config: &Config, state: &str, code: &str) -> Result<String, String> {
-        let outcome = host::service()?
+    pub async fn complete(config: &Config, state: &str, code: &str) -> Result<String, String> {
+        let outcome = host::for_config(config)
+            .map_err(|error| error.to_string())?
             .dynamic()
             .oauth_complete(state, code)
             .await

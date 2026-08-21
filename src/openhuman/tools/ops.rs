@@ -972,7 +972,7 @@ pub fn all_tools_with_runtime(
         let cfg = Arc::new(root_config.clone());
         tools.push(Box::new(McpSetupSearchTool::new(Arc::clone(&cfg))));
         tools.push(Box::new(McpSetupGetTool::new(Arc::clone(&cfg))));
-        tools.push(Box::new(McpSetupRequestSecretTool::new()));
+        tools.push(Box::new(McpSetupRequestSecretTool::new(Arc::clone(&cfg))));
         tools.push(Box::new(McpSetupTestConnectionTool::new(Arc::clone(&cfg))));
         tools.push(Box::new(McpSetupInstallAndConnectTool::new(cfg)));
         tracing::debug!("[mcp_setup] registered 5 setup-agent tools");
