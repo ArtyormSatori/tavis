@@ -26,12 +26,24 @@ const APP_SRC = path.resolve(process.cwd(), 'app/src');
 const DIRS = ['components/ui', 'components/ai-elements'];
 const SKIP = /\.(test|stories)\.tsx$|^index\.ts$|^types\.ts$|^icons\.tsx$/;
 
+/**
+ * A consumer is a file that IMPORTS the primitive, not merely one that contains
+ * its name. That distinction matters: `layout/shell/SidebarNav.tsx` mentions
+ * "Sidebar" in every other identifier while importing nothing from
+ * `ui/Sidebar`, so a bare word match reported the app shell as a consumer of a
+ * primitive it had never wired up — exactly the orphan this script exists to
+ * catch. Matches both the barrel (`from '../ui'`) and the direct path
+ * (`from '../ui/Button'`), across single- and multi-line import statements.
+ */
 function consumersOf(name) {
   let out = '';
+  const pattern =
+    `(?s)import[^;]*?\\b${name}\\b[^;]*?from\\s*['\"][^'\"]*(components/)?(ui|ai-elements)(/${name})?['\"]` +
+    `|import\\s+${name}\\s+from\\s*['\"][^'\"]*(ui|ai-elements)/${name}['\"]`;
   try {
     out = execFileSync(
       'rg',
-      ['-l', '-g', '*.ts', '-g', '*.tsx', `\\b${name}\\b`, '.'],
+      ['-l', '--multiline', '-g', '*.ts', '-g', '*.tsx', pattern, '.'],
       { cwd: APP_SRC, encoding: 'utf8' },
     );
   } catch {
