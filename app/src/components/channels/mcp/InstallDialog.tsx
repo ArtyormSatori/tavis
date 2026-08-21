@@ -16,6 +16,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import Button from '../../ui/Button';
+import TextArea from '../../ui/TextArea';
+import TextField from '../../ui/TextField';
 import { mcpRegistryErrorMessage } from './mcpRegistryErrorMessage';
 import { deriveAuthor } from './McpServerCard';
 import type { InstalledServer, SmitheryServerDetail } from './types';
@@ -373,14 +375,14 @@ const InstallDialog = ({ qualifiedName, prefillEnv, onSuccess, onCancel }: Insta
                 {key}
               </label>
               <div className="flex gap-2">
-                <input
+                <TextField
                   id={`env-${key}`}
                   type={showEnv[key] ? 'text' : 'password'}
                   value={envValues[key] ?? ''}
                   onChange={e => handleEnvChange(key, e.target.value)}
                   placeholder={t('mcp.install.enterValue').replace('{key}', key)}
                   disabled={installing}
-                  className="flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50"
+                  className="flex-1"
                 />
                 <Button
                   variant="secondary"
