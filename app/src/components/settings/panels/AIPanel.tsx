@@ -15,7 +15,6 @@ import { LuCircleAlert, LuKeyRound, LuPencil } from 'react-icons/lu';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import {
-  type AISettings as ApiAISettings,
   classifyProviderVerificationFailure,
   clearCloudProviderKey,
   describeProviderVerificationFailure,
@@ -30,16 +29,13 @@ import {
   upsertModelRegistryVision,
 } from '../../../services/api/aiSettingsApi';
 import { connectOpenRouterViaOAuth } from '../../../utils/openrouterOAuth';
-import {
-  openhumanUpdateLocalAiSettings,
-} from '../../../utils/tauriCommands/config';
+import { openhumanUpdateLocalAiSettings } from '../../../utils/tauriCommands/config';
 import { ConfirmationModal } from '../../intelligence/ConfirmationModal';
 import PanelPage from '../../layout/PanelPage';
 import Button from '../../ui/Button';
-import { SettingsStatusLine } from '../controls';
 import SettingsBackButton from '../components/SettingsBackButton';
+import { SettingsStatusLine, SettingsSwitch } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
-import { ai_reexports } from './ai/_reexports';
 import { BackgroundLoopControls } from './ai/BackgroundLoopControls';
 import { ClaudeCodeConnect } from './ai/ClaudeCodeStatusCard';
 import { CloudProviderEditor } from './ai/CloudProviderEditor';
@@ -57,31 +53,27 @@ import {
   buildRoutingDiffSummary,
   type CloudProvider,
   defaultEndpointFor,
+  formatI18n,
   inferRoutingMode,
   inferSharedModelRef,
   LOCAL_CHIP_LABEL,
   LOCAL_CHIP_TONE,
   type LocalChipSlug,
   maskKeyLabel,
+  ProviderProbeError,
   providerToggleAriaLabel,
   ROUTING_WORKLOAD_IDS,
   routingWithAllWorkloads,
   WORKLOADS,
   type WorkloadId,
 } from './ai/aiPanelTypes';
-import {
-  authStyleForBuiltinCloudProvider as _unused_authStyleForBuiltinCloudProvider,
-  BUILTIN_CLOUD_PROVIDER_SLUGS,
-} from './builtinCloudProviders';
 import { routingWithProviderRemoved } from './aiRouting';
+import { BUILTIN_CLOUD_PROVIDER_SLUGS } from './builtinCloudProviders';
 import { presentProviderSetupError, ProviderSetupErrorNotice } from './ProviderSetupErrorNotice';
 import { useReembedBackfillModal } from './useReembedBackfillModal';
 
 export type { CloudProvider, ProviderRef, RoutingMap } from './ai/aiPanelTypes';
 export { buildRoutingDiffSummary, BackgroundLoopControls };
-void ai_reexports;
-void _unused_authStyleForBuiltinCloudProvider;
-void authStyleForSlug;
 
 interface AIPanelProps {
   /** When true, the panel is rendered embedded inside another flow (e.g. the
