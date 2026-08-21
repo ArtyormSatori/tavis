@@ -935,15 +935,29 @@ pub fn all_tools_with_runtime(
             .any(|name| name.eq_ignore_ascii_case("gitbooks"))
     });
     if root_config.gitbooks.enabled && gitbooks_allowed {
-        tools.push(Box::new(GitbooksSearchTool::new(
-            root_config.gitbooks.endpoint.clone(),
-            root_config.gitbooks.timeout_secs,
-        )));
-        tools.push(Box::new(GitbooksGetPageTool::new(
-            root_config.gitbooks.endpoint.clone(),
-            root_config.gitbooks.timeout_secs,
-        )));
-        tracing::debug!("[gitbooks] registered gitbooks_search + gitbooks_get_page");
+        // Building the client can fail on a malformed proxy or an unusable TLS
+        // setting. Both are logged and the tools are simply not registered:
+        // taking the whole surface down over a documentation server would cost
+        // the user every other tool for no reason.
+        match (
+            GitbooksSearchTool::new(
+                root_config.gitbooks.endpoint.clone(),
+                root_config.gitbooks.timeout_secs,
+            ),
+            GitbooksGetPageTool::new(
+                root_config.gitbooks.endpoint.clone(),
+                root_config.gitbooks.timeout_secs,
+            ),
+        ) {
+            (Ok(search), Ok(get_page)) => {
+                tools.push(Box::new(search));
+                tools.push(Box::new(get_page));
+                tracing::debug!("[gitbooks] registered gitbooks_search + gitbooks_get_page");
+            }
+            (Err(error), _) | (_, Err(error)) => {
+                tracing::warn!("[gitbooks] tools not registered: {error}");
+            }
+        }
     } else if root_config.gitbooks.enabled {
         tracing::debug!("[profiles] gitbooks tools suppressed by profile mcp allowlist");
     }
