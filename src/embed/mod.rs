@@ -51,6 +51,7 @@
 //! reporting a failure.
 
 mod agent;
+mod auth;
 mod call;
 mod config;
 mod harness;
@@ -59,6 +60,7 @@ mod error;
 mod medulla;
 
 pub use agent::{absolute, Agent, Route, Turn, TurnOutcome, TurnRequest};
+pub use auth::{Auth, AuthState, Session};
 pub use config::{Config, RuntimeFlags};
 pub use harness::{Access, Harness, HarnessBuilder, HarnessError, Provider, Workspace};
 #[cfg(feature = "mcp")]
@@ -97,6 +99,15 @@ impl Core {
     /// Typed configuration access.
     pub fn config(&self) -> Config<'_> {
         Config(&self.rt)
+    }
+
+    /// Typed access to the session store.
+    ///
+    /// Needed more often than it looks: routing a turn at a custom provider is
+    /// gated on an active session, so a host bringing its own endpoint still
+    /// has to present one. See [`Session`].
+    pub fn auth(&self) -> Auth<'_> {
+        Auth(&self.rt)
     }
 
     /// Typed access to the agent harness — run a turn, get a reply.
