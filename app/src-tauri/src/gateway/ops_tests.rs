@@ -79,8 +79,8 @@ fn the_placement_records_both_axes_independently() {
     let spec =
         box_spec(&ssh(), &docker(), &BTreeMap::new(), 54321).expect("a spec");
 
-    assert_eq!(spec.placement.host.as_str(), "ssh");
-    assert_eq!(spec.placement.sandbox.as_str(), "docker");
+    assert_eq!(spec.workspace.host.as_str(), "ssh");
+    assert_eq!(spec.workspace.sandbox.as_str(), "docker");
 }
 
 #[test]
