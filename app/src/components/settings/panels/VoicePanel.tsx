@@ -28,7 +28,7 @@ import {
   type VoiceStatus,
 } from '../../../utils/tauriCommands';
 import PanelPage from '../../layout/PanelPage';
-import Button from '../../ui/Button';
+import { Button, ModalShell } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
 import {
   SettingsRow,
@@ -713,27 +713,117 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
 
         {/* ─── API Key Modal ──────────────────────────────────────────── */}
         {pendingKeySlug && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60"
-            onClick={e => {
-              if (e.target === e.currentTarget && !isSavingPendingKey) {
-                setPendingKeySlug(null);
-                setPendingKeyValue('');
-                setKeyTestResult(null);
-              }
+          <ModalShell
+            titleId="voice-provider-key-title"
+            title={
+              pendingKeySlug === 'piper'
+                ? `${t('voice.modal.title')} ${t('voice.providers.chip.piper')}`
+                : `${t('voice.modal.title')} ${BUILTIN_VOICE_PROVIDER_META[pendingKeySlug]?.label ?? pendingKeySlug}`
+            }
+            subtitle={
+              pendingKeySlug === 'piper' ? t('voice.modal.piperDesc') : t('voice.modal.desc')
+            }
+            onClose={() => {
+              if (isSavingPendingKey) return;
+              setPendingKeySlug(null);
+              setPendingKeyValue('');
+              setKeyTestResult(null);
             }}
-            data-testid="voice-provider-key-modal">
-            <div className="w-full max-w-md rounded-2xl border border-line dark:border-line-strong bg-surface shadow-xl p-6 space-y-4">
-              {pendingKeySlug === 'piper' ? (
-                /* ── Local provider modal (Piper) ────────────────────── */
-                <>
-                  <div>
-                    <h3 className="text-base font-semibold text-content">
-                      {t('voice.modal.title')} {t('voice.providers.chip.piper')}
-                    </h3>
-                    <p className="text-xs text-content-muted mt-1">{t('voice.modal.piperDesc')}</p>
-                  </div>
+            maxWidthClassName="max-w-md"
+            contentClassName="px-5 py-4 space-y-4"
+            footer={
+              pendingKeySlug === 'piper' ? (
+                <div className="flex items-center justify-between pt-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => {
+                      setPendingKeySlug(null);
+                      setKeyTestResult(null);
+                    }}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="xs"
+                    onClick={() => {
+                      if (!pendingLocalProviderReady) return;
+                      onTtsProviderChange('piper');
+                      if (ttsVoice) void persistProviders({ tts_voice: ttsVoice });
+                      setPendingKeySlug(null);
+                      setKeyTestResult(null);
+                    }}
+                    disabled={!pendingLocalProviderReady || isSavingProviders}>
+                    {t('voice.modal.enable')}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between pt-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => {
+                      setPendingKeySlug(null);
+                      setPendingKeyValue('');
+                      setKeyTestResult(null);
+                    }}
+                    disabled={isSavingPendingKey}>
+                    {t('common.cancel')}
+                  </Button>
 
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="xs"
+                      disabled={!pendingKeyValue.trim() || isTestingKey || isSavingPendingKey}
+                      onClick={async () => {
+                        if (!pendingKeySlug || !pendingKeyValue.trim()) return;
+                        setIsTestingKey(true);
+                        setKeyTestResult(null);
+                        try {
+                          await handleEnableExternalProvider(pendingKeySlug, pendingKeyValue);
+                          setPendingKeySlug(pendingKeySlug);
+                          const meta = BUILTIN_VOICE_PROVIDER_META[pendingKeySlug];
+                          const workload = meta?.capability === 'tts' ? 'tts' : 'stt';
+                          const result = await testVoiceProvider(
+                            workload as 'stt' | 'tts',
+                            pendingKeySlug,
+                            true
+                          );
+                          setKeyTestResult(result);
+                        } catch (err) {
+                          setPendingKeySlug(pendingKeySlug);
+                          setKeyTestResult({
+                            ok: false,
+                            detail: err instanceof Error ? err.message : 'Test failed',
+                          });
+                        } finally {
+                          setIsTestingKey(false);
+                        }
+                      }}>
+                      {isTestingKey ? t('voice.modal.testing') : t('voice.modal.testKey')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="xs"
+                      onClick={() =>
+                        void handleEnableExternalProvider(pendingKeySlug, pendingKeyValue)
+                      }
+                      disabled={!pendingKeyValue.trim() || isSavingPendingKey}>
+                      {isSavingPendingKey ? t('common.loading') : t('voice.modal.saveAndEnable')}
+                    </Button>
+                  </div>
+                </div>
+              )
+            }>
+            <div data-testid="voice-provider-key-modal" className="space-y-4">
+              {pendingKeySlug === 'piper' ? (
+                <>
                   {pendingKeySlug === 'piper' && (
                     <label className="block space-y-1">
                       <span className="text-xs font-medium text-content-muted dark:text-content-secondary">
@@ -774,45 +864,9 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
                       </span>
                     </div>
                   )}
-
-                  <div className="flex items-center justify-between pt-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="xs"
-                      onClick={() => {
-                        setPendingKeySlug(null);
-                        setKeyTestResult(null);
-                      }}>
-                      {t('common.cancel')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="xs"
-                      onClick={() => {
-                        if (!pendingLocalProviderReady) return;
-                        onTtsProviderChange('piper');
-                        if (ttsVoice) void persistProviders({ tts_voice: ttsVoice });
-                        setPendingKeySlug(null);
-                        setKeyTestResult(null);
-                      }}
-                      disabled={!pendingLocalProviderReady || isSavingProviders}>
-                      {t('voice.modal.enable')}
-                    </Button>
-                  </div>
                 </>
               ) : (
-                /* ── External provider modal (API key) ───────────────── */
                 <>
-                  <div>
-                    <h3 className="text-base font-semibold text-content">
-                      {t('voice.modal.title')}{' '}
-                      {BUILTIN_VOICE_PROVIDER_META[pendingKeySlug]?.label ?? pendingKeySlug}
-                    </h3>
-                    <p className="text-xs text-content-muted mt-1">{t('voice.modal.desc')}</p>
-                  </div>
-
                   <label className="block space-y-1">
                     <span className="text-xs font-medium text-content-muted dark:text-content-secondary">
                       {t('voice.providers.chip.apiKeyLabel')}
@@ -846,70 +900,10 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
                       {keyTestResult.detail}
                     </div>
                   )}
-
-                  <div className="flex items-center justify-between pt-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="xs"
-                      onClick={() => {
-                        setPendingKeySlug(null);
-                        setPendingKeyValue('');
-                        setKeyTestResult(null);
-                      }}
-                      disabled={isSavingPendingKey}>
-                      {t('common.cancel')}
-                    </Button>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="xs"
-                        disabled={!pendingKeyValue.trim() || isTestingKey || isSavingPendingKey}
-                        onClick={async () => {
-                          if (!pendingKeySlug || !pendingKeyValue.trim()) return;
-                          setIsTestingKey(true);
-                          setKeyTestResult(null);
-                          try {
-                            await handleEnableExternalProvider(pendingKeySlug, pendingKeyValue);
-                            setPendingKeySlug(pendingKeySlug);
-                            const meta = BUILTIN_VOICE_PROVIDER_META[pendingKeySlug];
-                            const workload = meta?.capability === 'tts' ? 'tts' : 'stt';
-                            const result = await testVoiceProvider(
-                              workload as 'stt' | 'tts',
-                              pendingKeySlug,
-                              true
-                            );
-                            setKeyTestResult(result);
-                          } catch (err) {
-                            setPendingKeySlug(pendingKeySlug);
-                            setKeyTestResult({
-                              ok: false,
-                              detail: err instanceof Error ? err.message : 'Test failed',
-                            });
-                          } finally {
-                            setIsTestingKey(false);
-                          }
-                        }}>
-                        {isTestingKey ? t('voice.modal.testing') : t('voice.modal.testKey')}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="xs"
-                        onClick={() =>
-                          void handleEnableExternalProvider(pendingKeySlug, pendingKeyValue)
-                        }
-                        disabled={!pendingKeyValue.trim() || isSavingPendingKey}>
-                        {isSavingPendingKey ? t('common.loading') : t('voice.modal.saveAndEnable')}
-                      </Button>
-                    </div>
-                  </div>
                 </>
               )}
             </div>
-          </div>
+          </ModalShell>
         )}
 
         {/* ─── Section 2: Voice Routing ─────────────────────────────────── */}
