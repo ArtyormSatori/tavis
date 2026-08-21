@@ -605,7 +605,6 @@ describe('createWalkthroughSteps', () => {
       '[data-walkthrough="tab-chat"]',
       '[data-walkthrough="tab-human"]',
       '[data-walkthrough="tab-brain"]',
-      '[data-walkthrough="tab-agent-world"]',
       '[data-walkthrough="tab-connections"]',
       '[data-walkthrough="tab-feedback"]',
       '[data-walkthrough="chat-agent-panel"]',

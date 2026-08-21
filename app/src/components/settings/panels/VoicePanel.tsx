@@ -426,56 +426,6 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
   // gender, and locale-default toggle all live in `mascotSlice`; this
   // panel only handles Piper / dictation now.
 
-  /**
-   * Map an install status snapshot to a button label. Single source of
-   * truth for the four states the UI surfaces: Not installed / Install /
-   * Installing N% / Reinstall.
-   */
-  const installButtonLabel = (
-    status: VoiceInstallStatus | null,
-    busy: boolean,
-    _engine: 'Piper'
-  ): string => {
-    // Render based on the remote status — the install RPC is fire-and-forget,
-    // so the local `busy` flag only covers the brief moment between click and
-    // the RPC return. The real "is install running?" signal comes from the
-    // polled status table, which lags behind by at most one 2s tick.
-    if (status?.state === 'installing') {
-      const pct =
-        typeof status.progress === 'number' ? `${status.progress}%` : t('voice.providers.ellipsis');
-      return `${t('voice.providers.installing')} ${pct}`;
-    }
-    if (busy) return t('voice.providers.installingBusy');
-    if (status?.state === 'installed') return t('voice.providers.reinstallLocally');
-    if (status?.state === 'broken') return t('voice.providers.repair');
-    if (status?.state === 'error') return t('voice.providers.retryLocally');
-    return t('voice.providers.installLocally');
-  };
-
-  const installStatusText = (status: VoiceInstallStatus | null, ready: boolean): string => {
-    if (status?.state === 'installing') {
-      const progress =
-        typeof status.progress === 'number'
-          ? `${t('voice.providers.installing')} ${status.progress}%`
-          : t('voice.providers.installing');
-      return status.stage ? `${progress} · ${status.stage}` : progress;
-    }
-    if (ready) return t('voice.providers.installed');
-    if (status?.state === 'error' || status?.state === 'broken') {
-      return status.error_detail ?? t('voice.providers.installFailed');
-    }
-    return t('voice.providers.notInstalled');
-  };
-
-  const installStatusClassName = (status: VoiceInstallStatus | null, ready: boolean): string => {
-    if (status?.state === 'error' || status?.state === 'broken') {
-      return 'text-red-600 dark:text-red-300';
-    }
-    if (status?.state === 'installing') return 'text-amber-600 dark:text-amber-300';
-    if (ready) return 'text-emerald-600 dark:text-emerald-300';
-    return 'text-content-muted';
-  };
-
   const handleInstallPiper = async () => {
     setIsInstallingPiper(true);
     setError(null);
