@@ -1,4 +1,4 @@
-import * as Dialog from '@radix-ui/react-dialog';
+import { Dialog } from 'radix-ui';
 import { Command } from 'cmdk';
 import { useMemo, useSyncExternalStore } from 'react';
 
