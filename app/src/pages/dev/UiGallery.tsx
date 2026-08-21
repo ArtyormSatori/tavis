@@ -1,10 +1,28 @@
 import { useState } from 'react';
 
 import {
+  AccordionContent,
+  AccordionItem,
+  AccordionRoot,
+  AccordionTrigger,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogRoot,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
   Badge,
   Button,
   Card,
   Checkbox,
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger,
   ConfirmDialog,
   DialogContent,
   DialogRoot,
@@ -24,11 +42,19 @@ import {
   PopoverRoot,
   PopoverTrigger,
   Progress,
+  RadioGroupItem,
+  RadioGroupRoot,
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValue,
   Separator,
   SheetContent,
   SheetRoot,
   SheetTitle,
   SheetTrigger,
+  Slider,
   StatusLine,
   Switch,
   Table,
@@ -43,7 +69,11 @@ import {
   TabsTrigger,
   TextArea,
   TextField,
+  Toggle,
+  ToggleGroupItem,
+  ToggleGroupRoot,
   Tooltip,
+  VisuallyHidden,
 } from '../../components/ui';
 
 /**
@@ -80,6 +110,13 @@ export default function UiGallery() {
   const [numeric, setNumeric] = useState('30');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [radio, setRadio] = useState('comfortable');
+  const [pressed, setPressed] = useState(false);
+  const [alignment, setAlignment] = useState('left');
+  const [volume, setVolume] = useState([40]);
+  const [range, setRange] = useState([20, 70]);
+  const [fruit, setFruit] = useState('apple');
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -329,6 +366,218 @@ export default function UiGallery() {
           />
         </ul>
         <EmptyState label="Nothing here yet." />
+      </Section>
+
+      <Section title="Radio group">
+        <RadioGroupRoot value={radio} onValueChange={setRadio} aria-label="Density">
+          {['compact', 'comfortable', 'spacious'].map(value => (
+            <label key={value} className="flex items-center gap-2 text-sm text-content">
+              <RadioGroupItem value={value} id={`gallery-radio-${value}`} />
+              <span>{value}</span>
+            </label>
+          ))}
+        </RadioGroupRoot>
+        <Separator />
+        <RadioGroupRoot className="flex-row gap-4" defaultValue="sm" aria-label="Sizes">
+          <RadioGroupItem value="sm" size="sm" aria-label="Small" />
+          <RadioGroupItem value="md" size="md" aria-label="Medium" />
+          <RadioGroupItem value="lg" size="lg" aria-label="Large" />
+        </RadioGroupRoot>
+      </Section>
+
+      <Section title="Select">
+        <SelectRoot value={fruit} onValueChange={setFruit}>
+          <SelectTrigger className="w-56" aria-label="Fruit">
+            <SelectValue placeholder="Pick one" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="apple">Apple</SelectItem>
+            <SelectItem value="banana">Banana</SelectItem>
+            <SelectItem value="cherry">Cherry</SelectItem>
+            <SelectItem value="durian" disabled>
+              Durian (disabled)
+            </SelectItem>
+          </SelectContent>
+        </SelectRoot>
+        <SelectRoot defaultValue="apple">
+          <SelectTrigger inputSize="sm" className="w-56" aria-label="Fruit, small">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="apple">Apple</SelectItem>
+            <SelectItem value="banana">Banana</SelectItem>
+          </SelectContent>
+        </SelectRoot>
+      </Section>
+
+      <Section title="Toggle & toggle group">
+        <div className="flex flex-wrap items-center gap-2">
+          <Toggle pressed={pressed} onPressedChange={setPressed}>
+            Bold
+          </Toggle>
+          <Toggle variant="secondary" defaultPressed>
+            Secondary
+          </Toggle>
+          <Toggle tone="danger">Danger</Toggle>
+          <Toggle iconOnly aria-label="Star">
+            ★
+          </Toggle>
+          <Toggle disabled>Disabled</Toggle>
+        </div>
+        <Separator />
+        <ToggleGroupRoot
+          type="single"
+          value={alignment}
+          onValueChange={next => next && setAlignment(next)}
+          aria-label="Alignment">
+          <ToggleGroupItem value="left">Left</ToggleGroupItem>
+          <ToggleGroupItem value="center">Center</ToggleGroupItem>
+          <ToggleGroupItem value="right">Right</ToggleGroupItem>
+        </ToggleGroupRoot>
+        <ToggleGroupRoot type="multiple" variant="secondary" size="sm" aria-label="Text style">
+          <ToggleGroupItem value="bold">B</ToggleGroupItem>
+          <ToggleGroupItem value="italic">I</ToggleGroupItem>
+          <ToggleGroupItem value="underline">U</ToggleGroupItem>
+        </ToggleGroupRoot>
+      </Section>
+
+      <Section title="Slider">
+        <Slider
+          value={volume}
+          onValueChange={setVolume}
+          max={100}
+          step={1}
+          thumbLabels={['Volume']}
+        />
+        <p className="text-xs text-content-muted">Value: {volume[0]}</p>
+        <Slider
+          size="sm"
+          value={range}
+          onValueChange={setRange}
+          max={100}
+          thumbLabels={['Minimum', 'Maximum']}
+        />
+        <p className="text-xs text-content-muted">
+          Range: {range[0]}–{range[1]}
+        </p>
+        <Slider defaultValue={[60]} disabled thumbLabels={['Disabled']} />
+      </Section>
+
+      <Section title="Avatar">
+        <div className="flex flex-wrap items-center gap-3">
+          <AvatarRoot className="h-6 w-6">
+            <AvatarFallback>ab</AvatarFallback>
+          </AvatarRoot>
+          <AvatarRoot>
+            <AvatarFallback>cd</AvatarFallback>
+          </AvatarRoot>
+          <AvatarRoot className="h-12 w-12">
+            <AvatarImage src="https://example.invalid/missing.png" alt="" />
+            <AvatarFallback delayMs={0}>ef</AvatarFallback>
+          </AvatarRoot>
+        </div>
+        <p className="text-xs text-content-muted">
+          The image above never resolves, so the fallback is what renders — that is the point of the
+          delayed swap.
+        </p>
+      </Section>
+
+      <Section title="Accordion">
+        <AccordionRoot type="single" collapsible defaultValue="a">
+          <AccordionItem value="a">
+            <AccordionTrigger>Plain, first row</AccordionTrigger>
+            <AccordionContent>Hairlines between rows, no container chrome.</AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="b">
+            <AccordionTrigger>Plain, second row</AccordionTrigger>
+            <AccordionContent>Only one row opens at a time.</AccordionContent>
+          </AccordionItem>
+        </AccordionRoot>
+        <Separator />
+        <AccordionRoot type="multiple" variant="contained">
+          <AccordionItem value="a" variant="contained">
+            <AccordionTrigger size="sm">Contained, small</AccordionTrigger>
+            <AccordionContent size="sm">One bordered container.</AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="b" variant="contained">
+            <AccordionTrigger size="sm">Both can be open</AccordionTrigger>
+            <AccordionContent size="sm">Multiple-type root.</AccordionContent>
+          </AccordionItem>
+        </AccordionRoot>
+        <Separator />
+        <AccordionRoot type="single" collapsible variant="card">
+          <AccordionItem value="a" variant="card">
+            <AccordionTrigger size="lg">Card, large</AccordionTrigger>
+            <AccordionContent size="lg">Each item is its own card.</AccordionContent>
+          </AccordionItem>
+        </AccordionRoot>
+      </Section>
+
+      <Section title="Collapsible">
+        <CollapsibleRoot variant="card" defaultOpen>
+          <CollapsibleTrigger>Advanced settings</CollapsibleTrigger>
+          <CollapsibleContent>
+            One trigger, one region — no roving between siblings the way an accordion has.
+          </CollapsibleContent>
+        </CollapsibleRoot>
+        <CollapsibleRoot>
+          <CollapsibleTrigger size="sm">Plain, small</CollapsibleTrigger>
+          <CollapsibleContent size="sm">No container chrome.</CollapsibleContent>
+        </CollapsibleRoot>
+      </Section>
+
+      <Section title="Alert dialog">
+        <div className="flex flex-wrap items-center gap-2">
+          <AlertDialogRoot open={alertOpen} onOpenChange={setAlertOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="secondary" tone="danger">
+                Open alert dialog
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogTitle className="text-sm font-semibold text-content">
+                Delete this workspace?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="mt-2 text-sm text-content-muted">
+                Unlike a dialog, this one has no outside-click dismissal and focuses cancel on open.
+              </AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogRoot>
+
+          <AlertDialogRoot>
+            <AlertDialogTrigger asChild>
+              <Button variant="tertiary">Benign tone</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogTitle className="text-sm font-semibold text-content">
+                Apply the update?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="mt-2 text-sm text-content-muted">
+                Pass tone=&quot;default&quot; when the decision is not destructive.
+              </AlertDialogDescription>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Not now</AlertDialogCancel>
+                <AlertDialogAction tone="default">Apply</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogRoot>
+        </div>
+      </Section>
+
+      <Section title="Visually hidden">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary">
+            ×<VisuallyHidden>Close the panel</VisuallyHidden>
+          </Button>
+          <span className="text-xs text-content-muted">
+            The button above reads as “Close the panel” to a screen reader and as “×” on screen —
+            nothing renders here, by design.
+          </span>
+        </div>
       </Section>
 
       <Section title="Feedback">
