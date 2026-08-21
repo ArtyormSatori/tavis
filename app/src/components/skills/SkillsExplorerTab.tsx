@@ -1,6 +1,7 @@
 import debug from 'debug';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import { type CatalogEntry, skillRegistryApi } from '../../services/api/skillRegistryApi';
 import {
@@ -10,6 +11,7 @@ import {
 } from '../../services/api/skillsApi';
 import EmptyStateCard from '../EmptyStateCard';
 import ChipTabs from '../layout/ChipTabs';
+import { ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
 import InstallSkillDialog from './InstallSkillDialog';
 import UninstallSkillConfirmDialog from './UninstallSkillConfirmDialog';
@@ -388,52 +390,41 @@ function SkillDetailDialog({
   const license = entry?.license ?? '';
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}>
-      <div
-        className="mx-4 w-full max-w-lg rounded-2xl border border-line bg-surface shadow-xl"
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-start justify-between gap-3 border-b border-line-subtle p-5">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-content truncate">
-                {name}
-              </h2>
-              {installed && (
-                <span className="flex-shrink-0 rounded-full border border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 px-2 py-0.5 text-[10px] font-medium text-sage-700 dark:text-sage-300">
-                  {t('skills.explorer.installed')}
-                </span>
-              )}
-            </div>
-            <div className="mt-1.5 flex items-center gap-1.5">
-              {source && <SourceBadge source={source} />}
-              {category && (
-                <span className="inline-flex items-center rounded-full border border-line bg-surface-muted px-1.5 py-0.5 text-[9px] font-medium text-content-muted">
-                  {category}
-                </span>
-              )}
-            </div>
+    <ModalShell
+      onClose={onClose}
+      titleId="skill-detail-title"
+      maxWidthClassName="max-w-lg"
+      contentClassName="p-5 space-y-4"
+      title={
+        <span className="flex items-center gap-2">
+          <span className="truncate">{name}</span>
+          {installed && (
+            <span className="flex-shrink-0 rounded-full border border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 px-2 py-0.5 text-[10px] font-medium text-sage-700 dark:text-sage-300">
+              {t('skills.explorer.installed')}
+            </span>
+          )}
+        </span>
+      }
+      subtitle={
+        <span className="mt-1.5 flex items-center gap-1.5">
+          {source && <SourceBadge source={source} />}
+          {category && (
+            <span className="inline-flex items-center rounded-full border border-line bg-surface-muted px-1.5 py-0.5 text-[9px] font-medium text-content-muted">
+              {category}
+            </span>
+          )}
+        </span>
+      }
+      footer={
+        !installed && onInstall ? (
+          <div className="flex justify-end">
+            <Button variant="secondary" size="sm" disabled={installing} onClick={onInstall}>
+              {installing ? t('skills.explorer.installing') : t('skills.explorer.install')}
+            </Button>
           </div>
-          <Button
-            iconOnly
-            variant="tertiary"
-            size="sm"
-            aria-label={t('common.close')}
-            onClick={onClose}
-            className="flex-shrink-0 text-content-faint">
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </Button>
-        </div>
-
-        <div className="p-5 space-y-4">
+        ) : undefined
+      }>
+      <>
           {description && (
             <div>
               <h3 className="text-[11px] font-semibold uppercase tracking-wider text-content-faint mb-1">
@@ -499,17 +490,8 @@ function SkillDetailDialog({
               </p>
             </div>
           )}
-        </div>
-
-        {!installed && onInstall && (
-          <div className="border-t border-line-subtle p-4 flex justify-end">
-            <Button variant="secondary" size="sm" disabled={installing} onClick={onInstall}>
-              {installing ? t('skills.explorer.installing') : t('skills.explorer.install')}
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
+      </>
+    </ModalShell>
   );
 }
 
