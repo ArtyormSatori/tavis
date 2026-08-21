@@ -32,23 +32,39 @@ const SKIP = /\.(test|stories)\.tsx$|^index\.ts$|^types\.ts$|^icons\.tsx$/;
  * "Sidebar" in every other identifier while importing nothing from
  * `ui/Sidebar`, so a bare word match reported the app shell as a consumer of a
  * primitive it had never wired up — exactly the orphan this script exists to
- * catch. Matches both the barrel (`from '../ui'`) and the direct path
- * (`from '../ui/Button'`), across single- and multi-line import statements.
+ * catch.
+ *
+ * Matching is on the module PATH, not the symbol. Symbol matching looked
+ * obvious and was wrong: these modules export `AlertDialogRoot`,
+ * `AlertDialogContent`, `SidebarMenuButton` and friends, so a `\bAlertDialog\b`
+ * test fails at the word boundary before `Root` and reported 23 well-used
+ * primitives as orphans. The path is unambiguous and naming-independent.
+ *
+ * Barrel imports (`from '../ui'`) are matched separately, by looking for any
+ * identifier PREFIXED with the primitive name in the import clause.
  */
 function consumersOf(name) {
-  let out = '';
-  const pattern =
-    `(?s)import[^;]*?\\b${name}\\b[^;]*?from\\s*['\"][^'\"]*(components/)?(ui|ai-elements)(/${name})?['\"]` +
-    `|import\\s+${name}\\s+from\\s*['\"][^'\"]*(ui|ai-elements)/${name}['\"]`;
-  try {
-    out = execFileSync(
-      'rg',
-      ['-l', '--multiline', '-g', '*.ts', '-g', '*.tsx', pattern, '.'],
-      { cwd: APP_SRC, encoding: 'utf8' },
-    );
-  } catch {
-    return [];
+  const byPath = `from\\s*['"][^'"]*(ui|ai-elements)/${name}['"]`;
+  const byBarrel =
+    `(?s)import\\s*\\{[^}]*\\b${name}[A-Za-z]*\\b[^}]*\\}\\s*from\\s*['"][^'"]*(components/)?(ui|ai-elements)['"]`;
+  const seen = new Set();
+  for (const pattern of [byPath, byBarrel]) {
+    let out = '';
+    try {
+      out = execFileSync(
+        'rg',
+        ['-l', '--multiline', '-g', '*.ts', '-g', '*.tsx', pattern, '.'],
+        { cwd: APP_SRC, encoding: 'utf8' },
+      );
+    } catch {
+      continue;
+    }
+    for (const line of out.split('\n')) {
+      const f = line.replace(/^\.\//, '').trim();
+      if (f) seen.add(f);
+    }
   }
+  const out = [...seen].join('\n');
   return out
     .split('\n')
     .map((s) => s.replace(/^\.\//, '').trim())
