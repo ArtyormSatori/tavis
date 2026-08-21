@@ -4,7 +4,8 @@
 //! is *here* is the client half — everything that downloads a toolchain,
 //! verifies it, unpacks it, caches it, or keeps a warm worker in front of it now
 //! lives in the `tinyruntime` module, behind
-//! [`crate::openhuman::modules::runtime`].
+//! [`crate::openhuman::modules::runtime`], reached through the ungated
+//! [`client`] facade so a build without the module bus still compiles.
 //!
 //! That split is what this directory is for: adapting module answers onto the
 //! types the rest of the core already names, so a migration of the machinery did
@@ -21,6 +22,7 @@
 //! machinery: a client that asks a module for a path needs neither a
 //! decompressor nor a download pipeline.
 
+pub mod client;
 pub mod javascript;
 pub mod node;
 pub mod pool;

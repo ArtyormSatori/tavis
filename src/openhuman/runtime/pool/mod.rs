@@ -29,7 +29,7 @@ pub mod types;
 use tinyruntime_bus::Language;
 
 use crate::openhuman::config::Config;
-use crate::openhuman::modules::runtime::{self, RuntimeCallError};
+use crate::openhuman::runtime::client::{self as runtime, RuntimeCallError};
 
 pub use types::{PoolExecOutcome, PoolLang, PoolSettings};
 

@@ -7,7 +7,7 @@
 
 use super::{classify, node, python, PoolRunError};
 use crate::openhuman::config::Config;
-use crate::openhuman::modules::runtime::RuntimeCallError;
+use crate::openhuman::runtime::client::RuntimeCallError;
 
 #[test]
 fn node_pools_by_default_and_python_does_not() {

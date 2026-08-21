@@ -30,7 +30,7 @@ use anyhow::{anyhow, Result};
 use tinyruntime_bus::{Language, ResolvedRuntime, RuntimeSource};
 
 use crate::openhuman::config::Config;
-use crate::openhuman::modules::runtime;
+use crate::openhuman::runtime::client as runtime;
 
 /// Origin of the resolved toolchain — feeds into logging and lets the caller
 /// decide whether to surface a "Node was downloaded to …" message in the UI.

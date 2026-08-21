@@ -21,7 +21,7 @@ use anyhow::{anyhow, Result};
 use tinyruntime_bus::{Language, ResolvedRuntime, RuntimeSource};
 
 use crate::openhuman::config::Config;
-use crate::openhuman::modules::runtime;
+use crate::openhuman::runtime::client as runtime;
 
 /// Origin of the resolved interpreter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
