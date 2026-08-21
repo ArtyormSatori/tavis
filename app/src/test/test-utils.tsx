@@ -13,7 +13,6 @@ import { SidebarSlotOutlet, SidebarSlotProvider } from '../components/layout/she
 import { getCoreStateSnapshot } from '../lib/coreState/store';
 import { CoreStateContext } from '../providers/coreStateContext';
 import accountsReducer from '../store/accountsSlice';
-import backendMeetReducer from '../store/backendMeetSlice';
 import channelConnectionsReducer from '../store/channelConnectionsSlice';
 import chatRuntimeReducer from '../store/chatRuntimeSlice';
 import connectivityReducer from '../store/connectivitySlice';
@@ -37,12 +36,9 @@ import threadReducer from '../store/threadSlice';
  * VoicePanel reads + dispatches against this slice, and useSelector
  * would throw on a missing reducer without a stub here. `persona` is wired
  * in for the same reason (issue #2345): PersonaPanel reads + dispatches
- * against it. `backendMeet` is wired in for MeetingBotsCard which reads
- * meeting status from this slice.
- */
+ * against it. */
 const testRootReducer = combineReducers({
   accounts: accountsReducer,
-  backendMeet: backendMeetReducer,
   channelConnections: channelConnectionsReducer,
   chatRuntime: chatRuntimeReducer,
   connectivity: connectivityReducer,

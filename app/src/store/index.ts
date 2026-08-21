@@ -22,7 +22,6 @@ import {
   filterArtifactsForPersist,
   rehydrateArtifactsFromPersist,
 } from './artifactsPersistFilter';
-import backendMeetReducer from './backendMeetSlice';
 import channelConnectionsReducer from './channelConnectionsSlice';
 import chatRuntimeReducer from './chatRuntimeSlice';
 import connectivityReducer from './connectivitySlice';
@@ -245,7 +244,6 @@ const persistedGithubStarReducer = persistReducer(githubStarPersistConfig, githu
 
 export const store = configureStore({
   reducer: {
-    backendMeet: backendMeetReducer,
     socket: socketReducer,
     connectivity: connectivityReducer,
     thread: persistedThreadReducer,
