@@ -809,9 +809,11 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           {sources.map(src => {
             const active = activeSources.has(src);
             return (
-              <button
+              <Button
                 key={src}
-                type="button"
+                variant="secondary"
+                size="xs"
+                aria-pressed={active}
                 onClick={() => {
                   setActiveSources(prev => {
                     const next = new Set(prev);
@@ -820,13 +822,14 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
                     return next;
                   });
                 }}
-                className={`rounded-full border px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                className={cn(
+                  'h-auto rounded-full px-2.5 py-1 text-[10px] font-medium',
                   active
                     ? 'border-primary-300 dark:border-primary-500/50 bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300'
                     : 'border-line bg-surface-muted text-content-faint hover:text-content-secondary'
-                }`}>
+                )}>
                 {src}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -847,13 +850,13 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
               d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
             />
           </svg>
-          <input
+          <TextField
             type="text"
             data-testid="skill-search-input"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder={t('skills.explorer.searchPlaceholder')}
-            className="w-full rounded-lg border border-line bg-surface py-2 pl-9 pr-3 text-xs text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+            className="pl-9 pr-3 text-xs shadow-sm"
           />
         </div>
         {view === 'registry' && (
@@ -1005,13 +1008,14 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
               </div>
               {filteredCatalog.length > displayedCatalog.length && (
                 <div className="mt-3 flex flex-col items-center gap-1">
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     data-testid="registry-show-more"
                     onClick={() => setVisibleCount(c => c + CATALOG_PAGE_SIZE)}
-                    className="rounded-lg border border-line bg-surface px-4 py-2 text-xs font-medium text-content-secondary shadow-soft transition-colors hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1">
+                    className="h-auto border-line px-4 py-2 text-xs font-medium text-content-secondary shadow-soft">
                     {t('common.showMore')}
-                  </button>
+                  </Button>
                   <p className="text-[11px] text-content-faint">
                     {displayedCatalog.length.toLocaleString()} /{' '}
                     {filteredCatalog.length.toLocaleString()}
