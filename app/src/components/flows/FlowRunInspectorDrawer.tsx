@@ -260,11 +260,12 @@ export function FlowRunInspectorDrawer({ runId, onClose, onFixWithAgent }: Props
   return (
     <div className="fixed inset-0 z-50 flex justify-end" data-testid="flow-run-inspector-drawer">
       {/* Backdrop */}
-      <button
+      <Button
         type="button"
+        variant="tertiary"
         aria-label={t('conversations.subagent.close')}
         data-testid="flow-run-inspector-backdrop"
-        className="absolute inset-0 bg-stone-900/30 dark:bg-black/50"
+        className="absolute inset-0 h-auto w-auto rounded-none bg-surface-overlay/50 backdrop-blur-sm hover:bg-surface-overlay/50"
         onClick={onClose}
       />
       <aside className="relative flex h-full w-full max-w-md flex-col bg-surface shadow-xl">
