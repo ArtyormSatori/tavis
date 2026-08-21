@@ -207,7 +207,7 @@ describe('McpConnectionHealthToolbar', () => {
     fireEvent.click(
       screen.getByRole('button', { name: /Disconnect all \d+ connected MCP servers/i })
     );
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     act(() => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
