@@ -3,8 +3,6 @@ import type { TranslationMap } from './types';
 // Portuguese (Português) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-    'Um companheiro de ambiente de trabalho flutuante para ajuda rápida e sempre disponível.',
-    'Modo companheiro sempre ativo com atalho na bandeja do sistema',
   // Share cards (#5006).
   'share.button': 'Partilhar',
   'share.modalTitle': 'Partilhe este momento',

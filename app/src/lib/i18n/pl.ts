@@ -3,8 +3,6 @@ import type { TranslationMap } from './types';
 // Polish (Polski) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-    'Pływający towarzysz pulpitu do szybkiej, zawsze dostępnej pomocy.',
-    'Tryb towarzyski zawsze aktywny ze skrótem w zasobniku systemowym',
   // Share cards (#5006).
   'share.button': 'Udostępnij',
   'share.modalTitle': 'Udostępnij tę chwilę',

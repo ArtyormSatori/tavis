@@ -3,8 +3,6 @@ import type { TranslationMap } from './types';
 // Russian (Русский) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-    'Плавающий помощник на рабочем столе для быстрой, всегда доступной помощи.',
-    'Режим постоянного компаньона с ярлыком в системном лотке',
   // Share cards (#5006).
   'share.button': 'Поделиться',
   'share.modalTitle': 'Поделитесь этим моментом',

@@ -3,8 +3,6 @@ import type { TranslationMap } from './types';
 // German (Deutsch) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-    'Ein schwebender Desktop-Begleiter für schnelle, jederzeit verfügbare Hilfe.',
-    'Immer aktiver Begleiter-Modus mit System-Tray-Shortcut',
   // Share cards (#5006).
   'share.button': 'Teilen',
   'share.modalTitle': 'Diesen Moment teilen',

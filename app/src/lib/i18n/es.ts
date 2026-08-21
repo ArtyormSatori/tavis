@@ -3,8 +3,6 @@ import type { TranslationMap } from './types';
 // Spanish (Español) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-    'Un compañero de escritorio flotante para ayuda rápida y siempre disponible.',
-    'Modo compañero siempre activo con acceso directo en la bandeja del sistema',
   // Share cards (#5006).
   'share.button': 'Compartir',
   'share.modalTitle': 'Comparte este momento',

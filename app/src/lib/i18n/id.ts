@@ -3,8 +3,6 @@ import type { TranslationMap } from './types';
 // Indonesian (Bahasa Indonesia) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-    'Pendamping desktop mengambang untuk bantuan cepat yang selalu tersedia.',
-    'Mode pendamping selalu aktif dengan pintasan baki sistem',
   // Share cards (#5006).
   'share.button': 'Bagikan',
   'share.modalTitle': 'Bagikan momen ini',
