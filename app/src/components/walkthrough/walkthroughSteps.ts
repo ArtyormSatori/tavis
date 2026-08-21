@@ -168,7 +168,7 @@ export function createWalkthroughSteps(
       skipBeacon: true,
     },
 
-    // ── Step 12 — primary nav: Feedback ───────────────────────────────────
+    // ── Step 11 — primary nav: Feedback ───────────────────────────────────
     {
       target: '[data-walkthrough="tab-feedback"]',
       title: t('walkthrough.steps.feedbackTab.title'),
