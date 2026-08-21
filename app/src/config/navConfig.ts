@@ -46,12 +46,6 @@ export const NAV_TABS: NavTab[] = [
   { id: 'brain', labelKey: 'nav.brain', path: '/brain', walkthroughAttr: 'tab-brain' },
   { id: 'flows', labelKey: 'nav.flows', path: '/flows', walkthroughAttr: 'tab-flows' },
   {
-    id: 'agent-world',
-    labelKey: 'nav.agentWorld',
-    path: '/agent-world',
-    walkthroughAttr: 'tab-agent-world',
-  },
-  {
     id: 'connections',
     labelKey: 'nav.connections',
     path: '/connections',

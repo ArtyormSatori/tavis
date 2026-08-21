@@ -8,7 +8,6 @@
  * row dispatches `openhuman.memory_sources_sync` which runs in the
  * background and emits MemorySyncStageChanged events.
  */
-import debug from 'debug';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
