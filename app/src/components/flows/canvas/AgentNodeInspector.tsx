@@ -27,6 +27,8 @@ import { useEffect, useId, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { agentRegistryApi, type AgentRegistryEntry } from '../../../services/api/agentRegistryApi';
+import UiInput from '../../ui/Input';
+import NativeSelect from '../../ui/NativeSelect';
 import { configString, SelectField } from './nodeConfig/nodeConfigFields';
 
 const log = createDebug('app:flows:canvas:agentInspector');
