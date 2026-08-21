@@ -120,9 +120,6 @@ const SendCryptoModal = ({ balance, onClose, onSuccess }: SendCryptoModalProps) 
     onClose();
   }, [onSuccess, onClose]);
 
-  const fieldClass =
-    'w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder-content-faint focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
-
   return (
     <ModalShell
       onClose={onClose}
@@ -130,11 +127,9 @@ const SendCryptoModal = ({ balance, onClose, onSuccess }: SendCryptoModalProps) 
       title={t('walletBalances.send')}
       subtitle={`${networkLabel} · ${balance.assetSymbol}`}>
       {error && (
-        <div
-          role="alert"
-          className="mb-3 rounded-lg bg-coral-50 dark:bg-coral-500/10 border border-coral-200 dark:border-coral-500/30 px-3 py-2 text-xs text-coral-700 dark:text-coral-300">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-3 px-3 py-2 text-xs">
+          <AlertDescription className="text-xs opacity-100">{error}</AlertDescription>
+        </Alert>
       )}
 
       {step === 'form' && (
@@ -145,40 +140,36 @@ const SendCryptoModal = ({ balance, onClose, onSuccess }: SendCryptoModalProps) 
               {balance.formatted} {balance.assetSymbol}
             </span>
           </div>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-content-secondary">
-              {t('walletSend.recipient')}
-            </span>
-            <input
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="send-recipient-input">{t('walletSend.recipient')}</Label>
+            <TextField
+              id="send-recipient-input"
               type="text"
               value={recipient}
               onChange={e => setRecipient(e.target.value)}
               placeholder={t('walletSend.recipientPlaceholder')}
               spellCheck={false}
               autoComplete="off"
-              className={`${fieldClass} font-mono`}
+              className="font-mono"
               data-testid="send-recipient"
             />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-content-secondary">
-              {t('walletSend.amount')}
-            </span>
-            <div className="relative">
-              <input
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="send-amount-input">{t('walletSend.amount')}</Label>
+            <InputGroupRoot>
+              <InputGroupInput
+                id="send-amount-input"
                 type="text"
                 inputMode="decimal"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 placeholder="0.0"
-                className={`${fieldClass} pr-16 font-mono`}
+                className="font-mono"
                 data-testid="send-amount"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-content-faint">
-                {balance.assetSymbol}
-              </span>
-            </div>
-          </label>
+              <InputGroupAddon className="font-medium">{balance.assetSymbol}</InputGroupAddon>
+            </InputGroupRoot>
+          </div>
           <Button
             type="button"
             onClick={() => void handleReview()}

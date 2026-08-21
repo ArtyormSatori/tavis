@@ -117,7 +117,7 @@ export default function SubconsciousInstanceCard({
               disabled={triggering || providerUnavailable}
               title={providerUnavailable ? t('subconscious.providerUnavailableTitle') : undefined}>
               {triggering ? (
-                <div className="w-3 h-3 border border-stone-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-3 h-3 border border-content-faint border-t-transparent rounded-full animate-spin" />
               ) : (
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
