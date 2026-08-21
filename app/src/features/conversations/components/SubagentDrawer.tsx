@@ -77,8 +77,8 @@ function statusTone(status: ToolTimelineEntryStatus | undefined): {
   }
   if (status === 'cancelled') {
     return {
-      dot: 'bg-stone-400 dark:bg-neutral-500',
-      pill: 'bg-surface-subtle dark:bg-neutral-700/40 text-content-secondary',
+      dot: 'bg-content-faint',
+      pill: 'bg-surface-subtle text-content-secondary',
       label: 'statusCancelled',
     };
   }
@@ -314,7 +314,7 @@ export function SubagentDrawer({
           {promptText ? (
             <div className="flex justify-end" data-testid="subagent-parent-prompt">
               <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary-500 px-3 py-2 text-sm text-content-inverted">
-                <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/70">
+                <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-content-inverted/70">
                   {t('conversations.subagent.parent')}
                 </div>
                 <div className="whitespace-pre-wrap break-words">{promptText}</div>
