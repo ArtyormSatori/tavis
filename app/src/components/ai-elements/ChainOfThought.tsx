@@ -9,7 +9,7 @@
  *   `./useControllableState` (this repo takes Radix through the unified
  *   `radix-ui` package only, which does not re-export that hook).
  * - lucide icons (Brain/ChevronDown/Dot) -> inline SVGs in `./icons`;
- *   `LucideIcon` -> the local `AiElementIcon` type.
+ *   `LucideIcon` -> the local `ChainOfThoughtStepIcon` type.
  * - shadcn semantic colours -> OpenHuman design tokens, and
  *   `tailwindcss-animate` utilities -> the keyframes in tailwind.config.js
  *   (`animate-fade-up`, and the `animate-fade-in` already baked into
