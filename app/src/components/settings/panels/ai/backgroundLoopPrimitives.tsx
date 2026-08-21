@@ -2,8 +2,8 @@
  * Pure formatting helpers + small presentational primitives shared by the
  * background-loop controls (heartbeat section + usage ledger section).
  */
-import type { ComposioConnection } from '../../../../../lib/composio/types';
-import type { CreditTransaction } from '../../../../../services/api/creditsApi';
+import type { ComposioConnection } from '../../../../lib/composio/types';
+import type { CreditTransaction } from '../../../../services/api/creditsApi';
 import { SettingsSwitch } from '../../controls';
 import type { ProviderRef } from './aiPanelTypes';
 
