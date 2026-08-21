@@ -910,19 +910,22 @@ function SourceRow({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
+          <Button
+            iconOnly
+            variant="tertiary"
+            size="xs"
             onClick={() => onToggleSettings(source.id)}
             title={t('memorySources.settings.button')}
+            aria-label={t('memorySources.settings.button')}
             data-testid={`memory-source-settings-${source.id}`}
             aria-expanded={settingsExpanded}
-            className={`rounded p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-200 ${
+            className={
               settingsExpanded
                 ? 'bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
-                : 'text-content-faint hover:bg-surface-hover hover:text-content-secondary'
-            }`}>
+                : 'text-content-faint hover:text-content-secondary'
+            }>
             <GearIcon />
-          </button>
+          </Button>
           <Button
             variant="primary"
             size="sm"

@@ -4,7 +4,6 @@ import { CheckIcon } from '../../ui/icons';
 import { ToggleGroupItem, ToggleGroupRoot } from '../../ui/ToggleGroup';
 
 export interface EngineOption {
-  // eslint-disable-next-line no-empty-pattern
   id: SearchEngineId;
   label: string;
   description: string;

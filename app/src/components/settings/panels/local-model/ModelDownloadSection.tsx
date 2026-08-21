@@ -207,11 +207,10 @@ const ModelDownloadSection = ({
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label className="flex items-center gap-2 text-xs text-content-secondary">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={promptNoThink}
-                onChange={e => onSetPromptNoThink(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-line-strong bg-surface text-primary-500 focus:ring-primary-500"
+                onCheckedChange={onSetPromptNoThink}
+                aria-label={t('settings.localModel.download.noThinkMode')}
               />
               {t('settings.localModel.download.noThinkMode')}
             </label>
