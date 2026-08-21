@@ -20,6 +20,7 @@ import {
 } from '../../../../services/api/aiSettingsApi';
 import { toSelectableChatModels } from '../aiRouting';
 import {
+  type AISettings,
   type CloudProvider,
   EMPTY_SETTINGS,
   maskKeyLabel,
@@ -28,12 +29,6 @@ import {
   type ProviderRef,
   type RoutingMap,
 } from './aiPanelTypes';
-
-export type AISettings = {
-  cloudProviders: CloudProvider[];
-  routing: RoutingMap;
-  modelRegistry: import('../../../../services/api/aiSettingsApi').ModelRegistryEntry[];
-};
 
 function toPanelProvider(p: CloudProviderView): CloudProvider {
   return {
