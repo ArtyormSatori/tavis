@@ -27,8 +27,8 @@ use tinybox_docker::DockerSandbox;
 use tinybox_host::LocalHost;
 use tinybox_ssh::{SshHost, SshTarget};
 
-use super::ops::Provisioned;
-use super::types::{ActiveGateway, CCONST, Confinement, Gateway, Reach, SshReach};
+use super::ops::{ProgressSink, Provisioned};
+use super::types::{ActiveGateway, CORE_PORT_IN_BOX, Confinement, Gateway, Reach, SshReach};
 
 /// How long to wait for a provisioned core to answer `/health`.
 ///
