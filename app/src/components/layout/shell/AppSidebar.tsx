@@ -9,7 +9,15 @@ import { normalizeAnalyticsPagePath } from '../../../services/analyticsRoutes';
 import { APP_VERSION } from '../../../utils/config';
 import { isLocalSessionToken } from '../../../utils/localSession';
 import ConnectionIndicator from '../../ConnectionIndicator';
-import { Button } from '../../ui';
+import {
+  SidebarContent as SidebarScrollRegion,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuIcon,
+  SidebarMenuItem,
+  SidebarMenuLabel,
+} from '../../ui';
 import { NavIcon } from './navIcons';
 import SidebarHeader from './SidebarHeader';
 import SidebarNav from './SidebarNav';
