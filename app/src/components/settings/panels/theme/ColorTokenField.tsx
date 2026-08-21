@@ -30,7 +30,6 @@ const ColorTokenField = ({ tokenKey, label, value, disabled, onChange }: ColorTo
       htmlFor={id}
       label={label}
       description={`--${tokenKey} · ${hex}`}
-      disabled={disabled}
       className="px-0 py-1.5"
       control={
         <input

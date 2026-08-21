@@ -92,16 +92,18 @@ export default function SelfIdentityCard({
             {shortAddress(address)}
           </div>
         </div>
-        <button
+        <Button
           type="button"
+          variant="tertiary"
+          size="xs"
           data-testid="tinyplace-self-identity-copy"
           onClick={onCopy}
           disabled={!address}
-          className="flex-none rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-ocean-600 transition hover:bg-ocean-500/10 disabled:opacity-40 dark:text-ocean-300">
+          className="flex-none px-1.5 text-primary-600 hover:bg-primary-500/10 dark:text-primary-300">
           {copied
             ? t('tinyplaceOrchestration.identity.copied')
             : t('tinyplaceOrchestration.identity.copy')}
-        </button>
+        </Button>
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">

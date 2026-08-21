@@ -86,13 +86,14 @@ export default function AttentionQueueItem({
           {item.count}
         </span>
       ) : null}
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="xs"
         data-testid="attention-item-action"
         onClick={() => onAction?.(item.action)}
-        className="flex-none rounded-md border border-line px-2 py-1 text-[11px] font-medium text-content-secondary transition hover:bg-surface-hover">
+        className="flex-none text-[11px] font-medium text-content-secondary">
         {actionLabel}
-      </button>
+      </Button>
     </div>
   );
 }

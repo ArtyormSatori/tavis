@@ -265,16 +265,17 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
           className="absolute right-0 top-full z-20 mt-2 w-[36rem] max-w-[calc(100vw-2rem)]
                      rounded-lg border border-violet-200 bg-violet-50 p-4 pr-10 text-sm shadow-xl
                      dark:border-violet-500/30 dark:bg-violet-950">
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            size="sm"
+            iconOnly
             onClick={closePanel}
             data-testid="obsidian-vault-close"
             aria-label={t('common.close')}
-            className="absolute right-2 top-2 rounded-md p-1 text-content-muted
-                       hover:bg-violet-100 hover:text-content-secondary
-                       dark:hover:bg-violet-500/20 dark:hover:text-content">
+            className="absolute right-2 top-2 h-auto w-auto p-1 hover:bg-violet-100
+                       dark:hover:bg-violet-500/20">
             <CloseIcon />
-          </button>
+          </Button>
           <p className="text-content-secondary">{helpText}</p>
 
           <code

@@ -254,11 +254,9 @@ export function UpstreamInsertSelect({
   const { t } = useT();
   if (options.length === 0) return null;
   return (
-    <select
-      className={
-        className ??
-        'max-w-[45%] shrink-0 cursor-pointer border-l border-line-strong bg-surface-muted px-1.5 text-[11px] text-content-muted focus:outline-none'
-      }
+    <NativeSelect
+      inputSize="sm"
+      className={cn('max-w-[45%] shrink-0 border-l text-[11px]', className)}
       value=""
       title={t('flows.nodeConfig.upstream.insertLabel', 'Insert a value from a previous step')}
       aria-label={t('flows.nodeConfig.upstream.insertLabel', 'Insert a value from a previous step')}
@@ -276,7 +274,7 @@ export function UpstreamInsertSelect({
           {opt.label}
         </option>
       ))}
-    </select>
+    </NativeSelect>
   );
 }
 
