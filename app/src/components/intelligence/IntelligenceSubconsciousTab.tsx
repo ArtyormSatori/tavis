@@ -173,16 +173,14 @@ export default function IntelligenceSubconsciousTab({
               {formatMinutes(sliderToMinutes(localSlider), t)}
             </span>
           </div>
-          <input
-            type="range"
+          <Slider
             min={0}
             max={INTERVAL_STOPS.length - 1}
             step={1}
-            value={localSlider}
-            onChange={handleSliderChange}
-            onMouseUp={handleSliderCommit}
-            onTouchEnd={handleSliderCommit}
-            className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-surface-strong accent-primary-500"
+            value={[localSlider]}
+            onValueChange={([val]) => setLocalSlider(val)}
+            onValueCommit={handleSliderCommit}
+            thumbLabels={[t('subconscious.interval.label')]}
           />
           <div className="flex justify-between mt-1 text-[10px] text-content-faint">
             <span>5m</span>

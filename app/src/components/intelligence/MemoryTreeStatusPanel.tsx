@@ -293,7 +293,7 @@ function IntegrationHealthStrip({
               health === 'active'
                 ? t('memoryTree.status.integrationActive')
                 : t('memoryTree.status.integrationStale');
-            const dot = health === 'active' ? 'bg-sage-400' : 'bg-stone-400 dark:bg-neutral-500';
+            const dot = health === 'active' ? 'bg-sage-400' : 'bg-content-faint';
             return (
               <li
                 key={row.provider}
