@@ -288,15 +288,16 @@ export function MemorySourceRow({
             <TrashIcon />
           </Button>
         </div>
-      </div>
-      {settingsExpanded && (
-        <SourceSettingsPanel
-          source={source}
-          syncedCount={status?.chunks_synced}
-          onSaved={onSettingsSaved}
-          onToast={onToast}
-        />
-      )}
+        </div>
+        <CollapsibleContent>
+          <SourceSettingsPanel
+            source={source}
+            syncedCount={status?.chunks_synced}
+            onSaved={onSettingsSaved}
+            onToast={onToast}
+          />
+        </CollapsibleContent>
+      </CollapsibleRoot>
     </li>
   );
 }
