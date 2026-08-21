@@ -578,10 +578,6 @@ export default function ComposioConnectModal({
     [activeConnection, activeConnections, clearMemoryOnDisconnect, onChanged, t]
   );
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   const headerTitle =
     phase === 'connected'
       ? `${t('composio.connect.manage')} ${toolkit.name}`
@@ -589,59 +585,16 @@ export default function ComposioConnectModal({
         ? `${t('composio.reconnect')} ${toolkit.name}`
         : `${t('composio.connect.connect')} ${toolkit.name}`;
 
-  const modalContent = (
-    <div
-      className="fixed inset-0 z-[9999] bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={handleBackdropClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="composio-setup-title">
-      <div
-        ref={modalRef}
-        className="bg-surface border border-line rounded-3xl shadow-large w-full max-w-[460px] overflow-hidden animate-fade-up focus:outline-none focus:ring-0"
-        style={{
-          animationDuration: '200ms',
-          animationTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          animationFillMode: 'both',
-        }}
-        tabIndex={-1}
-        onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="p-4 border-b border-line">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0 pr-2">
-              <div className="flex items-center gap-2">
-                {toolkit.icon}
-                <h2 id="composio-setup-title" className="text-base font-semibold text-content">
-                  {headerTitle}
-                </h2>
-              </div>
-              <p className="text-xs text-content-faint mt-1.5 line-clamp-2">
-                {toolkit.description}
-              </p>
-            </div>
-            <Button
-              iconOnly
-              variant="tertiary"
-              size="sm"
-              onClick={onClose}
-              className="text-content-faint hover:text-content flex-shrink-0"
-              aria-label={t('common.close')}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </Button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="p-4 space-y-3">
-          {phase === 'idle' && (
+  return (
+    <ModalShell
+      onClose={onClose}
+      title={headerTitle}
+      titleId="composio-setup-title"
+      subtitle={toolkit.description}
+      icon={toolkit.icon}
+      maxWidthClassName="max-w-[460px]"
+      contentClassName="p-4 space-y-3">
+      {phase === 'idle' && (
             <>
               <p className="text-sm text-content-secondary">
                 {`${t('composio.connect.idleDescription')} ${toolkit.name} ${t('composio.connect.idleDescriptionSuffix')}`}
