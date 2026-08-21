@@ -37,7 +37,7 @@ export default function AttachmentPreview({
               />
               <span className="absolute inset-0 flex items-center justify-center">
                 <svg
-                  className="w-3.5 h-3.5 text-white drop-shadow"
+                  className="w-3.5 h-3.5 text-content-inverted drop-shadow"
                   fill="currentColor"
                   viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
