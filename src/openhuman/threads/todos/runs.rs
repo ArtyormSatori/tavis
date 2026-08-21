@@ -576,4 +576,19 @@ mod tests {
         assert!(legacy_thread_id(Path::new("/w/notes.txt")).is_none());
         assert!(legacy_thread_id(Path::new("/w/zz.runs.json")).is_none());
     }
+
+    #[test]
+    fn legacy_file_names_reject_malformed_stems_without_panicking() {
+        // Multi-byte UTF-8 in the stem slices an odd index if decoded by byte
+        // pairs; it must be rejected, not panic.
+        assert!(legacy_thread_id(Path::new("/w/aéb.runs.json")).is_none());
+        // from_str_radix would accept "+f" as 15; strict hex decoding rejects the sign.
+        assert!(legacy_thread_id(Path::new("/w/+f+f.runs.json")).is_none());
+        assert!(legacy_thread_id(Path::new("/w/gg.runs.json")).is_none());
+        assert!(legacy_thread_id(Path::new("/w/GG.runs.json")).is_none());
+        // A mixed pair with a valid second nibble but invalid first is rejected.
+        assert!(legacy_thread_id(Path::new("/w/0g.runs.json")).is_none());
+        // Non-hex ASCII letters are rejected.
+        assert!(legacy_thread_id(Path::new("/w/zz.runs.json")).is_none());
+    }
 }
