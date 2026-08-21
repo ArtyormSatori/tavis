@@ -355,13 +355,14 @@ const InstalledServerDetail = ({
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-content-secondary">{t('mcp.detail.envVars')}</p>
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="xs"
               disabled={busy}
               onClick={() => (reconfigOpen ? setReconfigOpen(false) : openReconfigure())}
-              className="text-[11px] font-medium text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50">
+              className="h-auto p-0 text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-400">
               {reconfigOpen ? t('common.cancel') : t('mcp.detail.reconfigure')}
-            </button>
+            </Button>
           </div>
           {!reconfigOpen && (
             <div className="flex flex-wrap gap-1.5">
