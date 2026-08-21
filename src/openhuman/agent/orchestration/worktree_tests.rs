@@ -180,13 +180,10 @@ fn base_ref_parse_defaults_to_head() {
     assert_eq!(BaseRef::parse(Some("garbage")), BaseRef::Head);
 }
 
-#[test]
-fn sanitize_run_id_strips_unsafe_chars() {
-    assert_eq!(sanitize_run_id("sub-1234"), "sub-1234");
-    assert_eq!(sanitize_run_id("a/b\\c"), "a-b-c");
-    assert_eq!(sanitize_run_id("///"), "worker");
-    assert_eq!(sanitize_run_id(""), "worker");
-}
+// `sanitize_run_id` is TinyAgents-internal now; the identical assertions live
+// beside it in `vendor/tinyagents/src/harness/workspace/git/test.rs`. Its effect
+// is still observed from this side by the worktree-creation tests below, which
+// name their runs and then look for the resulting checkout.
 
 #[test]
 fn detect_overlaps_flags_shared_files() {
