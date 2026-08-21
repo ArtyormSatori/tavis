@@ -43,22 +43,27 @@ const PROXY_SERVICE_KEY: &str = "tool.mcp_client";
 /// The port the core serves on when nothing says otherwise.
 const DEFAULT_CORE_PORT: u16 = 7788;
 
-/// The one service this process holds.
-static SERVICE: OnceLock<McpHost> = OnceLock::new();
-
-/// The write-audit log for each workspace that has been asked for one.
+/// One service per workspace, opened on first use.
 ///
-/// Not a field on [`McpHost`], and deliberately not tied to [`init`]. Auditing
-/// is addressed by configuration — every entry point takes a `&Config` and
-/// records against *that* workspace — and this process can serve more than one
-/// over its life. Binding the log to whichever configuration happened to boot
-/// first would silently file a write under the wrong workspace.
+/// Not a single `OnceLock`. Every entry point into this domain is addressed by
+/// configuration — an RPC handler loads a `Config` and acts on *that* workspace
+/// — and one process serves more than one over its life: the workspace can be
+/// switched in place, and the test suite runs each case against its own. A
+/// single service bound to whichever configuration booted first would answer
+/// every one of those from the wrong store, silently.
 ///
-/// The map is the only thing keeping this cheap: opening the log runs its
-/// migrations, and a write path must not pay that per row.
-static AUDIT_LOGS: OnceLock<Mutex<HashMap<PathBuf, Arc<AuditStore>>>> = OnceLock::new();
+/// The map is what keeps that cheap. Opening a service runs the store's
+/// migrations and builds an HTTP client, which no request path should pay for.
+static HOSTS: OnceLock<Mutex<HashMap<PathBuf, Arc<McpHost>>>> = OnceLock::new();
 
-/// The two pieces of `tinymcp` this application drives.
+/// The workspace [`init`] opened, for the callers that have no `Config`.
+///
+/// A handful of paths — dropping a connection, listing a connected server's
+/// tools — are addressed by server id alone, because the connection map they
+/// read used to be a process global. They resolve through here.
+static DEFAULT_WORKSPACE: OnceLock<PathBuf> = OnceLock::new();
+
+/// The three pieces of `tinymcp` this application drives.
 ///
 /// Held together rather than separately because they are initialised from one
 /// configuration and share a lifetime. This is the same shape `tinymcp`'s own
@@ -68,6 +73,7 @@ static AUDIT_LOGS: OnceLock<Mutex<HashMap<PathBuf, Arc<AuditStore>>>> = OnceLock
 pub struct McpHost {
     dynamic: McpRegistry,
     static_servers: McpServerRegistry,
+    audit: AuditStore,
 }
 
 impl McpHost {
@@ -98,6 +104,8 @@ impl McpHost {
             static_servers: McpServerRegistry::from_config(&client).map_err(|error| {
                 anyhow::anyhow!("failed to build the static server set: {error}")
             })?,
+            audit: AuditStore::open(workspace)
+                .map_err(|error| anyhow::anyhow!("failed to open the mcp audit log: {error}"))?,
         })
     }
 
@@ -112,41 +120,50 @@ impl McpHost {
     pub fn static_servers(&self) -> &McpServerRegistry {
         &self.static_servers
     }
+
+    /// The write-audit log.
+    #[must_use]
+    pub fn audit(&self) -> &AuditStore {
+        &self.audit
+    }
 }
 
-/// The write-audit log for `config`'s workspace, opening it on first use.
+
+/// The service for `config`'s workspace, opening it on first use.
+///
+/// This is the entry point for every caller that has a `Config`, which is
+/// almost all of them. Two calls with the same workspace get the same service,
+/// so a connection opened through one is visible through the other.
 ///
 /// # Errors
 ///
-/// Returns an error when the log cannot be opened.
-pub fn audit_log(config: &Config) -> anyhow::Result<Arc<AuditStore>> {
+/// Returns an error when the stores cannot be opened or an HTTP client cannot
+/// be built.
+pub fn for_config(config: &Config) -> anyhow::Result<Arc<McpHost>> {
     let workspace = config.workspace_dir.clone();
 
-    let mut logs = AUDIT_LOGS
+    let mut hosts = HOSTS
         .get_or_init(|| Mutex::new(HashMap::new()))
         .lock()
         // A panic while holding this lock leaves the map itself intact: the
-        // only mutation under it is one insert of an already-built store.
+        // only mutation under it is one insert of an already-built service.
         .unwrap_or_else(|poisoned| poisoned.into_inner());
 
-    if let Some(existing) = logs.get(&workspace) {
+    if let Some(existing) = hosts.get(&workspace) {
         return Ok(Arc::clone(existing));
     }
 
-    let log = Arc::new(
-        AuditStore::open(&workspace)
-            .map_err(|error| anyhow::anyhow!("failed to open the mcp audit log: {error}"))?,
-    );
-    logs.insert(workspace, Arc::clone(&log));
+    let service = Arc::new(McpHost::open(config)?);
+    hosts.insert(workspace, Arc::clone(&service));
 
-    Ok(log)
+    Ok(service)
 }
 
-/// Builds the service from `config` and installs it.
+/// Opens the service for `config` and marks its workspace the default.
 ///
-/// Called once, from the core startup path. A second call is a no-op and is
-/// reported, rather than silently replacing a service that already holds live
-/// connections.
+/// Called once, from the core startup path. A second call opens nothing new and
+/// leaves the default alone, so a service already holding live connections is
+/// never displaced.
 ///
 /// # Errors
 ///
@@ -154,36 +171,41 @@ pub fn audit_log(config: &Config) -> anyhow::Result<Arc<AuditStore>> {
 /// be built. A caller should log and continue: MCP being unavailable must not
 /// stop the core coming up.
 pub fn init(config: &Config) -> anyhow::Result<()> {
-    if SERVICE.get().is_some() {
-        tracing::debug!("[mcp] the service was already initialised; leaving it alone");
+    for_config(config)?;
+
+    if DEFAULT_WORKSPACE.set(config.workspace_dir.clone()).is_err() {
+        tracing::debug!("[mcp] a default workspace was already set; leaving it alone");
         return Ok(());
     }
 
-    let service = McpHost::open(config)?;
-
-    SERVICE
-        .set(service)
-        .map_err(|_| anyhow::anyhow!("the mcp service was initialised concurrently"))?;
-
-    tracing::info!("[mcp] service initialised");
+    tracing::info!(workspace = ?config.workspace_dir, "[mcp] service initialised");
     Ok(())
 }
 
-/// The service, or `None` before [`init`] has run.
+/// The default workspace's service, or `None` before [`init`] has run.
 ///
-/// Callers on a path that can run before boot completes should handle `None`
-/// rather than assume it.
-pub fn try_service() -> Option<&'static McpHost> {
-    SERVICE.get()
+/// Only for the paths that have no `Config` to resolve by. Anything holding one
+/// should call [`for_config`] instead, which cannot answer `None` and cannot
+/// answer from the wrong workspace.
+#[must_use]
+pub fn try_service() -> Option<Arc<McpHost>> {
+    let workspace = DEFAULT_WORKSPACE.get()?;
+
+    let hosts = HOSTS
+        .get()?
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+
+    hosts.get(workspace).map(Arc::clone)
 }
 
-/// The service, erroring when it is not up yet.
+/// The default workspace's service, erroring when it is not up yet.
 ///
 /// # Errors
 ///
 /// Returns a message naming the state, so an RPC caller learns the core is
 /// still starting rather than that their server does not exist.
-pub fn service() -> Result<&'static McpHost, String> {
+pub fn service() -> Result<Arc<McpHost>, String> {
     try_service().ok_or_else(|| "the mcp service is not initialised yet".to_string())
 }
 

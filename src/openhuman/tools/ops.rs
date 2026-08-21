@@ -745,11 +745,11 @@ pub fn all_tools_with_runtime(
         #[cfg(feature = "mcp")]
         Box::new(McpRegistryStatusTool::new(config.clone())),
         #[cfg(feature = "mcp")]
-        Box::new(McpRegistryListToolsTool),
+        Box::new(McpRegistryListToolsTool::new(config.clone())),
         #[cfg(feature = "mcp")]
         Box::new(McpRegistryConnectTool::new(config.clone())),
         #[cfg(feature = "mcp")]
-        Box::new(McpRegistryDisconnectTool),
+        Box::new(McpRegistryDisconnectTool::new(config.clone())),
         #[cfg(feature = "mcp")]
         Box::new(McpRegistryToolCallTool),
         #[cfg(feature = "mcp")]

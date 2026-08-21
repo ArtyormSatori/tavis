@@ -48,6 +48,15 @@ fn require(value: &str, field: &str) -> Result<String, String> {
     Ok(trimmed.to_string())
 }
 
+/// The service for `config`'s workspace, as a string error.
+///
+/// Every handler here is addressed by configuration, so every handler resolves
+/// through this rather than through a process-wide default: two workspaces get
+/// two stores, and a handler must act on the one its caller named.
+fn resolve(config: &Config) -> Result<std::sync::Arc<host::McpHost>, String> {
+    host::for_config(config).map_err(|error| error.to_string())
+}
+
 // ── registry_search ──────────────────────────────────────────────────────────
 
 /// `transport` is accepted and ignored: the catalog no longer filters by it,
@@ -55,7 +64,7 @@ fn require(value: &str, field: &str) -> Result<String, String> {
 /// actually offers. The parameter stays so the frontend's call does not have to
 /// change in the same release.
 pub async fn mcp_clients_registry_search(
-    _config: &Config,
+    config: &Config,
     query: Option<String>,
     _transport: Option<String>,
     page: Option<u32>,
@@ -64,7 +73,7 @@ pub async fn mcp_clients_registry_search(
     let page = page.unwrap_or(1);
     let page_size = page_size.unwrap_or(20);
 
-    let mut found = host::service()?
+    let mut found = resolve(config)?
         .dynamic()
         .registry_search(query.as_deref(), page, page_size)
         .await
@@ -89,12 +98,12 @@ pub async fn mcp_clients_registry_search(
 // ── registry_get ─────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_registry_get(
-    _config: &Config,
+    config: &Config,
     qualified_name: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let qualified_name = require(&qualified_name, "qualified_name")?;
 
-    let (detail, required_env_keys) = host::service()?
+    let (detail, required_env_keys) = resolve(config)?
         .dynamic()
         .registry_get(&qualified_name)
         .await
@@ -118,8 +127,8 @@ pub async fn mcp_clients_registry_get(
 
 // ── installed_list ───────────────────────────────────────────────────────────
 
-pub async fn mcp_clients_installed_list(_config: &Config) -> Result<RpcOutcome<Value>, String> {
-    let installed = host::service()?
+pub async fn mcp_clients_installed_list(config: &Config) -> Result<RpcOutcome<Value>, String> {
+    let installed = resolve(config)?
         .dynamic()
         .installed_list()
         .map_err(|error| error.to_string())?;
@@ -134,14 +143,14 @@ pub async fn mcp_clients_installed_list(_config: &Config) -> Result<RpcOutcome<V
 // ── install ──────────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_install(
-    _config: &Config,
+    config: &Config,
     qualified_name: String,
     env: HashMap<String, String>,
     config_value: Option<Value>,
 ) -> Result<RpcOutcome<Value>, String> {
     let qualified_name = require(&qualified_name, "qualified_name")?;
 
-    let outcome = host::service()?
+    let outcome = resolve(config)?
         .dynamic()
         .install(&qualified_name, env.into_iter().collect(), config_value)
         .await
@@ -172,12 +181,12 @@ pub async fn mcp_clients_install(
 // ── uninstall ────────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_uninstall(
-    _config: &Config,
+    config: &Config,
     server_id: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    let removed = host::service()?
+    let removed = resolve(config)?
         .dynamic()
         .uninstall(&server_id)
         .await
@@ -192,12 +201,12 @@ pub async fn mcp_clients_uninstall(
 // ── auth detection and browser OAuth ─────────────────────────────────────────
 
 pub async fn mcp_clients_detect_auth(
-    _config: &Config,
+    config: &Config,
     server_id: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    let detection = host::service()?
+    let detection = resolve(config)?
         .dynamic()
         .detect_auth(&server_id)
         .await
@@ -213,12 +222,12 @@ pub async fn mcp_clients_detect_auth(
 }
 
 pub async fn mcp_clients_oauth_begin(
-    _config: &Config,
+    config: &Config,
     server_id: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    let authorize_url = host::service()?
+    let authorize_url = resolve(config)?
         .dynamic()
         .oauth_begin(&server_id, &host::oauth_redirect_uri())
         .await
@@ -233,12 +242,12 @@ pub async fn mcp_clients_oauth_begin(
 // ── connect ──────────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_connect(
-    _config: &Config,
+    config: &Config,
     server_id: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    let outcome = host::service()?
+    let outcome = resolve(config)?
         .dynamic()
         .connect(&server_id)
         .await
@@ -263,13 +272,13 @@ pub async fn mcp_clients_connect(
 // ── set_enabled ──────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_set_enabled(
-    _config: &Config,
+    config: &Config,
     server_id: String,
     enabled: bool,
 ) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    host::service()?
+    resolve(config)?
         .dynamic()
         .set_enabled(&server_id, enabled)
         .await
@@ -292,10 +301,13 @@ pub async fn mcp_clients_set_enabled(
 
 // ── disconnect ───────────────────────────────────────────────────────────────
 
-pub async fn mcp_clients_disconnect(server_id: String) -> Result<RpcOutcome<Value>, String> {
+pub async fn mcp_clients_disconnect(
+    config: &Config,
+    server_id: String,
+) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    host::service()?
+    resolve(config)?
         .dynamic()
         .disconnect(&server_id)
         .await
@@ -315,7 +327,7 @@ pub async fn mcp_clients_disconnect(server_id: String) -> Result<RpcOutcome<Valu
 // ── update_env ───────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_update_env(
-    _config: &Config,
+    config: &Config,
     server_id: String,
     env: HashMap<String, String>,
 ) -> Result<RpcOutcome<Value>, String> {
@@ -323,7 +335,7 @@ pub async fn mcp_clients_update_env(
 
     let server_id = require(&server_id, "server_id")?;
 
-    let outcome = host::service()?
+    let outcome = resolve(config)?
         .dynamic()
         .update_env(&server_id, env.into_iter().collect())
         .await
@@ -398,9 +410,9 @@ pub async fn mcp_clients_update_env(
 // ── registry settings ────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_registry_settings_get(
-    _config: &Config,
+    config: &Config,
 ) -> Result<RpcOutcome<Value>, String> {
-    let settings = host::service()?.dynamic().registry_settings();
+    let settings = resolve(config)?.dynamic().registry_settings();
 
     Ok(RpcOutcome::new(
         encode(&settings)?,
@@ -433,7 +445,7 @@ pub async fn mcp_clients_registry_settings_set(
 
     config.save().await.map_err(|error| error.to_string())?;
 
-    let settings = host::service()?.dynamic().set_registry_settings(
+    let settings = resolve(config)?.dynamic().set_registry_settings(
         smithery_api_key,
         mcp_official_base,
         mcp_official_token,
@@ -447,8 +459,8 @@ pub async fn mcp_clients_registry_settings_set(
 
 // ── status ───────────────────────────────────────────────────────────────────
 
-pub async fn mcp_clients_status(_config: &Config) -> Result<RpcOutcome<Value>, String> {
-    let statuses = host::service()?
+pub async fn mcp_clients_status(config: &Config) -> Result<RpcOutcome<Value>, String> {
+    let statuses = resolve(config)?
         .dynamic()
         .status()
         .await
@@ -463,7 +475,10 @@ pub async fn mcp_clients_status(_config: &Config) -> Result<RpcOutcome<Value>, S
 
 // ── list_tools ───────────────────────────────────────────────────────────────
 
-pub async fn mcp_clients_list_tools(server_id: String) -> Result<RpcOutcome<Value>, String> {
+pub async fn mcp_clients_list_tools(
+    config: &Config,
+    server_id: String,
+) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
     /// What a caller has to do about it either way.
@@ -471,17 +486,7 @@ pub async fn mcp_clients_list_tools(server_id: String) -> Result<RpcOutcome<Valu
         format!("server_id={server_id} is not connected; connect it first via mcp_clients_connect")
     }
 
-    // Reading which tools a server advertises is a read of the connection map,
-    // and a service that is not up holds no connections — so the answer is the
-    // same "connect it" that an unknown server gets. Reporting "still starting"
-    // here would be a distinction the caller cannot act on differently; the
-    // paths that *mutate* state still say it, because retrying those later is
-    // exactly the right response.
-    let Some(service) = host::try_service() else {
-        return Err(connect_first(&server_id));
-    };
-
-    let tools = service
+    let tools = resolve(config)?
         .dynamic()
         .list_tools(&server_id)
         .await
@@ -509,7 +514,7 @@ pub async fn mcp_clients_tool_call(
     let tool_name = require(&tool_name, "tool_name")?;
 
     let start = Instant::now();
-    let result = host::service()?
+    let result = resolve(config)?
         .dynamic()
         .tool_call(&server_id, &tool_name, arguments)
         .await;
@@ -559,7 +564,7 @@ pub async fn mcp_clients_config_assist(
     // The module gathers the catalog detail and the credential names; running
     // the turn below is this layer's, because it needs the agent, the tool
     // surface and the approval gate.
-    let (detail, required_env_keys) = host::service()?
+    let (detail, required_env_keys) = resolve(config)?
         .dynamic()
         .config_assist(qualified_name.trim())
         .await

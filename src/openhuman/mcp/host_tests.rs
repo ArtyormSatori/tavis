@@ -237,9 +237,9 @@ fn a_disabled_mcp_section_carries_across() {
 }
 
 #[test]
-fn a_host_opens_its_store_under_the_workspace() {
-    // It lives there, so the servers a user installed are found again after a
-    // restart.
+fn a_host_opens_both_stores_under_the_workspace() {
+    // Both live there, so the servers a user installed — and the record of what
+    // they wrote — are found again after a restart.
     let temporary = tempfile::tempdir().expect("tempdir");
     let mut config = config_without_docs();
     config.workspace_dir = temporary.path().to_path_buf();
@@ -247,38 +247,40 @@ fn a_host_opens_its_store_under_the_workspace() {
     let _host = McpHost::open(&config).expect("the host opens");
 
     assert!(tinymcp::Store::path_for(temporary.path()).exists());
+    assert!(tinymcp::AuditStore::path_for(temporary.path()).exists());
 }
 
 #[test]
-fn an_audit_log_is_opened_under_the_workspace_it_is_asked_for() {
-    // Keyed by workspace rather than held by the host: this process can serve
-    // more than one over its life, and a write must land under the workspace
-    // its caller named rather than whichever booted first.
+fn one_workspace_gets_one_service() {
+    // Two callers naming the same workspace must meet: a connection opened
+    // through one has to be visible through the other, and opening a service
+    // runs migrations that no request path should pay for twice.
     let temporary = tempfile::tempdir().expect("tempdir");
     let mut config = config_without_docs();
     config.workspace_dir = temporary.path().to_path_buf();
 
-    let log = super::audit_log(&config).expect("the audit log opens");
+    let first = super::for_config(&config).expect("the service opens");
+    let second = super::for_config(&config).expect("the service opens again");
 
-    assert!(tinymcp::AuditStore::path_for(temporary.path()).exists());
-    // A second ask reuses the open log rather than re-running its migrations.
-    let again = super::audit_log(&config).expect("the audit log opens again");
-    assert!(std::sync::Arc::ptr_eq(&log, &again));
+    assert!(std::sync::Arc::ptr_eq(&first, &second));
 }
 
 #[test]
-fn two_workspaces_get_two_audit_logs() {
-    let first = tempfile::tempdir().expect("tempdir");
-    let second = tempfile::tempdir().expect("tempdir");
+fn two_workspaces_get_two_services() {
+    // The reason the map is keyed at all. One process serves more than one
+    // workspace over its life, and a caller naming the second must not be
+    // handed the first's store.
+    let first_dir = tempfile::tempdir().expect("tempdir");
+    let second_dir = tempfile::tempdir().expect("tempdir");
 
     let mut config = config_without_docs();
-    config.workspace_dir = first.path().to_path_buf();
-    let first_log = super::audit_log(&config).expect("the first log opens");
+    config.workspace_dir = first_dir.path().to_path_buf();
+    let first = super::for_config(&config).expect("the first service opens");
 
-    config.workspace_dir = second.path().to_path_buf();
-    let second_log = super::audit_log(&config).expect("the second log opens");
+    config.workspace_dir = second_dir.path().to_path_buf();
+    let second = super::for_config(&config).expect("the second service opens");
 
-    assert!(!std::sync::Arc::ptr_eq(&first_log, &second_log));
-    assert!(tinymcp::AuditStore::path_for(first.path()).exists());
-    assert!(tinymcp::AuditStore::path_for(second.path()).exists());
+    assert!(!std::sync::Arc::ptr_eq(&first, &second));
+    assert!(tinymcp::Store::path_for(first_dir.path()).exists());
+    assert!(tinymcp::Store::path_for(second_dir.path()).exists());
 }

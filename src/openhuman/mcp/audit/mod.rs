@@ -46,7 +46,8 @@ pub fn record_write(
     config: &crate::openhuman::config::Config,
     record: NewMcpWriteRecord,
 ) -> anyhow::Result<i64> {
-    crate::openhuman::mcp::host::audit_log(config)?
+    crate::openhuman::mcp::host::for_config(config)?
+        .audit()
         .record(&record)
         .map_err(|error| anyhow::anyhow!("failed to record an mcp write: {error}"))
 }
@@ -61,7 +62,8 @@ pub fn list_writes(
     config: &crate::openhuman::config::Config,
     query: &McpWriteListQuery,
 ) -> anyhow::Result<Vec<McpWriteRecord>> {
-    crate::openhuman::mcp::host::audit_log(config)?
+    crate::openhuman::mcp::host::for_config(config)?
+        .audit()
         .list(query)
         .map_err(|error| anyhow::anyhow!("failed to list mcp writes: {error}"))
 }
