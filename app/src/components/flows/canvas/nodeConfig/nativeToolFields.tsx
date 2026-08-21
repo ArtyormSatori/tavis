@@ -87,8 +87,9 @@ export function NativeToolField({ label, hint, value, onChange, testId }: Native
   return (
     <Field label={label} hint={hint}>
       <div className="space-y-1.5">
-        <select
-          className={INPUT_CLASS}
+        <NativeSelect
+          inputSize="sm"
+          className="w-full"
           value={current}
           disabled={loading}
           data-testid={testId}
@@ -101,7 +102,7 @@ export function NativeToolField({ label, hint, value, onChange, testId }: Native
               {name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {selected?.description && (
           <p
             className="text-[11px] leading-snug text-content-muted"
