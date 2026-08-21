@@ -72,8 +72,13 @@ export function SettingsModalFrame({ onClose, children, labelledBy }: SettingsMo
               // a dimmed scrim with no adjacent chrome to seam against, and the two
               // utilities would collide on `box-shadow` anyway.
               className="flex h-full w-full overflow-hidden rounded-2xl bg-surface shadow-xl animate-fade-up focus:outline-none">
+              {/* Radix requires a Title in the tree for the dialog to be
+                  accessible. When the caller supplies its own visible heading
+                  via `labelledBy`, that id still wins as the accessible name
+                  (set above); this hidden node only satisfies Radix's a11y
+                  check and gives screen readers a fallback name otherwise. */}
               <VisuallyHidden>
-                <DialogPrimitive.Title>{labelledBy ? t('nav.settings') : t('nav.settings')}</DialogPrimitive.Title>
+                <DialogPrimitive.Title>{t('nav.settings')}</DialogPrimitive.Title>
               </VisuallyHidden>
               {children}
             </DialogPrimitive.Content>
