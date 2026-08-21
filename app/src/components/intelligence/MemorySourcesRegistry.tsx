@@ -520,21 +520,17 @@ export function MemorySourcesRegistry({
       <header className="mb-3 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-content-secondary">{t('memorySources.title')}</h3>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setAllInModalOpen(true)}
             disabled={applyingAllIn}
             data-testid="all-in-button"
-            className="inline-flex items-center gap-1 rounded-md border border-primary-300
-                       bg-surface px-3 py-1.5 text-xs font-semibold text-primary-600
-                       shadow-sm transition-colors hover:bg-primary-50
-                       disabled:cursor-not-allowed disabled:opacity-50
-                       dark:border-primary-500/30 dark:bg-surface dark:text-primary-400
-                       dark:hover:bg-primary-500/10
-                       focus:outline-none focus:ring-2 focus:ring-primary-200">
-            <AllInIcon />
+            leadingIcon={<AllInIcon />}
+            className="border-primary-300 text-primary-600 hover:bg-primary-50
+                       dark:border-primary-500/30 dark:text-primary-400 dark:hover:bg-primary-500/10">
             {t('memorySources.allIn.button')}
-          </button>
+          </Button>
           <Button
             variant="primary"
             size="sm"
