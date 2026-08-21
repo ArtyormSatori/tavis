@@ -30,6 +30,8 @@ import {
   type SourceKind,
 } from '../../services/memorySourcesService';
 import Button from '../ui/Button';
+import { DialogContent, DialogRoot, DialogTitle } from '../ui/Dialog';
+import TextField from '../ui/TextField';
 
 const log = debug('intelligence:add-memory-source-dialog');
 
