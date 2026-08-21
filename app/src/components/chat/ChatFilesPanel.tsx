@@ -316,34 +316,39 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mt-0.5">
-                    <button
-                      type="button"
+                    <Button
+                      variant="primary"
+                      size="xs"
                       onClick={() => void handleDownload(artifact)}
                       disabled={row.state === 'downloading'}
-                      data-analytics-id={`chat-files-download-${artifact.kind}`}
+                      analyticsId={`chat-files-download-${artifact.kind}`}
                       data-testid={`chat-files-download-${artifact.artifactId}`}
-                      className="rounded-md bg-ocean-500 hover:bg-ocean-600 disabled:bg-stone-300 dark:disabled:bg-neutral-700 text-white text-[11px] font-medium px-2 py-1 transition-colors">
+                      className="text-[11px]">
                       {row.state === 'downloading'
                         ? t('chat.artifact.downloading')
                         : t('chat.artifact.download')}
-                    </button>
+                    </Button>
                     {row.state === 'done' && row.path && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="tertiary"
+                        size="xs"
                         onClick={() => void handleReveal(row.path!)}
-                        data-analytics-id={`chat-files-reveal-${artifact.kind}`}
+                        analyticsId={`chat-files-reveal-${artifact.kind}`}
                         data-testid={`chat-files-reveal-${artifact.artifactId}`}
-                        className="text-[11px] underline text-sage-700 dark:text-sage-300 hover:text-sage-900 dark:hover:text-sage-100">
+                        className="text-[11px] underline text-sage-600">
                         {t('chat.artifact.reveal')}
-                      </button>
+                      </Button>
                     )}
-                    <button
-                      type="button"
+                    <Button
+                      iconOnly
+                      variant="tertiary"
+                      tone="danger"
+                      size="xs"
                       onClick={() => setConfirmDeleteId(artifact.artifactId)}
-                      data-analytics-id={`chat-files-delete-${artifact.kind}`}
+                      analyticsId={`chat-files-delete-${artifact.kind}`}
                       data-testid={`chat-files-delete-${artifact.artifactId}`}
                       aria-label={t('chat.files.delete.aria').replace('{title}', artifact.title)}
-                      className="ml-auto rounded-md bg-transparent text-content-muted hover:bg-coral-50 dark:hover:bg-coral-900/20 hover:text-coral-700 dark:hover:text-coral-300 text-[11px] font-medium px-2 py-1 transition-colors">
+                      className="ml-auto !w-auto px-2">
                       <svg
                         className="w-3.5 h-3.5"
                         fill="none"
@@ -356,7 +361,7 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
                           d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-6v6M4 7h16M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
                         />
                       </svg>
-                    </button>
+                    </Button>
                   </div>
                 )}
                 {row.state === 'error' && row.error && (
