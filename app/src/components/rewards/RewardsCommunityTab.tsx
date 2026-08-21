@@ -60,9 +60,9 @@ function roleAccentTone(index: number) {
       iconBorder: 'border-blue-100 dark:border-blue-500/20',
     },
     {
-      iconBg: 'bg-slate-100 dark:bg-slate-500/10',
-      iconText: 'text-slate-600 dark:text-slate-300',
-      iconBorder: 'border-slate-200 dark:border-slate-500/20',
+      iconBg: 'bg-surface-subtle dark:bg-surface-strong',
+      iconText: 'text-content-secondary',
+      iconBorder: 'border-line',
     },
     {
       iconBg: 'bg-emerald-50 dark:bg-emerald-500/10',
