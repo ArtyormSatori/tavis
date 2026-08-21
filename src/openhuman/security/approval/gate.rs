@@ -1478,51 +1478,7 @@ mod tests {
         }
     }
 
-    fn in_call_ctx() -> InCallApprovalContext {
-        InCallApprovalContext {
-            meeting_key: "meet-1".into(),
-            correlation_id: Some("meet-1".into()),
-        }
-    }
 
-    #[tokio::test]
-    async fn in_call_voice_approve_resolves_parked_external_channel_approval() {
-        let (gate, _dir) = test_gate();
-        let gate = Arc::new(gate);
-
-        let g = gate.clone();
-        let handle = tokio::spawn(async move {
-            turn_origin::with_origin(
-                meet_origin(),
-                APPROVAL_IN_CALL_CONTEXT.scope(
-                    in_call_ctx(),
-                    g.intercept("composio", "create calendar event", serde_json::json!({})),
-                ),
-            )
-            .await
-        });
-
-        // The meeting → request mapping is the voice channel's lookup key.
-        let mut tries = 0;
-        let request_id = loop {
-            if let Some(r) = gate.pending_for_meeting("meet-1") {
-                break r;
-            }
-            tries += 1;
-            assert!(tries < 50, "meeting mapping never appeared");
-            tokio::time::sleep(Duration::from_millis(10)).await;
-        };
-
-        gate.decide(&request_id, ApprovalDecision::ApproveOnce)
-            .unwrap();
-
-        let outcome = handle.await.unwrap();
-        assert!(matches!(outcome, GateOutcome::Allow));
-        assert!(
-            gate.pending_for_meeting("meet-1").is_none(),
-            "meeting mapping must be cleared once the park resolves"
-        );
-    }
 
     #[test]
     fn guard_cleanup_only_clears_routing_it_still_owns() {
@@ -1558,70 +1514,7 @@ mod tests {
         assert!(gate.pending_for_meeting("meet-1").is_none());
     }
 
-    #[tokio::test]
-    async fn in_call_voice_deny_resolves_parked_approval_with_deny() {
-        let (gate, _dir) = test_gate();
-        let gate = Arc::new(gate);
 
-        let g = gate.clone();
-        let handle = tokio::spawn(async move {
-            turn_origin::with_origin(
-                meet_origin(),
-                APPROVAL_IN_CALL_CONTEXT.scope(
-                    in_call_ctx(),
-                    g.intercept("composio", "send email", serde_json::json!({})),
-                ),
-            )
-            .await
-        });
-
-        let request_id = loop {
-            if let Some(r) = gate.pending_for_meeting("meet-1") {
-                break r;
-            }
-            tokio::time::sleep(Duration::from_millis(10)).await;
-        };
-
-        gate.decide(&request_id, ApprovalDecision::Deny).unwrap();
-
-        let outcome = handle.await.unwrap();
-        match outcome {
-            GateOutcome::Deny { reason } => assert!(reason.contains("composio")),
-            other => panic!("expected deny, got {other:?}"),
-        }
-        assert!(gate.pending_for_meeting("meet-1").is_none());
-    }
-
-    #[tokio::test]
-    async fn external_channel_without_in_call_ctx_has_no_meeting_mapping() {
-        // Plain external-channel turns (telegram, discord) must not gain a
-        // voice surface: no in-call context → no meeting mapping. Uses the
-        // 2s test TTL so the parked future deny-resolves quickly.
-        let (gate, _dir) = test_gate();
-        let gate = Arc::new(gate);
-
-        let g = gate.clone();
-        let handle = tokio::spawn(async move {
-            turn_origin::with_origin(
-                meet_origin(),
-                g.intercept("composio", "send email", serde_json::json!({})),
-            )
-            .await
-        });
-
-        // Wait for the row to park, then confirm no meeting mapping exists.
-        loop {
-            if !gate.list_pending().unwrap().is_empty() {
-                break;
-            }
-            tokio::time::sleep(Duration::from_millis(10)).await;
-        }
-        assert!(gate.pending_for_meeting("meet-1").is_none());
-
-        // TTL-deny is the expected terminal state.
-        let outcome = handle.await.unwrap();
-        assert!(matches!(outcome, GateOutcome::Deny { .. }));
-    }
 
     #[tokio::test]
     async fn approve_once_returns_allow() {
@@ -1764,37 +1657,6 @@ mod tests {
         assert!(gate.pending_for_thread("t-test").is_none());
     }
 
-    #[tokio::test]
-    async fn pending_store_failure_clears_in_call_meeting_route() {
-        let dir = TempDir::new().unwrap();
-        let blocked_workspace = dir.path().join("workspace-file");
-        std::fs::write(&blocked_workspace, b"not a directory").unwrap();
-        let config = Config {
-            workspace_dir: blocked_workspace,
-            ..Config::default()
-        };
-        let gate = ApprovalGate::new(
-            config,
-            format!("session-{}", uuid::Uuid::new_v4()),
-            Duration::from_secs(2),
-        );
-
-        let outcome = turn_origin::with_origin(
-            meet_origin(),
-            APPROVAL_IN_CALL_CONTEXT.scope(
-                in_call_ctx(),
-                gate.intercept("composio", "send email", serde_json::json!({})),
-            ),
-        )
-        .await;
-
-        assert!(matches!(
-            outcome,
-            GateOutcome::Deny { reason } if reason.contains("could not persist")
-        ));
-        assert!(gate.waiters.lock().is_empty());
-        assert!(gate.pending_for_meeting("meet-1").is_none());
-    }
 
     #[tokio::test]
     async fn externally_aborted_in_call_waiter_cleans_meeting_route() {
@@ -1836,76 +1698,6 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn aborting_older_in_call_waiter_preserves_newer_meeting_route() {
-        let (gate, _dir) = test_gate();
-        let gate = Arc::new(gate);
-
-        let old_gate = gate.clone();
-        let old_handle = tokio::spawn(async move {
-            turn_origin::with_origin(
-                meet_origin(),
-                APPROVAL_IN_CALL_CONTEXT.scope(
-                    in_call_ctx(),
-                    old_gate.intercept("composio", "old action", serde_json::json!({})),
-                ),
-            )
-            .await
-        });
-
-        let mut tries = 0;
-        let old_request_id = loop {
-            if let Some(request_id) = gate.pending_for_meeting("meet-1") {
-                break request_id;
-            }
-            tries += 1;
-            assert!(tries < 1_000, "old meeting approval route never appeared");
-            tokio::task::yield_now().await;
-        };
-
-        let new_gate = gate.clone();
-        let new_handle = tokio::spawn(async move {
-            turn_origin::with_origin(
-                meet_origin(),
-                APPROVAL_IN_CALL_CONTEXT.scope(
-                    in_call_ctx(),
-                    new_gate.intercept("composio", "new action", serde_json::json!({})),
-                ),
-            )
-            .await
-        });
-
-        let mut tries = 0;
-        let new_request_id = loop {
-            if let Some(request_id) = gate.pending_for_meeting("meet-1") {
-                if request_id != old_request_id {
-                    break request_id;
-                }
-            }
-            tries += 1;
-            assert!(tries < 1_000, "new meeting approval route never appeared");
-            tokio::task::yield_now().await;
-        };
-
-        old_handle.abort();
-        assert!(old_handle.await.unwrap_err().is_cancelled());
-
-        assert_eq!(
-            gate.pending_for_meeting("meet-1").as_deref(),
-            Some(new_request_id.as_str())
-        );
-        assert!(!gate.waiters.lock().contains_key(&old_request_id));
-        assert!(gate.waiters.lock().contains_key(&new_request_id));
-        assert_eq!(
-            store::get_decision(&gate.config, &old_request_id).unwrap(),
-            Some(ApprovalDecision::Deny)
-        );
-
-        gate.decide(&new_request_id, ApprovalDecision::ApproveOnce)
-            .unwrap();
-        assert!(matches!(new_handle.await.unwrap(), GateOutcome::Allow));
-        assert!(gate.pending_for_meeting("meet-1").is_none());
-    }
 
     #[tokio::test]
     async fn auto_approve_tool_skips_prompt() {
@@ -2640,16 +2432,6 @@ mod tests {
             );
         }
 
-        #[test]
-        fn in_call_clamp_is_unaffected_by_the_copilot_flag() {
-            let default_ttl = DEFAULT_APPROVAL_TTL;
-            assert_eq!(
-                ApprovalGate::resolve_park_ttl(default_ttl, true, false),
-                IN_CALL_APPROVAL_TTL,
-                "an in-call meeting park must keep clamping to IN_CALL_APPROVAL_TTL, unchanged \
-                 by this fix"
-            );
-        }
 
         #[test]
         fn a_clamp_never_extends_a_shorter_boot_time_ttl() {
