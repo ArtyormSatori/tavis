@@ -356,7 +356,6 @@ impl PythonExecTool {
     async fn try_pool_inline(
         &self,
         code: &str,
-        resolved: &ResolvedPython,
         action_dir: &std::path::Path,
         timeout: Option<Duration>,
     ) -> Option<ToolResult> {
