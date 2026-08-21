@@ -327,7 +327,7 @@ async fn create_spawn_parallel_worktree(
                         tinyagents::harness::tool::SandboxMode::Inherit
                     }
                 };
-                let isolation = worktree::GitWorktreeIsolation::new(repo_root)
+                let isolation = worktree::OpenHumanWorktreeIsolation::new(repo_root)
                     .with_base_ref(base_ref)
                     .with_sandbox(sandbox);
                 match isolation.prepare(task_id, Some(&definition.id)).await {
