@@ -88,7 +88,7 @@ describe('MessageAction', () => {
     );
 
     const button = screen.getByRole('button', { name: 'Copy response' });
-    expect(button).toHaveAttribute('data-slot', 'button');
+    expect(button).toHaveAttribute('data-slot', 'message-action');
     expect(button).toHaveAttribute('type', 'button');
     expect(button).toHaveAttribute('title', 'Copy response');
     expect(button).toHaveAttribute('data-analytics-id', 'chat-message-copy');

@@ -9,9 +9,7 @@ import { sameThreadMessage, TranscriptRow, type TranscriptRowProps } from './Tra
 // has to place it, so stub it down to a marker.
 vi.mock('../../share/ShareMessageButton', () => ({
   ShareMessageButton: ({ content }: { content: string }) => (
-    <button type="button" data-testid="share-button">
-      {content}
-    </button>
+    <button type="button" data-testid="share-button" data-content={content} />
   ),
 }));
 
