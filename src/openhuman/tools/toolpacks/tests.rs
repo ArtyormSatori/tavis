@@ -176,3 +176,67 @@ fn an_unbound_handle_degrades_closed() {
     let use_skill = find(&tools, USE_SKILL);
     assert_eq!(use_skill.permission_level(), PermissionLevel::Dangerous);
 }
+
+#[test]
+fn every_pack_declares_the_tools_it_is_named_for() {
+    // Membership is compiled-in data, so a typo here is invisible until a
+    // `load_skill` at runtime renders a pack that withheld nothing. Pin the
+    // exact set per pack rather than a count.
+    let expect: &[(&str, &[&str])] = &[
+        (
+            "workflows",
+            &[
+                "build_workflow",
+                "discover_workflows",
+                "run_workflow",
+                "await_workflow",
+                "describe_workflow",
+                "list_workflows",
+                "list_workflow_runs",
+                "read_workflow_run_log",
+            ],
+        ),
+        ("crypto", &["do_crypto", "use_tinyplace"]),
+        (
+            "integrations",
+            &["use_mcp_server", "setup_mcp_server", "mcp_registry_status"],
+        ),
+        (
+            "skills",
+            &[
+                "run_skill",
+                "setup_skills",
+                "skill_registry_browse",
+                "skill_registry_search",
+                "skill_registry_install",
+                "skill_registry_sources",
+            ],
+        ),
+        ("goals", &["goal_set", "goal_get", "goal_complete"]),
+        ("app_update", &["update_check", "update_apply"]),
+    ];
+
+    for (id, tools) in expect {
+        let found = registry::pack(id).unwrap_or_else(|| panic!("pack `{id}` is missing"));
+        assert_eq!(found.tools, *tools, "pack `{id}` membership drifted");
+    }
+
+    assert_eq!(
+        registry::PACKS.len(),
+        expect.len(),
+        "a pack was added without pinning its membership here"
+    );
+}
+
+#[test]
+fn the_reactive_fleet_tools_are_never_packed() {
+    // Packing these would put a `load_skill` round-trip between an async
+    // worker returning and the parent being able to steer or collect it.
+    // See `DELIBERATELY_UNPACKED_FLEET_TOOLS` for the full reasoning.
+    for name in registry::DELIBERATELY_UNPACKED_FLEET_TOOLS {
+        assert!(
+            registry::pack_for_tool(name).is_none(),
+            "`{name}` is needed reactively mid-turn and must stay advertised"
+        );
+    }
+}
