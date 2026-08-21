@@ -47,11 +47,17 @@ describe('<SourceSettingsPanel />', () => {
     expect(onSaved).toHaveBeenCalledWith(updated);
   });
 
-  it('renders nothing for a source kind with no limit fields', () => {
-    const { container } = render(
-      <SourceSettingsPanel source={{ ...source, kind: 'conversation' }} onSaved={vi.fn()} />
-    );
-    // conversation only has sync_depth_days, so the panel still renders one field
-    expect(container.querySelector(`[data-testid="source-settings-panel-src-1"]`)).toBeTruthy();
+  it('rejects a negative value and reports the failure via onToast without saving', async () => {
+    const onToast = vi.fn();
+    const user = userEvent.setup();
+
+    render(<SourceSettingsPanel source={source} onSaved={vi.fn()} onToast={onToast} />);
+    const field = screen.getByLabelText(/Max Items/i);
+    await user.clear(field);
+    await user.type(field, '-5');
+    await user.click(screen.getByRole('button', { name: /Save/i }));
+
+    expect(updateMemorySource).not.toHaveBeenCalled();
+    expect(onToast).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
   });
 });
