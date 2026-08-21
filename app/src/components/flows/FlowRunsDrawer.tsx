@@ -180,11 +180,12 @@ function FlowRunsDrawer({ flowId, flowName, onClose, onFixWithAgent }: Props) {
                   const displayStatus = resolveDisplayStatus(run, pendingRunIds);
                   return (
                     <li key={run.id}>
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
                         data-testid={`flow-run-row-${run.id}`}
                         onClick={() => setSelectedRunId(run.id)}
-                        className="flex w-full items-center gap-2 rounded-lg border border-line bg-surface-muted px-3 py-2 text-left text-xs hover:bg-surface-hover">
+                        className="w-full justify-start gap-2 bg-surface-muted px-3 py-2 text-left text-xs font-normal">
                         <FlowRunStatus
                           status={displayStatus}
                           label={flowRunStatusLabel(displayStatus, t)}
@@ -202,7 +203,7 @@ function FlowRunsDrawer({ flowId, flowName, onClose, onFixWithAgent }: Props) {
                         <span className="ml-auto truncate font-mono text-[10px] text-content-faint">
                           {run.id.slice(0, 8)}
                         </span>
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}
