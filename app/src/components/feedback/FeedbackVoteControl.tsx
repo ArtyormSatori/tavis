@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { feedbackApi } from '../../services/api/feedbackApi';
+import { Button } from '../ui';
 import type { FeedbackItem, FeedbackVoteValue } from '../../types/feedback';
 
 const log = debugFactory('feedback:vote');

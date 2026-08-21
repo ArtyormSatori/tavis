@@ -168,30 +168,25 @@ export function RunItemDataBrowser({ items, inputItems, testIdPrefix }: Props) {
         <div
           className="max-h-72 overflow-auto rounded border border-line"
           data-testid={`${testIdPrefix}-table-scroll`}>
-          <table
-            className="w-full border-collapse text-left text-[11px]"
-            data-testid={`${testIdPrefix}-table`}>
-            <thead>
-              <tr className="bg-surface-muted text-content-muted">
-                <th className="border-b border-line px-1.5 py-1 font-medium" aria-hidden />
+          <Table className="text-left text-[11px]" data-testid={`${testIdPrefix}-table`}>
+            <TableHeader>
+              <TableRow className="bg-surface-muted text-content-muted hover:bg-surface-muted">
+                <TableHead className="h-auto px-1.5 py-1 font-medium" aria-hidden />
                 {useColumns ? (
                   columns.map(column => (
-                    <th
-                      key={column}
-                      className="border-b border-line px-1.5 py-1 font-mono font-medium"
-                      scope="col">
+                    <TableHead key={column} className="h-auto px-1.5 py-1 font-mono font-medium">
                       {column}
-                    </th>
+                    </TableHead>
                   ))
                 ) : (
-                  <th className="border-b border-line px-1.5 py-1 font-medium" scope="col">
+                  <TableHead className="h-auto px-1.5 py-1 font-medium">
                     {t('flowRuns.inspector.dataJson')}
-                  </th>
+                  </TableHead>
                 )}
-                {showActions && <th className="border-b border-line px-1.5 py-1" aria-hidden />}
-              </tr>
-            </thead>
-            <tbody>
+                {showActions && <TableHead className="h-auto px-1.5 py-1" aria-hidden />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {items.map((item, index) => {
                 const canPair = item.pairedIndex !== null && inputItems !== undefined;
                 const sourceItem =
@@ -216,8 +211,8 @@ export function RunItemDataBrowser({ items, inputItems, testIdPrefix }: Props) {
                   />
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
