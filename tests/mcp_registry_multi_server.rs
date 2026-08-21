@@ -19,6 +19,7 @@
 #![cfg(feature = "mcp")]
 
 use openhuman_core::openhuman::config::Config;
+use openhuman_core::openhuman::mcp::registry::ops;
 use tinymcp_bus::{CommandKind, InstalledServer, Transport};
 
 /// A host over `config`'s workspace.
@@ -98,10 +99,12 @@ async fn two_servers_same_tool_name_no_collision() {
     // Connect both — each spawns its own subprocess.
     let tools_a = h.dynamic().connect(&server_a.server_id)
         .await
-        .expect("connect server_a");
+        .expect("connect server_a")
+        .tools;
     let tools_b = h.dynamic().connect(&server_b.server_id)
         .await
-        .expect("connect server_b");
+        .expect("connect server_b")
+        .tools;
 
     assert_eq!(tools_a.len(), 1, "server_a: stub advertises one tool");
     assert_eq!(tools_b.len(), 1, "server_b: stub advertises one tool");
@@ -175,10 +178,12 @@ async fn tool_calls_route_to_the_correct_server() {
 
     h.dynamic().connect(&server_a.server_id)
         .await
-        .expect("connect server_a");
+        .expect("connect server_a")
+        .tools;
     h.dynamic().connect(&server_b.server_id)
         .await
-        .expect("connect server_b");
+        .expect("connect server_b")
+        .tools;
 
     // Send distinct payloads to each server; verify each echoes its own input.
     let result_a = h.dynamic().tool_call(
@@ -197,8 +202,8 @@ async fn tool_calls_route_to_the_correct_server() {
     .await
     .expect("call_tool on server_b should succeed");
 
-    let text_a = extract_echo_text(&result_a);
-    let text_b = extract_echo_text(&result_b);
+    let text_a = extract_echo_text(&result_a.result);
+    let text_b = extract_echo_text(&result_b.result);
 
     assert_eq!(
         text_a, "payload-for-a",
@@ -251,7 +256,8 @@ async fn failed_connect_does_not_block_healthy_peer() {
     // Connecting the good server must succeed independently.
     let good_tools = h.dynamic().connect(&good.server_id)
         .await
-        .expect("connect good server must succeed regardless of the bad peer");
+        .expect("connect good server must succeed regardless of the bad peer")
+        .tools;
     assert_eq!(good_tools.len(), 1, "good server exposes one tool");
 
     // all_status: bad → error with last_error, good → connected.
@@ -300,7 +306,7 @@ async fn failed_connect_does_not_block_healthy_peer() {
     .expect("call_tool on good server must succeed after peer failure");
 
     assert_eq!(
-        extract_echo_text(&result),
+        extract_echo_text(&result.result),
         "isolation-check",
         "good server must echo input correctly after peer failure"
     );
@@ -331,7 +337,8 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
     // Connect the live server.
     h.dynamic().connect(&live.server_id)
         .await
-        .expect("connect live server");
+        .expect("connect live server")
+        .tools;
 
     // Attempting to connect the disabled server via ops must fail with
     // a clear "disabled" message (matches mcp_registry_e2e::connect_refuses_disabled_server).
@@ -387,7 +394,7 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
     .expect("call_tool on live server must succeed");
 
     assert_eq!(
-        extract_echo_text(&result),
+        extract_echo_text(&result.result),
         "live-while-quiet",
         "live server echoes correctly while disabled peer exists"
     );

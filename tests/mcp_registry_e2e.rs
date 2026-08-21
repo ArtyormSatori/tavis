@@ -23,6 +23,27 @@ fn host(config: &Config) -> openhuman_core::openhuman::mcp::host::McpHost {
     openhuman_core::openhuman::mcp::host::McpHost::open(config).expect("the mcp host opens")
 }
 
+/// Runs exactly one supervision cycle against `host`.
+///
+/// Driven a tick at a time rather than through the loop, so the test does not
+/// wait on a timer for something it can ask for directly.
+async fn supervise_once(host: &openhuman_core::openhuman::mcp::host::McpHost) {
+    let mut supervisor = tinymcp::Supervisor::new(
+        tinymcp::SupervisorConfig::default(),
+        tinymcp_bus::McpClientIdentityConfig::default(),
+        None,
+    );
+
+    supervisor
+        .tick(
+            host.dynamic().store(),
+            host.dynamic().connections(),
+            host.dynamic().oauth(),
+            std::time::Instant::now(),
+        )
+        .await;
+}
+
 
 fn fresh_workspace_config() -> (tempfile::TempDir, Config) {
     let tmp = tempfile::tempdir().expect("tempdir");
@@ -64,7 +85,8 @@ async fn connect_lists_one_tool_then_disconnect() {
     // Connect: spawns the stub subprocess and runs `initialize` + `tools/list`.
     let tools = h.dynamic().connect(&server.server_id)
         .await
-        .expect("connect succeeds");
+        .expect("connect succeeds")
+        .tools;
     assert_eq!(tools.len(), 1, "stub advertises one tool");
     assert_eq!(tools[0].name, "echo");
     assert!(tools[0].input_schema.is_object());
@@ -118,7 +140,7 @@ async fn unknown_tool_call_returns_error() {
 
     h.dynamic().store().insert_server(&server).expect("insert installed server");
 
-    h.dynamic().connect(&server.server_id).await.expect("connect");
+    h.dynamic().connect(&server.server_id).await.expect("connect").tools;
 
     let err = h.dynamic().tool_call(&server.server_id, "does_not_exist", serde_json::json!({}))
         .await
@@ -167,7 +189,8 @@ async fn successful_connect_clears_last_error() {
     server.command = env!("CARGO_BIN_EXE_test-mcp-stub").to_string();
     h.dynamic().connect(&server.server_id)
         .await
-        .expect("real connect succeeds");
+        .expect("real connect succeeds")
+        .tools;
     assert!(
         h.dynamic().connections().last_error(&server.server_id)
             .await
@@ -283,7 +306,7 @@ async fn set_enabled_false_disconnects_running_server() {
     let h = host(&cfg);
     let server = make_installed_server();
     h.dynamic().store().insert_server(&server).expect("insert");
-    h.dynamic().connect(&server.server_id).await.expect("connect");
+    h.dynamic().connect(&server.server_id).await.expect("connect").tools;
 
     let outcome = ops::mcp_clients_set_enabled(&cfg, server.server_id.clone(), false)
         .await
@@ -424,7 +447,7 @@ async fn probe_alive_reflects_transport_liveness() {
     let server = make_installed_server();
     h.dynamic().store().insert_server(&server).expect("insert installed server");
 
-    h.dynamic().connect(&server.server_id).await.expect("connect");
+    h.dynamic().connect(&server.server_id).await.expect("connect").tools;
     assert!(connections::is_connected(&server.server_id).await);
     assert!(
         connections::probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await,
@@ -450,13 +473,13 @@ async fn supervisor_reconnects_a_dropped_server() {
 
     // Bring it up, then simulate a silent transport drop by disconnecting while
     // it stays installed + enabled in the store.
-    h.dynamic().connect(&server.server_id).await.expect("connect");
+    h.dynamic().connect(&server.server_id).await.expect("connect").tools;
     h.dynamic().connections().disconnect(&server.server_id).await;
     assert!(!connections::is_connected(&server.server_id).await);
 
     // One supervisor tick should notice the enabled-but-disconnected server and
     // reconnect it.
-    supervisor::run_single_tick_for_test(&cfg).await;
+    supervise_once(&h).await;
 
     assert!(
         connections::is_connected(&server.server_id).await,
@@ -475,11 +498,11 @@ async fn supervisor_leaves_a_healthy_connection_intact() {
     let h = host(&cfg);
     let server = make_installed_server();
     h.dynamic().store().insert_server(&server).expect("insert installed server");
-    h.dynamic().connect(&server.server_id).await.expect("connect");
+    h.dynamic().connect(&server.server_id).await.expect("connect").tools;
 
     // A tick over a healthy server must keep it connected (probe succeeds → no
     // disconnect/reconnect churn).
-    supervisor::run_single_tick_for_test(&cfg).await;
+    supervise_once(&h).await;
     assert!(connections::is_connected(&server.server_id).await);
 
     h.dynamic().connections().disconnect(&server.server_id).await;
@@ -496,7 +519,7 @@ async fn supervisor_skips_a_disabled_server() {
     h.dynamic().store().insert_server(&server).expect("insert installed server");
 
     // A disabled server must never be connected by the supervisor.
-    supervisor::run_single_tick_for_test(&cfg).await;
+    supervise_once(&h).await;
     assert!(
         !connections::is_connected(&server.server_id).await,
         "supervisor does not connect disabled servers"
