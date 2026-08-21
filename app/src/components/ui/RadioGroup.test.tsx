@@ -47,8 +47,10 @@ describe('RadioGroup', () => {
     const onValueChange = vi.fn();
     renderGroup({ onValueChange });
 
-    screen.getByRole('radio', { name: 'Light' }).focus();
+    await user.tab();
+    expect(screen.getByRole('radio', { name: 'Light' })).toHaveFocus();
     await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveFocus();
 
     expect(onValueChange).toHaveBeenCalledWith('dark');
     expect(screen.getByRole('radio', { name: 'Dark' })).toBeChecked();
