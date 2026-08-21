@@ -19,6 +19,7 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import { selectAgentProfiles, upsertAgentProfile } from '../../../store/agentProfileSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import type { AgentProfile } from '../../../types/agentProfile';
+import Alert from '../../ui/Alert';
 import Button from '../../ui/Button';
 import {
   SettingsRow,

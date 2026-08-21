@@ -315,7 +315,7 @@ function IntegrationHealthStrip({
                   <span>
                     {formatRelativeMs(row.last_chunk_at_ms ?? 0, t, t('memoryTree.status.never'))}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-content-secondary ring-1 ring-stone-200 dark:ring-neutral-700">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-content-secondary ring-1 ring-line-strong">
                     <span aria-hidden className={`inline-block h-1.5 w-1.5 rounded-full ${dot}`} />
                     {healthLabel}
                   </span>

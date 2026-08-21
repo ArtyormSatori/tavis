@@ -207,13 +207,7 @@ function ToolsPickerModal({
                 {t('settings.agents.editor.toolsAllowAllHint')}
               </span>
             </span>
-            <Checkbox
-              checked={allToolsSelected}
-              onCheckedChange={onToggleAll}
-              tabIndex={-1}
-              aria-hidden="true"
-              className="pointer-events-none mt-0.5"
-            />
+            <ToggleMark checked={allToolsSelected} className="mt-0.5" />
           </Button>
         </div>
 

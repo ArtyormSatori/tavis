@@ -1109,8 +1109,8 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                     save a recurring schedule that snapshots them. */}
               <div
                 id="workflow-schedule"
-                className="space-y-4 rounded-2xl border border-line/90 bg-gradient-to-br from-stone-50 via-white to-stone-100 dark:from-stone-900 dark:via-stone-900 dark:to-stone-800/80 px-4 py-4 shadow-soft">
-                <div className="rounded border border-line bg-surface/70 dark:bg-stone-900/60 p-3">
+                className="space-y-4 rounded-2xl border border-line/90 bg-gradient-to-br from-surface-muted via-surface to-surface-subtle px-4 py-4 shadow-soft">
+                <div className="rounded border border-line bg-surface/70 p-3">
                   <p className="text-sm text-content-secondary whitespace-pre-wrap">
                     {description.when_to_use}
                   </p>
@@ -1290,7 +1290,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
               </div>
 
               {/* Second box — saved schedules for this workflow. */}
-              <div className="space-y-2 rounded-2xl border border-line/90 bg-surface dark:bg-stone-900 px-4 py-4 shadow-soft">
+              <div className="space-y-2 rounded-2xl border border-line/90 bg-surface px-4 py-4 shadow-soft">
                 {/* Existing scheduled jobs for this skill */}
                 {scheduledJobsLoading ? (
                   <p className="mt-3 text-xs text-content-muted">
@@ -1301,7 +1301,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                     {t('settings.skillsRunner.schedule.noJobs')}
                   </p>
                 ) : (
-                  <div className="mt-3 space-y-2 rounded-2xl border border-line/80 bg-surface-muted/70 dark:bg-stone-900/40 p-2.5">
+                  <div className="mt-3 space-y-2 rounded-2xl border border-line/80 bg-surface-muted/70 p-2.5">
                     <div className="text-xs font-semibold uppercase tracking-wide text-content-secondary px-1">
                       {t('settings.skillsRunner.schedule.existing')}
                     </div>
@@ -1361,7 +1361,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                                 {jobInputs.map(inp => (
                                   <span
                                     key={inp.key}
-                                    className="rounded bg-surface-subtle dark:bg-stone-800 px-1.5 py-0.5 font-mono text-[10px] text-content-secondary">
+                                    className="rounded bg-surface-subtle px-1.5 py-0.5 font-mono text-[10px] text-content-secondary">
                                     {inp.key}: {inp.value}
                                   </span>
                                 ))}
@@ -1437,7 +1437,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                                           </div>
                                         </button>
                                         {open && r.output && (
-                                          <pre className="mx-2 mb-2 px-3 py-2 rounded-md bg-surface-subtle dark:bg-stone-900 border border-line text-[11px] text-content-secondary font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                                          <pre className="mx-2 mb-2 px-3 py-2 rounded-md bg-surface-subtle border border-line text-[11px] text-content-secondary font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
                                             {r.output}
                                           </pre>
                                         )}
@@ -1506,7 +1506,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
               return (
                 <div
                   key={r.run_id}
-                  className="rounded border border-line bg-surface-muted dark:bg-stone-900 text-xs overflow-hidden">
+                  className="rounded border border-line bg-surface-muted text-xs overflow-hidden">
                   <button
                     type="button"
                     onClick={() => toggleExpand(r.run_id)}
@@ -1548,7 +1548,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                   )}
 
                   {expanded && (
-                    <div className="border-t border-line bg-surface dark:bg-stone-950">
+                    <div className="border-t border-line bg-surface-canvas">
                       {/* Live indicator while tailing */}
                       {!v?.complete && (
                         <div className="px-3 py-1.5 text-[10px] text-content-muted border-b border-line-subtle flex items-center gap-2">
