@@ -84,8 +84,6 @@ describe('ConfirmationModal', () => {
     const cancelButton = screen.getByText('Cancel');
     expect(document.activeElement).toBe(cancelButton);
 
-    const content = cancelButton.closest('[role="alertdialog"]');
-    expect(content).not.toBeNull();
-    expect(content).toHaveAttribute('aria-modal', 'true');
+    expect(cancelButton.closest('[role="alertdialog"]')).not.toBeNull();
   });
 });

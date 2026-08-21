@@ -185,7 +185,7 @@ function FlowRunsDrawer({ flowId, flowName, onClose, onFixWithAgent }: Props) {
                         variant="secondary"
                         data-testid={`flow-run-row-${run.id}`}
                         onClick={() => setSelectedRunId(run.id)}
-                        className="w-full justify-start gap-2 bg-surface-muted px-3 py-2 text-left text-xs font-normal">
+                        className="h-auto w-full justify-start gap-2 bg-surface-muted px-3 py-2 text-left text-xs font-normal">
                         <FlowRunStatus
                           status={displayStatus}
                           label={flowRunStatusLabel(displayStatus, t)}
