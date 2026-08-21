@@ -265,14 +265,11 @@ const VoicePanelKeyModal = ({
             </label>
 
             {keyTestResult && (
-              <div
-                className={`rounded-md px-3 py-2 text-xs border ${
-                  keyTestResult.ok
-                    ? 'bg-sage-50 text-sage-700 border-sage-200 dark:bg-sage-500/10 dark:text-sage-300 dark:border-sage-500/30'
-                    : 'bg-coral-50 text-coral-700 border-coral-200 dark:bg-coral-500/10 dark:text-coral-300 dark:border-coral-500/30'
-                }`}>
+              <Alert
+                variant={keyTestResult.ok ? 'success' : 'destructive'}
+                className="rounded-md px-3 py-2 text-xs">
                 {keyTestResult.detail}
-              </div>
+              </Alert>
             )}
           </>
         )}
