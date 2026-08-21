@@ -77,6 +77,7 @@ function buildPairUrl(session: CreatePairingResponse): string {
 
 const PairPhoneModal = ({ onClose, onPaired }: PairPhoneModalProps) => {
   const { t } = useT();
+  const titleId = useId();
   const [state, setState] = useState<ModalState>({ kind: 'loading' });
   const [showDetails, setShowDetails] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
