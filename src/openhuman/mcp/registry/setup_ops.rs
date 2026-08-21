@@ -59,8 +59,16 @@ fn detail_payload(
 
 // ── search ───────────────────────────────────────────────────────────────────
 
+/// The service for `config`'s workspace, as a string error.
+///
+/// See the note on the registry handlers' resolver: this domain is addressed by
+/// configuration, so a handler must act on the workspace its caller named.
+fn resolve(config: &Config) -> Result<std::sync::Arc<host::McpHost>, String> {
+    host::for_config(config).map_err(|error| error.to_string())
+}
+
 pub async fn mcp_setup_search(
-    _config: &Config,
+    config: &Config,
     query: Option<String>,
     page: Option<u32>,
     page_size: Option<u32>,
@@ -68,7 +76,7 @@ pub async fn mcp_setup_search(
     let page = page.unwrap_or(1);
     let page_size = page_size.unwrap_or(20);
 
-    let found = host::service()?
+    let found = resolve(config)?
         .dynamic()
         .registry_search(query.as_deref(), page, page_size)
         .await
@@ -88,12 +96,12 @@ pub async fn mcp_setup_search(
 // ── get ──────────────────────────────────────────────────────────────────────
 
 pub async fn mcp_setup_get(
-    _config: &Config,
+    config: &Config,
     qualified_name: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let qualified_name = require(&qualified_name, "qualified_name")?;
 
-    let (detail, required_env_keys) = host::service()?
+    let (detail, required_env_keys) = resolve(config)?
         .dynamic()
         .registry_get(&qualified_name)
         .await
@@ -113,13 +121,15 @@ pub async fn mcp_setup_get(
 /// publishes the event a user interface renders, so it is the layer that knows
 /// when an answer can arrive.
 pub async fn mcp_setup_request_secret(
+    config: &Config,
     key_name: String,
     prompt: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let key_name = require(&key_name, "key_name")?;
     let prompt = require(&prompt, "prompt")?;
 
-    let vault = host::service()?.dynamic().vault();
+    let service = resolve(config)?;
+    let vault = service.dynamic().vault();
     let (handle, receiver) = vault.request(&key_name).await;
 
     BUS.publish(DomainEvent::McpSetupSecretRequested {
@@ -149,12 +159,13 @@ pub async fn mcp_setup_request_secret(
 // ── submit_secret ────────────────────────────────────────────────────────────
 
 pub async fn mcp_setup_submit_secret(
+    config: &Config,
     ref_id: String,
     value: String,
 ) -> Result<RpcOutcome<Value>, String> {
     let handle = SecretRef::parse(&ref_id).ok_or_else(|| format!("invalid ref_id `{ref_id}`"))?;
 
-    let accepted = host::service()?
+    let accepted = resolve(config)?
         .dynamic()
         .vault()
         .submit(&handle, value)
@@ -181,14 +192,14 @@ pub async fn mcp_setup_submit_secret(
 /// an error: the operation asked for — finding out whether it works — succeeded,
 /// and the agent needs the reason to tell the user what to fix.
 pub async fn mcp_setup_test_connection(
-    _config: &Config,
+    config: &Config,
     qualified_name: String,
     env_refs: HashMap<String, String>,
 ) -> Result<RpcOutcome<Value>, String> {
     let qualified_name = require(&qualified_name, "qualified_name")?;
     let handles = parse_handles(env_refs)?;
 
-    match host::service()?
+    match resolve(config)?
         .dynamic()
         .setup_test_connection(&qualified_name, &handles)
         .await
@@ -215,14 +226,14 @@ pub async fn mcp_setup_test_connection(
 // ── install_and_connect ──────────────────────────────────────────────────────
 
 pub async fn mcp_setup_install_and_connect(
-    _config: &Config,
+    config: &Config,
     qualified_name: String,
     env_refs: HashMap<String, String>,
 ) -> Result<RpcOutcome<Value>, String> {
     let qualified_name = require(&qualified_name, "qualified_name")?;
     let handles = parse_handles(env_refs)?;
 
-    let outcome = host::service()?
+    let outcome = resolve(config)?
         .dynamic()
         .setup_install_and_connect(&qualified_name, &handles, None)
         .await

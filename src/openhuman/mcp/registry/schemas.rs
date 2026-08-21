@@ -1152,9 +1152,12 @@ fn handle_setup_request_secret(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
         let key_name = read_required::<String>(&params, "key_name")?;
         let prompt = read_required::<String>(&params, "prompt")?;
+        let config = config_rpc::load_config_with_timeout().await?;
         to_json(
-            crate::openhuman::mcp::registry::setup_ops::mcp_setup_request_secret(key_name, prompt)
-                .await?,
+            crate::openhuman::mcp::registry::setup_ops::mcp_setup_request_secret(
+                &config, key_name, prompt,
+            )
+            .await?,
         )
     })
 }
@@ -1163,9 +1166,12 @@ fn handle_setup_submit_secret(params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async move {
         let ref_id = read_required::<String>(&params, "ref_id")?;
         let value = read_required::<String>(&params, "value")?;
+        let config = config_rpc::load_config_with_timeout().await?;
         to_json(
-            crate::openhuman::mcp::registry::setup_ops::mcp_setup_submit_secret(ref_id, value)
-                .await?,
+            crate::openhuman::mcp::registry::setup_ops::mcp_setup_submit_secret(
+                &config, ref_id, value,
+            )
+            .await?,
         )
     })
 }

@@ -171,17 +171,13 @@ impl Tool for McpSetupGetTool {
 
 // ── mcp_setup_request_secret ─────────────────────────────────────────────────
 
-pub struct McpSetupRequestSecretTool;
-
-impl McpSetupRequestSecretTool {
-    pub fn new() -> Self {
-        Self
-    }
+pub struct McpSetupRequestSecretTool {
+    config: Arc<Config>,
 }
 
-impl Default for McpSetupRequestSecretTool {
-    fn default() -> Self {
-        Self::new()
+impl McpSetupRequestSecretTool {
+    pub fn new(config: Arc<Config>) -> Self {
+        Self { config }
     }
 }
 
@@ -232,7 +228,7 @@ impl Tool for McpSetupRequestSecretTool {
             Ok(v) => v,
             Err(e) => return Ok(ToolResult::error(e)),
         };
-        outcome_to_result(setup_ops::mcp_setup_request_secret(key_name, prompt).await)
+        outcome_to_result(setup_ops::mcp_setup_request_secret(&self.config, key_name, prompt).await)
     }
 }
 
