@@ -167,11 +167,9 @@ function FlowRunsDrawer({ flowId, flowName, onClose, onFixWithAgent }: Props) {
             )}
 
             {!loading && !error && runs.length === 0 && (
-              <p
-                className="py-8 text-center text-xs italic text-content-faint"
-                data-testid="flow-runs-empty">
-                {t('flows.runs.empty')}
-              </p>
+              <div data-testid="flow-runs-empty">
+                <EmptyState label={t('flows.runs.empty')} className="py-8 text-center" />
+              </div>
             )}
 
             {!loading && !error && runs.length > 0 && (
