@@ -10,6 +10,7 @@
 import { useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
+import Button from '../../ui/Button';
 import type { McpTool } from './types';
 
 interface McpToolListProps {
