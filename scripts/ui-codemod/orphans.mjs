@@ -40,13 +40,17 @@ const SKIP = /\.(test|stories)\.tsx$|^index\.ts$|^types\.ts$|^icons\.tsx$/;
  * test fails at the word boundary before `Root` and reported 23 well-used
  * primitives as orphans. The path is unambiguous and naming-independent.
  *
- * Barrel imports (`from '../ui'`) are matched separately, by looking for any
- * identifier PREFIXED with the primitive name in the import clause.
+ * Barrel imports (`from '../ui'`) are matched separately, by looking for the
+ * primitive name optionally followed by a PascalCase suffix
+ * (`${name}([A-Z][A-Za-z]*)?`). The uppercase requirement is load-bearing: a
+ * bare `[A-Za-z]*` suffix makes `Tool` match `Tooltip`, so `import { Button,
+ * Tooltip }` registered three fake consumers for `ai-elements/Tool` and hid a
+ * real orphan — the precise failure this script exists to catch.
  */
 function consumersOf(name) {
   const byPath = `from\\s*['"][^'"]*(ui|ai-elements)/${name}['"]`;
   const byBarrel =
-    `(?s)import\\s*\\{[^}]*\\b${name}[A-Za-z]*\\b[^}]*\\}\\s*from\\s*['"][^'"]*(components/)?(ui|ai-elements)['"]`;
+    `(?s)import\\s*\\{[^}]*\\b${name}([A-Z][A-Za-z]*)?\\b[^}]*\\}\\s*from\\s*['"][^'"]*(components/)?(ui|ai-elements)['"]`;
   const seen = new Set();
   for (const pattern of [byPath, byBarrel]) {
     let out = '';
