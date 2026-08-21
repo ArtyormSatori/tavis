@@ -2,7 +2,15 @@ import { useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { ConfirmationModal as ConfirmationModalType } from '../../types/intelligence';
-import Button from '../ui/Button';
+import {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogRoot,
+} from '../ui/AlertDialog';
+import Checkbox from '../ui/Checkbox';
+import Label from '../ui/Label';
 
 interface ConfirmationModalProps {
   modal: ConfirmationModalType;
@@ -12,8 +20,6 @@ interface ConfirmationModalProps {
 export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
   const { t } = useT();
   const [dontShowAgain, setDontShowAgain] = useState(false);
-
-  if (!modal.isOpen) return null;
 
   const handleConfirm = () => {
     modal.onConfirm(dontShowAgain);
@@ -34,12 +40,12 @@ export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 animate-fade-in"
-      onClick={handleCancel}>
-      <div
-        className="bg-surface rounded-2xl max-w-md w-full shadow-large border border-line animate-slide-up"
-        onClick={e => e.stopPropagation()}>
+    <AlertDialogRoot
+      open={modal.isOpen}
+      onOpenChange={next => {
+        if (!next) handleCancel();
+      }}>
+      <AlertDialogContent className="max-w-md p-0">
         {/* Header */}
         <div className="p-6 pb-4">
           <div className="flex items-center gap-3">
@@ -69,32 +75,29 @@ export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
         {/* Don't show again option */}
         {modal.showDontShowAgain && (
           <div className="px-6 pb-2">
-            <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-              <input
-                type="checkbox"
+            <Label
+              htmlFor="confirmation-modal-dont-show-again"
+              className="flex items-center gap-2 text-sm font-normal text-content-secondary cursor-pointer">
+              <Checkbox
+                id="confirmation-modal-dont-show-again"
                 checked={dontShowAgain}
-                onChange={e => setDontShowAgain(e.target.checked)}
-                className="rounded border-line-strong bg-surface-subtle text-primary-500 focus:ring-primary-500 focus:ring-offset-0"
+                onCheckedChange={setDontShowAgain}
               />
               {t('modal.dontShowAgain')}
-            </label>
+            </Label>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-line">
-          <Button variant="tertiary" size="md" onClick={handleCancel}>
+        <AlertDialogFooter className="p-6 pt-4 border-t border-line mt-0">
+          <AlertDialogCancel onClick={handleCancel}>
             {modal.cancelText || t('common.cancel')}
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            tone={modal.destructive ? 'danger' : 'default'}
-            onClick={handleConfirm}>
+          </AlertDialogCancel>
+          <AlertDialogAction tone={modal.destructive ? 'danger' : 'default'} onClick={handleConfirm}>
             {modal.confirmText || t('common.confirm')}
-          </Button>
-        </div>
-      </div>
-    </div>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialogRoot>
   );
 }

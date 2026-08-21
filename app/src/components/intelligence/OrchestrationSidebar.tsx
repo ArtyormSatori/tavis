@@ -352,7 +352,7 @@ export default function OrchestrationSidebar({
                           data-testid={`tinyplace-new-session-${address}`}
                           disabled={!address || creatingSession === address}
                           onClick={() => onCreateSession(address)}
-                          className="flex w-full items-center gap-1 px-3 py-2 text-left text-[11px] font-medium text-ocean-500 transition hover:bg-surface-hover disabled:opacity-50">
+                          className="flex w-full items-center gap-1 px-3 py-2 text-left text-[11px] font-medium text-primary-600 dark:text-primary-400 transition hover:bg-surface-hover disabled:opacity-50">
                           + {t('tinyplaceOrchestration.newSession')}
                         </button>
                       </div>

@@ -126,11 +126,11 @@ const SuperContextToggle = () => {
               d="M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-        </button>
+        </Button>
         <span
           id="super-context-tooltip"
           role="tooltip"
-          className="pointer-events-none absolute bottom-full right-0 z-[9999] mb-2 w-72 rounded-lg bg-stone-800 px-3 py-2 text-xs font-normal leading-snug text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 dark:bg-neutral-700">
+          className="pointer-events-none absolute bottom-full right-0 z-[9999] mb-2 w-72 rounded-lg bg-content px-3 py-2 text-xs font-normal leading-snug text-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
           {t('chat.superContext.hint')}
         </span>
       </span>
