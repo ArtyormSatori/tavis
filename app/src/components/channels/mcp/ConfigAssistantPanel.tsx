@@ -158,7 +158,7 @@ const ConfigAssistantPanel = ({
                 <p className="whitespace-pre-wrap">{msg.content}</p>
               )}
               {msg.suggested_env && Object.keys(msg.suggested_env).length > 0 && (
-                <div className="mt-2 pt-2 border-t border-white/20 space-y-1">
+                <div className="mt-2 pt-2 border-t border-content-inverted/20 space-y-1">
                   <p className="text-[11px] font-medium opacity-80">
                     {t('mcp.configAssistant.suggestedValues')}
                   </p>
@@ -171,12 +171,13 @@ const ConfigAssistantPanel = ({
                     ))}
                   </ul>
                   {onApplySuggestedEnv && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="tertiary"
+                      size="xs"
                       onClick={() => onApplySuggestedEnv(msg.suggested_env!)}
-                      className="mt-1 rounded px-2 py-1 text-[11px] font-medium bg-surface/20 hover:bg-white/30 transition-colors">
+                      className="mt-1 h-auto bg-content-inverted/10 px-2 py-1 text-[11px] font-medium hover:bg-content-inverted/20">
                       {t('mcp.configAssistant.applySuggested')}
-                    </button>
+                    </Button>
                   )}
                   {!onApplySuggestedEnv && (
                     <p className="text-[11px] opacity-70">
