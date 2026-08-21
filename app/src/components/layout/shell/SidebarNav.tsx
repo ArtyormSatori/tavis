@@ -17,9 +17,6 @@ import { NavIcon } from './navIcons';
  * `BottomTabBar` used so deep links keep their tab highlighted:
  *   - `/chat`        → any `/chat...` route
  *   - `/settings`    → the settings index and every `/settings/*` panel
- *   - `/agent-world` → the index and every `/agent-world/*` section (it
- *                      redirects to `/agent-world/explore`, so an exact match
- *                      would never light up)
  *   - `/flows`       → the list page and any future `/flows/*` sub-route
  *                      (canvas, run detail, …)
  *   - `/home`        → exact match (so `/` redirects don't light it up)
@@ -27,8 +24,6 @@ import { NavIcon } from './navIcons';
 function matchActive(path: string, pathname: string): boolean {
   if (path === '/chat') return pathname.startsWith('/chat');
   if (path === '/settings') return pathname === '/settings' || pathname.startsWith('/settings/');
-  if (path === '/agent-world')
-    return pathname === '/agent-world' || pathname.startsWith('/agent-world/');
   if (path === '/flows') return pathname === '/flows' || pathname.startsWith('/flows/');
   if (path === '/home') return pathname === '/home';
   return pathname === path;
