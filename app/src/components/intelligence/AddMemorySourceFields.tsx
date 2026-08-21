@@ -22,7 +22,7 @@ import TextField from '../ui/TextField';
 
 const log = debug('intelligence:add-memory-source-dialog');
 
-function isKindFieldsValid(
+export function isKindFieldsValid(
   kind: SourceKind,
   fields: { path: string; url: string; query: string; connectionId: string }
 ): boolean {
@@ -108,7 +108,7 @@ function FolderField({ label, value, onChange }: FolderFieldProps) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text' }: FieldProps) {
+export function Field({ label, value, onChange, placeholder, type = 'text' }: FieldProps) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-content-secondary">{label}</span>
@@ -145,7 +145,7 @@ interface KindFieldsProps {
   setConnection: (connectionId: string, toolkit: string, identityLabel: string) => void;
 }
 
-function KindFields(props: KindFieldsProps) {
+export function KindFields(props: KindFieldsProps) {
   const { t } = useT();
   switch (props.kind) {
     case 'composio':

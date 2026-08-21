@@ -203,21 +203,26 @@ function FlowNodeComponent({ id, data, selected }: NodeProps<FlowNode>) {
       {/* Per-node actions on the selected card (editable canvas only). */}
       {showActions && actions && (
         <div className="flex items-center justify-end gap-1 border-t border-line px-2 py-1.5">
-          <button
+          <Button
             type="button"
+            variant="tertiary"
+            size="xs"
             data-testid="flow-node-validate"
             disabled={actions.validating}
             onClick={() => actions.validate()}
-            className="rounded-md px-2 py-1 text-[11px] font-medium text-content-secondary transition-colors hover:bg-surface-hover disabled:opacity-50">
+            className="h-auto px-2 py-1 text-[11px]">
             {actions.validating ? t('flows.editor.validating') : t('flows.editor.validate')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="tertiary"
+            tone="danger"
+            size="xs"
             data-testid="flow-node-delete"
             onClick={() => actions.deleteNode(id)}
-            className="rounded-md px-2 py-1 text-[11px] font-medium text-coral-600 transition-colors hover:bg-coral-50 dark:text-coral-400 dark:hover:bg-coral-500/10">
+            className="h-auto px-2 py-1 text-[11px]">
             {t('flows.editor.deleteNode')}
-          </button>
+          </Button>
         </div>
       )}
     </div>
