@@ -484,7 +484,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                       />
                     </svg>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>
