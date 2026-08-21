@@ -23,6 +23,7 @@ import type {
 } from '../../lib/orchestration/orchestrationClient';
 import type { ChatWindow } from '../../lib/orchestration/useOrchestrationChats';
 import Button from '../ui/Button';
+import TextField from '../ui/TextField';
 import AttentionQueueView from './AttentionQueue';
 import { ChatListButton } from './OrchestrationChatPrimitives';
 import { contactAddress, contactBadgeKey, truncate } from './orchestrationTabHelpers';
@@ -174,12 +175,13 @@ export default function OrchestrationSidebar({
             {t('tinyplaceOrchestration.pairing.linkLabel')}
           </label>
           <div className="flex gap-2">
-            <input
+            <TextField
               id="tinyplace-session-agent-id"
+              inputSize="sm"
               value={linkAgentId}
               onChange={event => onLinkAgentIdChange(event.target.value)}
               placeholder={t('tinyplaceOrchestration.pairing.linkPlaceholder')}
-              className="min-w-0 flex-1 rounded-md border border-line bg-surface px-2 py-1.5 text-xs text-content outline-none transition focus:border-ocean-500 focus:ring-2 focus:ring-ocean-500/20"
+              className="min-w-0 flex-1 text-xs"
             />
             <Button
               type="submit"

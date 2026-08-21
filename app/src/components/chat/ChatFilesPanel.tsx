@@ -295,21 +295,24 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
                     <span className="text-[11px] text-content-secondary flex-1">
                       {t('chat.files.delete.confirm')}
                     </span>
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="xs"
                       onClick={() => setConfirmDeleteId(null)}
-                      data-analytics-id="chat-files-delete-cancel"
-                      className="rounded-md bg-surface-subtle hover:bg-surface-strong dark:hover:bg-neutral-700 text-content-secondary text-[11px] font-medium px-2 py-1 transition-colors">
+                      analyticsId="chat-files-delete-cancel"
+                      className="text-[11px]">
                       {t('chat.files.delete.cancel')}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="primary"
+                      tone="danger"
+                      size="xs"
                       onClick={() => void handleDeleteConfirm(artifact)}
-                      data-analytics-id={`chat-files-delete-confirm-${artifact.kind}`}
+                      analyticsId={`chat-files-delete-confirm-${artifact.kind}`}
                       data-testid={`chat-files-confirm-${artifact.artifactId}`}
-                      className="rounded-md bg-coral-500 hover:bg-coral-600 text-content-inverted text-[11px] font-medium px-2 py-1 transition-colors">
+                      className="text-[11px]">
                       {t('chat.files.delete.action')}
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mt-0.5">

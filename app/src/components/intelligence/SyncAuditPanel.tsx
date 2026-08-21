@@ -96,11 +96,11 @@ export function SyncAuditPanel() {
         <span>
           {entries.length} {t('sync.runs', 'sync runs')}
         </span>
-        <span className="text-content-faint dark:text-neutral-600">·</span>
+        <span className="text-content-faint">·</span>
         <span>
           {formatTokens(totalInput)} in / {formatTokens(totalOutput)} out
         </span>
-        <span className="text-content-faint dark:text-neutral-600">·</span>
+        <span className="text-content-faint">·</span>
         <span className="font-medium">
           ${totalCost.toFixed(4)} {t('sync.totalCost', 'total')}
         </span>
