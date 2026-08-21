@@ -169,13 +169,13 @@ export default function ChatNewWindowHero() {
         {/* Recovery: only when the local core is the broken link. */}
         {blocking === 'core-unreachable' && (
           <div className="mt-4">
-            <button
-              type="button"
+            <Button
+              size="lg"
               onClick={handleRestartCore}
               disabled={isRestartingCore}
-              className="w-full rounded-xl bg-amber-500 py-3 font-medium text-content-inverted transition-colors duration-200 hover:bg-amber-600 disabled:opacity-50">
+              className="w-full rounded-xl bg-amber-500 text-content-inverted hover:bg-amber-600">
               {isRestartingCore ? t('home.restartingCore') : t('home.restartCore')}
-            </button>
+            </Button>
             {restartError && (
               <p className="mt-2 text-center text-xs text-coral-500">{restartError}</p>
             )}

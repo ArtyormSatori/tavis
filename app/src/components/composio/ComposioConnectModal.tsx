@@ -859,11 +859,7 @@ export default function ComposioConnectModal({
               </Button>
             </>
           )}
-        </div>
-      </div>
-    </div>
+    </ModalShell>
   );
-
-  return createPortal(modalContent, document.body);
 }
 
