@@ -97,7 +97,7 @@ describe('SyncConfirmDialog', () => {
     // that opened a dialog cannot immediately close it) and treats an outside
     // interaction as pointerdown followed by click, so that a drag out of the
     // panel does not dismiss.
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
     const overlay = document.querySelector('[data-slot="dialog-overlay"]') as HTMLElement;
     fireEvent.pointerDown(overlay);
     fireEvent.click(overlay);
