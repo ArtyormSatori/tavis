@@ -803,12 +803,14 @@ export default function ComposioConnectModal({
                 className="w-full">
                 {t('composio.connect.addAnotherAccount')}
               </Button>
-              <label className="flex items-start gap-2 rounded-lg border border-line bg-surface-muted px-3 py-2">
-                <input
-                  type="checkbox"
+              <label
+                htmlFor="composio-clear-memory-on-disconnect"
+                className="flex items-start gap-2 rounded-lg border border-line bg-surface-muted px-3 py-2">
+                <Checkbox
+                  id="composio-clear-memory-on-disconnect"
                   checked={clearMemoryOnDisconnect}
-                  onChange={event => setClearMemoryOnDisconnect(event.currentTarget.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-line-strong text-primary-600 focus:ring-primary-500"
+                  onCheckedChange={setClearMemoryOnDisconnect}
+                  className="mt-0.5"
                 />
                 <span className="min-w-0">
                   <span className="block text-sm font-medium text-content">
