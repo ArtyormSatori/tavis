@@ -549,7 +549,7 @@ export function MemorySourcesRegistry({
       ) : sources.length === 0 ? (
         <p className="text-xs text-content-muted">{t('memorySources.empty')}</p>
       ) : (
-        <ul className="divide-y divide-line-subtle dark:divide-neutral-800">
+        <ul className="divide-y divide-line-subtle">
           {sources.map(source => (
             <SourceRow
               key={source.id}
@@ -894,7 +894,7 @@ function SourceRow({
                     size="xs"
                     onClick={onSignIn}
                     data-testid={`memory-source-signin-${source.id}`}
-                    className="h-auto px-0 font-medium text-amber-900 underline underline-offset-2 hover:bg-transparent hover:text-amber-950 dark:text-amber-100 dark:hover:text-white">
+                    className="h-auto px-0 font-medium text-amber-900 underline underline-offset-2 hover:bg-transparent hover:text-amber-950 dark:text-amber-100 dark:hover:text-content-inverted">
                     {t('sync.pipeline.signInToEnable')}
                   </Button>
                 )}
@@ -903,7 +903,7 @@ function SourceRow({
                   size="xs"
                   onClick={onViewHealth}
                   data-testid={`memory-source-view-health-${source.id}`}
-                  className="h-auto px-0 font-medium text-amber-900 underline underline-offset-2 hover:bg-transparent hover:text-amber-950 dark:text-amber-100 dark:hover:text-white">
+                  className="h-auto px-0 font-medium text-amber-900 underline underline-offset-2 hover:bg-transparent hover:text-amber-950 dark:text-amber-100 dark:hover:text-content-inverted">
                   {t('sync.pipeline.viewHealth')}
                 </Button>
               </div>

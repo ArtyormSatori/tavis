@@ -227,7 +227,7 @@ const ThemeStudioPanel = () => {
                   className="flex h-10 items-center gap-1 rounded-lg px-2"
                   style={{ background: tileCanvas(preview) }}>
                   <span
-                    className="h-5 w-5 rounded-full border border-black/10"
+                    className="h-5 w-5 rounded-full border border-line-subtle"
                     style={{ background: channelsToCss(swatchChannels(preview, 'surface')) }}
                   />
                   <span
@@ -260,7 +260,7 @@ const ThemeStudioPanel = () => {
                   className="flex h-10 items-center gap-1 rounded-lg px-2"
                   style={{ background: tileCanvas(th) }}>
                   <span
-                    className="h-5 w-5 rounded-full border border-black/10"
+                    className="h-5 w-5 rounded-full border border-line-subtle"
                     style={{ background: channelsToCss(swatchChannels(th, 'surface')) }}
                   />
                   <span
