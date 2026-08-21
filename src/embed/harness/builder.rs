@@ -221,12 +221,21 @@ impl HarnessBuilder {
 
         let resolved = ResolvedWorkspace::resolve(&self.workspace, self.action_dir.as_deref())?;
 
-        // Build the config the core will run on. Under `Inherit` we pass no
-        // config at all, so `Config::load_or_init` resolves the operator's the
-        // usual way — then the knobs are applied to what it produced.
+        // Build the config the core will run on.
+        //
+        // `Inherit` starts from the operator's own config — loaded here rather
+        // than left to `build()` to discover, because the builder's other knobs
+        // (access tier, backend URL, MCP servers) have to be applied *on top* of
+        // it. Passing `None` would let the core load it later and silently drop
+        // every one of them, which reads as "Inherit ignores what I configured"
+        // rather than "Inherit chooses the starting point".
         let mut config = match (&self.workspace, self.config) {
             (Workspace::Inherit, Some(config)) => Some(config),
-            (Workspace::Inherit, None) => None,
+            (Workspace::Inherit, None) => Some(
+                crate::openhuman::config::Config::load_or_init()
+                    .await
+                    .map_err(HarnessError::Build)?,
+            ),
             (_, supplied) => {
                 let mut config = supplied.unwrap_or_default();
                 config.workspace_dir = resolved.workspace_dir.clone();
