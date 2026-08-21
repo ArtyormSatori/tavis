@@ -505,17 +505,18 @@ export default function AgentChatPanel({
             ? t('orchPage.agent.subconsciousTab')
             : t('orchPage.agent.consciousTab');
         return (
-          <button
+          <Button
             key={chat.id}
-            type="button"
+            variant="tertiary"
+            size="xs"
             role="radio"
             aria-checked={active}
             data-testid={`orch-agent-tab-${chat.id}`}
             onClick={() => selectChat(chat.id)}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium transition-all ${
+            className={`h-auto gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium ${
               active
-                ? 'bg-surface text-content shadow-sm'
-                : 'text-content-muted hover:text-content-secondary'
+                ? 'bg-surface text-content shadow-sm hover:bg-surface'
+                : 'text-content-muted hover:bg-transparent hover:text-content-secondary'
             }`}>
             {label}
             {chat.unread > 0 ? (
@@ -523,7 +524,7 @@ export default function AgentChatPanel({
                 {chat.unread}
               </span>
             ) : null}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -615,11 +616,11 @@ export default function AgentChatPanel({
               subpage (same as clicking it in the sidebar's active sub-agents). */}
           {pinged.map(session => (
             <div key={session.sessionId} className="flex justify-start">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 data-testid={`orch-agent-view-session-${session.sessionId}`}
                 onClick={() => setOpenSessionId(session.sessionId)}
-                className="flex w-full max-w-[85%] items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2.5 text-left transition hover:bg-primary-100/60 dark:border-primary-500/30 dark:bg-primary-900/20">
+                className="h-auto w-full max-w-[85%] justify-start gap-3 rounded-xl border-primary-200 bg-primary-50 px-3 py-2.5 text-left hover:bg-primary-100/60 dark:border-primary-500/30 dark:bg-primary-900/20">
                 <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary-500/15 text-sm text-primary-600 dark:text-primary-300">
                   ⧉
                 </span>
@@ -634,7 +635,7 @@ export default function AgentChatPanel({
                 <span className="flex-none rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-semibold text-white">
                   {t('orchPage.agent.viewSession')}
                 </span>
-              </button>
+              </Button>
             </div>
           ))}
         </div>
