@@ -289,18 +289,7 @@ export function slugifyCustomProviderName(name: string): string {
 }
 
 export function authStyleForSlug(slug: string): AuthStyle {
-  const { authStyleForBuiltinCloudProvider } = requireBuiltinCloudProviders();
   return authStyleForBuiltinCloudProvider(slug) ?? 'bearer';
-}
-
-// Lazily indirected to avoid a hard circular type-only/value import ordering
-// concern between this module and `builtinCloudProviders` — both are plain
-// modules, so this is just a small seam for clarity at the call site.
-function requireBuiltinCloudProviders(): {
-  authStyleForBuiltinCloudProvider: (slug: string) => AuthStyle | undefined;
-} {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('../builtinCloudProviders');
 }
 
 export function formatI18n(template: string, vars: Record<string, string | number>): string {
