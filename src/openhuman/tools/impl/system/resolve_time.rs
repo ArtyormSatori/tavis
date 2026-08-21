@@ -226,7 +226,7 @@ impl Tool for ResolveTimeTool {
     }
 
     fn description(&self) -> &str {
-        "Resolve a time expression (\"now\", \"24h ago\", \"in 10 minutes\", \"today\", RFC-3339, or a date) into exact timestamps. Returns `unix_s`, `unix_ms`, `slack_ts` and `rfc3339` — copy whichever the target tool's schema wants. Always produce date/time arguments for other tools this way; never hand-compute epoch seconds."
+        "Resolve a time expression (\"now\", \"24h ago\", \"in 10 minutes\", \"today\", RFC-3339, or a date) into timestamp representations. Returns `unix_s`, `unix_ms`, `slack_ts` and `rfc3339` — copy whichever the target tool's schema wants. Always produce date/time arguments for other tools this way; never hand-compute epoch seconds."
     }
 
     fn parameters_schema(&self) -> serde_json::Value {
