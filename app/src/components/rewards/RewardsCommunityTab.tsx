@@ -293,17 +293,19 @@ export default function RewardsCommunityTab({
                       )
                     : t('rewards.community.discordConnected')}
                 </div>
-                <button
+                <Button
                   onClick={() => {
                     void handleDisconnectDiscord();
                   }}
                   disabled={disconnectState === 'disconnecting'}
                   data-testid="rewards-disconnect-discord"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-content-inverted/20 bg-surface/10 px-4 py-3 text-sm font-semibold text-content-inverted backdrop-blur-sm transition-colors hover:bg-content-inverted/15 disabled:cursor-not-allowed disabled:opacity-70">
+                  variant="secondary"
+                  size="lg"
+                  className="border-content-inverted/20 bg-surface/10 text-content-inverted backdrop-blur-sm hover:bg-content-inverted/15">
                   {disconnectState === 'disconnecting'
                     ? t('rewards.community.disconnectingDiscord')
                     : t('rewards.community.disconnectDiscord')}
-                </button>
+                </Button>
               </>
             ) : (
               <button
