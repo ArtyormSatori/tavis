@@ -130,20 +130,27 @@ pub async fn activate(
         }
     };
 
-    let active = match (&provisioned, ops::endpoint_of(gateway, desktop)) {
-        (Some(provisioned), _) => provisioned.active.clone(),
-        (None, Some(endpoint)) => endpoint,
-        (None, None) => {
-            // Unreachable: `ops::activate` returns `Some` for exactly the
-            // specs `endpoint_of` returns `None` for. Reported rather than
-            // panicked so a future variant that forgets one half fails
-            // visibly instead of taking the process down.
-            let reason = "this gateway resolved to no endpoint".to_owned();
-            STATE.lock().await.status = Some(GatewayStatus::Failed {
-                reason: reason.clone(),
-            });
-            return Err(reason);
-        }
+    // `ops::activate` provisions exactly the specs `endpoint_of` declines, so
+    // one of the two always answers. Stating that through `provisions()`
+    // rather than inferring it from a `None` means a future spec variant that
+    // forgets one half fails here, visibly, instead of silently resolving to
+    // whichever branch happened to be reachable.
+    let active = match &provisioned {
+        Some(provisioned) => provisioned.active.clone(),
+        None => match ops::endpoint_of(gateway, desktop) {
+            Some(endpoint) => endpoint,
+            None => {
+                let reason = if gateway.spec.provisions() {
+                    "this gateway should have been provisioned and was not".to_owned()
+                } else {
+                    "this gateway resolved to no endpoint".to_owned()
+                };
+                STATE.lock().await.status = Some(GatewayStatus::Failed {
+                    reason: reason.clone(),
+                });
+                return Err(reason);
+            }
+        },
     };
 
     let previous = {
