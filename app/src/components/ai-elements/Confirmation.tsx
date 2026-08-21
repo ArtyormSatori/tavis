@@ -17,8 +17,13 @@
  * - No hardcoded copy: every visible string is caller-supplied via children.
  * - `data-slot` attributes added so tests assert structure, not class strings.
  */
-import type { ComponentProps, ReactNode } from 'react';
-import { createContext, useContext, useMemo } from 'react';
+import {
+  type ComponentProps,
+  createContext,
+  type ReactNode,
+  useContext,
+  useMemo,
+} from 'react';
 
 import { cn } from '../../lib/cn';
 import { Alert, AlertDescription, Button } from '../ui';

@@ -17,8 +17,11 @@
  * - No hardcoded copy: the label is the caller-supplied `suggestion` string.
  * - `data-slot` attributes added so tests assert structure, not class strings.
  */
-import type { ComponentProps, ComponentPropsWithRef } from 'react';
-import { useCallback } from 'react';
+import {
+  type ComponentProps,
+  type ComponentPropsWithRef,
+  useCallback,
+} from 'react';
 
 import { cn } from '../../lib/cn';
 import { Button } from '../ui';
