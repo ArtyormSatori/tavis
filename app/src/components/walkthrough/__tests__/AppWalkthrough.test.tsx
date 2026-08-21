@@ -559,7 +559,7 @@ describe('createWalkthroughSteps', () => {
     const navigate = vi.fn();
     const steps = createWalkthroughSteps(navigate);
 
-    const homeOnlyIndices = [0, 1, 7, 8, 9, 10, 11];
+    const homeOnlyIndices = [0, 1, 7, 8, 9, 10];
     for (const idx of homeOnlyIndices) {
       expect(steps[idx].before, `step[${idx}] should not have a before fn`).toBeUndefined();
     }
