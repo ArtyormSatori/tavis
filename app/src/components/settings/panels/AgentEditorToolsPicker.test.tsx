@@ -1,6 +1,10 @@
 /**
  * AgentEditorToolsPicker — chip row + "Add tools" modal for the agent editor's
  * tool allowlist. Covers the "Allow all" control, now a `Toggle` primitive.
+ *
+ * `useT` falls back to the English map without a provider (see
+ * `lib/i18n/I18nContext.tsx`), so these render bare, and queries use the
+ * rendered English copy rather than raw translation keys.
  */
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
@@ -19,7 +23,7 @@ const mockAvailableTools = vi.mocked(agentRegistryApi.availableTools);
 describe('AgentEditorToolsField', () => {
   it('shows the none-selected hint when the allowlist is empty', () => {
     render(<AgentEditorToolsField toolAllowlist={[]} onChange={vi.fn()} />);
-    expect(screen.getByText('settings.agents.editor.toolsNoneSelected')).toBeInTheDocument();
+    expect(screen.getByText('No tools selected')).toBeInTheDocument();
   });
 
   it('renders selected tools as chips', () => {
@@ -36,7 +40,7 @@ describe('AgentEditorToolsField', () => {
     const onChange = vi.fn();
     render(<AgentEditorToolsField toolAllowlist={[]} onChange={onChange} />);
 
-    fireEvent.click(screen.getByLabelText('settings.agents.editor.selectTools'));
+    fireEvent.click(screen.getByLabelText('Add tools'));
 
     await waitFor(() => {
       expect(screen.getByTestId('agent-tools-allow-all-toggle')).toBeInTheDocument();
@@ -57,9 +61,9 @@ describe('AgentEditorToolsField', () => {
     mockAvailableTools.mockResolvedValue([{ name: 'memory_search', description: 'Search memory' }]);
     render(<AgentEditorToolsField toolAllowlist={['*']} onChange={vi.fn()} />);
 
-    expect(screen.getByText('settings.agents.editor.toolsAllSelected')).toBeInTheDocument();
+    expect(screen.getByText('All tools')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByLabelText('settings.agents.editor.selectTools'));
+    fireEvent.click(screen.getByLabelText('Add tools'));
 
     await waitFor(() => {
       const toggle = screen.getByTestId('agent-tools-allow-all-toggle');
