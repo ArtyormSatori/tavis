@@ -128,6 +128,45 @@ pub mod connections {
         )
     }
 
+    /// Connects one server and returns the tools it advertised.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the service is not up, or whatever the transport
+    /// returns. A failed attempt is recorded either way, so a caller polling
+    /// status sees the reason without re-attempting.
+    pub async fn connect(
+        config: &crate::openhuman::config::Config,
+        server: &tinymcp_bus::InstalledServer,
+    ) -> anyhow::Result<Vec<tinymcp_bus::McpTool>> {
+        let service = host::service().map_err(|error| anyhow::anyhow!(error))?;
+        let client = host::client_config(config);
+
+        service
+            .dynamic()
+            .connections()
+            .connect(
+                service.dynamic().store(),
+                service.dynamic().oauth(),
+                &client.client_identity,
+                client.proxy.as_ref(),
+                server,
+            )
+            .await
+            .map_err(|error| anyhow::anyhow!("failed to connect `{}`: {error}", server.server_id))
+    }
+
+    /// Drops a server's connection, reporting whether there was one.
+    ///
+    /// Answers `false` when the service is not up, which is the truth: nothing
+    /// was holding a connection to drop.
+    pub async fn disconnect(server_id: &str) -> bool {
+        match host::try_service() {
+            Some(service) => service.dynamic().connections().disconnect(server_id).await,
+            None => false,
+        }
+    }
+
     /// The most recent failure message for a server.
     pub async fn last_error_for(server_id: &str) -> Option<String> {
         host::try_service()?
