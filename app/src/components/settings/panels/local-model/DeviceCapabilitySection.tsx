@@ -6,7 +6,12 @@ import {
   openhumanLocalAiApplyPreset,
   type PresetsResponse,
 } from '../../../../utils/tauriCommands';
+import { Alert, AlertDescription } from '../../../ui/Alert';
+import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
+import Card from '../../../ui/Card';
+import { Spinner } from '../../../ui/icons';
+import Progress from '../../../ui/Progress';
 
 interface DeviceCapabilitySectionProps {
   presetsData: PresetsResponse | null;
@@ -29,6 +34,43 @@ interface DeviceCapabilitySectionProps {
 }
 
 const DISABLED_TIER_ID = 'disabled';
+
+/** One selectable model-tier tile. Semantically a `Button` — clicking it always
+ * applies the tier, even if it is already the active one — so this cannot be a
+ * `ToggleGroup` (which would swallow the click as a no-op deselect). */
+function TierTile({
+  active,
+  locked,
+  disabled,
+  onClick,
+  title,
+  children,
+}: {
+  active: boolean;
+  locked: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={
+        'h-auto w-full items-stretch justify-start gap-0 rounded-lg border p-3 text-left font-normal transition-colors ' +
+        (active
+          ? 'border-primary-400 bg-primary-50 dark:bg-primary-500/10'
+          : 'border-line bg-surface-muted hover:bg-surface-hover') +
+        (locked ? ' opacity-50' : '')
+      }>
+      {children}
+    </Button>
+  );
+}
 
 const DeviceCapabilitySection = ({
   presetsData,
@@ -76,6 +118,8 @@ const DeviceCapabilitySection = ({
     }
   };
 
+  const resolvedSuccess = applySuccess ?? presetSuccess;
+
   return (
     <section className="space-y-3">
       <h3 className="text-sm font-semibold text-content">
@@ -83,19 +127,22 @@ const DeviceCapabilitySection = ({
       </h3>
 
       {presetsLoading && !presetsData && (
-        <div className="bg-surface-muted rounded-lg border border-line p-4 text-sm text-content-muted animate-pulse">
+        <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-muted p-4 text-sm text-content-muted">
+          <Spinner className="h-4 w-4" />
           {t('settings.localModel.deviceCapability.loadingDeviceInfo')}
         </div>
       )}
       {!presetsLoading && !presetsData && presetError && (
-        <div className="bg-red-50 dark:bg-red-500/10 rounded-lg border border-red-300 dark:border-red-500/40 p-4 text-sm text-red-600 dark:text-red-300">
-          {t('settings.localModel.deviceCapability.couldNotLoadPresets')} {presetError}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>
+            {t('settings.localModel.deviceCapability.couldNotLoadPresets')} {presetError}
+          </AlertDescription>
+        </Alert>
       )}
 
       {presetsData?.device && (
-        <div className="bg-surface-muted rounded-lg border border-line p-3">
-          <div className="grid grid-cols-3 gap-3 text-xs">
+        <Card>
+          <div className="grid grid-cols-3 gap-3 p-3 text-xs">
             <div>
               <div className="text-content-muted uppercase tracking-wide">
                 {t('settings.localModel.deviceCapability.ram')}
@@ -131,46 +178,39 @@ const DeviceCapabilitySection = ({
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {presetsData && !ollamaAvailable && (
-        <div
-          className={`rounded-lg border p-3 space-y-2 ${
-            installFailed
-              ? 'border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10'
-              : installInProgress
-                ? 'border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10'
-                : 'border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10'
-          }`}>
+        <Alert
+          variant={installFailed ? 'destructive' : installInProgress ? 'info' : 'warning'}
+          className="flex-col items-stretch gap-2">
           {installInProgress ? (
             <>
               <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-                <div className="text-sm font-semibold text-blue-900">
+                <Spinner className="h-3 w-3" />
+                <div className="text-sm font-semibold">
                   {t('settings.localModel.deviceCapability.installingOllama')}
                   {installState === 'downloading'
                     ? ` (${t('settings.localModel.deviceCapability.downloadingModels')})`
                     : '…'}
                 </div>
               </div>
-              <div className="text-xs text-blue-800 dark:text-blue-200">
+              <AlertDescription>
                 {installWarning ?? t('settings.localModel.deviceCapability.downloadingSetupDesc')}
-              </div>
-              <div className="h-1.5 rounded-full bg-blue-200 dark:bg-blue-500/30 overflow-hidden">
-                <div className="h-full w-1/3 bg-blue-500 animate-pulse" />
-              </div>
+              </AlertDescription>
+              <Progress value={null} className="h-1.5" />
             </>
           ) : installFailed ? (
             <>
-              <div className="text-sm font-semibold text-red-900">
+              <div className="text-sm font-semibold">
                 {t('settings.localModel.deviceCapability.installFailed')}
               </div>
-              <div className="text-xs text-red-800 dark:text-red-200">
+              <AlertDescription>
                 {installWarning ?? t('settings.localModel.deviceCapability.installFailedDesc')}
-              </div>
+              </AlertDescription>
               {installError && (
-                <pre className="max-h-40 overflow-auto rounded bg-red-100 dark:bg-red-500/20 border border-red-200 dark:border-red-500/30 p-2 text-[10px] text-red-700 dark:text-red-300 leading-tight whitespace-pre-wrap break-words">
+                <pre className="max-h-40 overflow-auto rounded border border-coral-200 bg-coral-100 p-2 text-[10px] leading-tight text-coral-700 whitespace-pre-wrap break-words dark:border-coral-500/30 dark:bg-coral-500/20 dark:text-coral-300">
                   {installError}
                 </pre>
               )}
@@ -187,63 +227,55 @@ const DeviceCapabilitySection = ({
                       : t('settings.localModel.deviceCapability.retryInstall')}
                   </Button>
                 )}
-                <a
-                  href="https://ollama.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 text-xs rounded-md border border-red-300 dark:border-red-500/40 hover:border-red-400 text-red-800 dark:text-red-200">
-                  {t('settings.localModel.status.installManually')}
-                </a>
+                <Button variant="secondary" size="sm" tone="danger" asChild>
+                  <a href="https://ollama.com" target="_blank" rel="noopener noreferrer">
+                    {t('settings.localModel.status.installManually')}
+                  </a>
+                </Button>
               </div>
             </>
           ) : (
             <>
-              <div className="text-xs text-amber-800 dark:text-amber-200">
-                <span className="font-semibold text-amber-900">
+              <AlertDescription>
+                <span className="font-semibold">
                   {t('settings.localModel.deviceCapability.installFirst')}
                 </span>{' '}
                 {t('settings.localModel.deviceCapability.installFirstDesc')}
-              </div>
+              </AlertDescription>
               <div className="flex items-center gap-2">
-                <a
-                  href="https://ollama.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 text-xs rounded-md border border-amber-300 dark:border-amber-500/40 hover:border-amber-400 text-amber-800 dark:text-amber-200">
-                  {t('settings.localModel.status.ollamaDocs')}
-                </a>
+                <Button variant="secondary" size="sm" asChild>
+                  <a href="https://ollama.com" target="_blank" rel="noopener noreferrer">
+                    {t('settings.localModel.status.ollamaDocs')}
+                  </a>
+                </Button>
               </div>
             </>
           )}
-        </div>
+        </Alert>
       )}
 
       {presetsData && (
         <div className="space-y-2">
-          {/* Disabled — Cloud fallback card (always available, recommended on low-RAM) */}
-          <button
-            type="button"
-            onClick={() => void handleApply(DISABLED_TIER_ID)}
+          {/* Disabled — Cloud fallback tile (always available, recommended on low-RAM) */}
+          <TierTile
+            active={isDisabledActive}
+            locked={false}
             disabled={applying !== null}
-            className={`w-full text-left rounded-lg border p-3 transition-colors ${
-              isDisabledActive
-                ? 'border-primary-400 bg-primary-50 dark:bg-primary-500/10'
-                : 'border-line bg-surface-muted hover:bg-surface-hover dark:bg-surface-muted'
-            } ${applying !== null ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
+            onClick={() => void handleApply(DISABLED_TIER_ID)}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-content">
                   {t('settings.localModel.deviceCapability.disabled')}
                 </span>
                 {isDisabledActive && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-300 uppercase tracking-wide">
+                  <Badge variant="primary">
                     {t('settings.localModel.deviceCapability.active')}
-                  </span>
+                  </Badge>
                 )}
                 {(presetsData.recommend_disabled || !ollamaAvailable) && !isDisabledActive && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 uppercase tracking-wide">
+                  <Badge variant="warning">
                     {t('settings.localModel.deviceCapability.recommended')}
-                  </span>
+                  </Badge>
                 )}
               </div>
               <span className="text-xs text-content-muted">0 GB</span>
@@ -251,49 +283,39 @@ const DeviceCapabilitySection = ({
             <div className="text-xs text-content-muted mt-1">
               {t('settings.localModel.deviceCapability.disabledDesc')}
             </div>
-          </button>
+          </TierTile>
 
           {presetsData.presets.map(preset => {
             const isCurrent = !isDisabledActive && preset.tier === presetsData.current_tier;
             const isApplying = applying === preset.tier;
             const locked = !ollamaAvailable;
             return (
-              <button
-                type="button"
+              <TierTile
                 key={preset.tier}
-                onClick={() => void handleApply(preset.tier)}
+                active={isCurrent}
+                locked={locked}
                 disabled={applying !== null || locked}
+                onClick={() => void handleApply(preset.tier)}
                 title={
                   locked ? t('settings.localModel.deviceCapability.installOllamaFirst') : undefined
-                }
-                className={`w-full text-left rounded-lg border p-3 transition-colors ${
-                  isCurrent
-                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-500/10'
-                    : 'border-line bg-surface-muted hover:bg-surface-hover dark:bg-surface-muted'
-                } ${
-                  locked
-                    ? 'opacity-50 cursor-not-allowed hover:bg-surface-hover dark:bg-surface-muted/60'
-                    : applying !== null && !isApplying
-                      ? 'opacity-60 cursor-not-allowed'
-                      : 'cursor-pointer'
-                }`}>
+                }>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-content">{preset.label}</span>
                     {isCurrent && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-300 uppercase tracking-wide">
+                      <Badge variant="primary">
                         {t('settings.localModel.deviceCapability.active')}
-                      </span>
+                      </Badge>
                     )}
                     {isApplying && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-surface-subtle text-content-muted uppercase tracking-wide">
+                      <Badge variant="neutral">
                         {t('settings.localModel.deviceCapability.applying')}
-                      </span>
+                      </Badge>
                     )}
                     {locked && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 uppercase tracking-wide">
+                      <Badge variant="warning">
                         {t('settings.localModel.deviceCapability.needsOllama')}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <span className="text-xs text-content-muted">
@@ -312,35 +334,43 @@ const DeviceCapabilitySection = ({
                     )
                     .replace('{targetRamGb}', String(preset.target_ram_gb))}
                 </div>
-              </button>
+              </TierTile>
             );
           })}
 
           {presetsData.current_tier === 'custom' && !isDisabledActive && (
-            <div className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
-              {t('settings.localModel.deviceCapability.customModelIds')}
-            </div>
+            <Alert variant="warning">
+              <AlertDescription>
+                {t('settings.localModel.deviceCapability.customModelIds')}
+              </AlertDescription>
+            </Alert>
           )}
         </div>
       )}
 
-      {applyError && <div className="text-xs text-red-600 dark:text-red-300">{applyError}</div>}
-      {presetError && !(!presetsLoading && !presetsData) && (
-        <div className="text-xs text-red-600 dark:text-red-300">{presetError}</div>
+      {applyError && (
+        <Alert variant="destructive">
+          <AlertDescription>{applyError}</AlertDescription>
+        </Alert>
       )}
-      {(applySuccess ?? presetSuccess) && (
-        <div className="text-xs text-green-700 dark:text-green-300">
-          {(applySuccess ?? presetSuccess)?.applied_tier === DISABLED_TIER_ID
-            ? t('settings.localModel.deviceCapability.localAiDisabled')
-            : t('settings.localModel.deviceCapability.appliedTier')
-                .replace('{tier}', (applySuccess ?? presetSuccess)?.applied_tier ?? '')
-                .replace(
-                  '{model}',
-                  (applySuccess ?? presetSuccess)?.chat_model_id
-                    ? `: ${(applySuccess ?? presetSuccess)?.chat_model_id}`
-                    : ''
-                )}
-        </div>
+      {presetError && !(!presetsLoading && !presetsData) && (
+        <Alert variant="destructive">
+          <AlertDescription>{presetError}</AlertDescription>
+        </Alert>
+      )}
+      {resolvedSuccess && (
+        <Alert variant="success">
+          <AlertDescription>
+            {resolvedSuccess.applied_tier === DISABLED_TIER_ID
+              ? t('settings.localModel.deviceCapability.localAiDisabled')
+              : t('settings.localModel.deviceCapability.appliedTier')
+                  .replace('{tier}', resolvedSuccess.applied_tier ?? '')
+                  .replace(
+                    '{model}',
+                    resolvedSuccess.chat_model_id ? `: ${resolvedSuccess.chat_model_id}` : ''
+                  )}
+          </AlertDescription>
+        </Alert>
       )}
     </section>
   );

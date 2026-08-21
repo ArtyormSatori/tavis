@@ -316,41 +316,41 @@ const SentryTestRow = () => {
   };
 
   return (
-    <div className="px-4 py-3 rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold text-amber-900 dark:text-amber-300">
-            {t('devOptions.triggerSentryTest')}
+    <Alert variant="warning">
+      <div className="w-full">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <AlertTitle>{t('devOptions.triggerSentryTest')}</AlertTitle>
+            <AlertDescription>{t('devOptions.triggerSentryTestDesc')}</AlertDescription>
           </div>
-          <div className="text-xs text-amber-800 dark:text-amber-200 mt-0.5">
-            {t('devOptions.triggerSentryTestDesc')}
-          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={onClick}
+            disabled={status.kind === 'sending'}
+            className="shrink-0 bg-amber-600 hover:bg-amber-500">
+            {status.kind === 'sending' ? t('devOptions.sending') : t('devOptions.sendTestEvent')}
+          </Button>
         </div>
-        <button
-          onClick={onClick}
-          disabled={status.kind === 'sending'}
-          className="shrink-0 px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-content-inverted text-xs font-medium transition-colors disabled:opacity-60">
-          {status.kind === 'sending' ? t('devOptions.sending') : t('devOptions.sendTestEvent')}
-        </button>
+        <div role="status" aria-live="polite" aria-atomic="true" className="mt-2 text-xs">
+          {status.kind === 'sent' && (
+            <span className="text-amber-900 dark:text-amber-300">
+              {t('devOptions.eventSent')}.{' '}
+              {status.eventId ? (
+                <span className="font-mono">id: {status.eventId}</span>
+              ) : (
+                <span>{t('devOptions.sentryDisabled')}</span>
+              )}
+            </span>
+          )}
+          {status.kind === 'error' && (
+            <span className="text-coral-600 dark:text-coral-300">
+              {t('devOptions.failed')}: {status.message}
+            </span>
+          )}
+        </div>
       </div>
-      <div role="status" aria-live="polite" aria-atomic="true" className="mt-2 text-xs">
-        {status.kind === 'sent' && (
-          <span className="text-amber-900 dark:text-amber-300">
-            {t('devOptions.eventSent')}.{' '}
-            {status.eventId ? (
-              <span className="font-mono">id: {status.eventId}</span>
-            ) : (
-              <span>{t('devOptions.sentryDisabled')}</span>
-            )}
-          </span>
-        )}
-        {status.kind === 'error' && (
-          <span className="text-coral-600 dark:text-coral-300">
-            {t('devOptions.failed')}: {status.message}
-          </span>
-        )}
-      </div>
-    </div>
+    </Alert>
   );
 };
 
