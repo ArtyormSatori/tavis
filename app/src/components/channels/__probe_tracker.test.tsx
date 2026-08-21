@@ -17,8 +17,7 @@ describe('probe', () => {
     const input = getByLabelText(/API Key/) as HTMLInputElement;
     input.value = 'secret-value';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    // eslint-disable-next-line no-console
-    console.log('PROBE raw-dispatch calls =', onChange.mock.calls.length);
+    expect({ rawDispatchCalls: onChange.mock.calls.length }).toEqual({ rawDispatchCalls: -1 });
   });
 
   it('fireEvent.change bypasses the tracker', () => {
@@ -28,7 +27,6 @@ describe('probe', () => {
     );
     const input = getByLabelText(/API Key/) as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'secret-value' } });
-    // eslint-disable-next-line no-console
-    console.log('PROBE fireEvent.change calls =', JSON.stringify(onChange.mock.calls));
+    expect({ fireEventChangeCalls: onChange.mock.calls }).toEqual({ fireEventChangeCalls: 'SENTINEL' });
   });
 });
