@@ -140,30 +140,32 @@ const McpConnectionHealthToolbar = ({
         </span>
         <div className="flex items-center gap-2">
           {counts.errorCount > 0 && (
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="xs"
               onClick={() => void runRetryAll()}
               disabled={isOperating}
               aria-label={t('mcp.health.retryAllAria').replace(
                 '{count}',
                 String(counts.errorCount)
               )}
-              className="text-[10px] font-medium text-amber-700 dark:text-amber-300 hover:underline disabled:opacity-50 disabled:no-underline">
+              className="h-auto p-0 text-[10px] font-medium text-amber-700 hover:underline disabled:no-underline disabled:opacity-50 dark:text-amber-300">
               {t('mcp.health.retryAll').replace('{count}', String(counts.errorCount))}
-            </button>
+            </Button>
           )}
           {counts.connectedCount > 0 && (
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="xs"
               onClick={() => setConfirmDisconnect(true)}
               disabled={isOperating}
               aria-label={t('mcp.health.disconnectAllAria').replace(
                 '{count}',
                 String(counts.connectedCount)
               )}
-              className="text-[10px] font-medium text-content-secondary hover:underline disabled:opacity-50 disabled:no-underline">
+              className="h-auto p-0 text-[10px] font-medium text-content-secondary hover:underline disabled:no-underline disabled:opacity-50">
               {t('mcp.health.disconnectAll').replace('{count}', String(counts.connectedCount))}
-            </button>
+            </Button>
           )}
         </div>
       </div>
