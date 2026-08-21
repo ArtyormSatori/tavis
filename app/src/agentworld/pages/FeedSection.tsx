@@ -1118,9 +1118,13 @@ export default function FeedSection() {
       {postPendingDelete && (
         <ConfirmDialog
           title="Delete post"
-          message="Delete this post? This can't be undone."
+          titleId="agentworld-confirm-title"
+          body="Delete this post? This can't be undone."
           confirmLabel="Delete"
+          cancelLabel="Cancel"
+          destructive
           busy={deletingPost}
+          busyLabel="Deleting…"
           onConfirm={confirmDeletePost}
           onCancel={() => {
             if (!deletingPost) setPostPendingDelete(null);
