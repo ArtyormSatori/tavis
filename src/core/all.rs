@@ -150,7 +150,7 @@ pub enum DomainGroup {
 
 impl DomainGroup {
     /// Number of variants. Kept in sync by `domain_group_all_lists_every_variant`.
-    pub const COUNT: usize = 23;
+    pub const COUNT: usize = 22;
 
     /// Every variant, for exhaustive iteration in drift guards.
     ///
@@ -170,7 +170,6 @@ impl DomainGroup {
         DomainGroup::Flows,
         DomainGroup::Skills,
         DomainGroup::Mcp,
-        DomainGroup::Meet,
         DomainGroup::Channels,
         DomainGroup::Web3,
         DomainGroup::Voice,
@@ -200,21 +199,20 @@ impl DomainGroup {
             DomainGroup::Flows => 5,
             DomainGroup::Skills => 6,
             DomainGroup::Mcp => 7,
-            DomainGroup::Meet => 8,
-            DomainGroup::Channels => 9,
-            DomainGroup::Web3 => 10,
-            DomainGroup::Voice => 11,
-            DomainGroup::Media => 12,
-            DomainGroup::Medulla => 13,
-            DomainGroup::Inference => 14,
-            DomainGroup::Integrations => 15,
-            DomainGroup::Automation => 16,
-            DomainGroup::Runtimes => 17,
-            DomainGroup::Desktop => 18,
-            DomainGroup::Hosted => 19,
-            DomainGroup::Relay => 20,
-            DomainGroup::Modules => 21,
-            DomainGroup::Platform => 22,
+            DomainGroup::Channels => 8,
+            DomainGroup::Web3 => 9,
+            DomainGroup::Voice => 10,
+            DomainGroup::Media => 11,
+            DomainGroup::Medulla => 12,
+            DomainGroup::Inference => 13,
+            DomainGroup::Integrations => 14,
+            DomainGroup::Automation => 15,
+            DomainGroup::Runtimes => 16,
+            DomainGroup::Desktop => 17,
+            DomainGroup::Hosted => 18,
+            DomainGroup::Relay => 19,
+            DomainGroup::Modules => 20,
+            DomainGroup::Platform => 21,
         }
     }
 }
