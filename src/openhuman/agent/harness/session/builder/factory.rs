@@ -601,11 +601,6 @@ impl Agent {
             );
         }
 
-        // (#623) Memory context for threads spawned from a subconscious
-        // reflection: append the resolved `source_chunks` snapshot from
-        // the reflection row as a `ReflectionMemoryContextSection`. The
-        // resulting system prompt stays byte-stable for the session, so
-        // every chat turn in the thread sees the same memory chunks the
         // Compose the profile prompt section: the persona suffix, plus (1b) the
         // cross-profile workspace notice when a dedicated workspace is active.
         // The notice discloses the boundary the guard enforces, so it is added
