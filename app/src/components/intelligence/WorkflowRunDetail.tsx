@@ -25,6 +25,7 @@ import {
   type WorkflowRun,
   type WorkflowRunStatus,
 } from '../../services/api/workflowRunsApi';
+import { AccordionContent, AccordionItem, AccordionRoot, AccordionTrigger } from '../ui/Accordion';
 import Button from '../ui/Button';
 
 const log = debug('intelligence:workflow-detail');
