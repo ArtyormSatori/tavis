@@ -103,14 +103,14 @@ export function SetupSuccess({
           variant="secondary"
           size="lg"
           onClick={onSettings}
-          className="w-full rounded-xl border-primary-200 bg-primary-50 font-medium text-primary-700 hover:bg-primary-100">
+          className="w-full rounded-xl border-primary-200 bg-primary-50 text-sm font-medium text-primary-700 hover:bg-primary-100">
           {settingsLabel}
         </Button>
         <Button
           variant="secondary"
           size="lg"
           onClick={onFinish}
-          className="w-full rounded-xl border-line bg-surface-muted font-medium text-content-secondary hover:bg-surface-hover dark:bg-surface-muted">
+          className="w-full rounded-xl border-line bg-surface-muted text-sm font-medium text-content-secondary hover:bg-surface-hover dark:bg-surface-muted">
           {finishLabel}
         </Button>
       </div>

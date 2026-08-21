@@ -159,7 +159,7 @@ function UnifiedSkillCard({
                       action.onClick();
                     }}
                     leadingIcon={action.icon}
-                    className="h-auto w-full justify-start rounded-none px-3 py-2 text-xs text-content-secondary hover:bg-surface-hover">
+                    className="flex h-auto w-full justify-start rounded-none px-3 py-2 text-xs text-content-secondary hover:bg-surface-hover">
                     {action.label}
                   </Button>
                 ))}
