@@ -124,11 +124,7 @@ pub fn all_tools_with_runtime(
             prefer_system = root_config.node.prefer_system,
             "[tools::ops] node runtime enabled — constructing shared NodeBootstrap"
         );
-        Some(Arc::new(NodeBootstrap::new(
-            root_config.node.clone(),
-            action_dir.to_path_buf(),
-            reqwest::Client::new(),
-        )))
+        Some(Arc::new(NodeBootstrap::new(Arc::clone(root_config))))
     } else {
         tracing::debug!(
             "[tools::ops] node runtime disabled — shell PATH injection + node_exec/npm_exec suppressed"
@@ -141,9 +137,7 @@ pub fn all_tools_with_runtime(
             prefer_system = root_config.runtime_python.prefer_system,
             "[tools::ops] python runtime enabled — constructing shared PythonBootstrap"
         );
-        Some(Arc::new(PythonBootstrap::new(
-            root_config.runtime_python.clone(),
-        )))
+        Some(Arc::new(PythonBootstrap::new(Arc::clone(root_config))))
     } else {
         tracing::debug!(
             "[tools::ops] python runtime disabled — shell python/pip PATH injection suppressed"
