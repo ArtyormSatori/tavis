@@ -24,6 +24,8 @@ import { NodeKindTile } from '../../../../lib/flows/nodeKindIcons';
 import { describeNode } from '../../../../lib/flows/nodeSummary';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { FlowConnection } from '../../../../services/api/flowsApi';
+import Button from '../../../ui/Button';
+import UiInput from '../../../ui/Input';
 import { JsonField } from './nodeConfigFields';
 import { NODE_CONFIG_FORMS } from './nodeConfigForms';
 import { NodeConnections } from './NodeConnections';
