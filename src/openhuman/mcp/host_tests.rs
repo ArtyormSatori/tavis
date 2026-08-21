@@ -237,8 +237,8 @@ fn a_disabled_mcp_section_carries_across() {
 }
 
 #[test]
-fn a_host_opens_both_stores_under_the_workspace() {
-    // Both live there, so the servers a user installed are found again after a
+fn a_host_opens_its_store_under_the_workspace() {
+    // It lives there, so the servers a user installed are found again after a
     // restart.
     let temporary = tempfile::tempdir().expect("tempdir");
     let mut config = config_without_docs();
@@ -247,5 +247,38 @@ fn a_host_opens_both_stores_under_the_workspace() {
     let _host = McpHost::open(&config).expect("the host opens");
 
     assert!(tinymcp::Store::path_for(temporary.path()).exists());
+}
+
+#[test]
+fn an_audit_log_is_opened_under_the_workspace_it_is_asked_for() {
+    // Keyed by workspace rather than held by the host: this process can serve
+    // more than one over its life, and a write must land under the workspace
+    // its caller named rather than whichever booted first.
+    let temporary = tempfile::tempdir().expect("tempdir");
+    let mut config = config_without_docs();
+    config.workspace_dir = temporary.path().to_path_buf();
+
+    let log = super::audit_log(&config).expect("the audit log opens");
+
     assert!(tinymcp::AuditStore::path_for(temporary.path()).exists());
+    // A second ask reuses the open log rather than re-running its migrations.
+    let again = super::audit_log(&config).expect("the audit log opens again");
+    assert!(std::sync::Arc::ptr_eq(&log, &again));
+}
+
+#[test]
+fn two_workspaces_get_two_audit_logs() {
+    let first = tempfile::tempdir().expect("tempdir");
+    let second = tempfile::tempdir().expect("tempdir");
+
+    let mut config = config_without_docs();
+    config.workspace_dir = first.path().to_path_buf();
+    let first_log = super::audit_log(&config).expect("the first log opens");
+
+    config.workspace_dir = second.path().to_path_buf();
+    let second_log = super::audit_log(&config).expect("the second log opens");
+
+    assert!(!std::sync::Arc::ptr_eq(&first_log, &second_log));
+    assert!(tinymcp::AuditStore::path_for(first.path()).exists());
+    assert!(tinymcp::AuditStore::path_for(second.path()).exists());
 }
