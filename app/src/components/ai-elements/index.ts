@@ -136,6 +136,25 @@ export {
   type SourcesTriggerProps,
 } from './Sources';
 
+// Transcript shell
+export {
+  Conversation,
+  ConversationContent,
+  type ConversationContentProps,
+  type ConversationProps,
+} from './Conversation';
+export {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  type MessageActionProps,
+  type MessageActionsProps,
+  type MessageContentProps,
+  type MessageProps,
+  type MessageRole,
+} from './Message';
+
 // Composer affordances
 export { Suggestion, Suggestions, type SuggestionProps, type SuggestionsProps } from './Suggestion';
 

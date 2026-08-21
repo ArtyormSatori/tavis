@@ -23,6 +23,7 @@ import { isLocalSessionToken } from '../../utils/localSession';
 import { openUrl } from '../../utils/openUrl';
 import { restartCoreProcess } from '../../utils/tauriCommands/core';
 import Button from '../ui/Button';
+import Checkbox from '../ui/Checkbox';
 import {
   ChannelAuthFields,
   ChannelAuthModeCard,

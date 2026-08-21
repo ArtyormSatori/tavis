@@ -70,6 +70,6 @@ export default function InstanceCard({
           {session.unread}
         </span>
       ) : null}
-    </button>
+    </Button>
   );
 }
