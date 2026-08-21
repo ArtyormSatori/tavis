@@ -123,7 +123,7 @@ describe('McpInventoryPanel — shell', () => {
 
   it('switches to the Import tab on click', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('tab', { name: 'Import' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Import' }));
     expect(screen.getByRole('tab', { name: 'Import' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: 'Export' })).toHaveAttribute('aria-selected', 'false');
   });
@@ -223,7 +223,7 @@ describe('McpInventoryPanel — Import tab', () => {
   });
 
   const switchToImport = () => {
-    fireEvent.click(screen.getByRole('tab', { name: 'Import' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Import' }));
   };
 
   it('renders the trust banner', () => {
