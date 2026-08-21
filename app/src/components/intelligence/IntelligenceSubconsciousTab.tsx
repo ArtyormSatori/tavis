@@ -142,7 +142,7 @@ export default function IntelligenceSubconsciousTab({
                 className={`inline-block w-3 h-3 rounded-full border-2 mb-1.5 ${
                   mode === opt.id
                     ? 'bg-primary-500 border-primary-500'
-                    : 'border-line-strong dark:border-neutral-600'
+                    : 'border-line-strong'
                 }`}
               />
               <span className="text-sm font-medium text-content">{t(opt.titleKey)}</span>
