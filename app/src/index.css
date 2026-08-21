@@ -1,6 +1,8 @@
-/* Import Google Fonts for trust and professionalism */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+/* Self-hosted webfaces. These used to be `@import`s from fonts.googleapis.com,
+   which meant this offline-capable desktop app rendered in a system fallback
+   face on any cold start without a network. Regenerate with
+   `node scripts/fetch-fonts.mjs`. */
+@import './styles/fonts.css';
 
 /* Canonical theme tokens (colour + font-role CSS variables). Must precede the
    Tailwind layers so the var-backed utility colours resolve. */
