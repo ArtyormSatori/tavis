@@ -704,24 +704,25 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
             </div>
           ))}
         </div>
+
+        {/* Stacked configuration-help chat modal (above this one). Rendered
+            inside this Dialog's own tree — not as a separate top-level
+            sibling — so Radix's aria-hidden-others bookkeeping recognizes it
+            as part of the same branch instead of hiding this dialog behind
+            it. */}
+        {showConfigHelp && (
+          <ConfigHelpModal
+            qualifiedName={server.qualified_name}
+            displayName={server.display_name}
+            description={server.description}
+            onClose={() => setShowConfigHelp(false)}
+          />
+        )}
       </>
     </ModalShell>
   );
 
-  return (
-    <>
-      {modal}
-      {/* Stacked configuration-help chat modal (above this one). */}
-      {showConfigHelp && (
-        <ConfigHelpModal
-          qualifiedName={server.qualified_name}
-          displayName={server.display_name}
-          description={server.description}
-          onClose={() => setShowConfigHelp(false)}
-        />
-      )}
-    </>
-  );
+  return modal;
 };
 
 export default ConnectAuthModal;
