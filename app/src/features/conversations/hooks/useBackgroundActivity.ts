@@ -7,12 +7,10 @@ import {
   memorySyncStatusList,
   type MemorySyncStatusRow,
 } from '../../../utils/tauriCommands/memoryTree';
-import {
 
 /**
  * Aggregated, view-only snapshot of the background work the app runs on the
- * user's behalf: scheduled cron jobs and
- * memory syncing/ingestion. Surfaced in {@link BackgroundProcessesPanel}
+ * user's behalf: scheduled cron jobs and memory syncing/ingestion. Surfaced in {@link BackgroundProcessesPanel}
  * alongside the thread's detached sub-agents so users aren't oblivious to
  * background LLM activity.
  *
