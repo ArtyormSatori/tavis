@@ -7,6 +7,7 @@
 //!
 //! # Modules
 //!
+//! - [`bus`] — the lifecycle subscriber that logs this domain's events.
 //! - [`ops`] — the `mcp_clients` RPC handlers, delegating to the service
 //!   [`super::host`] holds and publishing this application's own events.
 //! - [`setup_ops`] — the `mcp_setup` handlers, likewise.
@@ -26,6 +27,8 @@
 //! `tinymcp_bus`. A parallel set of types here would mean a conversion at every
 //! call site that nothing checks.
 
+#[cfg(feature = "mcp")]
+pub mod bus;
 #[cfg(feature = "mcp")]
 pub mod ops;
 #[cfg(feature = "mcp")]

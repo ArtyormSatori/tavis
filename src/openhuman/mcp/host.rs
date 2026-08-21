@@ -26,7 +26,9 @@
 //! setting, its per-service list and its no-proxy list, and all three live
 //! here. [`proxy_for_mcp`] consults them and hands over the answer.
 
-use std::sync::OnceLock;
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex, OnceLock};
 
 use tinymcp::{
     AuditStore, McpClientConfig, McpProxyConfig, McpRegistry, McpServerConfig, McpServerRegistry,
@@ -44,7 +46,19 @@ const DEFAULT_CORE_PORT: u16 = 7788;
 /// The one service this process holds.
 static SERVICE: OnceLock<McpHost> = OnceLock::new();
 
-/// The three pieces of `tinymcp` this application drives.
+/// The write-audit log for each workspace that has been asked for one.
+///
+/// Not a field on [`McpHost`], and deliberately not tied to [`init`]. Auditing
+/// is addressed by configuration — every entry point takes a `&Config` and
+/// records against *that* workspace — and this process can serve more than one
+/// over its life. Binding the log to whichever configuration happened to boot
+/// first would silently file a write under the wrong workspace.
+///
+/// The map is the only thing keeping this cheap: opening the log runs its
+/// migrations, and a write path must not pay that per row.
+static AUDIT_LOGS: OnceLock<Mutex<HashMap<PathBuf, Arc<AuditStore>>>> = OnceLock::new();
+
+/// The two pieces of `tinymcp` this application drives.
 ///
 /// Held together rather than separately because they are initialised from one
 /// configuration and share a lifetime. This is the same shape `tinymcp`'s own
@@ -54,7 +68,6 @@ static SERVICE: OnceLock<McpHost> = OnceLock::new();
 pub struct McpHost {
     dynamic: McpRegistry,
     static_servers: McpServerRegistry,
-    audit: AuditStore,
 }
 
 impl McpHost {
@@ -85,8 +98,6 @@ impl McpHost {
             static_servers: McpServerRegistry::from_config(&client).map_err(|error| {
                 anyhow::anyhow!("failed to build the static server set: {error}")
             })?,
-            audit: AuditStore::open(workspace)
-                .map_err(|error| anyhow::anyhow!("failed to open the mcp audit log: {error}"))?,
         })
     }
 
@@ -101,12 +112,34 @@ impl McpHost {
     pub fn static_servers(&self) -> &McpServerRegistry {
         &self.static_servers
     }
+}
 
-    /// The write-audit log.
-    #[must_use]
-    pub fn audit(&self) -> &AuditStore {
-        &self.audit
+/// The write-audit log for `config`'s workspace, opening it on first use.
+///
+/// # Errors
+///
+/// Returns an error when the log cannot be opened.
+pub fn audit_log(config: &Config) -> anyhow::Result<Arc<AuditStore>> {
+    let workspace = config.workspace_dir.clone();
+
+    let mut logs = AUDIT_LOGS
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        // A panic while holding this lock leaves the map itself intact: the
+        // only mutation under it is one insert of an already-built store.
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+
+    if let Some(existing) = logs.get(&workspace) {
+        return Ok(Arc::clone(existing));
     }
+
+    let log = Arc::new(
+        AuditStore::open(&workspace)
+            .map_err(|error| anyhow::anyhow!("failed to open the mcp audit log: {error}"))?,
+    );
+    logs.insert(workspace, Arc::clone(&log));
+
+    Ok(log)
 }
 
 /// Builds the service from `config` and installs it.

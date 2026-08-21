@@ -35,38 +35,33 @@ pub use schemas::{
     schemas as mcp_audit_schemas,
 };
 
-/// Records one write.
+/// Records one write against `config`'s workspace.
 ///
 /// # Errors
 ///
-/// Returns an error when the service is not up or the row cannot be written.
+/// Returns an error when the log cannot be opened or the row cannot be
+/// written.
 #[cfg(feature = "mcp")]
 pub fn record_write(
-    _config: &crate::openhuman::config::Config,
+    config: &crate::openhuman::config::Config,
     record: NewMcpWriteRecord,
 ) -> anyhow::Result<i64> {
-    let service = crate::openhuman::mcp::host::service().map_err(|error| anyhow::anyhow!(error))?;
-
-    service
-        .audit()
+    crate::openhuman::mcp::host::audit_log(config)?
         .record(&record)
         .map_err(|error| anyhow::anyhow!("failed to record an mcp write: {error}"))
 }
 
-/// Lists recorded writes.
+/// Lists writes recorded against `config`'s workspace.
 ///
 /// # Errors
 ///
-/// Returns an error when the service is not up or the query fails.
+/// Returns an error when the log cannot be opened or the query fails.
 #[cfg(feature = "mcp")]
 pub fn list_writes(
-    _config: &crate::openhuman::config::Config,
+    config: &crate::openhuman::config::Config,
     query: &McpWriteListQuery,
 ) -> anyhow::Result<Vec<McpWriteRecord>> {
-    let service = crate::openhuman::mcp::host::service().map_err(|error| anyhow::anyhow!(error))?;
-
-    service
-        .audit()
+    crate::openhuman::mcp::host::audit_log(config)?
         .list(query)
         .map_err(|error| anyhow::anyhow!("failed to list mcp writes: {error}"))
 }

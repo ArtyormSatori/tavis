@@ -353,6 +353,14 @@ pub async fn start_boot_once_jobs(services: ServiceSet, config: &Config) {
     }
 
     if services.mcp_boot {
+        // Idempotent, and normally a no-op: `register_domain_subscribers` opens
+        // the service when it enables the MCP domain. It is repeated here
+        // because the two are gated separately — a `ServiceSet` that boots MCP
+        // is entitled to a service whether or not the RPC domain was turned on.
+        if let Err(error) = crate::openhuman::mcp::host::init(config) {
+            log::warn!("[runtime] the mcp service could not be opened: {error}");
+        }
+
         let cfg_for_mcp = config.clone();
         tokio::spawn(async move {
             crate::openhuman::mcp::registry::boot::spawn_installed_servers(&cfg_for_mcp).await;

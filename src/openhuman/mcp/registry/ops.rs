@@ -466,15 +466,26 @@ pub async fn mcp_clients_status(_config: &Config) -> Result<RpcOutcome<Value>, S
 pub async fn mcp_clients_list_tools(server_id: String) -> Result<RpcOutcome<Value>, String> {
     let server_id = require(&server_id, "server_id")?;
 
-    let tools = host::service()?
+    /// What a caller has to do about it either way.
+    fn connect_first(server_id: &str) -> String {
+        format!("server_id={server_id} is not connected; connect it first via mcp_clients_connect")
+    }
+
+    // Reading which tools a server advertises is a read of the connection map,
+    // and a service that is not up holds no connections — so the answer is the
+    // same "connect it" that an unknown server gets. Reporting "still starting"
+    // here would be a distinction the caller cannot act on differently; the
+    // paths that *mutate* state still say it, because retrying those later is
+    // exactly the right response.
+    let Some(service) = host::try_service() else {
+        return Err(connect_first(&server_id));
+    };
+
+    let tools = service
         .dynamic()
         .list_tools(&server_id)
         .await
-        .map_err(|_| {
-            format!(
-                "server_id={server_id} is not connected; connect it first via mcp_clients_connect"
-            )
-        })?;
+        .map_err(|_| connect_first(&server_id))?;
 
     let tools = super::tools_safe_for_agent(&server_id, tools);
     let count = tools.len();
