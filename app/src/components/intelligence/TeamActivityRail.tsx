@@ -18,6 +18,9 @@ import { LuSend } from 'react-icons/lu';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { AgentTeamMember, TeamMessage } from '../../services/api/agentTeamApi';
+import Button from '../ui/Button';
+import NativeSelect from '../ui/NativeSelect';
+import TextField from '../ui/TextField';
 import { memberColor } from './memberColors';
 
 interface TeamActivityRailProps {
