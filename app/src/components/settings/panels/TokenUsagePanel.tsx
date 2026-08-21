@@ -176,16 +176,16 @@ const TokenUsagePanel = ({ embedded = false }: TokenUsagePanelProps = {}) => {
 
         {savings && Object.keys(savings.byCompressor).length > 0 && (
           <div className="px-1 mt-3">
-            <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
+            <div className="text-xs font-medium text-content-muted mb-1.5">
               {t('settings.tokenUsage.byCompressor')}
             </div>
-            <div className="rounded-xl border border-stone-200 dark:border-neutral-800 divide-y divide-stone-100 dark:divide-neutral-800">
+            <div className="rounded-xl border border-line divide-y divide-line-subtle">
               {Object.entries(savings.byCompressor)
                 .sort((a, b) => b[1].tokensSaved - a[1].tokensSaved)
                 .map(([name, b]) => (
                   <div key={name} className="flex items-center justify-between px-3 py-2 text-sm">
-                    <span className="font-mono text-neutral-700 dark:text-neutral-300">{name}</span>
-                    <span className="tabular-nums text-neutral-500 dark:text-neutral-400">
+                    <span className="font-mono text-content-secondary">{name}</span>
+                    <span className="tabular-nums text-content-muted">
                       {formatInt(b.tokensSaved)} tok · {formatUsd(b.costSavedUsd)}
                     </span>
                   </div>
@@ -208,7 +208,7 @@ const TokenUsagePanel = ({ embedded = false }: TokenUsagePanelProps = {}) => {
       <SettingsSection
         title={t('settings.tokenUsage.compressionTitle')}
         description={t('settings.tokenUsage.compressionDesc')}>
-        <div className="rounded-xl border border-stone-200 dark:border-neutral-800 divide-y divide-stone-100 dark:divide-neutral-800">
+        <div className="rounded-xl border border-line divide-y divide-line-subtle">
           <SettingsRow
             label={t('settings.tokenUsage.routerEnabled')}
             description={t('settings.tokenUsage.routerEnabledDesc')}
@@ -276,7 +276,7 @@ const TokenUsagePanel = ({ embedded = false }: TokenUsagePanelProps = {}) => {
       <SettingsSection
         title={t('settings.tokenUsage.ccrTitle')}
         description={t('settings.tokenUsage.ccrDesc')}>
-        <div className="rounded-xl border border-stone-200 dark:border-neutral-800 divide-y divide-stone-100 dark:divide-neutral-800">
+        <div className="rounded-xl border border-line divide-y divide-line-subtle">
           <SettingsRow
             label={t('settings.tokenUsage.ccrEnabled')}
             description={t('settings.tokenUsage.ccrEnabledDesc')}
