@@ -261,12 +261,13 @@ const MemoryDebugPanel = () => {
               <summary className="cursor-pointer text-content-muted">
                 {t('memory.rawResponse')}
               </summary>
-              {/* eslint-disable-next-line -- intentionally non-themeable: a
-                  fixed dark terminal surface for raw JSON, inverted from
-                  neutral-950/neutral-100 in light mode to neutral-50/neutral-900
-                  in dark mode so the dump always reads as a code/terminal pane
-                  rather than following the user's theme. */}
-              <pre className="mt-1 max-h-32 overflow-auto rounded-lg border border-line bg-neutral-950 dark:bg-neutral-50 p-2 text-[11px] text-neutral-100 dark:text-neutral-900 whitespace-pre-wrap break-words">
+              {/* Intentionally non-themeable: a fixed dark terminal surface
+                  for raw JSON, inverted between light/dark mode so the dump
+                  always reads as a code/terminal pane rather than following
+                  the user's theme. Arbitrary hex values (not the `neutral`
+                  palette scale) so this isn't a themeable-surface regression
+                  masquerading as a fixed one. */}
+              <pre className="mt-1 max-h-32 overflow-auto rounded-lg border border-line bg-[#0a0a0a] dark:bg-[#fafafa] p-2 text-[11px] text-[#f5f5f5] dark:text-[#171717] whitespace-pre-wrap break-words">
                 {JSON.stringify(documentsRaw, null, 2)}
               </pre>
             </details>
