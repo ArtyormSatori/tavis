@@ -279,9 +279,13 @@ mod tests {
         let desc = blocking["description"].as_str().unwrap_or_default();
         assert!(desc.contains("async"), "explains the async default: {desc}");
         assert!(
-            desc.contains("continue_subagent") && desc.contains("subagent_session_id"),
-            "points at the resume contract: {desc}"
+            desc.contains("Default false"),
+            "names which value is the default: {desc}"
         );
+        // The resume contract (`subagent_session_id`, `continue_subagent`,
+        // `steer_subagent`, …) used to be spelled out here, at 19x the cost.
+        // It now lives once in the orchestrator prompt, which
+        // `prompt_documents_the_stripped_envelope_fields` pins.
         assert_eq!(schema["required"], json!(["prompt"]));
     }
 
@@ -303,6 +307,29 @@ mod tests {
                 "retrieval_hits",
                 "tool_outputs"
             ])
+        );
+
+        // Stripping descriptions must not become stripping FIELDS: every one
+        // is read back by `render_structured_handoff`, so a "trim" that drops
+        // one silently removes a section of the child prompt.
+        let props = schema["properties"]
+            .as_object()
+            .expect("properties is an object");
+        let mut present: Vec<&str> = props.keys().map(String::as_str).collect();
+        present.sort_unstable();
+        assert_eq!(
+            present,
+            vec![
+                "blocking",
+                "citation_requirement",
+                "constraints",
+                "evidence",
+                "expected_output",
+                "model",
+                "must_not_assume",
+                "objective",
+                "prompt",
+            ]
         );
     }
 
