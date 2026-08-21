@@ -504,12 +504,11 @@ export function JsonField({ label, hint, value, onChange, rows = 6, testId }: Js
 
   return (
     <Field label={label} hint={hint} htmlFor={id}>
-      <textarea
+      <UiTextArea
         id={id}
         rows={rows}
-        className={`${INPUT_CLASS} resize-y ${MONO_CLASS} ${
-          error ? 'border-coral-400 focus:border-coral-500 focus:ring-coral-500/20' : ''
-        }`}
+        invalid={error}
+        className={cn('resize-y', MONO_CLASS)}
         value={text}
         data-testid={testId}
         onChange={e => handleChange(e.target.value)}

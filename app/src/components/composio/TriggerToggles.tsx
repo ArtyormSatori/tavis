@@ -263,22 +263,14 @@ export default function TriggerToggles({
                 <span className="text-sm font-medium text-content break-all">{label}</span>
                 {sub && <p className="text-[11px] text-content-faint leading-snug">{sub}</p>}
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enabled}
+              <Switch
+                id={`trigger-switch-${sig}`}
+                checked={enabled}
+                onCheckedChange={() => void handleToggle(entry)}
                 aria-label={ariaLabel}
                 disabled={disabled}
-                onClick={() => void handleToggle(entry)}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  enabled ? 'bg-primary-500' : 'bg-surface-strong'
-                }`}>
-                <span
-                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-surface shadow transition-transform ${
-                    enabled ? 'translate-x-5' : 'translate-x-0.5'
-                  } ${isPending ? 'animate-pulse' : ''}`}
-                />
-              </button>
+                className={isPending ? 'animate-pulse' : undefined}
+              />
             </li>
           );
         })}

@@ -77,7 +77,7 @@ export function TeamHeader({
               title={`${member.agentId ?? member.name} · ${t(MEMBER_STATUS_KEY[member.memberStatus])}`}
               className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-muted px-1.5 py-0.5 text-[10px] text-content-secondary">
               <span
-                className="inline-flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full text-[7px] font-semibold text-white"
+                className="inline-flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full text-[7px] font-semibold text-content-inverted"
                 style={{ backgroundColor: memberColor(member.id) }}>
                 {member.name.charAt(0).toUpperCase()}
               </span>
