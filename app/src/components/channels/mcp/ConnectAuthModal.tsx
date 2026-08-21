@@ -695,28 +695,20 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
           ))}
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-2 pt-1">
-          <Button variant="secondary" size="sm" onClick={onClose} disabled={busy}>
-            {t('common.cancel')}
-          </Button>
-          <Button variant="primary" size="sm" onClick={handleConnect} disabled={busy}>
-            {busy ? t('mcp.detail.connecting') : t('mcp.detail.connect')}
-          </Button>
-        </div>
-      </div>
+      </>
+    </ModalShell>,
 
-      {/* Stacked configuration-help chat modal (above this one). */}
-      {showConfigHelp && (
-        <ConfigHelpModal
-          qualifiedName={server.qualified_name}
-          displayName={server.display_name}
-          description={server.description}
-          onClose={() => setShowConfigHelp(false)}
-        />
-      )}
-    </div>
-  );
+    /* Stacked configuration-help chat modal (above this one). */
+    showConfigHelp && (
+      <ConfigHelpModal
+        key="config-help"
+        qualifiedName={server.qualified_name}
+        displayName={server.display_name}
+        description={server.description}
+        onClose={() => setShowConfigHelp(false)}
+      />
+    ),
+  ];
 };
 
 export default ConnectAuthModal;
