@@ -21,7 +21,7 @@ use super::types::{ActiveRun, DispatchOutcome};
 /// freshly-loaded status isn't `Todo`/`Ready` (already running/done, or another
 /// dispatcher won the claim). Benign: the poller retries next tick.
 pub async fn dispatch_card(
-    context: BoardLocation,
+    location: BoardLocation,
     card: TaskBoardCard,
 ) -> Result<DispatchOutcome, String> {
     let card_id = card.id.clone();
