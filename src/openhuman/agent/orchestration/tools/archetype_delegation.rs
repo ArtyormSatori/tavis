@@ -23,55 +23,70 @@ impl Tool for ArchetypeDelegationTool {
         &self.tool_description
     }
 
+    /// The delegation envelope — deliberately description-light.
+    ///
+    /// This one literal is emitted for **every** synthesised `delegate_*` tool
+    /// (19 of them on the Master Agent after tool-pack withholding), so each
+    /// word of `description` here is billed 19× on every single turn. Fully
+    /// described the envelope was 356 tokens × 19 = 6,764 tokens — 39% of the
+    /// orchestrator's whole tool-schema budget, for the same JSON 19 times.
+    ///
+    /// The field *semantics* now live once in the parent's system prompt
+    /// (`registry/agents/orchestrator/prompt.md`, "Structured handoffs"),
+    /// which is where policy like "only observed facts" belonged anyway. The
+    /// property names stay self-describing, and they are the only thing
+    /// `render_structured_handoff` below reads.
+    ///
+    /// Four descriptions survive, each well under the 50-token cap, because
+    /// their property name does not carry the meaning:
+    ///
+    /// * `blocking` — the default is behaviour-critical and not inferable from
+    ///   the name. Getting it wrong is silent and asymmetric: async when it
+    ///   should have blocked finalizes the turn before the result lands, the
+    ///   exact failure the prompt's result-gating rule exists to prevent.
+    /// * `evidence` — "actually observed" is the anti-fabrication contract,
+    ///   not a label.
+    /// * `citation_requirement` / `model` — a bare name reads as neither.
+    ///
+    /// Enforced by `envelope_descriptions_stay_within_budget` below. If you
+    /// are about to add a description here, put it in prompt.md instead.
     fn parameters_schema(&self) -> serde_json::Value {
         json!({
             "type": "object",
             "required": ["prompt"],
             "properties": {
-                "prompt": {
-                    "type": "string",
-                    "description": "Brief task instruction. Prefer structured fields below for context; the sub-agent has no memory of your conversation."
-                },
-                "objective": {
-                    "type": "string",
-                    "description": "One sentence outcome the child must produce."
-                },
+                "prompt": { "type": "string" },
+                "objective": { "type": "string" },
                 "evidence": {
                     "type": "array",
                     "items": { "type": "string" },
-                    "description": "Only facts, file paths, URLs, ids, or tool outputs the parent has actually observed."
+                    "description": "Only facts, paths, URLs, ids or tool outputs you actually observed."
                 },
                 "constraints": {
                     "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Hard requirements or limits the child must follow."
+                    "items": { "type": "string" }
                 },
                 "must_not_assume": {
                     "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Claims or facts the child must not infer without evidence."
+                    "items": { "type": "string" }
                 },
-                "expected_output": {
-                    "type": "string",
-                    "description": "Requested output shape, e.g. findings list, patch summary, cited answer."
-                },
+                "expected_output": { "type": "string" },
                 "citation_requirement": {
                     "type": "string",
                     "enum": ["none", "file_paths", "urls", "retrieval_hits", "tool_outputs"],
-                    "description": "Citation/evidence style the child must preserve in its result."
+                    "description": "Evidence style the child must preserve in its result."
                 },
                 "model": {
                     "type": "string",
-                    "description": "Optional exact model id for this delegation only. Keeps the parent provider/routing, but pins the child agent to this model instead of the agent definition's default."
+                    "description": "Pin the child to this exact model id. Omit unless you have a reason."
                 },
                 "blocking": {
                     "type": "boolean",
-                    "description": "Default false: the delegation runs as a durable async worker — you immediately get an [async_subagent_ref] with a subagent_session_id (steer_subagent / wait_subagent / continue_subagent / close_subagent operate on it), and the finished result is inserted into this chat as a new turn. Pass true ONLY when the sub-agent's result must gate THIS reply (e.g. verify/review X before answering)."
+                    "description": "Default false: async worker, result arrives as a later turn. true: waits, and the result gates this reply."
                 }
             }
         })
     }
-
     fn permission_level(&self) -> PermissionLevel {
         PermissionLevel::Execute
     }
