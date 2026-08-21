@@ -68,7 +68,10 @@ function emptyDraft(): DraftGateway {
     label: '',
     where: 'here',
     contained: true,
-    image: 'openhuman-core:latest',
+    // What `docker-compose.yml` at the repo root builds and tags, so a
+    // developer who has already run the compose stack has this image and the
+    // form's default just works. `:latest` would be a tag nothing produces.
+    image: 'openhuman-core:local',
     binary: '/usr/local/bin/openhuman-core',
     destination: '',
     sshPort: '',
