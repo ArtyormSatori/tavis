@@ -206,12 +206,12 @@ const DiscordServerChannelPicker = ({
           <label htmlFor="discord-channel-select" className="block text-xs text-content-muted mb-1">
             {t('channels.discord.picker.channel')}
           </label>
-          <select
+          <NativeSelect
             id="discord-channel-select"
+            className="w-full"
             value={selectedChannelId}
             onChange={e => handleChannelChange(e.target.value)}
-            disabled={isLoading || channels.length === 0}
-            className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content focus:border-primary-500 focus:outline-none disabled:opacity-50">
+            disabled={isLoading || channels.length === 0}>
             <option value="">
               {state === 'loading_channels'
                 ? t('channels.discord.picker.loadingChannels')

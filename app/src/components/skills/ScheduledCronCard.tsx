@@ -115,11 +115,12 @@ export default function ScheduledCronCard({
     <div className="min-w-0 flex-1">
       <div className="flex items-center gap-2 min-w-0">
         {activeBadge && (
-          <span
+          <Badge
+            variant="success"
             data-testid={`${rootId}-active-badge`}
-            className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-sage-200 dark:bg-sage-500/30 text-sage-800 dark:text-sage-200 shrink-0">
+            className="uppercase tracking-wide shrink-0">
             {`★ ${t('settings.skillsRunner.schedule.active')}`}
-          </span>
+          </Badge>
         )}
         <span
           data-testid={`${rootId}-title`}
