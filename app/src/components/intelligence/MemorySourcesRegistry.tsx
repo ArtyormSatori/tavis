@@ -46,6 +46,17 @@ import Switch from '../ui/Switch';
 import { AddMemorySourceDialog } from './AddMemorySourceDialog';
 import { ConfirmationModal } from './ConfirmationModal';
 import {
+  AllInIcon,
+  BuildIcon,
+  CheckIcon,
+  GearIcon,
+  PlusIcon,
+  Spinner,
+  SyncIcon,
+  TrashIcon,
+  WarnIcon,
+} from './memorySourcesIcons';
+import {
   deriveSourcePipelineHealth,
   pipelineIssueMessageKey,
   type SourcePipelineHealth,
