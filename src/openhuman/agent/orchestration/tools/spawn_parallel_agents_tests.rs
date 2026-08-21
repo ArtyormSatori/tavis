@@ -971,7 +971,11 @@ fn write_fixture_tools() -> Vec<Box<dyn Tool>> {
 }
 
 /// Helper: build a fan-out task with only the fields a dispatch decision reads.
-fn dispatch_task(agent_id: &str, ownership: Option<&str>, isolation: Option<&str>) -> ParallelAgentTask {
+fn dispatch_task(
+    agent_id: &str,
+    ownership: Option<&str>,
+    isolation: Option<&str>,
+) -> ParallelAgentTask {
     ParallelAgentTask {
         agent_id: agent_id.into(),
         prompt: "do the thing".into(),
@@ -1085,10 +1089,7 @@ fn disjoint_ownership_admits_both_writers_serially() {
         ToolScope::Named(vec!["write_fixture".into()]),
         SandboxMode::None,
     );
-    let definitions = HashMap::from([
-        (first.id.clone(), first),
-        (second.id.clone(), second),
-    ]);
+    let definitions = HashMap::from([(first.id.clone(), first), (second.id.clone(), second)]);
     let parent = parent_admitting(&["first", "second"], write_fixture_tools());
 
     let preflight = prepare_spawn_parallel_tasks_from_defs(
@@ -1131,10 +1132,7 @@ fn directory_ownership_contains_files_beneath_it() {
         ToolScope::Named(vec!["write_fixture".into()]),
         SandboxMode::None,
     );
-    let definitions = HashMap::from([
-        (owner.id.clone(), owner),
-        (nested.id.clone(), nested),
-    ]);
+    let definitions = HashMap::from([(owner.id.clone(), owner), (nested.id.clone(), nested)]);
     let parent = parent_admitting(&["owner", "nested"], write_fixture_tools());
 
     let preflight = prepare_spawn_parallel_tasks_from_defs(

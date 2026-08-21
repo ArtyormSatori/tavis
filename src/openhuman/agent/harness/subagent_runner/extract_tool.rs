@@ -25,8 +25,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex as StdMutex};
 
 use async_trait::async_trait;
-use tinyagents::graph::parallel::{map_reduce, FailurePolicy, ParallelOptions};
 use serde_json::{json, Value};
+use tinyagents::graph::parallel::{map_reduce, FailurePolicy, ParallelOptions};
 
 use super::handoff::{chunk_content, ResultHandoffCache, HANDOFF_MAX_ENTRIES};
 use crate::openhuman::agent::harness::session::transcript::{
@@ -376,22 +376,22 @@ impl Tool for ExtractFromResultTool {
                 // inner `Result` is the provider call's own outcome.
                 let r = item.result.unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
                 match r {
-                Ok(text) => {
-                    let trimmed = text.trim();
-                    if trimmed.is_empty() {
-                        None
-                    } else {
-                        Some(trimmed.to_string())
+                    Ok(text) => {
+                        let trimmed = text.trim();
+                        if trimmed.is_empty() {
+                            None
+                        } else {
+                            Some(trimmed.to_string())
+                        }
                     }
-                }
-                Err(e) => {
-                    tracing::warn!(
-                        chunk_idx = i,
-                        error = %e,
-                        "[extract_from_result] map-stage provider call failed; dropping partial"
-                    );
-                    None
-                }
+                    Err(e) => {
+                        tracing::warn!(
+                            chunk_idx = i,
+                            error = %e,
+                            "[extract_from_result] map-stage provider call failed; dropping partial"
+                        );
+                        None
+                    }
                 }
             })
             .collect();

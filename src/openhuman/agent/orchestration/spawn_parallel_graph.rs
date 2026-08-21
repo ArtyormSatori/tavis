@@ -613,7 +613,6 @@ fn shared_workspace_conflict_message(agent_id: &str, conflict: &ClaimConflict) -
     }
 }
 
-
 pub(super) fn with_ownership_boundary(prompt: &str, ownership: Option<&str>) -> String {
     match ownership.map(str::trim).filter(|s| !s.is_empty()) {
         Some(boundary) => format!(

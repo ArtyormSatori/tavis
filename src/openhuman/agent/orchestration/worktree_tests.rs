@@ -264,7 +264,10 @@ fn worktree_status_serializes_with_stable_camel_case_keys() {
     assert_eq!(value["path"], "/tmp/repo/.claude/worktrees/run-1");
     assert_eq!(value["branch"], "agent/run-1");
     assert_eq!(value["isDirty"], true);
-    assert_eq!(value["changedFiles"], serde_json::json!(["src/a.rs", "src/b.rs"]));
+    assert_eq!(
+        value["changedFiles"],
+        serde_json::json!(["src/a.rs", "src/b.rs"])
+    );
 
     // A detached worktree serializes `branch` as null, not as an omitted key.
     let detached = WorktreeStatus {

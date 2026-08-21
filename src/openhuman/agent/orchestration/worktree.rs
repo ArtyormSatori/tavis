@@ -54,11 +54,11 @@ use crate::core::events::DomainEvent;
 // UI; it is field- and `serde`-identical to the crate type, pinned by
 // `worktree_status_serializes_with_stable_camel_case_keys`.
 pub use tinyagents::harness::workspace::{
-    GIT_WORKTREE_SUBDIR as WORKTREE_SUBDIR, GitWorktreeBaseRef as BaseRef,
-    GitWorktreeError as WorktreeError, GitWorktreeStatus as WorktreeStatus,
     create_git_worktree as create, detect_worktree_overlaps as detect_overlaps,
     git_worktree_diff_summary as diff_summary, git_worktree_status as status,
-    list_git_worktrees as list, remove_git_worktree as remove,
+    list_git_worktrees as list, remove_git_worktree as remove, GitWorktreeBaseRef as BaseRef,
+    GitWorktreeError as WorktreeError, GitWorktreeStatus as WorktreeStatus,
+    GIT_WORKTREE_SUBDIR as WORKTREE_SUBDIR,
 };
 
 /// OpenHuman's [`WorkspaceIsolation`] adapter over the TinyAgents git-worktree
@@ -220,9 +220,7 @@ pub fn enforce_workspace_path(
         policy_id = %descriptor.policy_id,
         "[workspace] workspace_violation"
     );
-    BUS.publish(DomainEvent::WorkspaceViolation {
-        path: rendered,
-    });
+    BUS.publish(DomainEvent::WorkspaceViolation { path: rendered });
     Err(WorkspacePathError::OutsideWorkspace(path.to_path_buf()))
 }
 
