@@ -163,7 +163,7 @@ const InstalledServerList = ({
                           </span>
                         )}
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 );
               })}
