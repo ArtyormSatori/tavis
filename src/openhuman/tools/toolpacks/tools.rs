@@ -81,9 +81,13 @@ fn render_pack(skill: &str, handle: &PackRegistryHandle) -> Result<String, Strin
         };
         found += 1;
         out.push_str(&format!("## `{}`\n\n{}\n\n", tool.name(), tool.description()));
+        // Minified, matching what the provider receives for a natively
+        // advertised tool. Pretty-printing costs roughly a third more tokens
+        // for indentation and newlines the model gains nothing from, and this
+        // text is charged to the context window exactly like a native schema.
         out.push_str("```json\n");
         out.push_str(
-            &serde_json::to_string_pretty(&tool.parameters_schema())
+            &serde_json::to_string(&tool.parameters_schema())
                 .unwrap_or_else(|_| "{}".to_string()),
         );
         out.push_str("\n```\n\n");
