@@ -6,10 +6,13 @@
  * `ProviderRef` / `RoutingMap` vocabulary. Kept dependency-free of React so it
  * stays trivially unit-testable.
  */
+import type { ModelRegistryEntry } from '../../../../services/api/aiSettingsApi';
 import type { AuthStyle } from '../../../../utils/tauriCommands/config';
 import {
+  authStyleForBuiltinCloudProvider,
   BUILTIN_CLOUD_PROVIDER_META,
   BUILTIN_CLOUD_PROVIDER_SLUGS,
+  defaultEndpointForBuiltinCloudProvider,
 } from '../builtinCloudProviders';
 
 // ─────────────────────────────────────────────────────────────────────────────
