@@ -307,6 +307,26 @@ export async function runBootCheck(
   }
 
   // ------------------------------------------------------------------
+  // Gateway mode
+  // ------------------------------------------------------------------
+  //
+  // A gateway is provisioned and health-checked by the Tauri shell before it
+  // ever becomes the active one (`gateway::registry::activate`), and the shell
+  // answers `core_rpc_url` / `core_rpc_token` from it — so by the time the boot
+  // gate runs, the reachability question this function exists to ask has
+  // already been asked and answered somewhere better placed to ask it.
+  //
+  // The version check below is deliberately not repeated either: a gateway's
+  // core is whatever image or binary the user pointed at, so "older than this
+  // UI" is a real possibility they chose, not a broken install to block on.
+  // The unknown-method classification in `coreRpcClient` handles the
+  // consequences per call, which is where the mismatch actually shows up.
+  if (mode.kind === 'gateway') {
+    log('[boot-check] gateway mode — id=%s, already verified by the shell', mode.gatewayId);
+    return { kind: 'match' };
+  }
+
+  // ------------------------------------------------------------------
   // Cloud mode
   // ------------------------------------------------------------------
   let safeUrl: string | null = null;
