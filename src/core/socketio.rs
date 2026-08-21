@@ -5,7 +5,7 @@ use serde_json::Value;
 // bodies below, all gated with the `http-server` feature (#5048). The inert
 // event payload types further down (`WebChannelEvent`, `TurnUsagePayload`,
 // `SubagentUsagePayload`, `SubagentProgressDetail`) stay compiled in every build
-// — ~10 always-on domains (web_chat, cron, channels, agent, agentbox, …)
+// — ~10 always-on domains (web_chat, cron, channels, agent, …)
 // construct them — so `serde` stays ungated and only the transport surface is
 // gated (type carve-out; see AGENTS.md and this module's `pub mod` in
 // `core::mod`, which is intentionally NOT gated).

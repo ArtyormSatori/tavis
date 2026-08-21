@@ -1321,7 +1321,6 @@ fn carved_out_families_report_their_own_group() {
         // Mis-tagged before the realignment: these live inside a named family
         // directory but answered `Platform`, so `harness()` registered nothing
         // for them despite claiming to enable their family.
-        ("agentbox", DomainGroup::Agent),
         ("harness_init", DomainGroup::Agent),
         ("ai", DomainGroup::Agent),
         ("auth", DomainGroup::Security),
@@ -1369,7 +1368,6 @@ fn platform_holds_only_kernel_surfaces() {
                     | "dashboard"
                     | "notification"
                     | "sandbox"
-                    | "agentbox"
                     | "harness_init"
                     | "ai"
                     | "auth"
@@ -1390,7 +1388,6 @@ fn platform_holds_only_kernel_surfaces() {
 fn harness_preset_registers_the_families_it_claims() {
     let harness = crate::core::runtime::DomainSet::harness();
     for ns in [
-        "agentbox",
         "harness_init",
         "ai",
         "auth",
