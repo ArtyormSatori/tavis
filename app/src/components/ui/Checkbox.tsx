@@ -8,6 +8,12 @@ export interface CheckboxProps {
   checked: boolean;
   onCheckedChange: (next: boolean) => void;
   disabled?: boolean;
+  /**
+   * Tri-state. The previous native-input version had to reach for a ref and set
+   * `.indeterminate` in an effect, because the attribute does not exist in
+   * markup; Radix models it as a real value.
+   */
+  indeterminate?: boolean;
   className?: string;
   'aria-label'?: string;
   'data-testid'?: string;
@@ -23,6 +29,7 @@ const Checkbox = ({
   checked,
   onCheckedChange,
   disabled = false,
+  indeterminate = false,
   className,
   'aria-label': ariaLabel,
   'data-testid': testId,
@@ -31,7 +38,7 @@ const Checkbox = ({
     id={id}
     data-slot="checkbox"
     data-testid={testId}
-    checked={checked}
+    checked={indeterminate ? 'indeterminate' : checked}
     onCheckedChange={(next) => onCheckedChange(next === true)}
     disabled={disabled}
     aria-label={ariaLabel}
@@ -41,10 +48,15 @@ const Checkbox = ({
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:border-primary-500 data-[state=checked]:bg-primary-500',
+      'data-[state=indeterminate]:border-primary-500 data-[state=indeterminate]:bg-primary-500',
       className,
     )}>
     <CheckboxPrimitive.Indicator className="text-content-inverted">
-      <CheckIcon className="h-3 w-3" />
+      {indeterminate ? (
+        <span aria-hidden="true" className="block h-0.5 w-2 rounded-full bg-current" />
+      ) : (
+        <CheckIcon className="h-3 w-3" />
+      )}
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 );
