@@ -117,6 +117,17 @@ pub(crate) struct PreparedParallelTask {
     dispatch_mode: WorkerDispatchMode,
 }
 
+impl PreparedParallelTask {
+    /// How this worker will be dispatched relative to its siblings.
+    ///
+    /// Exposed so the write-safety decision can be asserted directly: it is the
+    /// one property of a preflight whose regression corrupts a shared checkout
+    /// silently rather than failing a run.
+    pub(crate) fn dispatch_mode(&self) -> WorkerDispatchMode {
+        self.dispatch_mode
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ParallelTaskRejectionKind {
     MissingAgentOrPrompt,
@@ -140,7 +151,7 @@ pub(crate) enum SpawnParallelTaskPreflight {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum WorkerDispatchMode {
+pub(crate) enum WorkerDispatchMode {
     Parallel,
     SerialSharedWorkspaceWrite,
 }
