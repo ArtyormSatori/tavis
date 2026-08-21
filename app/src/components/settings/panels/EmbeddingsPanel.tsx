@@ -491,35 +491,28 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
         </SettingsSection>
 
         {showManagedLoginPrompt && (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-900/10 p-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
-                {t('settings.embeddings.managedBannerIntro')}{' '}
-                {isLocalSession
-                  ? t('settings.embeddings.managedBannerLocalSession')
-                  : t('settings.embeddings.managedBannerRemoteSession')}
-              </p>
-              <Button
-                type="button"
-                variant="secondary"
-                size="xs"
-                className="shrink-0"
-                onClick={() => void clearSession()}>
-                {isLocalSession
-                  ? t('settings.exitLocalSession')
-                  : t('settings.embeddings.signInAgain')}
-              </Button>
-            </div>
-          </div>
+          <Alert variant="warning" className="flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <AlertDescription className="opacity-100">
+              {t('settings.embeddings.managedBannerIntro')}{' '}
+              {isLocalSession
+                ? t('settings.embeddings.managedBannerLocalSession')
+                : t('settings.embeddings.managedBannerRemoteSession')}
+            </AlertDescription>
+            <Button
+              variant="secondary"
+              size="xs"
+              className="shrink-0"
+              onClick={() => void clearSession()}>
+              {isLocalSession
+                ? t('settings.exitLocalSession')
+                : t('settings.embeddings.signInAgain')}
+            </Button>
+          </Alert>
         )}
 
         {/* Vector search disabled notice */}
         {selectedProvider === 'none' && (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-900/10 p-3">
-            <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
-              {t('settings.embeddings.vectorSearchDisabled')}
-            </p>
-          </div>
+          <Alert variant="warning">{t('settings.embeddings.vectorSearchDisabled')}</Alert>
         )}
 
         {/* Model & dimensions (for active provider with catalog models) */}
