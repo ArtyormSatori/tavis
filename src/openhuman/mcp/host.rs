@@ -243,6 +243,25 @@ fn auth_config(auth: &crate::openhuman::config::McpAuthConfig) -> tinymcp::McpAu
     }
 }
 
+/// The statically declared server set, built from this application's
+/// configuration.
+///
+/// A set that cannot be built — a malformed proxy, an unusable TLS setting — is
+/// logged and reported as empty. Those conditions affect every server equally,
+/// and taking the whole tool surface down over one of them helps nobody: the
+/// agent loses its MCP tools either way, and an empty set says so without also
+/// failing whatever else was being assembled.
+#[must_use]
+pub fn static_registry(config: &Config) -> McpServerRegistry {
+    match McpServerRegistry::from_config(&client_config(config)) {
+        Ok(registry) => registry,
+        Err(error) => {
+            tracing::warn!("[mcp] could not build the static server set: {error}");
+            McpServerRegistry::default()
+        }
+    }
+}
+
 /// The loopback address a browser sign-in redirects back to.
 ///
 /// `tinymcp` takes this rather than deriving it, and correctly: only this

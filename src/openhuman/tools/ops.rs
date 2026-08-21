@@ -975,8 +975,11 @@ pub fn all_tools_with_runtime(
     #[cfg(feature = "mcp")]
     {
         let mcp_registry = {
-            let base =
-                crate::openhuman::mcp::config_servers::McpServerRegistry::from_config(root_config);
+            // Built from the converted configuration, which is the one place
+            // the two vocabularies meet. A registry that cannot be built is
+            // logged and treated as empty: a malformed proxy or TLS setting
+            // must not take the whole tool surface down with it.
+            let base = crate::openhuman::mcp::host::static_registry(root_config);
             // Scope the MCP surface to the active profile's allowlist. `None` keeps
             // every configured server; `Some(&[])` yields an empty registry.
             match mcp_allowlist {
