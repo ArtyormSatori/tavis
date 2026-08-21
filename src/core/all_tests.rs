@@ -1273,7 +1273,6 @@ fn carved_out_families_report_their_own_group() {
         #[cfg(feature = "flows")]
         ("flows", DomainGroup::Flows),
         ("cron", DomainGroup::Automation),
-        ("heartbeat", DomainGroup::Automation),
         ("composio", DomainGroup::Integrations),
         ("task_sources", DomainGroup::Integrations),
         ("billing", DomainGroup::Hosted),
@@ -1321,7 +1320,6 @@ fn platform_holds_only_kernel_surfaces() {
             !matches!(
                 *ns,
                 "cron"
-                    | "heartbeat"
                     | "composio"
                     | "task_sources"
                     | "billing"
@@ -1408,9 +1406,9 @@ fn embedded_preset_excludes_desktop_and_hosted() {
     );
     assert!(!e.relay, "embedded() must not enable the relay surface");
     // Still needs these: skills run on the managed runtimes, and the session
-    // loop is driven by cron/heartbeat.
+    // loop is driven by cron.
     assert!(e.runtimes, "embedded() needs the code-execution runtimes");
-    assert!(e.automation, "embedded() needs cron + subconscious");
+    assert!(e.automation, "embedded() needs cron");
     assert!(e.inference, "embedded() needs inference");
     assert!(e.integrations, "embedded() needs external integrations");
 }
