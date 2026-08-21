@@ -516,23 +516,25 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
             {endpointHost && (
               <p className="text-[11px] text-content-secondary">
                 {t('mcp.connectAuth.tokenProvider')}{' '}
-                <button
-                  type="button"
+                <Button
+                  variant="tertiary"
+                  size="xs"
                   onClick={() => void openUrl(providerUrlFromHost(endpointHost))}
                   title={providerUrlFromHost(endpointHost)}
-                  className="font-medium text-primary-600 dark:text-primary-400 underline underline-offset-2 hover:text-primary-700 dark:hover:text-primary-300 break-all">
+                  className="h-auto p-0 align-baseline font-medium text-primary-600 underline underline-offset-2 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 break-all">
                   {endpointHost}
                   <span aria-hidden="true"> ↗</span>
-                </button>
+                </Button>
               </p>
             )}
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="xs"
               onClick={() => setShowConfigHelp(true)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 dark:text-primary-400 hover:underline">
+              className="h-auto gap-1 p-0 align-baseline text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-400">
               {t('mcp.connectAuth.findToken')}
               <span aria-hidden="true">↗</span>
-            </button>
+            </Button>
           </div>
         )}
 

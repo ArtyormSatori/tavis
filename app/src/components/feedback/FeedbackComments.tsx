@@ -5,7 +5,7 @@ import { useUser } from '../../hooks/useUser';
 import { useT } from '../../lib/i18n/I18nContext';
 import { feedbackApi } from '../../services/api/feedbackApi';
 import type { FeedbackComment } from '../../types/feedback';
-import Button from '../ui/Button';
+import { Button, TextArea } from '../ui';
 
 const log = debugFactory('feedback:comments');
 
