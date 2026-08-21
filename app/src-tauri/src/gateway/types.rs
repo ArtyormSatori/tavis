@@ -33,19 +33,14 @@ pub struct ActiveGateway {
 /// Mirrors tinybox's `HostRef` axis. It is *only* reach: what confines the
 /// core once it is there is [`Confinement`], and the two compose freely — which
 /// is why `Ssh` + [`Confinement::Docker`] needs no variant of its own.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum Reach {
     /// This machine.
+    #[default]
     Local,
     /// Another machine, over SSH.
     Ssh(SshReach),
-}
-
-impl Default for Reach {
-    fn default() -> Self {
-        Self::Local
-    }
 }
 
 /// Everything `ssh` needs that the user's `~/.ssh/config` does not already say.
