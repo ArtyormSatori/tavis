@@ -10,8 +10,10 @@
 import debug from 'debug';
 import { useState } from 'react';
 
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import type { MeetingPlatform } from '../../services/meetCallService';
+import Button from '../ui/Button';
 import { MEETING_PLATFORMS, platformLabel, platformLogoUrl } from './meetingUtils';
 
 const log = debug('meetings:platform-chips');
@@ -74,27 +76,26 @@ export function PlatformChips({ selected, onSelect, disabled = false }: Platform
         const label = platformLabel(platform, t);
 
         return (
-          <button
+          <Button
             key={platform}
-            type="button"
+            variant="tertiary"
+            size="sm"
             role="radio"
             aria-checked={isSelected}
             aria-label={label}
             onClick={() => handleClick(platform)}
             onKeyDown={e => handleKeyDown(e, platform)}
             disabled={disabled}
-            className={[
-              'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium',
-              'transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2',
+            className={cn(
+              'h-auto gap-1.5 rounded-full border px-3 py-1.5 text-xs',
               'focus-visible:ring-primary-500 focus-visible:ring-offset-1',
-              'disabled:cursor-not-allowed disabled:opacity-40',
               isSelected
                 ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300'
-                : 'border-line bg-surface text-content-secondary hover:border-primary-300 hover:bg-primary-50/40 dark:hover:bg-primary-500/10',
-            ].join(' ')}>
+                : 'border-line bg-surface text-content-secondary hover:border-primary-300 hover:bg-primary-50/40 dark:hover:bg-primary-500/10'
+            )}>
             <PlatformLogo platform={platform} label={label} />
             <span>{label}</span>
-          </button>
+          </Button>
         );
       })}
     </div>
