@@ -16,6 +16,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import Button from '../../components/ui/Button';
 import { useClipboardFeedback } from '../../hooks/useClipboardFeedback';
 import { useT } from '../../lib/i18n/I18nContext';
 import { fetchWalletStatus } from '../../services/walletApi';

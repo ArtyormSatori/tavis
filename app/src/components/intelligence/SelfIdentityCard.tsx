@@ -16,6 +16,7 @@ import { useCallback, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { SelfIdentity } from '../../lib/orchestration/orchestrationClient';
+import Button from '../ui/Button';
 
 interface SelfIdentityCardProps {
   identity: SelfIdentity | null;
