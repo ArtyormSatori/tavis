@@ -1,38 +1,34 @@
 import { writeFileSync } from 'node:fs';
 
-import { fireEvent, render } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { Dialog } from 'radix-ui';
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 const log: string[] = [];
 
-describe('raw radix dialog', () => {
-  test('outside pointer dismissal in jsdom', async () => {
-    const onOpenChange = vi.fn();
-    render(
-      <Dialog.Root open onOpenChange={onOpenChange}>
+describe('raw radix focus restore', () => {
+  test('restores focus when the whole tree is unmounted', async () => {
+    const trigger = document.createElement('button');
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    const { unmount } = render(
+      <Dialog.Root open>
         <Dialog.Portal>
-          <Dialog.Overlay data-testid="ov" />
           <Dialog.Content>
             <Dialog.Title>t</Dialog.Title>
-            <p>body</p>
+            <button>inner</button>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>,
     );
     await new Promise((r) => setTimeout(r, 10));
+    log.push(`active while open = ${document.activeElement?.textContent}`);
 
-    const ov = document.querySelector('[data-testid="ov"]') as HTMLElement;
-    fireEvent.pointerDown(ov);
-    log.push(`raw: after overlay pointerdown = ${onOpenChange.mock.calls.length}`);
-
-    fireEvent.pointerDown(ov);
-    fireEvent.click(ov);
-    log.push(`raw: after overlay pointerdown+click = ${onOpenChange.mock.calls.length}`);
-
-    fireEvent.keyDown(document, { key: 'Escape' });
-    log.push(`raw: after escape = ${onOpenChange.mock.calls.length}`);
-    log.push(`PointerEvent is polyfilled: ${globalThis.PointerEvent?.name}`);
+    unmount();
+    await new Promise((r) => setTimeout(r, 50));
+    log.push(`restored to trigger = ${document.activeElement === trigger}`);
+    log.push(`active after unmount = ${document.activeElement?.tagName}`);
 
     writeFileSync('/tmp/probe-out.txt', log.join('\n'));
     expect(true).toBe(true);
