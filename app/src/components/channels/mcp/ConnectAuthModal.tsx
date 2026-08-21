@@ -642,7 +642,9 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
             <div key={h.id} className="space-y-1.5 rounded-lg border border-line p-2">
               {/* Row 1: header name + scheme + remove */}
               <div className="flex gap-2">
-                <input
+                <TextField
+                  mono
+                  inputSize="sm"
                   value={h.name}
                   onChange={e => patchHeader(h.id, { name: e.target.value })}
                   placeholder={t('mcp.connectAuth.headerName')}
@@ -651,17 +653,18 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
                   data-1p-ignore
                   data-lpignore="true"
                   data-form-type="other"
-                  className="flex-1 min-w-0 rounded-lg border border-line bg-surface px-2 py-1.5 text-xs font-mono text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50"
+                  className="min-w-0 flex-1"
                 />
-                <select
+                <NativeSelect
+                  inputSize="sm"
                   value={h.scheme}
                   onChange={e => patchHeader(h.id, { scheme: e.target.value as 'bearer' | 'raw' })}
                   disabled={busy}
                   title={t('mcp.connectAuth.schemeLabel')}
-                  className="shrink-0 rounded-lg border border-line bg-surface px-1.5 py-1.5 text-[11px] text-content-secondary focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50">
+                  className="shrink-0 text-[11px]">
                   <option value="bearer">{t('mcp.connectAuth.schemeBearer')}</option>
                   <option value="raw">{t('mcp.connectAuth.schemeRaw')}</option>
-                </select>
+                </NativeSelect>
                 <Button
                   variant="secondary"
                   size="xs"
@@ -673,7 +676,8 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
                 </Button>
               </div>
               {/* Row 2: full-width value (tokens are long) */}
-              <input
+              <TextField
+                inputSize="sm"
                 type="password"
                 value={h.value}
                 onChange={e => patchHeader(h.id, { value: e.target.value })}
@@ -685,7 +689,7 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
                 data-1p-ignore
                 data-lpignore="true"
                 data-form-type="other"
-                className="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-xs text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50"
+                className="w-full"
               />
             </div>
           ))}
