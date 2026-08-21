@@ -1,3 +1,4 @@
+import { fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { FieldRequirement } from '../../types/channels';
