@@ -9,8 +9,13 @@ use super::types::ToolPack;
 /// Every pack this build knows about.
 ///
 /// Chosen by measured schema cost against how often the orchestrator actually
-/// needs them. The three below are ~4.1k tokens of the Master Agent's ~21.4k
-/// tool-schema budget and are idle in the large majority of turns.
+/// needs them: together ~5.9k tokens of the Master Agent's tool-schema budget,
+/// idle in the large majority of turns. Measured with tiktoken `o200k_base`
+/// against a real `agent dump-all`, not estimated.
+///
+/// Frequency of use is the whole criterion — see
+/// `DELIBERATELY_UNPACKED_FLEET_TOOLS` below for the family that is expensive
+/// but must stay advertised.
 pub const PACKS: &[ToolPack] = &[
     ToolPack {
         id: "workflows",
@@ -36,6 +41,51 @@ pub const PACKS: &[ToolPack] = &[
         summary: "MCP server setup, connection status, and calling tools on a connected MCP server.",
         tools: &["use_mcp_server", "setup_mcp_server", "mcp_registry_status"],
     },
+    ToolPack {
+        id: "skills",
+        summary: "Find, install and run agent skills from the community registries.",
+        tools: &[
+            "run_skill",
+            "setup_skills",
+            "skill_registry_browse",
+            "skill_registry_search",
+            "skill_registry_install",
+            "skill_registry_sources",
+        ],
+    },
+    ToolPack {
+        id: "goals",
+        summary: "Read, set and complete the user's long-term goals.",
+        tools: &["goal_set", "goal_get", "goal_complete"],
+    },
+    ToolPack {
+        id: "app_update",
+        summary: "Check for and apply OpenHuman application updates.",
+        tools: &["update_check", "update_apply"],
+    },
+];
+
+/// The fleet tools are deliberately NOT a pack, and this is worth stating
+/// because they look like an obvious 1.6k-token candidate.
+///
+/// `steer_subagent`, `wait_subagent`, `close_subagent`, `list_subagents`,
+/// `continue_subagent`, `wait`, `wait_loop` and `spawn_parallel_agents` are
+/// needed *reactively*, mid-turn — exactly when an async worker returns or
+/// pauses on `ask_user_clarification`. A load round-trip at that moment is the
+/// worst possible time to add one, and a `continue_subagent` the model cannot
+/// see is the known infinite-re-delegation failure mode (#4291): the only
+/// continuation left is a fresh stateless sub-agent that asks the same
+/// question again.
+#[cfg(test)]
+pub(crate) const DELIBERATELY_UNPACKED_FLEET_TOOLS: &[&str] = &[
+    "steer_subagent",
+    "wait_subagent",
+    "close_subagent",
+    "list_subagents",
+    "continue_subagent",
+    "wait",
+    "wait_loop",
+    "spawn_parallel_agents",
 ];
 
 pub fn pack(id: &str) -> Option<&'static ToolPack> {
