@@ -202,29 +202,29 @@ const PersonaPanel = ({ embedded = false }: PersonaPanelProps) => {
           </div>
         ) : (
           <>
-            <div
-              role="group"
+            <ToggleGroupRoot
+              type="single"
+              value={soulMode}
+              onValueChange={next => {
+                if (next) setSoulMode(next as SoulMode);
+              }}
               aria-label={t('settings.persona.builder.modeLabel')}
-              className="flex items-center gap-1 px-4 pt-3">
-              <Button
-                type="button"
-                aria-pressed={soulMode === 'guided'}
+              variant="secondary"
+              size="xs"
+              className="px-4 pt-3">
+              <ToggleGroupItem
+                value="guided"
                 data-testid="persona-soul-mode-guided"
-                variant={soulMode === 'guided' ? 'primary' : 'secondary'}
-                size="xs"
-                onClick={() => setSoulMode('guided')}>
+                variant={soulMode === 'guided' ? 'primary' : 'secondary'}>
                 {t('settings.persona.builder.modeGuided')}
-              </Button>
-              <Button
-                type="button"
-                aria-pressed={soulMode === 'advanced'}
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="advanced"
                 data-testid="persona-soul-mode-advanced"
-                variant={soulMode === 'advanced' ? 'primary' : 'secondary'}
-                size="xs"
-                onClick={() => setSoulMode('advanced')}>
+                variant={soulMode === 'advanced' ? 'primary' : 'secondary'}>
                 {t('settings.persona.builder.modeAdvanced')}
-              </Button>
-            </div>
+              </ToggleGroupItem>
+            </ToggleGroupRoot>
             {soulMode === 'guided' ? (
               <PersonaGuidedFields value={soulDraft} onChange={setSoulDraft} disabled={soulBusy} />
             ) : (
