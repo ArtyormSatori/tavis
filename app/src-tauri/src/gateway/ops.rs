@@ -191,5 +191,3 @@ pub fn endpoint_of(
         GatewaySpec::Box { .. } => None,
     }
 }
-
-/// Create a box, start a core in it, and make it reachable from here.
