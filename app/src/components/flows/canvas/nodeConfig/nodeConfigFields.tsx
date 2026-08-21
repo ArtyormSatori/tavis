@@ -164,9 +164,10 @@ export function SelectField({ label, hint, value, onChange, options, testId }: S
   const id = useId();
   return (
     <Field label={label} hint={hint} htmlFor={id}>
-      <select
+      <NativeSelect
         id={id}
-        className={INPUT_CLASS}
+        inputSize="sm"
+        className="w-full"
         value={value}
         data-testid={testId}
         onChange={e => onChange(e.target.value)}>
@@ -175,7 +176,7 @@ export function SelectField({ label, hint, value, onChange, options, testId }: S
             {opt.label}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </Field>
   );
 }
