@@ -128,13 +128,14 @@ export default function CollapsedNavRail() {
 
       {/* Settings — reached via the header gear when expanded, which is hidden
           in the collapsed rail, so it gets its own icon here. */}
-      <button
-        type="button"
+      <Button
+        variant="tertiary"
+        iconOnly
         onClick={() => navigate('/settings')}
         title={t('nav.settings')}
         aria-label={t('nav.settings')}
         aria-current={settingsActive ? 'page' : undefined}
-        data-analytics-id="collapsed-rail-settings"
+        analyticsId="collapsed-rail-settings"
         className={`${RAIL_BTN} ${
           settingsActive
             ? 'bg-surface/70 text-content'
