@@ -276,7 +276,10 @@ describe('<Feedback /> keeps the board in sync after local mutations', () => {
     await openFilter(user, 'All statuses', 'Open');
     await waitFor(() => expect(mockList).toHaveBeenCalledTimes(2));
 
-    await user.selectOptions(screen.getByRole('combobox'), 'completed');
+    // Scoped by accessible name: FeedbackFilterSelect's Radix trigger now also
+    // has role="combobox" (see FeedbackFilterSelect.tsx), so an unscoped query
+    // matches both it and this per-row admin NativeSelect.
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'completed');
 
     await waitFor(() => expect(mockUpdateStatus).toHaveBeenCalledWith('f1', 'completed'));
     // The completed row no longer matches the Open filter: reload drops it.
