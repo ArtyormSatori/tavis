@@ -464,7 +464,6 @@ const messages: TranslationMap = {
   'orchPage.usage.tokensSaved': 'Zaoszczędzone tokeny',
   'orchPage.usage.saved': 'zaoszczędzono',
   'orchPage.usage.footnote': 'Wykorzystanie odzwierciedla bieżący cykl rozliczeniowy.',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Portfel',
   'nav.avatarMenu.account': 'Konto',
   'nav.avatarMenu.billing': 'Rozliczenia',
@@ -6291,9 +6290,6 @@ const messages: TranslationMap = {
   'walkthrough.steps.brainTab.title': 'Otwórz Brain',
   'walkthrough.steps.brainTab.content':
     'Brain to graf pamięci: miejsce, w którym sprawdzisz, co wie OpenHuman i jak łączą się idee.',
-  'walkthrough.steps.agentWorldTab.title': 'Odkryj Agent World',
-  'walkthrough.steps.agentWorldTab.content':
-    'Agent World to miejsce na agentów wielokrotnego użytku i wspólne automatyzacje.',
   'walkthrough.steps.connectionsTab.title': 'Zarządzaj połączeniami',
   'walkthrough.steps.connectionsTab.content':
     'Connections jest zawsze dostępne w głównej nawigacji, gdy chcesz dodać lub zmienić usługi.',

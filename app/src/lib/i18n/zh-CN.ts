@@ -423,7 +423,6 @@ const messages: TranslationMap = {
   'orchPage.usage.tokensSaved': '已节省令牌',
   'orchPage.usage.saved': '已节省',
   'orchPage.usage.footnote': '用量反映你当前的计费周期。',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': '钱包',
   'nav.avatarMenu.account': '账户',
   'nav.avatarMenu.billing': '账单',
@@ -5871,8 +5870,6 @@ const messages: TranslationMap = {
   'walkthrough.steps.brainTab.title': '打开 Brain',
   'walkthrough.steps.brainTab.content':
     'Brain 是记忆图谱，用来查看 OpenHuman 知道什么，以及想法如何相互连接。',
-  'walkthrough.steps.agentWorldTab.title': '探索 Agent World',
-  'walkthrough.steps.agentWorldTab.content': 'Agent World 是可复用代理和共享自动化所在的位置。',
   'walkthrough.steps.connectionsTab.title': '管理连接',
   'walkthrough.steps.connectionsTab.content':
     '想添加或调整服务时，Connections 始终可从主导航进入。',

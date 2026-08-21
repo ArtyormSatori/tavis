@@ -453,7 +453,6 @@ const messages: TranslationMap = {
   'orchPage.usage.tokensSaved': 'बचाए गए टोकन',
   'orchPage.usage.saved': 'बचाया',
   'orchPage.usage.footnote': 'उपयोग आपके वर्तमान बिलिंग चक्र को दर्शाता है।',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'वॉलेट',
   'nav.avatarMenu.account': 'खाता',
   'nav.avatarMenu.billing': 'बिलिंग',
@@ -6204,9 +6203,6 @@ const messages: TranslationMap = {
   'walkthrough.steps.brainTab.title': 'अपना Brain खोलें',
   'walkthrough.steps.brainTab.content':
     'Brain मेमोरी ग्राफ है: यहां देखें कि OpenHuman क्या जानता है और विचार कैसे जुड़े हैं।',
-  'walkthrough.steps.agentWorldTab.title': 'Agent World देखें',
-  'walkthrough.steps.agentWorldTab.content':
-    'Agent World में पुन: उपयोग योग्य एजेंट और साझा ऑटोमेशन रहते हैं।',
   'walkthrough.steps.connectionsTab.title': 'कनेक्शन प्रबंधित करें',
   'walkthrough.steps.connectionsTab.content':
     'सेवाएं जोड़ने या बदलने के लिए Connections हमेशा मुख्य नेविगेशन में उपलब्ध है।',

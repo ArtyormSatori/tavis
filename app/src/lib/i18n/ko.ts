@@ -447,7 +447,6 @@ const messages: TranslationMap = {
   'orchPage.usage.tokensSaved': '절약된 토큰',
   'orchPage.usage.saved': '절약',
   'orchPage.usage.footnote': '사용량은 현재 청구 주기를 반영합니다.',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': '지갑',
   'nav.avatarMenu.account': '계정',
   'nav.avatarMenu.billing': '결제',
@@ -6133,9 +6132,6 @@ const messages: TranslationMap = {
   'walkthrough.steps.brainTab.title': 'Brain 열기',
   'walkthrough.steps.brainTab.content':
     'Brain은 메모리 그래프입니다. OpenHuman이 무엇을 알고 아이디어가 어떻게 연결되는지 확인하는 곳입니다.',
-  'walkthrough.steps.agentWorldTab.title': 'Agent World 탐색',
-  'walkthrough.steps.agentWorldTab.content':
-    'Agent World에는 재사용 가능한 에이전트와 공유 자동화가 있습니다.',
   'walkthrough.steps.connectionsTab.title': '연결 관리',
   'walkthrough.steps.connectionsTab.content':
     '서비스를 추가하거나 조정하고 싶을 때 Connections는 항상 기본 내비게이션에 있습니다.',

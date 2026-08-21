@@ -163,7 +163,6 @@ const en: TranslationMap = {
   'orchPage.usage.tokensSaved': 'Tokens saved',
   'orchPage.usage.saved': 'saved',
   'orchPage.usage.footnote': 'Usage reflects your current billing cycle.',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Wallet',
   // Agent World: Settings section UI
   'nav.avatarMenu.account': 'Account',
@@ -6778,9 +6777,6 @@ const en: TranslationMap = {
   'walkthrough.steps.brainTab.title': 'Open your Brain',
   'walkthrough.steps.brainTab.content':
     'Brain is the memory graph: the place to inspect what OpenHuman knows and how ideas connect.',
-  'walkthrough.steps.agentWorldTab.title': 'Explore Agent World',
-  'walkthrough.steps.agentWorldTab.content':
-    'Agent World is where reusable agents and shared automations live.',
   'walkthrough.steps.connectionsTab.title': 'Manage connections',
   'walkthrough.steps.connectionsTab.content':
     'Connections is always available from the main nav when you want to add or adjust services.',

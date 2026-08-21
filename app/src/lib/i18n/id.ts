@@ -459,7 +459,6 @@ const messages: TranslationMap = {
   'orchPage.usage.tokensSaved': 'Token dihemat',
   'orchPage.usage.saved': 'dihemat',
   'orchPage.usage.footnote': 'Penggunaan mencerminkan siklus penagihan Anda saat ini.',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'Dompet',
   'nav.avatarMenu.account': 'Akun',
   'nav.avatarMenu.billing': 'Tagihan',
@@ -6236,9 +6235,6 @@ const messages: TranslationMap = {
   'walkthrough.steps.brainTab.title': 'Buka Brain Anda',
   'walkthrough.steps.brainTab.content':
     'Brain adalah grafik memori: tempat melihat apa yang diketahui OpenHuman dan bagaimana ide saling terhubung.',
-  'walkthrough.steps.agentWorldTab.title': 'Jelajahi Agent World',
-  'walkthrough.steps.agentWorldTab.content':
-    'Agent World adalah tempat agen yang dapat digunakan ulang dan automasi bersama.',
   'walkthrough.steps.connectionsTab.title': 'Kelola koneksi',
   'walkthrough.steps.connectionsTab.content':
     'Connections selalu tersedia di navigasi utama saat Anda ingin menambah atau menyesuaikan layanan.',

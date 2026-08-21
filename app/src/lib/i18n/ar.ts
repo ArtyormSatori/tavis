@@ -439,7 +439,6 @@ const messages: TranslationMap = {
   'orchPage.usage.tokensSaved': 'الرموز الموفّرة',
   'orchPage.usage.saved': 'موفّر',
   'orchPage.usage.footnote': 'يعكس الاستخدام دورة الفوترة الحالية.',
-  'nav.agentWorld': 'Tiny Place',
   'nav.wallet': 'المحفظة',
   'nav.avatarMenu.account': 'الحساب',
   'nav.avatarMenu.billing': 'الفواتير',
@@ -6068,9 +6067,6 @@ const messages: TranslationMap = {
   'walkthrough.steps.brainTab.title': 'افتح Brain',
   'walkthrough.steps.brainTab.content':
     'Brain هو مخطط الذاكرة: المكان الذي تفحص فيه ما يعرفه OpenHuman وكيف ترتبط الأفكار.',
-  'walkthrough.steps.agentWorldTab.title': 'استكشف Agent World',
-  'walkthrough.steps.agentWorldTab.content':
-    'Agent World هو مكان الوكلاء القابلين لإعادة الاستخدام والأتمتة المشتركة.',
   'walkthrough.steps.connectionsTab.title': 'إدارة الاتصالات',
   'walkthrough.steps.connectionsTab.content':
     'Connections متاح دائماً في التنقل الرئيسي عندما تريد إضافة الخدمات أو تعديلها.',
