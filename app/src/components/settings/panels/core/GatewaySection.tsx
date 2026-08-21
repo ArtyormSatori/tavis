@@ -119,7 +119,7 @@ interface Props {
 }
 
 const GatewaySection = ({ available }: Props) => {
-  const t = useT();
+  const { t } = useT();
   const dispatch = useAppDispatch();
 
   const [gateways, setGateways] = useState<Gateway[]>([]);
@@ -224,12 +224,12 @@ const GatewaySection = ({ available }: Props) => {
     switch (status.state) {
       case 'activating':
         return status.step
-          ? t('settings.gateway.activatingStep', { step: status.step })
+          ? t('settings.gateway.activatingStep').replace('{step}', status.step)
           : t('settings.gateway.activating');
       case 'connected':
-        return t('settings.gateway.connected', { endpoint: status.endpoint });
+        return t('settings.gateway.connected').replace('{endpoint}', status.endpoint);
       case 'failed':
-        return t('settings.gateway.failed', { reason: status.reason });
+        return t('settings.gateway.failed').replace('{reason}', status.reason);
       case 'inactive':
         return undefined;
     }
