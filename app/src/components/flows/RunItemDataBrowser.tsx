@@ -249,62 +249,66 @@ function FragmentRow({
   const { t } = useT();
   return (
     <>
-      <tr
+      <TableRow
         data-testid={`${testIdPrefix}-row-${index}`}
-        className="border-b border-line last:border-b-0 align-top">
-        <th scope="row" className="px-1.5 py-1 text-left font-mono font-normal text-content-faint">
-          {index + 1}
-        </th>
+        className="align-top hover:bg-transparent">
+        <TableCell asChild>
+          <th scope="row" className="px-1.5 py-1 text-left font-mono font-normal text-content-faint">
+            {index + 1}
+          </th>
+        </TableCell>
         {useColumns ? (
           columns.map(column => {
             const text = formatCell(cellValue(item, column));
             return (
-              <td
+              <TableCell
                 key={column}
                 className="max-w-[16rem] truncate px-1.5 py-1 font-mono text-content-secondary"
                 title={text || undefined}>
                 {truncate(text)}
-              </td>
+              </TableCell>
             );
           })
         ) : (
-          <td
+          <TableCell
             className="max-w-[16rem] truncate px-1.5 py-1 font-mono text-content-secondary"
             title={formatCell(item.json) || undefined}>
             {truncate(formatCell(item.json))}
-          </td>
+          </TableCell>
         )}
         {showActions && (
-          <td className="whitespace-nowrap px-1.5 py-1">
+          <TableCell className="whitespace-nowrap px-1.5 py-1">
             <div className="flex items-center justify-end gap-1.5">
               <BinaryChips binary={item.binary} testId={`${testIdPrefix}-binary-${index}`} />
               {canPair && (
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="xs"
                   data-testid={`${testIdPrefix}-source-toggle-${index}`}
                   aria-pressed={isRevealed}
                   onClick={onToggleSource}
-                  className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-content-muted hover:bg-surface-hover">
+                  className="h-auto px-1.5 py-0.5 text-[10px]">
                   {isRevealed
                     ? t('flowRuns.inspector.hideSource')
                     : t('flowRuns.inspector.showSource')}
-                </button>
+                </Button>
               )}
             </div>
-          </td>
+          </TableCell>
         )}
-      </tr>
+      </TableRow>
       {canPair && isRevealed && (
-        <tr data-testid={`${testIdPrefix}-source-${index}`}>
-          <td colSpan={totalColSpan} className="bg-surface-muted px-1.5 py-1.5">
+        <TableRow data-testid={`${testIdPrefix}-source-${index}`} className="hover:bg-transparent">
+          <TableCell colSpan={totalColSpan} className="bg-surface-muted px-1.5 py-1.5">
             <div className="text-[10px] font-semibold uppercase tracking-wide text-content-faint">
               {t('flowRuns.inspector.sourceInputTitle')}
             </div>
             <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-surface px-2 py-1.5 font-mono text-[11px] leading-relaxed text-content-secondary">
               {sourceItem ? formatJson(sourceItem.json) : t('flowRuns.inspector.emptyValue')}
             </pre>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       )}
     </>
   );

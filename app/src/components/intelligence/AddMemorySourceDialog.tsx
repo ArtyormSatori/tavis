@@ -210,18 +210,18 @@ export function AddMemorySourceDialog({ open, onClose, onAdded }: AddMemorySourc
             <p className="mt-2 text-sm text-content-muted">{t('memorySources.pickKind')}</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               {ALL_KINDS.map(k => (
-                <button
+                <Button
                   key={k}
-                  type="button"
+                  variant="secondary"
                   onClick={() => setKind(k)}
-                  className="flex items-center gap-3 rounded-lg border border-line p-3
-                             text-left transition-colors hover:border-primary-400 hover:bg-primary-50
-                             dark:border-line-strong dark:hover:border-primary-500 dark:hover:bg-primary-500/10">
+                  className="h-auto items-center justify-start gap-3 p-3 text-left font-normal
+                             hover:border-primary-400 hover:bg-primary-50
+                             dark:hover:border-primary-500 dark:hover:bg-primary-500/10">
                   <span className="text-xl">{SOURCE_KIND_ICONS[k]}</span>
                   <span className="text-sm font-medium text-content">
                     {t(SOURCE_KIND_LABEL_KEYS[k])}
                   </span>
-                </button>
+                </Button>
               ))}
             </div>
             <div className="mt-4 flex justify-end">
