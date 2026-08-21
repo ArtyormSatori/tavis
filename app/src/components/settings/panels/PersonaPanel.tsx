@@ -212,16 +212,10 @@ const PersonaPanel = ({ embedded = false }: PersonaPanelProps) => {
               variant="secondary"
               size="xs"
               className="px-4 pt-3">
-              <ToggleGroupItem
-                value="guided"
-                data-testid="persona-soul-mode-guided"
-                variant={soulMode === 'guided' ? 'primary' : 'secondary'}>
+              <ToggleGroupItem value="guided" data-testid="persona-soul-mode-guided">
                 {t('settings.persona.builder.modeGuided')}
               </ToggleGroupItem>
-              <ToggleGroupItem
-                value="advanced"
-                data-testid="persona-soul-mode-advanced"
-                variant={soulMode === 'advanced' ? 'primary' : 'secondary'}>
+              <ToggleGroupItem value="advanced" data-testid="persona-soul-mode-advanced">
                 {t('settings.persona.builder.modeAdvanced')}
               </ToggleGroupItem>
             </ToggleGroupRoot>

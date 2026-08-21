@@ -71,4 +71,21 @@ describe('ConfirmationModal', () => {
     expect(onConfirmMock).toHaveBeenCalledWith(true);
     expect(localStorage.length).toBe(0);
   });
+
+  it('returns focus to the previously-focused element when it closes', async () => {
+    const trigger = document.createElement('button');
+    trigger.textContent = 'open modal';
+    document.body.appendChild(trigger);
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    const { rerender } = render(<ConfirmationModal {...defaultProps} />);
+    // Radix moves focus into the dialog (onto Cancel) once it mounts open.
+    expect(document.activeElement).not.toBe(trigger);
+
+    rerender(<ConfirmationModal {...defaultProps} modal={{ ...defaultProps.modal, isOpen: false }} />);
+
+    await vi.waitFor(() => expect(document.activeElement).toBe(trigger));
+    document.body.removeChild(trigger);
+  });
 });
