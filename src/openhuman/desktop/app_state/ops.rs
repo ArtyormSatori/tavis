@@ -1165,7 +1165,7 @@ pub async fn snapshot() -> Result<RpcOutcome<AppStateSnapshot>, String> {
     );
 
     debug!(
-        "{LOG_PREFIX} snapshot req_id={} auth={} onboarding={} chat_onboarding={} analytics={} meet_handoff={} local_ai_state={} service_state={:?}",
+        "{LOG_PREFIX} snapshot req_id={} auth={} onboarding={} chat_onboarding={} analytics={} local_ai_state={} service_state={:?}",
         req_id,
         auth.is_authenticated,
         snapshot_config.onboarding_completed,
