@@ -16,13 +16,10 @@ import { useT } from '../../lib/i18n/I18nContext';
 import { CoreStateContext } from '../../providers/coreStateContext';
 import {
   applyAllIn,
-  type FreshnessLabel,
   listMemorySources,
   type MemorySourceEntry,
   memorySourcesStatusList,
   removeMemorySource,
-  SOURCE_KIND_ICONS,
-  SOURCE_KIND_LABEL_KEYS,
   type SourceStatus,
   syncMemorySource,
   updateMemorySource,
@@ -32,36 +29,18 @@ import type {
   ToastNotification,
 } from '../../types/intelligence';
 import {
-  type MemorySyncSettings,
-  openhumanGetMemorySyncSettings,
-  openhumanUpdateMemorySyncSettings,
-} from '../../utils/tauriCommands/config';
-import {
   memoryTreeFlushSource,
   memoryTreePipelineStatus,
   type MemoryTreePipelineStatus,
 } from '../../utils/tauriCommands/memoryTree';
 import Button from '../ui/Button';
-import Switch from '../ui/Switch';
 import { AddMemorySourceDialog } from './AddMemorySourceDialog';
 import { ConfirmationModal } from './ConfirmationModal';
-import {
-  AllInIcon,
-  BuildIcon,
-  CheckIcon,
-  GearIcon,
-  PlusIcon,
-  Spinner,
-  SyncIcon,
-  TrashIcon,
-  WarnIcon,
-} from './memorySourcesIcons';
-import {
-  deriveSourcePipelineHealth,
-  pipelineIssueMessageKey,
-  type SourcePipelineHealth,
-} from './sourcePipelineStatus';
-import { SourceSettingsPanel } from './SourceSettingsPanel';
+import { AllInIcon, PlusIcon } from './memorySourcesIcons';
+import { sourceTreeScope } from './memorySourcesRowHelpers';
+import { STAGE_FALLBACK_PERCENT, type SyncProgress, type SyncResult } from './memorySourcesSyncTypes';
+import { MemorySourceRow } from './MemorySourceRow';
+import { MemorySyncSchedule } from './MemorySyncSchedule';
 
 const log = debug('intelligence:memory-sync');
 
