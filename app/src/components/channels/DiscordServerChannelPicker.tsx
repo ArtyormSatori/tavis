@@ -174,12 +174,12 @@ const DiscordServerChannelPicker = ({
         <label htmlFor="discord-guild-select" className="block text-xs text-content-muted mb-1">
           {t('channels.discord.picker.server')}
         </label>
-        <select
+        <NativeSelect
           id="discord-guild-select"
+          className="w-full"
           value={selectedGuildId}
           onChange={e => handleGuildChange(e.target.value)}
-          disabled={isLoading || guilds.length === 0}
-          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content focus:border-primary-500 focus:outline-none disabled:opacity-50">
+          disabled={isLoading || guilds.length === 0}>
           <option value="">
             {state === 'loading_guilds'
               ? t('channels.discord.picker.loadingServers')
@@ -192,7 +192,7 @@ const DiscordServerChannelPicker = ({
               {g.name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {guilds.length === 0 && state === 'guilds_loaded' && (
           <p className="mt-1 text-xs text-content-faint">
             {t('channels.discord.picker.botNotInServers')}
