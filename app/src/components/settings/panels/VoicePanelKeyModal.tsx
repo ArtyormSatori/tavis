@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { testVoiceProvider, type VoiceInstallStatus } from '../../../services/api/voiceInstallApi';
-import { Button, ModalShell } from '../../ui';
+import { Alert, Button, ModalShell } from '../../ui';
 import { SettingsSelect, SettingsTextField } from '../controls';
 import { BUILTIN_VOICE_PROVIDER_META } from './VoicePanelProviderChips';
 
