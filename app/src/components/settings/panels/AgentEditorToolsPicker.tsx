@@ -190,11 +190,11 @@ function ToolsPickerModal({
             />
           </div>
 
-          <Button
-            type="button"
+          <Toggle
             variant="secondary"
-            onClick={onToggleAll}
-            aria-pressed={allToolsSelected}
+            pressed={allToolsSelected}
+            onPressedChange={onToggleAll}
+            data-testid="agent-tools-allow-all-toggle"
             className={
               'mt-2 h-auto w-full items-start justify-between gap-2 rounded-md px-3 py-2 text-left font-normal ' +
               (allToolsSelected
@@ -210,7 +210,7 @@ function ToolsPickerModal({
               </span>
             </span>
             <ToggleMark checked={allToolsSelected} className="mt-0.5" />
-          </Button>
+          </Toggle>
         </div>
 
         <div className="min-h-[8rem] flex-1 overflow-y-auto px-2 py-2">
