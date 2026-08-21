@@ -123,17 +123,19 @@ export function MemoryChunkDetail({ chunk, onSelectEntity }: MemoryChunkDetailPr
           <footer className="mw-letter-footer">
             {chunk.source_ref && <span>{chunk.source_ref}</span>}
             <span>·</span>
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="xs"
+              className="h-auto rounded-none px-0"
               onClick={() => void handleCopyId()}
               title={t('intelligence.memoryChunk.detail.copyChunkId')}>
               {t('intelligence.memoryChunk.detail.chunk')} {shortChunkId(chunk.id)}
               {copied && (
-                <span style={{ marginLeft: 6, color: 'var(--sage)' }}>
+                <span className="ml-1.5 text-sage-600 dark:text-sage-400">
                   {t('intelligence.memoryChunk.detail.copiedHint')}
                 </span>
               )}
-            </button>
+            </Button>
             <span>·</span>
             <span>
               {chunk.has_embedding

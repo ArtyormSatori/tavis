@@ -2,15 +2,15 @@ import {
   forwardRef,
   Fragment,
   type ReactNode,
-  useEffect,
+  useCallback,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
+import { Conversation, ConversationContent } from '../../../components/ai-elements';
 import { useStickToBottom } from '../../../hooks/useStickToBottom';
-import { parseMessageImages } from '../../../lib/attachments';
-import { unwrapToolCallEnvelope } from '../../../lib/chat/toolCallEnvelope';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { subagentApi } from '../../../services/api/subagentApi';
 import {
@@ -21,69 +21,21 @@ import {
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { persistReaction } from '../../../store/threadSlice';
 import type { ThreadMessage } from '../../../types/thread';
-import { splitAgentMessageIntoBubbles } from '../../../utils/agentMessageBubbles';
 import { formatTimelineEntry } from '../../../utils/toolTimelineFormatting';
-import { ShareMessageButton } from '../../share/ShareMessageButton';
 import { buildThreadTimeline } from '../timeline/selectors';
-import { type AgentBubblePosition, formatRelativeTime } from '../utils/format';
 import { supersededInterimIndexes } from '../utils/interimNarration';
-import { AgentMessageBubble, AgentMessageText, BubbleMarkdown } from './AgentMessageBubble';
 import { AgentProcessSourcePanel } from './AgentProcessSourcePanel';
 import { BackgroundProcessesPanel, selectBackgroundProcesses } from './BackgroundProcessesPanel';
-import { CitationChips, type MessageCitation } from './CitationChips';
 import { InterruptedAnswer } from './InterruptedAnswer';
-import { PastTurnInsights } from './PastTurnInsights';
 import { SubagentDrawer } from './SubagentDrawer';
 import { ToolTimelineBlock } from './ToolTimelineBlock';
+import { type PastTurnAnchor, TranscriptRow } from './TranscriptRow';
 
 /** Maximum trailing characters rendered in the live-streaming assistant
  *  preview bubble. The full response is revealed via `addInferenceResponse`
  *  on `chat_done` — this is purely a ticker-tape affordance to signal
  *  progress without jumping the scroll position as tokens arrive. */
 const STREAMING_PREVIEW_CHARS = 120;
-
-// Matches only well-formed base64 image data URIs — guards against an
-// `<img src>` XSS vector if a persisted message ever carried a crafted
-// value in `attachmentDataUris`/legacy `[IMAGE:...]` markers.
-const SAFE_IMAGE_DATA_URI_RE =
-  /^data:(image\/(?:png|jpe?g|gif|webp|bmp));base64,([a-z0-9+/=\s]+)$/i;
-const EMPTY_IMAGE_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-
-function imageDataUriToObjectUrl(src: string): string | null {
-  const match = SAFE_IMAGE_DATA_URI_RE.exec(src);
-  if (!match) return null;
-  try {
-    const mime = match[1];
-    const binary = atob(match[2].replace(/\s/g, ''));
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i += 1) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return URL.createObjectURL(new Blob([bytes], { type: mime }));
-  } catch {
-    return null;
-  }
-}
-
-function AttachmentImage({ dataUri }: { dataUri: string }) {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const nextUrl = imageDataUriToObjectUrl(dataUri);
-    setObjectUrl(nextUrl);
-    return () => {
-      if (nextUrl) URL.revokeObjectURL(nextUrl);
-    };
-  }, [dataUri]);
-
-  return (
-    <img
-      src={objectUrl ?? EMPTY_IMAGE_SRC}
-      alt=""
-      className="max-w-[200px] max-h-[200px] rounded-2xl object-cover"
-    />
-  );
-}
 
 // Stable empty reference for a thread with no persisted messages yet, so the
 // selector below keeps the same identity when the slice field is absent
