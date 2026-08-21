@@ -107,6 +107,28 @@ export default function OrchestrationSidebar({
   ungroupedSessions,
 }: OrchestrationSidebarProps): ReactElement {
   const { t } = useT();
+
+  // Each accepted contact is its own independent disclosure — several can be
+  // open at once, so this is Accordion `type="multiple"`, not `single`. The
+  // open set is still owned by the tab container (`expandedContacts` +
+  // `onToggleContact`); Radix's controlled `value` just wants it as an array
+  // rather than a lookup map, and `onValueChange` fires with the *whole* next
+  // array, so the delta against the previous set is what maps back onto the
+  // per-address toggle callback the container expects.
+  const openContactAddresses = Object.keys(expandedContacts).filter(
+    address => expandedContacts[address]
+  );
+  const handleContactValueChange = (nextOpen: string[]) => {
+    const next = new Set(nextOpen);
+    const previous = new Set(openContactAddresses);
+    for (const address of nextOpen) {
+      if (!previous.has(address)) onToggleContact(address);
+    }
+    for (const address of openContactAddresses) {
+      if (!next.has(address)) onToggleContact(address);
+    }
+  };
+
   return (
     <aside className="flex w-80 flex-none flex-col border-r border-line bg-surface-muted/40">
       <div className="border-b border-line px-4 py-3">
