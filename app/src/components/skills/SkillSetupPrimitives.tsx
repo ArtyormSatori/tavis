@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { CheckIcon, ModalShell } from '../ui';
+import { Button, CheckIcon, ModalShell } from '../ui';
 
 interface SkillSetupModalShellProps {
   children: ReactNode;
@@ -99,18 +99,20 @@ export function SetupSuccess({
       </div>
 
       <div className="flex flex-col gap-2">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={onSettings}
-          className="w-full rounded-xl border border-primary-200 bg-primary-50 px-4 py-2.5 text-sm font-medium text-primary-700 hover:bg-primary-100 transition-colors">
+          className="w-full rounded-xl border-primary-200 bg-primary-50 font-medium text-primary-700 hover:bg-primary-100">
           {settingsLabel}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={onFinish}
-          className="w-full rounded-xl border border-line bg-surface-muted px-4 py-2.5 text-sm font-medium text-content-secondary hover:bg-surface-hover dark:bg-surface-muted transition-colors">
+          className="w-full rounded-xl border-line bg-surface-muted font-medium text-content-secondary hover:bg-surface-hover dark:bg-surface-muted">
           {finishLabel}
-        </button>
+        </Button>
       </div>
     </div>
   );
