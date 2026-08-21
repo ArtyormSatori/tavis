@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -8,7 +9,12 @@ const RAW_PALETTE = /\b(bg|text|border|ring)-(neutral|stone|slate|canvas|white|b
 
 const renderSingle = (props: Record<string, unknown> = {}) =>
   render(
-    <ToggleGroupRoot type="single" aria-label="Alignment" defaultValue="left" {...props}>
+    <ToggleGroupRoot
+      type="single"
+      aria-label="Alignment"
+      defaultValue="left"
+      data-testid="root"
+      {...props}>
       <ToggleGroupItem value="left" aria-label="Left" data-testid="left" />
       <ToggleGroupItem value="center" aria-label="Center" data-testid="center" />
       <ToggleGroupItem value="right" aria-label="Right" data-testid="right" />
@@ -18,7 +24,8 @@ const renderSingle = (props: Record<string, unknown> = {}) =>
 describe('ToggleGroup', () => {
   it('renders a labelled group of pressed-state buttons', () => {
     renderSingle();
-    expect(screen.getByRole('group', { name: 'Alignment' })).toHaveAttribute(
+    // Radix models `type="single"` as a radiogroup, not a generic group.
+    expect(screen.getByRole('radiogroup', { name: 'Alignment' })).toHaveAttribute(
       'data-slot',
       'toggle-group'
     );
@@ -43,23 +50,22 @@ describe('ToggleGroup', () => {
     expect(ref.current).toBeInstanceOf(HTMLElement);
   });
 
-  it('moves the roving tab stop with arrow keys', () => {
+  it('moves the roving tab stop with arrow keys', async () => {
+    const user = userEvent.setup();
     renderSingle();
-    const left = screen.getByTestId('left');
-    left.focus();
-    fireEvent.keyDown(left, { key: 'ArrowRight' });
+    screen.getByTestId('left').focus();
+    await user.keyboard('{ArrowRight}');
     expect(screen.getByTestId('center')).toHaveFocus();
   });
 
-  it('selects with the keyboard in single mode', () => {
+  it('selects with the keyboard in single mode', async () => {
+    const user = userEvent.setup();
     const onValueChange = vi.fn();
     renderSingle({ onValueChange });
-    const center = screen.getByTestId('center');
-    center.focus();
-    fireEvent.keyDown(center, { key: 'Enter' });
-    fireEvent.keyUp(center, { key: 'Enter' });
+    screen.getByTestId('center').focus();
+    await user.keyboard('{Enter}');
     expect(onValueChange).toHaveBeenCalledWith('center');
-    expect(center).toHaveAttribute('data-state', 'on');
+    expect(screen.getByTestId('center')).toHaveAttribute('data-state', 'on');
   });
 
   it('keeps several items on in multiple mode', () => {
@@ -88,19 +94,19 @@ describe('ToggleGroup', () => {
 
   it('lets a caller className win over the defaults', () => {
     render(
-      <ToggleGroupRoot type="single" aria-label="Alignment" className="gap-6" data-testid="root">
+      <ToggleGroupRoot type="single" aria-label="Alignment" className="gap-6" data-testid="group">
         <ToggleGroupItem value="left" aria-label="Left" className="h-20" data-testid="left" />
       </ToggleGroupRoot>
     );
-    expect(screen.getByTestId('root').className).toContain('gap-6');
-    expect(screen.getByTestId('root').className).not.toContain('gap-1');
+    expect(screen.getByTestId('group').className).toContain('gap-6');
+    expect(screen.getByTestId('group').className).not.toContain('gap-1');
     expect(screen.getByTestId('left').className).toContain('h-20');
     expect(screen.getByTestId('left').className).not.toContain('h-9');
   });
 
   it('emits no raw palette utility', () => {
     renderSingle();
-    expect(screen.getByRole('group', { name: 'Alignment' }).className).not.toMatch(RAW_PALETTE);
+    expect(screen.getByTestId('root').className).not.toMatch(RAW_PALETTE);
     expect(screen.getByTestId('left').className).not.toMatch(RAW_PALETTE);
   });
 });
