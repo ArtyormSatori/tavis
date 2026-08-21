@@ -176,7 +176,10 @@ fn describe(config: &super::config::HookConfig) -> Value {
                     })
                 })
                 .collect();
-            (event.as_str().to_string(), Value::Array(rendered))
+            (
+                event.as_str().to_string(),
+                json!({ "wired": event.is_wired(), "definitions": rendered }),
+            )
         })
         .collect();
     json!({

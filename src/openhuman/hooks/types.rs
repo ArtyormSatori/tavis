@@ -158,6 +158,33 @@ impl HookEvent {
         }
     }
 
+    /// Whether the core currently fires this event.
+    ///
+    /// Every event in [`Self::ALL`] is a complete contract — it parses, it
+    /// matches, it executes, and `hooks.test` fires it — but a few have no call
+    /// site in the harness yet. Those return `false`, and the loader warns when
+    /// a `hooks.json` registers one, because a hook that silently never runs is
+    /// the worst outcome this system can produce: the author believes a policy
+    /// is enforced and nothing says otherwise.
+    ///
+    /// Move an event here as its call site lands; do not flip one optimistically.
+    pub fn is_wired(self) -> bool {
+        !matches!(
+            self,
+            // No async seam at session construction yet — `AgentBuilder::build`
+            // is synchronous, and `sessionStart` has to be able to return
+            // context that reaches the system prompt.
+            HookEvent::SessionStart
+                | HookEvent::SessionEnd
+                // Compaction runs inside the tinyagents middleware, which owns
+                // its own trigger; surfacing it needs a seam upstream.
+                | HookEvent::PreCompact
+                // Reasoning blocks are not projected onto the post-turn seam
+                // the bridge rides.
+                | HookEvent::AfterAgentThought
+        )
+    }
+
     /// Whether a decision from this event can change what the core does.
     ///
     /// Gating events are run **sequentially** and their output is honoured;

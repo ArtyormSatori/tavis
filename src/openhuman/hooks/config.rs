@@ -202,6 +202,12 @@ impl HookConfig {
                 ));
                 continue;
             };
+            if !event.is_wired() {
+                self.warnings.push(format!(
+                    "{}: '{event}' is defined but not yet fired by this build;                      its hooks will never run",
+                    path.display()
+                ));
+            }
             let slot = self.by_event.entry(event).or_default();
             for mut definition in definitions {
                 if definition.command.trim().is_empty() {
