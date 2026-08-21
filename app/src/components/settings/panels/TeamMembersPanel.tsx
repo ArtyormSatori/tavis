@@ -8,6 +8,7 @@ import { teamApi } from '../../../services/api/teamApi';
 import type { TeamMember, TeamRole } from '../../../types/team';
 import { sanitizeError } from '../../../utils/sanitize';
 import { CenteredLoadingState, ConfirmDialog, ErrorBanner, InlineLoadingStatus } from '../../ui';
+import { AvatarFallback, AvatarRoot } from '../../ui/Avatar';
 import Button from '../../ui/Button';
 import { SettingsBadge, SettingsEmptyState, SettingsSection, SettingsSelect } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
