@@ -16,7 +16,7 @@ import type {
   CoreCronSchedule,
   CronAddParams,
 } from '../../../../utils/tauriCommands/cron';
-import Button from '../../../ui/Button';
+import { Button, Checkbox, ModalShell, NativeSelect, TextArea, TextField } from '../../../ui';
 
 const log = createDebug('app:settings:CronJobFormModal');
 
@@ -334,14 +334,13 @@ const CronJobFormModal = ({
             <label className="block text-xs font-medium text-content-secondary mb-1">
               {t('settings.cron.jobs.formName')}
             </label>
-            <input
+            <TextField
               data-testid="cron-form-name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder={t('settings.cron.jobs.formNamePlaceholder')}
               disabled={saving}
-              className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
             />
           </div>
 
@@ -436,7 +435,7 @@ const CronJobFormModal = ({
                 <label className="block text-xs font-medium text-content-secondary mb-1">
                   {t('settings.cron.jobs.formCronPreset')}
                 </label>
-                <select
+                <NativeSelect
                   data-testid="cron-form-cron-preset"
                   value={SCHEDULE_PRESET_VALUES.has(cronPreset) ? cronPreset : ''}
                   onChange={e => {
@@ -449,14 +448,14 @@ const CronJobFormModal = ({
                     }
                   }}
                   disabled={saving}
-                  className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50">
+                  className="w-full">
                   <option value="">{t('settings.cron.jobs.custom')}</option>
                   {SCHEDULE_PRESETS.map(p => (
                     <option key={p.value} value={p.value}>
                       {t(p.labelKey)}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               {/* Custom expression — shown when no preset selected or user typed */}
@@ -465,8 +464,9 @@ const CronJobFormModal = ({
                   <label className="block text-xs font-medium text-content-secondary mb-1">
                     {t('settings.cron.jobs.formCronCustom')}
                   </label>
-                  <input
+                  <TextField
                     data-testid="cron-form-cron-custom"
+                    mono
                     type="text"
                     value={cronCustom}
                     onChange={e => {
@@ -481,7 +481,6 @@ const CronJobFormModal = ({
                     }}
                     placeholder={t('settings.cron.jobs.formCronCustomPlaceholder')}
                     disabled={saving}
-                    className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm font-mono text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
                   />
                 </div>
               )}
@@ -504,13 +503,12 @@ const CronJobFormModal = ({
               <label className="block text-xs font-medium text-content-secondary mb-1">
                 {t('settings.cron.jobs.formAtLabel')}
               </label>
-              <input
+              <TextField
                 data-testid="cron-form-at"
                 type="datetime-local"
                 value={atValue}
                 onChange={e => setAtValue(e.target.value)}
                 disabled={saving}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
               />
             </div>
           )}
@@ -521,7 +519,7 @@ const CronJobFormModal = ({
               <label className="block text-xs font-medium text-content-secondary mb-1">
                 {t('settings.cron.jobs.formEveryLabel')}
               </label>
-              <input
+              <TextField
                 data-testid="cron-form-every"
                 type="number"
                 min="1"
@@ -529,7 +527,6 @@ const CronJobFormModal = ({
                 onChange={e => setEveryMs(e.target.value)}
                 disabled={saving}
                 placeholder={t('settings.cron.jobs.formEveryPlaceholder')}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
               />
             </div>
           )}
@@ -541,14 +538,14 @@ const CronJobFormModal = ({
                 {t('settings.cron.jobs.formPrompt')}
                 <span className="text-coral-500 ml-0.5">*</span>
               </label>
-              <textarea
+              <TextArea
                 data-testid="cron-form-prompt"
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 placeholder={t('settings.cron.jobs.formPromptPlaceholder')}
                 rows={4}
                 disabled={saving}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 resize-y"
+                className="resize-y"
               />
             </div>
           )}
@@ -560,14 +557,14 @@ const CronJobFormModal = ({
                 {t('settings.cron.jobs.formCommand')}
                 <span className="text-coral-500 ml-0.5">*</span>
               </label>
-              <input
+              <TextField
                 data-testid="cron-form-command"
+                mono
                 type="text"
                 value={command}
                 onChange={e => setCommand(e.target.value)}
                 placeholder={t('settings.cron.jobs.formCommandPlaceholder')}
                 disabled={saving}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm font-mono text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
               />
             </div>
           )}
@@ -578,15 +575,15 @@ const CronJobFormModal = ({
               <label className="block text-xs font-medium text-content-secondary mb-1">
                 {t('settings.cron.jobs.formSessionTarget')}
               </label>
-              <select
+              <NativeSelect
                 data-testid="cron-form-session-target"
                 value={sessionTarget}
                 onChange={e => setSessionTarget(e.target.value as SessionTarget)}
                 disabled={saving}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50">
+                className="w-full">
                 <option value="isolated">{t('settings.cron.jobs.formSessionIsolated')}</option>
                 <option value="main">{t('settings.cron.jobs.formSessionMain')}</option>
-              </select>
+              </NativeSelect>
             </div>
           )}
 
@@ -598,13 +595,13 @@ const CronJobFormModal = ({
                 className="block text-xs font-medium text-content-secondary mb-1">
                 {t('settings.cron.jobs.formProfile')}
               </label>
-              <select
+              <NativeSelect
                 id="cron-form-profile"
                 data-testid="cron-form-profile"
                 value={profileId}
                 onChange={e => setProfileId(e.target.value)}
                 disabled={saving}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50">
+                className="w-full">
                 <option value="">{t('settings.cron.jobs.formProfileNone')}</option>
                 {profiles.map(p => (
                   <option key={p.id} value={p.id}>
@@ -616,7 +613,7 @@ const CronJobFormModal = ({
                   // saving doesn't silently drop it, and surface the raw id.
                   <option value={profileId}>{profileId}</option>
                 )}
-              </select>
+              </NativeSelect>
               <p className="text-xs text-content-muted mt-1">
                 {t('settings.cron.jobs.formProfileHint')}
               </p>
@@ -629,27 +626,25 @@ const CronJobFormModal = ({
               <label className="block text-xs font-medium text-content-secondary mb-1">
                 {t('settings.cron.jobs.formDelivery')}
               </label>
-              <select
+              <NativeSelect
                 data-testid="cron-form-delivery"
                 value={delivery}
                 onChange={e => setDelivery(e.target.value as DeliveryMode)}
                 disabled={saving}
-                className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-content focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50">
+                className="w-full">
                 <option value="proactive">{t('settings.cron.jobs.formDeliveryProactive')}</option>
                 <option value="none">{t('settings.cron.jobs.formDeliveryNone')}</option>
-              </select>
+              </NativeSelect>
             </div>
           )}
 
           {/* Delete after run */}
           <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer select-none">
-            <input
+            <Checkbox
               data-testid="cron-form-delete-after-run"
-              type="checkbox"
               checked={deleteAfterRun}
-              onChange={e => setDeleteAfterRun(e.target.checked)}
+              onCheckedChange={setDeleteAfterRun}
               disabled={saving}
-              className="accent-primary-600"
             />
             {t('settings.cron.jobs.formDeleteAfterRun')}
           </label>
