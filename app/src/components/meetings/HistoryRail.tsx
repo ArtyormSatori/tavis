@@ -7,8 +7,11 @@
 import debug from 'debug';
 import { useEffect, useRef, useState } from 'react';
 
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import type { MeetCallRecord, MeetingPlatform } from '../../services/meetCallService';
+import Button from '../ui/Button';
+import TextField from '../ui/TextField';
 import {
   inferPlatformFromUrl,
   MEETING_PLATFORMS,
@@ -82,14 +85,15 @@ function PlatformFilterMenu({ value, onChange }: { value: string; onChange: (p: 
 
   return (
     <div ref={ref} className="relative shrink-0">
-      <button
-        type="button"
+      <Button
+        variant="tertiary"
+        size="sm"
         onClick={() => setOpen(o => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={selected ? platformLabel(selected, t) : allLabel}
         title={selected ? platformLabel(selected, t) : allLabel}
-        className="flex items-center gap-1 rounded-lg border border-line bg-surface px-2 py-1.5 text-content-secondary hover:border-primary-300 focus:outline-none focus:ring-1 focus:ring-primary-400">
+        className="h-auto gap-1 rounded-lg border border-line bg-surface px-2 py-1.5 text-content-secondary hover:border-primary-300 hover:bg-surface">
         {selected ? (
           <img
             src={platformLogoUrl(selected)}
@@ -102,43 +106,45 @@ function PlatformFilterMenu({ value, onChange }: { value: string; onChange: (p: 
           <AllPlatformsIcon />
         )}
         <ChevronDownIcon />
-      </button>
+      </Button>
 
       {open && (
         <ul
           role="listbox"
           className="absolute left-0 z-20 mt-1 min-w-[170px] overflow-hidden rounded-lg border border-line bg-surface py-1 shadow-soft">
           <li>
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="sm"
               role="option"
               aria-selected={!value}
               onClick={() => pick('')}
-              className={[
-                'flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px]',
+              className={cn(
+                'h-auto w-full justify-start gap-2 rounded-none px-3 py-1.5 text-left text-[12px]',
                 !value
-                  ? 'text-primary-700 dark:text-primary-300'
-                  : 'text-content-secondary hover:bg-surface-muted dark:hover:bg-surface-muted/40',
-              ].join(' ')}>
+                  ? 'text-primary-700 hover:bg-transparent dark:text-primary-300'
+                  : 'text-content-secondary hover:bg-surface-muted dark:hover:bg-surface-muted/40'
+              )}>
               <AllPlatformsIcon />
               <span className="flex-1">{allLabel}</span>
-            </button>
+            </Button>
           </li>
           {MEETING_PLATFORMS.map(p => {
             const isSel = value === p;
             return (
               <li key={p}>
-                <button
-                  type="button"
+                <Button
+                  variant="tertiary"
+                  size="sm"
                   role="option"
                   aria-selected={isSel}
                   onClick={() => pick(p)}
-                  className={[
-                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px]',
+                  className={cn(
+                    'h-auto w-full justify-start gap-2 rounded-none px-3 py-1.5 text-left text-[12px]',
                     isSel
-                      ? 'text-primary-700 dark:text-primary-300'
-                      : 'text-content-secondary hover:bg-surface-muted dark:hover:bg-surface-muted/40',
-                  ].join(' ')}>
+                      ? 'text-primary-700 hover:bg-transparent dark:text-primary-300'
+                      : 'text-content-secondary hover:bg-surface-muted dark:hover:bg-surface-muted/40'
+                  )}>
                   <img
                     src={platformLogoUrl(p)}
                     alt=""
@@ -147,7 +153,7 @@ function PlatformFilterMenu({ value, onChange }: { value: string; onChange: (p: 
                     className="h-4 w-4 shrink-0 rounded-sm object-contain"
                   />
                   <span className="flex-1">{platformLabel(p, t)}</span>
-                </button>
+                </Button>
               </li>
             );
           })}
@@ -230,12 +236,13 @@ function HistoryRail({
       {/* Compact platform filter (icon-only) + search */}
       <div className="flex items-center gap-2">
         <PlatformFilterMenu value={platformFilter} onChange={onPlatformChange} />
-        <input
+        <TextField
           type="search"
+          inputSize="sm"
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           placeholder={t('skills.meetingBots.history.searchPlaceholder')}
-          className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[12px] text-content placeholder:text-content-faint focus:outline-none focus:ring-1 focus:ring-primary-400"
+          className="min-w-0 flex-1 rounded-lg text-[12px]"
         />
       </div>
 
@@ -259,18 +266,19 @@ function HistoryRail({
 
                 return (
                   <li key={call.request_id}>
-                    <button
-                      type="button"
+                    <Button
+                      variant="tertiary"
+                      size="sm"
                       onClick={() => {
                         log('[rail] selected call', call.request_id);
                         onSelect(call.request_id);
                       }}
-                      className={[
-                        'w-full rounded-lg px-2 py-1.5 text-left text-[11px] transition-colors',
+                      className={cn(
+                        'block h-auto w-full rounded-lg px-2 py-1.5 text-left text-[11px] font-normal',
                         isSelected
-                          ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                          : 'hover:bg-surface-muted dark:hover:bg-surface-muted/40 text-content-secondary',
-                      ].join(' ')}>
+                          ? 'bg-primary-50 text-primary-700 hover:bg-primary-50 dark:bg-primary-900/20 dark:text-primary-300'
+                          : 'text-content-secondary hover:bg-surface-muted dark:hover:bg-surface-muted/40'
+                      )}>
                       <div className="flex items-center gap-1.5">
                         {platform && (
                           <img
@@ -293,7 +301,7 @@ function HistoryRail({
                             : 'skills.meetingBots.recentCallTurnPlural'
                         ).replace('{count}', String(call.turn_count))}
                       </div>
-                    </button>
+                    </Button>
                   </li>
                 );
               })}
