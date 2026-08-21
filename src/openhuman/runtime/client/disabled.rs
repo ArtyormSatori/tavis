@@ -36,9 +36,9 @@ pub enum RuntimeCallError {
 impl std::fmt::Display for RuntimeCallError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Unavailable(message)
-            | Self::InvalidRequest(message)
-            | Self::Failed(message) => f.write_str(message),
+            Self::Unavailable(message) | Self::InvalidRequest(message) | Self::Failed(message) => {
+                f.write_str(message)
+            }
         }
     }
 }
@@ -98,7 +98,7 @@ pub async fn pool_stats(_config: &Config) -> Result<PoolStatsResponse, RuntimeCa
 
 #[cfg(test)]
 mod test {
-    use super::{RuntimeCallError, resolve, unavailable};
+    use super::{resolve, unavailable, RuntimeCallError};
     use crate::openhuman::config::Config;
     use tinyruntime_bus::Language;
 
@@ -108,7 +108,10 @@ mod test {
             .await
             .expect_err("there is no module bus in this build");
         assert!(matches!(error, RuntimeCallError::Unavailable(_)));
-        assert!(error.to_string().contains("modules feature"), "got `{error}`");
+        assert!(
+            error.to_string().contains("modules feature"),
+            "got `{error}`"
+        );
     }
 
     #[test]

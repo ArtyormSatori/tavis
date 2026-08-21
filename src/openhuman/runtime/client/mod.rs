@@ -17,7 +17,7 @@ mod disabled;
 
 #[cfg(feature = "modules")]
 pub(crate) use crate::openhuman::modules::runtime::{
-    RuntimeCallError, execute, languages, pool_stats, resolve,
+    execute, languages, pool_stats, resolve, RuntimeCallError,
 };
 #[cfg(not(feature = "modules"))]
-pub(crate) use disabled::{RuntimeCallError, execute, languages, pool_stats, resolve};
+pub(crate) use disabled::{execute, languages, pool_stats, resolve, RuntimeCallError};
