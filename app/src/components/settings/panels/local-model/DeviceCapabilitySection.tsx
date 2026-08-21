@@ -40,14 +40,12 @@ const DISABLED_TIER_ID = 'disabled';
  * `ToggleGroup` (which would swallow the click as a no-op deselect). */
 function TierTile({
   active,
-  locked,
   disabled,
   onClick,
   title,
   children,
 }: {
   active: boolean;
-  locked: boolean;
   disabled: boolean;
   onClick: () => void;
   title?: string;
@@ -60,13 +58,12 @@ function TierTile({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={
-        'h-auto w-full items-stretch justify-start gap-0 rounded-lg border p-3 text-left font-normal transition-colors ' +
-        (active
+      className={cn(
+        'h-auto w-full items-stretch justify-start gap-0 rounded-lg border p-3 text-left font-normal transition-colors',
+        active
           ? 'border-primary-400 bg-primary-50 dark:bg-primary-500/10'
-          : 'border-line bg-surface-muted hover:bg-surface-hover') +
-        (locked ? ' opacity-50' : '')
-      }>
+          : 'border-line bg-surface-muted hover:bg-surface-hover'
+      )}>
       {children}
     </Button>
   );

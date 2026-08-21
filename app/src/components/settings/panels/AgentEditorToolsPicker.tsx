@@ -9,17 +9,42 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { LuPlus, LuSearch } from 'react-icons/lu';
 
+import { cn } from '../../../lib/cn';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { agentRegistryApi, type AgentToolInfo } from '../../../services/api/agentRegistryApi';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
-import Checkbox from '../../ui/Checkbox';
-import { CloseIcon } from '../../ui/icons';
+import { CheckIcon, CloseIcon } from '../../ui/icons';
 import { CenteredLoadingState } from '../../ui/LoadingState';
 import { ModalShell } from '../../ui/ModalShell';
 import TextField from '../../ui/TextField';
 
 const ALL_TOOLS = '*';
+
+/**
+ * A decorative "is selected" indicator for a fully clickable row.
+ *
+ * Not `ui/Checkbox`: that renders a real `<input type="checkbox">`, and these
+ * rows are themselves `Button`s — nesting an interactive form control inside
+ * a button is invalid HTML. The row's own click/keyboard handling already
+ * carries the toggle semantics, so this mark is purely visual and
+ * `aria-hidden`.
+ */
+function ToggleMark({ checked, className }: { checked: boolean; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'flex h-4 w-4 flex-none items-center justify-center rounded border transition-colors',
+        checked
+          ? 'border-primary-500 bg-primary-500 text-content-inverted'
+          : 'border-line-strong bg-surface',
+        className
+      )}>
+      {checked && <CheckIcon className="h-3 w-3" />}
+    </span>
+  );
+}
 
 export interface AgentEditorToolsFieldProps {
   toolAllowlist: string[];
