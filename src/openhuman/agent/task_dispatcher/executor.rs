@@ -365,8 +365,7 @@ pub(super) async fn write_back(
             Vec::new(),
         ),
     };
-    if let Err(e) =
-        runs::complete_run(location, run_id, run_outcome, run_error, run_evidence).await
+    if let Err(e) = runs::complete_run(location, run_id, run_outcome, run_error, run_evidence).await
     {
         tracing::warn!(
             run_id = %run_id,

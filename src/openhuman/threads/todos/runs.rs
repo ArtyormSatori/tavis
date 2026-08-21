@@ -18,13 +18,13 @@ use serde::{Deserialize, Serialize};
 use tinyagents::graph::todos::runs as crate_runs;
 
 pub use tinyagents::graph::todos::runs::{
-    DEFAULT_CLAIM_TTL_SECS, DEFAULT_HEARTBEAT_STALE_SECS, DEFAULT_MAX_RECLAIM_COUNT, ReclaimDetail,
-    ReclaimResult, RunLimits, RunOutcome, TaskRun,
+    ReclaimDetail, ReclaimResult, RunLimits, RunOutcome, TaskRun, DEFAULT_CLAIM_TTL_SECS,
+    DEFAULT_HEARTBEAT_STALE_SECS, DEFAULT_MAX_RECLAIM_COUNT,
 };
 
 use crate::openhuman::agent::task_board::normalize_timestamp_for_wire;
 
-use super::ops::{BoardLocation, target};
+use super::ops::{target, BoardLocation};
 
 /// Cadence of the background heartbeat spawned alongside an autonomous run.
 const HEARTBEAT_TICK: std::time::Duration = crate_runs::DEFAULT_HEARTBEAT_TICK;
@@ -138,13 +138,7 @@ pub fn spawn_heartbeat_task(
     cancel: tokio::sync::watch::Receiver<bool>,
 ) {
     let (store, thread_id) = target(&location);
-    crate_runs::spawn_heartbeat_task(
-        store,
-        thread_id.to_string(),
-        run_id,
-        cancel,
-        HEARTBEAT_TICK,
-    );
+    crate_runs::spawn_heartbeat_task(store, thread_id.to_string(), run_id, cancel, HEARTBEAT_TICK);
 }
 
 // ── Legacy ledger migration ────────────────────────────────────────────
@@ -253,7 +247,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "run-test-1");
 
-        let run = create_run(&loc, "run-1", "card-1", "default").await.unwrap();
+        let run = create_run(&loc, "run-1", "card-1", "default")
+            .await
+            .unwrap();
         assert_eq!(run.run_id, "run-1");
         assert_eq!(run.card_id, "card-1");
         assert_eq!(run.claimed_by, "default");
@@ -263,14 +259,19 @@ mod tests {
         let all = list_runs(&loc, None).await.unwrap();
         assert_eq!(all.len(), 1);
         assert_eq!(list_runs(&loc, Some("card-1")).await.unwrap().len(), 1);
-        assert!(list_runs(&loc, Some("card-other")).await.unwrap().is_empty());
+        assert!(list_runs(&loc, Some("card-other"))
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]
     async fn timestamps_reach_the_wire_as_rfc3339() {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "wire-test");
-        let run = create_run(&loc, "run-1", "card-1", "default").await.unwrap();
+        let run = create_run(&loc, "run-1", "card-1", "default")
+            .await
+            .unwrap();
 
         // The RPC surface has always spoken RFC 3339; the crate stores millis.
         assert!(chrono::DateTime::parse_from_rfc3339(&run.started_at).is_ok());
@@ -288,7 +289,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "hb-test-1");
 
-        create_run(&loc, "run-hb", "card-1", "default").await.unwrap();
+        create_run(&loc, "run-hb", "card-1", "default")
+            .await
+            .unwrap();
         let before = get_run(&loc, "run-hb").await.unwrap().unwrap();
 
         update_heartbeat(&loc, "run-hb").await.unwrap();
@@ -302,7 +305,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "hb-test-2");
 
-        create_run(&loc, "run-done", "card-1", "default").await.unwrap();
+        create_run(&loc, "run-done", "card-1", "default")
+            .await
+            .unwrap();
         complete_run(&loc, "run-done", RunOutcome::Success, None, vec![])
             .await
             .unwrap();
@@ -315,7 +320,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "complete-test");
 
-        create_run(&loc, "run-ok", "card-1", "default").await.unwrap();
+        create_run(&loc, "run-ok", "card-1", "default")
+            .await
+            .unwrap();
         let done = complete_run(
             &loc,
             "run-ok",
@@ -336,7 +343,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "fail-test");
 
-        create_run(&loc, "run-bad", "card-1", "default").await.unwrap();
+        create_run(&loc, "run-bad", "card-1", "default")
+            .await
+            .unwrap();
         let done = complete_run(
             &loc,
             "run-bad",
@@ -361,7 +370,9 @@ mod tests {
     /// Age a run past every limit by rewriting its stamps in the crate store.
     async fn wedge(loc: &BoardLocation, run_id: &str) {
         let (store, thread_id) = target(loc);
-        let mut runs = crate_runs::list_runs(&store, thread_id, None).await.unwrap();
+        let mut runs = crate_runs::list_runs(&store, thread_id, None)
+            .await
+            .unwrap();
         for run in runs.iter_mut().filter(|run| run.run_id == run_id) {
             run.started_at = "0".to_string();
             run.last_heartbeat_at = "0".to_string();
@@ -403,7 +414,9 @@ mod tests {
         let loc = thread_loc(dir.path(), "reclaim-test");
         let card_id = seed_in_progress_card(&loc, "wedged work").await;
 
-        create_run(&loc, "run-stale", &card_id, "default").await.unwrap();
+        create_run(&loc, "run-stale", &card_id, "default")
+            .await
+            .unwrap();
         wedge(&loc, "run-stale").await;
 
         let result = reclaim_stale(&loc, &RunLimits::default()).await.unwrap();
@@ -440,7 +453,9 @@ mod tests {
                 .unwrap();
             }
             let run_id = format!("run-{attempt}");
-            create_run(&loc, &run_id, &card_id, "default").await.unwrap();
+            create_run(&loc, &run_id, &card_id, "default")
+                .await
+                .unwrap();
             wedge(&loc, &run_id).await;
             let result = reclaim_stale(&loc, &limits).await.unwrap();
             assert_eq!(&result.details[0].new_card_status, expected);
@@ -448,13 +463,11 @@ mod tests {
 
         let snapshot = ops::list(&loc).await.unwrap();
         assert_eq!(snapshot.cards[0].status, TaskCardStatus::Blocked);
-        assert!(
-            snapshot.cards[0]
-                .blocker
-                .as_deref()
-                .unwrap_or_default()
-                .contains("exceeding limit of 2")
-        );
+        assert!(snapshot.cards[0]
+            .blocker
+            .as_deref()
+            .unwrap_or_default()
+            .contains("exceeding limit of 2"));
     }
 
     #[tokio::test]
@@ -462,7 +475,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "reclaim-healthy-test");
         let card_id = seed_in_progress_card(&loc, "live work").await;
-        create_run(&loc, "run-live", &card_id, "default").await.unwrap();
+        create_run(&loc, "run-live", &card_id, "default")
+            .await
+            .unwrap();
 
         let result = reclaim_stale(&loc, &RunLimits::default()).await.unwrap();
         assert_eq!(result.reclaimed_count, 0);
@@ -535,7 +550,11 @@ mod tests {
 
     #[test]
     fn legacy_file_names_decode_only_run_ledgers() {
-        let hex: String = "thread-1".as_bytes().iter().map(|b| format!("{b:02x}")).collect();
+        let hex: String = "thread-1"
+            .as_bytes()
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
         assert_eq!(
             legacy_thread_id(Path::new(&format!("/w/{hex}.runs.json"))).as_deref(),
             Some("thread-1")
