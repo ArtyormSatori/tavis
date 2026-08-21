@@ -277,8 +277,10 @@ describe('ConnectAuthModal', () => {
     // ConfigHelpModal, which renders its own dialog with the same label.
     fireEvent.click(screen.getByRole('button', { name: 'Help & configure' }));
     await waitFor(() => {
-      // Two dialogs now: the connect modal + the stacked help modal.
-      expect(screen.getAllByRole('dialog').length).toBeGreaterThan(1);
+      // Two dialogs now: the connect modal + the stacked help modal. Query
+      // with `{ hidden: true }` — Radix correctly marks the lower dialog
+      // `aria-hidden` while the stacked one is on top of it.
+      expect(screen.getAllByRole('dialog', { hidden: true }).length).toBeGreaterThan(1);
     });
   });
 
