@@ -34,6 +34,7 @@ import {
   openhumanCronRuns,
   openhumanCronUpdate,
 } from '../../utils/tauriCommands/cron';
+import { Checkbox, NativeSelect, TextField } from '../ui';
 import Button from '../ui/Button';
 import CreateSkillModal from './CreateSkillModal';
 import BranchPicker from './inputs/BranchPicker';
@@ -988,12 +989,10 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
           <label
             htmlFor={id}
             className="flex items-center gap-2 text-sm font-medium text-content-secondary dark:text-stone-300">
-            <input
+            <Checkbox
               id={id}
-              type="checkbox"
               checked={Boolean(value)}
-              onChange={e => onChange(e.target.checked)}
-              className="rounded"
+              onCheckedChange={next => onChange(next)}
             />
             {inp.name}
             {requiredMark}
@@ -1007,14 +1006,14 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
       return (
         <div key={inp.name}>
           {commonLabel}
-          <input
+          <TextField
             id={id}
             type="number"
             inputMode="numeric"
             value={typeof value === 'number' ? value : (value as string)}
             onChange={e => onChange(e.target.value)}
             placeholder={inp.required ? t('settings.skillsRunner.placeholder.required') : ''}
-            className="w-full rounded border border-line-strong dark:border-stone-600 bg-surface px-3 py-2 text-sm text-content dark:text-stone-100"
+            className="rounded"
           />
           {desc}
         </div>
@@ -1025,13 +1024,13 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
     return (
       <div key={inp.name}>
         {commonLabel}
-        <input
+        <TextField
           id={id}
           type="text"
           value={value as string}
           onChange={e => onChange(e.target.value)}
           placeholder={inp.required ? t('settings.skillsRunner.placeholder.required') : ''}
-          className="w-full rounded border border-line-strong dark:border-stone-600 bg-surface px-3 py-2 text-sm text-content dark:text-stone-100"
+          className="rounded"
         />
         {desc}
       </div>
@@ -1064,12 +1063,12 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
               className="block text-sm font-medium text-content-secondary dark:text-stone-300 mb-1">
               {t('settings.skillsRunner.skill')}
             </label>
-            <select
+            <NativeSelect
               id="skills-runner-skill"
               value={selectedSkillId}
               onChange={e => setSelectedSkillId(e.target.value)}
               disabled={skillsLoading || skillsError !== null}
-              className="w-full rounded border border-line-strong dark:border-stone-600 bg-surface px-3 py-2 text-sm text-content dark:text-stone-100">
+              className="w-full rounded">
               <option value="">
                 {skillsLoading
                   ? t('settings.skillsRunner.loadingSkills')
@@ -1080,7 +1079,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                   {s.name || s.id}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </>
         )}
         {skillsError && (
@@ -1254,17 +1253,17 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                         className="block text-xs font-semibold uppercase tracking-wide text-content-secondary dark:text-stone-300 mb-1.5">
                         {t('settings.skillsRunner.schedule.frequency')}
                       </label>
-                      <select
+                      <NativeSelect
                         id="skills-runner-schedule"
                         value={schedule}
                         onChange={e => setSchedule(e.target.value)}
-                        className="w-full rounded-xl border border-line-strong dark:border-stone-600 bg-surface px-3 py-2 text-sm text-content dark:text-stone-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500">
+                        className="w-full rounded-xl shadow-sm">
                         {SCHEDULE_PRESETS.map(p => (
                           <option key={p.value} value={p.value}>
                             {t(p.labelKey)}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                     </div>
                     <Button
                       variant="primary"
@@ -1379,16 +1378,17 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                                 each with status badge + duration; click
                                 a run to expand its captured output. */}
                           <div className="px-4 pb-3 border-t border-line-subtle dark:border-stone-800">
-                            <button
-                              type="button"
+                            <Button
+                              variant="tertiary"
+                              size="xs"
                               onClick={() => toggleJobHistory(job.id)}
                               aria-expanded={Boolean(hist?.expanded)}
                               data-testid={`history-toggle-${job.id}`}
-                              className="mt-2 text-[11px] text-content-secondary dark:text-stone-400 hover:underline">
+                              className="mt-2 gap-1 px-0 text-[11px] text-content-secondary hover:bg-transparent hover:underline dark:text-stone-400">
                               {hist?.expanded ? '▾' : '▸'}{' '}
                               {t('settings.skillsRunner.schedule.history')}
                               {hist?.runs?.length ? ` (${hist.runs.length})` : ''}
-                            </button>
+                            </Button>
                             {hist?.expanded && (
                               <div className="mt-1.5 space-y-1">
                                 {hist.loading && hist.runs.length === 0 ? (
