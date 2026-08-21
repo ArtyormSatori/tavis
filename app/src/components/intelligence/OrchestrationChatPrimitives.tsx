@@ -74,7 +74,7 @@ export function ChatListButton({
           ) : null}
         </span>
       </span>
-    </button>
+    </Button>
   );
 }
 

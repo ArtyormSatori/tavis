@@ -26,6 +26,7 @@ import {
   memoryTreeWipeAll,
 } from '../../utils/tauriCommands';
 import ChipTabs from '../layout/ChipTabs';
+import Button from '../ui/Button';
 import { ObsidianVaultSection } from './ObsidianVaultSection';
 
 interface MemoryControlsProps {
