@@ -18,6 +18,7 @@ import type {
   AgentTeamMemberStatus,
 } from '../../services/api/agentTeamApi';
 import Button from '../ui/Button';
+import { AvatarFallback, AvatarRoot } from '../ui/Avatar';
 import { memberColor } from './memberColors';
 
 /** Status dot colour per member lifecycle state. */
