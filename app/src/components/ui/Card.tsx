@@ -31,9 +31,9 @@ const Card = ({ title, description, children, className, 'data-testid': testId }
         )}
       </div>
     )}
-    {/* `divide-line-subtle` flips with the theme, so the historical
-        `dark:divide-neutral-800` companion is gone: a hardcoded neutral would
-        not follow a user's custom theme. */}
+    {/* `divide-line-subtle` flips with the theme on its own, so the historical
+        hardcoded dark-mode companion is gone: a raw palette scale would not
+        follow a user's custom theme. */}
     <div className="divide-y divide-line-subtle">{children}</div>
   </div>
 );
