@@ -153,7 +153,7 @@ export default function AgentsLibraryPanel({
       )}
 
       {!loading && !error && visibleAgents.length > 0 && (
-        <ul className="divide-y divide-line-subtle rounded-xl border border-line bg-surface dark:divide-neutral-800">
+        <ul className="divide-y divide-line-subtle rounded-xl border border-line bg-surface">
           {visibleAgents.map(agent => {
             const draft = drafts[agent.id] ?? '';
             const running = runningAgentId === agent.id;
