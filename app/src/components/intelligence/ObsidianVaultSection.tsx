@@ -330,27 +330,26 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
                 {t('workspace.obsidianConfigDirLabel')}
               </label>
               <div className="flex flex-wrap items-center gap-2">
-                <input
+                <TextField
                   id="obsidian-config-dir"
                   type="text"
+                  mono
                   value={configDir}
                   onChange={e => setConfigDir(e.target.value)}
                   placeholder={t('workspace.obsidianConfigDirPlaceholder')}
                   spellCheck={false}
                   data-testid="obsidian-config-dir-input"
-                  className="flex-1 rounded-md border border-line-strong bg-surface px-2 py-1 font-mono text-xs
-                             text-content focus:outline-none focus:ring-1 focus:ring-violet-300
-                             dark:border-neutral-600 dark:bg-surface dark:text-content"
+                  className="flex-1 h-7 text-xs focus:ring-violet-300"
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={saveConfigDir}
                   disabled={checking}
                   data-testid="obsidian-config-dir-save"
-                  className="rounded-md bg-violet-500 px-3 py-1 text-xs font-semibold text-white
-                             hover:bg-violet-600 disabled:opacity-50">
+                  className="h-7 bg-violet-500 hover:bg-violet-600">
                   {t('common.save')}
-                </button>
+                </Button>
               </div>
               <p className="text-xs text-content-muted">{t('workspace.obsidianConfigDirHint')}</p>
             </div>
