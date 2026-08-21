@@ -770,13 +770,6 @@ export default function UiGallery() {
         </p>
       </div>
 
-
-
-
-
-
-
-
       <Section title="Sources">
         <Sources defaultOpen>
           <SourcesTrigger count={2} />
@@ -786,7 +779,6 @@ export default function UiGallery() {
           </SourcesContent>
         </Sources>
       </Section>
-
     </div>
   );
 }
