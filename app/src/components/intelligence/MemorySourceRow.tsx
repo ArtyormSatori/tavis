@@ -234,22 +234,22 @@ export function MemorySourceRow({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            iconOnly
-            variant="tertiary"
-            size="xs"
-            onClick={() => onToggleSettings(source.id)}
-            title={t('memorySources.settings.button')}
-            aria-label={t('memorySources.settings.button')}
-            data-testid={`memory-source-settings-${source.id}`}
-            aria-expanded={settingsExpanded}
-            className={
-              settingsExpanded
-                ? 'bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
-                : 'text-content-faint hover:text-content-secondary'
-            }>
-            <GearIcon />
-          </Button>
+          <CollapsibleTrigger asChild>
+            <Button
+              iconOnly
+              variant="tertiary"
+              size="xs"
+              title={t('memorySources.settings.button')}
+              aria-label={t('memorySources.settings.button')}
+              data-testid={`memory-source-settings-${source.id}`}
+              className={
+                settingsExpanded
+                  ? 'bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
+                  : 'text-content-faint hover:text-content-secondary'
+              }>
+              <GearIcon />
+            </Button>
+          </CollapsibleTrigger>
           <Button
             variant="primary"
             size="sm"
