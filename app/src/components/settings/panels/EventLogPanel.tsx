@@ -282,7 +282,7 @@ const EventLogPanel = () => {
           )}
           {filteredEntries.map(entry => {
             const colors = DOMAIN_BADGE_COLORS[entry.domain] || {
-              bg: 'bg-neutral-500/20',
+              bg: 'bg-content-muted/20',
               text: 'text-content-faint',
             };
             return (

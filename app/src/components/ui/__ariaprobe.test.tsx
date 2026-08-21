@@ -14,6 +14,6 @@ describe('aria-modal probe', () => {
     const el = screen.getByRole('dialog');
     // eslint-disable-next-line no-console
     console.log('PROBE aria-modal =', JSON.stringify(el.getAttribute('aria-modal')));
-    expect(true).toBe(true);
+    expect({ariaModal: el.getAttribute('aria-modal'), role: el.getAttribute('role')}).toBe('FORCE_FAIL_TO_PRINT');
   });
 });
