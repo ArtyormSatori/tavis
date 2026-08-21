@@ -312,7 +312,8 @@ describe('FlowsPage', () => {
     renderWithProviders(<FlowsPage />, { initialEntries: ['/?view=main'] });
 
     // Export now lives behind the row's "⋯" overflow menu.
-    fireEvent.click(await screen.findByTestId('flow-menu-flow-1'));
+    await screen.findByTestId('flow-menu-flow-1');
+    openRowMenu();
     fireEvent.click(await screen.findByTestId('flow-export-flow-1'));
 
     expect(downloadFlowGraph).toHaveBeenCalledWith('Daily digest', { nodes: [], edges: [] });
@@ -325,7 +326,8 @@ describe('FlowsPage', () => {
 
     // Delete now lives behind the row's "⋯" overflow menu, alongside
     // Export/Duplicate, rather than a standalone icon button.
-    fireEvent.click(await screen.findByTestId('flow-menu-flow-1'));
+    await screen.findByTestId('flow-menu-flow-1');
+    openRowMenu();
     fireEvent.click(await screen.findByTestId('flow-delete-flow-1'));
 
     // Confirm dialog gates the destructive call.
@@ -340,7 +342,8 @@ describe('FlowsPage', () => {
     duplicateFlow.mockResolvedValue(makeFlow({ id: 'flow-2', name: 'Daily digest copy' }));
     renderWithProviders(<FlowsPage />, { initialEntries: ['/?view=main'] });
 
-    fireEvent.click(await screen.findByTestId('flow-menu-flow-1'));
+    await screen.findByTestId('flow-menu-flow-1');
+    openRowMenu();
     fireEvent.click(await screen.findByTestId('flow-duplicate-flow-1'));
 
     await waitFor(() => expect(duplicateFlow).toHaveBeenCalledWith('flow-1'));
