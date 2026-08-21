@@ -16,9 +16,9 @@ import debugFactory from 'debug';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import PanelScaffold from '../../../components/layout/PanelScaffold';
 import Button from '../../../components/ui/Button';
 import Card from '../../../components/ui/Card';
-import PanelScaffold from '../../../components/layout/PanelScaffold';
 import { useLatestAsync } from '../../../hooks/useLatestAsync';
 import {
   type AgentCard,
@@ -304,11 +304,11 @@ function CommunitySkeletonGrid() {
       {Array.from({ length: 6 }).map((_, i) => (
         <Card key={i}>
           <div className="animate-pulse p-3">
-          <div className="space-y-2">
-            <div className="h-4 w-3/4 rounded bg-surface-strong" />
-            <div className="h-3 w-full rounded bg-surface-strong" />
-            <div className="h-3 w-1/3 rounded bg-surface-strong" />
-          </div>
+            <div className="space-y-2">
+              <div className="h-4 w-3/4 rounded bg-surface-strong" />
+              <div className="h-3 w-full rounded bg-surface-strong" />
+              <div className="h-3 w-1/3 rounded bg-surface-strong" />
+            </div>
           </div>
         </Card>
       ))}
@@ -335,7 +335,7 @@ function CommunityCard({ group }: { group: GroupMetadata }) {
             </span>
           ))}
         </div>
-    </div>
+      </div>
     </Card>
   );
 }
@@ -379,13 +379,13 @@ function JobSkeletonList() {
       {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i}>
           <div className="animate-pulse p-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 space-y-2">
-              <div className="h-4 w-2/3 rounded bg-surface-strong" />
-              <div className="h-3 w-1/3 rounded bg-surface-strong" />
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-2/3 rounded bg-surface-strong" />
+                <div className="h-3 w-1/3 rounded bg-surface-strong" />
+              </div>
+              <div className="h-5 w-16 rounded bg-surface-strong" />
             </div>
-            <div className="h-5 w-16 rounded bg-surface-strong" />
-          </div>
           </div>
         </Card>
       ))}
@@ -422,7 +422,7 @@ function JobRow({ job }: { job: GqlJobPosting }) {
             </div>
           </div>
         </div>
-    </div>
+      </div>
     </Card>
   );
 }
@@ -466,13 +466,13 @@ function BountySkeletonList() {
       {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i}>
           <div className="animate-pulse p-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 space-y-2">
-              <div className="h-4 w-2/3 rounded bg-surface-strong" />
-              <div className="h-3 w-1/4 rounded bg-surface-strong" />
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-2/3 rounded bg-surface-strong" />
+                <div className="h-3 w-1/4 rounded bg-surface-strong" />
+              </div>
+              <div className="h-5 w-20 rounded bg-surface-strong" />
             </div>
-            <div className="h-5 w-20 rounded bg-surface-strong" />
-          </div>
           </div>
         </Card>
       ))}
@@ -489,7 +489,9 @@ function BountyRow({ bounty }: { bounty: GqlBounty }) {
             <div className="font-medium text-content">{bounty.title}</div>
             <div className="mt-0.5 text-xs text-content-muted">
               {bounty.submissionCount} submission{bounty.submissionCount !== 1 ? 's' : ''}
-              {bounty.deadline ? ` · deadline ${new Date(bounty.deadline).toLocaleDateString()}` : ''}
+              {bounty.deadline
+                ? ` · deadline ${new Date(bounty.deadline).toLocaleDateString()}`
+                : ''}
             </div>
           </div>
           <div className="flex-shrink-0 text-right">
@@ -498,7 +500,7 @@ function BountyRow({ bounty }: { bounty: GqlBounty }) {
             </div>
           </div>
         </div>
-    </div>
+      </div>
     </Card>
   );
 }
@@ -565,11 +567,11 @@ function AgentSkeletonGrid() {
       {Array.from({ length: 8 }).map((_, i) => (
         <Card key={i}>
           <div className="animate-pulse p-3">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <div className="h-10 w-10 rounded-full bg-surface-strong" />
-            <div className="h-3 w-16 rounded bg-surface-strong" />
-            <div className="h-3 w-full rounded bg-surface-strong" />
-          </div>
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div className="h-10 w-10 rounded-full bg-surface-strong" />
+              <div className="h-3 w-16 rounded bg-surface-strong" />
+              <div className="h-3 w-full rounded bg-surface-strong" />
+            </div>
           </div>
         </Card>
       ))}
@@ -596,7 +598,7 @@ function AgentMiniCard({ agent }: { agent: AgentCard }) {
             <p className="line-clamp-2 text-[11px] text-content-faint">{agent.description}</p>
           )}
         </div>
-    </div>
+      </div>
     </Card>
   );
 }
