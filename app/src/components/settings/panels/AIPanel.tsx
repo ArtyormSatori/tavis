@@ -10,7 +10,7 @@
  *
  * This file is a thin composition — every section lives in `./ai/*`.
  */
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { clearCloudProviderKey, upsertModelRegistryVision } from '../../../services/api/aiSettingsApi';
