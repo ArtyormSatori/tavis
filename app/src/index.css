@@ -95,6 +95,25 @@
     bottom: 0;
   }
 
+  /* Full-viewport film grain. Moved here verbatim from `styles/theme.css` when
+     that file was deleted: it was the one rule in those 713 lines with a
+     visible effect, and dropping it silently would have re-skinned every
+     screen. Decorative and non-interactive, so it stays out of the a11y tree
+     and never eats a pointer event. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03' /%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  :root.dark body::before {
+    opacity: 0.15;
+  }
+
   html[data-window='overlay'],
   html[data-window='overlay'] body,
   html[data-window='overlay'] #root,
