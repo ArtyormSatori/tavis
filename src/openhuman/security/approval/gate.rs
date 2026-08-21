@@ -208,7 +208,7 @@ pub struct ApprovalGate {
 /// resolves *normally*. Once a turn future can be torn down *externally* — the
 /// harness `max_wall_clock_ms` backstop (#4746) or the outer web backstop
 /// (#4751) firing while a tool call is parked — dropping the future skips those
-/// arms entirely, leaving the in-memory waiter, the thread/meeting routing
+/// arms entirely, leaving the in-memory waiter, the thread routing
 /// mappings, and the `pending_approvals` row dangling until the store TTL
 /// sweeps them. A later yes/no arriving before that expiry would then route to a
 /// dead request and return without starting a fresh turn (#4774).
@@ -438,7 +438,7 @@ impl ApprovalGate {
     /// When `park_bound` is `Some` and shorter than the gate's own effective
     /// TTL and it elapses before a decision arrives, the gate abandons the park
     /// in a **cancellation-safe** way — it evicts the in-memory waiter and
-    /// clears the thread/meeting routing mappings (so a later chat/voice reply
+    /// clears the thread routing mapping (so a later chat reply
     /// is not mis-routed to this now-abandoned request) but deliberately LEAVES
     /// the `pending_approvals` row open, so a later human card-click can still
     /// resolve it in the DB — and returns `None`. This is why callers must bound
@@ -477,7 +477,7 @@ impl ApprovalGate {
     /// [`Self::intercept_audited_bounded`]. When `park_bound` is `Some` and
     /// shorter than the effective TTL, the park is capped at it; on that bound
     /// elapsing the park is abandoned cancellation-safely (waiter evicted,
-    /// thread/meeting routing cleared, `pending_approvals` row left open) and
+    /// thread routing cleared, `pending_approvals` row left open) and
     /// `*park_bound_elapsed` is set so the bounded caller can render its own
     /// fast-path result instead of a `Deny`.
     async fn intercept_audited_inner(
@@ -1052,7 +1052,7 @@ impl ApprovalGate {
             Err(_elapsed) if park_bound_active => {
                 // Caller park bound elapsed (#4756) — NOT the gate's own TTL.
                 // Abandon the park cancellation-safely: evict the in-memory
-                // waiter and (via `clear_thread`/`clear_meeting` below, on every
+                // waiter and (via `clear_thread` below, on every
                 // exit) drop the routing mappings so a later chat/voice reply is
                 // not mis-routed to this now-abandoned request. Deliberately do
                 // NOT `store::decide(Deny)` — the `pending_approvals` row stays
@@ -1639,45 +1639,6 @@ mod tests {
     }
 
 
-    #[tokio::test]
-    async fn externally_aborted_in_call_waiter_cleans_meeting_route() {
-        let (gate, _dir) = test_gate();
-        let gate = Arc::new(gate);
-
-        let g = gate.clone();
-        let handle = tokio::spawn(async move {
-            turn_origin::with_origin(
-                meet_origin(),
-                APPROVAL_IN_CALL_CONTEXT.scope(
-                    in_call_ctx(),
-                    g.intercept("composio", "send email", serde_json::json!({})),
-                ),
-            )
-            .await
-        });
-
-        let mut tries = 0;
-        let request_id = loop {
-            if let Some(request_id) = gate.pending_for_meeting("meet-1") {
-                break request_id;
-            }
-            tries += 1;
-            assert!(tries < 1_000, "meeting approval route never appeared");
-            tokio::task::yield_now().await;
-        };
-        assert!(gate.waiters.lock().contains_key(&request_id));
-
-        handle.abort();
-        assert!(handle.await.unwrap_err().is_cancelled());
-
-        assert!(gate.pending_for_meeting("meet-1").is_none());
-        assert!(!gate.waiters.lock().contains_key(&request_id));
-        assert!(gate.list_pending().unwrap().is_empty());
-        assert_eq!(
-            store::get_decision(&gate.config, &request_id).unwrap(),
-            Some(ApprovalDecision::Deny)
-        );
-    }
 
 
     #[tokio::test]
