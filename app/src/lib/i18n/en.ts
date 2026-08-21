@@ -1759,7 +1759,7 @@ const en: TranslationMap = {
   'settings.gateway.use': 'Use this',
   'settings.gateway.inUse': 'In use',
   'settings.gateway.activating': 'Connecting…',
-  'settings.gateway.activatingStep': 'Connecting — {step}',
+  'settings.gateway.activatingStep': 'Connecting: {step}',
   'settings.gateway.connected': 'Connected at {endpoint}',
   'settings.gateway.failed': 'Could not connect: {reason}',
   'settings.gateway.nameLabel': 'Name',
