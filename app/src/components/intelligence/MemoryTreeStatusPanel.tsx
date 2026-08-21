@@ -36,6 +36,7 @@ import {
 } from '../../utils/tauriCommands';
 import { trackAnalyticsEvent } from '../analytics';
 import Button from '../ui/Button';
+import Switch from '../ui/Switch';
 
 /** Translator function shape exposed by `useT()`. */
 type TFn = (key: string, fallback?: string) => string;
