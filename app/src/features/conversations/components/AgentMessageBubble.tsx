@@ -130,7 +130,7 @@ export function TableCellMarkdown({ content }: { content: string }) {
   // intentionally skip the CodeBlock chrome (no header bar / copy button) to
   // avoid layout disruption inside narrow table cells.
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-content-secondary prose-p:my-0 prose-ul:my-0 prose-ol:my-0 prose-li:my-0 prose-code:text-xs prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-a:text-primary-500 prose-strong:text-stone-900 dark:prose-strong:text-neutral-100 prose-headings:text-sm prose-headings:font-semibold [&_li::marker]:text-stone-700 dark:[&_li::marker]:text-neutral-300 [&_ul]:my-0 [&_ol]:my-0 [&_ul]:pl-0 [&_ol]:pl-0 [&_ul]:list-inside [&_ol]:list-inside [&_li]:pl-0 [&_li_p]:inline [&_li_p]:m-0">
+    <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-content-secondary prose-p:my-0 prose-ul:my-0 prose-ol:my-0 prose-li:my-0 prose-code:text-xs prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-a:text-primary-500 prose-strong:text-content prose-headings:text-sm prose-headings:font-semibold [&_li::marker]:text-content-secondary [&_ul]:my-0 [&_ol]:my-0 [&_ul]:pl-0 [&_ol]:pl-0 [&_ul]:list-inside [&_ol]:list-inside [&_li]:pl-0 [&_li_p]:inline [&_li_p]:m-0">
       <Markdown
         urlTransform={transformMarkdownUrl}
         components={{ a: MarkdownAnchor }}
