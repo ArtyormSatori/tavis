@@ -236,6 +236,7 @@ function ToolsPickerModal({
                       type="button"
                       variant="tertiary"
                       disabled={allToolsSelected}
+                      aria-pressed={checked}
                       onClick={() => onToggleTool(tool.name)}
                       className="h-auto w-full items-start justify-start gap-3 rounded-md px-2 py-2 text-left font-normal disabled:cursor-not-allowed disabled:opacity-50">
                       <ToggleMark checked={checked} className="mt-0.5" />
