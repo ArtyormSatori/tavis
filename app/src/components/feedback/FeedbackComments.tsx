@@ -114,14 +114,14 @@ export default function FeedbackComments({ feedbackId, onCommentAdded }: Feedbac
       )}
 
       <div className="flex items-start gap-2">
-        <textarea
+        <TextArea
           value={input}
           maxLength={COMMENT_MAX}
           onChange={e => setInput(e.target.value)}
           placeholder={t('feedback.comments.placeholder')}
           disabled={posting}
           rows={2}
-          className="flex-1 resize-y rounded-xl border border-line bg-surface-muted px-3 py-2 text-sm text-content placeholder:text-neutral-400 transition-all focus:border-primary-500/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-line-strong dark:bg-white/[0.03] dark:placeholder:text-neutral-500"
+          className="flex-1 resize-y bg-surface-muted"
         />
         <Button
           variant="primary"
