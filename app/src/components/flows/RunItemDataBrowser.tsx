@@ -30,8 +30,8 @@ import {
   hasObjectRows,
 } from '../../lib/flows/runItems';
 import { useT } from '../../lib/i18n/I18nContext';
-import Button from '../ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
+import Toggle from '../ui/Toggle';
 import { ToggleGroupItem, ToggleGroupRoot } from '../ui/ToggleGroup';
 
 const log = debug('flows:run-item-data-browser');
