@@ -5,7 +5,9 @@
  *
  * Phase 2: local state only. Phase 3 will add persistence.
  */
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
+import Button from '../ui/Button';
 
 export type JoinPolicy = 'auto' | 'ask' | 'skip';
 
@@ -37,33 +39,28 @@ export function JoinPolicyToggle({
     <div
       role="radiogroup"
       aria-label={t('skills.meetingBots.upcoming.joinPolicy')}
-      className={[
+      className={cn(
         'inline-flex rounded-md border border-white/10 overflow-hidden',
-        disabled ? 'opacity-50 pointer-events-none' : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}>
+        disabled && 'opacity-50 pointer-events-none'
+      )}>
       {SEGMENTS.map(seg => {
         const isActive = seg === value;
         return (
-          <button
+          <Button
             key={seg}
-            type="button"
+            variant={isActive ? 'primary' : 'tertiary'}
+            size="xs"
             role="radio"
             aria-checked={isActive}
             disabled={disabled}
             onClick={() => onChange(seg)}
-            className={[
-              'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
-              compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs',
-              isActive
-                ? 'bg-primary-500 text-content-inverted font-medium'
-                : 'bg-transparent text-content-secondary hover:text-content hover:bg-surface-hover',
-            ]
-              .filter(Boolean)
-              .join(' ')}>
+            className={cn(
+              'h-auto rounded-none focus-visible:ring-offset-0',
+              compact ? 'px-2 py-0.5' : 'px-2.5 py-1',
+              !isActive && 'hover:text-content'
+            )}>
             {t(KEY_MAP[seg])}
-          </button>
+          </Button>
         );
       })}
     </div>
