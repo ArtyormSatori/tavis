@@ -333,13 +333,14 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
                 <TextField
                   id="obsidian-config-dir"
                   type="text"
+                  inputSize="sm"
                   mono
                   value={configDir}
                   onChange={e => setConfigDir(e.target.value)}
                   placeholder={t('workspace.obsidianConfigDirPlaceholder')}
                   spellCheck={false}
                   data-testid="obsidian-config-dir-input"
-                  className="flex-1 h-7 text-xs focus:ring-violet-300"
+                  className="flex-1"
                 />
                 <Button
                   variant="primary"
@@ -347,7 +348,7 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
                   onClick={saveConfigDir}
                   disabled={checking}
                   data-testid="obsidian-config-dir-save"
-                  className="h-7 bg-violet-500 hover:bg-violet-600">
+                  className="bg-violet-500 hover:bg-violet-600">
                   {t('common.save')}
                 </Button>
               </div>
