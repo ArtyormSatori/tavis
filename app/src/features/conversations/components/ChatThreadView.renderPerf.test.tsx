@@ -272,7 +272,6 @@ describe('ChatThreadView transcript render cost under streaming', () => {
 
     // Sanity check on the instrument itself: if the mount never rendered this
     // bubble, the assertion below would pass vacuously and measure nothing.
-    // eslint-disable-next-line no-console
     expect(rendersOfStable()).toBe(1);
     bubbleRenderSpy.mockClear();
 
