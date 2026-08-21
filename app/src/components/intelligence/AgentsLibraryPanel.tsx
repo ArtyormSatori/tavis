@@ -119,7 +119,7 @@ export default function AgentsLibraryPanel({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 truncate text-sm font-semibold text-content-secondary">
-            <LuBot className="h-4 w-4 text-ocean-500" />
+            <LuBot className="h-4 w-4 text-primary-600 dark:text-primary-400" />
             {t('intelligence.agents.title')}
           </h3>
           <p className="mt-1 text-xs text-content-faint">{t('intelligence.agents.subtitle')}</p>
@@ -135,7 +135,7 @@ export default function AgentsLibraryPanel({
 
       {loading && (
         <div className="flex items-center justify-center rounded-xl border border-line py-5 text-sm text-content-faint">
-          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-ocean-500 border-t-transparent" />
+          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
           {t('intelligence.agents.loading')}
         </div>
       )}
@@ -168,7 +168,7 @@ export default function AgentsLibraryPanel({
                       <span className="rounded-md bg-surface-subtle px-1.5 py-0.5 font-mono text-[10px] text-content-muted">
                         {agent.id}
                       </span>
-                      <span className="rounded-md bg-ocean-50 px-1.5 py-0.5 text-[10px] font-medium text-ocean-700 dark:bg-ocean-500/10 dark:text-ocean-200">
+                      <span className="rounded-md bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700 dark:bg-primary-500/10 dark:text-primary-200">
                         {modelLabel(agent, t)}
                       </span>
                     </div>
