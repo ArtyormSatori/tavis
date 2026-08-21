@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useT } from '../../lib/i18n/I18nContext';
 import { feedbackApi } from '../../services/api/feedbackApi';
 import type { CreateFeedbackResult, FeedbackQuality, FeedbackType } from '../../types/feedback';
-import Button from '../ui/Button';
+import { Button, TextArea, TextField } from '../ui';
 
 const log = debugFactory('feedback:submit');
 

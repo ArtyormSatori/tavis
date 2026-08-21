@@ -46,15 +46,16 @@ function ChooserOption({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="secondary"
       data-testid={testId}
       disabled={disabled}
       onClick={onClick}
-      className="flex w-full flex-col items-start gap-0.5 rounded-2xl border border-line bg-surface p-4 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/40 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-primary-500/10">
+      className="h-auto w-full flex-col items-start gap-0.5 rounded-2xl p-4 text-left font-normal hover:border-primary-300 hover:bg-primary-50/40 dark:hover:bg-primary-500/10">
       <span className="text-sm font-semibold text-content">{title}</span>
       <span className="text-xs leading-relaxed text-content-muted">{description}</span>
-    </button>
+    </Button>
   );
 }
 

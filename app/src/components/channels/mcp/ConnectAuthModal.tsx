@@ -704,21 +704,24 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
             </div>
           ))}
         </div>
-
       </>
-    </ModalShell>,
+    </ModalShell>
+  );
 
-    /* Stacked configuration-help chat modal (above this one). */
-    showConfigHelp && (
-      <ConfigHelpModal
-        key="config-help"
-        qualifiedName={server.qualified_name}
-        displayName={server.display_name}
-        description={server.description}
-        onClose={() => setShowConfigHelp(false)}
-      />
-    ),
-  ];
+  return (
+    <>
+      {modal}
+      {/* Stacked configuration-help chat modal (above this one). */}
+      {showConfigHelp && (
+        <ConfigHelpModal
+          qualifiedName={server.qualified_name}
+          displayName={server.display_name}
+          description={server.description}
+          onClose={() => setShowConfigHelp(false)}
+        />
+      )}
+    </>
+  );
 };
 
 export default ConnectAuthModal;
