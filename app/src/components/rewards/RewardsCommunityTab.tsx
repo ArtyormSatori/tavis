@@ -308,13 +308,15 @@ export default function RewardsCommunityTab({
                 </Button>
               </>
             ) : (
-              <button
+              <Button
                 onClick={() => {
                   void handleConnectDiscord();
                 }}
                 disabled={connectState === 'connecting'}
                 data-testid="rewards-connect-discord"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface px-4 py-3 text-sm font-semibold text-primary-700 dark:text-primary-300 shadow-lg transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70">
+                variant="secondary"
+                size="lg"
+                className="bg-surface text-primary-700 shadow-lg transition-transform active:scale-[0.98] dark:text-primary-300">
                 <svg
                   className="w-4 h-4"
                   fill="none"
