@@ -193,15 +193,17 @@ export function AddMemorySourceDialog({ open, onClose, onAdded }: AddMemorySourc
     handleClose,
   ]);
 
-  if (!open) return null;
-
   const isValid =
     kind && label.trim() && isKindFieldsValid(kind, { path, url, query, connectionId });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-xl border border-line bg-surface p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-content">{t('memorySources.addSource')}</h2>
+    <DialogRoot
+      open={open}
+      onOpenChange={next => {
+        if (!next) handleClose();
+      }}>
+      <DialogContent className="max-w-lg p-6">
+        <DialogTitle className="text-lg">{t('memorySources.addSource')}</DialogTitle>
 
         {!kind ? (
           <>
