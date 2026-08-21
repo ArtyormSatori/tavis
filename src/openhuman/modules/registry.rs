@@ -644,11 +644,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn every_host_the_platform_table_can_produce_has_an_asset() {
-        // The two tables are written independently and would drift silently:
-        // `platform` offering a key no release publishes turns a supported host
-        // into an "unsupported host" at first use.
+    /// Every host key `platform` can produce, across the supported triples.
+    fn every_host_key() -> Vec<String> {
         let hosts = [
             ("linux", "x86_64", Some((2, 39))),
             ("linux", "aarch64", Some((2, 39))),
@@ -659,16 +656,54 @@ mod tests {
             ("windows", "x86_64", None),
             ("windows", "aarch64", None),
         ];
-        for record in ALL {
-            for (os, arch, glibc) in hosts {
-                for key in candidates_for(os, arch, glibc) {
-                    assert!(
-                        record.asset_for(&key).is_some(),
-                        "{} publishes no asset for {key}, which {os}/{arch} would ask for",
-                        record.id
-                    );
-                }
+        let mut keys: Vec<String> = hosts
+            .into_iter()
+            .flat_map(|(os, arch, glibc)| candidates_for(os, arch, glibc))
+            .collect();
+        keys.sort();
+        keys.dedup();
+        keys
+    }
+
+    #[test]
+    fn a_record_that_pins_a_release_covers_every_host_the_platform_table_offers() {
+        // The two tables are written independently and would drift silently:
+        // `platform` offering a key no release publishes turns a supported host
+        // into an "unsupported host" at first use.
+        //
+        // Scoped to records that pin a release at all. A record with no assets
+        // is a module this build knows but has no published artifact for; it
+        // loads from a developer build or the module search path, and asserting
+        // release coverage for a release that does not exist would only assert
+        // that it does not exist. The partial-coverage case — the one that is
+        // actually a bug — is caught below.
+        for record in ALL.iter().filter(|record| !record.assets.is_empty()) {
+            for key in every_host_key() {
+                assert!(
+                    record.asset_for(&key).is_some(),
+                    "{} publishes no asset for {key}, which the platform table would ask for",
+                    record.id
+                );
             }
+        }
+    }
+
+    #[test]
+    fn a_record_publishes_for_every_host_or_for_none() {
+        // Partial coverage is the drift that hurts: it looks supported until a
+        // user on the missing platform reaches the feature. All-or-nothing keeps
+        // "not published yet" distinguishable from "published and incomplete".
+        for record in ALL {
+            let covered = every_host_key()
+                .into_iter()
+                .filter(|key| record.asset_for(key).is_some())
+                .count();
+            assert!(
+                covered == 0 || covered == every_host_key().len(),
+                "{} publishes assets for {covered} of {} host keys",
+                record.id,
+                every_host_key().len()
+            );
         }
     }
 
