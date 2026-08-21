@@ -81,7 +81,7 @@ export default function SelfIdentityCard({
       <div className="flex items-center gap-2">
         <span
           aria-hidden
-          className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-sage-500 font-mono text-[11px] font-bold text-white">
+          className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-sage-500 font-mono text-[11px] font-bold text-content-inverted">
           OH
         </span>
         <div className="min-w-0 flex-1">

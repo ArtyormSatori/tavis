@@ -23,10 +23,10 @@ export function MemoryChunkMentioned({ entities, onSelectEntity }: MemoryChunkMe
       <h3 className="mw-mentioned-heading">{t('intelligence.memoryChunk.mentioned.heading')}</h3>
       <div className="mw-mentioned-table">
         {entities.map(ent => (
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
             key={ent.entity_id}
-            className="mw-mentioned-row"
+            className="mw-mentioned-row h-auto w-full justify-start rounded-none px-0"
             onClick={() => onSelectEntity(ent)}>
             <span className="mw-mentioned-kind">{ent.kind}</span>
             <span className="mw-mentioned-surface">{ent.surface}</span>
@@ -38,7 +38,7 @@ export function MemoryChunkMentioned({ entities, onSelectEntity }: MemoryChunkMe
                     String(ent.count)
                   )}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
     </section>

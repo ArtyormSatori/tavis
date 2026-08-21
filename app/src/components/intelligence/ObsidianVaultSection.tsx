@@ -30,6 +30,7 @@ import {
   revealWorkspacePath,
 } from '../../utils/tauriCommands/workspacePaths';
 import Button from '../ui/Button';
+import TextField from '../ui/TextField';
 import { MEMORY_CONTENT_WORKSPACE_PATH } from './memoryWorkspacePaths';
 import { resolveVaultHostMatch } from './vaultHostMatch';
 

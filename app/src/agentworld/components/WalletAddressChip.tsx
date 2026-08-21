@@ -156,8 +156,10 @@ export default function WalletAddressChip() {
   // ── Error — transient RPC/transport failure, offer a retry ────────────────
   if (state.status === 'error') {
     return (
-      <button
-        type="button"
+      <Button
+        variant="tertiary"
+        size="xs"
+        iconOnly={false}
         data-testid="wallet-address-chip"
         onClick={() => {
           // Show the loading skeleton again while the retry is in flight.
@@ -166,10 +168,10 @@ export default function WalletAddressChip() {
         }}
         aria-label={t('agentWorld.walletRetry')}
         title={t('agentWorld.walletRetry')}
-        className="flex items-center gap-1.5 text-content-faint transition-colors hover:text-content-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500">
+        className="h-auto w-auto gap-1.5 rounded p-0 px-0 text-content-faint hover:bg-transparent hover:text-content-secondary focus-visible:ring-offset-0">
         <WalletIcon />
         <span className="text-[11px] leading-none">{t('agentWorld.walletUnavailable')}</span>
-      </button>
+      </Button>
     );
   }
 
