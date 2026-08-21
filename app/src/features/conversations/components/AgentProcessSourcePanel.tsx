@@ -130,7 +130,7 @@ export function AgentProcessSourcePanel({
       <button
         type="button"
         aria-label={t('conversations.subagent.close')}
-        className="absolute inset-0 bg-stone-900/30 dark:bg-black/50"
+        className="absolute inset-0 bg-surface-overlay/30 dark:bg-surface-overlay/50"
         onClick={onClose}
       />
       <aside className="relative flex h-full w-full max-w-[600px] flex-col bg-surface shadow-xl">

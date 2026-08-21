@@ -17,7 +17,6 @@ import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
 import { ModalShell } from '../../../ui/ModalShell';
 import { SettingsSelect, SettingsTextField } from '../../controls';
-import { isAzureFoundryEndpoint } from '../azureDeployment';
 import {
   appendTemperatureToProviderString,
   CLAUDE_CODE_DEFAULT_MODEL,

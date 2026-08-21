@@ -161,7 +161,7 @@ export function BackgroundProcessesPanel({
   // means what it reads like. Same pattern as `components/ui/ModalShell`.
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-end" data-testid="background-processes-panel">
-      <div className="absolute inset-0 bg-stone-900/30 dark:bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-surface-overlay/30 dark:bg-surface-overlay/50" onClick={onClose} />
       <aside className="relative flex h-full w-full max-w-sm flex-col bg-surface shadow-xl">
         <header className="flex items-center justify-between border-b border-line-subtle px-4 py-3">
           <div className="flex flex-col">
