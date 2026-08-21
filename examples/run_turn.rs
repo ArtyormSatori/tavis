@@ -16,13 +16,17 @@
 //! OPENHUMAN_EXAMPLE_INHERIT=1 cargo run --example run_turn -- "Hello."
 //! ```
 //!
+//! Optional: `OPENHUMAN_EXAMPLE_BACKEND_URL` points the core's non-inference
+//! backend calls somewhere, and `OPENHUMAN_EXAMPLE_SKILLS_DIR` supplies skill
+//! bundles.
+//!
 //! Note the runtime is built by hand rather than with `#[tokio::main]`. That is
 //! not incidental — see [`main`].
 
 use std::path::PathBuf;
 
 use openhuman_core::core::runtime::{AGENT_WORKER_STACK_BYTES, MAX_BLOCKING_THREADS};
-use openhuman_core::{Access, Harness, Provider, Workspace};
+use openhuman_core::{Access, Harness, Provider, Session, Workspace};
 
 fn main() -> anyhow::Result<()> {
     // Library embedders own logging. `RUST_LOG=debug` shows the `[embed]` and
@@ -78,11 +82,25 @@ async fn run() -> anyhow::Result<()> {
         let model = std::env::var("OPENHUMAN_EXAMPLE_MODEL")
             .unwrap_or_else(|_| "gpt-4o-mini".to_string());
 
-        builder
+        let mut builder = builder
             .workspace(Workspace::Ephemeral)
             .provider(Provider::openai_compatible(base_url, api_key).model(model))
             // Let the agent's file tools look at the current directory.
             .action_dir(std::env::current_dir()?)
+            // Routing at a custom endpoint is gated on an active app session,
+            // even though we just supplied the endpoint and its key. A local
+            // session satisfies that gate and asserts nothing at the backend.
+            .session(Session::local("run-turn-example"));
+
+        // The core still makes non-inference backend calls. Signed out of the
+        // real one, those are rejected — and a rejection publishes
+        // `SessionExpired`, which fails the *next* turn's provider gate for
+        // reasons unrelated to the turn. Point them at your own backend if you
+        // have one.
+        if let Ok(url) = std::env::var("OPENHUMAN_EXAMPLE_BACKEND_URL") {
+            builder = builder.backend_url(url);
+        }
+        builder
     };
 
     // Skills are opt-in and copied into the harness's workspace; see the
