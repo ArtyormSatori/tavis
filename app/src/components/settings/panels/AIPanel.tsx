@@ -804,13 +804,28 @@ const ProviderKeyDialog = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={formatI18n(t('settings.ai.connectProviderDialog'), { label })}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="relative w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-soft">
-        {platformLinkUrl ? (
+    <ModalShell
+      titleId="provider-key-dialog-title"
+      title={`${t('settings.ai.connectProvider')} ${label}`}
+      subtitle={helper}
+      onClose={onCancel}
+      contentClassName="px-6 py-4"
+      footer={
+        <div className="mt-6 flex justify-end gap-2">
+          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={busy}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => void handleSave()}
+            disabled={busy}>
+            {phase === 'saving' ? t('settings.ai.saving') : t('common.save')}
+          </Button>
+        </div>
+      }>
+      {platformLinkUrl ? <div className="mb-3 flex justify-end">{(
           <a
             href={platformLinkUrl}
             target="_blank"
@@ -827,11 +842,7 @@ const ProviderKeyDialog = ({
             className="text-xs font-medium leading-6 text-primary-600 hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
             {t('settings.ai.getProviderApiKey')}
           </a>
-        ) : null}
-        <div className="mb-4" style={platformLinkUrl ? { paddingInlineEnd: '9rem' } : undefined}>
-          <h3 className="text-base font-semibold text-content">{`${t('settings.ai.connectProvider')} ${label}`}</h3>
-          <p className="mt-0.5 text-xs text-content-muted">{helper}</p>
-        </div>
+      )}</div> : null}
 
         <div className="flex flex-col gap-1.5">
           <label
@@ -910,24 +921,8 @@ const ProviderKeyDialog = ({
             </Button>
           </div>
         ) : null}
-
-        <div className="mt-6 flex justify-end gap-2">
-          <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={busy}>
-            {t('common.cancel')}
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={() => void handleSave()}
-            disabled={busy}>
-            {phase === 'saving' ? t('settings.ai.saving') : t('common.save')}
-          </Button>
-        </div>
-      </div>
-    </div>
+    </ModalShell>
   );
-};
 
 // Background loop controls + usage diagnostics
 // ─────────────────────────────────────────────────────────────────────────────
