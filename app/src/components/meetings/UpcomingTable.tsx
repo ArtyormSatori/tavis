@@ -36,14 +36,7 @@ import {
 import { selectPersonaDescription, selectPersonaDisplayName } from '../../store/personaSlice';
 import Button from '../ui/Button';
 import NativeSelect from '../ui/NativeSelect';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/Table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import { type JoinPolicy, JoinPolicyToggle } from './JoinPolicyToggle';
 import {
   buildMeetingMascots,

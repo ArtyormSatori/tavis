@@ -16,8 +16,6 @@ import {
   openhumanGetMeetSettings,
   openhumanUpdateMeetSettings,
 } from '../../utils/tauriCommands';
-import Button from '../ui/Button';
-import { SheetContent, SheetRoot, SheetTitle } from '../ui/Sheet';
 import {
   SettingsRow,
   SettingsSection,
@@ -26,6 +24,8 @@ import {
   SettingsSwitch,
   SettingsTextField,
 } from '../settings/controls';
+import Button from '../ui/Button';
+import { SheetContent, SheetRoot, SheetTitle } from '../ui/Sheet';
 
 const log = debug('meetings:defaults-drawer');
 
