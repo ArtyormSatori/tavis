@@ -115,26 +115,25 @@ function Toast({ notification, onRemove }: ToastProps) {
 
         {/* Action button */}
         {notification.action && (
-          <button
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={notification.action.handler}
-            className="text-xs font-medium underline hover:no-underline flex-shrink-0">
+            className="underline hover:no-underline flex-shrink-0 px-0 h-auto">
             {notification.action.label}
-          </button>
+          </Button>
         )}
 
         {/* Close button */}
-        <button
+        <Button
+          variant="tertiary"
+          size="xs"
+          iconOnly
+          aria-label="Dismiss notification"
           onClick={handleRemove}
-          className="flex-shrink-0 text-content-faint hover:text-content-secondary transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+          className="flex-shrink-0 text-content-faint hover:text-content-secondary">
+          <CloseIcon className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );
