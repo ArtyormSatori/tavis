@@ -54,7 +54,7 @@ export function RequiredFieldsForm({
                 onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(field.key, e.target.value)}
                 placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                 aria-describedby={hintId}
-                aria-invalid={!!errorText}
+                invalid={!!errorText}
                 className="flex-1 min-w-0 border-0 bg-transparent focus:ring-0"
               />
               {field.suffix && (

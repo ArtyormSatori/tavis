@@ -83,8 +83,9 @@ export function ComposioToolkitField({
 
   return (
     <Field label={label} hint={hint}>
-      <select
-        className={INPUT_CLASS}
+      <NativeSelect
+        inputSize="sm"
+        className="w-full"
         value={value}
         data-testid={testId}
         onChange={e => onChange(e.target.value)}>
@@ -94,7 +95,7 @@ export function ComposioToolkitField({
             {toolkitLabel(tk)}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </Field>
   );
 }
