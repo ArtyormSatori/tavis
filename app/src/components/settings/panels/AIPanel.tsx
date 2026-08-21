@@ -44,7 +44,6 @@ import {
 import { useCloudProviderEditorSubmit } from './ai/useCloudProviderEditorSubmit';
 import { useProviderConnect } from './ai/useProviderConnect';
 import { WorkloadRow } from './ai/WorkloadRow';
-import { routingWithProviderRemoved } from './aiRouting';
 import { useReembedBackfillModal } from './useReembedBackfillModal';
 
 export type { CloudProvider, ProviderRef, RoutingMap } from './ai/aiPanelTypes';
