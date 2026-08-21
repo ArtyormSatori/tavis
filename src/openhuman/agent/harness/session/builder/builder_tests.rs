@@ -235,7 +235,7 @@ async fn build_session_agent_applies_strict_cap_below_global_default() {
     assert_eq!(def.effective_max_iterations(), 3);
 
     let agent =
-        Agent::build_session_agent_inner(&config, "archivist", Some(&def), None, None, false, None)
+        Agent::build_session_agent_inner(&config, "archivist", Some(&def), None, false, None)
             .expect("build_session_agent_inner should succeed for a valid strict-low definition");
 
     assert_eq!(
