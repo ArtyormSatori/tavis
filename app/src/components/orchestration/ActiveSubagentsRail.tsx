@@ -161,7 +161,7 @@ export default function ActiveSubagentsRail({
                             onClick={() => onOpenSession(session.sessionId)}
                             className={`h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left ${
                               active
-                                ? 'bg-surface-subtle text-content'
+                                ? 'bg-surface-subtle text-content hover:bg-surface-subtle'
                                 : 'text-content-secondary hover:text-content'
                             }`}>
                             <StatusDot state={sessionState(session)} />
