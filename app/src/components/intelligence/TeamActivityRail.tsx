@@ -85,11 +85,13 @@ export function TeamActivityRail({ messages, members, onSend, sending }: TeamAct
             const color = memberColor(message.payload.from);
             return (
               <div key={`${message.runId}-${message.sequence}`} className="flex gap-2">
-                <span
-                  className="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full text-[9px] font-semibold text-content-inverted"
-                  style={{ backgroundColor: color }}>
-                  {fromName.charAt(0).toUpperCase()}
-                </span>
+                <AvatarRoot className="mt-0.5 h-5 w-5 flex-none">
+                  <AvatarFallback
+                    className="text-[9px] font-semibold text-content-inverted"
+                    style={{ backgroundColor: color }}>
+                    {fromName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </AvatarRoot>
                 <div className="min-w-0">
                   <div className="text-[10px] text-content-faint">
                     <b className="text-content-secondary">{fromName}</b>
