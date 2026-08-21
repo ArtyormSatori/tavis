@@ -572,13 +572,13 @@ const McpServersTab = () => {
     <div className="space-y-3">
       {/* Search + filter chips */}
       <div className="flex items-center gap-3">
-        <input
+        <TextField
           type="search"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder={t('mcp.catalog.searchPlaceholder')}
           aria-label={t('mcp.catalog.searchAria')}
-          className="flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+          className="flex-1"
         />
         <Button
           variant="secondary"
