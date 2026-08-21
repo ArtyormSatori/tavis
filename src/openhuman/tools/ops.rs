@@ -1260,11 +1260,13 @@ pub fn all_tools_with_runtime(
         tools.len()
     );
 
-    // Last step, after every gate: move the packed families behind
-    // `load_skill` / `use_skill`. It runs here rather than at the individual
-    // registration sites so pack membership stays one table and a tool that
-    // gains a new construction site cannot escape its pack.
-    crate::openhuman::tools::toolpacks::split_packed_tools(tools)
+    // Append the two always-on pack tools. They resolve packed tools by name
+    // out of the agent's live registry (bound after `Arc::new`), so they also
+    // cover the `delegate_*` tools synthesised later by
+    // `orchestrator_tools::collect_orchestrator_tools` — which never pass
+    // through this function.
+    crate::openhuman::tools::toolpacks::append_pack_tools(&mut tools);
+    tools
 }
 
 /// Classify an agent tool into its [`DomainGroup`](crate::core::all::DomainGroup)
