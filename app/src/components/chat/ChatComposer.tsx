@@ -308,7 +308,7 @@ export default function ChatComposer({
                 {inlineCompletionSuffix}
               </span>
             </div>
-            <textarea
+            <TextArea
               ref={textInputRef}
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
@@ -325,7 +325,7 @@ export default function ChatComposer({
               }
               rows={1}
               disabled={textareaDisabled}
-              className="relative z-10 w-full resize-none border-0 bg-transparent py-0.5 px-0.5 text-sm leading-5 whitespace-pre-wrap break-words font-sans text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative z-10 w-full resize-none rounded-none border-0 bg-transparent py-0.5 px-0.5 text-sm leading-5 whitespace-pre-wrap break-words font-sans text-content placeholder-content-faint outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 

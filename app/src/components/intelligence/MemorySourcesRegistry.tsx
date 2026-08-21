@@ -42,6 +42,7 @@ import {
   type MemoryTreePipelineStatus,
 } from '../../utils/tauriCommands/memoryTree';
 import Button from '../ui/Button';
+import Switch from '../ui/Switch';
 import { AddMemorySourceDialog } from './AddMemorySourceDialog';
 import { ConfirmationModal } from './ConfirmationModal';
 import {
