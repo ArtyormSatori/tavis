@@ -19,24 +19,28 @@
  * `MemoryStatsBar.tsx` (tiles) and the inline `ToggleRow` in
  * `settings/panels/AIPanel.tsx` (switch markup).
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { reportMemoryPipelineFailure } from '../../lib/userErrors/report';
 import { useAppDispatch } from '../../store/hooks';
 import type { ToastNotification } from '../../types/intelligence';
-import {
-  memorySyncStatusList,
-  type MemorySyncStatusRow,
-  memoryTreePipelineStatus,
-  type MemoryTreePipelineStatus,
-  memoryTreeRetryFailed,
-  memoryTreeSetEnabled,
-} from '../../utils/tauriCommands';
+import { memoryTreeRetryFailed, memoryTreeSetEnabled } from '../../utils/tauriCommands';
 import { trackAnalyticsEvent } from '../analytics';
 import Button from '../ui/Button';
 import Switch from '../ui/Switch';
+import {
+  classifyIntegration,
+  formatBytes,
+  formatRelativeMs,
+  IntegrationHealthStrip,
+  providerIconChar,
+  statusDotClass,
+  useMemoryTreeStatus,
+} from './memoryTreeStatusHelpers';
+
+export { classifyIntegration, providerIconChar };
 
 /**
  * Memory Tree status panel — render the four-tile dashboard plus the

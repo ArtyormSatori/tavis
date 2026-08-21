@@ -364,22 +364,26 @@ export default function ChatComposer({
               Send arrow returns so the follow-up can be queued (parallel send)
               instead of cancelling the current turn. */}
           {showStopButton ? (
-            <button
-              type="button"
-              data-analytics-id="chat-composer-stop"
+            <Button
+              iconOnly
+              variant="primary"
+              size="xs"
+              analyticsId="chat-composer-stop"
               data-testid="stop-generation-button"
               aria-label={t('chat.stopGeneration')}
               title={t('chat.stopGeneration')}
               onClick={onStopGeneration}
-              className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 hover:bg-primary-600 text-content-inverted transition-colors">
+              className="!h-6 !w-6 flex-shrink-0 rounded-full">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                 <rect x="6" y="6" width="12" height="12" rx="1.5" />
               </svg>
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
-              data-analytics-id="chat-composer-send"
+            <Button
+              iconOnly
+              variant="primary"
+              size="xs"
+              analyticsId="chat-composer-send"
               data-testid="send-message-button"
               aria-label={t('chat.send')}
               title={t('chat.send')}
@@ -387,7 +391,7 @@ export default function ChatComposer({
                 void onSend();
               }}
               disabled={!hasContent || composerLocked}
-              className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 hover:bg-primary-600 text-content-inverted disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+              className="!h-6 !w-6 flex-shrink-0 rounded-full">
               {showSendingSpinner ? (
                 <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle
