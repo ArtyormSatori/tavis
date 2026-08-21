@@ -1,3 +1,5 @@
+import { writeFileSync } from 'node:fs';
+
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 
@@ -13,10 +15,16 @@ describe('probe', () => {
       </ModalShell>,
     );
     const dialog = screen.getByRole('dialog');
-    console.log('ACTIVE:', document.activeElement?.tagName, document.activeElement?.getAttribute('aria-label'));
-    console.log('FOCUS_INSIDE:', dialog.contains(document.activeElement));
-    console.log('PARENT_SLOT:', dialog.parentElement?.getAttribute('data-slot'), dialog.parentElement?.tagName);
-    console.log('OVERLAY_PRESENT:', !!document.querySelector('[data-slot="dialog-overlay"]'));
+    writeFileSync(
+      '/tmp/probe-out.txt',
+      [
+        `ACTIVE=${document.activeElement?.tagName}/${document.activeElement?.getAttribute('aria-label')}`,
+        `FOCUS_INSIDE=${dialog.contains(document.activeElement)}`,
+        `PARENT_SLOT=${dialog.parentElement?.getAttribute('data-slot')}/${dialog.parentElement?.tagName}`,
+        `OVERLAY_PRESENT=${!!document.querySelector('[data-slot="dialog-overlay"]')}`,
+        `BODY_HTML=${document.body.innerHTML.slice(0, 400)}`,
+      ].join('\n'),
+    );
     expect(true).toBe(true);
   });
 });
