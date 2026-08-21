@@ -168,7 +168,7 @@ function AgentMarkdownTable({
             {table.rows.map((row, rowIndex) => (
               <tr
                 key={`${rowIndex}:${row.join('|')}`}
-                className="odd:bg-white dark:odd:bg-neutral-900 even:bg-stone-50 dark:even:bg-neutral-800/60">
+                className="odd:bg-surface even:bg-surface-subtle">
                 {row.map((cell, cellIndex) => (
                   <td
                     key={`${rowIndex}:${cellIndex}:${cell}`}
