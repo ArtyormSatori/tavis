@@ -239,7 +239,6 @@ impl DomainSet {
             flows: true,
             skills: true,
             mcp: true,
-            meet: true,
             channels: true,
             web3: true,
             voice: true,
@@ -270,7 +269,6 @@ impl DomainSet {
             flows: false,
             skills: false,
             mcp: false,
-            meet: false,
             channels: false,
             web3: false,
             voice: false,
@@ -307,7 +305,7 @@ impl DomainSet {
     /// `ctx.domains().flows` rather than a `ServiceSet` flag.
     ///
     /// An embedded host supplies its own harness wrappers, networking and
-    /// routing, so `meet` / `web3` / `voice` / `media` / `mcp` stay off.
+    /// routing, so `web3` / `voice` / `media` / `mcp` stay off.
     pub fn embedded() -> Self {
         Self {
             agent: true,
@@ -318,7 +316,6 @@ impl DomainSet {
             flows: true,
             skills: true,
             mcp: false,
-            meet: false,
             channels: true,
             web3: false,
             voice: false,
@@ -355,7 +352,6 @@ impl DomainSet {
             flows: false,
             skills: false,
             mcp: false,
-            meet: false,
             channels: false,
             web3: false,
             voice: false,
@@ -384,7 +380,6 @@ impl DomainSet {
             flows: false,
             skills: false,
             mcp: false,
-            meet: false,
             channels: false,
             web3: false,
             voice: false,

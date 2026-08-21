@@ -1227,8 +1227,8 @@ pub fn all_tools_with_runtime(
     // 1. DomainSet (#4796): drop tools whose DomainGroup is disabled under the
     //    ambient CoreContext. With no active context, or under
     //    `DomainSet::full()`, every tool is kept (byte-identical). Under
-    //    `harness()` the gate-family tools (web3/mcp/skills/flows/media/voice/
-    //    meet) are dropped so agent turns can't call a domain that isn't live;
+    //    `harness()` the gate-family tools (web3/mcp/skills/flows/media/voice)
+    //    are dropped so agent turns can't call a domain that isn't live;
     //    only the memory + threads tools survive (the mapped harness families)
     //    — see `tool_group` for the classification and its Platform-default
     //    caveat.

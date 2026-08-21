@@ -2261,10 +2261,6 @@ fn register_domain_subscribers(
         );
     }
 
-    } else {
-        log::debug!("[event_bus] agent_meetings subscribers SKIPPED — Meet domain disabled");
-    }
-
     // Hosted: ingest tiny.place harness session DMs off the stream bus.
     if plan.hosted {
         if group_first_time(DomainGroup::Hosted) {
