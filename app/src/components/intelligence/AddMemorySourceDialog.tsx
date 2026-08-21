@@ -300,8 +300,8 @@ export function AddMemorySourceDialog({ open, onClose, onAdded }: AddMemorySourc
             </div>
           </>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </DialogRoot>
   );
 }
 
