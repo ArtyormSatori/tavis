@@ -51,7 +51,7 @@ function TierTile({
   disabled: boolean;
   onClick: () => void;
   title?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Button
