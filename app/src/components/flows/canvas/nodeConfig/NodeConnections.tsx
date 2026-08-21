@@ -11,7 +11,7 @@ import { useMemo } from 'react';
 
 import type { FlowEdge } from '../../../../lib/flows/graphAdapter';
 import { useT } from '../../../../lib/i18n/I18nContext';
-import Button from '../../../ui/Button';
+import ListRow from '../../../ui/ListRow';
 
 interface NodeConnectionsProps {
   nodeId: string;
@@ -37,24 +37,16 @@ function ConnectionRow({
   removeLabel: string;
 }) {
   return (
-    <li
-      className="flex items-center justify-between gap-2 rounded-md border border-line bg-surface-muted px-2 py-1"
-      data-testid={`node-connection-${edgeId}`}>
-      <span className="min-w-0 truncate font-mono text-[11px] text-content-secondary">{label}</span>
-      <Button
-        type="button"
-        variant="tertiary"
-        size="xs"
-        iconOnly
-        tone="danger"
-        aria-label={removeLabel}
-        title={removeLabel}
-        data-testid={`node-connection-remove-${edgeId}`}
-        onClick={onRemove}
-        className="shrink-0">
-        ✕
-      </Button>
-    </li>
+    <ListRow
+      mono
+      label={label}
+      onRemove={onRemove}
+      removeLabel={removeLabel}
+      removeIcon="\u2715"
+      removeTestId={`node-connection-remove-${edgeId}`}
+      data-testid={`node-connection-${edgeId}`}
+      className="gap-2 rounded-md border border-line bg-surface-muted px-2 py-1 text-[11px]"
+    />
   );
 }
 
