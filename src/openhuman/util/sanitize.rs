@@ -11,6 +11,6 @@
 //! their spelling.
 
 pub use tinymcp_bus::sanitize::{
-    MAX_DESCRIPTION_BYTES, MAX_TITLE_BYTES, sanitize_for_llm, strip_control_chars,
-    strip_instruction_fences, truncate_utf8_safe,
+    sanitize_for_llm, strip_control_chars, strip_instruction_fences, truncate_utf8_safe,
+    MAX_DESCRIPTION_BYTES, MAX_TITLE_BYTES,
 };

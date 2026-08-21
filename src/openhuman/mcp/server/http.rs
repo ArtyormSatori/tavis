@@ -357,9 +357,9 @@ fn text_error(status: StatusCode, message: &str) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tinymcp_bus::McpAuthConfig;
     use crate::openhuman::mcp::http_client::McpHttpClient;
     use serde_json::json;
+    use tinymcp_bus::McpAuthConfig;
 
     async fn spawn_test_server(auth_token: Option<&str>) -> String {
         spawn_test_server_with_events(auth_token).await.0

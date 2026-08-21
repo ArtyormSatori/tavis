@@ -217,7 +217,11 @@ fn server_config(server: &crate::openhuman::config::McpServerConfig) -> McpServe
         args: server.args.clone(),
         // Ordered on the way across, so the serialized form does not depend on
         // hash iteration order.
-        env: server.env.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+        env: server
+            .env
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
         cwd: server.cwd.clone(),
         description: server.description.clone(),
         enabled: server.enabled,

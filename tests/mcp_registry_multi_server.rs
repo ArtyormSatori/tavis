@@ -30,7 +30,6 @@ fn host(config: &Config) -> openhuman_core::openhuman::mcp::host::McpHost {
     openhuman_core::openhuman::mcp::host::McpHost::open(config).expect("the mcp host opens")
 }
 
-
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 fn fresh_workspace_config() -> (tempfile::TempDir, Config) {
@@ -93,15 +92,25 @@ async fn two_servers_same_tool_name_no_collision() {
         "two stub servers must have distinct server_ids"
     );
 
-    h.dynamic().store().insert_server(&server_a).expect("insert server_a");
-    h.dynamic().store().insert_server(&server_b).expect("insert server_b");
+    h.dynamic()
+        .store()
+        .insert_server(&server_a)
+        .expect("insert server_a");
+    h.dynamic()
+        .store()
+        .insert_server(&server_b)
+        .expect("insert server_b");
 
     // Connect both — each spawns its own subprocess.
-    let tools_a = h.dynamic().connect(&server_a.server_id)
+    let tools_a = h
+        .dynamic()
+        .connect(&server_a.server_id)
         .await
         .expect("connect server_a")
         .tools;
-    let tools_b = h.dynamic().connect(&server_b.server_id)
+    let tools_b = h
+        .dynamic()
+        .connect(&server_b.server_id)
         .await
         .expect("connect server_b")
         .tools;
@@ -155,8 +164,16 @@ async fn two_servers_same_tool_name_no_collision() {
     assert_eq!(find(&server_b.server_id).status.as_str(), "connected");
     assert_eq!(find(&server_b.server_id).tool_count, 1);
 
-    let _ = h.dynamic().connections().disconnect(&server_a.server_id).await;
-    let _ = h.dynamic().connections().disconnect(&server_b.server_id).await;
+    let _ = h
+        .dynamic()
+        .connections()
+        .disconnect(&server_a.server_id)
+        .await;
+    let _ = h
+        .dynamic()
+        .connections()
+        .disconnect(&server_b.server_id)
+        .await;
 }
 
 // ── Test 2: routing ───────────────────────────────────────────────────────────
@@ -173,34 +190,46 @@ async fn tool_calls_route_to_the_correct_server() {
     let server_a = make_stub_server("@route-test/echo-a");
     let server_b = make_stub_server("@route-test/echo-b");
 
-    h.dynamic().store().insert_server(&server_a).expect("insert server_a");
-    h.dynamic().store().insert_server(&server_b).expect("insert server_b");
+    h.dynamic()
+        .store()
+        .insert_server(&server_a)
+        .expect("insert server_a");
+    h.dynamic()
+        .store()
+        .insert_server(&server_b)
+        .expect("insert server_b");
 
-    h.dynamic().connect(&server_a.server_id)
+    h.dynamic()
+        .connect(&server_a.server_id)
         .await
         .expect("connect server_a")
         .tools;
-    h.dynamic().connect(&server_b.server_id)
+    h.dynamic()
+        .connect(&server_b.server_id)
         .await
         .expect("connect server_b")
         .tools;
 
     // Send distinct payloads to each server; verify each echoes its own input.
-    let result_a = h.dynamic().tool_call(
-        &server_a.server_id,
-        "echo",
-        serde_json::json!({ "message": "payload-for-a" }),
-    )
-    .await
-    .expect("call_tool on server_a should succeed");
+    let result_a = h
+        .dynamic()
+        .tool_call(
+            &server_a.server_id,
+            "echo",
+            serde_json::json!({ "message": "payload-for-a" }),
+        )
+        .await
+        .expect("call_tool on server_a should succeed");
 
-    let result_b = h.dynamic().tool_call(
-        &server_b.server_id,
-        "echo",
-        serde_json::json!({ "message": "payload-for-b" }),
-    )
-    .await
-    .expect("call_tool on server_b should succeed");
+    let result_b = h
+        .dynamic()
+        .tool_call(
+            &server_b.server_id,
+            "echo",
+            serde_json::json!({ "message": "payload-for-b" }),
+        )
+        .await
+        .expect("call_tool on server_b should succeed");
 
     let text_a = extract_echo_text(&result_a.result);
     let text_b = extract_echo_text(&result_b.result);
@@ -220,8 +249,16 @@ async fn tool_calls_route_to_the_correct_server() {
         "two servers must not produce identical outputs for different inputs"
     );
 
-    let _ = h.dynamic().connections().disconnect(&server_a.server_id).await;
-    let _ = h.dynamic().connections().disconnect(&server_b.server_id).await;
+    let _ = h
+        .dynamic()
+        .connections()
+        .disconnect(&server_a.server_id)
+        .await;
+    let _ = h
+        .dynamic()
+        .connections()
+        .disconnect(&server_b.server_id)
+        .await;
 }
 
 // ── Test 3: failure isolation ─────────────────────────────────────────────────
@@ -241,11 +278,19 @@ async fn failed_connect_does_not_block_healthy_peer() {
     // "good" server: real stub.
     let good = make_stub_server("@isolation-test/good");
 
-    h.dynamic().store().insert_server(&bad).expect("insert bad server");
-    h.dynamic().store().insert_server(&good).expect("insert good server");
+    h.dynamic()
+        .store()
+        .insert_server(&bad)
+        .expect("insert bad server");
+    h.dynamic()
+        .store()
+        .insert_server(&good)
+        .expect("insert good server");
 
     // Connecting the bad server must fail.
-    let connect_err = h.dynamic().connect(&bad.server_id)
+    let connect_err = h
+        .dynamic()
+        .connect(&bad.server_id)
         .await
         .expect_err("connect bad server should fail");
     assert!(
@@ -254,7 +299,9 @@ async fn failed_connect_does_not_block_healthy_peer() {
     );
 
     // Connecting the good server must succeed independently.
-    let good_tools = h.dynamic().connect(&good.server_id)
+    let good_tools = h
+        .dynamic()
+        .connect(&good.server_id)
         .await
         .expect("connect good server must succeed regardless of the bad peer")
         .tools;
@@ -297,13 +344,15 @@ async fn failed_connect_does_not_block_healthy_peer() {
     );
 
     // The good server is still callable after the peer's failure.
-    let result = h.dynamic().tool_call(
-        &good.server_id,
-        "echo",
-        serde_json::json!({ "message": "isolation-check" }),
-    )
-    .await
-    .expect("call_tool on good server must succeed after peer failure");
+    let result = h
+        .dynamic()
+        .tool_call(
+            &good.server_id,
+            "echo",
+            serde_json::json!({ "message": "isolation-check" }),
+        )
+        .await
+        .expect("call_tool on good server must succeed after peer failure");
 
     assert_eq!(
         extract_echo_text(&result.result),
@@ -331,11 +380,18 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
     let mut quiet = make_stub_server("@disabled-test/quiet");
     quiet.enabled = false;
 
-    h.dynamic().store().insert_server(&live).expect("insert live server");
-    h.dynamic().store().insert_server(&quiet).expect("insert quiet server");
+    h.dynamic()
+        .store()
+        .insert_server(&live)
+        .expect("insert live server");
+    h.dynamic()
+        .store()
+        .insert_server(&quiet)
+        .expect("insert quiet server");
 
     // Connect the live server.
-    h.dynamic().connect(&live.server_id)
+    h.dynamic()
+        .connect(&live.server_id)
         .await
         .expect("connect live server")
         .tools;
@@ -385,13 +441,15 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
         "live server must contribute its tool even while disabled peer is present"
     );
 
-    let result = h.dynamic().tool_call(
-        &live.server_id,
-        "echo",
-        serde_json::json!({ "message": "live-while-quiet" }),
-    )
-    .await
-    .expect("call_tool on live server must succeed");
+    let result = h
+        .dynamic()
+        .tool_call(
+            &live.server_id,
+            "echo",
+            serde_json::json!({ "message": "live-while-quiet" }),
+        )
+        .await
+        .expect("call_tool on live server must succeed");
 
     assert_eq!(
         extract_echo_text(&result.result),

@@ -2354,8 +2354,7 @@ fn register_domain_subscribers(
     // bootstrap_core_runtime; this subscriber must be live before then so those
     // connect events are observed (issue #3039 gap A1).
     if plan.mcp {
-        if group_first_time(DomainGroup::Mcp) {
-        }
+        if group_first_time(DomainGroup::Mcp) {}
     } else {
         log::debug!("[event_bus] mcp_registry bus init SKIPPED — Mcp domain disabled");
     }

@@ -24,7 +24,7 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
@@ -254,7 +254,9 @@ pub async fn mcp_clients_connect(
 
     Ok(RpcOutcome::new(
         json!({ "server_id": server_id, "status": "connected", "tools": tools }),
-        vec![format!("connected server_id={server_id} tools={tool_count}")],
+        vec![format!(
+            "connected server_id={server_id} tools={tool_count}"
+        )],
     ))
 }
 
@@ -282,7 +284,9 @@ pub async fn mcp_clients_set_enabled(
 
     Ok(RpcOutcome::new(
         json!({ "server_id": server_id, "enabled": enabled }),
-        vec![format!("set_enabled server_id={server_id} enabled={enabled}")],
+        vec![format!(
+            "set_enabled server_id={server_id} enabled={enabled}"
+        )],
     ))
 }
 
@@ -467,7 +471,9 @@ pub async fn mcp_clients_list_tools(server_id: String) -> Result<RpcOutcome<Valu
         .list_tools(&server_id)
         .await
         .map_err(|_| {
-            format!("server_id={server_id} is not connected; connect it first via mcp_clients_connect")
+            format!(
+                "server_id={server_id} is not connected; connect it first via mcp_clients_connect"
+            )
         })?;
 
     let tools = super::tools_safe_for_agent(&server_id, tools);
@@ -475,7 +481,9 @@ pub async fn mcp_clients_list_tools(server_id: String) -> Result<RpcOutcome<Valu
 
     Ok(RpcOutcome::new(
         json!({ "server_id": server_id, "tools": tools }),
-        vec![format!("list_tools server_id={server_id} returned {count} tools")],
+        vec![format!(
+            "list_tools server_id={server_id} returned {count} tools"
+        )],
     ))
 }
 

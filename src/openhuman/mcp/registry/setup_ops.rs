@@ -14,7 +14,7 @@
 
 use std::collections::HashMap;
 
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
@@ -198,12 +198,16 @@ pub async fn mcp_setup_test_connection(
             let count = tools.len();
             Ok(RpcOutcome::new(
                 json!({ "ok": true, "tools": tools }),
-                vec![format!("test_connection ok for {qualified_name}: {count} tools")],
+                vec![format!(
+                    "test_connection ok for {qualified_name}: {count} tools"
+                )],
             ))
         }
         Err(error) => Ok(RpcOutcome::new(
             json!({ "ok": false, "error": error.to_string() }),
-            vec![format!("test_connection failed for {qualified_name}: {error}")],
+            vec![format!(
+                "test_connection failed for {qualified_name}: {error}"
+            )],
         )),
     }
 }

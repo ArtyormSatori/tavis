@@ -18,7 +18,6 @@ use std::time::Duration;
 
 use openhuman_core::openhuman::config::Config;
 use tinymcp::{SecretRef, SecretVault};
-use tinymcp_bus::McpClientIdentityConfig;
 
 /// A vault for one test.
 ///

@@ -102,7 +102,13 @@ pub mod connections {
     /// Whether a server has a live entry.
     pub async fn is_connected(server_id: &str) -> bool {
         match host::try_service() {
-            Some(service) => service.dynamic().connections().is_connected(server_id).await,
+            Some(service) => {
+                service
+                    .dynamic()
+                    .connections()
+                    .is_connected(server_id)
+                    .await
+            }
             None => false,
         }
     }

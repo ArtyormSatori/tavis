@@ -10,8 +10,8 @@
 #![cfg(feature = "mcp")]
 
 use openhuman_core::openhuman::mcp::config_servers::McpStdioClient;
-use tinymcp_bus::McpClientIdentityConfig;
 use std::path::PathBuf;
+use tinymcp_bus::McpClientIdentityConfig;
 
 const LATEST_PROTOCOL_VERSION: &str = "2025-11-25";
 

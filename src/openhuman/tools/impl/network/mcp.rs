@@ -76,8 +76,7 @@ impl Tool for McpListServersTool {
                     server.endpoint,
                     match &server.auth {
                         tinymcp_bus::McpAuthConfig::None => "none",
-                        tinymcp_bus::McpAuthConfig::BearerToken { .. } =>
-                            "bearer_token",
+                        tinymcp_bus::McpAuthConfig::BearerToken { .. } => "bearer_token",
                         tinymcp_bus::McpAuthConfig::Basic { .. } => "basic",
                         tinymcp_bus::McpAuthConfig::Header { .. } => "header",
                         tinymcp_bus::McpAuthConfig::Headers { .. } => "headers",

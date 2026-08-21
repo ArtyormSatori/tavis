@@ -30,9 +30,7 @@ fn populated_server() -> HostServer {
         allowed_tools: vec!["forecast".into()],
         disallowed_tools: vec!["debug".into()],
         timeout_secs: 9,
-        auth: McpAuthConfig::BearerToken {
-            token: "t".into(),
-        },
+        auth: McpAuthConfig::BearerToken { token: "t".into() },
     }
 }
 
@@ -48,7 +46,10 @@ fn every_field_of_a_declared_server_survives_the_conversion() {
     assert_eq!(server.endpoint, "https://example.test/mcp");
     assert_eq!(server.command, "npx");
     assert_eq!(server.args, ["-y", "weather-mcp"]);
-    assert_eq!(server.env.get("API_KEY").map(String::as_str), Some("secret"));
+    assert_eq!(
+        server.env.get("API_KEY").map(String::as_str),
+        Some("secret")
+    );
     assert_eq!(server.cwd.as_deref(), Some("/tmp"));
     assert_eq!(server.description.as_deref(), Some("Weather lookups"));
     assert!(!server.enabled);
@@ -170,7 +171,10 @@ fn the_registry_credentials_survive_the_conversion() {
     let auth = client_config(&config).registry_auth;
 
     assert_eq!(auth.smithery_api_key.as_deref(), Some("smithery"));
-    assert_eq!(auth.mcp_official_base.as_deref(), Some("https://registry.test"));
+    assert_eq!(
+        auth.mcp_official_base.as_deref(),
+        Some("https://registry.test")
+    );
     assert_eq!(auth.mcp_official_token.as_deref(), Some("official"));
 }
 
@@ -196,12 +200,10 @@ fn the_documentation_server_is_seeded_when_it_is_enabled() {
 fn the_documentation_server_is_not_seeded_when_it_is_disabled() {
     let converted = client_config(&config_without_docs());
 
-    assert!(
-        !converted
-            .servers
-            .iter()
-            .any(|server| server.name == GITBOOKS_SERVER_NAME)
-    );
+    assert!(!converted
+        .servers
+        .iter()
+        .any(|server| server.name == GITBOOKS_SERVER_NAME));
 }
 
 #[test]
