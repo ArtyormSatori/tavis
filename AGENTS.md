@@ -364,6 +364,22 @@ two paths' equivalence — keep that as call sites migrate.
 
 A move never changes the wire surface — RPC namespaces are string literals in `ControllerSchema`, not derived from module paths — so **do not rename namespace strings to match new paths**.
 
+**Removed product surfaces.** Five capabilities were deleted from the core and the
+UI rather than gated off, so there is no flag that brings them back:
+
+| Removed | What went | Notes |
+| --- | --- | --- |
+| Desktop companion | `app/src-tauri/src/companion{,_commands}.rs`, the `companion` Redux slice, `CompanionPanel`, `companionEvents`, the overlay/notch companion modes | Shell + UI only; the core never owned it. `mascot_native_window`, `notch_window` and `ptt_overlay` are unaffected. |
+| AgentBox | `agent/agentbox/`, the `agentbox` RPC namespace, the GMI MaaS provider bridge, the `AgentBoxPanel` settings page | Moved to [tinybox](https://github.com/tinyhumansai/tinybox). The unauthenticated `/run` and `/jobs/` routes left `core::auth`'s public-path list with it — `agentbox_run_and_jobs_paths_are_no_longer_public` pins that they stay authenticated. |
+| Meetings | the `meet` Cargo gate and `openhuman::meet/` (join validation, live agent loop, backend bot), `MeetConfig`, the `meet`/`meet_agent`/`agent_meetings` namespaces, every `BackendMeet*`/`Meeting*` `DomainEvent`, the meetings UI, and `integrations/recall_calendar` (its only purpose was Meet auto-join) | `DomainGroup::Meet` is gone, so `DomainGroup::COUNT` dropped 23 → 22. The approval gate's in-call branch went with it — nothing set `APPROVAL_IN_CALL_CONTEXT` any more. |
+| Subconscious | `openhuman::subconscious/` (engine, heartbeat, planner, monitors, triggers, user_thread), the `openhuman subconscious` CLI, the monitor + `notify_user` agent tools, the Brain/Activity subconscious tabs | `DomainGroup::Automation` now means cron alone. **`HeartbeatConfig` stays** — `threads::goals::continuation` reads `heartbeat.goal_continuation_enabled` / `goal_idle_minutes`, and **the `subconscious` provider role stays** because `agent::triage::routing` resolves its provider through it. |
+
+Two things deliberately survived and should not be "cleaned up": the tiny.place
+orchestration surface still has a pinned **subconscious chat window**
+(`hosted/orchestration`, a different concept from the deleted domain), and
+`threadFilter`'s `MEETINGS_LABELS` still routes historical meeting-labelled
+threads so existing user data does not leak into the General bucket.
+
 **Skills runtime**: the QuickJS per-skill VM engine is gone. `src/openhuman/skills/` holds skill metadata/tool descriptors; execution of installed `SKILL.md` workflows lives in `src/openhuman/skills/runtime/` (starts/cancels runs, hosts the `skill_executor` agent, reuses `runtime_node`/`runtime_python`).
 
 ### Tool calling lives in tinyagents — `src/openhuman/agent/dispatcher.rs` is a seam
