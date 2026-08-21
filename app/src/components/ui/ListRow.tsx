@@ -8,6 +8,16 @@ export interface ListRowProps {
   badge?: ReactNode;
   onRemove?: () => void;
   removeLabel: string;
+  /**
+   * Render the remove control as an icon button instead of a text button.
+   * `removeLabel` stays the accessible name (and the tooltip), so nothing is
+   * lost from the a11y tree — this only changes what is painted. Needed by
+   * dense rows (a canvas drawer, a chip list) where a full "Remove" word does
+   * not fit next to a truncating label.
+   */
+  removeIcon?: ReactNode;
+  /** `data-testid` for the remove control itself, not the row. */
+  removeTestId?: string;
   mono?: boolean;
   className?: string;
   'data-testid'?: string;
@@ -19,6 +29,8 @@ const ListRow = ({
   badge,
   onRemove,
   removeLabel,
+  removeIcon,
+  removeTestId,
   mono = false,
   className,
   'data-testid': testId,
@@ -36,10 +48,14 @@ const ListRow = ({
         type="button"
         variant="tertiary"
         size="xs"
+        iconOnly={removeIcon != null}
         onClick={onRemove}
         aria-label={removeLabel}
+        title={removeIcon != null ? removeLabel : undefined}
+        data-testid={removeTestId}
+        data-slot="list-row-remove"
         className="flex-shrink-0 text-coral-500 hover:text-coral-600 dark:text-coral-400 dark:hover:text-coral-300">
-        {removeLabel}
+        {removeIcon ?? removeLabel}
       </Button>
     )}
   </li>
