@@ -378,14 +378,15 @@ export default function RewardsCommunityTab({
             {t('rewards.community.syncUnavailable')} {error}
           </span>
           {onRetry ? (
-            <button
-              type="button"
+            <Button
               data-testid="rewards-retry"
               onClick={onRetry}
               disabled={isLoading}
-              className="rounded-full border border-amber-300 dark:border-amber-500/40 bg-surface px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200 shadow-sm transition-colors hover:bg-amber-100 dark:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60">
+              variant="secondary"
+              size="xs"
+              className="rounded-full border-amber-300 bg-surface text-amber-800 shadow-sm hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/20 dark:text-amber-200">
               {isLoading ? t('rewards.community.retrying') : t('rewards.community.tryAgain')}
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}

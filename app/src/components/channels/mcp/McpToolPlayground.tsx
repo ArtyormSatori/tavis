@@ -116,19 +116,9 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
   const [history, setHistory] = useState<InvocationRecord[]>([]);
   const argsTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Esc closes; click-outside the dialog card also closes. We attach the
-  // keydown listener to document so the modal handles Esc regardless of
-  // which child has focus.
-  useEffect(() => {
-    const handleDocumentKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleDocumentKey);
-    return () => document.removeEventListener('keydown', handleDocumentKey);
-  }, [onClose]);
+  // Esc-to-close and click-outside-to-close are now `ModalShell` / Radix
+  // `Dialog` behavior (its own document-level Escape listener + backdrop
+  // pointerdown-outside), so there is no hand-rolled listener here any more.
 
   // Auto-focus the args editor on mount so keyboard-first users land
   // exactly where they need to type.
