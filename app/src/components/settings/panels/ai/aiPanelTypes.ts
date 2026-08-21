@@ -146,7 +146,8 @@ export const BUILTIN_PROVIDER_META: Record<string, { tone: string; label: string
 // Tints per local-runtime chip slug — kept to the semantic palette (primary /
 // amber / neutral) rather than decorative stock Tailwind hues.
 export const LOCAL_CHIP_TONE: Record<LocalChipSlug, string> = {
-  lmstudio: 'bg-primary-50 dark:bg-primary-500/10 ring-primary-200 text-primary-900 dark:text-primary-100',
+  lmstudio:
+    'bg-primary-50 dark:bg-primary-500/10 ring-primary-200 text-primary-900 dark:text-primary-100',
   ollama: 'bg-surface-subtle ring-line-strong text-content',
   omlx: 'bg-amber-50 dark:bg-amber-500/10 ring-amber-200 text-amber-900 dark:text-amber-100',
 };

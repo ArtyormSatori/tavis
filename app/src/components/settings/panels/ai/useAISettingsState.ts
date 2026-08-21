@@ -9,13 +9,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   type AISettings as ApiAISettings,
+  type ProviderRef as ApiProviderRef,
   type CloudProviderView,
   flushCloudProviders,
   listProviderModels,
   loadAISettings,
   loadLocalProviderSnapshot,
   type LocalProviderSnapshot,
-  type ProviderRef as ApiProviderRef,
   saveAISettings,
 } from '../../../../services/api/aiSettingsApi';
 import { toSelectableChatModels } from '../aiRouting';
