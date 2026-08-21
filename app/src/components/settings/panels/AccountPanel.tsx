@@ -1,5 +1,6 @@
 import { useT } from '../../../lib/i18n/I18nContext';
 import { useCoreState } from '../../../providers/CoreStateProvider';
+import { AvatarFallback, AvatarRoot } from '../../ui/Avatar';
 import { SettingsSection } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 import LogoutAndClearActions from '../LogoutAndClearActions';
