@@ -130,35 +130,29 @@ export function RunItemDataBrowser({ items, inputItems, testIdPrefix }: Props) {
     <div data-testid={`${testIdPrefix}-data-browser`}>
       {/* Header: view toggle + item count. */}
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <div
-          className="inline-flex overflow-hidden rounded-md border border-line"
-          role="group"
-          aria-label={t('flowRuns.inspector.dataViewLabel')}>
-          <button
-            type="button"
+        <ToggleGroupRoot
+          type="single"
+          variant="secondary"
+          size="xs"
+          value={view}
+          onValueChange={next => {
+            if (next) setView(next as ViewMode);
+          }}
+          aria-label={t('flowRuns.inspector.dataViewLabel')}
+          className="overflow-hidden rounded-md border border-line gap-0 [&>*]:rounded-none">
+          <ToggleGroupItem
+            value="table"
             data-testid={`${testIdPrefix}-view-table`}
-            aria-pressed={view === 'table'}
-            onClick={() => setView('table')}
-            className={`px-2 py-0.5 text-[11px] font-medium ${
-              view === 'table'
-                ? 'bg-ocean-500 text-white'
-                : 'bg-surface text-content-muted hover:bg-surface-hover'
-            }`}>
+            className="border-0 px-2 py-0.5 text-[11px]">
             {t('flowRuns.inspector.dataTable')}
-          </button>
-          <button
-            type="button"
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="json"
             data-testid={`${testIdPrefix}-view-json`}
-            aria-pressed={view === 'json'}
-            onClick={() => setView('json')}
-            className={`border-l border-line px-2 py-0.5 text-[11px] font-medium ${
-              view === 'json'
-                ? 'bg-ocean-500 text-white'
-                : 'bg-surface text-content-muted hover:bg-surface-hover'
-            }`}>
+            className="border-0 border-l border-line px-2 py-0.5 text-[11px]">
             {t('flowRuns.inspector.dataJson')}
-          </button>
-        </div>
+          </ToggleGroupItem>
+        </ToggleGroupRoot>
         <span className="text-[10px] text-content-faint" data-testid={`${testIdPrefix}-item-count`}>
           {t('flowRuns.inspector.itemCount').replace('{count}', String(items.length))}
         </span>
