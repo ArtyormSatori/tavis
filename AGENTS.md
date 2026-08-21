@@ -364,7 +364,7 @@ two paths' equivalence — keep that as call sites migrate.
 
 A move never changes the wire surface — RPC namespaces are string literals in `ControllerSchema`, not derived from module paths — so **do not rename namespace strings to match new paths**.
 
-**Removed product surfaces.** Five capabilities were deleted from the core and the
+**Removed product surfaces.** Four capabilities were deleted from the core and the
 UI rather than gated off, so there is no flag that brings them back:
 
 | Removed | What went | Notes |
