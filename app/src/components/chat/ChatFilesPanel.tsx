@@ -14,7 +14,7 @@ import {
   upsertArtifactReadyForThread,
 } from '../../store/chatRuntimeSlice';
 import { useAppDispatch } from '../../store/hooks';
-import Button from '../ui/Button';
+import { Button } from '../ui';
 import { extensionFor } from './artifactExtension';
 
 /**
