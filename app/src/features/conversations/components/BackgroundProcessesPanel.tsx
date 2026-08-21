@@ -13,7 +13,6 @@ import {
   CronJobRow,
   MemorySection,
   SectionHeader,
-  SubconsciousRow,
 } from './BackgroundActivityRows';
 
 /**
@@ -128,7 +127,7 @@ export function BackgroundProcessesPanel({
   onOpenProcess,
 }: BackgroundProcessesPanelProps) {
   const { t } = useT();
-  // Cron jobs + subconscious + memory syncing — fetched only while open.
+  // Cron jobs + memory syncing — fetched only while open.
   const activity = useBackgroundActivity(open);
 
   useEffect(() => {
@@ -246,14 +245,6 @@ export function BackgroundProcessesPanel({
           ) : (
             activity.cronJobs.map(job => <CronJobRow key={job.id} job={job} />)
           )}
-
-          {/* Section 3 — subconscious / background-thinking loop. */}
-          {activity.subconscious ? (
-            <>
-              <SectionHeader title={t('conversations.backgroundTasks.sectionSubconscious')} />
-              <SubconsciousRow summary={activity.subconscious} />
-            </>
-          ) : null}
 
           {/* Section 4 — memory syncing / ingestion. */}
           <SectionHeader title={t('conversations.backgroundTasks.sectionMemory')} />
