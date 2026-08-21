@@ -66,8 +66,9 @@ fn every_packed_name_belongs_to_exactly_one_pack() {
 fn packed_names_are_withheld_and_replaced() {
     let packed = all_packed_tool_names();
     let sample = packed[0];
-    let mut visible: HashSet<String> =
-        [sample.to_string(), "file_read".to_string()].into_iter().collect();
+    let mut visible: HashSet<String> = [sample.to_string(), "file_read".to_string()]
+        .into_iter()
+        .collect();
 
     strip_packed_from_visible(&mut visible);
 
@@ -105,7 +106,10 @@ async fn load_skill_renders_the_schema_of_a_present_tool() {
     assert!(!result.is_error);
     let text = format!("{:?}", result.content);
     assert!(text.contains(name), "rendered pack omitted `{name}`");
-    assert!(text.contains("marker"), "rendered pack omitted the arg schema");
+    assert!(
+        text.contains("marker"),
+        "rendered pack omitted the arg schema"
+    );
 }
 
 #[tokio::test]
@@ -128,7 +132,10 @@ async fn use_skill_dispatches_to_the_packed_tool() {
         .unwrap();
     assert!(!result.is_error);
     let text = format!("{:?}", result.content);
-    assert!(text.contains("marker"), "inner args were not forwarded: {text}");
+    assert!(
+        text.contains("marker"),
+        "inner args were not forwarded: {text}"
+    );
 }
 
 #[tokio::test]

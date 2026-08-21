@@ -80,15 +80,18 @@ fn render_pack(skill: &str, handle: &PackRegistryHandle) -> Result<String, Strin
             continue;
         };
         found += 1;
-        out.push_str(&format!("## `{}`\n\n{}\n\n", tool.name(), tool.description()));
+        out.push_str(&format!(
+            "## `{}`\n\n{}\n\n",
+            tool.name(),
+            tool.description()
+        ));
         // Minified, matching what the provider receives for a natively
         // advertised tool. Pretty-printing costs roughly a third more tokens
         // for indentation and newlines the model gains nothing from, and this
         // text is charged to the context window exactly like a native schema.
         out.push_str("```json\n");
         out.push_str(
-            &serde_json::to_string(&tool.parameters_schema())
-                .unwrap_or_else(|_| "{}".to_string()),
+            &serde_json::to_string(&tool.parameters_schema()).unwrap_or_else(|_| "{}".to_string()),
         );
         out.push_str("\n```\n\n");
     }
@@ -120,7 +123,10 @@ impl LoadSkillTool {
              skill you have not already loaded in this conversation.\n\nSkills:\n{}",
             registry::pack_index_markdown()
         );
-        Self { handle, description }
+        Self {
+            handle,
+            description,
+        }
     }
 }
 
@@ -184,7 +190,10 @@ impl UseSkillTool {
              tools and their arguments.\n\nSkills:\n{}",
             registry::pack_index_markdown()
         );
-        Self { handle, description }
+        Self {
+            handle,
+            description,
+        }
     }
 
     fn resolve(&self, args: &Value) -> Option<(Arc<Vec<Box<dyn Tool>>>, usize)> {
