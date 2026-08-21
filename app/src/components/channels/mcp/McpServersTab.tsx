@@ -664,81 +664,76 @@ const McpServersTab = () => {
           width (the wrapper was `overflow-hidden`, which cut them off with no
           way to scroll). `min-w` keeps the columns readable rather than
           crushing them. */}
-      <div className="rounded-lg border border-line overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="border-b border-line-subtle bg-surface-muted">
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-content-muted">
-                {t('mcp.tab.column.name')}
-              </th>
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-content-muted hidden sm:table-cell w-28">
-                {t('mcp.tab.column.type')}
-              </th>
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-content-muted hidden sm:table-cell w-36">
-                {t('mcp.tab.column.author')}
-              </th>
-              <th className="text-right px-4 py-2.5 text-xs font-medium text-content-muted w-28">
-                {t('mcp.tab.column.action')}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line-subtle dark:divide-neutral-800">
-            {/* Installed servers */}
-            {(activeChip === 'all' || activeChip === 'installed') &&
-              filteredInstalled.map(server => {
-                const status: ServerStatus =
-                  statusMap.get(server.server_id)?.status ?? 'disconnected';
-                return (
-                  <tr
-                    key={`installed-${server.server_id}`}
-                    className="hover:bg-surface-muted dark:hover:bg-surface-muted/40 cursor-pointer transition-colors"
-                    tabIndex={0}
-                    role="button"
-                    aria-label={t('mcp.tab.aria.viewDetails').replace(
-                      '{name}',
-                      server.display_name
-                    )}
-                    onClick={() => handleSelectServer(server.server_id)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleSelectServer(server.server_id);
-                      }
-                    }}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[status]}`}
-                          title={status}
-                        />
-                        <div className="min-w-0">
-                          <span className="font-medium text-content truncate block">
-                            {server.display_name}
+      <Table className="min-w-[640px] rounded-lg border border-line">
+        <TableHeader>
+          <TableRow className="bg-surface-muted">
+            <TableHead>{t('mcp.tab.column.name')}</TableHead>
+            <TableHead className="hidden w-28 sm:table-cell">
+              {t('mcp.tab.column.type')}
+            </TableHead>
+            <TableHead className="hidden w-36 sm:table-cell">
+              {t('mcp.tab.column.author')}
+            </TableHead>
+            <TableHead className="w-28 text-right">{t('mcp.tab.column.action')}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {/* Installed servers */}
+          {(activeChip === 'all' || activeChip === 'installed') &&
+            filteredInstalled.map(server => {
+              const status: ServerStatus =
+                statusMap.get(server.server_id)?.status ?? 'disconnected';
+              return (
+                <TableRow
+                  key={`installed-${server.server_id}`}
+                  className="cursor-pointer"
+                  tabIndex={0}
+                  role="button"
+                  aria-label={t('mcp.tab.aria.viewDetails').replace(
+                    '{name}',
+                    server.display_name
+                  )}
+                  onClick={() => handleSelectServer(server.server_id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelectServer(server.server_id);
+                    }
+                  }}>
+                  <TableCell>
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[status]}`}
+                        title={status}
+                      />
+                      <div className="min-w-0">
+                        <span className="font-medium text-content truncate block">
+                          {server.display_name}
+                        </span>
+                        {server.description && (
+                          <span className="text-xs text-content-faint line-clamp-4 block">
+                            {server.description}
                           </span>
-                          {server.description && (
-                            <span className="text-xs text-content-faint line-clamp-4 block">
-                              {server.description}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
-                      <span className="text-xs text-content-faint">—</span>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
-                      <span className="text-xs text-content-muted truncate block">
-                        {deriveAuthor(server.qualified_name) ?? '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
-                        {t('mcp.tab.action.manage')}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="text-xs text-content-faint">—</span>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="text-xs text-content-muted truncate block">
+                      {deriveAuthor(server.qualified_name) ?? '—'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
+                      {t('mcp.tab.action.manage')}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
 
             {/* Registry servers — official first, then the registry's relevance
                 order. Each row shows its transport, website/repo links, and the
