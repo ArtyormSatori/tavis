@@ -7,6 +7,7 @@
  */
 import { useT } from '../../lib/i18n/I18nContext';
 import type { InstanceStatus, SessionSummary } from '../../lib/orchestration/orchestrationClient';
+import Button from '../ui/Button';
 import HarnessGlyph, { type GlyphKind } from './HarnessGlyph';
 import InstanceStatusDot from './InstanceStatusDot';
 
