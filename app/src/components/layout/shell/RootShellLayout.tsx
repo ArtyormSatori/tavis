@@ -9,7 +9,16 @@ import {
   setSidebarWidth,
   toggleSidebar,
 } from '../../../store/layoutSlice';
-import { Button, Tooltip } from '../../ui';
+import {
+  Sidebar,
+  SIDEBAR_DEFAULT_WIDTH,
+  SIDEBAR_MAX_WIDTH,
+  SIDEBAR_MIN_WIDTH,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  Tooltip,
+} from '../../ui';
 import CollapsedNavRail from './CollapsedNavRail';
 import ContentSurface from './ContentSurface';
 import WindowDragBar from './WindowDragBar';
@@ -19,14 +28,13 @@ import WindowDragBar from './WindowDragBar';
 // layer (mod+B "Toggle sidebar") can target this exact panel.
 export const APP_SHELL_LAYOUT_ID = 'app-shell';
 const LAYOUT_ID = APP_SHELL_LAYOUT_ID;
-const DEFAULT_WIDTH = 224;
-const MIN_WIDTH = 188;
-const MAX_WIDTH = 420;
-const KEYBOARD_STEP = 16;
-const LAYOUT_DEFAULTS = { sidebarVisible: true, sidebarWidth: DEFAULT_WIDTH };
+// Geometry bounds come from the `Sidebar` primitive rather than being restated
+// here — they were byte-identical, and two copies of a clamp is one copy too
+// many once the primitive is the thing doing the clamping.
+const LAYOUT_DEFAULTS = { sidebarVisible: true, sidebarWidth: SIDEBAR_DEFAULT_WIDTH };
 
 function clamp(width: number): number {
-  return Math.min(Math.max(width, MIN_WIDTH), MAX_WIDTH);
+  return Math.min(Math.max(width, SIDEBAR_MIN_WIDTH), SIDEBAR_MAX_WIDTH);
 }
 
 /**
@@ -77,6 +85,19 @@ interface RootShellLayoutProps {
  * The two separate by fill contrast, which is why the sidebar needs no border
  * and the panes need no divider fill. The dragged sidebar width persists per
  * user via the `layout` slice (id `app-shell`).
+ *
+ * ## Redux stays the source of truth
+ *
+ * The column, the rail and the reopen affordance are the `Sidebar` primitive,
+ * but the primitive is driven as a **controlled view**: `open` and `width` are
+ * read out of the `layout` slice on every render, and `onOpenChange` /
+ * `onWidthChange` dispatch back into it. Letting `SidebarProvider` hold the
+ * state uncontrolled would look identical in a unit test and silently stop
+ * restoring the persisted geometry across restarts.
+ *
+ * `keyboardShortcut` stays off (its default) for the same reason it always was:
+ * `lib/commands/registry` already binds mod+B to `toggleSidebar`, and a second
+ * window listener on the same chord toggles twice and cancels out.
  */
 export default function RootShellLayout({ sidebar, children, unframed }: RootShellLayoutProps) {
   const { t } = useT();
@@ -91,7 +112,11 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
     dispatch(ensurePanelLayout({ id: LAYOUT_ID, defaults: LAYOUT_DEFAULTS }));
   }, [dispatch]);
 
+  // Live drag width. `SidebarRail` reports a width per pointermove frame; those
+  // frames are held locally and committed to Redux once on release, so a drag
+  // writes (and persists) one value rather than sixty.
   const [dragWidth, setDragWidth] = useState<number | null>(null);
+  const draggingRef = useRef(false);
   const dragWidthRef = useRef<number | null>(null);
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const width = dragWidth ?? persistedWidth;
@@ -101,62 +126,58 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
     [dispatch]
   );
 
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.preventDefault();
-      const startX = e.clientX;
-      const startWidth = width;
-      dragWidthRef.current = startWidth;
-      setDragWidth(startWidth);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-
-      function handleMove(ev: PointerEvent) {
-        const next = clamp(startWidth + (ev.clientX - startX));
+  /** Every width the primitive proposes — drag frames and arrow-key steps alike. */
+  const handleWidthChange = useCallback(
+    (next: number) => {
+      if (draggingRef.current) {
         dragWidthRef.current = next;
         setDragWidth(next);
+        return;
       }
-      function detach() {
-        window.removeEventListener('pointermove', handleMove);
-        window.removeEventListener('pointerup', stop);
-        window.removeEventListener('pointercancel', stop);
-        window.removeEventListener('blur', stop);
-        document.body.style.removeProperty('cursor');
-        document.body.style.removeProperty('user-select');
-        dragCleanupRef.current = null;
-      }
-      function stop() {
-        detach();
-        const finalWidth = dragWidthRef.current;
-        dragWidthRef.current = null;
-        setDragWidth(null);
-        if (finalWidth != null) commitWidth(finalWidth);
-      }
-
-      dragCleanupRef.current = detach;
-      window.addEventListener('pointermove', handleMove);
-      window.addEventListener('pointerup', stop);
-      window.addEventListener('pointercancel', stop);
-      window.addEventListener('blur', stop);
+      // Arrow-key resize: discrete, so it lands straight in the store.
+      commitWidth(next);
     },
-    [width, commitWidth]
+    [commitWidth]
   );
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => dispatch(setSidebarVisible({ id: LAYOUT_ID, visible: next })),
+    [dispatch]
+  );
+
+  // The rail owns the pointermove maths; this only brackets the gesture (and
+  // paints the drag cursor across the whole window while it is in flight).
+  const handleRailPointerDown = useCallback(() => {
+    draggingRef.current = true;
+    dragWidthRef.current = null;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function detach() {
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+      window.removeEventListener('blur', stop);
+      document.body.style.removeProperty('cursor');
+      document.body.style.removeProperty('user-select');
+      draggingRef.current = false;
+      dragCleanupRef.current = null;
+    }
+    function stop() {
+      detach();
+      const finalWidth = dragWidthRef.current;
+      dragWidthRef.current = null;
+      setDragWidth(null);
+      if (finalWidth != null) commitWidth(finalWidth);
+    }
+
+    dragCleanupRef.current = detach;
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+    window.addEventListener('blur', stop);
+  }, [commitWidth]);
 
   // Detach global listeners if we unmount mid-drag.
   useLayoutEffect(() => () => dragCleanupRef.current?.(), []);
-
-  const onDividerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        commitWidth(persistedWidth - KEYBOARD_STEP);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        commitWidth(persistedWidth + KEYBOARD_STEP);
-      }
-    },
-    [commitWidth, persistedWidth]
-  );
 
   return (
     // The chrome layer. One legibility scrim across the WHOLE shell — the
@@ -171,38 +192,34 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
     // flattens it back into paint and leaves the shader burning GPU for nothing.
     // /30 is the legibility knob — raise it if sidebar labels wash out, which is
     // most likely under a `backdrop: image` theme rather than the mesh.
-    <div className="relative flex h-full w-full min-h-0 overflow-hidden bg-surface-chrome/30">
-      {isOpen && (
-        <>
-          <div
-            className="flex-shrink-0 min-w-0 overflow-hidden"
-            style={{ width }}
-            data-testid="root-shell-sidebar">
-            {sidebar}
-          </div>
+    <SidebarProvider
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      width={width}
+      onWidthChange={handleWidthChange}
+      minWidth={SIDEBAR_MIN_WIDTH}
+      maxWidth={SIDEBAR_MAX_WIDTH}
+      className="bg-surface-chrome/30">
+      {/* `collapsible="offcanvas"` unmounts the column when collapsed, which is
+          exactly what the hand-rolled `{isOpen && …}` did — the native webview
+          glued to the content bounds has historically punched through a
+          zero-width-but-present column. */}
+      <Sidebar collapsible="offcanvas" data-testid="root-shell-sidebar">
+        {sidebar}
+      </Sidebar>
 
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label={t('layout.resizeSidebar')}
-            aria-valuenow={Math.round(width)}
-            aria-valuemin={MIN_WIDTH}
-            aria-valuemax={MAX_WIDTH}
-            tabIndex={0}
-            data-testid="root-shell-divider"
-            data-analytics-id="root-shell-resize-divider"
-            onPointerDown={onPointerDown}
-            onKeyDown={onDividerKeyDown}
-            title={t('layout.resizeSidebar')}
-            // Transparent at rest: the sidebar and the content card separate by
-            // fill contrast, so a filled seam would draw a line across the
-            // chrome that the two-layer look is trying to remove. It still
-            // lights up on hover/focus to advertise the drag affordance.
-            className="group relative w-px flex-shrink-0 cursor-col-resize select-none self-stretch bg-transparent focus:outline-none">
-            <span className="absolute inset-y-0 -left-1 -right-1 z-10" />
-            <span className="absolute inset-0 transition-colors group-hover:bg-line-chrome group-focus:bg-line-chrome" />
-          </div>
-        </>
+      {/* Resize seam. Transparent at rest — the sidebar and the content card
+          separate by fill contrast, so a filled seam would draw a line across
+          the chrome that the two-layer look is trying to remove. Arrow keys
+          resize in 16px steps; the pointer drag is bracketed above. */}
+      {isOpen && (
+        <SidebarRail
+          aria-label={t('layout.resizeSidebar')}
+          title={t('layout.resizeSidebar')}
+          data-testid="root-shell-divider"
+          data-analytics-id="root-shell-resize-divider"
+          onPointerDown={handleRailPointerDown}
+        />
       )}
 
       {/* Reshow affordance — only when the sidebar is collapsed. A thin rail
@@ -218,16 +235,15 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
               clear of the lights. */}
           <div className="h-7 w-full flex-none" data-tauri-drag-region />
           <Tooltip label={t('layout.showSidebar')}>
-            <Button
-              variant="tertiary"
-              iconOnly
-              onClick={() => dispatch(setSidebarVisible({ id: LAYOUT_ID, visible: true }))}
+            {/* The primitive's own trigger, so reopening goes through the same
+                controlled `onOpenChange` as every other visibility change. 32px
+                square: no primitive size maps to that, so the footprint is
+                overridden while the focus ring/transition come from the trigger. */}
+            <SidebarTrigger
               data-testid="root-shell-reopen"
-              analyticsId="root-shell-reopen-sidebar"
+              data-analytics-id="root-shell-reopen-sidebar"
               aria-label={t('layout.showSidebar')}
-              // 32px square: no `size` maps to that, so the footprint is
-              // overridden while the focus ring/transition come from Button.
-              className="h-8 w-8 rounded-lg text-content-muted hover:text-content-secondary">
+              className="h-8 w-8 rounded-lg">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -236,7 +252,7 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-            </Button>
+            </SidebarTrigger>
           </Tooltip>
           {/* Keep the primary nav reachable while collapsed: an icon-only rail. */}
           <div className="mt-1 w-full pt-1">
@@ -255,6 +271,6 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
         <WindowDragBar />
         <ContentSurface unframed={unframed}>{children}</ContentSurface>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
