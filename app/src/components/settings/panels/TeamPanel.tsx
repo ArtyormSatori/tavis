@@ -8,6 +8,7 @@ import { CoreRpcError } from '../../../services/coreRpcClient';
 import type { TeamWithRole } from '../../../types/team';
 import { sanitizeError } from '../../../utils/sanitize';
 import { CenteredLoadingState, ErrorBanner, ModalShell } from '../../ui';
+import { AvatarFallback, AvatarRoot } from '../../ui/Avatar';
 import Button from '../../ui/Button';
 import { SettingsBadge, SettingsSection, SettingsTextField } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
@@ -158,11 +159,11 @@ const TeamPanel = () => {
             : 'border-line bg-surface hover:bg-surface-hover'
         }`}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-lg bg-surface-subtle flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-semibold text-content-secondary">
+          <AvatarRoot className="h-9 w-9 rounded-lg bg-surface-subtle flex-shrink-0">
+            <AvatarFallback className="rounded-lg bg-surface-subtle text-sm font-semibold text-content-secondary">
               {team.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
+            </AvatarFallback>
+          </AvatarRoot>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-medium text-content truncate">{team.name}</span>

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { registry } from '../../../lib/commands/registry';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { settingsNavState } from '../../settings/modal/settingsOverlay';
-import { Button, Tooltip } from '../../ui';
+import { Button, SidebarHeader as SidebarHeaderShell, Tooltip } from '../../ui';
 import { useRootSidebar } from './RootShellLayout';
 
 /**
@@ -24,10 +24,12 @@ export default function SidebarHeader() {
   const { hide } = useRootSidebar();
 
   return (
-    // Right-aligned so the macOS traffic lights (top-left, overlay title bar)
-    // sit in the empty left space — the icons stay clear of the window controls
-    // and inline with them (no extra top padding).
-    <div className="flex items-center justify-end gap-1 px-3 pb-2 pt-3">
+    // The primitive's header slot supplies the px-3/pb-2/pt-3 band; this only
+    // turns it into a right-aligned row. Right-aligned so the macOS traffic
+    // lights (top-left, overlay title bar) sit in the empty left space — the
+    // icons stay clear of the window controls and inline with them (no extra
+    // top padding).
+    <SidebarHeaderShell className="flex-row items-center justify-end gap-1">
       <div className="flex items-center gap-0.5">
         {/* Keyboard shortcuts — one-click open of the help directory (also ? / ⌘/). */}
         <Tooltip label={t('shortcuts.title')}>
@@ -100,6 +102,6 @@ export default function SidebarHeader() {
           </Button>
         </Tooltip>
       </div>
-    </div>
+    </SidebarHeaderShell>
   );
 }
