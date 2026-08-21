@@ -1731,14 +1731,10 @@ async fn perform_early_teardown_async(app_handle: &AppHandle<AppRuntime>) {
 
     shutdown_imessage_scanner(app_handle);
 
-    // A provisioned gateway is a container or a remote process this app
-    // started. Nothing else will stop it: an SSH tunnel dies with this process
-    // but the box on the far side does not, and a container left running holds
-    // a port and a workspace until someone finds it by hand. Blocking is right
-    // here for the same reason the core's terminate signal is — this is the
-    // last moment the handles still exist.
+    // Same teardown as the synchronous path, awaited rather than blocked on:
+    // `block_on` inside an async fn runs a runtime inside a runtime.
     #[cfg(feature = "gateways")]
-    tauri::async_runtime::block_on(gateway::registry::shutdown());
+    gateway::registry::shutdown().await;
 
     webview_apis::server::stop();
 
