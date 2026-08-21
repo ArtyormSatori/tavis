@@ -4,12 +4,12 @@
  * under the repo's file-size convention.
  */
 import { useT } from '../../../lib/i18n/I18nContext';
-import type { EmbeddingModelEntry } from '../../../services/api/embeddingsApi';
+import type { EmbeddingModelPreset } from '../../../services/api/embeddingsApi';
 import { Button } from '../../ui';
 import { SettingsRow, SettingsSection, SettingsSelect } from '../controls';
 
 export interface EmbeddingsModelSectionProps {
-  currentModels: readonly EmbeddingModelEntry[];
+  currentModels: readonly EmbeddingModelPreset[];
   allowedDims: readonly number[];
   model: string;
   dimensions: number;
