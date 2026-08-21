@@ -53,132 +53,10 @@ use tinyagents::harness::ids::TaskId;
 use tinyagents::harness::message::Message as TaMessage;
 use tinyagents::CancellationToken;
 
-enum DetachedTaskStore {
-    Durable(JsonlTaskStore),
-    Memory(InMemoryTaskStore),
-}
-
-impl TaskStore for DetachedTaskStore {
-    fn insert(&self, spec: OrchestrationTaskSpec) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.insert(spec),
-            Self::Memory(store) => store.insert(spec),
-        }
-    }
-
-    fn get(&self, task_id: &TaskId) -> Option<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.get(task_id),
-            Self::Memory(store) => store.get(task_id),
-        }
-    }
-
-    fn list(&self, filter: OrchestrationTaskFilter) -> Vec<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.list(filter),
-            Self::Memory(store) => store.list(filter),
-        }
-    }
-
-    fn history(&self, task_id: &TaskId) -> Vec<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.history(task_id),
-            Self::Memory(store) => store.history(task_id),
-        }
-    }
-
-    fn mark_running(&self, task_id: &TaskId) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.mark_running(task_id),
-            Self::Memory(store) => store.mark_running(task_id),
-        }
-    }
-
-    fn mark_awaiting(&self, task_id: &TaskId) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.mark_awaiting(task_id),
-            Self::Memory(store) => store.mark_awaiting(task_id),
-        }
-    }
-
-    fn complete(
-        &self,
-        task_id: &TaskId,
-        result: OrchestrationTaskResult,
-    ) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.complete(task_id, result),
-            Self::Memory(store) => store.complete(task_id, result),
-        }
-    }
-
-    fn fail(&self, task_id: &TaskId, error: String) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.fail(task_id, error),
-            Self::Memory(store) => store.fail(task_id, error),
-        }
-    }
-
-    fn timeout(
-        &self,
-        task_id: &TaskId,
-        error: String,
-    ) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.timeout(task_id, error),
-            Self::Memory(store) => store.timeout(task_id, error),
-        }
-    }
-
-    fn request_cancel(
-        &self,
-        task_id: &TaskId,
-    ) -> tinyagents::Result<
-        crate::openhuman::agent::tinyagents::orchestration::OrchestrationControlOutcome,
-    > {
-        match self {
-            Self::Durable(store) => store.request_cancel(task_id),
-            Self::Memory(store) => store.request_cancel(task_id),
-        }
-    }
-
-    fn mark_cancelled(&self, task_id: &TaskId) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.mark_cancelled(task_id),
-            Self::Memory(store) => store.mark_cancelled(task_id),
-        }
-    }
-
-    fn kill(
-        &self,
-        task_id: &TaskId,
-    ) -> tinyagents::Result<
-        crate::openhuman::agent::tinyagents::orchestration::OrchestrationControlOutcome,
-    > {
-        match self {
-            Self::Durable(store) => store.kill(task_id),
-            Self::Memory(store) => store.kill(task_id),
-        }
-    }
-
-    fn set_timeout_ms(
-        &self,
-        task_id: &TaskId,
-        timeout_ms: u64,
-    ) -> tinyagents::Result<OrchestrationTaskRecord> {
-        match self {
-            Self::Durable(store) => store.set_timeout_ms(task_id, timeout_ms),
-            Self::Memory(store) => store.set_timeout_ms(task_id, timeout_ms),
-        }
-    }
-}
-
-static TASK_STORES: OnceLock<Mutex<HashMap<PathBuf, Arc<DetachedTaskStore>>>> = OnceLock::new();
-
-fn task_stores() -> &'static Mutex<HashMap<PathBuf, Arc<DetachedTaskStore>>> {
-    TASK_STORES.get_or_init(|| Mutex::new(HashMap::new()))
-}
-
+/// Where a workspace's detached-task ledger lives.
+///
+/// A product path, not a generic one: TinyAgents opens whatever file it is
+/// given, and this is where OpenHuman keeps it.
 fn task_store_path(workspace_dir: &Path) -> PathBuf {
     workspace_dir
         .join(".openhuman")
@@ -192,51 +70,44 @@ fn default_task_store_workspace() -> PathBuf {
         .unwrap_or_else(|_| PathBuf::from(".openhuman").join("workspace"))
 }
 
-fn open_task_store(workspace_dir: &Path) -> DetachedTaskStore {
-    let path = task_store_path(workspace_dir);
-    if let Some(parent) = path.parent() {
-        if let Err(err) = std::fs::create_dir_all(parent) {
-            log::warn!(
-                "[running_subagents] failed to create task store dir {}; falling back to memory: {}",
-                parent.display(),
-                err
-            );
-            return DetachedTaskStore::Memory(InMemoryTaskStore::new());
-        }
-    }
+/// Process-wide typed lifecycle ledger for detached sub-agents (issue #4249),
+/// one durable store per workspace.
+///
+/// The caching and the durable→memory fallback are TinyAgents'
+/// (`TaskStoreRegistry` / `open_jsonl_task_store_or_memory`): opening a second
+/// store over the same append log would give two writers with independently
+/// replayed state, and a workspace that cannot be written should degrade to an
+/// in-memory ledger rather than take orchestration down. What stays here is the
+/// path layout above.
+static TASK_STORES: OnceLock<TaskStoreRegistry<PathBuf>> = OnceLock::new();
 
-    match JsonlTaskStore::open(&path) {
-        Ok(store) => {
-            log::debug!(
-                "[running_subagents] opened durable task store at {}",
-                path.display()
-            );
-            DetachedTaskStore::Durable(store)
-        }
-        Err(err) => {
-            log::warn!(
-                "[running_subagents] failed to open durable task store {}; falling back to memory: {}",
-                path.display(),
-                err
-            );
-            DetachedTaskStore::Memory(InMemoryTaskStore::new())
-        }
-    }
+fn task_stores() -> &'static TaskStoreRegistry<PathBuf> {
+    TASK_STORES.get_or_init(|| {
+        TaskStoreRegistry::new(|workspace_dir: &PathBuf| {
+            open_jsonl_task_store_or_memory(&task_store_path(workspace_dir))
+        })
+    })
 }
 
-/// Process-wide typed lifecycle ledger for detached sub-agents (issue #4249).
+/// The ledger for `workspace_dir`, opening it on first use.
 ///
-/// The first spawn opens a durable JSONL store under that workspace. Calls that
-/// need a view before any spawn use the default internal workspace location.
-fn task_store_for_workspace(workspace_dir: &Path) -> Arc<DetachedTaskStore> {
+/// A poisoned registry lock is degraded to a throwaway in-memory store rather
+/// than propagated: every caller here is a best-effort bookkeeping path, and a
+/// panic in an unrelated task must not turn sub-agent spawning into a second
+/// panic.
+fn task_store_for_workspace(workspace_dir: &Path) -> Arc<dyn TaskStore> {
     let key = workspace_dir.to_path_buf();
-    let mut stores = task_stores()
-        .lock()
-        .expect("running_subagents task store mutex poisoned");
-    stores
-        .entry(key.clone())
-        .or_insert_with(|| Arc::new(open_task_store(&key)))
-        .clone()
+    match task_stores().get_or_open(&key) {
+        Ok(store) => store,
+        Err(err) => {
+            log::warn!(
+                "[running_subagents] task store registry unavailable for {}; using a detached in-memory ledger: {}",
+                workspace_dir.display(),
+                err
+            );
+            Arc::new(InMemoryTaskStore::new())
+        }
+    }
 }
 
 #[cfg(test)]
