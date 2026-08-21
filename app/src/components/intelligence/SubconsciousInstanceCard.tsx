@@ -72,7 +72,7 @@ export default function SubconsciousInstanceCard({
             </span>
             {status?.last_tick_at != null && (
               <>
-                <span className="text-content-faint dark:text-neutral-600">|</span>
+                <span className="text-content-faint">|</span>
                 <span>
                   {t('subconscious.last')}:{' '}
                   {new Date(status.last_tick_at * 1000).toLocaleTimeString()}
@@ -81,7 +81,7 @@ export default function SubconsciousInstanceCard({
             )}
             {(status?.consecutive_failures ?? 0) > 0 && (
               <>
-                <span className="text-content-faint dark:text-neutral-600">|</span>
+                <span className="text-content-faint">|</span>
                 <span className="text-coral-500">
                   {status?.consecutive_failures} {t('subconscious.failed')}
                 </span>
