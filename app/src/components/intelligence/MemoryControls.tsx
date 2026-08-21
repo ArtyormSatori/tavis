@@ -191,7 +191,7 @@ export function MemoryControls({
           {resetting ? t('workspace.rebuilding') : t('workspace.resetMemoryTree')}
         </Button>
 
-        <span aria-hidden className="mx-1 h-5 w-px self-center bg-surface-strong" />
+        <Separator orientation="vertical" className="mx-1 h-5 self-center bg-surface-strong" />
 
         {/* Secondary actions — quiet ghost buttons. */}
         <Button
