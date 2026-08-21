@@ -13,8 +13,13 @@ import {
   type PreparedTransaction,
   prepareTransfer,
 } from '../../../../services/walletApi';
+import { Alert, AlertDescription } from '../../../ui/Alert';
 import Button from '../../../ui/Button';
+import { CheckIcon, Spinner } from '../../../ui/icons';
+import { InputGroupAddon, InputGroupInput, InputGroupRoot } from '../../../ui/InputGroup';
+import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
+import TextField from '../../../ui/TextField';
 
 interface SendCryptoModalProps {
   balance: BalanceInfo;

@@ -92,12 +92,13 @@ function SnoozeDropdownPortal({ isOpen, buttonRef, onClose, onSnooze }: SnoozeDr
       className="fixed py-1 bg-surface border border-line rounded-lg shadow-xl min-w-[120px] z-[9999] animate-fade-in"
       style={{ top: position.top, left: position.left }}>
       {SNOOZE_OPTIONS.map(option => (
-        <button
+        <Button
           key={option.label}
+          variant="tertiary"
           onClick={() => onSnooze(option.duration)}
-          className="w-full text-left px-3 py-1.5 text-xs text-content hover:bg-surface-hover dark:bg-surface-muted transition-colors cursor-pointer">
+          className="h-auto w-full justify-start rounded-none px-3 py-1.5 text-xs font-normal dark:bg-surface-muted">
           {option.label}
-        </button>
+        </Button>
       ))}
     </div>,
     document.body

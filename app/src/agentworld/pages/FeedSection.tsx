@@ -44,7 +44,6 @@ import { useT } from '../../lib/i18n/I18nContext';
 import { fetchWalletStatus } from '../../services/walletApi';
 import { openUrl } from '../../utils/openUrl';
 import { apiClient } from '../AgentWorldShell';
-import ConfirmDialog from '../components/ConfirmDialog';
 import StatusBlock from '../components/StatusBlock';
 import { useTinyplaceStream } from '../hooks/useTinyplaceStream';
 import { relativeTime } from './relativeTime';
