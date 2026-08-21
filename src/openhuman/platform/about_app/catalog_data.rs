@@ -1329,12 +1329,13 @@ pub(super) const CAPABILITIES: &[Capability] = &[
         status: CapabilityStatus::Beta,
         privacy: Some(CapabilityPrivacy {
             leaves_device: true,
-            data_kind: PrivacyDataKind::Content,
-            // Everything the core holds - conversations, memory, credentials -
-            // lives wherever the core runs. Choosing a machine over SSH means
-            // choosing to put all of it there, which is the disclosure that
-            // matters here and is easy to overlook when the UI only shows a
-            // hostname field.
+            data_kind: PrivacyDataKind::Raw,
+            // `Raw`, because everything the core holds - the conversations
+            // themselves, memory, stored credentials - lives wherever the core
+            // runs. Choosing a machine over SSH is choosing to put all of it
+            // there. That is the disclosure that matters here and the one a
+            // hostname field makes easy to overlook, so it is stated at the
+            // strongest kind rather than softened to `Derived`.
             destinations: &["The machine you configure, when the core runs off this device"],
         }),
     },
