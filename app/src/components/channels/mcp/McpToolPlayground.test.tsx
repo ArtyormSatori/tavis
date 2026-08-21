@@ -114,19 +114,25 @@ describe('McpToolPlayground', () => {
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn();
     renderPlayground({ onClose });
-    fireEvent.click(screen.getByRole('button', { name: 'Close playground' }));
+    // Migrated onto the shared `ModalShell` (#radix-ui-foundation): the close
+    // button is now the shell's own, labelled with the common "Close" string
+    // rather than the old hand-rolled button's "Close playground" label.
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when the backdrop is mousedown-ed but NOT when the dialog card is', () => {
+  it('calls onClose on backdrop pointerdown but NOT on pointerdown inside the dialog card', () => {
     const onClose = vi.fn();
     renderPlayground({ onClose });
-    const dialog = screen.getByRole('dialog');
-    // Mousedown on the backdrop itself (the dialog div) — target === currentTarget
-    fireEvent.mouseDown(dialog);
+    // Migrated onto `ModalShell` / Radix `Dialog`: the backdrop is now a
+    // separate overlay element rather than the dialog role element itself,
+    // so this exercises Radix's own pointerdown-outside dismissal.
+    const overlay = document.querySelector('[data-slot="dialog-overlay"]') as HTMLElement;
+    expect(overlay).not.toBeNull();
+    fireEvent.pointerDown(overlay);
     expect(onClose).toHaveBeenCalledTimes(1);
-    // Mousedown on a descendant (the title) should NOT close
-    fireEvent.mouseDown(screen.getByText('Run read_file'));
+    // Pointerdown on a descendant (the title) should NOT close.
+    fireEvent.pointerDown(screen.getByText('Run read_file'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

@@ -288,7 +288,17 @@ export function slugifyCustomProviderName(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Default auth style for a slug. Built-in slugs map to their known styles;
+ * everything else (custom + third-party slugs the user types in) defaults
+ * to bearer, matching the OpenAI-compatible majority.
+ */
 export function authStyleForSlug(slug: string): AuthStyle {
+  if (slug === 'openhuman') return 'openhuman_jwt';
+  if (slug === 'lmstudio' || slug === 'ollama') return 'none';
+  if (slug === 'omlx') return 'bearer';
+  // Claude Code authenticates via the local CLI, never an HTTP key.
+  if (slug === 'claude-code') return 'none';
   return authStyleForBuiltinCloudProvider(slug) ?? 'bearer';
 }
 
