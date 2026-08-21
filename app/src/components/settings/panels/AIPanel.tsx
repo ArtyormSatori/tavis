@@ -550,13 +550,10 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                         <LuPencil className="h-3 w-3" />
                       </Button>
                     )}
-                    <ProviderToggleChip
-                      slug={localKind}
-                      label=""
-                      enabled={enabled}
-                      alwaysOn={false}
-                      busy={busyAction === `toggle-${localKind}`}
-                      onToggle={async () => {
+                    <SettingsSwitch
+                      id={`local-runtime-toggle-${localKind}`}
+                      checked={enabled}
+                      onCheckedChange={async () => {
                         if (enabled && existing) {
                           const remaining = draft.cloudProviders.filter(
                             cp => cp.id !== existing.id
@@ -576,6 +573,8 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                           setPendingLocalLabel(label);
                         }
                       }}
+                      disabled={busyAction === `toggle-${localKind}`}
+                      aria-label={providerToggleAriaLabel(t, enabled, label)}
                     />
                   </div>
                 );
