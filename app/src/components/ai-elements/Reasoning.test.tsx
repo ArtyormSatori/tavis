@@ -56,6 +56,7 @@ describe('Reasoning', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
 
     // Streaming finishes; the auto-close timer must not override the user.
+    vi.useFakeTimers();
     rerender(
       <Reasoning data-testid="reasoning" isStreaming={false} defaultOpen={false}>
         <ReasoningTrigger data-testid="reasoning-trigger" />
@@ -67,6 +68,7 @@ describe('Reasoning', () => {
     });
 
     expect(screen.getByTestId('reasoning-trigger')).toHaveAttribute('aria-expanded', 'true');
+    vi.useRealTimers();
   });
 
   it('renders closed by default and shows the settled thinking message', () => {
