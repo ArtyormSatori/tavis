@@ -19,8 +19,16 @@
 #![cfg(feature = "mcp")]
 
 use openhuman_core::openhuman::config::Config;
-use openhuman_core::openhuman::mcp::registry::types::{CommandKind, InstalledServer, Transport};
-use openhuman_core::openhuman::mcp::registry::{connections, ops, store};
+use tinymcp_bus::{CommandKind, InstalledServer, Transport};
+
+/// A host over `config`'s workspace.
+///
+/// Built per test rather than through the process-wide holder: each case wants
+/// a fresh store, and the holder is a `OnceLock`.
+fn host(config: &Config) -> openhuman_core::openhuman::mcp::host::McpHost {
+    openhuman_core::openhuman::mcp::host::McpHost::open(config).expect("the mcp host opens")
+}
+
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,6 +80,7 @@ fn extract_echo_text(result: &serde_json::Value) -> &str {
 #[tokio::test]
 async fn two_servers_same_tool_name_no_collision() {
     let (_tmp, cfg) = fresh_workspace_config();
+    let h = host(&cfg);
 
     let server_a = make_stub_server("@multi-test/echo-a");
     let server_b = make_stub_server("@multi-test/echo-b");
@@ -83,14 +92,14 @@ async fn two_servers_same_tool_name_no_collision() {
         "two stub servers must have distinct server_ids"
     );
 
-    store::insert_server(&cfg, &server_a).expect("insert server_a");
-    store::insert_server(&cfg, &server_b).expect("insert server_b");
+    h.dynamic().store().insert_server(&server_a).expect("insert server_a");
+    h.dynamic().store().insert_server(&server_b).expect("insert server_b");
 
     // Connect both — each spawns its own subprocess.
-    let tools_a = connections::connect(&cfg, &server_a)
+    let tools_a = h.dynamic().connect(&server_a.server_id)
         .await
         .expect("connect server_a");
-    let tools_b = connections::connect(&cfg, &server_b)
+    let tools_b = h.dynamic().connect(&server_b.server_id)
         .await
         .expect("connect server_b");
 
@@ -100,7 +109,7 @@ async fn two_servers_same_tool_name_no_collision() {
     assert_eq!(tools_b[0].name, "echo", "server_b tool name is `echo`");
 
     // Both servers are in the connected aggregate.
-    let all_tools = connections::all_connected_tools().await;
+    let all_tools = h.dynamic().connections().all_connected_tools().await;
     let a_tools: Vec<_> = all_tools
         .iter()
         .filter(|(sid, _, _)| sid == &server_a.server_id)
@@ -130,7 +139,7 @@ async fn two_servers_same_tool_name_no_collision() {
     );
 
     // Both are `connected` in all_status.
-    let statuses = connections::all_status(&cfg).await;
+    let statuses = h.dynamic().status().await.expect("status");
     let find = |id: &str| {
         statuses
             .iter()
@@ -143,8 +152,8 @@ async fn two_servers_same_tool_name_no_collision() {
     assert_eq!(find(&server_b.server_id).status.as_str(), "connected");
     assert_eq!(find(&server_b.server_id).tool_count, 1);
 
-    let _ = connections::disconnect(&server_a.server_id).await;
-    let _ = connections::disconnect(&server_b.server_id).await;
+    let _ = h.dynamic().connections().disconnect(&server_a.server_id).await;
+    let _ = h.dynamic().connections().disconnect(&server_b.server_id).await;
 }
 
 // ── Test 2: routing ───────────────────────────────────────────────────────────
@@ -156,22 +165,23 @@ async fn two_servers_same_tool_name_no_collision() {
 #[tokio::test]
 async fn tool_calls_route_to_the_correct_server() {
     let (_tmp, cfg) = fresh_workspace_config();
+    let h = host(&cfg);
 
     let server_a = make_stub_server("@route-test/echo-a");
     let server_b = make_stub_server("@route-test/echo-b");
 
-    store::insert_server(&cfg, &server_a).expect("insert server_a");
-    store::insert_server(&cfg, &server_b).expect("insert server_b");
+    h.dynamic().store().insert_server(&server_a).expect("insert server_a");
+    h.dynamic().store().insert_server(&server_b).expect("insert server_b");
 
-    connections::connect(&cfg, &server_a)
+    h.dynamic().connect(&server_a.server_id)
         .await
         .expect("connect server_a");
-    connections::connect(&cfg, &server_b)
+    h.dynamic().connect(&server_b.server_id)
         .await
         .expect("connect server_b");
 
     // Send distinct payloads to each server; verify each echoes its own input.
-    let result_a = connections::call_tool(
+    let result_a = h.dynamic().tool_call(
         &server_a.server_id,
         "echo",
         serde_json::json!({ "message": "payload-for-a" }),
@@ -179,7 +189,7 @@ async fn tool_calls_route_to_the_correct_server() {
     .await
     .expect("call_tool on server_a should succeed");
 
-    let result_b = connections::call_tool(
+    let result_b = h.dynamic().tool_call(
         &server_b.server_id,
         "echo",
         serde_json::json!({ "message": "payload-for-b" }),
@@ -205,8 +215,8 @@ async fn tool_calls_route_to_the_correct_server() {
         "two servers must not produce identical outputs for different inputs"
     );
 
-    let _ = connections::disconnect(&server_a.server_id).await;
-    let _ = connections::disconnect(&server_b.server_id).await;
+    let _ = h.dynamic().connections().disconnect(&server_a.server_id).await;
+    let _ = h.dynamic().connections().disconnect(&server_b.server_id).await;
 }
 
 // ── Test 3: failure isolation ─────────────────────────────────────────────────
@@ -217,6 +227,7 @@ async fn tool_calls_route_to_the_correct_server() {
 #[tokio::test]
 async fn failed_connect_does_not_block_healthy_peer() {
     let (_tmp, cfg) = fresh_workspace_config();
+    let h = host(&cfg);
 
     // "bad" server: non-existent binary.
     let mut bad = make_stub_server("@isolation-test/bad");
@@ -225,11 +236,11 @@ async fn failed_connect_does_not_block_healthy_peer() {
     // "good" server: real stub.
     let good = make_stub_server("@isolation-test/good");
 
-    store::insert_server(&cfg, &bad).expect("insert bad server");
-    store::insert_server(&cfg, &good).expect("insert good server");
+    h.dynamic().store().insert_server(&bad).expect("insert bad server");
+    h.dynamic().store().insert_server(&good).expect("insert good server");
 
     // Connecting the bad server must fail.
-    let connect_err = connections::connect(&cfg, &bad)
+    let connect_err = h.dynamic().connect(&bad.server_id)
         .await
         .expect_err("connect bad server should fail");
     assert!(
@@ -238,13 +249,13 @@ async fn failed_connect_does_not_block_healthy_peer() {
     );
 
     // Connecting the good server must succeed independently.
-    let good_tools = connections::connect(&cfg, &good)
+    let good_tools = h.dynamic().connect(&good.server_id)
         .await
         .expect("connect good server must succeed regardless of the bad peer");
     assert_eq!(good_tools.len(), 1, "good server exposes one tool");
 
     // all_status: bad → error with last_error, good → connected.
-    let statuses = connections::all_status(&cfg).await;
+    let statuses = h.dynamic().status().await.expect("status");
     let find = |id: &str| {
         statuses
             .iter()
@@ -280,7 +291,7 @@ async fn failed_connect_does_not_block_healthy_peer() {
     );
 
     // The good server is still callable after the peer's failure.
-    let result = connections::call_tool(
+    let result = h.dynamic().tool_call(
         &good.server_id,
         "echo",
         serde_json::json!({ "message": "isolation-check" }),
@@ -294,7 +305,7 @@ async fn failed_connect_does_not_block_healthy_peer() {
         "good server must echo input correctly after peer failure"
     );
 
-    let _ = connections::disconnect(&good.server_id).await;
+    let _ = h.dynamic().connections().disconnect(&good.server_id).await;
 }
 
 // ── Test 4: disabled enforcement ──────────────────────────────────────────────
@@ -304,6 +315,7 @@ async fn failed_connect_does_not_block_healthy_peer() {
 #[tokio::test]
 async fn disabled_server_contributes_no_tools_to_agent_surface() {
     let (_tmp, cfg) = fresh_workspace_config();
+    let h = host(&cfg);
 
     // "live" server: enabled, real stub.
     let live = make_stub_server("@disabled-test/live");
@@ -313,11 +325,11 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
     let mut quiet = make_stub_server("@disabled-test/quiet");
     quiet.enabled = false;
 
-    store::insert_server(&cfg, &live).expect("insert live server");
-    store::insert_server(&cfg, &quiet).expect("insert quiet server");
+    h.dynamic().store().insert_server(&live).expect("insert live server");
+    h.dynamic().store().insert_server(&quiet).expect("insert quiet server");
 
     // Connect the live server.
-    connections::connect(&cfg, &live)
+    h.dynamic().connect(&live.server_id)
         .await
         .expect("connect live server");
 
@@ -332,7 +344,7 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
     );
 
     // all_status: live → connected, quiet → disabled.
-    let statuses = connections::all_status(&cfg).await;
+    let statuses = h.dynamic().status().await.expect("status");
     let find = |id: &str| {
         statuses
             .iter()
@@ -345,7 +357,7 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
     assert_eq!(find(&quiet.server_id).status.as_str(), "disabled");
 
     // The disabled server must not appear in all_connected_tools.
-    let all_tools = connections::all_connected_tools().await;
+    let all_tools = h.dynamic().connections().all_connected_tools().await;
     let quiet_tools: Vec<_> = all_tools
         .iter()
         .filter(|(sid, _, _)| sid == &quiet.server_id)
@@ -366,7 +378,7 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
         "live server must contribute its tool even while disabled peer is present"
     );
 
-    let result = connections::call_tool(
+    let result = h.dynamic().tool_call(
         &live.server_id,
         "echo",
         serde_json::json!({ "message": "live-while-quiet" }),
@@ -380,5 +392,5 @@ async fn disabled_server_contributes_no_tools_to_agent_surface() {
         "live server echoes correctly while disabled peer exists"
     );
 
-    let _ = connections::disconnect(&live.server_id).await;
+    let _ = h.dynamic().connections().disconnect(&live.server_id).await;
 }

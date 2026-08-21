@@ -32,7 +32,7 @@ use crate::openhuman::config::Config;
 use crate::openhuman::mcp::host;
 use crate::rpc::RpcOutcome;
 
-use super::types::{ChatTurn, CommandKind};
+use super::types::ChatTurn;
 
 /// Renders a value into the `RpcOutcome` payload the frontend expects.
 fn encode<T: serde::Serialize>(value: &T) -> Result<Value, String> {

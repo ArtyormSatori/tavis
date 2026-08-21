@@ -58,6 +58,38 @@ pub struct McpHost {
 }
 
 impl McpHost {
+    /// Builds a host from `config`, without installing it as the process one.
+    ///
+    /// [`init`] uses this and then installs the result. It is public so a test
+    /// can drive a host over its own workspace: the process-wide one is a
+    /// `OnceLock`, and a suite that needs a fresh store per case cannot share
+    /// it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either store cannot be opened, or when an HTTP
+    /// client cannot be built.
+    pub fn open(config: &Config) -> anyhow::Result<Self> {
+        let client = client_config(config);
+        let workspace = config.workspace_dir.as_path();
+
+        Ok(Self {
+            dynamic: McpRegistry::new(
+                Store::open(workspace)
+                    .map_err(|error| anyhow::anyhow!("failed to open the mcp store: {error}"))?,
+                client.registry_auth.clone(),
+                client.client_identity.clone(),
+                client.proxy.clone(),
+            )
+            .map_err(|error| anyhow::anyhow!("failed to start the mcp registry: {error}"))?,
+            static_servers: McpServerRegistry::from_config(&client).map_err(|error| {
+                anyhow::anyhow!("failed to build the static server set: {error}")
+            })?,
+            audit: AuditStore::open(workspace)
+                .map_err(|error| anyhow::anyhow!("failed to open the mcp audit log: {error}"))?,
+        })
+    }
+
     /// The user-installed servers, their connections, and the catalogs.
     #[must_use]
     pub fn dynamic(&self) -> &McpRegistry {
@@ -94,23 +126,7 @@ pub fn init(config: &Config) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let client = client_config(config);
-    let workspace = config.workspace_dir.as_path();
-
-    let service = McpHost {
-        dynamic: McpRegistry::new(
-            Store::open(workspace)
-                .map_err(|error| anyhow::anyhow!("failed to open the mcp store: {error}"))?,
-            client.registry_auth.clone(),
-            client.client_identity.clone(),
-            client.proxy.clone(),
-        )
-        .map_err(|error| anyhow::anyhow!("failed to start the mcp registry: {error}"))?,
-        static_servers: McpServerRegistry::from_config(&client)
-            .map_err(|error| anyhow::anyhow!("failed to build the static server set: {error}"))?,
-        audit: AuditStore::open(workspace)
-            .map_err(|error| anyhow::anyhow!("failed to open the mcp audit log: {error}"))?,
-    };
+    let service = McpHost::open(config)?;
 
     SERVICE
         .set(service)
