@@ -73,12 +73,21 @@ describe('McpToolPlayground', () => {
 
   it('exposes a close button with an accessible label', () => {
     renderPlayground();
-    expect(screen.getByRole('button', { name: 'Close playground' })).toBeInTheDocument();
+    // Migrated onto the shared `ModalShell` (#radix-ui-foundation): the close
+    // button is now the shell's own "Close" button rather than a hand-rolled
+    // one labelled "Close playground".
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
   });
 
-  it('focuses the args textarea on mount', () => {
+  it('focuses the args textarea on mount', async () => {
     renderPlayground();
-    expect(screen.getByLabelText('Arguments (JSON)')).toHaveFocus();
+    // `ModalShell` / Radix `Dialog` auto-focuses the dialog itself (or its
+    // first focusable element) on open; this component then steals focus
+    // back to the args editor on the next frame, after Radix's own
+    // auto-focus effect has run — so this now settles asynchronously.
+    await waitFor(() => {
+      expect(screen.getByLabelText('Arguments (JSON)')).toHaveFocus();
+    });
   });
 
   // ----------------------------------------------------------------------
