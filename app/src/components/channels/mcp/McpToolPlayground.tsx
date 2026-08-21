@@ -381,13 +381,14 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
                           {record.argsJson}
                         </span>
                       </div>
-                      <button
-                        type="button"
+                      <Button
+                        variant="tertiary"
+                        size="xs"
                         onClick={() => handleLoadFromHistory(record)}
                         aria-label={t('mcp.playground.historyLoad')}
-                        className="shrink-0 text-[10px] font-medium text-primary-600 dark:text-primary-300 hover:underline">
+                        className="h-auto shrink-0 p-0 text-[10px] font-medium text-primary-600 hover:underline dark:text-primary-300">
                         {t('mcp.playground.historyLoad')}
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -395,8 +396,8 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </>
+    </ModalShell>
   );
 };
 
