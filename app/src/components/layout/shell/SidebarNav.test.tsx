@@ -48,6 +48,17 @@ describe('SidebarNav active matching', () => {
     expect(tabButton('Human').className).not.toContain('bg-surface/70');
   });
 
+  it('renders rows as sidebar menu primitives, not bare buttons', () => {
+    renderWithProviders(<SidebarNav />, { initialEntries: ['/chat'] });
+
+    const active = tabButton('Chat');
+    expect(active.dataset.slot).toBe('sidebar-menu-button');
+    expect(active.dataset.active).toBe('true');
+    expect(active.closest('[data-slot="sidebar-menu-item"]')).not.toBeNull();
+    expect(active.closest('[data-slot="sidebar-menu"]')).not.toBeNull();
+    expect(tabButton('Human').dataset.active).toBe('false');
+  });
+
   it('clears an active provider selection when clicking the already-active nav item', () => {
     const { store } = renderWithProviders(<SidebarNav />, {
       initialEntries: ['/connections'],

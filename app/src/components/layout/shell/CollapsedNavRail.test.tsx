@@ -37,6 +37,15 @@ describe('CollapsedNavRail', () => {
     expect(screen.queryByRole('button', { name: 'nav.wallet' })).not.toBeInTheDocument();
   });
 
+  it('renders rail icons as sidebar menu primitives', () => {
+    renderWithProviders(<CollapsedNavRail />, { initialEntries: ['/connections'] });
+    const connections = screen.getByRole('button', { name: 'nav.connections' });
+    expect(connections.dataset.slot).toBe('sidebar-menu-button');
+    expect(connections.dataset.active).toBe('true');
+    expect(connections.closest('[data-slot="sidebar-menu-item"]')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'nav.chat' }).dataset.active).toBe('false');
+  });
+
   it('shortcuts button opens the keyboard-shortcuts help directory', () => {
     const runAction = vi.spyOn(registry, 'runAction').mockReturnValue(true);
     renderWithProviders(<CollapsedNavRail />, { initialEntries: ['/home'] });
