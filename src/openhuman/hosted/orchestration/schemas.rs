@@ -244,7 +244,6 @@ struct SessionSummary {
 #[serde(rename_all = "camelCase")]
 struct OrchestrationStatus {
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     ingest_last_message_at: Option<String>,
     /// Sessions with pending wake work (health signal — persistently > 0 means
     /// the wake loop is stuck).
