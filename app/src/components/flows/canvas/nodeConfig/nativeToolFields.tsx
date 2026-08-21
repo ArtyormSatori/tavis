@@ -65,9 +65,10 @@ export function NativeToolField({ label, hint, value, onChange, testId }: Native
   if (failed && tools.length === 0) {
     return (
       <Field label={label} hint={hint}>
-        <input
+        <UiInput
           type="text"
-          className={`${INPUT_CLASS} ${MONO_CLASS}`}
+          inputSize="sm"
+          className={cn('w-full', MONO_CLASS)}
           value={current}
           placeholder="web_search"
           data-testid={testId ? `${testId}-custom` : undefined}
