@@ -78,7 +78,8 @@ export const ToggleGroupRoot = forwardRef<
 ToggleGroupRoot.displayName = 'ToggleGroupRoot';
 
 export interface ToggleGroupItemProps
-  extends ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item>,
+  extends
+    ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item>,
     VariantProps<typeof toggleVariants> {}
 
 export const ToggleGroupItem = forwardRef<

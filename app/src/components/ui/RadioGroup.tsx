@@ -27,22 +27,12 @@ export const radioGroupItemVariants = cva(
     'data-[state=checked]:border-primary-500 ' +
     'disabled:cursor-not-allowed disabled:opacity-50',
   {
-    variants: {
-      size: {
-        sm: 'h-3.5 w-3.5',
-        md: 'h-4 w-4',
-        lg: 'h-5 w-5',
-      },
-    },
+    variants: { size: { sm: 'h-3.5 w-3.5', md: 'h-4 w-4', lg: 'h-5 w-5' } },
     defaultVariants: { size: 'md' },
   }
 );
 
-const indicatorSize = {
-  sm: 'h-1.5 w-1.5',
-  md: 'h-2 w-2',
-  lg: 'h-2.5 w-2.5',
-} as const;
+const indicatorSize = { sm: 'h-1.5 w-1.5', md: 'h-2 w-2', lg: 'h-2.5 w-2.5' } as const;
 
 export type RadioGroupRootProps = ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>;
 
@@ -60,7 +50,8 @@ export const RadioGroupRoot = forwardRef<
 RadioGroupRoot.displayName = 'RadioGroupRoot';
 
 export interface RadioGroupItemProps
-  extends ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>,
+  extends
+    ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>,
     VariantProps<typeof radioGroupItemVariants> {}
 
 export const RadioGroupItem = forwardRef<
