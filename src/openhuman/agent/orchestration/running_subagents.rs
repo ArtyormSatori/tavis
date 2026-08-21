@@ -47,7 +47,8 @@ use crate::openhuman::agent::tinyagents::orchestration::{
     shared_steering_registry, DetachedTaskRegistry, DetachedTaskRegistryError,
     DetachedTaskWaitOutcome, InMemoryTaskStore, JsonlTaskStore, OrchestrationTaskFilter,
     OrchestrationTaskKind, OrchestrationTaskRecord, OrchestrationTaskResult, OrchestrationTaskSpec,
-    OrchestrationTaskStatus, SteeringCommand, SteeringCommandKind, TaskStore,
+    OrchestrationTaskStatus, SteeringCommand, SteeringCommandKind, TaskStore, TaskStoreRegistry,
+    open_jsonl_task_store_or_memory, reconcile_orphaned_tasks,
 };
 use tinyagents::harness::ids::TaskId;
 use tinyagents::harness::message::Message as TaMessage;
@@ -226,12 +227,23 @@ fn list_task_records(workspace_dir: &Path) -> Vec<OrchestrationTaskRecord> {
 /// store-open failure simply reconciles nothing. Returns the count reconciled.
 pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
     let store = task_store_for_workspace(workspace_dir);
-    let orphans: Vec<OrchestrationTaskRecord> = store
-        .list(OrchestrationTaskFilter::default().with_kind("sub_agent"))
-        .into_iter()
-        .filter(|record| record.status.is_live())
-        .collect();
-    if orphans.is_empty() {
+
+    // The sweep itself — which statuses are live, and which terminal state each
+    // becomes — is TinyAgents'. What stays here is the reason a *sub-agent*
+    // orphan carries, and the lifecycle event that finalizes OpenHuman's run
+    // ledger afterwards.
+    let report = reconcile_orphaned_tasks(
+        store.as_ref(),
+        OrchestrationTaskFilter::default().with_kind("sub_agent"),
+        &|record| {
+            format!(
+                "sub-agent orphaned by core restart (was `{}`)",
+                task_status_label(record.status)
+            )
+        },
+    );
+
+    if report.is_empty() {
         log::debug!(
             "[taskstore] reconcile found no orphaned sub-agent tasks workspace_dir={}",
             workspace_dir.display()
@@ -239,58 +251,34 @@ pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
         return 0;
     }
 
-    let mut reconciled = 0usize;
-    for record in orphans {
-        let task_id = record.spec.task_id.as_str().to_string();
-        let id = TaskId::new(task_id.as_str());
-        let prior = task_status_label(record.status);
+    for task in report.settled() {
+        let task_id = task.task_id.as_str().to_string();
+        let prior = task_status_label(task.prior_status);
         let reason = format!("sub-agent orphaned by core restart (was `{prior}`)");
-        log::debug!(
-            "[orchestrator] reconciling orphaned sub-agent task_id={} prior_status={} workspace_dir={}",
-            task_id,
-            prior,
-            workspace_dir.display()
+        let parent_session = record_parent_session(&task.record)
+            .unwrap_or_default()
+            .to_string();
+        let agent_id = record_agent_id(&task.record);
+        // Reuse the 05.2 typed terminal lifecycle helper so the run ledger
+        // finalizes exactly as it would for a live failure.
+        super::subagent_events::publish_subagent_failed(
+            parent_session,
+            task_id.clone(),
+            agent_id,
+            reason,
         );
-        // A cancel-requested orphan settles as Cancelled; every other live state
-        // settles as Failed (its driver died without a terminal event).
-        let outcome = match record.status {
-            OrchestrationTaskStatus::CancelRequested => store.mark_cancelled(&id).map(|_| ()),
-            _ => store.fail(&id, reason.clone()).map(|_| ()),
-        };
-        match outcome {
-            Ok(()) => {
-                reconciled += 1;
-                let parent_session = record_parent_session(&record)
-                    .unwrap_or_default()
-                    .to_string();
-                let agent_id = record_agent_id(&record);
-                // Reuse the 05.2 typed terminal lifecycle helper so the run
-                // ledger finalizes exactly as it would for a live failure.
-                super::subagent_events::publish_subagent_failed(
-                    parent_session,
-                    task_id.clone(),
-                    agent_id,
-                    reason.clone(),
-                );
-                log::info!(
-                    "[orchestrator] reconciled orphaned sub-agent task_id={} prior_status={} -> terminal",
-                    task_id,
-                    prior
-                );
-            }
-            Err(err) => {
-                log::warn!(
-                    "[taskstore] failed to reconcile orphaned sub-agent task_id={} prior_status={}: {}",
-                    task_id,
-                    prior,
-                    err
-                );
-            }
-        }
+        log::info!(
+            "[orchestrator] reconciled orphaned sub-agent task_id={} prior_status={} -> terminal",
+            task_id,
+            prior
+        );
     }
+
+    let reconciled = report.reconciled_count();
     log::info!(
-        "[taskstore] reconciled {reconciled} orphaned sub-agent task(s) on boot workspace_dir={}",
-        workspace_dir.display()
+        "[taskstore] reconciled {reconciled} orphaned sub-agent task(s) on boot workspace_dir={} errors={}",
+        workspace_dir.display(),
+        report.error_count()
     );
     reconciled
 }
