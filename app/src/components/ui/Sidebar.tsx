@@ -2,7 +2,6 @@ import { Slot } from 'radix-ui';
 import {
   type ButtonHTMLAttributes,
   createContext,
-  type CSSProperties,
   forwardRef,
   type HTMLAttributes,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -612,7 +611,5 @@ export const SidebarMenuLabel = forwardRef<HTMLSpanElement, HTMLAttributes<HTMLS
   )
 );
 SidebarMenuLabel.displayName = 'SidebarMenuLabel';
-
-export type { CSSProperties as SidebarStyle };
 
 export default Sidebar;
