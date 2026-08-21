@@ -615,7 +615,7 @@ const McpServersTab = () => {
 
         {showRegistry && (
           <>
-            <span className="hidden sm:block h-5 w-px bg-line-subtle" aria-hidden="true" />
+            <Separator orientation="vertical" className="hidden sm:block h-5 bg-line-subtle" />
             <span className="text-xs font-medium text-content-muted">
               {t('mcp.tab.transportFilter.label')}
             </span>
