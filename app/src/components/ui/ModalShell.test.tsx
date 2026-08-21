@@ -10,13 +10,23 @@ import { ModalShell } from './ModalShell';
  * particular DOM shape, so the tests survive the next implementation swap too.
  */
 /**
- * Radix defers two things to a macrotask: registering the outside-pointer
- * listener (so the click that opened the dialog cannot immediately close it),
- * and restoring focus on unmount. Tests that act synchronously after render
- * observe neither, so they flush a tick first.
+ * Radix registers its outside-pointer listener in a macrotask, so the click
+ * that opened a dialog cannot immediately close it again. Tests that act
+ * synchronously after render observe no listener at all, so they flush first.
  */
 async function flushDeferredWork(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/**
+ * Radix treats an outside interaction as pointerdown *followed by* a click —
+ * it waits for the click so that dragging out of a dialog does not dismiss it.
+ * Firing pointerdown alone dismisses nothing, which is why this helper exists
+ * rather than a bare `fireEvent.pointerDown`.
+ */
+function dismissByOutsideClick(): void {
+  fireEvent.pointerDown(overlay());
+  fireEvent.click(overlay());
 }
 
 function overlay(): HTMLElement {
@@ -61,7 +71,7 @@ describe('ModalShell', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
 
     await flushDeferredWork();
-    fireEvent.pointerDown(overlay());
+    dismissByOutsideClick();
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
@@ -72,7 +82,7 @@ describe('ModalShell', () => {
 
     await flushDeferredWork();
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.pointerDown(overlay());
+    dismissByOutsideClick();
     expect(onClose).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'common.close' }));
@@ -86,7 +96,7 @@ describe('ModalShell', () => {
 
     await flushDeferredWork();
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.pointerDown(overlay());
+    dismissByOutsideClick();
 
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'common.close' })).not.toBeInTheDocument();

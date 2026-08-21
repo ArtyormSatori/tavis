@@ -1,5 +1,5 @@
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 
 import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
@@ -44,6 +44,13 @@ export interface ModalShellProps {
  * not by dropping handlers: `{ escape: false, backdrop: false, button: false }`
  * — which `ConfirmDialog` uses while a confirm is in flight — must stay
  * genuinely undismissable.
+ *
+ * FOCUS RESTORE IS STILL OURS, DELIBERATELY. Radix restores focus on the
+ * open -> false transition via `onCloseAutoFocus`, but every caller of this
+ * component closes by *unmounting* it rather than by flipping `open`. Radix
+ * never sees that transition, so relying on it would drop focus to `<body>`
+ * on every dialog close — verified against a bare `Dialog.Root`, not assumed.
+ * The effect below is the same save/restore the hand-rolled shell used.
  */
 export function ModalShell({
   children,
@@ -65,6 +72,11 @@ export function ModalShell({
   const allowEscapeClose = closePolicy?.escape ?? true;
   const allowBackdropClose = closePolicy?.backdrop ?? true;
   const allowButtonClose = closePolicy?.button ?? true;
+
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+    return () => previousFocus?.focus?.();
+  }, []);
 
   return (
     <DialogRoot
