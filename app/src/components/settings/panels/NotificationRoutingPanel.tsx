@@ -249,7 +249,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
                 />
               </label>
               {hasLoadError ? (
-                <p className="text-xs text-red-600 dark:text-red-300">
+                <p className="text-xs text-coral-600 dark:text-coral-300">
                   {t('notifications.routing.loadSettingsError')}
                 </p>
               ) : null}
