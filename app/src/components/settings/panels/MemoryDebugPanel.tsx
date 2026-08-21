@@ -261,7 +261,12 @@ const MemoryDebugPanel = () => {
               <summary className="cursor-pointer text-content-muted">
                 {t('memory.rawResponse')}
               </summary>
-              <pre className="mt-1 max-h-32 overflow-auto rounded-lg border border-line bg-neutral-950 dark:bg-neutral-50 p-2 text-[11px] text-neutral-100 whitespace-pre-wrap break-words">
+              {/* eslint-disable-next-line -- intentionally non-themeable: a
+                  fixed dark terminal surface for raw JSON, inverted from
+                  neutral-950/neutral-100 in light mode to neutral-50/neutral-900
+                  in dark mode so the dump always reads as a code/terminal pane
+                  rather than following the user's theme. */}
+              <pre className="mt-1 max-h-32 overflow-auto rounded-lg border border-line bg-neutral-950 dark:bg-neutral-50 p-2 text-[11px] text-neutral-100 dark:text-neutral-900 whitespace-pre-wrap break-words">
                 {JSON.stringify(documentsRaw, null, 2)}
               </pre>
             </details>
