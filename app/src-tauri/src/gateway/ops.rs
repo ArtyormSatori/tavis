@@ -208,13 +208,9 @@ async fn provision(
     let token = crate::core_process::generate_rpc_token();
 
     progress("creating the box");
-    let spec = box_spec(reach, confinement, env)?;
-    let info = sandbox
-        .create(&spec)
-        .await
-        .map_err(|error| format!("could not create the box: {error}"))?;
+    let (info, host_port) = create_box(sandbox.as_ref(), reach, confinement, env).await?;
     log::info!(
-        "[gateway][provision] box {} created ({})",
+        "[gateway][provision] box {} created ({}) publishing {host_port}",
         info.id,
         sandbox.name()
     );
@@ -231,9 +227,8 @@ async fn provision(
     };
 
     progress("opening the connection");
-    let published = published_port(sandbox.as_ref(), &info.id).await?;
     let forwarded = host
-        .forward(([127, 0, 0, 1], published).into())
+        .forward(([127, 0, 0, 1], host_port).into())
         .await
         .map_err(|error| format!("could not reach the box: {error}"));
     let forwarded = match forwarded {
@@ -385,24 +380,102 @@ async fn start_core(
         .map_err(|error| format!("could not start the core in the box: {error}"))
 }
 
-/// Which port on the box's machine the core was published to.
-async fn published_port(sandbox: &dyn Sandbox, box_id: &BoxId) -> Result<u16, String> {
-    let info = sandbox
-        .inspect(box_id)
-        .await
-        .map_err(|error| format!("could not inspect the box: {error}"))?;
+/// How many times to retry creation when the chosen host port is taken.
+const PORT_ATTEMPTS: usize = 8;
 
-    info.spec
-        .ports
-        .iter()
-        .find(|mapping| mapping.guest == CORE_PORT_IN_BOX)
-        .and_then(|mapping| mapping.host)
-        // A passthrough box publishes nothing because there is no boundary to
-        // publish across: the core is listening on the machine's own port.
-        .or_else(|| info.spec.ports.is_empty().then_some(CORE_PORT_IN_BOX))
-        .ok_or_else(|| {
-            format!("the box did not publish port {CORE_PORT_IN_BOX} on its machine").to_owned()
-        })
+/// Create the box, choosing a port on its machine that is actually free.
+///
+/// # Why the port is named rather than left to Docker
+///
+/// `PortMapping::dynamic` lets Docker pick, which is the better choice in
+/// general — and unusable here, because the number it picks is recorded only in
+/// Docker's own state and tinybox has no call that reports it back. A forward
+/// needs that number.
+///
+/// So the port is named, which means it can collide. On the local machine that
+/// is checkable; on a remote one it is not — asking would mean running a probe
+/// over there, and there is no command every host is guaranteed to have. Both
+/// cases are therefore handled the same way: pick, try, and pick again if the
+/// backend says the port is taken. A wrong guess is a fast, specific failure
+/// from Docker rather than something silent.
+async fn create_box(
+    sandbox: &dyn Sandbox,
+    reach: &Reach,
+    confinement: &Confinement,
+    env: &BTreeMap<String, String>,
+) -> Result<(tinybox_core::BoxInfo, u16), String> {
+    // A passthrough box has no boundary to publish across: the core listens on
+    // the machine's own port, so there is nothing to choose and nothing that
+    // could collide beyond the core itself.
+    if matches!(confinement, Confinement::Passthrough { .. }) {
+        let spec = box_spec(reach, confinement, env, CORE_PORT_IN_BOX)?;
+        let info = sandbox
+            .create(&spec)
+            .await
+            .map_err(|error| format!("could not create the box: {error}"))?;
+        return Ok((info, CORE_PORT_IN_BOX));
+    }
+
+    let mut last = String::new();
+    for attempt in 1..=PORT_ATTEMPTS {
+        let host_port = candidate_port(reach);
+        let spec = box_spec(reach, confinement, env, host_port)?;
+        match sandbox.create(&spec).await {
+            Ok(info) => return Ok((info, host_port)),
+            Err(error) => {
+                last = error.to_string();
+                if !is_port_conflict(&last) {
+                    return Err(format!("could not create the box: {last}"));
+                }
+                log::debug!(
+                    "[gateway][provision] port {host_port} is taken (attempt {attempt}/{PORT_ATTEMPTS})"
+                );
+            }
+        }
+    }
+    Err(format!(
+        "could not find a free port on the box's machine after {PORT_ATTEMPTS} attempts ({last})"
+    ))
+}
+
+/// A port to try publishing on.
+///
+/// Locally the operating system is asked, which makes a collision very
+/// unlikely. Remotely there is nothing to ask, so a port is drawn from the
+/// ephemeral range and [`create_box`] retries if it was taken.
+fn candidate_port(reach: &Reach) -> u16 {
+    if matches!(reach, Reach::Local) {
+        if let Some(port) = free_local_port() {
+            return port;
+        }
+    }
+    // Draw from the ephemeral range rather than counting up from a fixed base:
+    // two OpenHuman instances against the same remote machine would otherwise
+    // collide on their first attempt every time, and again on their second.
+    use rand::Rng as _;
+    rand::rng().random_range(49_152..=65_535)
+}
+
+/// A free port on this machine, or `None` if one cannot be reserved.
+fn free_local_port() -> Option<u16> {
+    std::net::TcpListener::bind(("127.0.0.1", 0))
+        .and_then(|listener| listener.local_addr())
+        .map(|address| address.port())
+        .ok()
+}
+
+/// Whether a backend's refusal was about the port rather than anything else.
+///
+/// Matched on text because that is what the backend gives us: tinybox passes
+/// Docker's own diagnostic through verbatim, deliberately, since it is more
+/// specific than anything tinybox could reconstruct. A miss here costs a retry
+/// that fails the same way, not a wrong outcome — the next attempt surfaces
+/// whatever the real error was.
+fn is_port_conflict(message: &str) -> bool {
+    let lowered = message.to_ascii_lowercase();
+    lowered.contains("port is already allocated")
+        || lowered.contains("address already in use")
+        || (lowered.contains("bind") && lowered.contains("already"))
 }
 
 /// Poll `/health` until the core answers, or give up.
