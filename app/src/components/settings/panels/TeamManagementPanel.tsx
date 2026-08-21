@@ -242,9 +242,7 @@ const TeamManagementPanel = () => {
             titleId={editTitleId}
             onClose={() => setIsEditModalOpen(false)}
             contentClassName="px-6 py-5"
-            closePolicy={
-              isUpdating ? { escape: false, backdrop: false, button: false } : undefined
-            }
+            closePolicy={isUpdating ? { escape: false, backdrop: false, button: false } : undefined}
             footer={
               <div className="flex gap-2">
                 <Button

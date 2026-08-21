@@ -294,11 +294,7 @@ function ClaudeCodeModal({
                 : t('settings.ai.claudeCode.disconnect')}
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              size="xs"
-              onClick={() => void onConnect()}
-              disabled={busy}>
+            <Button variant="primary" size="xs" onClick={() => void onConnect()} disabled={busy}>
               {busy ? t('settings.ai.claudeCode.enabling') : t('settings.ai.claudeCode.enable')}
             </Button>
           )}

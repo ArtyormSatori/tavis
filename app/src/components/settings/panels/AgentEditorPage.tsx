@@ -614,7 +614,6 @@ function ToolsPickerModal({
             </ul>
           )}
         </div>
-
       </>
     </ModalShell>
   );

@@ -292,7 +292,8 @@ const TeamPanel = () => {
           )}
           <div className="text-sm text-content-muted">
             <p>
-              {t('team.confirmLeave')} <strong className="text-content">{teamToLeave.team.name}</strong>?
+              {t('team.confirmLeave')}{' '}
+              <strong className="text-content">{teamToLeave.team.name}</strong>?
             </p>
             <p className="mt-2 text-amber-400">{t('team.leaveWarning')}</p>
           </div>
