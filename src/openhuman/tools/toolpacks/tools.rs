@@ -234,6 +234,14 @@ impl Tool for UseSkillTool {
             .await
     }
 
+    async fn execute_with_options(
+        &self,
+        args: Value,
+        options: ToolCallOptions,
+    ) -> anyhow::Result<ToolResult> {
+        self.execute_with_context(args, options, None).await
+    }
+
     async fn execute_with_context(
         &self,
         args: Value,
