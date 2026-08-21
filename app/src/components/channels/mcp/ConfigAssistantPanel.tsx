@@ -208,14 +208,14 @@ const ConfigAssistantPanel = ({
 
       {/* Input row */}
       <div className="flex gap-2">
-        <textarea
+        <TextArea
           rows={2}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={sending}
           placeholder={t('mcp.configAssistant.inputPlaceholder')}
-          className="flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50 resize-none"
+          className="flex-1 resize-none focus:ring-primary-500/40"
         />
         <Button
           variant="primary"

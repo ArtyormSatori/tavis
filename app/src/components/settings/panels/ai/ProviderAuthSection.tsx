@@ -11,7 +11,7 @@ import Button from '../../../ui/Button';
 import { SettingsStatusLine, SettingsSwitch } from '../../controls';
 import { routingWithProviderRemoved } from '../aiRouting';
 import { BUILTIN_CLOUD_PROVIDER_SLUGS } from '../builtinCloudProviders';
-import { presentProviderSetupError, ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
+import { ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
 import {
   type AISettings,
   BUILTIN_PROVIDER_META,
