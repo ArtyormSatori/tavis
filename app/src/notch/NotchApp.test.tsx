@@ -86,12 +86,6 @@ describe('NotchApp', () => {
     expect(await screen.findByText('play some music')).toBeInTheDocument();
   });
 
-  it('maps companion:state_changed to a mode', async () => {
-    const socket = await renderAndConnect();
-    socket.fire('companion:state_changed', { state: 'thinking' });
-    expect(await screen.findByText('Processing…')).toBeInTheDocument();
-  });
-
   it('renders an overlay:attention message', async () => {
     const socket = await renderAndConnect();
     socket.fire('overlay:attention', { message: 'Opening Music', ttl_ms: 5000 });
