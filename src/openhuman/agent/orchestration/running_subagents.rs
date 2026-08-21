@@ -111,7 +111,7 @@ fn task_store_for_workspace(workspace_dir: &Path) -> Arc<dyn TaskStore> {
 }
 
 #[cfg(test)]
-fn task_store() -> Arc<DetachedTaskStore> {
+fn task_store() -> Arc<dyn TaskStore> {
     let workspace = default_task_store_workspace();
     task_store_for_workspace(&workspace)
 }
@@ -394,12 +394,7 @@ fn task_status_label(status: OrchestrationTaskStatus) -> &'static str {
 #[cfg(test)]
 fn task_records(parent_session: Option<&str>) -> Vec<OrchestrationTaskRecord> {
     let _ = task_store();
-    let stores: Vec<Arc<DetachedTaskStore>> = task_stores()
-        .lock()
-        .expect("running_subagents task store mutex poisoned")
-        .values()
-        .cloned()
-        .collect();
+    let stores: Vec<Arc<dyn TaskStore>> = task_stores().values().unwrap_or_default();
     let all: Vec<OrchestrationTaskRecord> = stores
         .into_iter()
         .flat_map(|store| store.list(OrchestrationTaskFilter::default()))
