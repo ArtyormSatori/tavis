@@ -3,11 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { registry } from '../../../lib/commands/registry';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { settingsNavState } from '../../settings/modal/settingsOverlay';
-import { Tooltip } from '../../ui';
+import { Button, Tooltip } from '../../ui';
 import { useRootSidebar } from './RootShellLayout';
 
-const ICON_BTN =
-  'flex h-7 w-7 flex-none items-center justify-center rounded-md text-content-muted transition-colors hover:bg-surface-hover hover:text-content-secondary';
+/**
+ * Header footprint layered on `<Button variant="tertiary" iconOnly>`: 28px
+ * square (no `size` maps to that) with the muted resting colour these utility
+ * icons use. Focus ring, transition and hover fill come from the primitive.
+ */
+const ICON_BTN = 'h-7 w-7 flex-none rounded-md text-content-muted hover:text-content-secondary';
 
 /**
  * Thin utility header at the top of the root sidebar: keyboard shortcuts,
@@ -27,11 +31,12 @@ export default function SidebarHeader() {
       <div className="flex items-center gap-0.5">
         {/* Keyboard shortcuts — one-click open of the help directory (also ? / ⌘/). */}
         <Tooltip label={t('shortcuts.title')}>
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            iconOnly
             onClick={() => registry.runAction('meta.keyboard-shortcuts')}
             className={ICON_BTN}
-            data-analytics-id="sidebar-header-shortcuts"
+            analyticsId="sidebar-header-shortcuts"
             aria-label={t('shortcuts.title')}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -47,15 +52,16 @@ export default function SidebarHeader() {
                 d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M7 13h.01M9 16h6"
               />
             </svg>
-          </button>
+          </Button>
         </Tooltip>
 
         <Tooltip label={t('nav.settings')}>
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            iconOnly
             onClick={() => navigate('/settings', settingsNavState(location))}
             className={ICON_BTN}
-            data-analytics-id="sidebar-header-settings"
+            analyticsId="sidebar-header-settings"
             aria-label={t('nav.settings')}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -71,16 +77,17 @@ export default function SidebarHeader() {
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-          </button>
+          </Button>
         </Tooltip>
 
         {/* Collapse the sidebar — sits on the right, next to Settings. */}
         <Tooltip label={t('chat.hideSidebar')}>
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            iconOnly
             onClick={hide}
             className={ICON_BTN}
-            data-analytics-id="sidebar-header-collapse"
+            analyticsId="sidebar-header-collapse"
             aria-label={t('chat.hideSidebar')}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -90,7 +97,7 @@ export default function SidebarHeader() {
                 d="M15 19l-7-7 7-7M20 5v14"
               />
             </svg>
-          </button>
+          </Button>
         </Tooltip>
       </div>
     </div>
