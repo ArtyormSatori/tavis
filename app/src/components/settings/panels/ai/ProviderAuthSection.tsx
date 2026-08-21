@@ -286,10 +286,4 @@ export const ProviderAuthSection = ({
   );
 };
 
-// Small local helper — clears the advisory only if it's about the provider
-// being toggled off (#5341: another provider's advisory must survive).
-function onDismissProviderSaveNoticeIfMatching(_slug: string, dismiss: () => void) {
-  dismiss();
-}
-
 export default ProviderAuthSection;
