@@ -14,7 +14,7 @@
  * - Allowed tools open a searchable modal with chip-style selection; each tool
  *   shows its description. `["*"]` means "all tools".
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { LuPlus, LuSearch, LuX } from 'react-icons/lu';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -25,6 +25,7 @@ import {
   type AgentToolInfo,
 } from '../../../services/api/agentRegistryApi';
 import Button from '../../ui/Button';
+import { ModalShell } from '../../ui/ModalShell';
 import {
   SettingsRow,
   SettingsSection,
@@ -392,27 +393,30 @@ const AgentEditorPage = () => {
                           key={tool}
                           className="inline-flex items-center gap-1 rounded-full bg-surface-subtle px-2.5 py-1 font-mono text-xs text-content-secondary">
                           {tool}
-                          <button
-                            type="button"
+                          <Button
+                            iconOnly
+                            variant="tertiary"
+                            size="xs"
                             aria-label={t('settings.agents.editor.removeToolAria').replace(
                               '{tool}',
                               tool
                             )}
                             onClick={() => setToolAllowlist(prev => prev.filter(x => x !== tool))}
-                            className="rounded-full text-content-faint hover:text-coral-600 dark:hover:text-coral-300">
+                            className="h-3 w-3 min-w-0 rounded-full bg-transparent p-0 text-content-faint hover:bg-transparent hover:text-coral-600 dark:hover:text-coral-300">
                             <LuX className="h-3 w-3" />
-                          </button>
+                          </Button>
                         </span>
                       ))
                     )}
-                    <button
-                      type="button"
+                    <Button
+                      variant="tertiary"
+                      size="xs"
                       aria-label={t('settings.agents.editor.selectTools')}
                       onClick={() => setToolsOpen(true)}
-                      className="inline-flex items-center gap-1 rounded-full border border-dashed border-line-strong px-2.5 py-1 text-xs font-medium text-content-secondary hover:border-ocean-400 hover:text-ocean-600 dark:hover:border-ocean-500 dark:hover:text-ocean-300">
-                      <LuPlus className="h-3 w-3" />
+                      leadingIcon={<LuPlus className="h-3 w-3" />}
+                      className="h-auto gap-1 rounded-full border border-dashed border-line-strong bg-transparent px-2.5 py-1 text-xs font-medium text-content-secondary hover:border-ocean-400 hover:bg-transparent hover:text-ocean-600 dark:hover:border-ocean-500 dark:hover:text-ocean-300">
                       {t('settings.agents.editor.selectTools')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               }
@@ -483,6 +487,7 @@ function ToolsPickerModal({
   onClose: () => void;
 }) {
   const { t } = useT();
+  const titleId = useId();
   const [tools, setTools] = useState<AgentToolInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -516,31 +521,25 @@ function ToolsPickerModal({
   const selectedCount = allToolsSelected ? tools.length : selected.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 py-6">
-      <section className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-xl">
-        <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <div>
-            <h3 className="text-base font-semibold text-content">
-              {t('settings.agents.editor.toolsModalTitle')}
-            </h3>
-            <p className="text-xs text-content-faint">
-              {t('settings.agents.editor.toolsSelectedCount').replace(
-                '{count}',
-                String(selectedCount)
-              )}
-            </p>
-          </div>
-          <Button
-            iconOnly
-            variant="tertiary"
-            size="xs"
-            type="button"
-            aria-label={t('common.close')}
-            onClick={onClose}>
-            <LuX className="h-4 w-4" />
+    <ModalShell
+      title={t('settings.agents.editor.toolsModalTitle')}
+      titleId={titleId}
+      subtitle={t('settings.agents.editor.toolsSelectedCount').replace(
+        '{count}',
+        String(selectedCount)
+      )}
+      onClose={onClose}
+      maxWidthClassName="max-w-lg"
+      panelClassName="flex max-h-[calc(100vh-3rem)] flex-col"
+      contentClassName="flex min-h-0 flex-1 flex-col p-0"
+      footer={
+        <div className="flex justify-end">
+          <Button type="button" variant="primary" size="sm" onClick={onClose}>
+            {t('settings.agents.editor.toolsDone')}
           </Button>
         </div>
-
+      }>
+      <>
         <div className="border-b border-line px-4 py-3">
           <div className="relative">
             <LuSearch className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-content-faint" />
@@ -616,13 +615,8 @@ function ToolsPickerModal({
           )}
         </div>
 
-        <div className="flex justify-end border-t border-line px-4 py-3">
-          <Button type="button" variant="primary" size="sm" onClick={onClose}>
-            {t('settings.agents.editor.toolsDone')}
-          </Button>
-        </div>
-      </section>
-    </div>
+      </>
+    </ModalShell>
   );
 }
 

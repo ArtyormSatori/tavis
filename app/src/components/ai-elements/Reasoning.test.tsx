@@ -23,6 +23,52 @@ const renderReasoning = (props?: { isStreaming?: boolean; defaultOpen?: boolean 
   );
 
 describe('Reasoning', () => {
+  // Regression: #4942. The auto-open effect re-runs on every `isOpen` change, so
+  // guarding it on the `defaultOpen` PROP alone let it immediately undo a manual
+  // collapse — the panel could not be closed while streaming. A prop cannot
+  // record a runtime interaction; the sticky `userOverrideOpen` state can.
+  // Mirrors the fix in features/conversations/components/ToolTimelineBlock.tsx.
+  it('lets the user collapse the panel mid-stream without it springing back open', () => {
+    renderReasoning({ isStreaming: true });
+
+    const trigger = screen.getByTestId('reasoning-trigger');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    // The user collapses it while tokens are still arriving.
+    fireEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByTestId('reasoning-content')).toHaveAttribute('data-state', 'closed');
+  });
+
+  it('keeps a mid-stream manual OPEN from being auto-closed when streaming ends', () => {
+    const { rerender } = render(
+      <Reasoning data-testid="reasoning" isStreaming={true} defaultOpen={false}>
+        <ReasoningTrigger data-testid="reasoning-trigger" />
+        <ReasoningContent data-testid="reasoning-content">Because of X.</ReasoningContent>
+      </Reasoning>
+    );
+
+    const trigger = screen.getByTestId('reasoning-trigger');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(trigger); // user opens it deliberately
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    // Streaming finishes; the auto-close timer must not override the user.
+    rerender(
+      <Reasoning data-testid="reasoning" isStreaming={false} defaultOpen={false}>
+        <ReasoningTrigger data-testid="reasoning-trigger" />
+        <ReasoningContent data-testid="reasoning-content">Because of X.</ReasoningContent>
+      </Reasoning>
+    );
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(screen.getByTestId('reasoning-trigger')).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('renders closed by default and shows the settled thinking message', () => {
     renderReasoning();
 
