@@ -305,23 +305,19 @@ export function ExpressionField({
 }: ExpressionFieldProps) {
   const { t } = useT();
   const id = useId();
-  const borderClass = warning
-    ? 'border-amber-400 focus-within:border-amber-500 focus-within:ring-amber-500/20'
-    : 'border-line-strong focus-within:border-primary-500 focus-within:ring-primary-500/20';
   return (
     <Field label={label} hint={hint ?? t('flows.nodeConfig.expressionHint')} htmlFor={id}>
-      <div
-        className={`flex items-stretch overflow-hidden rounded-lg border bg-surface focus-within:ring-2 ${borderClass}`}>
-        <span
-          className="flex select-none items-center border-r border-line-strong bg-surface-muted px-2 font-mono text-[11px] font-semibold text-content-muted"
+      <InputGroupRoot size="sm">
+        <InputGroupAddon
+          className={cn(warning && 'border-amber-400')}
           title={t('flows.nodeConfig.expressionBadge')}
           aria-hidden="true">
-          =
-        </span>
-        <input
+          <span className="font-mono text-[11px] font-semibold">=</span>
+        </InputGroupAddon>
+        <InputGroupInput
           id={id}
           type="text"
-          className={`w-full bg-transparent px-2.5 py-1.5 ${MONO_CLASS} text-content placeholder-content-faint focus:outline-none`}
+          className={cn(MONO_CLASS, warning && 'border-amber-400 focus:border-amber-500 focus:ring-amber-500/20')}
           value={value}
           placeholder={placeholder}
           data-testid={testId}
@@ -332,9 +328,10 @@ export function ExpressionField({
             options={upstreamOptions}
             onInsert={onChange}
             testId={testId ? `${testId}-upstream` : undefined}
+            className="max-w-[45%] shrink-0 text-[11px]"
           />
         )}
-      </div>
+      </InputGroupRoot>
       {warning && (
         <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400" role="alert">
           {warning}
