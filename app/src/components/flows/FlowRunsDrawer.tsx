@@ -137,14 +137,17 @@ function FlowRunsDrawer({ flowId, flowName, onClose, onFixWithAgent }: Props) {
           {/* Header */}
           <header className="flex items-center gap-2.5 border-b border-line px-4 py-3">
             <span className="min-w-0 flex-1 truncate font-semibold text-content">{title}</span>
-            <button
+            <Button
               type="button"
+              variant="tertiary"
+              size="xs"
+              iconOnly
               data-testid="flow-runs-close"
               onClick={onClose}
               aria-label={t('conversations.subagent.close')}
-              className="shrink-0 rounded-full p-1.5 text-content-faint hover:bg-surface-hover hover:text-content-secondary">
+              className="shrink-0 rounded-full">
               ✕
-            </button>
+            </Button>
           </header>
 
           <div className="flex-1 overflow-y-auto px-4 py-4">
