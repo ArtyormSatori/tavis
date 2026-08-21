@@ -142,7 +142,7 @@ export default function CollapsedNavRail() {
             : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
         }`}>
         <NavIcon id="settings" className="h-5 w-5" />
-      </button>
+      </Button>
     </nav>
   );
 }
