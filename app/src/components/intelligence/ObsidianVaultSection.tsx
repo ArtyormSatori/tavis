@@ -217,42 +217,71 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
       ? t('workspace.obsidianNotFoundHelp')
       : t('workspace.vaultNotRegisteredHelp');
 
-  // The guidance panel is rendered as an absolutely-positioned popover anchored
-  // to the button (out of normal flow) rather than as an inline sibling. This
-  // component lives inside the horizontal MemoryControls toolbar; an in-flow
-  // `w-full`/wide panel would grow this flex item and force the whole toolbar to
-  // wrap/misalign (issue #4266). Taking the panel out of flow keeps the toolbar
-  // row stable regardless of the panel's visibility.
+  // The guidance panel is a Radix Popover anchored to the button (out of
+  // normal flow) rather than an inline sibling. This component lives inside
+  // the horizontal MemoryControls toolbar; an in-flow `w-full`/wide panel
+  // would grow this flex item and force the whole toolbar to wrap/misalign
+  // (issue #4266). Taking the panel out of flow keeps the toolbar row stable
+  // regardless of the panel's visibility.
+  //
+  // `PopoverAnchor` (not `PopoverTrigger`) is deliberate: Radix's Trigger
+  // toggles the popover closed on a second click, which would contradict the
+  // on-screen "click View Vault again" copy above — a re-click on the button
+  // must always re-run `handleViewVault`'s check, never just dismiss. Driving
+  // `open`/`onOpenChange` ourselves keeps that behavior while still getting
+  // Radix's outside-click, Escape, focus-return and viewport-collision
+  // handling for free.
   return (
-    <div className="relative inline-flex" data-testid="obsidian-vault-section" ref={containerRef}>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleViewVault}
-        disabled={checking}
-        data-testid="memory-open-in-obsidian"
-        title={`obsidian://open?path=${contentRootAbs}`}
-        leadingIcon={<ExternalLinkIcon />}>
-        {checking ? t('workspace.checkingVault') : t('workspace.viewVault')}
-      </Button>
+    <div className="relative inline-flex" data-testid="obsidian-vault-section">
+      <PopoverRoot open={expanded} onOpenChange={setExpanded}>
+        <PopoverAnchor asChild>
+          <Button
+            ref={anchorRef}
+            variant="secondary"
+            size="sm"
+            onClick={handleViewVault}
+            disabled={checking}
+            data-testid="memory-open-in-obsidian"
+            title={`obsidian://open?path=${contentRootAbs}`}
+            leadingIcon={<ExternalLinkIcon />}>
+            {checking ? t('workspace.checkingVault') : t('workspace.viewVault')}
+          </Button>
+        </PopoverAnchor>
 
-      {expanded && (
-        <div
+        <PopoverContent
           data-testid="obsidian-vault-guidance"
+          align="end"
+          sideOffset={8}
+          onEscapeKeyDown={() => {
+            console.debug('[ui-flow][obsidian-vault] dismiss: escape');
+          }}
+          onPointerDownOutside={event => {
+            // A click back on the trigger button re-runs handleViewVault's
+            // check (see the anchor comment above) rather than dismissing —
+            // without this guard Radix would treat that click as "outside"
+            // and close the panel in the same tick handleViewVault reopens
+            // it, causing a flicker or a stuck-closed panel.
+            if (anchorRef.current && anchorRef.current.contains(event.target as Node)) {
+              event.preventDefault();
+              return;
+            }
+            console.debug('[ui-flow][obsidian-vault] dismiss: outside click');
+          }}
           className="absolute right-0 top-full z-20 mt-2 w-[36rem] max-w-[calc(100vw-2rem)]
                      rounded-lg border border-violet-200 bg-violet-50 p-4 pr-10 text-sm shadow-xl
                      dark:border-violet-500/30 dark:bg-violet-950">
-          <Button
-            variant="tertiary"
-            size="sm"
-            iconOnly
-            onClick={closePanel}
-            data-testid="obsidian-vault-close"
-            aria-label={t('common.close')}
-            className="absolute right-2 top-2 h-auto w-auto p-1 hover:bg-violet-100
-                       dark:hover:bg-violet-500/20">
-            <CloseIcon />
-          </Button>
+          <PopoverClose asChild>
+            <Button
+              variant="tertiary"
+              size="sm"
+              iconOnly
+              data-testid="obsidian-vault-close"
+              aria-label={t('common.close')}
+              className="absolute right-2 top-2 h-auto w-auto p-1 hover:bg-violet-100
+                         dark:hover:bg-violet-500/20">
+              <CloseIcon />
+            </Button>
+          </PopoverClose>
           <p className="text-content-secondary">{helpText}</p>
 
           <code
@@ -332,8 +361,8 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
               <p className="text-xs text-content-muted">{t('workspace.obsidianConfigDirHint')}</p>
             </div>
           )}
-        </div>
-      )}
+        </PopoverContent>
+      </PopoverRoot>
     </div>
   );
 }
