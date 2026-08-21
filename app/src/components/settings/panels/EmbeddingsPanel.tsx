@@ -601,175 +601,32 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
 
       {/* ── Setup popup (API key entry + test + save) ── */}
       {setupProvider && (
-        <ModalShell
-          titleId="embeddings-setup-title"
-          title={t('settings.embeddings.setupTitle').replace('{provider}', setupProvider.label)}
+        <EmbeddingsSetupModal
+          setupProvider={setupProvider}
           onClose={() => setSetupProvider(null)}
-          contentClassName="px-5 py-4 space-y-4"
-          footer={
-            <div className="flex justify-between pt-1">
-              <Button
-                type="button"
-                variant="secondary"
-                size="xs"
-                onClick={() => {
-                  if (setupProvider.slug !== 'custom') {
-                    void setupTest();
-                  }
-                }}
-                disabled={
-                  setupTesting ||
-                  setupSaving ||
-                  (setupProvider.slug !== 'custom' && !setupKey.trim())
-                }>
-                {setupTesting
-                  ? t('settings.embeddings.testing')
-                  : t('settings.embeddings.testConnection')}
-              </Button>
-
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  size="xs"
-                  onClick={() => setSetupProvider(null)}>
-                  {t('settings.embeddings.cancel')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="xs"
-                  onClick={() => {
-                    if (setupProvider.slug === 'custom') {
-                      void setupSaveCustom();
-                    } else {
-                      void setupSave();
-                    }
-                  }}
-                  disabled={
-                    setupSaving ||
-                    (setupProvider.slug !== 'custom' &&
-                      !setupKey.trim() &&
-                      !setupProvider.has_api_key) ||
-                    (setupProvider.slug === 'custom' && !customEndpoint.trim())
-                  }>
-                  {setupSaving
-                    ? t('settings.embeddings.saving')
-                    : t('settings.embeddings.saveAndSwitch')}
-                </Button>
-              </div>
-            </div>
-          }>
-          {setupProvider.slug === 'custom' ? (
-            /* Custom endpoint form */
-            <div className="space-y-3">
-              <div>
-                <Label className="block text-[11px] mb-1">
-                  {t('settings.embeddings.customEndpoint')}
-                </Label>
-                <SettingsTextField
-                  type="text"
-                  value={customEndpoint}
-                  onChange={e => setCustomEndpoint(e.target.value)}
-                  placeholder="https://your-endpoint.com/v1"
-                  mono
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label className="block text-[11px] mb-1">
-                    {t('settings.embeddings.customModelPlaceholder')}
-                  </Label>
-                  <SettingsTextField
-                    type="text"
-                    value={customModel}
-                    onChange={e => setCustomModel(e.target.value)}
-                    placeholder="text-embedding-3-small"
-                    mono
-                  />
-                </div>
-                <div className="w-24">
-                  <Label className="block text-[11px] mb-1">
-                    {t('settings.embeddings.dimensions')}
-                  </Label>
-                  <SettingsTextField
-                    type="number"
-                    value={customDims}
-                    onChange={e => setCustomDims(e.target.value)}
-                    placeholder="1024"
-                    mono
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="block text-[11px] mb-1">
-                  {t('settings.embeddings.apiKeyLabelGeneric')} ({t('settings.embeddings.optional')}
-                  )
-                </Label>
-                <SettingsTextField
-                  type={setupShowKey ? 'text' : 'password'}
-                  value={setupKey}
-                  onChange={e => setSetupKey(e.target.value)}
-                  placeholder={t('settings.embeddings.placeholderKey')}
-                  mono
-                />
-              </div>
-            </div>
-          ) : (
-            /* Standard API key form */
-            <div className="space-y-3">
-              <p className="text-xs text-content-muted">{setupProvider.description}</p>
-              <div>
-                <Label className="block text-[11px] mb-1">
-                  {t('settings.embeddings.apiKeyLabel').replace('{provider}', setupProvider.label)}
-                </Label>
-                <div className="flex gap-2">
-                  <SettingsTextField
-                    type={setupShowKey ? 'text' : 'password'}
-                    value={setupKey}
-                    onChange={e => setSetupKey(e.target.value)}
-                    placeholder={t('settings.embeddings.placeholderKey')}
-                    mono
-                    autoFocus
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="xs"
-                    onClick={() => setSetupShowKey(s => !s)}>
-                    {setupShowKey ? t('settings.embeddings.hide') : t('settings.embeddings.show')}
-                  </Button>
-                </div>
-                <p className="mt-1 text-[10px] text-content-faint">
-                  {t('settings.embeddings.keyStoredEncrypted')}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Test result */}
-          {setupTestResult && (
-            <Alert variant={setupTestResult.success ? 'success' : 'destructive'} className="text-xs">
-              {setupTestResult.success
-                ? t('settings.embeddings.testSuccess').replace(
-                    '{dims}',
-                    String(setupTestResult.actual_dimensions ?? '?')
-                  )
-                : t('settings.embeddings.testFailed').replace(
-                    '{error}',
-                    setupTestResult.error ?? ''
-                  )}
-            </Alert>
-          )}
-
-          {setupError && (
-            <Alert variant="destructive" className="text-xs">
-              {setupError}
-            </Alert>
-          )}
-        </ModalShell>
+          setupKey={setupKey}
+          onSetupKeyChange={setSetupKey}
+          setupShowKey={setupShowKey}
+          onToggleShowKey={() => setSetupShowKey(s => !s)}
+          setupTesting={setupTesting}
+          setupTestResult={setupTestResult}
+          setupSaving={setupSaving}
+          setupError={setupError}
+          customEndpoint={customEndpoint}
+          onCustomEndpointChange={setCustomEndpoint}
+          customModel={customModel}
+          onCustomModelChange={setCustomModel}
+          customDims={customDims}
+          onCustomDimsChange={setCustomDims}
+          onTest={() => void setupTest()}
+          onSave={() => {
+            if (setupProvider.slug === 'custom') {
+              void setupSaveCustom();
+            } else {
+              void setupSave();
+            }
+          }}
+        />
       )}
       {/* ── Confirm wipe dialog ── */}
       {pendingWipe && (

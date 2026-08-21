@@ -82,8 +82,8 @@ export function SourceRow({
   onSignIn,
 }: SourceRowProps) {
   const { t } = useT();
-  const icon = SOURCE_KIND_ICONS_MAP[source.kind] ?? '📄';
-  const kindLabel = t(SOURCE_KIND_LABEL_KEYS_MAP[source.kind] ?? source.kind);
+  const icon = SOURCE_KIND_ICONS[source.kind] ?? '📄';
+  const kindLabel = t(SOURCE_KIND_LABEL_KEYS[source.kind] ?? source.kind);
   const detail = sourceDetail(source);
   const lastSync = status ? relativeTimestamp(status.last_chunk_at_ms, t) : null;
 
