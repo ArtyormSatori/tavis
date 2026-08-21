@@ -17,9 +17,18 @@
  * subsequent `fetchStatuses()` refresh; this component only orchestrates
  * the user intent.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
+import {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogRoot,
+  AlertDialogTitle,
+} from '../../ui/AlertDialog';
 import Button from '../../ui/Button';
 import type { ConnStatus } from './types';
 
