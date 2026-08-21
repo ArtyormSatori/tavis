@@ -204,7 +204,6 @@ async fn build_session_agent_applies_extended_policy_definition_cap() {
         "code_executor",
         Some(&def),
         None,
-        None,
         false,
         None,
     )
@@ -293,7 +292,6 @@ async fn build_session_agent_carries_active_profile_id_when_profile_present() {
         "orchestrator",
         None,
         None,
-        None,
         false,
         Some(&profile),
     )
@@ -325,7 +323,6 @@ async fn profile_allowed_tools_restrict_shared_session_builder() {
         &config,
         "orchestrator",
         Some(&orchestrator),
-        None,
         None,
         false,
         Some(&profile),
@@ -363,7 +360,6 @@ async fn channel_ceiling_does_not_inherit_orchestrator_role_visibility() {
         &config,
         "orchestrator",
         Some(&def),
-        None,
         None,
         false,
         None,
@@ -405,7 +401,6 @@ async fn dedicated_memory_profile_scopes_tree_and_transcript_storage() {
     let agent = Agent::build_session_agent_inner(
         &config,
         "orchestrator",
-        None,
         None,
         None,
         false,
@@ -470,7 +465,6 @@ async fn build_session_agent_routes_dedicated_memory_to_profile_subtree() {
     let _agent = Agent::build_session_agent_inner(
         &config,
         "orchestrator",
-        None,
         None,
         None,
         false,
@@ -548,7 +542,6 @@ async fn build_session_agent_injects_profile_soul_into_prompt() {
         "orchestrator",
         None,
         None,
-        None,
         false,
         Some(&profile),
     )
@@ -592,7 +585,6 @@ async fn build_session_agent_uses_profile_memory_instead_of_root_memory() {
         &config,
         "orchestrator",
         Some(&orchestrator),
-        None,
         None,
         false,
         Some(&profile),
@@ -707,7 +699,6 @@ async fn build_session_agent_injects_default_profile_soul_into_prompt() {
     let agent = Agent::build_session_agent_inner(
         &config,
         "orchestrator",
-        None,
         None,
         None,
         false,
