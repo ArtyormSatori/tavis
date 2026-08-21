@@ -526,13 +526,15 @@ function AllowlistField({
                     key={item}
                     className="inline-flex items-center gap-1 rounded-full bg-surface-subtle px-2.5 py-1 font-mono text-xs text-content-secondary">
                     {item}
-                    <button
-                      type="button"
+                    <Button
+                      variant="tertiary"
+                      size="xs"
+                      iconOnly
                       aria-label={t('settings.profiles.editor.removeAria').replace('{item}', item)}
                       onClick={() => onChange(items.filter(x => x !== item))}
-                      className="rounded-full text-content-faint hover:text-coral-600 dark:hover:text-coral-300">
+                      className="h-4 w-4 rounded-full p-0 text-content-faint hover:bg-transparent hover:text-coral-600 dark:hover:text-coral-300">
                       <LuX className="h-3 w-3" />
-                    </button>
+                    </Button>
                   </span>
                 ))}
               </div>
