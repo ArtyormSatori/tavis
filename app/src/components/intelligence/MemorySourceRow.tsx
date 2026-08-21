@@ -17,6 +17,7 @@ import {
 import type { ToastNotification } from '../../types/intelligence';
 import type { MemoryTreePipelineStatus } from '../../utils/tauriCommands/memoryTree';
 import Button from '../ui/Button';
+import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from '../ui/Collapsible';
 import Switch from '../ui/Switch';
 import {
   BuildIcon,
