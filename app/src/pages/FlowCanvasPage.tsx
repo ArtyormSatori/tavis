@@ -409,16 +409,6 @@ function FlowEditor({
   // it); the user can switch to the Legend or collapse the rail entirely.
   const [sidePanel, setSidePanel] = useState<SidePanel>('copilot');
   const copilotOpen = sidePanel === 'copilot';
-  // Toggle a panel: selecting the active one again closes the side panel.
-  // Radix `ToggleGroup` (`type="single"`) already gives us this for free —
-  // re-clicking the selected item reports `onValueChange('')` — so the side
-  // panel toggle below calls `setSidePanel` directly instead of through this
-  // helper. Kept for the one remaining non-toggle-group caller (repair-seed
-  // re-assertion below).
-  const toggleSidePanel = useCallback(
-    (panel: Exclude<SidePanel, null>) => setSidePanel(cur => (cur === panel ? null : panel)),
-    []
-  );
   // Issue B22: a repair seed can also arrive WITHOUT a `FlowEditor` remount —
   // "Fix with agent" clicked from `FlowRunsSidebar` stays on this same
   // `/flows/:id` route (only `location.state`/`location.key` change), so the
