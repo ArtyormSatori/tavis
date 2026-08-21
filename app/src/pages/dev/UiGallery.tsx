@@ -197,6 +197,8 @@ export default function UiGallery() {
   const [volume, setVolume] = useState([40]);
   const [range, setRange] = useState([20, 70]);
   const [fruit, setFruit] = useState('apple');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [picked, setPicked] = useState<string | null>(null);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -658,6 +660,329 @@ export default function UiGallery() {
             nothing renders here, by design.
           </span>
         </div>
+      </Section>
+
+      <Section title="Alert">
+        {(['default', 'info', 'success', 'warning', 'destructive'] as const).map(variant => (
+          <Alert key={variant} variant={variant}>
+            <div>
+              <AlertTitle>{variant}</AlertTitle>
+              <AlertDescription>
+                A short explanation of what happened and what to do next.
+              </AlertDescription>
+            </div>
+          </Alert>
+        ))}
+        <p className="text-xs text-content-muted">
+          The destructive and warning variants carry role=&quot;alert&quot;; the quieter ones do
+          not, so a static page of them does not shout at a screen reader.
+        </p>
+      </Section>
+
+      <Section title="Button group">
+        <ButtonGroupRoot aria-label="Document actions">
+          <ButtonGroupItem>Save</ButtonGroupItem>
+          <ButtonGroupItem>Save as…</ButtonGroupItem>
+          <ButtonGroupItem>Export</ButtonGroupItem>
+        </ButtonGroupRoot>
+        <ButtonGroupRoot variant="primary" size="sm" aria-label="Primary actions">
+          <ButtonGroupItem>Run</ButtonGroupItem>
+          <ButtonGroupItem iconOnly aria-label="More run options">
+            ▾
+          </ButtonGroupItem>
+        </ButtonGroupRoot>
+        <ButtonGroupRoot orientation="vertical" className="w-40" aria-label="Vertical actions">
+          <ButtonGroupItem>Top</ButtonGroupItem>
+          <ButtonGroupItem>Middle</ButtonGroupItem>
+          <ButtonGroupItem tone="danger">Delete</ButtonGroupItem>
+        </ButtonGroupRoot>
+      </Section>
+
+      <Section title="Input group">
+        <InputGroupRoot>
+          <InputGroupAddon>https://</InputGroupAddon>
+          <InputGroupInput placeholder="example.com" aria-label="Domain" />
+          <InputGroupButton>Check</InputGroupButton>
+        </InputGroupRoot>
+        <InputGroupRoot size="sm">
+          <InputGroupInput placeholder="Timeout" aria-label="Timeout" />
+          <InputGroupAddon>seconds</InputGroupAddon>
+        </InputGroupRoot>
+        <InputGroupRoot size="lg">
+          <InputGroupAddon aria-hidden>🔍</InputGroupAddon>
+          <InputGroupInput placeholder="Search" aria-label="Search" />
+        </InputGroupRoot>
+      </Section>
+
+      <Section title="Hover card">
+        <div className="flex flex-wrap items-center gap-2">
+          <HoverCardRoot>
+            <HoverCardTrigger asChild>
+              <Button variant="tertiary">Preview a person</Button>
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <div className="flex items-center gap-3">
+                <AvatarRoot>
+                  <AvatarFallback>ab</AvatarFallback>
+                </AvatarRoot>
+                <div>
+                  <p className="text-sm font-medium text-content">Ada Byron</p>
+                  <p className="text-xs text-content-muted">Rich, optional preview — not a label.</p>
+                </div>
+              </div>
+            </HoverCardContent>
+          </HoverCardRoot>
+          <span className="text-xs text-content-muted">
+            A label for an icon button belongs in Tooltip; this is for previews worth reading.
+          </span>
+        </div>
+      </Section>
+
+      <Section title="Sidebar">
+        <SidebarProvider
+          open={sidebarOpen}
+          onOpenChange={setSidebarOpen}
+          className="h-64 overflow-hidden rounded-lg border border-line bg-surface-canvas">
+          <Sidebar collapsible="icon" className="bg-surface-muted">
+            <SidebarHeader>
+              <SidebarMenuLabel>Workspace</SidebarMenuLabel>
+            </SidebarHeader>
+            <SidebarSeparator />
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton isActive>
+                        <SidebarMenuIcon aria-hidden>◆</SidebarMenuIcon>
+                        <SidebarMenuLabel>Chat</SidebarMenuLabel>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>
+                        <SidebarMenuIcon aria-hidden>◇</SidebarMenuIcon>
+                        <SidebarMenuLabel>Notifications</SidebarMenuLabel>
+                        <SidebarMenuBadge tone="attention">3</SidebarMenuBadge>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton size="sm">
+                        <SidebarMenuIcon aria-hidden>○</SidebarMenuIcon>
+                        <SidebarMenuLabel>Settings</SidebarMenuLabel>
+                        <SidebarMenuBadge>12</SidebarMenuBadge>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+            <SidebarFooter>
+              <SidebarMenuLabel>v0.0.0-dev</SidebarMenuLabel>
+            </SidebarFooter>
+          </Sidebar>
+          <SidebarRail aria-label="Resize the sidebar" />
+          <SidebarInset className="p-4">
+            <SidebarTrigger
+              aria-label="Toggle the sidebar"
+              className="rounded-md border border-line px-2 py-1 text-xs text-content-muted">
+              Toggle
+            </SidebarTrigger>
+            <p className="mt-3 text-sm text-content-muted">
+              Drag the rail, or focus it and use the arrow keys — width is clamped between the
+              exported minimum and maximum. Collapsing narrows to the icon width rather than
+              unmounting, because collapsible=&quot;icon&quot; is set here.
+            </p>
+          </SidebarInset>
+        </SidebarProvider>
+      </Section>
+
+      <header className="space-y-1 pt-4">
+        <h1 className="text-xl font-semibold text-content">AI elements</h1>
+        <p className="text-sm text-content-muted">
+          Chat-surface components adapted from vercel/ai-elements onto these primitives and tokens.
+        </p>
+      </header>
+
+      <Section title="Tool call">
+        <Tool defaultOpen>
+          <ToolHeader type="tool-memory_search" state="output-available" />
+          <ToolContent>
+            <ToolInput input={{ limit: 5, query: 'quarterly revenue' }} />
+            <ToolOutput output="3 matches across 2 sources." />
+          </ToolContent>
+        </Tool>
+        <Tool>
+          <ToolHeader type="dynamic-tool" toolName="fetch_invoice" state="input-streaming" />
+          <ToolContent>
+            <ToolInput input={{ invoice: 'INV-…' }} />
+          </ToolContent>
+        </Tool>
+        <Tool defaultOpen>
+          <ToolHeader type="tool-shell" state="output-error" />
+          <ToolContent>
+            <ToolInput input={{ command: 'rm -rf /' }} />
+            <ToolOutput errorText="Blocked by the security policy." output={undefined} />
+          </ToolContent>
+        </Tool>
+      </Section>
+
+      <Section title="Confirmation">
+        <Confirmation approval={{ id: 'a1' }} state="approval-requested">
+          <ConfirmationTitle>Allow the agent to write to ~/OpenHuman/projects?</ConfirmationTitle>
+          <ConfirmationRequest>
+            <p className="text-xs text-content-muted">
+              Only the request state renders these children.
+            </p>
+          </ConfirmationRequest>
+          <ConfirmationActions>
+            <ConfirmationAction variant="secondary">Deny</ConfirmationAction>
+            <ConfirmationAction>Allow</ConfirmationAction>
+          </ConfirmationActions>
+        </Confirmation>
+        <Confirmation approval={{ id: 'a2', approved: true }} state="approval-responded">
+          <ConfirmationTitle>Write access</ConfirmationTitle>
+          <ConfirmationAccepted>
+            <p className="text-xs text-content-muted">Approved.</p>
+          </ConfirmationAccepted>
+        </Confirmation>
+        <Confirmation approval={{ id: 'a3', approved: false }} state="output-denied">
+          <ConfirmationTitle>Write access</ConfirmationTitle>
+          <ConfirmationRejected>
+            <p className="text-xs text-content-muted">Denied.</p>
+          </ConfirmationRejected>
+        </Confirmation>
+      </Section>
+
+      <Section title="Reasoning">
+        <Reasoning defaultOpen duration={4}>
+          <ReasoningTrigger />
+          <ReasoningContent>
+            First the constraint, then the two candidates, then why the second one loses.
+          </ReasoningContent>
+        </Reasoning>
+        <Separator />
+        <Reasoning isStreaming>
+          <ReasoningTrigger />
+          <ReasoningContent>Still thinking…</ReasoningContent>
+        </Reasoning>
+      </Section>
+
+      <Section title="Chain of thought">
+        <ChainOfThought defaultOpen>
+          <ChainOfThoughtHeader />
+          <ChainOfThoughtContent>
+            <ChainOfThoughtStep label="Read the spec" status="complete" />
+            <ChainOfThoughtStep
+              label="Search the codebase"
+              description="Two call sites, one of them dead."
+              status="active">
+              <ChainOfThoughtSearchResults>
+                <ChainOfThoughtSearchResult>tools/ops.rs</ChainOfThoughtSearchResult>
+                <ChainOfThoughtSearchResult>core/all.rs</ChainOfThoughtSearchResult>
+              </ChainOfThoughtSearchResults>
+            </ChainOfThoughtStep>
+            <ChainOfThoughtStep label="Write the patch" status="pending" />
+          </ChainOfThoughtContent>
+        </ChainOfThought>
+      </Section>
+
+      <Section title="Plan">
+        <Plan defaultOpen>
+          <PlanHeader>
+            <div>
+              <PlanTitle>Migrate the barrel</PlanTitle>
+              <PlanDescription>Three steps, no schema change.</PlanDescription>
+            </div>
+            <PlanAction>
+              <PlanTrigger />
+            </PlanAction>
+          </PlanHeader>
+          <PlanContent>
+            <ol className="list-inside list-decimal space-y-1 text-sm text-content-muted">
+              <li>Export the primitives.</li>
+              <li>Create the ai-elements barrel.</li>
+              <li>Extend the gallery.</li>
+            </ol>
+          </PlanContent>
+          <PlanFooter>
+            <Badge variant="neutral">draft</Badge>
+          </PlanFooter>
+        </Plan>
+        <Plan isStreaming defaultOpen>
+          <PlanHeader>
+            <div>
+              <PlanTitle>Streaming in…</PlanTitle>
+              <PlanDescription>The title and description shimmer while streaming.</PlanDescription>
+            </div>
+            <PlanAction>
+              <PlanTrigger />
+            </PlanAction>
+          </PlanHeader>
+          <PlanContent>
+            <p className="text-sm text-content-muted">Steps arrive as the model emits them.</p>
+          </PlanContent>
+        </Plan>
+      </Section>
+
+      <Section title="Task">
+        <Task defaultOpen>
+          <TaskTrigger title="Searched the workspace" />
+          <TaskContent>
+            <TaskItem>Scanned 412 files.</TaskItem>
+            <TaskItem>
+              Matched <TaskItemFile>src/components/ui/index.ts</TaskItemFile>
+            </TaskItem>
+            <TaskItem>
+              Matched <TaskItemFile>src/pages/dev/UiGallery.tsx</TaskItemFile>
+            </TaskItem>
+          </TaskContent>
+        </Task>
+      </Section>
+
+      <Section title="Artifact">
+        <Artifact>
+          <ArtifactHeader>
+            <div>
+              <ArtifactTitle>quarterly-report.docx</ArtifactTitle>
+              <ArtifactDescription>Generated 12 seconds ago · 42 KB</ArtifactDescription>
+            </div>
+            <ArtifactActions>
+              <ArtifactAction tooltip="Copy" label="Copy">
+                ⧉
+              </ArtifactAction>
+              <ArtifactAction tooltip="Download" label="Download">
+                ↓
+              </ArtifactAction>
+              <ArtifactClose />
+            </ArtifactActions>
+          </ArtifactHeader>
+          <ArtifactContent>
+            <p className="text-sm text-content-muted">
+              The document body renders here — the artifact is a frame, not a viewer.
+            </p>
+          </ArtifactContent>
+        </Artifact>
+      </Section>
+
+      <Section title="Sources">
+        <Sources defaultOpen>
+          <SourcesTrigger count={2} />
+          <SourcesContent>
+            <Source href="https://example.invalid/a" title="Architecture overview" />
+            <Source href="https://example.invalid/b" title="Hardening plan" />
+          </SourcesContent>
+        </Sources>
+      </Section>
+
+      <Section title="Suggestions">
+        <Suggestions>
+          <Suggestion suggestion="Summarise this thread" onClick={setPicked} />
+          <Suggestion suggestion="What changed since Friday?" onClick={setPicked} />
+          <Suggestion suggestion="Draft a reply" onClick={setPicked} />
+          <Suggestion suggestion="Show the failing tests" onClick={setPicked} />
+        </Suggestions>
+        <p className="text-xs text-content-muted">Picked: {picked ?? 'nothing yet'}</p>
       </Section>
 
       <Section title="Feedback">
