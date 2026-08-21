@@ -347,16 +347,11 @@ function FolderField({ label, value, onChange }: FolderFieldProps) {
     <label className="block">
       <span className="text-xs font-medium text-content-secondary">{label}</span>
       <div className="mt-1 flex gap-2">
-        <input
+        <TextField
           type="text"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={t('memorySources.folderPathPlaceholder')}
-          className="block w-full rounded-md border border-line-strong bg-surface px-3 py-2
-                     text-sm text-content placeholder-content-faint
-                     focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400
-                     dark:border-neutral-600 dark:bg-surface-muted dark:text-content
-                     dark:placeholder-content-faint dark:focus:border-primary-500"
         />
         <label
           className="shrink-0 cursor-pointer rounded-md border border-line-strong bg-surface px-3 py-2
