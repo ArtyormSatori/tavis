@@ -130,11 +130,11 @@ const TeamManagementPanel = () => {
         {/* Team Info */}
         <SettingsSection>
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-10 h-10 rounded-lg bg-surface-strong flex items-center justify-center">
-              <span className="text-sm font-semibold text-content-secondary">
+            <AvatarRoot className="h-10 w-10 rounded-lg bg-surface-strong">
+              <AvatarFallback className="rounded-lg bg-surface-strong text-sm font-semibold text-content-secondary">
                 {team.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
+              </AvatarFallback>
+            </AvatarRoot>
             <div>
               <h3 className="text-sm font-semibold text-content">{team.name}</h3>
               <p className="text-xs text-content-muted">
