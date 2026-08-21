@@ -94,6 +94,12 @@ export const AccordionRoot = ({ className, variant, ...rest }: AccordionRootProp
     data-slot="accordion"
     data-variant={variant ?? 'plain'}
     className={cn(accordionVariants({ variant }), className)}
+    // Radix types `Root` as a discriminated union on `type` ("single" |
+    // "multiple"). Destructuring `className`/`variant` off that union widens
+    // the remainder to the union of both members, which TS will no longer
+    // narrow back to a single arm — so the spread needs the cast. The
+    // discrimination is still enforced at the call site, where the caller
+    // passes `type` against `AccordionRootProps`.
     {...(rest as ComponentPropsWithRef<typeof AccordionPrimitive.Root>)}
   />
 );
