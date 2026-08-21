@@ -81,7 +81,7 @@ export function useComposioConnectFlow({
   const initialState = deriveComposioState(connection);
   const initiallyConnected = initialState === 'connected';
   const initiallyExpired = initialState === 'expired';
-  const [phase, setPhase] = useState<Phase>(
+  const [phase, setPhase] = useState<ComposioConnectPhase>(
     initiallyConnected
       ? 'connected'
       : initiallyExpired
