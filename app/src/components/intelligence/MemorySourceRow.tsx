@@ -104,8 +104,15 @@ export function MemorySourceRow({
   }
 
   return (
-    <li className="flex flex-col gap-2 py-3" data-testid={`memory-source-row-${source.kind}`}>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <li className="py-3" data-testid={`memory-source-row-${source.kind}`}>
+      {/* Per-row settings panel is a single disclosure region controlled by
+          the registry (`settingsExpanded` + `onToggleSettings`) — Collapsible,
+          not Accordion: there is no sibling exclusivity to coordinate here. */}
+      <CollapsibleRoot
+        open={settingsExpanded}
+        onOpenChange={() => onToggleSettings(source.id)}
+        className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-base">{icon}</span>
