@@ -1,5 +1,6 @@
 import { type Attachment, formatFileSize } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
+import { Button } from '../ui';
 
 interface AttachmentPreviewProps {
   attachments: Attachment[];
