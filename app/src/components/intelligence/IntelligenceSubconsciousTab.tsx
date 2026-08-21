@@ -104,11 +104,6 @@ export default function IntelligenceSubconsciousTab({
     setLocalSlider(minutesToSlider(intervalMinutes));
   }, [intervalMinutes]);
 
-  const handleSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    setLocalSlider(val);
-  }, []);
-
   const handleSliderCommit = useCallback(() => {
     const minutes = sliderToMinutes(localSlider);
     if (minutes !== intervalMinutes) {

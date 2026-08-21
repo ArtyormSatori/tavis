@@ -696,23 +696,22 @@ function MemorySyncSchedule({ lastSyncMs, onToast }: MemorySyncScheduleProps) {
           {options.map(secs => {
             const isSelected = secs === selectedSecs;
             return (
-              <button
+              <Button
                 key={secs}
-                type="button"
+                variant="secondary"
+                size="xs"
                 role="radio"
                 aria-checked={isSelected}
                 disabled={saving}
                 onClick={() => void handleSelect(secs)}
                 data-testid={`memory-sync-preset-${secs}`}
-                className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors
-                  focus:outline-none focus:ring-2 focus:ring-primary-200
-                  disabled:cursor-not-allowed disabled:opacity-50 ${
-                    isSelected
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-500/50 dark:bg-primary-500/10 dark:text-primary-300'
-                      : 'border-line bg-surface text-content-secondary hover:bg-surface-hover'
-                  }`}>
+                className={
+                  isSelected
+                    ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-500/50 dark:bg-primary-500/10 dark:text-primary-300'
+                    : 'text-content-secondary'
+                }>
                 {intervalChipLabel(secs, t)}
-              </button>
+              </Button>
             );
           })}
         </div>
