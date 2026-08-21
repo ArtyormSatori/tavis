@@ -160,22 +160,15 @@ export default function FeedbackFilterSelect({
             const active = index === activeIndex;
             return (
               <li key={option.value} id={optionId(index)} role="option" aria-selected={selected}>
-                <button
-                  type="button"
+                <Button
+                  variant="tertiary"
+                  size="sm"
                   tabIndex={-1}
                   onClick={() => selectOption(option)}
                   onMouseEnter={() => setActiveIndex(index)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-left text-xs transition-colors ${
-                    selected
-                      ? 'font-medium text-primary-600 dark:text-primary-400'
-                      : 'text-content-secondary'
-                  } ${
-                    active
-                      ? 'bg-surface-subtle dark:bg-white/[0.08]'
-                      : selected
-                        ? 'bg-primary-500/10'
-                        : ''
-                  }`}>
+                  className={`w-full justify-between gap-3 text-left text-xs font-normal hover:bg-surface-subtle ${
+                    selected ? 'font-medium text-primary-600 dark:text-primary-400' : 'text-content-secondary'
+                  } ${active ? 'bg-surface-subtle' : selected ? 'bg-primary-500/10' : ''}`}>
                   {option.label}
                   {selected && (
                     <svg
@@ -191,7 +184,7 @@ export default function FeedbackFilterSelect({
                       />
                     </svg>
                   )}
-                </button>
+                </Button>
               </li>
             );
           })}

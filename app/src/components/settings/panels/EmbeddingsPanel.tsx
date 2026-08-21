@@ -22,17 +22,11 @@ import {
 } from '../../../services/api/embeddingsApi';
 import { isLocalSessionToken } from '../../../utils/localSession';
 import PanelPage from '../../layout/PanelPage';
-import { Alert, AlertDescription, Button, ConfirmDialog, Label, ModalShell } from '../../ui';
+import { Alert, AlertDescription, Button, ConfirmDialog } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
-import {
-  SettingsBadge,
-  SettingsRow,
-  SettingsSection,
-  SettingsSelect,
-  SettingsStatusLine,
-  SettingsTextField,
-} from '../controls';
+import { SettingsBadge, SettingsRow, SettingsSection, SettingsSelect, SettingsStatusLine } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
+import EmbeddingsSetupModal from './EmbeddingsSetupModal';
 
 // Grep-friendly, namespaced diagnostics for the custom-endpoint verification
 // flow. Logs only safe metadata (error classification code, state transitions) —
