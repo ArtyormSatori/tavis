@@ -385,7 +385,6 @@ export function routingWithAllWorkloads(next: ProviderRef): RoutingMap {
 }
 
 export function defaultEndpointFor(slug: string): string {
-  const { defaultEndpointForBuiltinCloudProvider } = requireBuiltinCloudProviders2();
   const builtinEndpoint = defaultEndpointForBuiltinCloudProvider(slug);
   if (builtinEndpoint) return builtinEndpoint;
 

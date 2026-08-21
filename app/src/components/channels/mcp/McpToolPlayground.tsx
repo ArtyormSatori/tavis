@@ -271,16 +271,17 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
               <span className="text-[10px] text-content-faint">
                 {t('mcp.playground.runShortcut')}
               </span>
-              <button
-                type="button"
+              <Button
+                variant="tertiary"
+                size="xs"
                 onClick={handleFormat}
                 aria-label={t('mcp.playground.format')}
-                className="text-[10px] font-medium text-primary-600 dark:text-primary-300 hover:underline">
+                className="h-auto p-0 text-[10px] font-medium text-primary-600 hover:underline dark:text-primary-300">
                 {t('mcp.playground.format')}
-              </button>
+              </Button>
             </div>
           </div>
-          <textarea
+          <TextArea
             id="mcp-playground-args"
             ref={argsTextareaRef}
             value={argsJson}
@@ -290,7 +291,7 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
             rows={6}
             aria-label={t('mcp.playground.argsLabel')}
             aria-describedby="mcp-playground-args-help"
-            className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-xs font-mono text-content focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 resize-y"
+            className="w-full font-mono text-xs focus:border-primary-400 focus:ring-primary-400"
           />
           <p id="mcp-playground-args-help" className="mt-1 text-[10px] text-content-faint">
             {t('mcp.playground.argsHelp')}
