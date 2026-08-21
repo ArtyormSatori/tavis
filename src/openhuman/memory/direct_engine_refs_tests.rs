@@ -183,11 +183,6 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
         "engine dependency predates this branch; the facade deletion made it visible",
     ),
     (
-        "src/openhuman/agent/agentbox/invoker.rs",
-        Verdict::FacadeRevealed,
-        "engine dependency predates this branch; the facade deletion made it visible",
-    ),
-    (
         "src/openhuman/agent/experience/ops.rs",
         Verdict::FacadeRevealed,
         "engine dependency predates this branch; the facade deletion made it visible",
