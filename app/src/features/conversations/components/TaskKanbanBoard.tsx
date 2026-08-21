@@ -437,7 +437,7 @@ function TaskBoardArticle({
             target="_blank"
             rel="noreferrer"
             title={t('conversations.taskKanban.source.openExternal')}
-            className="inline-flex items-center gap-1 rounded-md bg-surface-subtle px-1.5 py-0.5 text-[10px] text-content-secondary hover:bg-surface-strong dark:hover:bg-neutral-700">
+            className="inline-flex items-center gap-1 rounded-md bg-surface-subtle px-1.5 py-0.5 text-[10px] text-content-secondary hover:bg-surface-strong">
             <LuExternalLink className="h-3 w-3" />
             {t('conversations.taskKanban.source.openExternalShort')}
           </a>
