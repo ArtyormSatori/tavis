@@ -24,8 +24,9 @@ import { cn } from '../../lib/cn';
 export const HoverCardRoot = HoverCardPrimitive.Root;
 export const HoverCardTrigger = HoverCardPrimitive.Trigger;
 
-export interface HoverCardContentProps
-  extends ComponentPropsWithRef<typeof HoverCardPrimitive.Content> {
+export interface HoverCardContentProps extends ComponentPropsWithRef<
+  typeof HoverCardPrimitive.Content
+> {
   /** Portal target; defaults to `document.body`. */
   container?: HTMLElement | null;
 }

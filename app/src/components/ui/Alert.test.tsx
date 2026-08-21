@@ -29,7 +29,7 @@ describe('Alert', () => {
     expect(screen.getByTestId('alert')).toHaveAttribute('data-variant', 'default');
   });
 
-  it.each(VARIANTS)('emits data-variant="%s"', (variant) => {
+  it.each(VARIANTS)('emits data-variant="%s"', variant => {
     render(
       <Alert variant={variant} data-testid="alert">
         Body
@@ -39,7 +39,7 @@ describe('Alert', () => {
     expect(screen.getByTestId('alert')).toHaveAttribute('data-variant', variant);
   });
 
-  it.each(['destructive', 'warning'] as const)('gives %s an assertive alert role', (variant) => {
+  it.each(['destructive', 'warning'] as const)('gives %s an assertive alert role', variant => {
     render(
       <Alert variant={variant} data-testid="alert">
         Body
@@ -49,7 +49,7 @@ describe('Alert', () => {
     expect(screen.getByTestId('alert')).toHaveAttribute('role', 'alert');
   });
 
-  it.each(['default', 'info', 'success'] as const)('leaves %s without an alert role', (variant) => {
+  it.each(['default', 'info', 'success'] as const)('leaves %s without an alert role', variant => {
     render(
       <Alert variant={variant} data-testid="alert">
         Body
@@ -73,7 +73,7 @@ describe('Alert', () => {
     let node: HTMLDivElement | null = null;
     render(
       <Alert
-        ref={(el) => {
+        ref={el => {
           node = el;
         }}
         id="disk-alert"
@@ -103,7 +103,7 @@ describe('Alert', () => {
     expect(cls).not.toContain('rounded-xl');
   });
 
-  it.each(VARIANTS)('resolves %s to design tokens, never a raw palette class', (variant) => {
+  it.each(VARIANTS)('resolves %s to design tokens, never a raw palette class', variant => {
     render(
       <Alert variant={variant} data-testid="alert">
         <AlertTitle data-testid="title">Title</AlertTitle>
