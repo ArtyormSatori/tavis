@@ -28,7 +28,7 @@ export const TabsTrigger = ({
       'text-content-muted hover:bg-surface-hover hover:text-content-secondary',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
       'data-[state=active]:bg-surface-strong data-[state=active]:text-content',
-      className,
+      className
     )}
     {...rest}
   />

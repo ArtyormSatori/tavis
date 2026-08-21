@@ -34,7 +34,7 @@ const NativeSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
         'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
         'disabled:cursor-not-allowed disabled:opacity-50',
         inputSize === 'sm' ? 'h-8 pl-2.5' : 'h-9 pl-3',
-        className,
+        className
       )}
       style={{
         backgroundImage: CHEVRON_BG,
@@ -44,7 +44,7 @@ const NativeSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
       }}
       {...rest}
     />
-  ),
+  )
 );
 NativeSelect.displayName = 'NativeSelect';
 

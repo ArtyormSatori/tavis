@@ -10,7 +10,12 @@ export type SeparatorProps = ComponentPropsWithoutRef<typeof SeparatorPrimitive.
  * the a11y tree, a semantic one is exposed as `role="separator"`. Hand-rolled
  * `<div className="border-t" />` dividers get neither.
  */
-const Separator = ({ className, orientation = 'horizontal', decorative = true, ...rest }: SeparatorProps) => (
+const Separator = ({
+  className,
+  orientation = 'horizontal',
+  decorative = true,
+  ...rest
+}: SeparatorProps) => (
   <SeparatorPrimitive.Root
     data-slot="separator"
     orientation={orientation}
@@ -18,7 +23,7 @@ const Separator = ({ className, orientation = 'horizontal', decorative = true, .
     className={cn(
       'shrink-0 bg-line',
       orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px',
-      className,
+      className
     )}
     {...rest}
   />

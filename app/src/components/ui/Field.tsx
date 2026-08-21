@@ -49,7 +49,7 @@ const Field = ({
           ? 'flex flex-col gap-2 px-4 py-3'
           : 'flex items-center justify-between gap-4 px-4 py-3',
         disabled && 'pointer-events-none opacity-50',
-        className,
+        className
       )}>
       {(labelEl || description) && (
         <div className={stacked ? undefined : 'min-w-0 flex-1'}>

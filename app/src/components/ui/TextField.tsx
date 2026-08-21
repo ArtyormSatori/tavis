@@ -11,7 +11,7 @@ export interface TextFieldProps extends InputProps {
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   ({ mono, className, ...rest }, ref) => (
     <Input ref={ref} className={cn(mono && 'font-mono', className) || undefined} {...rest} />
-  ),
+  )
 );
 TextField.displayName = 'TextField';
 

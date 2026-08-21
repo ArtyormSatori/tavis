@@ -8,8 +8,9 @@ export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 export const DropdownMenuLabel = DropdownMenuPrimitive.Label;
 
-export interface DropdownMenuContentProps
-  extends ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> {
+export interface DropdownMenuContentProps extends ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Content
+> {
   container?: HTMLElement | null;
 }
 
@@ -29,7 +30,7 @@ export const DropdownMenuContent = ({
       className={cn(
         'z-50 min-w-[10rem] overflow-hidden rounded-xl border border-line bg-surface p-1 shadow-large',
         'animate-fade-in focus:outline-none',
-        className,
+        className
       )}
       {...rest}
     />
@@ -46,7 +47,7 @@ export const DropdownMenuItem = ({
       'flex cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-content outline-none',
       'data-[highlighted]:bg-surface-hover',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      className,
+      className
     )}
     {...rest}
   />
@@ -56,7 +57,10 @@ export const DropdownMenuSeparator = ({
   className,
   ...rest
 }: ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>) => (
-  <DropdownMenuPrimitive.Separator className={cn('my-1 h-px bg-line-subtle', className)} {...rest} />
+  <DropdownMenuPrimitive.Separator
+    className={cn('my-1 h-px bg-line-subtle', className)}
+    {...rest}
+  />
 );
 
 export default DropdownMenuRoot;

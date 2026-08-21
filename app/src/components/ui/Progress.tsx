@@ -10,13 +10,21 @@ export interface ProgressProps {
   'data-testid'?: string;
 }
 
-const Progress = ({ value, className, 'aria-label': ariaLabel, 'data-testid': testId }: ProgressProps) => (
+const Progress = ({
+  value,
+  className,
+  'aria-label': ariaLabel,
+  'data-testid': testId,
+}: ProgressProps) => (
   <ProgressPrimitive.Root
     data-slot="progress"
     data-testid={testId}
     value={value}
     aria-label={ariaLabel}
-    className={cn('relative h-1.5 w-full overflow-hidden rounded-full bg-surface-strong', className)}>
+    className={cn(
+      'relative h-1.5 w-full overflow-hidden rounded-full bg-surface-strong',
+      className
+    )}>
     <ProgressPrimitive.Indicator
       className="h-full w-full flex-1 bg-primary-500 transition-transform duration-300 motion-reduce:transition-none"
       style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}

@@ -56,8 +56,7 @@ function parseFaces(css, family) {
 /** Re-derives subsets from the comment that precedes each block. */
 function parseFacesOrdered(css, family) {
   const faces = [];
-  const re =
-    /\/\*\s*([a-z0-9-]+)\s*\*\/\s*@font-face\s*\{([^}]+)\}/gi;
+  const re = /\/\*\s*([a-z0-9-]+)\s*\*\/\s*@font-face\s*\{([^}]+)\}/gi;
   let match;
   while ((match = re.exec(css)) !== null) {
     const [, subset, body] = match;
@@ -104,7 +103,7 @@ async function main() {
           `  font-display: swap;\n` +
           `  src: url('/fonts/${filename}') format('woff2');\n` +
           `  unicode-range: ${face.unicodeRange};\n` +
-          `}\n`,
+          `}\n`
       );
     }
     console.log(`${family}: ${faces.length} faces`);
@@ -114,7 +113,7 @@ async function main() {
   console.log(`wrote ${join('src', 'styles', 'fonts.css')}`);
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
   process.exit(1);
 });

@@ -94,12 +94,11 @@ export const buttonVariants = cva(
       { iconOnly: true, size: 'xl', class: 'w-14' },
     ],
     defaultVariants: { variant: 'primary', tone: 'default', size: 'md', iconOnly: false },
-  },
+  }
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   /** Render the child element instead of a `<button>` — for links and Radix triggers. */
   asChild?: boolean;
   leadingIcon?: ReactNode;

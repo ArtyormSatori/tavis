@@ -15,7 +15,7 @@ import { ModalShell } from './ModalShell';
  * synchronously after render observe no listener at all, so they flush first.
  */
 async function flushDeferredWork(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise(resolve => setTimeout(resolve, 0));
 }
 
 /**

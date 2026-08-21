@@ -20,7 +20,7 @@ export const badgeVariants = cva(
       },
     },
     defaultVariants: { variant: 'neutral' },
-  },
+  }
 );
 
 export type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;

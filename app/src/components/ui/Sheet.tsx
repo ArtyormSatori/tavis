@@ -33,11 +33,12 @@ export const sheetVariants = cva(
       },
     },
     defaultVariants: { side: 'right' },
-  },
+  }
 );
 
 export interface SheetContentProps
-  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+  extends
+    ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof sheetVariants> {
   /** Portal target — see `DialogContent`. Defaults to `document.body`. */
   container?: HTMLElement | null;

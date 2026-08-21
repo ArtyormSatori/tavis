@@ -9,8 +9,9 @@ export const DialogClose = DialogPrimitive.Close;
 export const DialogTitle = DialogPrimitive.Title;
 export const DialogDescription = DialogPrimitive.Description;
 
-export interface DialogOverlayProps
-  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> {}
+export interface DialogOverlayProps extends ComponentPropsWithoutRef<
+  typeof DialogPrimitive.Overlay
+> {}
 
 export const DialogOverlay = ({ className, ...rest }: DialogOverlayProps) => (
   <DialogPrimitive.Overlay
@@ -23,8 +24,9 @@ export const DialogOverlay = ({ className, ...rest }: DialogOverlayProps) => (
   />
 );
 
-export interface DialogContentProps
-  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+export interface DialogContentProps extends ComponentPropsWithoutRef<
+  typeof DialogPrimitive.Content
+> {
   /**
    * Portal target. Defaults to `document.body`.
    *
@@ -52,7 +54,7 @@ export const DialogContent = ({
       className={cn(
         'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
         'overflow-hidden rounded-2xl bg-surface shadow-large animate-fade-up focus:outline-none',
-        className,
+        className
       )}
       {...rest}>
       {children}

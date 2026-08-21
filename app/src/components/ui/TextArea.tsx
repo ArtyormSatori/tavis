@@ -19,11 +19,11 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         invalid
           ? 'border-coral-400 focus:border-coral-500 focus:ring-coral-500/20'
           : 'border-line-strong focus:border-primary-500 focus:ring-primary-500/20',
-        className,
+        className
       )}
       {...rest}
     />
-  ),
+  )
 );
 TextArea.displayName = 'TextArea';
 

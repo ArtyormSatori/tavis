@@ -81,7 +81,7 @@ export function ModalShell({
   return (
     <DialogRoot
       open
-      onOpenChange={(next) => {
+      onOpenChange={next => {
         if (!next) onClose();
       }}>
       <DialogContent
@@ -89,13 +89,13 @@ export function ModalShell({
         aria-labelledby={labelledBy ?? titleId}
         aria-describedby={describedBy}
         className={cn('mx-4', maxWidthClassName, panelClassName)}
-        onEscapeKeyDown={(event) => {
+        onEscapeKeyDown={event => {
           if (!allowEscapeClose) event.preventDefault();
         }}
-        onPointerDownOutside={(event) => {
+        onPointerDownOutside={event => {
           if (!allowBackdropClose) event.preventDefault();
         }}
-        onInteractOutside={(event) => {
+        onInteractOutside={event => {
           if (!allowBackdropClose) event.preventDefault();
         }}>
         <div className="flex items-center justify-between border-b border-line-subtle px-5 py-4">

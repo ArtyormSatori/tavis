@@ -39,7 +39,7 @@ const Checkbox = ({
     data-slot="checkbox"
     data-testid={testId}
     checked={indeterminate ? 'indeterminate' : checked}
-    onCheckedChange={(next) => onCheckedChange(next === true)}
+    onCheckedChange={next => onCheckedChange(next === true)}
     disabled={disabled}
     aria-label={ariaLabel}
     className={cn(
@@ -49,7 +49,7 @@ const Checkbox = ({
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:border-primary-500 data-[state=checked]:bg-primary-500',
       'data-[state=indeterminate]:border-primary-500 data-[state=indeterminate]:bg-primary-500',
-      className,
+      className
     )}>
     <CheckboxPrimitive.Indicator className="text-content-inverted">
       {indeterminate ? (

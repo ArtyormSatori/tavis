@@ -6,7 +6,9 @@ export interface EmptyStateProps {
 }
 
 const EmptyState = ({ label, className }: EmptyStateProps) => (
-  <p data-slot="empty-state" className={cn('px-4 py-4 text-xs italic text-content-faint', className)}>
+  <p
+    data-slot="empty-state"
+    className={cn('px-4 py-4 text-xs italic text-content-faint', className)}>
     {label}
   </p>
 );

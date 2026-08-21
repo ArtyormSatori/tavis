@@ -29,14 +29,7 @@ export { default as EmptyState, type EmptyStateProps } from './EmptyState';
 export { default as StatusLine, type StatusLineProps } from './StatusLine';
 export { default as ListRow, type ListRowProps } from './ListRow';
 export { default as Progress, type ProgressProps } from './Progress';
-export {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from './Table';
+export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './Table';
 
 // Overlays
 export {

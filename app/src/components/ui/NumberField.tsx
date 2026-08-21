@@ -54,9 +54,9 @@ const NumberField = ({
         disabled={disabled}
         invalid={invalid}
         aria-label={ariaLabel}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         onBlur={onCommit}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault();
             onCommit();

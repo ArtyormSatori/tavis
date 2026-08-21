@@ -8,8 +8,9 @@ export const PopoverTrigger = PopoverPrimitive.Trigger;
 export const PopoverAnchor = PopoverPrimitive.Anchor;
 export const PopoverClose = PopoverPrimitive.Close;
 
-export interface PopoverContentProps
-  extends ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {
+export interface PopoverContentProps extends ComponentPropsWithoutRef<
+  typeof PopoverPrimitive.Content
+> {
   container?: HTMLElement | null;
 }
 
@@ -33,7 +34,7 @@ export const PopoverContent = ({
       className={cn(
         'z-50 rounded-xl border border-line bg-surface p-3 text-sm text-content shadow-large',
         'animate-fade-in focus:outline-none',
-        className,
+        className
       )}
       {...rest}
     />

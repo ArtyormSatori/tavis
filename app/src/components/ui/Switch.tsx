@@ -46,13 +46,13 @@ const Switch = ({
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-surface-strong',
-      className,
+      className
     )}>
     <SwitchPrimitive.Thumb
       className={cn(
         'pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-surface shadow-sm ring-0',
         'transition-transform duration-200 ease-in-out motion-reduce:transition-none',
-        'data-[state=checked]:translate-x-[16px] data-[state=unchecked]:translate-x-0',
+        'data-[state=checked]:translate-x-[16px] data-[state=unchecked]:translate-x-0'
       )}
     />
   </SwitchPrimitive.Root>

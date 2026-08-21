@@ -86,13 +86,13 @@ export default function UiGallery() {
       <header className="space-y-1">
         <h1 className="text-xl font-semibold text-content">UI primitives</h1>
         <p className="text-sm text-content-muted">
-          Every shared primitive, in the active theme. Radix supplies behaviour; the styling is
-          this app&apos;s semantic tokens, so each control follows a custom theme.
+          Every shared primitive, in the active theme. Radix supplies behaviour; the styling is this
+          app&apos;s semantic tokens, so each control follows a custom theme.
         </p>
       </header>
 
       <Section title="Button — variant x tone">
-        {BUTTON_VARIANTS.map((variant) => (
+        {BUTTON_VARIANTS.map(variant => (
           <div key={variant} className="flex flex-wrap items-center gap-2">
             <span className="w-20 text-xs text-content-muted">{variant}</span>
             <Button variant={variant}>Default</Button>
@@ -106,14 +106,14 @@ export default function UiGallery() {
         ))}
         <Separator />
         <div className="flex flex-wrap items-center gap-2">
-          {BUTTON_SIZES.map((size) => (
+          {BUTTON_SIZES.map(size => (
             <Button key={size} size={size}>
               {size}
             </Button>
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {BUTTON_SIZES.map((size) => (
+          {BUTTON_SIZES.map(size => (
             <Button key={size} size={size} iconOnly aria-label={`icon ${size}`} variant="secondary">
               +
             </Button>
@@ -123,7 +123,7 @@ export default function UiGallery() {
 
       <Section title="Badge">
         <div className="flex flex-wrap items-center gap-2">
-          {BADGE_VARIANTS.map((variant) => (
+          {BADGE_VARIANTS.map(variant => (
             <Badge key={variant} variant={variant}>
               {variant}
             </Badge>
@@ -132,26 +132,78 @@ export default function UiGallery() {
       </Section>
 
       <Section title="Form controls">
-        <Field htmlFor="gallery-text" label="Text field" description="A labelled row." control={<TextField id="gallery-text" placeholder="Placeholder" />} />
-        <Field htmlFor="gallery-mono" label="Monospace" control={<TextField id="gallery-mono" mono defaultValue="sk-abc123" />} />
-        <Field htmlFor="gallery-invalid" label="Invalid" control={<Input id="gallery-invalid" invalid defaultValue="nope" />} />
-        <Field htmlFor="gallery-area" label="Text area" stacked control={<TextArea id="gallery-area" rows={3} placeholder="Longer text" />} />
-        <Field htmlFor="gallery-select" label="Native select" control={<NativeSelect id="gallery-select" defaultValue="b"><option value="a">Alpha</option><option value="b">Beta</option></NativeSelect>} />
-        <Field htmlFor="gallery-switch" label="Switch" control={<Switch id="gallery-switch" checked={switched} onCheckedChange={setSwitched} />} />
+        <Field
+          htmlFor="gallery-text"
+          label="Text field"
+          description="A labelled row."
+          control={<TextField id="gallery-text" placeholder="Placeholder" />}
+        />
+        <Field
+          htmlFor="gallery-mono"
+          label="Monospace"
+          control={<TextField id="gallery-mono" mono defaultValue="sk-abc123" />}
+        />
+        <Field
+          htmlFor="gallery-invalid"
+          label="Invalid"
+          control={<Input id="gallery-invalid" invalid defaultValue="nope" />}
+        />
+        <Field
+          htmlFor="gallery-area"
+          label="Text area"
+          stacked
+          control={<TextArea id="gallery-area" rows={3} placeholder="Longer text" />}
+        />
+        <Field
+          htmlFor="gallery-select"
+          label="Native select"
+          control={
+            <NativeSelect id="gallery-select" defaultValue="b">
+              <option value="a">Alpha</option>
+              <option value="b">Beta</option>
+            </NativeSelect>
+          }
+        />
+        <Field
+          htmlFor="gallery-switch"
+          label="Switch"
+          control={<Switch id="gallery-switch" checked={switched} onCheckedChange={setSwitched} />}
+        />
         <Field
           htmlFor="gallery-check"
           label="Checkbox"
           control={
             <div className="flex items-center gap-3">
-              <Checkbox id="gallery-check" checked={checked} onCheckedChange={setChecked} aria-label="Checkbox" />
-              <Checkbox checked={false} indeterminate={indeterminate} onCheckedChange={() => setIndeterminate(false)} aria-label="Indeterminate" />
+              <Checkbox
+                id="gallery-check"
+                checked={checked}
+                onCheckedChange={setChecked}
+                aria-label="Checkbox"
+              />
+              <Checkbox
+                checked={false}
+                indeterminate={indeterminate}
+                onCheckedChange={() => setIndeterminate(false)}
+                aria-label="Indeterminate"
+              />
             </div>
           }
         />
         <Field
           htmlFor="gallery-number"
           label="Number field"
-          control={<NumberField id="gallery-number" value={numeric} onChange={setNumeric} onCommit={() => {}} unit="seconds" min={1} max={120} aria-label="Timeout" />}
+          control={
+            <NumberField
+              id="gallery-number"
+              value={numeric}
+              onChange={setNumeric}
+              onCommit={() => {}}
+              unit="seconds"
+              min={1}
+              max={120}
+              aria-label="Timeout"
+            />
+          }
         />
         <Field label="Disabled row" disabled control={<Label>Not interactive</Label>} />
       </Section>
@@ -197,10 +249,12 @@ export default function UiGallery() {
         </div>
 
         {dialogOpen && (
-          <DialogRoot open onOpenChange={(next) => !next && setDialogOpen(false)}>
+          <DialogRoot open onOpenChange={next => !next && setDialogOpen(false)}>
             <DialogContent className="p-5">
               <DialogTitle className="text-sm font-semibold text-content">Dialog</DialogTitle>
-              <p className="mt-2 text-sm text-content-muted">Escape, outside click and focus trap all come from Radix.</p>
+              <p className="mt-2 text-sm text-content-muted">
+                Escape, outside click and focus trap all come from Radix.
+              </p>
               <div className="mt-4 flex justify-end">
                 <Button size="sm" onClick={() => setDialogOpen(false)}>
                   Close
@@ -266,7 +320,13 @@ export default function UiGallery() {
         <Separator />
         <ul className="rounded-lg border border-line">
           <ListRow label="allow-list-entry.example.com" removeLabel="Remove" onRemove={() => {}} />
-          <ListRow label="/usr/local/bin/tool" mono removeLabel="Remove" badge={<Badge variant="neutral">path</Badge>} onRemove={() => {}} />
+          <ListRow
+            label="/usr/local/bin/tool"
+            mono
+            removeLabel="Remove"
+            badge={<Badge variant="neutral">path</Badge>}
+            onRemove={() => {}}
+          />
         </ul>
         <EmptyState label="Nothing here yet." />
       </Section>

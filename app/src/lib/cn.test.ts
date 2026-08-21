@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-
 import { describe, expect, it } from 'vitest';
 
 import { cn } from './cn';
@@ -22,11 +21,11 @@ function loadTailwindConfig(): { theme: { extend: Record<string, Record<string, 
     'module',
     'exports',
     'require',
-    `${source}\nreturn module.exports;`,
+    `${source}\nreturn module.exports;`
   ) as (
     module: typeof sandboxedModule,
     exports: Record<string, unknown>,
-    require: () => unknown,
+    require: () => unknown
   ) => { theme: { extend: Record<string, Record<string, unknown>> } };
 
   // Plugins are irrelevant here — only `theme.extend` is under test.
@@ -114,10 +113,10 @@ describe('cn stays in sync with tailwind.config.js', () => {
     it(`registers every non-stock ${group} key`, () => {
       const configured = Object.keys(tailwindConfig.theme.extend[group] ?? {});
       const needsRegistering = configured.filter(
-        (key) => !(STOCK[group] as readonly string[]).includes(key),
+        key => !(STOCK[group] as readonly string[]).includes(key)
       );
       const missing = needsRegistering.filter(
-        (key) => !(REGISTERED[group] as readonly string[]).includes(key),
+        key => !(REGISTERED[group] as readonly string[]).includes(key)
       );
       expect(missing, `add these ${group} keys to the classGroups in src/lib/cn.ts`).toEqual([]);
     });

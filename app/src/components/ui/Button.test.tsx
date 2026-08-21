@@ -156,7 +156,7 @@ describe('Button', () => {
       render(
         <Button variant={variant} tone="danger">
           Delete
-        </Button>,
+        </Button>
       );
       const btn = screen.getByRole('button', { name: 'Delete' });
       expect(btn.className).toMatch(winning);
@@ -175,7 +175,7 @@ describe('Button', () => {
     render(
       <Button variant="secondary" tone="danger" size="lg">
         Remove
-      </Button>,
+      </Button>
     );
     const btn = screen.getByRole('button', { name: 'Remove' });
     expect(btn).toHaveAttribute('data-slot', 'button');
@@ -196,7 +196,7 @@ describe('Button', () => {
     render(<Button analyticsId="settings.save">Save</Button>);
     expect(screen.getByRole('button', { name: 'Save' })).toHaveAttribute(
       'data-analytics-id',
-      'settings.save',
+      'settings.save'
     );
   });
 
@@ -204,7 +204,7 @@ describe('Button', () => {
     render(
       <Button asChild analyticsId="settings.docs">
         <a href="https://example.test">Docs</a>
-      </Button>,
+      </Button>
     );
     const link = screen.getByRole('link', { name: 'Docs' });
     expect(link).toHaveAttribute('data-analytics-id', 'settings.docs');
@@ -229,7 +229,7 @@ describe('Button', () => {
             const { unmount } = render(
               <Button variant={variant} tone={tone} size={size} iconOnly={iconOnly}>
                 x
-              </Button>,
+              </Button>
             );
             const className = screen.getByRole('button').className;
             expect(className, `${variant}/${tone}/${size}`).not.toMatch(RAW_PALETTE);
