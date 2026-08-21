@@ -36,7 +36,8 @@ import threadReducer from '../store/threadSlice';
  * VoicePanel reads + dispatches against this slice, and useSelector
  * would throw on a missing reducer without a stub here. `persona` is wired
  * in for the same reason (issue #2345): PersonaPanel reads + dispatches
- * against it. */
+ * against it.
+ */
 const testRootReducer = combineReducers({
   accounts: accountsReducer,
   channelConnections: channelConnectionsReducer,
