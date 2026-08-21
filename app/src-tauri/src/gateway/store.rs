@@ -1,0 +1,143 @@
+//! Where gateway records live.
+//!
+//! Shell-side JSON beside the other host-owned state, deliberately **not** the
+//! renderer's `localStorage`. An SSH identity path and a remote bearer are
+//! materially more sensitive than a window position, and the renderer's own
+//! notes on the cloud token (`app/src/utils/configPersistence.ts`, audit U3)
+//! already say that a renderer XSS can read anything kept there. Putting a
+//! second, longer-lived credential beside it would widen an exposure the app
+//! is already trying to close.
+//!
+//! The frontend therefore holds a gateway *id* and asks the shell for the rest.
+
+use std::io;
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+
+use super::types::{DESKTOP_ID, Gateway};
+
+/// The file gateway records are written to.
+const STORE_FILE: &str = "gateways.json";
+
+/// The on-disk shape.
+///
+/// A struct rather than a bare `Vec` so a later field — a default gateway, a
+/// schema version — is an additive change instead of a migration.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct StoredGateways {
+    #[serde(default)]
+    gateways: Vec<Gateway>,
+}
+
+fn store_path() -> PathBuf {
+    crate::file_logging::resolve_data_dir().join(STORE_FILE)
+}
+
+/// Every configured gateway, with the desktop one always first.
+///
+/// A read failure — missing file, unparseable JSON — yields just the desktop
+/// gateway rather than an error. The core in this process is always reachable,
+/// so there is always a correct answer, and refusing to list anything would
+/// strand the user with no way back to a working gateway.
+#[must_use]
+pub fn list() -> Vec<Gateway> {
+    let mut gateways = vec![Gateway::desktop()];
+    gateways.extend(read().gateways.into_iter().filter(|gateway| {
+        // A stored record claiming the reserved id would shadow the one
+        // guaranteed to work.
+        gateway.id != DESKTOP_ID
+    }));
+    gateways
+}
+
+/// Look one up by id.
+#[must_use]
+pub fn get(id: &str) -> Option<Gateway> {
+    list().into_iter().find(|gateway| gateway.id == id)
+}
+
+/// Add or replace a gateway.
+///
+/// # Errors
+///
+/// Returns a message when the id is reserved, or when the record cannot be
+/// written.
+pub fn save(gateway: Gateway) -> Result<(), String> {
+    if gateway.id == DESKTOP_ID {
+        return Err("the desktop gateway is built in and cannot be replaced".to_owned());
+    }
+    if gateway.id.trim().is_empty() {
+        return Err("a gateway needs an id".to_owned());
+    }
+
+    let mut stored = read();
+    match stored
+        .gateways
+        .iter_mut()
+        .find(|existing| existing.id == gateway.id)
+    {
+        Some(existing) => *existing = gateway,
+        None => stored.gateways.push(gateway),
+    }
+    write(&stored)
+}
+
+/// Forget a gateway.
+///
+/// # Errors
+///
+/// Returns a message when the id is reserved, or when the record cannot be
+/// written. Removing an id that was never stored succeeds: the caller wanted it
+/// gone, and it is.
+pub fn delete(id: &str) -> Result<(), String> {
+    if id == DESKTOP_ID {
+        return Err("the desktop gateway is built in and cannot be removed".to_owned());
+    }
+    let mut stored = read();
+    stored.gateways.retain(|gateway| gateway.id != id);
+    write(&stored)
+}
+
+fn read() -> StoredGateways {
+    let path = store_path();
+    match std::fs::read_to_string(&path) {
+        Ok(text) => serde_json::from_str(&text).unwrap_or_else(|error| {
+            // Loud, because a record the user configured has stopped being
+            // visible and they are about to wonder why.
+            log::warn!(
+                "[gateway][store] {} is not readable as gateway records ({error}); \
+                 continuing with the desktop gateway only",
+                path.display()
+            );
+            StoredGateways::default()
+        }),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => StoredGateways::default(),
+        Err(error) => {
+            log::warn!("[gateway][store] read {} failed: {error}", path.display());
+            StoredGateways::default()
+        }
+    }
+}
+
+fn write(stored: &StoredGateways) -> Result<(), String> {
+    let path = store_path();
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| format!("could not create {}: {error}", parent.display()))?;
+    }
+    let text = serde_json::to_string_pretty(stored)
+        .map_err(|error| format!("could not serialize gateway records: {error}"))?;
+    std::fs::write(&path, text)
+        .map_err(|error| format!("could not write {}: {error}", path.display()))?;
+    log::debug!(
+        "[gateway][store] wrote {} record(s) to {}",
+        stored.gateways.len(),
+        path.display()
+    );
+    Ok(())
+}
+
+#[cfg(test)]
+mod store_tests;
