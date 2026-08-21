@@ -275,6 +275,10 @@ impl HarnessBuilder {
         }
 
         let domains = self.domains.unwrap_or_else(|| {
+            // `mut` is conditional on the two feature-gated assignments below:
+            // in a build with neither `mcp` nor `skills` nothing mutates it, and
+            // the lint fires on a slim build only.
+            #[allow(unused_mut)]
             let mut domains = DomainSet::embedded();
             // `embedded()` leaves both off. Turn on only what was asked for:
             // an MCP domain with no servers costs ~19 agent tools of prompt
