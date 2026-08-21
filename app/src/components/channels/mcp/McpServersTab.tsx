@@ -14,6 +14,7 @@ import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import { openUrl } from '../../../utils/openUrl';
 import ChipTabs from '../../layout/ChipTabs';
 import Button from '../../ui/Button';
+import Separator from '../../ui/Separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/Table';
 import TextField from '../../ui/TextField';
 import InstallDialog from './InstallDialog';
