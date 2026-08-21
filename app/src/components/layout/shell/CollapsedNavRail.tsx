@@ -8,7 +8,7 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import { trackEvent } from '../../../services/analytics';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
-import { Tooltip } from '../../ui';
+import { Button, Tooltip } from '../../ui';
 import { NavIcon } from './navIcons';
 import { useHomeNav } from './useHomeNav';
 
