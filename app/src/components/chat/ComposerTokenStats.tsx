@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { emptySessionTokenUsage, type SubAgentUsage } from '../../store/chatRuntimeSlice';
 import { useAppSelector } from '../../store/hooks';
-import { Button } from '../ui';
+import { Button, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui';
 import Tooltip from '../ui/Tooltip';
 
 /** Fallback context window when the core hasn't reported a real one yet. */
