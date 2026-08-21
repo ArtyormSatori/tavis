@@ -23,8 +23,7 @@
  * keep the Skills page badge in sync too, so the card reflects the new
  * state as soon as the modal closes.
  */
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   authorize,
@@ -45,13 +44,11 @@ import {
 } from '../../lib/composio/types';
 import { useT } from '../../lib/i18n/I18nContext';
 import { openUrl } from '../../utils/openUrl';
-import Button from '../ui/Button';
+import { Button, Checkbox, ModalShell } from '../ui';
+import { RequiredFieldsForm } from './RequiredFieldsForm';
+import { ScopeToggles } from './ScopeToggles';
 import type { ComposioToolkitMeta } from './toolkitMeta';
-import {
-  getRequiredFieldsForToolkit,
-  type ToolkitRequiredField,
-  validateRequiredFieldValues,
-} from './toolkitRequiredFields';
+import { getRequiredFieldsForToolkit, validateRequiredFieldValues } from './toolkitRequiredFields';
 import TriggerToggles from './TriggerToggles';
 
 function deriveConnectionLabel(c: ComposioConnection): string | null {
