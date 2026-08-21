@@ -666,7 +666,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
               <div>
                 <Label className="block text-[11px] mb-1">
                   {t('settings.embeddings.customEndpoint')}
-                </label>
+                </Label>
                 <SettingsTextField
                   type="text"
                   value={customEndpoint}
@@ -680,7 +680,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                 <div className="flex-1">
                   <Label className="block text-[11px] mb-1">
                     {t('settings.embeddings.customModelPlaceholder')}
-                  </label>
+                  </Label>
                   <SettingsTextField
                     type="text"
                     value={customModel}
@@ -692,7 +692,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                 <div className="w-24">
                   <Label className="block text-[11px] mb-1">
                     {t('settings.embeddings.dimensions')}
-                  </label>
+                  </Label>
                   <SettingsTextField
                     type="number"
                     value={customDims}
@@ -706,7 +706,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                 <Label className="block text-[11px] mb-1">
                   {t('settings.embeddings.apiKeyLabelGeneric')} ({t('settings.embeddings.optional')}
                   )
-                </label>
+                </Label>
                 <SettingsTextField
                   type={setupShowKey ? 'text' : 'password'}
                   value={setupKey}
@@ -723,7 +723,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
               <div>
                 <Label className="block text-[11px] mb-1">
                   {t('settings.embeddings.apiKeyLabel').replace('{provider}', setupProvider.label)}
-                </label>
+                </Label>
                 <div className="flex gap-2">
                   <SettingsTextField
                     type={setupShowKey ? 'text' : 'password'}
