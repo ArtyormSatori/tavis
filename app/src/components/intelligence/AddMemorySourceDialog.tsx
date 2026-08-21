@@ -9,14 +9,7 @@
  * connection rather than typing toolkit + connection_id.
  */
 import debug from 'debug';
-import {
-  type KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { listConnections } from '../../lib/composio/composioApi';
 import type { ComposioConnection } from '../../lib/composio/types';
@@ -31,7 +24,7 @@ import {
 } from '../../services/memorySourcesService';
 import Button from '../ui/Button';
 import { DialogContent, DialogRoot, DialogTitle } from '../ui/Dialog';
-import TextField from '../ui/TextField';
+import { Field, isKindFieldsValid, KindFields } from './AddMemorySourceFields';
 
 const log = debug('intelligence:add-memory-source-dialog');
 
