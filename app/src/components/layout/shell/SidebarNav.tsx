@@ -10,6 +10,7 @@ import { selectCompanionSessionActive } from '../../../store/companionSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
 import { AGENT_ACCOUNT_ID } from '../../../utils/accountsFullscreen';
+import { Button } from '../../ui';
 import { NavIcon } from './navIcons';
 
 /**
@@ -74,9 +75,9 @@ export default function SidebarNav() {
         const showBadge = tab.id === 'notifications' && unreadCount > 0;
         const showCompanionDot = tab.id === 'settings' && companionActive;
         return (
-          <button
+          <Button
             key={tab.id}
-            type="button"
+            variant="tertiary"
             data-walkthrough={tab.walkthroughAttr}
             onClick={() => handleClick(tab, active)}
             title={tab.label}
@@ -86,10 +87,13 @@ export default function SidebarNav() {
             // pill on top of it stacks two colours and reads as noise. Weight
             // and contrast carry the selection instead. Fills are alpha-based so
             // they lift against whatever backdrop the theme paints behind them.
-            className={`group flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] transition-colors cursor-pointer ${
+            // A nav row, not a control: left-aligned, auto height, 14px type,
+            // and the resting weight stays normal so only the active row reads
+            // as semibold.
+            className={`group h-auto justify-start gap-2.5 rounded-md px-2.5 py-2 text-[14px] cursor-pointer ${
               active
                 ? 'bg-surface/70 text-content font-semibold'
-                : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
+                : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
             }`}>
             <span className="relative inline-flex flex-shrink-0">
               <NavIcon id={tab.id} className="w-4 h-4" />
@@ -103,7 +107,7 @@ export default function SidebarNav() {
               )}
             </span>
             <span className="min-w-0 truncate">{tab.label}</span>
-          </button>
+          </Button>
         );
       })}
     </nav>
