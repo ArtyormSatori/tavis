@@ -17,15 +17,30 @@
  * - user-facing strings go through `useT()`.
  * - `data-slot` attributes added, per this repo's component contract.
  */
-import { memo, createContext, useContext, useMemo, type ComponentProps, type ReactNode } from 'react';
+import {
+  memo,
+  createContext,
+  useContext,
+  useMemo,
+  type ComponentProps,
+  type ComponentType,
+  type ReactNode,
+  type SVGProps,
+} from 'react';
 
 import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import { Badge, CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from '../ui';
 
 import { BrainIcon, ChevronDownIcon, DotIcon } from './icons';
-import type { AiElementIcon } from './types';
 import { useControllableState } from './useControllableState';
+
+/**
+ * Stand-in for upstream's `LucideIcon` type: any component taking SVG props.
+ * `lucide-react` is not a dependency here, so the icons in `./icons` (and the
+ * ones in `components/ui/icons.tsx`) satisfy this instead.
+ */
+export type ChainOfThoughtStepIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
 interface ChainOfThoughtContextValue {
   isOpen: boolean;
@@ -97,7 +112,7 @@ export const ChainOfThoughtHeader = memo(({ className, children, ...props }: Cha
 export type ChainOfThoughtStepStatus = 'complete' | 'active' | 'pending';
 
 export type ChainOfThoughtStepProps = ComponentProps<'div'> & {
-  icon?: AiElementIcon;
+  icon?: ChainOfThoughtStepIcon;
   label: ReactNode;
   description?: ReactNode;
   status?: ChainOfThoughtStepStatus;
