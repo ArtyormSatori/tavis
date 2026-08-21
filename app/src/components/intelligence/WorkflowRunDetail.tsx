@@ -152,86 +152,98 @@ const WorkflowRunDetail: React.FC<Props> = ({
       </div>
 
       {/* Phase timeline */}
-      <ol className="space-y-2" data-testid="workflow-phase-list">
-        {phaseNames.map(name => {
-          const phaseDef = definition?.phases.find(p => p.name === name);
-          const state: WorkflowPhaseState = run.phaseStates[name] ?? {
-            status: 'pending',
-            outputs: [],
-          };
-          const isOpen = expanded[name] ?? false;
-          const hasOutputs = state.outputs.length > 0;
-          return (
-            <li
-              key={name}
-              data-testid={`workflow-phase-${name}`}
-              className="rounded-xl border border-line bg-surface">
-              <Button
-                variant="tertiary"
-                onClick={() => toggle(name)}
-                aria-expanded={isOpen}
-                className="h-auto w-full justify-between gap-2 rounded-none px-3 py-2 text-left font-normal hover:bg-transparent">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span
-                    className={`h-2 w-2 flex-none rounded-full ${PHASE_STATUS_DOT[state.status]}`}
-                  />
-                  <span className="truncate text-sm font-medium text-content">
-                    {phaseDef?.name ?? name}
-                  </span>
-                  <span
-                    data-testid={`workflow-phase-status-${name}`}
-                    className="rounded-md border border-line px-1.5 py-0.5 text-[10px] font-medium text-content-muted">
-                    {t(PHASE_STATUS_KEY[state.status])}
-                  </span>
-                </span>
-                <span className="flex flex-none items-center gap-2 text-[11px] text-content-faint">
-                  {hasOutputs && (
-                    <span data-testid={`workflow-phase-count-${name}`}>
-                      {state.outputs.length} {t('orchestration.detail.agents')}
+      <AccordionRoot
+        type="multiple"
+        value={openPhases}
+        onValueChange={setOpenPhases}
+        asChild
+        className="space-y-2">
+        <ol data-testid="workflow-phase-list">
+          {phaseNames.map(name => {
+            const phaseDef = definition?.phases.find(p => p.name === name);
+            const state: WorkflowPhaseState = run.phaseStates[name] ?? {
+              status: 'pending',
+              outputs: [],
+            };
+            const isOpen = openPhases.includes(name);
+            const hasOutputs = state.outputs.length > 0;
+            return (
+              <AccordionItem
+                key={name}
+                value={name}
+                asChild
+                className="rounded-xl border border-line bg-surface">
+                <li data-testid={`workflow-phase-${name}`}>
+                  <AccordionTrigger
+                    showChevron={false}
+                    className="h-auto rounded-none px-3 py-2 font-normal hover:bg-transparent">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        className={`h-2 w-2 flex-none rounded-full ${PHASE_STATUS_DOT[state.status]}`}
+                      />
+                      <span className="truncate text-sm font-medium text-content">
+                        {phaseDef?.name ?? name}
+                      </span>
+                      <span
+                        data-testid={`workflow-phase-status-${name}`}
+                        className="rounded-md border border-line px-1.5 py-0.5 text-[10px] font-medium text-content-muted">
+                        {t(PHASE_STATUS_KEY[state.status])}
+                      </span>
                     </span>
-                  )}
-                  <span aria-hidden>{isOpen ? '▾' : '▸'}</span>
-                </span>
-              </Button>
-
-              {phaseDef?.description && (
-                <p className="px-3 pb-1 text-xs text-content-muted">{phaseDef.description}</p>
-              )}
-
-              {state.status === 'failed' && state.reason && (
-                <p className="mx-3 mb-2 rounded-md bg-coral-50 px-2 py-1 text-xs text-coral-700 dark:bg-coral-500/10 dark:text-coral-300">
-                  {state.reason}
-                </p>
-              )}
-
-              {/* Child agent refs for this phase */}
-              {isOpen && hasOutputs && (
-                <ul className="space-y-2 px-3 pb-3" data-testid={`workflow-phase-outputs-${name}`}>
-                  {state.outputs.map((out, idx) => (
-                    <li
-                      key={`${out.orchestrationId}-${idx}`}
-                      className="rounded-lg border border-line-subtle bg-surface-muted p-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs font-medium text-content-secondary">
-                          {out.agentId}
+                    <span className="flex flex-none items-center gap-2 text-[11px] text-content-faint">
+                      {hasOutputs && (
+                        <span data-testid={`workflow-phase-count-${name}`}>
+                          {state.outputs.length} {t('orchestration.detail.agents')}
                         </span>
-                        <span className="font-mono text-[10px] text-content-faint">
-                          {out.orchestrationId}
-                        </span>
-                      </div>
-                      {out.output && (
-                        <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-snug text-content-secondary">
-                          {out.output}
-                        </p>
                       )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+                      <span aria-hidden>{isOpen ? '▾' : '▸'}</span>
+                    </span>
+                  </AccordionTrigger>
+
+                  {phaseDef?.description && (
+                    <p className="px-3 pb-1 text-xs text-content-muted">{phaseDef.description}</p>
+                  )}
+
+                  {state.status === 'failed' && state.reason && (
+                    <p className="mx-3 mb-2 rounded-md bg-coral-50 px-2 py-1 text-xs text-coral-700 dark:bg-coral-500/10 dark:text-coral-300">
+                      {state.reason}
+                    </p>
+                  )}
+
+                  {/* Child agent refs for this phase */}
+                  {hasOutputs && (
+                    <AccordionContent
+                      className="px-0 pb-0"
+                      data-testid={`workflow-phase-outputs-${name}`}>
+                      <ul className="space-y-2 px-3 pb-3">
+                        {state.outputs.map((out, idx) => (
+                          <li
+                            key={`${out.orchestrationId}-${idx}`}
+                            className="rounded-lg border border-line-subtle bg-surface-muted p-2">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-xs font-medium text-content-secondary">
+                                {out.agentId}
+                              </span>
+                              <span className="font-mono text-[10px] text-content-faint">
+                                {out.orchestrationId}
+                              </span>
+                            </div>
+                            {out.output && (
+                              <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-snug text-content-secondary">
+                                {out.output}
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  )}
+                </li>
+              </AccordionItem>
+            );
+          })}
+        </ol>
+      </AccordionRoot>
 
       {/* Child agent refs summary (full run-level list) */}
       {run.childRunIds.length > 0 && (
