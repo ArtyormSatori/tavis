@@ -98,12 +98,7 @@ describe('TranscriptRow', () => {
     const user = userEvent.setup();
     const onReact = vi.fn();
     const onOpenReactionPicker = vi.fn();
-    renderRow({
-      isLatestVisible: true,
-      isReactionPickerOpen: true,
-      onReact,
-      onOpenReactionPicker,
-    });
+    renderRow({ isLatestVisible: true, isReactionPickerOpen: true, onReact, onOpenReactionPicker });
 
     await user.click(screen.getByTitle('👍'));
 

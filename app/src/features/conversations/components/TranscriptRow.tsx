@@ -225,7 +225,11 @@ function TranscriptRowImpl({
                   <p
                     data-testid="stopped-marker"
                     className="flex items-center gap-1 px-1 text-[10px] font-medium text-content-faint">
-                    <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <svg
+                      className="h-2.5 w-2.5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden>
                       <rect x="6" y="6" width="12" height="12" rx="1.5" />
                     </svg>
                     {t('chat.stoppedByUser')}
@@ -259,7 +263,12 @@ function TranscriptRowImpl({
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               ) : (
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

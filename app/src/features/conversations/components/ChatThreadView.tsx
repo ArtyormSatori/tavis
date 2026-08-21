@@ -226,9 +226,7 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     const handleReact = useCallback((messageId: string, emoji: string) => {
       const activeThreadId = threadIdRef.current;
       if (!activeThreadId) return;
-      void dispatchRef.current(
-        persistReaction({ threadId: activeThreadId, messageId, emoji })
-      );
+      void dispatchRef.current(persistReaction({ threadId: activeThreadId, messageId, emoji }));
     }, []);
 
     const selectedThreadToolTimeline = threadId

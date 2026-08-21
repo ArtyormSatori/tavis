@@ -56,9 +56,7 @@ import { Button } from '../ui';
  */
 export type MessageRole = 'user' | 'assistant' | 'agent';
 
-export type MessageProps = HTMLAttributes<HTMLDivElement> & {
-  from: MessageRole;
-};
+export type MessageProps = HTMLAttributes<HTMLDivElement> & { from: MessageRole };
 
 /**
  * One row of the transcript: a full-width flex line that pushes its content to
@@ -72,11 +70,7 @@ export const Message = forwardRef<HTMLDivElement, MessageProps>(
         ref={ref}
         data-slot="message"
         data-from={isUser ? 'user' : 'assistant'}
-        className={cn(
-          'group/msg flex w-full',
-          isUser ? 'justify-end' : 'justify-start',
-          className
-        )}
+        className={cn('group/msg flex w-full', isUser ? 'justify-end' : 'justify-start', className)}
         {...props}
       />
     );
