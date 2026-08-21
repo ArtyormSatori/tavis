@@ -421,8 +421,87 @@ const TINYVOICE: ModuleRecord = ModuleRecord {
     load: LoadPolicy::Lazy,
 };
 
+/// The `tinyruntime` module: the runtime router.
+///
+/// Resolves a language runtime, installs one when the host has none, reuses one
+/// when it does, and runs code on a bounded pool of warm interpreter processes.
+/// It is a router: on its own it knows no languages, and it routes to the two
+/// provider records below.
+///
+/// Lazy, because a host that never runs a skill, a flow step, or a `node_exec`
+/// should not pay a download and a `dlopen` for the ability to.
+///
+/// # No pinned assets yet
+///
+/// `assets` is deliberately empty: this build pins no published release. The
+/// module still loads from a developer build named by `modules.local` or from
+/// the module search path (`OPENHUMAN_MODULE_PATH`), which is how it is
+/// exercised today. A download attempt reports that no artifact exists for this
+/// platform, which is accurate.
+///
+/// When the first release is cut, take the digests verbatim from that release's
+/// `checksum.toml` — never from a local build, which would agree with itself no
+/// matter what was served.
+const TINYRUNTIME: ModuleRecord = ModuleRecord {
+    id: "tinyruntime",
+    description: "Language runtime resolution, installation, and pooled execution",
+    bus_name: "ai.tinyhumans.runtime.Runtime",
+    object_path: "/ai/tinyhumans/runtime/Runtime",
+    version: "0.1.0",
+    release_url: "https://github.com/tinyhumansai/tinyruntime/releases/tag/v0.1.0",
+    assets: &[],
+    load: LoadPolicy::Lazy,
+};
+
+/// The `tinyruntime-nodejs` module: the Node.js half of the router's knowledge.
+///
+/// Answers which host interpreters count, which archive nodejs.org publishes for
+/// this machine, where the binaries land, and what a warm Node worker is. It
+/// installs nothing itself.
+///
+/// Lazy, and loaded by the same call that loads the router: a language is only
+/// worth its `dlopen` when something asks for that language.
+///
+/// See [`TINYRUNTIME`] on why `assets` is empty.
+const TINYRUNTIME_NODEJS: ModuleRecord = ModuleRecord {
+    id: "tinyruntime-nodejs",
+    description: "Node.js runtime provider for tinyruntime",
+    bus_name: "ai.tinyhumans.runtime.nodejs.Provider",
+    object_path: "/ai/tinyhumans/runtime/Provider",
+    version: "0.1.0",
+    release_url: "https://github.com/tinyhumansai/tinyruntime-nodejs/releases/tag/v0.1.0",
+    assets: &[],
+    load: LoadPolicy::Lazy,
+};
+
+/// The `tinyruntime-python` module: the Python half of the router's knowledge.
+///
+/// Answers which host interpreters count, which standalone build to install, and
+/// what a warm Python worker is. It installs nothing itself.
+///
+/// See [`TINYRUNTIME`] on why `assets` is empty.
+const TINYRUNTIME_PYTHON: ModuleRecord = ModuleRecord {
+    id: "tinyruntime-python",
+    description: "Python runtime provider for tinyruntime",
+    bus_name: "ai.tinyhumans.runtime.python.Provider",
+    object_path: "/ai/tinyhumans/runtime/Provider",
+    version: "0.1.0",
+    release_url: "https://github.com/tinyhumansai/tinyruntime-python/releases/tag/v0.1.0",
+    assets: &[],
+    load: LoadPolicy::Lazy,
+};
+
 /// Every module this build can load.
-pub const ALL: &[ModuleRecord] = &[TINYDOCS, TINYWALLET, TINYMEMORY, TINYJUICE, TINYVOICE];
+pub const ALL: &[ModuleRecord] = &[
+    TINYDOCS,
+    TINYWALLET,
+    TINYMEMORY,
+    TINYJUICE,
+    TINYVOICE,
+    TINYRUNTIME,
+    TINYRUNTIME_NODEJS,
+    TINYRUNTIME_PYTHON,
+];
 
 /// The record for `id`, if this build knows it.
 #[must_use]
