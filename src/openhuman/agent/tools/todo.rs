@@ -35,7 +35,7 @@ impl Tool for TodoTool {
     }
 
     fn description(&self) -> &str {
-        "Maintain the visible plan for this thread; cards render above the composer and persist across turns. Use it for any request with 3+ steps, not for trivial ones. Dispatch via `op`. Keep exactly ONE card `in_progress`; mark a card `done` the moment it finishes rather than batching; a step that stalls becomes `blocked` with a `blocker`. The board binds to the current thread automatically."
+        "Maintain the visible plan for this thread; cards persist across turns. Use for requests with 3+ steps. Keep one `in_progress`; mark finished cards `done` immediately and blocked cards with a `blocker`. The board binds automatically; do not pass a thread id. Orchestrator calls use the shared board."
     }
 
     fn parameters_schema(&self) -> serde_json::Value {
