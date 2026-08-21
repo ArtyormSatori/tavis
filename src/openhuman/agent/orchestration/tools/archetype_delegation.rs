@@ -87,6 +87,7 @@ impl Tool for ArchetypeDelegationTool {
             }
         })
     }
+
     fn permission_level(&self) -> PermissionLevel {
         PermissionLevel::Execute
     }
