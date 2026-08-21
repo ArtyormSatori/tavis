@@ -5,7 +5,7 @@
 //! whether a language pools by default, and how a module failure is classified,
 //! because that classification is what keeps a job from running twice.
 
-use super::{PoolRunError, classify, node, python};
+use super::{classify, node, python, PoolRunError};
 use crate::openhuman::config::Config;
 use crate::openhuman::modules::runtime::RuntimeCallError;
 
@@ -75,9 +75,15 @@ fn anything_else_is_pre_dispatch_so_the_caller_may_fall_back() {
 #[test]
 fn the_three_classifications_render_distinguishably() {
     // They drive opposite caller behaviour, so their messages must not blur.
-    assert_eq!(PoolRunError::Saturated.to_string(), "runtime pool at capacity");
+    assert_eq!(
+        PoolRunError::Saturated.to_string(),
+        "runtime pool at capacity"
+    );
     let pre = PoolRunError::PreDispatch(anyhow::anyhow!("spawn failed")).to_string();
     assert!(pre.starts_with("pre-dispatch pool failure:"), "got {pre}");
     let post = PoolRunError::PostDispatch(anyhow::anyhow!("read wedged")).to_string();
-    assert!(post.starts_with("post-dispatch pool failure:"), "got {post}");
+    assert!(
+        post.starts_with("post-dispatch pool failure:"),
+        "got {post}"
+    );
 }

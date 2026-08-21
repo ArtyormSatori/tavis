@@ -17,7 +17,7 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use tinyruntime_bus::{Language, ResolvedRuntime, RuntimeSource};
 
 use crate::openhuman::config::Config;

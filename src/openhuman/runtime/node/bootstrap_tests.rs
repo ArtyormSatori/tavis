@@ -29,9 +29,18 @@ fn a_resolution_becomes_the_paths_callers_name() {
     ]))
     .expect("a toolchain reporting node adapts");
 
-    assert_eq!(adapted.node_bin, std::path::Path::new("/cache/node-v22.11.0/bin/node"));
-    assert_eq!(adapted.npm_bin, std::path::Path::new("/cache/node-v22.11.0/bin/npm"));
-    assert_eq!(adapted.bin_dir, std::path::Path::new("/cache/node-v22.11.0/bin"));
+    assert_eq!(
+        adapted.node_bin,
+        std::path::Path::new("/cache/node-v22.11.0/bin/node")
+    );
+    assert_eq!(
+        adapted.npm_bin,
+        std::path::Path::new("/cache/node-v22.11.0/bin/npm")
+    );
+    assert_eq!(
+        adapted.bin_dir,
+        std::path::Path::new("/cache/node-v22.11.0/bin")
+    );
     assert_eq!(adapted.version, "22.11.0");
     assert_eq!(adapted.source, NodeSource::Managed);
 }
@@ -44,7 +53,9 @@ fn a_toolchain_without_npm_still_resolves() {
         .expect("a toolchain without npm is still usable");
     assert_eq!(adapted.node_bin, std::path::Path::new("/usr/bin/node"));
     assert!(
-        adapted.npm_bin.ends_with(if cfg!(windows) { "npm.cmd" } else { "npm" }),
+        adapted
+            .npm_bin
+            .ends_with(if cfg!(windows) { "npm.cmd" } else { "npm" }),
         "npm was not derived: {}",
         adapted.npm_bin.display()
     );

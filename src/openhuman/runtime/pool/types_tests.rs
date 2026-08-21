@@ -28,7 +28,10 @@ fn success_requires_a_clean_exit_and_no_timeout() {
         timed_out: true,
         ..outcome(Some(0))
     };
-    assert!(!timed_out.success(), "a job aborted at its deadline did not succeed");
+    assert!(
+        !timed_out.success(),
+        "a job aborted at its deadline did not succeed"
+    );
 }
 
 #[test]

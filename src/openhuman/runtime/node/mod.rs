@@ -38,7 +38,7 @@ pub mod types;
 #[cfg(not(feature = "runtime-node"))]
 mod stub;
 #[cfg(not(feature = "runtime-node"))]
-pub use stub::{NodeBootstrap, NodeSource, RUNTIME_NODE_DISABLED_MESSAGE, ResolvedNode};
+pub use stub::{NodeBootstrap, NodeSource, ResolvedNode, RUNTIME_NODE_DISABLED_MESSAGE};
 
 #[cfg(feature = "runtime-node")]
 pub use bootstrap::{NodeBootstrap, NodeSource, ResolvedNode};

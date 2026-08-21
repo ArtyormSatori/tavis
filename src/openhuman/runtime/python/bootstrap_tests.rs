@@ -57,7 +57,9 @@ fn a_system_interpreter_is_reported_as_one() {
     let mut resolved = resolution(&[("python", "/usr/bin/python3")]);
     resolved.source = RuntimeSource::System;
     assert_eq!(
-        ResolvedPython::from_module(&resolved).expect("adapts").source,
+        ResolvedPython::from_module(&resolved)
+            .expect("adapts")
+            .source,
         PythonSource::System
     );
 }
