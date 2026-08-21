@@ -15,6 +15,7 @@ import { useCallback, useState } from 'react';
 
 import Button from '../../components/ui/Button';
 import { ModalShell } from '../../components/ui/ModalShell';
+import TextField from '../../components/ui/TextField';
 import { useT } from '../../lib/i18n/I18nContext';
 import { apiClient } from '../AgentWorldShell';
 
