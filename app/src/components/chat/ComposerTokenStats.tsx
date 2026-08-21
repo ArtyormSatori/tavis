@@ -171,18 +171,18 @@ export default function ComposerTokenStats({ model, threadId }: ComposerTokenSta
       {/* Hover hint that the compact row is interactive; click opens the full
           breakdown. The hint is suppressed while the popover is already open. */}
       <Tooltip label={open ? '' : t('token.clickForDetails')} side="top">
-        <button
-          type="button"
+        <Button
+          variant="tertiary"
           onClick={() => setOpen(o => !o)}
           aria-expanded={open}
           aria-label={t('token.sessionUsageTitle')}
-          className="flex min-w-0 cursor-pointer flex-wrap items-center gap-1.5 border-0 bg-transparent p-0 text-[10px] font-mono text-content-faint select-none">
+          className="!h-auto min-w-0 flex-wrap gap-1.5 !p-0 text-[10px] font-mono text-content-faint hover:bg-transparent select-none">
           {parts.map((part, i) => (
             <span key={i} className="contents">
               {part}
             </span>
           ))}
-        </button>
+        </Button>
       </Tooltip>
       {open && (
         <div

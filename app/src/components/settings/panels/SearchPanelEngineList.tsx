@@ -52,7 +52,6 @@ const SearchPanelEngineList = ({
           key={opt.id}
           value={opt.id}
           data-testid={`search-engine-${opt.id}`}
-          aria-checked={selected}
           variant="tertiary"
           className="w-full flex items-start justify-start gap-3 rounded-none border-0 px-4 py-3 h-auto text-left data-[state=on]:bg-primary-50 dark:data-[state=on]:bg-primary-500/10">
           <span className="flex-1 min-w-0">
