@@ -32,9 +32,13 @@ const ToggleGroupContext = createContext<ToggleGroupContextValue>({
   iconOnly: false,
 });
 
-export interface ToggleGroupProps
-  extends ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>,
-    VariantProps<typeof toggleVariants> {}
+/**
+ * An intersection, not an `interface extends` — `ToggleGroupPrimitive.Root`'s
+ * props are a discriminated union on `type` ("single" | "multiple"), and an
+ * interface cannot extend a union.
+ */
+export type ToggleGroupProps = ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
+  VariantProps<typeof toggleVariants>;
 
 export const ToggleGroupRoot = forwardRef<
   ElementRef<typeof ToggleGroupPrimitive.Root>,
