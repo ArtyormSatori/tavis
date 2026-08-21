@@ -160,11 +160,11 @@ const TeamMembersPanel = () => {
                   className="flex items-center justify-between px-4 py-3 border-b border-line-subtle last:border-b-0">
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Avatar */}
-                    <div className="w-8 h-8 rounded-full bg-surface-strong flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-semibold text-content-secondary">
+                    <AvatarRoot className="h-8 w-8 flex-shrink-0 bg-surface-strong">
+                      <AvatarFallback className="bg-surface-strong text-xs font-semibold text-content-secondary">
                         {displayName(member).charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                      </AvatarFallback>
+                    </AvatarRoot>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-content truncate">
