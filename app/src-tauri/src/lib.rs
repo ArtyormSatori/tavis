@@ -3308,6 +3308,20 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             core_rpc_url,
             core_rpc_token,
+            // Gateways: where the frontend's RPC goes. Absent, not stubbed,
+            // when the feature is off.
+            #[cfg(feature = "gateways")]
+            gateway::commands::gateway_list,
+            #[cfg(feature = "gateways")]
+            gateway::commands::gateway_save,
+            #[cfg(feature = "gateways")]
+            gateway::commands::gateway_delete,
+            #[cfg(feature = "gateways")]
+            gateway::commands::gateway_activate,
+            #[cfg(feature = "gateways")]
+            gateway::commands::gateway_active,
+            #[cfg(feature = "gateways")]
+            gateway::commands::gateway_status,
             // Host-side HTTP relay so the renderer can reach a self-hosted
             // runtime on a LAN IP that the secure `tauri://localhost` webview
             // cannot fetch directly (cleartext mixed content). See #3865.
