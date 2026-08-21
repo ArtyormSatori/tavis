@@ -30,7 +30,6 @@
  */
 import debug from 'debug';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { trackEvent } from '../../services/analytics';
@@ -39,9 +38,12 @@ import {
   skillsApi,
   type WorkflowSummary,
 } from '../../services/api/skillsApi';
+import { ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
 
 const log = debug('skills:install-dialog');
+
+const INSTALL_FORM_ID = 'install-skill-form';
 
 interface Props {
   onClose: () => void;
@@ -155,7 +157,6 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
   const [result, setResult] = useState<InstallWorkflowFromUrlResult | null>(null);
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const urlValid = useMemo(() => isLikelyValidUrl(url), [url]);
   const timeoutValid = useMemo(() => {
@@ -166,28 +167,15 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
   const formValid = urlValid && timeoutValid && !submitting && !result;
 
   useEffect(() => {
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
     const raf = window.requestAnimationFrame(() => {
       firstFieldRef.current?.focus();
     });
     log('mount');
     return () => {
       window.cancelAnimationFrame(raf);
-      previousFocusRef.current?.focus?.();
       log('unmount');
     };
   }, []);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !submitting) {
-        log('escape-key close');
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose, submitting]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
