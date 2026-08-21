@@ -87,7 +87,10 @@ const WorkflowRunDetail: React.FC<Props> = ({
   onResume,
 }) => {
   const { t } = useT();
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  // Every phase is its own independent disclosure — several can be expanded
+  // at once, so this is Accordion `type="multiple"` (open phases as an array
+  // for Radix's controlled `value`, rather than the old per-name boolean map).
+  const [openPhases, setOpenPhases] = useState<string[]>([]);
 
   // Phase order: lead with the definition's declared order, then append any
   // runtime-only phases the run reports but the definition doesn't list (so a
