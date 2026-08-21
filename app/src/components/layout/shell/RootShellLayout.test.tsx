@@ -74,3 +74,73 @@ describe('RootShellLayout', () => {
     expect(divider.tabIndex).toBe(0);
   });
 });
+
+// The sidebar primitive is driven as a CONTROLLED view over the `layout` slice.
+// Uncontrolled state would render identically here, so these assert the round
+// trip — store in, store out — rather than what is on screen.
+describe('RootShellLayout — redux-controlled geometry', () => {
+  it('renders the persisted width rather than the primitive default', () => {
+    renderShell({}, withLayout(true, 300));
+    expect(screen.getByTestId('root-shell-sidebar').style.width).toBe('300px');
+    expect(screen.getByTestId('root-shell-divider').getAttribute('aria-valuenow')).toBe('300');
+  });
+
+  it('clamps a persisted width that sits outside the allowed range', () => {
+    renderShell({}, withLayout(true, 9000));
+    expect(screen.getByTestId('root-shell-sidebar').style.width).toBe('420px');
+  });
+
+  it('commits an arrow-key resize step straight to the store', () => {
+    const { store } = renderShell({}, withLayout(true, 300));
+    const divider = screen.getByTestId('root-shell-divider');
+
+    fireEvent.keyDown(divider, { key: 'ArrowRight' });
+    expect(panel(store).sidebarWidth).toBe(316);
+
+    fireEvent.keyDown(divider, { key: 'ArrowLeft' });
+    expect(panel(store).sidebarWidth).toBe(300);
+  });
+
+  it('clamps arrow-key resize at the minimum width', () => {
+    const { store } = renderShell({}, withLayout(true, 188));
+    fireEvent.keyDown(screen.getByTestId('root-shell-divider'), { key: 'ArrowLeft' });
+    expect(panel(store).sidebarWidth).toBe(188);
+  });
+
+  it('holds drag frames locally and persists once the pointer is released', () => {
+    const { store } = renderShell({}, withLayout(true, 300));
+    const divider = screen.getByTestId('root-shell-divider');
+
+    fireEvent.pointerDown(divider, { clientX: 500 });
+    fireEvent.pointerMove(window, { clientX: 540 });
+
+    // Live geometry is on screen…
+    expect(screen.getByTestId('root-shell-sidebar').style.width).toBe('340px');
+    // …but nothing has been persisted yet: a drag writes one value, not sixty.
+    expect(panel(store).sidebarWidth).toBe(300);
+
+    fireEvent.pointerUp(window);
+    expect(panel(store).sidebarWidth).toBe(340);
+  });
+
+  it('unmounts the column when collapsed and reopens it through the store', () => {
+    const { store } = renderShell({}, withLayout(false, 300));
+
+    expect(screen.queryByTestId('root-shell-sidebar')).toBeNull();
+    expect(screen.queryByTestId('root-shell-divider')).toBeNull();
+    // The routed content still renders — collapsing hides the column only.
+    expect(screen.getByText('routed page')).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId('root-shell-reopen'));
+
+    expect(panel(store).sidebarVisible).toBe(true);
+    expect(screen.getByTestId('root-shell-sidebar')).toBeTruthy();
+  });
+
+  it('leaves mod+B to the command registry — the primitive binds no shortcut', () => {
+    const { store } = renderShell({}, withLayout(true, 300));
+    fireEvent.keyDown(window, { key: 'b', metaKey: true });
+    // A second listener here would toggle against the registry's and cancel out.
+    expect(panel(store).sidebarVisible).toBe(true);
+  });
+});
