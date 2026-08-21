@@ -190,7 +190,7 @@ const WorkflowRunDetail: React.FC<Props> = ({
                   )}
                   <span aria-hidden>{isOpen ? '▾' : '▸'}</span>
                 </span>
-              </button>
+              </Button>
 
               {phaseDef?.description && (
                 <p className="px-3 pb-1 text-xs text-content-muted">{phaseDef.description}</p>

@@ -6,7 +6,7 @@ import {
   AlertDialogContent,
   AlertDialogTitle,
   AlertDialogCancel,
-} from '../../app/src/components/ui/AlertDialog';
+} from '../../ui/AlertDialog';
 
 function Harness() {
   const [open, setOpen] = useState(true);

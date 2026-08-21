@@ -948,6 +948,7 @@ function SourceRow({
             {isBuilding ? t('memorySources.build.building') : t('memorySources.build.title')}
           </Button>
           <Switch
+            id={`memory-source-toggle-${source.id}`}
             checked={source.enabled}
             onCheckedChange={() => onToggle(source)}
             aria-label={source.enabled ? t('memorySources.disable') : t('memorySources.enable')}
