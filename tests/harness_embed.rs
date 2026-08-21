@@ -20,7 +20,7 @@ use openhuman_core::core::runtime::{AGENT_WORKER_STACK_BYTES, MAX_BLOCKING_THREA
 use openhuman_core::openhuman::config::Config;
 use openhuman_core::{Access, Harness, Provider, Session, Workspace};
 use serde_json::json;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{any, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 const REPLY: &str = "harness-embed-ok";
@@ -75,6 +75,23 @@ fn a_harness_runs_a_turn_against_the_provider_it_was_given() {
     let _ = env_logger::builder().is_test(true).try_init();
 
     runtime().block_on(async {
+        // A stub backend. Not optional scenery: a harness that is not signed in
+        // to the real backend still makes non-inference calls (the session
+        // check, integrations), and a 401 from those publishes `SessionExpired`
+        // — which fails the *next* turn's custom-provider gate for reasons
+        // unrelated to the turn. Pointing the backend at a stub is what
+        // `backend_url` exists for.
+        let backend = MockServer::start().await;
+        Mock::given(any())
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({
+                    "success": true,
+                    "data": { "id": "harness-embed-test", "email": "local@openhuman.local" }
+                })),
+            )
+            .mount(&backend)
+            .await;
+
         let provider_server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path("/v1/chat/completions"))
@@ -85,6 +102,7 @@ fn a_harness_runs_a_turn_against_the_provider_it_was_given() {
         let harness = Harness::builder()
             .config(offline_config())
             .workspace(Workspace::Ephemeral)
+            .backend_url(backend.uri())
             .provider(
                 Provider::openai_compatible(format!("{}/v1", provider_server.uri()), "sk-test")
                     .model("harness-embed-model"),
