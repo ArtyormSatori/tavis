@@ -89,26 +89,10 @@ export default function ComposerTokenStats({ model, threadId }: ComposerTokenSta
       ? (state.chatRuntime.usageByThread[threadId] ?? EMPTY_USAGE)
       : state.chatRuntime.sessionTokenUsage
   );
+  // The breakdown is click-toggled (not hover). `PopoverRoot` below owns
+  // outside-click and Escape dismissal, and focus management, in place of the
+  // hand-rolled `mousedown`/`keydown` document listeners this used to carry.
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  // The breakdown is click-toggled (not hover). Dismiss on an outside click or
-  // Escape so it behaves like a popover rather than a sticky panel.
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
 
   const inTok = usage.inputTokens || 0;
   const outTok = usage.outputTokens || 0;
