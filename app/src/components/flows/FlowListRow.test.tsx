@@ -117,7 +117,7 @@ describe('FlowListRow', () => {
     const { onViewRuns } = renderRow();
     // View runs is a secondary action now — behind the "⋯" menu.
     expect(screen.queryByTestId('flow-view-runs-flow-1')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('flow-menu-flow-1'));
+    openRowMenu();
     fireEvent.click(screen.getByTestId('flow-view-runs-flow-1'));
     expect(onViewRuns).toHaveBeenCalledWith(makeFlow());
   });
@@ -147,14 +147,14 @@ describe('FlowListRow', () => {
     const { onExport, onDuplicate } = renderRow();
     // The secondary actions live behind the "⋯" menu, not the flat button row.
     expect(screen.queryByTestId('flow-export-flow-1')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('flow-menu-flow-1'));
+    openRowMenu();
 
     const exportItem = screen.getByTestId('flow-export-flow-1');
     expect(exportItem).toHaveTextContent('Export');
     fireEvent.click(exportItem);
     expect(onExport).toHaveBeenCalledWith(makeFlow());
 
-    fireEvent.click(screen.getByTestId('flow-menu-flow-1'));
+    openRowMenu();
     fireEvent.click(screen.getByTestId('flow-duplicate-flow-1'));
     expect(onDuplicate).toHaveBeenCalledWith(makeFlow());
   });
@@ -164,7 +164,7 @@ describe('FlowListRow', () => {
     // Delete is a destructive secondary action now — behind the "⋯" menu, not
     // a standalone icon button in the flat row.
     expect(screen.queryByTestId('flow-delete-flow-1')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('flow-menu-flow-1'));
+    openRowMenu();
 
     const deleteItem = screen.getByTestId('flow-delete-flow-1');
     expect(deleteItem).toHaveTextContent('Delete');
