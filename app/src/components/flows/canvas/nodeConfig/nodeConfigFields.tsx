@@ -133,10 +133,10 @@ export function TextAreaField({
   const id = useId();
   return (
     <Field label={label} hint={hint} htmlFor={id}>
-      <textarea
+      <UiTextArea
         id={id}
         rows={rows}
-        className={`${INPUT_CLASS} resize-y ${mono ? MONO_CLASS : ''}`}
+        className={cn('resize-y', mono && MONO_CLASS)}
         value={value}
         placeholder={placeholder}
         data-testid={testId}
