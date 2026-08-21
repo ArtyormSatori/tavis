@@ -85,7 +85,7 @@ export function TeamActivityRail({ messages, members, onSend, sending }: TeamAct
             return (
               <div key={`${message.runId}-${message.sequence}`} className="flex gap-2">
                 <span
-                  className="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full text-[9px] font-semibold text-white"
+                  className="mt-0.5 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full text-[9px] font-semibold text-content-inverted"
                   style={{ backgroundColor: color }}>
                   {fromName.charAt(0).toUpperCase()}
                 </span>
