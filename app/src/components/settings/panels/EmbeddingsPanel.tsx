@@ -440,17 +440,15 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
             {settings.providers.map((entry, idx) => {
               const selected = entry.slug === selectedProvider;
               return (
-                <button
+                <Button
                   key={entry.slug}
-                  type="button"
+                  variant="tertiary"
                   role="radio"
                   aria-checked={selected}
                   onClick={() => handleProviderClick(entry)}
-                  className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                  className={`h-auto w-full items-start justify-start gap-3 rounded-none px-4 py-3 text-left font-normal ${
                     idx !== 0 ? 'border-t border-line-subtle' : ''
-                  } ${
-                    selected ? 'bg-primary-50 dark:bg-primary-500/10' : 'hover:bg-surface-hover'
-                  }`}>
+                  } ${selected ? 'bg-primary-50 dark:bg-primary-500/10' : ''}`}>
                   <span className="flex-1 min-w-0">
                     <span className="flex items-center gap-2">
                       <span className="text-sm font-medium text-content">{entry.label}</span>
