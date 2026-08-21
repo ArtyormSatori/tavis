@@ -42,6 +42,7 @@ import {
 } from '../../../utils/configPersistence';
 import { restartApp } from '../../../utils/tauriCommands/core';
 import Button from '../../ui/Button';
+import Label from '../../ui/Label';
 import { SettingsRow, SettingsSection, SettingsSwitch, SettingsTextField } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 
