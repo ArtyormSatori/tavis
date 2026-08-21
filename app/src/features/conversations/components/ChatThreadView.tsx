@@ -619,6 +619,8 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
                     ) : null}
                     <div>
                       <div
+                        data-testid="chat-message-row"
+                        data-sender={msg.sender}
                         className={`group/msg flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div
                           className={`relative ${
