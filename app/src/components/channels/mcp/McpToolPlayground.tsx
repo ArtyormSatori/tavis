@@ -237,18 +237,19 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
       <>
         {/* Input schema (collapsible) */}
         <div className="mb-3">
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={() => setShowSchema(prev => !prev)}
             aria-expanded={showSchema}
-            className="flex items-center gap-1.5 text-xs font-medium text-content-secondary hover:text-content">
+            className="h-auto gap-1.5 p-0 text-xs font-medium text-content-secondary hover:text-content">
             <span
               className={`transition-transform ${showSchema ? 'rotate-90' : ''}`}
               aria-hidden="true">
               ▶
             </span>
             {t('mcp.playground.inputSchema')}
-          </button>
+          </Button>
           {showSchema && (
             <pre
               data-testid="mcp-playground-schema"
