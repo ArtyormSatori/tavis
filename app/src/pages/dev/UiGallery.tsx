@@ -818,7 +818,7 @@ export default function UiGallery() {
           <ToolHeader type="tool-memory_search" state="output-available" />
           <ToolContent>
             <ToolInput input={{ limit: 5, query: 'quarterly revenue' }} />
-            <ToolOutput output="3 matches across 2 sources." />
+            <ToolOutput output="3 matches across 2 sources." errorText={undefined} />
           </ToolContent>
         </Tool>
         <Tool>
