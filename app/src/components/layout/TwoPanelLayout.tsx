@@ -10,6 +10,7 @@ import {
   setSidebarWidth,
   toggleSidebar,
 } from '../../store/layoutSlice';
+import { Button } from '../ui';
 
 const namespace = 'two-panel-layout';
 
@@ -308,18 +309,22 @@ export default function TwoPanelLayout({
       )}
 
       {!isOpen && showCollapsedRail && (
-        <button
-          type="button"
+        <Button
+          variant="tertiary"
+          iconOnly
           data-testid={`two-panel-reopen-${id}`}
-          data-analytics-id="two-panel-reopen-sidebar"
+          analyticsId="two-panel-reopen-sidebar"
           onClick={() => dispatch(setSidebarVisible({ id, visible: true }))}
           title={t('layout.showSidebar')}
           aria-label={t('layout.showSidebar')}
-          className="flex-shrink-0 w-6 self-stretch flex items-center justify-center text-content-faint hover:text-primary-500 hover:bg-surface-hover transition-colors">
+          // A full-height 24px seam grip rather than a button footprint: the
+          // height, width and square corners are overridden, the focus ring and
+          // hover fill come from Button.
+          className="h-auto w-6 flex-shrink-0 self-stretch rounded-none text-content-faint hover:text-primary-500">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-        </button>
+        </Button>
       )}
 
       <div className={`flex-1 min-w-0 overflow-hidden ${paneCard} ${contentClassName}`}>
