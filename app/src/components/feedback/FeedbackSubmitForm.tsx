@@ -232,7 +232,7 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
       <label htmlFor="feedback-body" className="sr-only">
         {t('feedback.submit.bodyPlaceholder')}
       </label>
-      <textarea
+      <TextArea
         id="feedback-body"
         value={body}
         maxLength={BODY_MAX}
