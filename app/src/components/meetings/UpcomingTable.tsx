@@ -224,7 +224,7 @@ function MeetingRow({
           </span>
           <span className="text-xs text-content-secondary">{absolute}</span>
         </div>
-      </td>
+      </TableCell>
 
       {/* MEETING */}
       <TableCell className="py-2 px-3 min-w-0 max-w-xs">
@@ -233,7 +233,7 @@ function MeetingRow({
           title={meeting.title}>
           {meeting.title}
         </span>
-      </td>
+      </TableCell>
 
       {/* PLATFORM */}
       <TableCell className="py-2 px-3 whitespace-nowrap">
@@ -251,7 +251,7 @@ function MeetingRow({
           )}
           <span className="text-xs text-content-secondary">{platformName}</span>
         </div>
-      </td>
+      </TableCell>
 
       {/* PEOPLE */}
       <TableCell className="py-2 px-3 whitespace-nowrap text-xs text-content-secondary">
@@ -261,7 +261,7 @@ function MeetingRow({
               String(meeting.participant_count)
             )
           : '—'}
-      </td>
+      </TableCell>
 
       {/* JOIN POLICY */}
       <TableCell className="py-2 px-3">
@@ -284,7 +284,7 @@ function MeetingRow({
             </span>
           )}
         </div>
-      </td>
+      </TableCell>
 
       {/* ACTION */}
       <TableCell className="py-2 px-3 whitespace-nowrap">
@@ -313,8 +313,8 @@ function MeetingRow({
             {t('skills.meetingBots.upcoming.join')}
           </Button>
         ) : null}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -324,13 +324,13 @@ function MeetingRow({
 
 function SkeletonRow() {
   return (
-    <tr className="border-b border-line/50 animate-pulse">
+    <TableRow className="border-b border-line/50 animate-pulse">
       {Array.from({ length: 6 }).map((_, i) => (
-        <td key={i} className="py-2 px-3">
+        <TableCell key={i} className="py-2 px-3">
           <div className="h-4 bg-surface-hover rounded w-16" />
-        </td>
+        </TableCell>
       ))}
-    </tr>
+    </TableRow>
   );
 }
 
@@ -525,8 +525,9 @@ export function UpcomingTable({
         <div className="flex items-center gap-2">
           {/* Platform filter */}
           {presentPlatforms.length > 1 && (
-            <select
-              className="text-xs bg-transparent text-content-secondary border border-line/50 rounded px-1.5 py-0.5 focus:outline-none"
+            <NativeSelect
+              inputSize="sm"
+              className="h-auto rounded border-line/50 bg-transparent px-1.5 py-0.5 pl-1.5 text-xs text-content-secondary"
               value={platformFilter}
               onChange={e => setPlatformFilter(e.target.value as PlatformFilter)}
               aria-label={t('skills.meetingBots.upcoming.filterAll')}>
@@ -536,7 +537,7 @@ export function UpcomingTable({
                   {platformLabel(p, t)}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           )}
 
           {/* Refresh button */}
@@ -586,29 +587,28 @@ export function UpcomingTable({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-xs text-content-secondary border-b border-line/50">
-              <th className="py-1.5 px-3 text-left font-medium">
-                {t('skills.meetingBots.upcoming.when')}
-              </th>
-              <th className="py-1.5 px-3 text-left font-medium">
-                {t('skills.meetingBots.upcoming.meeting')}
-              </th>
-              <th className="py-1.5 px-3 text-left font-medium">
-                {t('skills.meetingBots.upcoming.platform')}
-              </th>
-              <th className="py-1.5 px-3 text-left font-medium">
-                {t('skills.meetingBots.upcoming.people')}
-              </th>
-              <th className="py-1.5 px-3 text-left font-medium">
-                {t('skills.meetingBots.upcoming.joinPolicy')}
-              </th>
-              <th className="py-1.5 px-3 text-left font-medium" />
-            </tr>
-          </thead>
-          <tbody>
+      <Table className="text-sm">
+        <TableHeader>
+          <TableRow className="text-xs text-content-secondary border-b border-line/50 hover:bg-transparent">
+            <TableHead className="h-auto py-1.5 px-3 font-medium text-content-secondary">
+              {t('skills.meetingBots.upcoming.when')}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 px-3 font-medium text-content-secondary">
+              {t('skills.meetingBots.upcoming.meeting')}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 px-3 font-medium text-content-secondary">
+              {t('skills.meetingBots.upcoming.platform')}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 px-3 font-medium text-content-secondary">
+              {t('skills.meetingBots.upcoming.people')}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 px-3 font-medium text-content-secondary">
+              {t('skills.meetingBots.upcoming.joinPolicy')}
+            </TableHead>
+            <TableHead className="h-auto py-1.5 px-3 font-medium text-content-secondary" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
             {loading && meetings.length === 0 && (
               <>
                 <SkeletonRow />
