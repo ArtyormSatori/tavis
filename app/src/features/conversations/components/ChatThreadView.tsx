@@ -499,14 +499,12 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
 
     return (
       <>
-        <div
-          ref={messagesContainerRef}
-          data-testid="chat-messages-scroll"
-          // Full-width scroll (scrollbar hugs the window edge); inner content is
-          // centered and width-capped per branch below. `min-h-0` lets this
-          // basis-0 flex child shrink to 0 so the composer footer can take the
-          // space (and scroll) on short windows (#3785).
-          className="flex-1 min-h-0 overflow-y-auto">
+        {/* Full-width scroll (scrollbar hugs the window edge); inner content is
+            centered and width-capped per branch below. `Conversation` supplies
+            the `flex-1 min-h-0 overflow-y-auto` shell and the `role="log"` that
+            makes arriving turns announce; the stick-to-bottom behaviour stays
+            this component's, wired through the forwarded ref. */}
+        <Conversation ref={messagesContainerRef} data-testid="chat-messages-scroll">
           {isLoading ? (
             <div className="mx-auto w-full max-w-[48.75rem] space-y-4 px-5 py-4">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -544,399 +542,41 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
               </button>
             </div>
           ) : hasContent ? (
-            <div
+            <ConversationContent
               data-testid="chat-message-list"
-              className={`mx-auto w-full max-w-[48.75rem] space-y-3 px-5 pt-4 ${
-                isSidebar ? 'pb-4' : ''
-              }`}
+              className={`mx-auto max-w-[48.75rem] space-y-3 px-5 pt-4 ${isSidebar ? 'pb-4' : ''}`}
               // Page variant: reserve room for the absolutely-positioned floating
               // composer footer so its tail stays visible. Tracks the footer's
               // measured height (+16px gap) instead of a static `pb-32`, so the
               // queued-followups panel and other dynamic footer content never
               // overlap the last message (#4268).
               style={bottomPadding !== undefined ? { paddingBottom: bottomPadding } : undefined}>
-              {timelineMessages.map(msg => {
-                const isAgentTextMode = msg.sender === 'agent' && agentMessageViewMode === 'text';
-                // B25: an agent turn that both talks AND calls a tool can leak
-                // the provider wire-format `{ content, tool_calls }` JSON
-                // envelope as its raw `content` (see `unwrapToolCallEnvelope`).
-                // Unwrap agent messages to the human text so no surface (home
-                // chat OR the workflow copilot, which shares this renderer)
-                // ever paints raw JSON. Shape-based + a strict passthrough for
-                // ordinary prose, so this is a no-op for every non-envelope
-                // message — the tool activity itself renders via the timeline,
-                // so the extracted tool names are intentionally dropped here.
-                const displayContent =
-                  msg.sender === 'agent'
-                    ? unwrapToolCallEnvelope(msg.content ?? '').text
-                    : (msg.content ?? '');
-                // Parsed once per message: for current messages (extraMetadata
-                // present, or agent messages) the content already has no markers,
-                // so this is a no-op. For legacy persisted user messages with raw
-                // [IMAGE:...]/[FILE:...] markers and no extraMetadata, this is
-                // what keeps the marker text out of both the rendered bubble and
-                // the copy-to-clipboard action.
-                const parsedContent = parseMessageImages(displayContent);
-                const pastTurn = pastTurnAnchors[msg.id];
-                return (
-                  <Fragment key={msg.id}>
-                    {/* Past-turn process trail (Phase 5 + restore-fidelity fix 1):
-                        each older settled turn's interleaved reasoning/narration +
-                        tool steps (and restored sub-agent transcripts), collapsed,
-                        above the answer it produced. Falls back to tool-cards-only
-                        for legacy snapshots with no persisted transcript. */}
-                    {pastTurn ? (
-                      <div data-testid="past-turn-insights">
-                        <PastTurnInsights
-                          entries={pastTurn.entries}
-                          transcript={pastTurn.transcript}
-                        />
-                      </div>
-                    ) : null}
-                    <div>
-                      <div
-                        data-testid="chat-message-row"
-                        data-sender={msg.sender}
-                        className={`group/msg flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div
-                          className={`relative ${
-                            isAgentTextMode ? 'w-full max-w-full' : 'w-fit max-w-[75%]'
-                          }`}>
-                          {msg.sender === 'agent' ? (
-                            <div className="space-y-1" data-testid="agent-message">
-                              <div className="relative space-y-1">
-                                {agentMessageViewMode === 'text' ? (
-                                  <AgentMessageText content={displayContent} />
-                                ) : (
-                                  splitAgentMessageIntoBubbles(displayContent).map(
-                                    (segment, index, parts) => {
-                                      const position: AgentBubblePosition =
-                                        parts.length === 1
-                                          ? 'single'
-                                          : index === 0
-                                            ? 'first'
-                                            : index === parts.length - 1
-                                              ? 'last'
-                                              : 'middle';
-
-                                      return (
-                                        <AgentMessageBubble
-                                          key={`${msg.id}:${index}`}
-                                          content={segment}
-                                          position={position}
-                                        />
-                                      );
-                                    }
-                                  )
-                                )}
-                                {/* Reaction affordance — the closed "+", the open picker,
-                                  and the resulting reaction chips all live here, tucked
-                                  onto the bubble's bottom-left corner so the control
-                                  never jumps to a separate row below the timestamp. */}
-                                {latestVisibleMessage?.id === msg.id &&
-                                  (() => {
-                                    const myReactions =
-                                      (msg.extraMetadata?.myReactions as string[] | undefined) ??
-                                      [];
-                                    const pickerOpen = reactionPickerMsgId === msg.id;
-                                    return (
-                                      <div className="absolute -bottom-2 left-3 z-10 flex items-center gap-1">
-                                        {myReactions.map(emoji => (
-                                          <button
-                                            key={emoji}
-                                            type="button"
-                                            data-analytics-id="chat-message-reaction-remove"
-                                            onClick={() =>
-                                              threadId &&
-                                              void dispatch(
-                                                persistReaction({
-                                                  threadId,
-                                                  messageId: msg.id,
-                                                  emoji,
-                                                })
-                                              )
-                                            }
-                                            className="flex items-center rounded-full border border-primary-200 bg-primary-100 px-1.5 text-xs leading-[1.5] shadow-sm transition-colors hover:bg-primary-200 dark:border-primary-400/40 dark:bg-primary-500/25"
-                                            title={t('chat.removeReaction').replace(
-                                              '{emoji}',
-                                              emoji
-                                            )}>
-                                            {emoji}
-                                          </button>
-                                        ))}
-                                        {pickerOpen ? (
-                                          <div className="flex items-center gap-0.5 rounded-full bg-surface px-1 py-0.5 shadow-sm ring-1 ring-stone-200 dark:ring-neutral-700">
-                                            {['👍', '❤️', '😂', '🔥', '👀', '🎯'].map(emoji => (
-                                              <button
-                                                key={emoji}
-                                                type="button"
-                                                data-analytics-id="chat-message-reaction-pick"
-                                                onClick={() => {
-                                                  if (threadId) {
-                                                    void dispatch(
-                                                      persistReaction({
-                                                        threadId,
-                                                        messageId: msg.id,
-                                                        emoji,
-                                                      })
-                                                    );
-                                                  }
-                                                  setReactionPickerMsgId(null);
-                                                }}
-                                                className="rounded px-0.5 text-sm transition-transform hover:scale-125"
-                                                title={emoji}>
-                                                {emoji}
-                                              </button>
-                                            ))}
-                                            <button
-                                              type="button"
-                                              data-analytics-id="chat-message-reaction-close"
-                                              onClick={() => setReactionPickerMsgId(null)}
-                                              className="ml-0.5 px-0.5 text-xs text-content-secondary hover:text-content-faint dark:hover:text-content-faint">
-                                              ✕
-                                            </button>
-                                          </div>
-                                        ) : (
-                                          <button
-                                            type="button"
-                                            data-analytics-id="chat-message-reaction-open"
-                                            onClick={() => setReactionPickerMsgId(msg.id)}
-                                            className="flex h-[18px] items-center rounded-full bg-surface px-1.5 text-xs leading-none text-content-muted opacity-0 shadow-sm ring-1 ring-stone-200 transition-opacity hover:bg-surface-hover hover:text-content-secondary group-hover/msg:opacity-100 dark:ring-neutral-700"
-                                            title={t('chat.addReaction')}
-                                            aria-label={t('chat.addReaction')}>
-                                            +
-                                          </button>
-                                        )}
-                                      </div>
-                                    );
-                                  })()}
-                              </div>
-                              {/* Stopped marker (#4862): the partial reply that was
-                                  preserved when the user hit Stop / ESC mid-stream. */}
-                              {msg.extraMetadata?.stopped === true && (
-                                <p
-                                  data-testid="stopped-marker"
-                                  className="flex items-center gap-1 px-1 text-[10px] font-medium text-content-faint">
-                                  <svg
-                                    className="h-2.5 w-2.5"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                    aria-hidden>
-                                    <rect x="6" y="6" width="12" height="12" rx="1.5" />
-                                  </svg>
-                                  {t('chat.stoppedByUser')}
-                                </p>
-                              )}
-                              {(() => {
-                                const raw = msg.extraMetadata?.citations;
-                                if (!Array.isArray(raw)) return null;
-                                const citations = raw.filter(
-                                  (item): item is MessageCitation =>
-                                    typeof item === 'object' &&
-                                    item !== null &&
-                                    typeof (item as MessageCitation).id === 'string' &&
-                                    typeof (item as MessageCitation).key === 'string' &&
-                                    typeof (item as MessageCitation).snippet === 'string' &&
-                                    typeof (item as MessageCitation).timestamp === 'string'
-                                );
-                                if (citations.length === 0) return null;
-                                return <CitationChips citations={citations} />;
-                              })()}
-                              {latestVisibleMessage?.id === msg.id && (
-                                <p className="px-1 text-[10px] text-content-faint">
-                                  {formatRelativeTime(msg.createdAt)}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-end gap-1">
-                              {(() => {
-                                const displayText = parsedContent.text;
-                                const dataUris = (
-                                  Array.isArray(msg.extraMetadata?.attachmentDataUris)
-                                    ? (msg.extraMetadata.attachmentDataUris as string[])
-                                    : parsedContent.dataUris
-                                ).filter(src => SAFE_IMAGE_DATA_URI_RE.test(src));
-                                const hasImages = dataUris.length > 0;
-                                // Document attachments carry no image data-URI (only
-                                // images do); surface them as filename chips from the
-                                // persisted attachmentKinds/attachmentNames metadata.
-                                const kinds = Array.isArray(msg.extraMetadata?.attachmentKinds)
-                                  ? (msg.extraMetadata.attachmentKinds as string[])
-                                  : [];
-                                const names = Array.isArray(msg.extraMetadata?.attachmentNames)
-                                  ? (msg.extraMetadata.attachmentNames as string[])
-                                  : [];
-                                const fileNames = kinds
-                                  .map((k, i) => (k === 'file' ? names[i] : null))
-                                  .filter((n): n is string => Boolean(n));
-                                const posters = Array.isArray(msg.extraMetadata?.attachmentPosters)
-                                  ? (msg.extraMetadata.attachmentPosters as (string | null)[])
-                                  : [];
-                                const videoItems = kinds
-                                  .map((k, i) =>
-                                    k === 'video'
-                                      ? { name: names[i] ?? '', poster: posters[i] ?? null }
-                                      : null
-                                  )
-                                  .filter((v): v is { name: string; poster: string | null } =>
-                                    Boolean(v)
-                                  );
-                                const showTime = latestVisibleMessage?.id === msg.id;
-                                return (
-                                  <>
-                                    {hasImages && (
-                                      <div className="flex flex-wrap gap-1.5 justify-end">
-                                        {dataUris.map((uri, i) => (
-                                          <AttachmentImage key={i} dataUri={uri} />
-                                        ))}
-                                      </div>
-                                    )}
-                                    {videoItems.length > 0 && (
-                                      <div className="flex flex-wrap gap-1.5 justify-end">
-                                        {videoItems.map((video, i) => (
-                                          <div
-                                            key={i}
-                                            className="relative flex items-center gap-2 rounded-lg border border-line bg-surface-muted px-2.5 py-1.5 text-xs text-content-secondary max-w-[220px]">
-                                            {video.poster ? (
-                                              <div className="relative w-10 h-10 flex-shrink-0">
-                                                <img
-                                                  src={video.poster}
-                                                  alt=""
-                                                  className="w-10 h-10 rounded object-cover"
-                                                />
-                                                <span className="absolute inset-0 flex items-center justify-center">
-                                                  <svg
-                                                    className="w-4 h-4 text-white drop-shadow"
-                                                    fill="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path d="M8 5v14l11-7z" />
-                                                  </svg>
-                                                </span>
-                                              </div>
-                                            ) : (
-                                              <svg
-                                                className="w-4 h-4 flex-shrink-0 text-content-muted"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={1.8}
-                                                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"
-                                                />
-                                              </svg>
-                                            )}
-                                            <span className="truncate font-medium">
-                                              {video.name}
-                                            </span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                    {fileNames.length > 0 && (
-                                      <div className="flex flex-wrap gap-1.5 justify-end">
-                                        {fileNames.map((name, i) => (
-                                          <div
-                                            key={i}
-                                            className="flex items-center gap-2 rounded-lg border border-line bg-surface-muted px-2.5 py-1.5 text-xs text-content-secondary max-w-[220px]">
-                                            <svg
-                                              className="w-4 h-4 flex-shrink-0 text-content-muted"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              viewBox="0 0 24 24">
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={1.8}
-                                                d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                                              />
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={1.8}
-                                                d="M14 2v6h6"
-                                              />
-                                            </svg>
-                                            <span className="truncate font-medium">{name}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                    {(displayText || showTime) && (
-                                      <div className="rounded-2xl px-4 py-2.5 bg-primary-500 text-content-inverted rounded-br-md break-words [overflow-wrap:anywhere] overflow-hidden">
-                                        {displayText && (
-                                          <BubbleMarkdown content={displayText} tone="user" />
-                                        )}
-                                        {showTime && (
-                                          <p
-                                            className={`${displayText ? 'mt-1' : ''} text-[10px] text-white/60`}>
-                                            {formatRelativeTime(msg.createdAt)}
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            data-analytics-id="chat-message-copy"
-                            onClick={() => handleCopyMessage(msg.id, parsedContent.text)}
-                            className={`absolute -top-1 ${
-                              isAgentTextMode
-                                ? 'right-0'
-                                : msg.sender === 'user'
-                                  ? '-left-8'
-                                  : '-right-8'
-                            } p-1 rounded-md opacity-0 group-hover/msg:opacity-100 hover:bg-surface-hover dark:bg-surface-muted dark:hover:bg-surface-muted text-content-faint hover:text-content-secondary transition-all`}
-                            title={t('chat.copyResponse')}>
-                            {copiedMessageId === msg.id ? (
-                              <svg
-                                className="w-3.5 h-3.5 text-sage-500"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                className="w-3.5 h-3.5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                />
-                              </svg>
-                            )}
-                          </button>
-                          {msg.sender === 'agent' && (
-                            <ShareMessageButton
-                              content={parsedContent.text}
-                              agentName={shareAgentName}
-                              threadId={threadId ?? undefined}
-                              className={`absolute top-6 ${isAgentTextMode ? 'right-0' : '-right-8'}`}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {msg.id === lastUserMessageId ? agentInsights : null}
-                  </Fragment>
-                );
-              })}
+              {timelineMessages.map(msg => (
+                <Fragment key={msg.id}>
+                  {/* One memoized row per turn. Everything the row needs is
+                      passed as a primitive or a stable callback so a streamed
+                      token landing on the live tail cannot re-render — or
+                      re-parse — the settled transcript above it
+                      (`ChatThreadView.renderPerf.test.tsx`). `agentInsights` is
+                      deliberately rendered OUTSIDE the row: it is rebuilt on
+                      every render, and passing it in would defeat the memo for
+                      whichever row happened to anchor it. */}
+                  <TranscriptRow
+                    msg={msg}
+                    threadId={threadId}
+                    agentMessageViewMode={agentMessageViewMode}
+                    isLatestVisible={latestVisibleMessage?.id === msg.id}
+                    isCopied={copiedMessageId === msg.id}
+                    isReactionPickerOpen={reactionPickerMsgId === msg.id}
+                    pastTurn={pastTurnAnchors[msg.id]}
+                    shareAgentName={shareAgentName}
+                    onCopy={handleCopyMessage}
+                    onReact={handleReact}
+                    onOpenReactionPicker={setReactionPickerMsgId}
+                  />
+                  {msg.id === lastUserMessageId ? agentInsights : null}
+                </Fragment>
+              ))}
               {isSending &&
                 // Suppress the legacy 3-dot placeholder once streaming
                 // output (visible text or thinking) has started — the
@@ -1074,11 +714,11 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
                   per-thread keying that fix keeps this remount-safe. */}
               {proactiveInsightsFallback}
               <div ref={messagesEndRef} />
-            </div>
+            </ConversationContent>
           ) : (
             emptyContent
           )}
-        </div>
+        </Conversation>
         <BackgroundProcessesPanel
           open={showBackgroundProcesses}
           processes={backgroundProcesses}
