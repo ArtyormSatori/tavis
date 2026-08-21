@@ -3,7 +3,7 @@
  * picker: deduplication, readable labels, and no raw connection IDs in the
  * rendered dropdown (issue #3356).
  */
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { listConnections } from '../../lib/composio/composioApi';
