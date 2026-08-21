@@ -149,38 +149,42 @@ export default function AppSidebar() {
       <div className="flex-shrink-0">
         <SidebarNav />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <SidebarScrollRegion className="gap-0">
         {/* Flex column so routes that project more than one region can order
             them via Tailwind `order-*`. */}
         <SidebarSlotOutlet className="flex h-full flex-col" />
-      </div>
-      {/* Slim account affordances pinned above the status bar — Rewards then
-          Feedback. Rewards is shown only for a resolved cloud session. */}
-      {showRewards && (
-        <FooterNavButton
-          iconId="rewards"
-          label={t('nav.rewards')}
-          active={rewardsActive}
-          walkthroughAttr="tab-rewards"
-          onClick={() => handleFooterNav('rewards', '/rewards', rewardsActive)}
-        />
-      )}
-      <FooterNavButton
-        iconId="feedback"
-        label={t('nav.feedback')}
-        active={feedbackActive}
-        walkthroughAttr="tab-feedback"
-        onClick={() => handleFooterNav('feedback', '/feedback', feedbackActive)}
-      />
-      {/* App-wide footer: connectivity status + build/version, pinned to the
-          bottom of the sidebar. */}
-      <div className="flex flex-shrink-0 flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3 pb-2 pt-3">
-        <ConnectionIndicator />
-        &middot;
-        <span className="text-[10px] text-content-faint">
-          {t('settings.betaBuild').replace('{version}', APP_VERSION)}
-        </span>
-      </div>
+      </SidebarScrollRegion>
+      <SidebarFooter>
+        {/* Slim account affordances pinned above the status bar — Rewards then
+            Feedback. Rewards is shown only for a resolved cloud session. */}
+        <SidebarMenu>
+          {showRewards && (
+            <FooterNavButton
+              iconId="rewards"
+              label={t('nav.rewards')}
+              active={rewardsActive}
+              walkthroughAttr="tab-rewards"
+              onClick={() => handleFooterNav('rewards', '/rewards', rewardsActive)}
+            />
+          )}
+          <FooterNavButton
+            iconId="feedback"
+            label={t('nav.feedback')}
+            active={feedbackActive}
+            walkthroughAttr="tab-feedback"
+            onClick={() => handleFooterNav('feedback', '/feedback', feedbackActive)}
+          />
+        </SidebarMenu>
+        {/* App-wide footer: connectivity status + build/version, pinned to the
+            bottom of the sidebar. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-1 pt-2">
+          <ConnectionIndicator />
+          &middot;
+          <span className="text-[10px] text-content-faint">
+            {t('settings.betaBuild').replace('{version}', APP_VERSION)}
+          </span>
+        </div>
+      </SidebarFooter>
     </div>
   );
 }
