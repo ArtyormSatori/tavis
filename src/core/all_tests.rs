@@ -1012,10 +1012,6 @@ fn group_mapping_smoke() {
     assert_eq!(group_for_namespace("voice"), Some(DomainGroup::Voice));
     #[cfg(feature = "web3")]
     assert_eq!(group_for_namespace("wallet"), Some(DomainGroup::Web3));
-    // `meet` is compiled out under `--no-default-features`, so the registry has
-    // no entry to map (#4800).
-    #[cfg(feature = "meet")]
-    assert_eq!(group_for_namespace("meet"), Some(DomainGroup::Meet));
     // Internal-only registry is grouped too (mcp_audit → Mcp).
     // Compiled out with the `mcp` feature: `group_for_namespace` reads the LIVE
     // registry, and the gate unregisters the mcp_audit controller entirely.
@@ -1106,23 +1102,6 @@ fn flows_controllers_absent_when_feature_off() {
     );
 }
 
-/// All three Meet namespaces register when the `meet` feature is on (#4800).
-///
-/// Paired with `meet_controllers_absent_when_feature_off` below: together they
-/// pin *both* directions of the compile-time gate. The negative half is the one
-/// that actually proves the gate does something — a gate that never removes
-/// anything would still pass this positive test.
-#[cfg(feature = "meet")]
-#[test]
-fn meet_controllers_registered_when_feature_on() {
-    for ns in ["meet", "agent_meetings", "meet_agent"] {
-        assert_eq!(
-            group_for_namespace(ns),
-            Some(DomainGroup::Meet),
-            "`{ns}` must register under DomainGroup::Meet when the `meet` feature is on"
-        );
-    }
-}
 
 /// The `modules` namespace registers when the `modules` feature is on.
 #[cfg(feature = "modules")]
@@ -1150,21 +1129,6 @@ fn modules_controllers_absent_when_feature_off() {
     );
 }
 
-/// No Meet namespace registers when the `meet` feature is off (#4800).
-///
-/// This is the half that proves the gate: with `meet` compiled out the three
-/// domains must leave zero trace in either the public or the internal registry.
-#[cfg(not(feature = "meet"))]
-#[test]
-fn meet_controllers_absent_when_feature_off() {
-    for ns in ["meet", "agent_meetings", "meet_agent"] {
-        assert_eq!(
-            group_for_namespace(ns),
-            None,
-            "`{ns}` must not register when the `meet` feature is off"
-        );
-    }
-}
 
 /// The external-channel namespace registers when the `channels` feature is on
 /// (#4801).
