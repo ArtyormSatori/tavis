@@ -1,4 +1,5 @@
 import { useT } from '../../lib/i18n/I18nContext';
+import { Button } from '../ui';
 
 interface ModelQualityPillProps {
   className?: string;
@@ -12,15 +13,16 @@ export default function ModelQualityPill({ className }: ModelQualityPillProps) {
   const { t } = useT();
 
   return (
-    <button
-      type="button"
-      data-analytics-id="chat-model-quality-pill"
+    <Button
+      variant="tertiary"
+      size="xs"
+      analyticsId="chat-model-quality-pill"
       aria-label={t('composer.modelSelector')}
       title={t('composer.modelSelector')}
       disabled
-      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-content-faint disabled:cursor-default disabled:opacity-100 select-none ${className ?? ''}`}>
+      className={`rounded-full text-content-faint disabled:cursor-default disabled:opacity-100 select-none hover:bg-transparent ${className ?? ''}`}>
       <span>OpenHuman</span>
-      <span className="text-content-faint dark:text-neutral-600">·</span>
+      <span className="text-content-faint">·</span>
       <span>{t('composer.qualityHigh')}</span>
       {/* `shrink-0` keeps the chevron from being squeezed, and the button's
           `px-2` gives it trailing padding so the glyph is never clipped against
@@ -33,6 +35,6 @@ export default function ModelQualityPill({ className }: ModelQualityPillProps) {
         aria-hidden>
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
-    </button>
+    </Button>
   );
 }
