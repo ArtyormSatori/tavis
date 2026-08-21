@@ -7,10 +7,11 @@
 //! repository against its own suite, and re-asserting it here would only test
 //! the mock.
 
-use super::runtime::{
-    NODEJS_PROVIDER_ID, PYTHON_PROVIDER_ID, RuntimeCallError, pool_settings_for, provider_id,
-    settings_for,
+use super::{
+    MODULE_ID, NODEJS_PROVIDER_ID, PYTHON_PROVIDER_ID, RuntimeCallError, pool_settings_for,
+    provider_id, settings_for,
 };
+use crate::openhuman::modules::registry;
 use crate::openhuman::config::Config;
 use tinyruntime_bus::Language;
 
@@ -32,13 +33,9 @@ fn a_language_this_build_ships_no_provider_for_is_not_an_error_here() {
 fn the_provider_records_named_here_exist_in_the_registry() {
     // A typo would surface as "unknown module" at the first tool call, long
     // after the change that caused it.
-    for id in [
-        super::runtime::MODULE_ID,
-        NODEJS_PROVIDER_ID,
-        PYTHON_PROVIDER_ID,
-    ] {
+    for id in [MODULE_ID, NODEJS_PROVIDER_ID, PYTHON_PROVIDER_ID] {
         assert!(
-            super::registry::find(id).is_some(),
+            registry::find(id).is_some(),
             "no registry record for '{id}'"
         );
     }
