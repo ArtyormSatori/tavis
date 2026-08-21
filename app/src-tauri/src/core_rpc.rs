@@ -45,7 +45,7 @@ fn relay_bearer_header(token: Option<&str>) -> Option<String> {
 /// keeping just `scheme://host[:port]/path` so transport diagnostics stay
 /// useful without persisting secrets. Falls back to a coarse sentinel when the
 /// URL can't be parsed.
-fn redact_url_for_log(url: &str) -> String {
+pub(crate) fn redact_url_for_log(url: &str) -> String {
     url.parse::<url::Url>()
         .map(|mut parsed| {
             parsed.set_query(None);
