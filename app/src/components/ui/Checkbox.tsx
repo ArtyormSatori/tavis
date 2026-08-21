@@ -1,18 +1,13 @@
-import { Checkbox as CheckboxPrimitive } from 'radix-ui';
+import { useEffect, useRef } from 'react';
 
 import { cn } from '../../lib/cn';
-import { CheckIcon } from './icons';
 
 export interface CheckboxProps {
   id?: string;
   checked: boolean;
   onCheckedChange: (next: boolean) => void;
   disabled?: boolean;
-  /**
-   * Tri-state. The previous native-input version had to reach for a ref and set
-   * `.indeterminate` in an effect, because the attribute does not exist in
-   * markup; Radix models it as a real value.
-   */
+  /** Tri-state. Set imperatively — the DOM has no `indeterminate` attribute. */
   indeterminate?: boolean;
   className?: string;
   'aria-label'?: string;
@@ -20,9 +15,23 @@ export interface CheckboxProps {
 }
 
 /**
- * Radix `Checkbox`. Unlike a bare `<input type="checkbox">` styled with the
- * forms plugin, this renders its own indicator, so the check mark follows the
- * theme's content colour instead of the UA accent colour.
+ * A NATIVE `<input type="checkbox">`, deliberately — this is the one control in
+ * the set that Radix should not own.
+ *
+ * Radix renders a checkbox as `<button role="checkbox">` plus a visually hidden
+ * input that carries no id. That is fine for a11y but it silently breaks
+ * everything that treats a checkbox as an input: WebDriver's `isSelected()`
+ * returns false forever, `getElementById(...).checked` becomes `undefined`, and
+ * the DOM fallback in `test/e2e/specs/chat-harness-wallet-flow.spec.ts` — which
+ * sets `.checked` on `#mnemonic-confirm-checkbox` to get past the recovery
+ * phrase consent gate — becomes a no-op. That spec runs only in CI Full, so
+ * the breakage would not have surfaced on the fast lane.
+ *
+ * A native checkbox is already accessible and already participates in forms.
+ * There was no defect here to fix, so the Radix version bought styling
+ * consistency at the cost of a working flow. The only real bug in the original
+ * — a focus ring offset against a hardcoded white, which ignores user themes —
+ * is fixed below.
  */
 const Checkbox = ({
   id,
@@ -33,32 +42,37 @@ const Checkbox = ({
   className,
   'aria-label': ariaLabel,
   'data-testid': testId,
-}: CheckboxProps) => (
-  <CheckboxPrimitive.Root
-    id={id}
-    data-slot="checkbox"
-    data-testid={testId}
-    checked={indeterminate ? 'indeterminate' : checked}
-    onCheckedChange={next => onCheckedChange(next === true)}
-    disabled={disabled}
-    aria-label={ariaLabel}
-    className={cn(
-      'inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border border-line-strong bg-surface',
-      'transition-colors duration-150 motion-reduce:transition-none',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
-      'disabled:cursor-not-allowed disabled:opacity-50',
-      'data-[state=checked]:border-primary-500 data-[state=checked]:bg-primary-500',
-      'data-[state=indeterminate]:border-primary-500 data-[state=indeterminate]:bg-primary-500',
-      className
-    )}>
-    <CheckboxPrimitive.Indicator className="text-content-inverted">
-      {indeterminate ? (
-        <span aria-hidden="true" className="block h-0.5 w-2 rounded-full bg-current" />
-      ) : (
-        <CheckIcon className="h-3 w-3" />
+}: CheckboxProps) => {
+  const innerRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (innerRef.current) innerRef.current.indeterminate = indeterminate;
+  }, [indeterminate]);
+
+  return (
+    <input
+      ref={innerRef}
+      id={id}
+      type="checkbox"
+      data-slot="checkbox"
+      checked={checked}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      data-testid={testId}
+      onChange={e => onCheckedChange(e.target.checked)}
+      className={cn(
+        'h-4 w-4 cursor-pointer rounded-sm border border-line-strong bg-surface accent-primary-500',
+        'transition-colors duration-150',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
+        // Offsets against the themed surface. The original used
+        // `ring-offset-white` plus a hardcoded dark companion, which stayed
+        // white under any custom theme.
+        'focus-visible:ring-offset-surface',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        className
       )}
-    </CheckboxPrimitive.Indicator>
-  </CheckboxPrimitive.Root>
-);
+    />
+  );
+};
 
 export default Checkbox;
