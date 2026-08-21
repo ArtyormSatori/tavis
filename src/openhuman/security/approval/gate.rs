@@ -1468,22 +1468,13 @@ mod tests {
         }
     }
 
-    /// An external-channel (live meeting) origin for the in-call fixtures.
-    fn meet_origin() -> AgentTurnOrigin {
-        AgentTurnOrigin::ExternalChannel {
-            channel: "meet".into(),
-            sender: None,
-            reply_target: "meet-1".into(),
-            message_id: "m-1".into(),
-        }
-    }
 
 
 
     #[test]
     fn guard_cleanup_only_clears_routing_it_still_owns() {
         // Regression for #4774: on external turn teardown a replacement turn may
-        // have already parked a new approval on the same thread/meeting and
+        // have already parked a new approval on the same thread and
         // overwritten the routing entry. The dropped guard for the *old* request
         // must not clobber the *new* request's mapping.
         let (gate, _dir) = test_gate();
@@ -1491,27 +1482,17 @@ mod tests {
         gate.thread_to_request
             .lock()
             .insert("thread-1".into(), "req-new".into());
-        gate.meeting_to_request
-            .lock()
-            .insert("meet-1".into(), "req-new".into());
 
         // Stale guard for the superseded request is a no-op.
         gate.clear_thread_route_if_owned("thread-1", "req-old");
-        gate.clear_meeting_route_if_owned("meet-1", "req-old");
         assert_eq!(
             gate.pending_for_thread("thread-1").as_deref(),
-            Some("req-new")
-        );
-        assert_eq!(
-            gate.pending_for_meeting("meet-1").as_deref(),
             Some("req-new")
         );
 
         // The owning request's guard clears its own routing.
         gate.clear_thread_route_if_owned("thread-1", "req-new");
-        gate.clear_meeting_route_if_owned("meet-1", "req-new");
         assert!(gate.pending_for_thread("thread-1").is_none());
-        assert!(gate.pending_for_meeting("meet-1").is_none());
     }
 
 
@@ -2412,9 +2393,9 @@ mod tests {
         fn default_park_keeps_the_full_ttl() {
             let default_ttl = DEFAULT_APPROVAL_TTL;
             assert_eq!(
-                ApprovalGate::resolve_park_ttl(default_ttl, false, false),
+                ApprovalGate::resolve_park_ttl(default_ttl, false),
                 default_ttl,
-                "a plain park (no in-call, no copilot stream) must not be clamped"
+                "a plain park (no copilot stream) must not be clamped"
             );
         }
 
@@ -2422,7 +2403,7 @@ mod tests {
         fn copilot_stream_shortens_a_default_ten_minute_park() {
             let default_ttl = DEFAULT_APPROVAL_TTL;
             assert_eq!(
-                ApprovalGate::resolve_park_ttl(default_ttl, false, true),
+                ApprovalGate::resolve_park_ttl(default_ttl, true),
                 COPILOT_APPROVAL_TTL,
                 "a flows_build copilot-streaming park must clamp to COPILOT_APPROVAL_TTL"
             );
@@ -2441,29 +2422,12 @@ mod tests {
             // already shorter than either clamp).
             let short_ttl = Duration::from_secs(60);
             assert_eq!(
-                ApprovalGate::resolve_park_ttl(short_ttl, false, true),
+                ApprovalGate::resolve_park_ttl(short_ttl, true),
                 short_ttl,
                 "copilot clamp must not extend a boot-time TTL that is already shorter"
             );
-            assert_eq!(
-                ApprovalGate::resolve_park_ttl(short_ttl, true, false),
-                short_ttl,
-                "in-call clamp must not extend a boot-time TTL that is already shorter"
-            );
         }
 
-        #[test]
-        fn both_flags_active_takes_the_tighter_clamp() {
-            // Not expected in production (different call sites), but the
-            // helper must not panic or pick the wrong side if it ever
-            // happens — the tighter of the two clamps should win either way.
-            let default_ttl = DEFAULT_APPROVAL_TTL;
-            let tighter = IN_CALL_APPROVAL_TTL.min(COPILOT_APPROVAL_TTL);
-            assert_eq!(
-                ApprovalGate::resolve_park_ttl(default_ttl, true, true),
-                tighter
-            );
-        }
     }
 
     /// Integration regression test for the streaming-to-gate contract
