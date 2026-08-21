@@ -151,29 +151,31 @@ export default function ComposerTokenStats({ model, threadId }: ComposerTokenSta
   if (parts.length === 0) return null;
 
   return (
-    <div ref={rootRef} className="relative flex min-w-0 items-center">
-      {/* Hover hint that the compact row is interactive; click opens the full
-          breakdown. The hint is suppressed while the popover is already open. */}
-      <Tooltip label={open ? '' : t('token.clickForDetails')} side="top">
-        <Button
-          variant="tertiary"
-          onClick={() => setOpen(o => !o)}
-          aria-expanded={open}
-          aria-label={t('token.sessionUsageTitle')}
-          className="!h-auto min-w-0 flex-wrap gap-1.5 !p-0 text-[10px] font-mono text-content-faint hover:bg-transparent select-none">
-          {parts.map((part, i) => (
-            <span key={i} className="contents">
-              {part}
-            </span>
-          ))}
-        </Button>
-      </Tooltip>
-      {open && (
-        <div
+    <PopoverRoot open={open} onOpenChange={setOpen}>
+      <div className="relative flex min-w-0 items-center">
+        {/* Hover hint that the compact row is interactive; click opens the full
+            breakdown. The hint is suppressed while the popover is already open. */}
+        <Tooltip label={open ? '' : t('token.clickForDetails')} side="top">
+          <PopoverTrigger asChild>
+            <Button
+              variant="tertiary"
+              aria-label={t('token.sessionUsageTitle')}
+              className="!h-auto min-w-0 flex-wrap gap-1.5 !p-0 text-[10px] font-mono text-content-faint hover:bg-transparent select-none">
+              {parts.map((part, i) => (
+                <span key={i} className="contents">
+                  {part}
+                </span>
+              ))}
+            </Button>
+          </PopoverTrigger>
+        </Tooltip>
+        <PopoverContent
           data-testid="composer-token-breakdown"
-          role="dialog"
           aria-label={t('token.sessionUsageTitle')}
-          className="absolute bottom-full left-0 z-50 mb-1.5 w-64 rounded-md border border-line-strong bg-surface p-2.5 text-[11px] shadow-lg">
+          side="top"
+          align="start"
+          sideOffset={6}
+          className="w-64 p-2.5 text-[11px] shadow-lg">
           <div className="mb-1.5 font-semibold text-content">{t('token.sessionUsageTitle')}</div>
           {model && (
             <div className="mb-1.5 truncate font-mono text-content-faint" title={model}>
@@ -227,8 +229,8 @@ export default function ComposerTokenStats({ model, threadId }: ComposerTokenSta
               <div className="mt-0.5 text-content-faint">{t('token.noSubAgents')}</div>
             )}
           </div>
-        </div>
-      )}
-    </div>
+        </PopoverContent>
+      </div>
+    </PopoverRoot>
   );
 }
