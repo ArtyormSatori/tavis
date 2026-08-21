@@ -89,7 +89,9 @@ pub(super) fn install(source: &Path, workspace_dir: &Path) -> Result<usize, Harn
 
 /// Whether `dir` declares itself a skill bundle.
 fn is_bundle(dir: &Path) -> bool {
-    MANIFESTS.iter().any(|manifest| dir.join(manifest).is_file())
+    MANIFESTS
+        .iter()
+        .any(|manifest| dir.join(manifest).is_file())
 }
 
 fn collect_bundles(root: &Path) -> Result<Vec<PathBuf>, HarnessError> {

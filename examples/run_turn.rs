@@ -77,10 +77,11 @@ async fn run() -> anyhow::Result<()> {
                  configured inference"
             )
         })?;
-        let api_key = std::env::var("OPENHUMAN_EXAMPLE_API_KEY")
-            .map_err(|_| anyhow::anyhow!("OPENHUMAN_EXAMPLE_API_KEY is required with a base URL"))?;
-        let model = std::env::var("OPENHUMAN_EXAMPLE_MODEL")
-            .unwrap_or_else(|_| "gpt-4o-mini".to_string());
+        let api_key = std::env::var("OPENHUMAN_EXAMPLE_API_KEY").map_err(|_| {
+            anyhow::anyhow!("OPENHUMAN_EXAMPLE_API_KEY is required with a base URL")
+        })?;
+        let model =
+            std::env::var("OPENHUMAN_EXAMPLE_MODEL").unwrap_or_else(|_| "gpt-4o-mini".to_string());
 
         let mut builder = builder
             .workspace(Workspace::Ephemeral)

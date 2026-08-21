@@ -48,9 +48,7 @@ fn tool_filters_round_trip() {
 #[test]
 fn auth_and_metadata_are_carried_through() {
     let config = McpServer::http("remote", "https://mcp.example/v1")
-        .auth(McpAuthConfig::BearerToken {
-            token: "t".into(),
-        })
+        .auth(McpAuthConfig::BearerToken { token: "t".into() })
         .description("a remote")
         .timeout_secs(90)
         .cwd("/srv")

@@ -557,13 +557,9 @@ impl CoreBuilder {
     /// The init sequence itself is owned by [`CoreContext::init`] (Phase 2,
     /// Stage A).
     pub async fn build(self) -> anyhow::Result<CoreRuntime> {
-        let (ctx, has_operator_token, config) = CoreContext::init_with_config(
-            self.host_kind,
-            &self.token,
-            self.domains,
-            self.config,
-        )
-        .await?;
+        let (ctx, has_operator_token, config) =
+            CoreContext::init_with_config(self.host_kind, &self.token, self.domains, self.config)
+                .await?;
 
         Ok(CoreRuntime {
             ctx,

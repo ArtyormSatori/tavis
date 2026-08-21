@@ -109,10 +109,7 @@ impl ResolvedWorkspace {
                     .map(Path::to_path_buf)
                     .unwrap_or_else(|| root.join("action"));
                 create_dirs(&workspace_dir, &action_dir)?;
-                log::debug!(
-                    "[embed][harness] ephemeral workspace at {}",
-                    root.display()
-                );
+                log::debug!("[embed][harness] ephemeral workspace at {}", root.display());
                 Ok(Self {
                     workspace_dir,
                     action_dir,
@@ -130,10 +127,7 @@ impl ResolvedWorkspace {
                     .or_else(|| dir.parent().map(|parent| parent.join("action")))
                     .unwrap_or_else(|| dir.join("action"));
                 create_dirs(&workspace_dir, &action_dir)?;
-                let config_path = dir
-                    .parent()
-                    .unwrap_or(dir.as_path())
-                    .join("config.toml");
+                let config_path = dir.parent().unwrap_or(dir.as_path()).join("config.toml");
                 Ok(Self {
                     workspace_dir,
                     action_dir,

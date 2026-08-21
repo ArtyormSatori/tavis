@@ -30,6 +30,8 @@ pub use tinymemory_core::store::{MemoryClient, MemoryState};
 pub use core::runtime::{CoreBuilder, CoreRuntime, DomainSet, ServiceSet, TokenSource};
 pub use core::types::HostKind;
 
+#[cfg(feature = "mcp")]
+pub use embed::McpServer;
 /// Run the OpenHuman agent harness as a library call.
 ///
 /// [`CoreBuilder`] composes a core; [`embed::Core`] gives it typed methods.
@@ -55,8 +57,6 @@ pub use core::types::HostKind;
 /// Read [`embed::harness`](embed) for the two things it cannot do for you: size
 /// the tokio runtime's worker stacks, and share a process with a second harness.
 pub use embed::{Access, Harness, HarnessBuilder, HarnessError, Provider, Workspace};
-#[cfg(feature = "mcp")]
-pub use embed::McpServer;
 pub use embed::{Session, Turn, TurnOutcome, TurnRequest};
 
 /// Live agent-turn progress for **in-process embedders**.

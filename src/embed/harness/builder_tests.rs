@@ -53,7 +53,10 @@ fn a_provider_route_is_never_written_to_config() {
         &Provider::openai_compatible("https://api.example/v1", "sk-secret"),
     );
     assert_eq!(config.cloud_providers.len(), before);
-    assert!(config.inference_url.is_none() || config.inference_url.as_deref() != Some("https://api.example/v1"));
+    assert!(
+        config.inference_url.is_none()
+            || config.inference_url.as_deref() != Some("https://api.example/v1")
+    );
     assert!(config.ephemeral_route.is_none());
 }
 

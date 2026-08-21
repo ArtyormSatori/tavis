@@ -81,7 +81,9 @@ impl Session {
 
     /// Whether this is the offline form.
     pub fn is_local(&self) -> bool {
-        crate::openhuman::security::credentials::session_support::is_local_session_token(&self.token)
+        crate::openhuman::security::credentials::session_support::is_local_session_token(
+            &self.token,
+        )
     }
 }
 
@@ -134,8 +136,12 @@ impl Auth<'_> {
 
     /// Remove the stored session.
     pub async fn clear(&self) -> Result<(), CoreError> {
-        let _: serde_json::Value =
-            call(self.0, "openhuman.auth_clear_session", serde_json::json!({})).await?;
+        let _: serde_json::Value = call(
+            self.0,
+            "openhuman.auth_clear_session",
+            serde_json::json!({}),
+        )
+        .await?;
         Ok(())
     }
 }

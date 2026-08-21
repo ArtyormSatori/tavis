@@ -83,12 +83,10 @@ fn a_harness_runs_a_turn_against_the_provider_it_was_given() {
         // `backend_url` exists for.
         let backend = MockServer::start().await;
         Mock::given(any())
-            .respond_with(
-                ResponseTemplate::new(200).set_body_json(json!({
-                    "success": true,
-                    "data": { "id": "harness-embed-test", "email": "local@openhuman.local" }
-                })),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "success": true,
+                "data": { "id": "harness-embed-test", "email": "local@openhuman.local" }
+            })))
             .mount(&backend)
             .await;
 
