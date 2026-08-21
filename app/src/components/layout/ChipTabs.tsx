@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { IS_DEV } from '../../utils/config';
+import { Button } from '../ui';
 
 const namespace = 'chip-tabs';
 
@@ -60,13 +61,18 @@ interface ChipTabsProps<T extends string> {
 /** Canonical chip-row spacing — its own gutter so content below sits correctly. */
 const DEFAULT_ROW_CLASS = 'flex flex-wrap gap-1.5 px-4 pt-3 pb-3';
 
-const baseChipClass = 'rounded-full text-xs font-medium transition-colors';
+// A pill, not a control footprint: `h-auto` and `rounded-full` replace the
+// `xs` size's fixed height and small radius, so the chip keeps sizing from its
+// own padding. Weight, transition and focus ring come from `<Button>`.
+const baseChipClass = 'h-auto rounded-full text-xs';
 const defaultChipSpacingClass = 'px-3 py-1';
 const compactChipSpacingClass = 'px-2 py-0.5';
 // Inverse pill built from theme tokens: the foreground colour becomes the fill
 // and the surface colour becomes the text, so the selected chip stays
 // high-contrast and on-theme under any palette (light, dark, or custom).
-const activeChipClass = 'bg-content text-surface';
+// The hover fill is pinned to the same colour — a selected chip does not react
+// to hover, and `tertiary` would otherwise contribute one.
+const activeChipClass = 'bg-content text-surface hover:bg-content';
 const inactiveChipClass =
   'bg-surface border border-line text-content-secondary hover:bg-surface-hover';
 
@@ -103,9 +109,10 @@ export default function ChipTabs<T extends string>({
         const chipTestId = item.testId ?? (testIdPrefix ? `${testIdPrefix}-${item.id}` : undefined);
 
         return (
-          <button
+          <Button
             key={item.id}
-            type="button"
+            variant="tertiary"
+            size="xs"
             data-testid={chipTestId}
             role={isNav ? undefined : 'tab'}
             id={isNav ? undefined : item.labelledBy}
@@ -144,7 +151,7 @@ export default function ChipTabs<T extends string>({
               compact ? compactChipSpacingClass : defaultChipSpacingClass
             } ${active ? activeChipClass : inactiveChipClass}`}>
             {item.label}
-          </button>
+          </Button>
         );
       })}
     </div>
