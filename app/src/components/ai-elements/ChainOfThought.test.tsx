@@ -12,7 +12,8 @@ import {
   ChainOfThoughtStep,
 } from './ChainOfThought';
 
-const RAW_PALETTE = /\b(?:bg|text|border|ring)-(?:neutral|stone|slate|zinc|gray|canvas|white|black)\b/;
+const RAW_PALETTE =
+  /\b(?:bg|text|border|ring)-(?:neutral|stone|slate|zinc|gray|canvas|white|black)\b/;
 
 const collectClasses = (root: HTMLElement) =>
   [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))]
@@ -26,7 +27,9 @@ const renderTree = () =>
       <ChainOfThoughtContent data-testid="cot-content">
         <ChainOfThoughtStep data-testid="cot-step" label="Searching" description="the web" />
         <ChainOfThoughtSearchResults data-testid="cot-results">
-          <ChainOfThoughtSearchResult data-testid="cot-result">example.com</ChainOfThoughtSearchResult>
+          <ChainOfThoughtSearchResult data-testid="cot-result">
+            example.com
+          </ChainOfThoughtSearchResult>
         </ChainOfThoughtSearchResults>
         <ChainOfThoughtImage caption="A chart" data-testid="cot-image">
           <span>img</span>
@@ -86,8 +89,14 @@ describe('ChainOfThought', () => {
     renderTree();
 
     expect(screen.getByTestId('cot')).toHaveAttribute('data-slot', 'chain-of-thought');
-    expect(screen.getByTestId('cot-header')).toHaveAttribute('data-slot', 'chain-of-thought-header');
-    expect(screen.getByTestId('cot-content')).toHaveAttribute('data-slot', 'chain-of-thought-content');
+    expect(screen.getByTestId('cot-header')).toHaveAttribute(
+      'data-slot',
+      'chain-of-thought-header'
+    );
+    expect(screen.getByTestId('cot-content')).toHaveAttribute(
+      'data-slot',
+      'chain-of-thought-content'
+    );
   });
 
   it('tags a step with its status as data-variant', () => {

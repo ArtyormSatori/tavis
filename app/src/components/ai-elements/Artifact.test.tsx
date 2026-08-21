@@ -73,7 +73,9 @@ describe('Artifact', () => {
   });
 
   it('prefers an explicit label over the tooltip', () => {
-    render(<ArtifactAction data-testid="action" icon={StarIcon} label="Star it" tooltip="Favourite" />);
+    render(
+      <ArtifactAction data-testid="action" icon={StarIcon} label="Star it" tooltip="Favourite" />
+    );
 
     expect(screen.getByTestId('action')).toHaveAccessibleName('Star it');
   });
@@ -110,7 +112,15 @@ describe('Artifact', () => {
       </Artifact>
     );
 
-    for (const id of ['artifact', 'header', 'title', 'description', 'actions', 'close', 'content']) {
+    for (const id of [
+      'artifact',
+      'header',
+      'title',
+      'description',
+      'actions',
+      'close',
+      'content',
+    ]) {
       expect(screen.getByTestId(id).className).not.toMatch(RAW_PALETTE);
     }
   });

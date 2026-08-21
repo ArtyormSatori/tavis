@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 import { Source, Sources, SourcesContent, SourcesTrigger } from './Sources';
 
-const RAW_PALETTE = /\b(?:bg|text|border|ring)-(?:neutral|stone|slate|zinc|gray|canvas|white|black)\b/;
+const RAW_PALETTE =
+  /\b(?:bg|text|border|ring)-(?:neutral|stone|slate|zinc|gray|canvas|white|black)\b/;
 
 const collectClasses = (root: HTMLElement) =>
   [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))]

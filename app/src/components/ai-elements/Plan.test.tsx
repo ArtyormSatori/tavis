@@ -65,7 +65,9 @@ describe('Plan', () => {
   it('wraps the title and description in a shimmer while streaming', () => {
     renderPlan({ isStreaming: true });
 
-    expect(screen.getByTestId('plan-title').querySelector('[data-slot="plan-shimmer"]')).not.toBeNull();
+    expect(
+      screen.getByTestId('plan-title').querySelector('[data-slot="plan-shimmer"]')
+    ).not.toBeNull();
     expect(
       screen.getByTestId('plan-description').querySelector('[data-slot="plan-shimmer"]')
     ).not.toBeNull();

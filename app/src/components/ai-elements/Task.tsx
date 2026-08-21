@@ -78,9 +78,7 @@ export const Task = ({ defaultOpen = true, className, ...props }: TaskProps) => 
   />
 );
 
-export type TaskTriggerProps = ComponentProps<typeof CollapsibleTrigger> & {
-  title: string;
-};
+export type TaskTriggerProps = ComponentProps<typeof CollapsibleTrigger> & { title: string };
 
 export const TaskTrigger = ({ children, className, title, ...props }: TaskTriggerProps) => (
   // The shared trigger primitive ships padding, a hover fill and a bold

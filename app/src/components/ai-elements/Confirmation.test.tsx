@@ -8,8 +8,8 @@ import {
   ConfirmationActions,
   ConfirmationRejected,
   ConfirmationRequest,
-  ConfirmationTitle,
   type ConfirmationState,
+  ConfirmationTitle,
   type ToolApproval,
 } from './Confirmation';
 

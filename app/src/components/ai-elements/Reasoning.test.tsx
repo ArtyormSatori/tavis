@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Reasoning, ReasoningContent, ReasoningTrigger } from './Reasoning';
 
-const RAW_PALETTE = /\b(?:bg|text|border|ring)-(?:neutral|stone|slate|zinc|gray|canvas|white|black)\b/;
+const RAW_PALETTE =
+  /\b(?:bg|text|border|ring)-(?:neutral|stone|slate|zinc|gray|canvas|white|black)\b/;
 
 const collectClasses = (root: HTMLElement) =>
   [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))]
@@ -12,7 +13,10 @@ const collectClasses = (root: HTMLElement) =>
 
 const renderReasoning = (props?: { isStreaming?: boolean; defaultOpen?: boolean }) =>
   render(
-    <Reasoning data-testid="reasoning" isStreaming={props?.isStreaming} defaultOpen={props?.defaultOpen}>
+    <Reasoning
+      data-testid="reasoning"
+      isStreaming={props?.isStreaming}
+      defaultOpen={props?.defaultOpen}>
       <ReasoningTrigger data-testid="reasoning-trigger" />
       <ReasoningContent data-testid="reasoning-content">Because of X, then Y.</ReasoningContent>
     </Reasoning>
@@ -101,8 +105,14 @@ describe('Reasoning', () => {
     renderReasoning({ defaultOpen: true });
 
     expect(screen.getByTestId('reasoning')).toHaveAttribute('data-slot', 'reasoning');
-    expect(screen.getByTestId('reasoning-trigger')).toHaveAttribute('data-slot', 'reasoning-trigger');
-    expect(screen.getByTestId('reasoning-content')).toHaveAttribute('data-slot', 'reasoning-content');
+    expect(screen.getByTestId('reasoning-trigger')).toHaveAttribute(
+      'data-slot',
+      'reasoning-trigger'
+    );
+    expect(screen.getByTestId('reasoning-content')).toHaveAttribute(
+      'data-slot',
+      'reasoning-content'
+    );
   });
 
   it('uses design tokens, never raw palette classes', () => {

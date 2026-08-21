@@ -20,8 +20,8 @@
  */
 import { type ComponentProps, isValidElement, type ReactNode } from 'react';
 
-import { useT } from '../../lib/i18n/I18nContext';
 import { cn } from '../../lib/cn';
+import { useT } from '../../lib/i18n/I18nContext';
 import { Badge, CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from '../ui';
 import type { ToolPart, ToolPartState } from './types';
 
@@ -94,10 +94,7 @@ export const Tool = ({ className, ...props }: ToolProps) => (
  * `type` and `title` are the component's own props here, so the button's native
  * versions are omitted before the rest is spread onto the trigger.
  */
-export type ToolHeaderProps = Omit<
-  ComponentProps<typeof CollapsibleTrigger>,
-  'type' | 'title'
-> & {
+export type ToolHeaderProps = Omit<ComponentProps<typeof CollapsibleTrigger>, 'type' | 'title'> & {
   title?: string;
 } & (
     | { type: `tool-${string}`; state: ToolPartState; toolName?: never }
@@ -158,7 +155,14 @@ export const ToolStatusBadge = ({ status }: { status: ToolPartState }) => {
 
 export const getStatusBadge = (status: ToolPartState) => <ToolStatusBadge status={status} />;
 
-export const ToolHeader = ({ className, title, type, state, toolName, ...props }: ToolHeaderProps) => {
+export const ToolHeader = ({
+  className,
+  title,
+  type,
+  state,
+  toolName,
+  ...props
+}: ToolHeaderProps) => {
   const derivedName = type === 'dynamic-tool' ? toolName : type.split('-').slice(1).join('-');
 
   return (
@@ -181,10 +185,7 @@ export type ToolContentProps = ComponentProps<typeof CollapsibleContent>;
 export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     data-slot="tool-content"
-    className={cn(
-      'space-y-4 p-4 text-content outline-none',
-      className
-    )}
+    className={cn('space-y-4 p-4 text-content outline-none', className)}
     {...props}
   />
 );
@@ -194,17 +195,12 @@ const JsonBlock = ({ code }: { code: string }) => (
   <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed text-content">{code}</pre>
 );
 
-export type ToolInputProps = ComponentProps<'div'> & {
-  input: ToolPart['input'];
-};
+export type ToolInputProps = ComponentProps<'div'> & { input: ToolPart['input'] };
 
 export const ToolInput = ({ className, input, ...props }: ToolInputProps) => {
   const { t } = useT();
   return (
-    <div
-      data-slot="tool-input"
-      className={cn('space-y-2 overflow-hidden', className)}
-      {...props}>
+    <div data-slot="tool-input" className={cn('space-y-2 overflow-hidden', className)} {...props}>
       <h4 className="text-xs font-medium uppercase tracking-wide text-content-muted">
         {t('aiElements.tool.parameters', 'Parameters')}
       </h4>

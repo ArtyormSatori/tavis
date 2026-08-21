@@ -50,9 +50,7 @@ const Shimmer = ({ children }: { children: string }) => (
   </span>
 );
 
-export type PlanProps = ComponentProps<typeof CollapsibleRoot> & {
-  isStreaming?: boolean;
-};
+export type PlanProps = ComponentProps<typeof CollapsibleRoot> & { isStreaming?: boolean };
 
 export const Plan = ({ className, isStreaming = false, children, ...props }: PlanProps) => {
   const contextValue = useMemo(() => ({ isStreaming }), [isStreaming]);
@@ -80,9 +78,7 @@ export const PlanHeader = ({ className, ...props }: PlanHeaderProps) => (
   />
 );
 
-export type PlanTitleProps = Omit<ComponentProps<'h3'>, 'children'> & {
-  children: string;
-};
+export type PlanTitleProps = Omit<ComponentProps<'h3'>, 'children'> & { children: string };
 
 export const PlanTitle = ({ className, children, ...props }: PlanTitleProps) => {
   const { isStreaming } = usePlan();
@@ -97,9 +93,7 @@ export const PlanTitle = ({ className, children, ...props }: PlanTitleProps) => 
   );
 };
 
-export type PlanDescriptionProps = Omit<ComponentProps<'p'>, 'children'> & {
-  children: string;
-};
+export type PlanDescriptionProps = Omit<ComponentProps<'p'>, 'children'> & { children: string };
 
 export const PlanDescription = ({ className, children, ...props }: PlanDescriptionProps) => {
   const { isStreaming } = usePlan();
