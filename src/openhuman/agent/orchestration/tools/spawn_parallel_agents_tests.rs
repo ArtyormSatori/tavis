@@ -955,6 +955,21 @@ fn spawn_parallel_agents_opts_out_of_the_global_tool_timeout() {
     );
 }
 
+/// Helper: parent context whose subagent allowlist admits `ids`.
+fn parent_admitting(ids: &[&str], tools: Vec<Box<dyn Tool>>) -> ParentExecutionContext {
+    let mut parent = parent_context_with_tools(8, tools);
+    parent.allowed_subagent_ids = ids.iter().map(|id| id.to_string()).collect();
+    parent
+}
+
+/// Helper: the single write-capable tool the dispatch fixtures share.
+fn write_fixture_tools() -> Vec<Box<dyn Tool>> {
+    vec![Box::new(PermissionFixtureTool {
+        name: "write_fixture",
+        level: PermissionLevel::Write,
+    })]
+}
+
 /// Helper: build a fan-out task with only the fields a dispatch decision reads.
 fn dispatch_task(agent_id: &str, ownership: Option<&str>, isolation: Option<&str>) -> ParallelAgentTask {
     ParallelAgentTask {
@@ -1004,12 +1019,9 @@ fn mixed_batch_dispatch_modes_and_claim_conflicts_are_stable() {
         (writer.id.clone(), writer),
         (clasher.id.clone(), clasher),
     ]);
-    let parent = parent_context_with_tools(
-        8,
-        vec![Box::new(PermissionFixtureTool {
-            name: "write_fixture",
-            level: PermissionLevel::Write,
-        })],
+    let parent = parent_admitting(
+        &["isolated_writer", "reader", "writer", "clasher"],
+        write_fixture_tools(),
     );
 
     let preflight = prepare_spawn_parallel_tasks_from_defs(
@@ -1077,13 +1089,7 @@ fn disjoint_ownership_admits_both_writers_serially() {
         (first.id.clone(), first),
         (second.id.clone(), second),
     ]);
-    let parent = parent_context_with_tools(
-        8,
-        vec![Box::new(PermissionFixtureTool {
-            name: "write_fixture",
-            level: PermissionLevel::Write,
-        })],
-    );
+    let parent = parent_admitting(&["first", "second"], write_fixture_tools());
 
     let preflight = prepare_spawn_parallel_tasks_from_defs(
         vec![
@@ -1129,13 +1135,7 @@ fn directory_ownership_contains_files_beneath_it() {
         (owner.id.clone(), owner),
         (nested.id.clone(), nested),
     ]);
-    let parent = parent_context_with_tools(
-        8,
-        vec![Box::new(PermissionFixtureTool {
-            name: "write_fixture",
-            level: PermissionLevel::Write,
-        })],
-    );
+    let parent = parent_admitting(&["owner", "nested"], write_fixture_tools());
 
     let preflight = prepare_spawn_parallel_tasks_from_defs(
         vec![
