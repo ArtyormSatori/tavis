@@ -400,12 +400,13 @@ const InstallDialog = ({ qualifiedName, prefillEnv, onSuccess, onCancel }: Insta
 
       {/* Advanced: optional JSON config */}
       <div>
-        <button
-          type="button"
+        <Button
+          variant="tertiary"
+          size="xs"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="text-xs text-content-muted hover:text-content-secondary transition-colors">
+          className="h-auto p-0 text-xs text-content-muted hover:text-content-secondary">
           {showAdvanced ? '▾' : '▸'} {t('mcp.install.advancedConfig')}
-        </button>
+        </Button>
         {showAdvanced && (
           <div className="mt-2 space-y-1">
             <label
