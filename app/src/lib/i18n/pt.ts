@@ -7409,6 +7409,17 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Arquivo de configurações recuperado',
   'notifications.configRecovered.body':
     'Não foi possível ler seu arquivo de configurações, então ele foi restaurado de um backup ou redefinido para os padrões. O arquivo ilegível foi mantido com o sufixo ".corrupted" caso você precise dele.',
+  'aiElements.plan.toggle': 'Mostrar ou ocultar o plano',
+  'aiElements.tool.parameters': 'Parâmetros',
+  'aiElements.tool.result': 'Resultado',
+  'aiElements.tool.status.approvalRequested': 'Aguardando aprovação',
+  'aiElements.tool.status.approvalResponded': 'Respondido',
+  'aiElements.tool.status.denied': 'Negado',
+  'aiElements.tool.status.pending': 'Pendente',
+  'chat.chainOfThought.title': 'Cadeia de raciocínio',
+  'chat.reasoning.thoughtForAFewSeconds': 'Pensou por alguns segundos',
+  'chat.reasoning.thoughtForSeconds': 'Pensou por {n} segundos',
+  'chat.sources.usedCount': '{n} fontes utilizadas',
 };
 
 export default messages;

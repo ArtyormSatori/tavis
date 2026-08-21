@@ -7326,6 +7326,17 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'File pengaturan dipulihkan',
   'notifications.configRecovered.body':
     'File pengaturan Anda tidak dapat dibaca, jadi dipulihkan dari cadangan atau disetel ulang ke default. File yang tidak terbaca disimpan dengan akhiran ".corrupted" jika Anda membutuhkannya.',
+  'aiElements.plan.toggle': 'Tampilkan atau sembunyikan rencana',
+  'aiElements.tool.parameters': 'Parameter',
+  'aiElements.tool.result': 'Hasil',
+  'aiElements.tool.status.approvalRequested': 'Menunggu persetujuan',
+  'aiElements.tool.status.approvalResponded': 'Sudah dijawab',
+  'aiElements.tool.status.denied': 'Ditolak',
+  'aiElements.tool.status.pending': 'Menunggu',
+  'chat.chainOfThought.title': 'Alur penalaran',
+  'chat.reasoning.thoughtForAFewSeconds': 'Berpikir selama beberapa detik',
+  'chat.reasoning.thoughtForSeconds': 'Berpikir selama {n} detik',
+  'chat.sources.usedCount': 'Menggunakan {n} sumber',
 };
 
 export default messages;

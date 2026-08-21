@@ -7287,6 +7287,17 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'সেটিংস ফাইল পুনরুদ্ধার করা হয়েছে',
   'notifications.configRecovered.body':
     'আপনার সেটিংস ফাইল পড়া যায়নি, তাই এটি একটি ব্যাকআপ থেকে পুনরুদ্ধার করা হয়েছে বা ডিফল্টে রিসেট করা হয়েছে। অপঠনযোগ্য ফাইলটি, প্রয়োজনে ব্যবহারের জন্য, ".corrupted" প্রত্যয় সহ রাখা হয়েছে।',
+  'aiElements.plan.toggle': 'পরিকল্পনা দেখান বা লুকান',
+  'aiElements.tool.parameters': 'প্যারামিটার',
+  'aiElements.tool.result': 'ফলাফল',
+  'aiElements.tool.status.approvalRequested': 'অনুমোদনের অপেক্ষায়',
+  'aiElements.tool.status.approvalResponded': 'উত্তর দেওয়া হয়েছে',
+  'aiElements.tool.status.denied': 'প্রত্যাখ্যাত',
+  'aiElements.tool.status.pending': 'অপেক্ষমাণ',
+  'chat.chainOfThought.title': 'চিন্তার ধারা',
+  'chat.reasoning.thoughtForAFewSeconds': 'কয়েক সেকেন্ড ভেবেছে',
+  'chat.reasoning.thoughtForSeconds': '{n} সেকেন্ড ভেবেছে',
+  'chat.sources.usedCount': '{n}টি উৎস ব্যবহার করা হয়েছে',
 };
 
 export default messages;

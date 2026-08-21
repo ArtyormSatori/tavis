@@ -7618,6 +7618,17 @@ const en: TranslationMap = {
   'notifications.configRecovered.title': 'Settings file recovered',
   'notifications.configRecovered.body':
     'Your settings file could not be read, so it was restored from a backup or reset to defaults. The unreadable file was kept with a ".corrupted" suffix in case you need it.',
+  'aiElements.plan.toggle': 'Toggle plan',
+  'aiElements.tool.parameters': 'Parameters',
+  'aiElements.tool.result': 'Result',
+  'aiElements.tool.status.approvalRequested': 'Awaiting approval',
+  'aiElements.tool.status.approvalResponded': 'Responded',
+  'aiElements.tool.status.denied': 'Denied',
+  'aiElements.tool.status.pending': 'Pending',
+  'chat.chainOfThought.title': 'Chain of Thought',
+  'chat.reasoning.thoughtForAFewSeconds': 'Thought for a few seconds',
+  'chat.reasoning.thoughtForSeconds': 'Thought for {n} seconds',
+  'chat.sources.usedCount': 'Used {n} sources',
 };
 
 export default en;

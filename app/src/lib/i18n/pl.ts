@@ -7396,6 +7396,17 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Odzyskano plik ustawień',
   'notifications.configRecovered.body':
     'Nie można było odczytać pliku ustawień, więc został przywrócony z kopii zapasowej lub zresetowany do wartości domyślnych. Nieczytelny plik zachowano z sufiksem ".corrupted" na wypadek, gdybyś go potrzebował.',
+  'aiElements.plan.toggle': 'Pokaż lub ukryj plan',
+  'aiElements.tool.parameters': 'Parametry',
+  'aiElements.tool.result': 'Wynik',
+  'aiElements.tool.status.approvalRequested': 'Oczekiwanie na zatwierdzenie',
+  'aiElements.tool.status.approvalResponded': 'Odpowiedziano',
+  'aiElements.tool.status.denied': 'Odrzucono',
+  'aiElements.tool.status.pending': 'Oczekuje',
+  'chat.chainOfThought.title': 'Tok rozumowania',
+  'chat.reasoning.thoughtForAFewSeconds': 'Myślał przez kilka sekund',
+  'chat.reasoning.thoughtForSeconds': 'Myślał przez {n} s',
+  'chat.sources.usedCount': 'Użyto {n} źródeł',
 };
 
 export default messages;

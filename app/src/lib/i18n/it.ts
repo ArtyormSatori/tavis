@@ -7427,6 +7427,17 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'File delle impostazioni recuperato',
   'notifications.configRecovered.body':
     'Non è stato possibile leggere il tuo file delle impostazioni, quindi è stato ripristinato da un backup o reimpostato ai valori predefiniti. Il file illeggibile è stato conservato con il suffisso ".corrupted" nel caso ti servisse.',
+  'aiElements.plan.toggle': 'Mostra o nascondi il piano',
+  'aiElements.tool.parameters': 'Parametri',
+  'aiElements.tool.result': 'Risultato',
+  'aiElements.tool.status.approvalRequested': 'In attesa di approvazione',
+  'aiElements.tool.status.approvalResponded': 'Risposto',
+  'aiElements.tool.status.denied': 'Negato',
+  'aiElements.tool.status.pending': 'In sospeso',
+  'chat.chainOfThought.title': 'Catena di ragionamento',
+  'chat.reasoning.thoughtForAFewSeconds': 'Ha ragionato per alcuni secondi',
+  'chat.reasoning.thoughtForSeconds': 'Ha ragionato per {n} secondi',
+  'chat.sources.usedCount': 'Utilizzate {n} fonti',
 };
 
 export default messages;

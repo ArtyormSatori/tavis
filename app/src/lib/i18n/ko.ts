@@ -7207,6 +7207,17 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': '설정 파일 복구됨',
   'notifications.configRecovered.body':
     '설정 파일을 읽을 수 없어 백업에서 복원하거나 기본값으로 재설정했습니다. 읽을 수 없는 파일은 필요할 경우를 대비해 ".corrupted" 접미사를 붙여 보관했습니다.',
+  'aiElements.plan.toggle': '계획 펼치기 또는 접기',
+  'aiElements.tool.parameters': '매개변수',
+  'aiElements.tool.result': '결과',
+  'aiElements.tool.status.approvalRequested': '승인 대기 중',
+  'aiElements.tool.status.approvalResponded': '응답함',
+  'aiElements.tool.status.denied': '거부됨',
+  'aiElements.tool.status.pending': '대기 중',
+  'chat.chainOfThought.title': '추론 과정',
+  'chat.reasoning.thoughtForAFewSeconds': '몇 초 동안 생각함',
+  'chat.reasoning.thoughtForSeconds': '{n}초 동안 생각함',
+  'chat.sources.usedCount': '출처 {n}개 사용',
 };
 
 export default messages;
