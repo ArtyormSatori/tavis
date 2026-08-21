@@ -28,7 +28,6 @@
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -37,6 +36,8 @@ import {
 import { useT } from '../../../lib/i18n/I18nContext';
 import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import Button from '../../ui/Button';
+import { ModalShell } from '../../ui/ModalShell';
+import TextArea from '../../ui/TextArea';
 import type { McpTool } from './types';
 
 interface McpToolPlaygroundProps {
