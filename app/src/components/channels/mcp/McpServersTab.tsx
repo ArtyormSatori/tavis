@@ -739,9 +739,10 @@ const McpServersTab = () => {
                 order. Each row shows its transport, website/repo links, and the
                 real auth surfaces on install. */}
             {showRegistry && catalogRows}
-          </tbody>
-        </table>
+        </TableBody>
+      </Table>
 
+      <div className="rounded-b-lg border border-t-0 border-line">
         {/* Registry fetch error — takes precedence over the empty state so a
             failed load reads as an error (with retry), not "no results". */}
         {showRegistry && catalogError && !catalogLoading && (
