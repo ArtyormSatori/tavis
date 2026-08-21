@@ -41,15 +41,19 @@ function ConnectionRow({
       className="flex items-center justify-between gap-2 rounded-md border border-line bg-surface-muted px-2 py-1"
       data-testid={`node-connection-${edgeId}`}>
       <span className="min-w-0 truncate font-mono text-[11px] text-content-secondary">{label}</span>
-      <button
+      <Button
         type="button"
+        variant="tertiary"
+        size="xs"
+        iconOnly
+        tone="danger"
         aria-label={removeLabel}
         title={removeLabel}
         data-testid={`node-connection-remove-${edgeId}`}
         onClick={onRemove}
-        className="shrink-0 rounded p-0.5 text-content-faint transition-colors hover:bg-surface-hover hover:text-coral-600 dark:hover:text-coral-400">
+        className="shrink-0">
         ✕
-      </button>
+      </Button>
     </li>
   );
 }
