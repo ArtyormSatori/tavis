@@ -260,7 +260,7 @@ async fn build_session_agent_falls_back_to_global_default_when_no_definition() {
     // legacy caller that never resolved one) — must fall back to the
     // unmodified global `config.agent.max_tool_iterations`.
     let agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, None, false, None)
+        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
             .expect("build_session_agent_inner should succeed with no definition");
 
     assert_eq!(
@@ -425,7 +425,7 @@ async fn build_session_agent_leaves_active_profile_id_none_without_profile() {
     // The profile-less path (the legacy default) must stay byte-identical:
     // no active profile id is stamped.
     let agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, None, false, None)
+        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
             .expect("build_session_agent_inner with no profile should succeed");
 
     assert_eq!(
@@ -497,7 +497,7 @@ async fn build_session_agent_profile_less_uses_shared_memory_subtree() {
     // Profile-less path stays byte-identical: session memory uses the shared
     // `memory/` subtree, and no per-profile subtree is created.
     let _agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, None, false, None)
+        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
             .expect("build_session_agent_inner without a profile should succeed");
 
     assert!(
@@ -732,7 +732,7 @@ async fn build_session_agent_profile_less_prompt_has_no_personality_soul() {
     std::fs::write(home.join("SOUL.md"), "I am Alice, a meticulous archivist.").unwrap();
 
     let agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, None, false, None)
+        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
             .expect("build_session_agent_inner without a profile should succeed");
 
     let prompt = agent
