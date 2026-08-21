@@ -414,14 +414,14 @@ const InstallDialog = ({ qualifiedName, prefillEnv, onSuccess, onCancel }: Insta
               className="block text-xs font-medium text-content-secondary">
               {t('mcp.install.configLabel')}
             </label>
-            <textarea
+            <TextArea
               id="mcp-config-json"
               value={configJson}
               onChange={e => setConfigJson(e.target.value)}
               disabled={installing}
               rows={4}
               placeholder={t('mcp.install.configPlaceholder')}
-              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-mono text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50 resize-y"
+              className="w-full font-mono focus:ring-primary-500/40"
             />
           </div>
         )}
