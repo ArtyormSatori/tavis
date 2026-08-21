@@ -18,6 +18,7 @@ import { CheckIcon, CloseIcon } from '../../ui/icons';
 import { CenteredLoadingState } from '../../ui/LoadingState';
 import { ModalShell } from '../../ui/ModalShell';
 import TextField from '../../ui/TextField';
+import Toggle from '../../ui/Toggle';
 
 const ALL_TOOLS = '*';
 
