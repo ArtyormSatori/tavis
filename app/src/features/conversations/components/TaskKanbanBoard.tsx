@@ -265,7 +265,7 @@ export function TaskKanbanBoard({
               )}
               <div className="space-y-2">
                 {cards.length === 0 ? (
-                  <p className="py-2 text-center text-[10px] text-content-faint dark:text-neutral-600">
+                  <p className="py-2 text-center text-[10px] text-content-faint">
                     {t('conversations.taskKanban.emptyColumn')}
                   </p>
                 ) : (
