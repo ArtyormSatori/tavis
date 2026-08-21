@@ -244,6 +244,19 @@ tinycortex-api = { path = "vendor/tinycortex/api" }
 # rather than the one pinned inside the tinymemory submodule.
 #
 # After cloning: `git submodule update --init --recursive vendor/tinymemory`.
+# tinyruntime — the runtime router
+# (https://github.com/tinyhumansai/tinyruntime). Only the *contract* crate is
+# taken here, never the router itself: the router ships as a loadable TinyBus
+# module, and a host that also compiled it would carry the download pipeline, the
+# worker pool, and their dependency trees for nothing.
+#
+# `tinyruntime-bus` is deliberately dependency-light — `serde` and `serde_json`
+# and nothing else — which is what makes naming the payload types cost this
+# manifest almost nothing. The module's own CI asserts it stays that way.
+#
+# After cloning: `git submodule update --init --recursive vendor/tinyruntime`.
+tinyruntime-bus = { path = "vendor/tinyruntime/crates/tinyruntime-bus" }
+
 tinymemory = { path = "vendor/tinymemory/crates/tinymemory" }
 tinymemory-api = { path = "vendor/tinymemory/crates/tinymemory-api" }
 tinymemory-tinycortex = { path = "vendor/tinymemory/crates/tinymemory-tinycortex" }
