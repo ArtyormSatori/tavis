@@ -16,6 +16,7 @@ import {
   type MeetCallDetail,
   type MeetCallRecord,
 } from '../../services/meetCallService';
+import Button from '../ui/Button';
 import ActionItemChecklist from './ActionItemChecklist';
 import { inferPlatformFromUrl, platformLabel, platformLogoUrl } from './meetingUtils';
 import TranscriptViewer from './TranscriptViewer';
@@ -219,12 +220,13 @@ function HistoryDetail({ record }: HistoryDetailProps) {
       {status === 'error' && (
         <p className="text-[11px] text-coral-600 dark:text-coral-400">
           {t('skills.meetingBots.callDetailError')}{' '}
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={() => void loadDetail(record.request_id)}
-            className="underline underline-offset-2 hover:text-coral-700 dark:hover:text-coral-300">
+            className="h-auto rounded-none bg-transparent px-0 text-inherit underline underline-offset-2 hover:bg-transparent hover:text-coral-700 dark:hover:text-coral-300">
             {t('skills.meetingBots.callDetailRetry')}
-          </button>
+          </Button>
         </p>
       )}
 

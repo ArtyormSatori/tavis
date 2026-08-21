@@ -39,6 +39,7 @@
  */
 import { useT } from '../../lib/i18n/I18nContext';
 import type { CoreCronJob } from '../../utils/tauriCommands/cron';
+import { Switch } from '../ui';
 import { formatSchedule } from './scheduledCronFormat';
 
 interface ScheduledCronCardProps {
@@ -172,23 +173,15 @@ export default function ScheduledCronCard({
   // a parent card-click handler.
   const toggleBlock = (
     <span className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={job.enabled}
-        aria-label={job.enabled ? t('skills.dashboard.disable') : t('skills.dashboard.enable')}
+      <Switch
+        id={`${rootId}-toggle-input`}
         data-testid={`${rootId}-toggle`}
+        aria-label={job.enabled ? t('skills.dashboard.disable') : t('skills.dashboard.enable')}
+        checked={job.enabled}
         disabled={busy}
-        onClick={() => onToggle(!job.enabled)}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors disabled:opacity-50 ${
-          job.enabled ? 'bg-sage-500' : 'bg-surface-strong'
-        }`}>
-        <span
-          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-surface shadow-sm transition-transform mt-0.5 ${
-            job.enabled ? 'translate-x-4' : 'translate-x-0.5'
-          }`}
-        />
-      </button>
+        onCheckedChange={next => onToggle(next)}
+        className="data-[state=checked]:bg-sage-500"
+      />
       <span className="text-[10px] text-content-muted min-w-[44px]">
         {job.enabled ? t('common.enabled') : t('common.disabled')}
       </span>
