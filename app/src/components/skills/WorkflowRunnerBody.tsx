@@ -1487,15 +1487,14 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
         ) : (
           <div className="space-y-2">
             {recentRuns.map(r => {
-              const badgeClass = (() => {
-                if (r.status === 'RUNNING')
-                  return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-                if (r.status === 'DONE')
-                  return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200';
-                if (r.status === 'DEGENERATE')
-                  return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
-                return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-              })();
+              const badgeVariant: BadgeVariant =
+                r.status === 'RUNNING'
+                  ? 'primary'
+                  : r.status === 'DONE'
+                    ? 'success'
+                    : r.status === 'DEGENERATE'
+                      ? 'warning'
+                      : 'danger';
               const dur = r.duration_ms !== null ? `${Math.round(r.duration_ms / 1000)}s` : '—';
               const expanded = expandedRunId === r.run_id;
               const v = viewer[r.run_id];
@@ -1503,18 +1502,17 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                 <div
                   key={r.run_id}
                   className="rounded border border-line bg-surface-muted text-xs overflow-hidden">
-                  <button
+                  <Button
                     type="button"
+                    variant="tertiary"
                     onClick={() => toggleExpand(r.run_id)}
-                    className="w-full text-left px-3 py-2 hover:bg-surface-subtle focus:outline-none focus:bg-surface-subtle"
+                    className="w-full block text-left px-3 py-2 font-normal"
                     aria-expanded={expanded}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-content-muted">
                         {expanded ? '▾' : '▸'}
                       </span>
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${badgeClass}`}>
-                        {r.status}
-                      </span>
+                      <Badge variant={badgeVariant}>{r.status}</Badge>
                       <span className="font-mono text-content-secondary">
                         {r.run_id.slice(0, 8)}
                       </span>
@@ -1527,7 +1525,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                     <div className="text-content-faint font-mono text-[10px] truncate pl-5">
                       {r.log_path}
                     </div>
-                  </button>
+                  </Button>
 
                   {r.status === 'RUNNING' && (
                     <div className="px-3 pb-2 pl-8">
