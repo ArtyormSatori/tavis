@@ -386,8 +386,9 @@ const InstalledServerDetail = ({
                     {key}
                   </label>
                   <div className="flex gap-2">
-                    <input
+                    <TextField
                       id={`reconfig-${key}`}
+                      inputSize="sm"
                       type={showReconfig[key] ? 'text' : 'password'}
                       value={reconfigValues[key] ?? ''}
                       onChange={e =>
@@ -395,7 +396,7 @@ const InstalledServerDetail = ({
                       }
                       placeholder={t('mcp.install.enterValue').replace('{key}', key)}
                       disabled={busy}
-                      className="flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50"
+                      className="flex-1"
                     />
                     <Button
                       variant="secondary"
