@@ -576,12 +576,14 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
                 control={
                   <p className="text-xs text-content-muted">
                     {t('voice.providers.mascotVoiceDescPrefix')}{' '}
-                    <button
+                    <Button
                       type="button"
-                      onClick={() => navigateToSettings('personality#face')}
-                      className="underline text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200">
+                      variant="tertiary"
+                      size="xs"
+                      className="h-auto px-0 py-0 underline text-primary-600 dark:text-primary-300 hover:bg-transparent hover:text-primary-700 dark:hover:text-primary-200"
+                      onClick={() => navigateToSettings('personality#face')}>
                       {t('voice.providers.mascotSettings')}
-                    </button>
+                    </Button>
                     {t('voice.providers.mascotVoiceDescSuffix')}
                   </p>
                 }
