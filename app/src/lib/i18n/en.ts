@@ -332,8 +332,6 @@ const en: TranslationMap = {
   'brain.header.goals': 'What your agent is working toward, and why.',
   'brain.header.sources': 'The data your agent learns from.',
   'brain.header.sync': 'Keep your memory fresh and review what changed.',
-  'brain.header.subconscious': 'Background thinking that runs while you’re away.',
-  // Welcome landing (first destination)
   'brain.welcome.nav': 'Welcome',
   'brain.welcome.eyebrow': 'Brain',
   'brain.welcome.title': "Your agent's memory, mapped",
@@ -350,7 +348,6 @@ const en: TranslationMap = {
   'brain.welcome.feat3Title': 'Sources & sync',
   'brain.welcome.feat3Body': 'Connect the data your agent learns from and keep it fresh.',
   'brain.tabs.memory': 'Memory',
-  'brain.tabs.subconscious': 'Subconscious',
   'brain.tabs.graph': 'Graph',
   'brain.tabs.goals': 'Goals',
   'brain.tabs.sources': 'Sources',
@@ -990,7 +987,6 @@ const en: TranslationMap = {
   'activity.tabs.automations': 'Automations',
   'activity.tabs.automationsDescription':
     'Reusable, runnable procedures: a goal plus the steps to reach it. Create one, install from a URL, or open a workflow to run it.',
-  'activity.tabs.backgroundActivity': 'Subconscious',
   'activity.tabs.alerts': 'Alerts',
 
   'intelligence.agents.title': 'Agents Library',
@@ -3141,21 +3137,6 @@ const en: TranslationMap = {
   'reflections.viewConversation': 'View',
 
   // Subconscious mode selector
-  'subconscious.mode.label': 'Subconscious Mode',
-  'subconscious.mode.off.title': 'Off',
-  'subconscious.mode.off.desc': 'Subconscious is disabled.',
-  'subconscious.mode.simple.title': 'Simple',
-  'subconscious.mode.simple.desc': 'Read-only observation. Memory and file access only.',
-  'subconscious.mode.aggressive.title': 'Aggressive',
-  'subconscious.mode.aggressive.desc':
-    'Full tool access. Can write, spawn agents, and delegate tasks.',
-  'subconscious.mode.aggressiveWarning':
-    'Aggressive mode gives the subconscious full tool access including writes and sub-agent spawning.',
-  'subconscious.interval.label': 'Frequency',
-  'subconscious.interval.minutes': '{n} min',
-  'subconscious.interval.hours': '{n}h',
-  'subconscious.interval.oneHour': '1 hour',
-  'subconscious.interval.oneDay': '24 hours',
 
   // WhatsApp
   'whatsapp.chatsSynced': 'chats synced',
@@ -3303,65 +3284,12 @@ const en: TranslationMap = {
   'backend.ramRecommended': '16GB+ RAM recommended',
 
   // Subconscious
-  'subconscious.tasks': 'tasks',
-  'subconscious.ticks': 'ticks',
-  'subconscious.last': 'Last',
-  'subconscious.failed': 'failed',
-  'subconscious.tickInterval': 'Tick Interval',
-  'subconscious.runNow': 'Run Now',
-  'subconscious.instance.on': 'On',
-  'subconscious.instance.off': 'Off',
-  'subconscious.instance.memory.title': 'Your world',
-  'subconscious.instance.memory.subtitle': 'Connected memory sources',
-  'subconscious.instance.tinyplace.title': 'Orchestration steering',
-  'subconscious.instance.tinyplace.subtitle': 'tiny.place session review',
-  'subconscious.instance.tinyplace.disabledHint': 'Enable Orchestration to steer wrapped sessions.',
-  'subconscious.instance.tinyplace.viewDirectives': 'View directives →',
-  'subconscious.runReviewNow': 'Run review now',
   'tinyplaceOrchestration.subconsciousBadge': 'Subconscious · steering',
   'tinyplaceOrchestration.steeringHeader.current': 'Active directive',
   'tinyplaceOrchestration.steeringHeader.none': 'No active directive',
   'tinyplaceOrchestration.steeringHeader.expires': 'expires after {n} cycles',
-  'tinyplaceOrchestration.steeringHeader.lastReview': 'Last review',
-  'tinyplaceOrchestration.steeringHeader.runReview': 'Run review now',
-  'tinyplaceOrchestration.steeringHeader.running': 'Running…',
-  'subconscious.providerUnavailableTitle': 'Subconscious is paused',
-  'subconscious.providerSettings': 'AI settings',
-  'subconscious.scratchpadInfo':
-    'On each tick the subconscious checks what changed across your connected sources, then records follow-ups on your to-do list, updates your goals, or notifies you when something needs attention. Check Settings → Agent access to configure mode and frequency.',
-  'subconscious.approvalNeeded': 'Approval Needed',
-  'subconscious.requiresApproval': 'Requires approval',
-  'subconscious.fixInConnections': 'Fix in Connections',
-  'subconscious.goAhead': 'Go Ahead',
-  'subconscious.activeTasks': 'Active Tasks',
-  'subconscious.noActiveTasks': 'No active tasks',
-  'subconscious.default': 'Default',
-  'subconscious.addTaskPlaceholder': 'Add a new task...',
-  'subconscious.activityLog': 'Activity Log',
-  'subconscious.noActivity': 'No activity yet',
-  'subconscious.decision.nothingNew': 'Nothing new',
-  'subconscious.decision.completed': 'Completed',
-  'subconscious.decision.evaluating': 'Evaluating',
-  'subconscious.decision.waitingApproval': 'Waiting for approval',
-  'subconscious.decision.failed': 'Failed',
-  'subconscious.decision.cancelled': 'Cancelled',
-  'subconscious.decision.skipped': 'Skipped',
 
   // Subconscious triggers (event-driven orchestrator) debug panel
-  'subconsciousTriggers.title': 'Subconscious Triggers',
-  'subconsciousTriggers.subtitle': 'Event-driven background orchestrator',
-  'subconsciousTriggers.pipeline': 'Pipeline',
-  'subconsciousTriggers.mode': 'Mode',
-  'subconsciousTriggers.orchestrator': 'Orchestrator',
-  'subconsciousTriggers.running': 'Running',
-  'subconsciousTriggers.stopped': 'Stopped',
-  'subconsciousTriggers.promotionsPerHour': 'Promotions / hour',
-  'subconsciousTriggers.queueDepth': 'Queue depth',
-  'subconsciousTriggers.orchestratorThread': 'Orchestrator thread',
-  'subconsciousTriggers.userThread': 'User thread',
-  'subconsciousTriggers.disabledHint': 'Enable event-driven mode to activate the pipeline.',
-  'subconsciousTriggers.enable': 'Enable',
-  'subconsciousTriggers.disable': 'Disable',
 
   // Actionable
   'actionable.complete': 'Complete',
@@ -4104,7 +4032,6 @@ const en: TranslationMap = {
   // Section headers for the broader background-activity panel.
   'conversations.backgroundTasks.sectionThisChat': 'In this chat',
   'conversations.backgroundTasks.sectionScheduled': 'Scheduled jobs',
-  'conversations.backgroundTasks.sectionSubconscious': 'Subconscious thinking',
   'conversations.backgroundTasks.sectionMemory': 'Memory syncing',
   // Scheduled (cron) jobs.
   'conversations.backgroundTasks.cronEmpty': 'No scheduled jobs.',
@@ -7033,12 +6960,6 @@ const en: TranslationMap = {
   'memory.sourceFilterAria': 'Filter by source',
   'calls.comingSoonDescription': 'AI-assisted calls are coming soon. Stay tuned.',
   'whatsapp.title': 'WhatsApp',
-  'subconscious.priority.critical': 'critical',
-  'subconscious.priority.important': 'important',
-  'subconscious.priority.normal': 'normal',
-  'subconscious.durationSeconds': '{seconds}s',
-  'subconscious.durationMilliseconds': '{milliseconds}ms',
-  // Settings menu: Appearance + Mascot (#2225)
   'settings.appearance': 'Appearance',
   'settings.appearanceDesc': 'Pick light, dark, or match your system theme',
   'settings.mascot': 'Mascot',
