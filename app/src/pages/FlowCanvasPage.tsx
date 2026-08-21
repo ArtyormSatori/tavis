@@ -410,6 +410,11 @@ function FlowEditor({
   const [sidePanel, setSidePanel] = useState<SidePanel>('copilot');
   const copilotOpen = sidePanel === 'copilot';
   // Toggle a panel: selecting the active one again closes the side panel.
+  // Radix `ToggleGroup` (`type="single"`) already gives us this for free —
+  // re-clicking the selected item reports `onValueChange('')` — so the side
+  // panel toggle below calls `setSidePanel` directly instead of through this
+  // helper. Kept for the one remaining non-toggle-group caller (repair-seed
+  // re-assertion below).
   const toggleSidePanel = useCallback(
     (panel: Exclude<SidePanel, null>) => setSidePanel(cur => (cur === panel ? null : panel)),
     []
