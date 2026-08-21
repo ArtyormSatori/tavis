@@ -211,8 +211,6 @@ pub async fn migrate_legacy_task_runs(
     Ok(report)
 }
 
-/// The thread id encoded in a `<hex>.runs.json` file name, or `None` for any
-/// other entry (the board files themselves, stray data).
 /// Decode the thread id encoded in a `<hex>.runs.json` file name.
 ///
 /// Only strict, ASCII, even-length lowercase hex is accepted. The inner two
