@@ -402,7 +402,6 @@ impl NodeExecTool {
     async fn try_pool_inline(
         &self,
         code: &str,
-        resolved: &crate::openhuman::runtime::node::ResolvedNode,
         action_dir: &std::path::Path,
         timeout: Option<Duration>,
     ) -> Option<ToolResult> {
@@ -418,10 +417,7 @@ impl NodeExecTool {
             return None;
         }
         match crate::openhuman::runtime::pool::node::run_inline(
-            &self.workspace_dir,
-            &self.pool_cfg.node,
-            &resolved.node_bin,
-            &resolved.bin_dir,
+            self.bootstrap.config(),
             code.to_string(),
             Some(action_dir.to_path_buf()),
             timeout,
