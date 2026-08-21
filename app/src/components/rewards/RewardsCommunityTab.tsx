@@ -263,13 +263,13 @@ export default function RewardsCommunityTab({
 
   return (
     <>
-      <section className="relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-[#004ad0] to-[#2b64f1] p-6 text-white shadow-[0_20px_40px_rgba(25,28,30,0.08)]">
+      <section className="relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-[#004ad0] to-[#2b64f1] p-6 text-content-inverted shadow-[0_20px_40px_rgba(25,28,30,0.08)]">
         <div className="relative z-10 space-y-4">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-content-inverted">
               {t('rewards.community.heroTitle')}
             </h1>
-            <p className="text-sm font-medium leading-relaxed text-white/90">
+            <p className="text-sm font-medium leading-relaxed text-content-inverted/90">
               {t('rewards.community.heroSubtitle')}
             </p>
           </div>
@@ -278,7 +278,7 @@ export default function RewardsCommunityTab({
               <>
                 <div
                   data-testid="rewards-discord-connected"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface/15 px-4 py-3 text-sm font-semibold text-white">
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-surface/15 px-4 py-3 text-sm font-semibold text-content-inverted">
                   <svg
                     className="h-4 w-4"
                     viewBox="0 0 24 24"
@@ -299,7 +299,7 @@ export default function RewardsCommunityTab({
                   }}
                   disabled={disconnectState === 'disconnecting'}
                   data-testid="rewards-disconnect-discord"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-surface/10 px-4 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-70">
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-content-inverted/20 bg-surface/10 px-4 py-3 text-sm font-semibold text-content-inverted backdrop-blur-sm transition-colors hover:bg-content-inverted/15 disabled:cursor-not-allowed disabled:opacity-70">
                   {disconnectState === 'disconnecting'
                     ? t('rewards.community.disconnectingDiscord')
                     : t('rewards.community.disconnectDiscord')}
@@ -335,7 +335,7 @@ export default function RewardsCommunityTab({
               onClick={() => {
                 void openUrl(inviteUrl);
               }}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-surface/10 px-4 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/15">
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-content-inverted/20 bg-surface/10 px-4 py-3 text-sm font-semibold text-content-inverted backdrop-blur-sm transition-colors hover:bg-content-inverted/15">
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20.317 4.369A19.79 19.79 0 0 0 15.885 3c-.191.328-.403.775-.552 1.124a18.27 18.27 0 0 0-5.29 0A11.56 11.56 0 0 0 9.49 3a19.74 19.74 0 0 0-4.433 1.369C2.253 8.51 1.492 12.55 1.872 16.533a19.9 19.9 0 0 0 5.239 2.673c.423-.58.8-1.196 1.123-1.845a12.84 12.84 0 0 1-1.767-.85c.148-.106.292-.217.43-.332c3.408 1.6 7.104 1.6 10.472 0c.14.115.283.226.43.332c-.565.338-1.157.623-1.771.851c.322.648.698 1.264 1.123 1.844a19.84 19.84 0 0 0 5.241-2.673c.446-4.617-.761-8.621-3.787-12.164ZM9.46 14.088c-1.02 0-1.855-.936-1.855-2.084c0-1.148.82-2.084 1.855-2.084c1.044 0 1.87.944 1.855 2.084c0 1.148-.82 2.084-1.855 2.084Zm5.08 0c-1.02 0-1.855-.936-1.855-2.084c0-1.148.82-2.084 1.855-2.084c1.044 0 1.87.944 1.855 2.084c0 1.148-.812 2.084-1.855 2.084Z" />
               </svg>
@@ -346,7 +346,7 @@ export default function RewardsCommunityTab({
             <p
               role="alert"
               data-testid="rewards-connect-discord-error"
-              className="text-xs font-medium text-white/90">
+              className="text-xs font-medium text-content-inverted/90">
               {t('rewards.community.connectDiscordError')}
             </p>
           ) : null}
@@ -354,7 +354,7 @@ export default function RewardsCommunityTab({
             <p
               role="alert"
               data-testid="rewards-disconnect-discord-error"
-              className="text-xs font-medium text-white/90">
+              className="text-xs font-medium text-content-inverted/90">
               {t('rewards.community.disconnectDiscordError')}
             </p>
           ) : null}
@@ -408,7 +408,7 @@ export default function RewardsCommunityTab({
                   fill="transparent"
                   stroke="currentColor"
                   strokeWidth="4"
-                  className="text-stone-200"
+                  className="text-line-strong"
                 />
                 <circle
                   cx="28"
@@ -524,7 +524,7 @@ export default function RewardsCommunityTab({
                   className={`rounded-[1.25rem] bg-surface p-5 shadow-sm transition-shadow hover:shadow-md ${
                     role.unlocked
                       ? 'ring-1 ring-primary-100 dark:ring-primary-500/20'
-                      : 'ring-1 ring-black/[0.04] dark:ring-white/[0.06]'
+                      : 'ring-1 ring-line/[0.04] dark:ring-line-strong/[0.06]'
                   }`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-4">
