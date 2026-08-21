@@ -31,17 +31,18 @@ const McpToolList = ({ tools, onTryTool }: McpToolListProps) => {
 
   return (
     <div className="space-y-1">
-      <button
-        type="button"
+      <Button
+        variant="tertiary"
+        size="xs"
         onClick={() => setExpanded(prev => !prev)}
-        className="flex items-center gap-1.5 text-xs font-medium text-content-secondary hover:text-content">
+        className="h-auto gap-1.5 p-0 text-xs font-medium text-content-secondary hover:text-content">
         <span className={`transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden="true">
           ▶
         </span>
         {t(
           safeTools.length === 1 ? 'mcp.toolList.availableSingular' : 'mcp.toolList.availablePlural'
         ).replace('{count}', String(safeTools.length))}
-      </button>
+      </Button>
 
       {expanded && (
         <ul className="mt-2 space-y-1 pl-4 border-l-2 border-line-subtle">
