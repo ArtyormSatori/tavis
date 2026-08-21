@@ -333,18 +333,20 @@ export default function RewardsCommunityTab({
                 {connectState === 'connecting'
                   ? t('rewards.community.connectingDiscord')
                   : t('rewards.community.connectDiscord')}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={() => {
                 void openUrl(inviteUrl);
               }}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-content-inverted/20 bg-surface/10 px-4 py-3 text-sm font-semibold text-content-inverted backdrop-blur-sm transition-colors hover:bg-content-inverted/15">
+              variant="secondary"
+              size="lg"
+              className="border-content-inverted/20 bg-surface/10 text-content-inverted backdrop-blur-sm hover:bg-content-inverted/15">
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20.317 4.369A19.79 19.79 0 0 0 15.885 3c-.191.328-.403.775-.552 1.124a18.27 18.27 0 0 0-5.29 0A11.56 11.56 0 0 0 9.49 3a19.74 19.74 0 0 0-4.433 1.369C2.253 8.51 1.492 12.55 1.872 16.533a19.9 19.9 0 0 0 5.239 2.673c.423-.58.8-1.196 1.123-1.845a12.84 12.84 0 0 1-1.767-.85c.148-.106.292-.217.43-.332c3.408 1.6 7.104 1.6 10.472 0c.14.115.283.226.43.332c-.565.338-1.157.623-1.771.851c.322.648.698 1.264 1.123 1.844a19.84 19.84 0 0 0 5.241-2.673c.446-4.617-.761-8.621-3.787-12.164ZM9.46 14.088c-1.02 0-1.855-.936-1.855-2.084c0-1.148.82-2.084 1.855-2.084c1.044 0 1.87.944 1.855 2.084c0 1.148-.82 2.084-1.855 2.084Zm5.08 0c-1.02 0-1.855-.936-1.855-2.084c0-1.148.82-2.084 1.855-2.084c1.044 0 1.87.944 1.855 2.084c0 1.148-.812 2.084-1.855 2.084Z" />
               </svg>
               {t('rewards.community.joinDiscord')}
-            </button>
+            </Button>
           </div>
           {connectState === 'error' ? (
             <p
