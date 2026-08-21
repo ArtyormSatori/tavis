@@ -770,10 +770,9 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
         modal={{
           isOpen: reembed.open,
           title: t('settings.ai.reindexingMemory'),
-          message: t('settings.ai.reindexingMemoryMessage').replace(
-            '{pending}',
-            String(reembed.pending)
-          ),
+          message: formatI18n(t('settings.ai.reindexingMemoryMessage'), {
+            pending: reembed.pending,
+          }),
           confirmText: t('common.ok'),
           onConfirm: dismissReembed,
           onCancel: dismissReembed,
