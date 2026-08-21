@@ -390,9 +390,10 @@ export function KeyMapField({
       <div className="space-y-1.5" data-testid={testId}>
         {rows.map(([k, v], i) => (
           <div key={i} className="flex items-center gap-1.5">
-            <input
+            <UiInput
               type="text"
-              className={`${INPUT_CLASS} flex-1`}
+              inputSize="sm"
+              className="flex-1"
               value={k}
               placeholder={t('flows.nodeConfig.keymapKeyPlaceholder')}
               onChange={e => {
@@ -401,9 +402,10 @@ export function KeyMapField({
                 commit(next);
               }}
             />
-            <input
+            <UiInput
               type="text"
-              className={`${INPUT_CLASS} flex-1 ${monoValues ? MONO_CLASS : ''}`}
+              inputSize="sm"
+              className={cn('flex-1', monoValues && MONO_CLASS)}
               value={v}
               placeholder={t('flows.nodeConfig.keymapValuePlaceholder')}
               onChange={e => {
@@ -420,25 +422,30 @@ export function KeyMapField({
                   next[i] = [k, expr];
                   commit(next);
                 }}
-                className="w-20 shrink-0 cursor-pointer rounded-md border border-line-strong bg-surface-muted px-1 py-1 text-[11px] text-content-muted focus:outline-none"
+                className="w-20 shrink-0 text-[11px]"
               />
             )}
-            <button
+            <Button
               type="button"
-              className="shrink-0 rounded-md px-1.5 py-1 text-content-faint hover:bg-surface-hover hover:text-coral-600"
+              variant="tertiary"
+              size="xs"
+              iconOnly
+              tone="danger"
               aria-label={t('flows.nodeConfig.keymapRemove')}
               onClick={() => commit(rows.filter((_, idx) => idx !== i))}>
               ✕
-            </button>
+            </Button>
           </div>
         ))}
-        <button
+        <Button
           type="button"
-          className="rounded-md border border-dashed border-line-strong px-2 py-1 text-xs text-content-muted hover:bg-surface-hover"
+          variant="secondary"
+          size="sm"
+          className="border-dashed"
           data-testid={testId ? `${testId}-add` : undefined}
           onClick={() => commit([...rows, ['', '']])}>
           + {t('flows.nodeConfig.keymapAdd')}
-        </button>
+        </Button>
       </div>
     </Field>
   );

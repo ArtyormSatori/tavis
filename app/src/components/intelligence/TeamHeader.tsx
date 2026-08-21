@@ -17,13 +17,14 @@ import type {
   AgentTeamMember,
   AgentTeamMemberStatus,
 } from '../../services/api/agentTeamApi';
+import Button from '../ui/Button';
 import { memberColor } from './memberColors';
 
 /** Status dot colour per member lifecycle state. */
 const MEMBER_STATUS_DOT: Record<AgentTeamMemberStatus, string> = {
   active: 'bg-sage-500',
   pending: 'bg-amber-500',
-  idle: 'bg-stone-400 dark:bg-neutral-500',
+  idle: 'bg-content-faint',
   stopped: 'bg-coral-500',
 };
 
