@@ -86,7 +86,7 @@ async function main() {
         // Not a variable font for this subset - fall back to per-weight files
         // rather than silently dropping weights.
         throw new Error(
-          `${family}/${subset}: ${entry.urls.size} distinct payloads; this generator assumes a variable font`,
+          `${family}/${subset}: ${entry.urls.size} distinct payloads; this generator assumes a variable font`
         );
       }
       const [url] = entry.urls;
@@ -103,7 +103,7 @@ async function main() {
           `  font-display: swap;\n` +
           `  src: url('/fonts/${filename}') format('woff2');\n` +
           `  unicode-range: ${entry.unicodeRange};\n` +
-          `}\n`,
+          `}\n`
       );
     }
     console.log(`${family}: ${bySubset.size} subsets (from ${faces.length} weight-subset pairs)`);
