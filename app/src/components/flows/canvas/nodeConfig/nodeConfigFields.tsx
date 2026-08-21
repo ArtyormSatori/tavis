@@ -213,10 +213,11 @@ export function NumberField({
   const id = useId();
   return (
     <Field label={label} hint={hint} htmlFor={id}>
-      <input
+      <UiInput
         id={id}
         type="number"
-        className={INPUT_CLASS}
+        inputSize="sm"
+        className="w-full"
         value={value ?? ''}
         placeholder={placeholder}
         min={min}
