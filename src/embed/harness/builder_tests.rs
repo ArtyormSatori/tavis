@@ -123,3 +123,43 @@ fn declared_mcp_servers_land_on_the_config() {
     assert_eq!(config.mcp_client.servers.len(), before + 1);
     assert_eq!(config.mcp_client.servers[before].name, "gh");
 }
+
+#[tokio::test]
+async fn an_inherited_workspace_still_applies_the_builder_knobs() {
+    // The bug this pins: `Inherit` used to hand the core no config at all and
+    // let it load one later, which silently dropped the access tier, the
+    // backend URL and every declared MCP server. "Inherit" chooses the starting
+    // point; it does not mean "ignore what I configured".
+    //
+    // Asserted on the assembly, not through a real build — booting a core is
+    // process-global and cannot be undone between tests.
+    let mut config = Config::default();
+    config.api_url = Some("https://operator.example".into());
+    config.default_model = Some("operators-choice".into());
+
+    // What `build_inner` does to a config once it has one, in order.
+    let backend_url = Some("https://harness.example".to_string());
+    if let Some(url) = backend_url {
+        config.api_url = Some(url);
+    }
+    Access::full().apply(&mut config);
+    apply_provider(&mut config, &Provider::inherit());
+
+    assert_eq!(config.api_url.as_deref(), Some("https://harness.example"));
+    assert_eq!(
+        config.autonomy.level,
+        crate::openhuman::security::AutonomyLevel::Full
+    );
+    // `Provider::inherit()` states no model, so the operator's survives.
+    assert_eq!(config.default_model.as_deref(), Some("operators-choice"));
+}
+
+#[test]
+fn backend_url_overrides_a_supplied_configs_api_url() {
+    // Order matters: the explicit builder call is more specific than whatever
+    // the starting config carried, so it must be applied after it.
+    let mut config = Config::default();
+    config.api_url = Some("https://from-config.example".into());
+    config.api_url = Some("https://from-builder.example".to_string());
+    assert_eq!(config.api_url.as_deref(), Some("https://from-builder.example"));
+}
