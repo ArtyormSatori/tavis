@@ -806,14 +806,22 @@ export default function UiGallery() {
         <StatusLine saving={false} error="Could not reach the server." savingLabel="Saving…" />
       </Section>
 
-      <header className="space-y-1 pt-4">
+      {/* A <div>, not a <header>: two banner landmarks in one document is an
+          axe violation, and the page already has one at the top. */}
+      <div className="space-y-1 pt-4">
         <h1 className="text-xl font-semibold text-content">AI elements</h1>
         <p className="text-sm text-content-muted">
           Chat-surface components adapted from vercel/ai-elements onto these primitives and tokens.
         </p>
-      </header>
+      </div>
 
       <Section title="Tool call">
+        {/* ToolInput/ToolOutput label their panels with <h4>, so the section
+            needs an <h3> between them and the Section's own <h2> for the
+            heading order to be valid. */}
+        <h3 className="text-xs font-medium uppercase tracking-wide text-content-muted">
+          Static, dynamic and errored calls
+        </h3>
         <Tool defaultOpen>
           <ToolHeader type="tool-memory_search" state="output-available" />
           <ToolContent>
