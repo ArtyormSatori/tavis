@@ -17,6 +17,7 @@ import {
   memoryTreeEntityIndexFor,
   type ScoreBreakdown,
 } from '../../utils/tauriCommands';
+import Button from '../ui/Button';
 import { MemoryChunkLetterhead } from './MemoryChunkLetterhead';
 import { MemoryChunkMentioned } from './MemoryChunkMentioned';
 import { MemoryChunkScoreBars } from './MemoryChunkScoreBars';
