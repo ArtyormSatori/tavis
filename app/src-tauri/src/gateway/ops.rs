@@ -15,44 +15,15 @@
 //! the build server" needs no code naming that combination — which is why
 //! [`GatewaySpec::Box`] is one variant rather than three.
 //!
-//! Provisioning is then four steps, and each is one tinybox call:
-//!
-//! 1. `create` a box, publishing the core's port to whichever machine it runs on
-//! 2. `spawn` the core in it, detached, with a freshly minted bearer
-//! 3. `forward` that published port back to this machine
-//! 4. poll the core's unauthenticated `/health` until it answers
-//!
-//! Step 3 is the one that is easy to leave out and impossible to notice
-//! missing: publishing puts the port on the *box's* host, which for an SSH
-//! placement is the far machine. Everything looks configured and nothing is
-//! reachable.
+//! Getting a core into a box and making it reachable is [`provision`]'s job;
+//! this module decides *which* of those a gateway needs and holds the result.
 
-use std::collections::BTreeMap;
 use std::sync::Arc;
-use std::time::Duration;
 
-use tinybox_core::{
-    BoxId, BoxSpec, ExecRequest, Forward, Host, NetworkPolicy, PassthroughSandbox, Placement,
-    PortMapping, ProcessId, Sandbox, WorkspaceSource,
-};
-use tinybox_docker::DockerSandbox;
-use tinybox_host::LocalHost;
-use tinybox_ssh::{SshHost, SshTarget};
+use tinybox_core::{BoxId, Forward, ProcessId, Sandbox};
 
-use super::types::{
-    ActiveGateway, Confinement, Gateway, GatewaySpec, Reach, SshReach, CORE_PORT_IN_BOX,
-};
-
-/// How long to wait for a provisioned core to answer `/health`.
-///
-/// Generous because this covers a container start, the core's own boot, and
-/// possibly an image pull — and because polling returns the moment it answers,
-/// so a high ceiling costs nothing when things are fast. Mirrors the embedded
-/// core's own ceiling in `core_process`.
-const HEALTH_TIMEOUT: Duration = Duration::from_secs(120);
-
-/// How often to re-ask while waiting.
-const HEALTH_POLL: Duration = Duration::from_millis(250);
+use super::provision;
+use super::types::{ActiveGateway, Gateway, GatewaySpec};
 
 /// A provisioned gateway, and everything that has to stay alive for it.
 ///
@@ -161,7 +132,7 @@ pub async fn activate(
             reach,
             confinement,
             env,
-        } => provision(gateway, reach, confinement, env, progress)
+        } => provision::provision(gateway, reach, confinement, env, progress)
             .await
             .map(Some),
     }

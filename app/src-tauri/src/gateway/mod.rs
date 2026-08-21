@@ -21,7 +21,8 @@
 //!
 //! - [`types`] — what a gateway is
 //! - [`store`] — where records live (shell-side, not renderer storage)
-//! - [`ops`] — provisioning: create a box, start a core, open a tunnel
+//! - [`ops`] — which of those a gateway needs, and what holds it open
+//! - [`provision`] — create a box, start a core in it, open a tunnel to it
 //! - [`registry`] — which gateway is active, and what is being held open for it
 //! - [`commands`] — the Tauri surface
 //!
@@ -29,6 +30,7 @@
 
 pub mod commands;
 pub mod ops;
+pub mod provision;
 pub mod registry;
 pub mod store;
 pub mod types;
