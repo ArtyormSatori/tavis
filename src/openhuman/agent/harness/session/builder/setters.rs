@@ -457,6 +457,9 @@ impl AgentBuilder {
         // tools stay in the registry below and stay executable — only the
         // advertised surface shrinks. Applied here, before the policy filter,
         // so the visible set and the policy session cannot disagree.
+        if visible_names.is_empty() {
+            visible_names = tools.iter().map(|tool| tool.name().to_string()).collect();
+        }
         crate::openhuman::tools::toolpacks::strip_packed_from_visible(&mut visible_names);
         let config = self.config.clone().unwrap_or_default();
         let event_session_id = self
