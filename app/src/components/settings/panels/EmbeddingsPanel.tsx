@@ -664,7 +664,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
             /* Custom endpoint form */
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                <Label className="block text-[11px] mb-1">
                   {t('settings.embeddings.customEndpoint')}
                 </label>
                 <SettingsTextField
@@ -678,7 +678,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
               </div>
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                  <Label className="block text-[11px] mb-1">
                     {t('settings.embeddings.customModelPlaceholder')}
                   </label>
                   <SettingsTextField
@@ -690,7 +690,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                   />
                 </div>
                 <div className="w-24">
-                  <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                  <Label className="block text-[11px] mb-1">
                     {t('settings.embeddings.dimensions')}
                   </label>
                   <SettingsTextField
@@ -703,7 +703,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                <Label className="block text-[11px] mb-1">
                   {t('settings.embeddings.apiKeyLabelGeneric')} ({t('settings.embeddings.optional')}
                   )
                 </label>
@@ -721,7 +721,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
             <div className="space-y-3">
               <p className="text-xs text-content-muted">{setupProvider.description}</p>
               <div>
-                <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                <Label className="block text-[11px] mb-1">
                   {t('settings.embeddings.apiKeyLabel').replace('{provider}', setupProvider.label)}
                 </label>
                 <div className="flex gap-2">

@@ -49,9 +49,7 @@ describe('UserTurnBody', () => {
     );
     const withoutTime = container.textContent ?? '';
 
-    rerender(
-      <UserTurnBody msg={makeMessage()} displayText="Hi" fallbackDataUris={[]} showTime />
-    );
+    rerender(<UserTurnBody msg={makeMessage()} displayText="Hi" fallbackDataUris={[]} showTime />);
 
     expect(withoutTime.trim()).toBe('Hi');
     expect((container.textContent ?? '').length).toBeGreaterThan(withoutTime.length);
