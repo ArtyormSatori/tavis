@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 
 import { ModalShell } from './ModalShell';
@@ -9,6 +9,16 @@ import { ModalShell } from './ModalShell';
  * helpers name the contract ("the thing a user clicks to dismiss") instead of a
  * particular DOM shape, so the tests survive the next implementation swap too.
  */
+/**
+ * Radix defers two things to a macrotask: registering the outside-pointer
+ * listener (so the click that opened the dialog cannot immediately close it),
+ * and restoring focus on unmount. Tests that act synchronously after render
+ * observe neither, so they flush a tick first.
+ */
+async function flushDeferredWork(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 function overlay(): HTMLElement {
   const element = document.querySelector('[data-slot="dialog-overlay"]');
   if (!element) throw new Error('dialog overlay not rendered');
@@ -28,7 +38,7 @@ function renderModal(props: Partial<React.ComponentProps<typeof ModalShell>> = {
 }
 
 describe('ModalShell', () => {
-  test('moves focus into the dialog and restores prior focus on unmount', () => {
+  test('moves focus into the dialog and restores prior focus on unmount', async () => {
     const trigger = document.createElement('button');
     document.body.appendChild(trigger);
     trigger.focus();
@@ -40,25 +50,27 @@ describe('ModalShell', () => {
     expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true);
 
     unmount();
-    expect(trigger).toHaveFocus();
+    await waitFor(() => expect(trigger).toHaveFocus());
     trigger.remove();
   });
 
-  test('closes from Escape and an outside pointer when permitted', () => {
+  test('closes from Escape and an outside pointer when permitted', async () => {
     const { onClose } = renderModal();
 
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(1);
 
+    await flushDeferredWork();
     fireEvent.pointerDown(overlay());
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  test('independently applies explicit close policy fields', () => {
+  test('independently applies explicit close policy fields', async () => {
     const { onClose } = renderModal({
       closePolicy: { escape: false, backdrop: false, button: true },
     });
 
+    await flushDeferredWork();
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.pointerDown(overlay());
     expect(onClose).not.toHaveBeenCalled();
@@ -67,11 +79,12 @@ describe('ModalShell', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test('disables Escape, backdrop, and button closing and omits the close button', () => {
+  test('disables Escape, backdrop, and button closing and omits the close button', async () => {
     const { onClose } = renderModal({
       closePolicy: { escape: false, backdrop: false, button: false },
     });
 
+    await flushDeferredWork();
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.pointerDown(overlay());
 
