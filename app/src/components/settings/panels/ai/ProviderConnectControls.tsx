@@ -198,16 +198,139 @@ export const ProviderKeyDialog = ({
     }
   };
 
+  // This dialog does NOT use `ModalShell`: the Kimi/Moonshot "Get API key"
+  // link floats in the header's top-right corner (a plain `<a>` positioned
+  // absolutely, logical-inline-aware for RTL) rather than living in a shared
+  // subtitle slot, and the heading text itself is `t('connectProvider')`
+  // (e.g. "Connect") + label, distinct from the dialog's own accessible name
+  // (`connectProviderDialog`, e.g. "Connect {label}") — two different i18n
+  // strings that read identically in English but diverge in translation.
+  // `ModalShell`'s single `title` slot can only serve one of the two, so this
+  // composes `DialogRoot`/`DialogContent` directly (same pattern as
+  // `SettingsModalFrame`), which still gets the real focus trap, scroll lock,
+  // and `aria-hidden`-the-rest-of-the-tree behavior `ModalShell` is built on.
   return (
-    <ModalShell
-      titleId={titleId}
-      title={formatI18n(t('settings.ai.connectProviderDialog'), { label })}
-      subtitle={helper}
-      onClose={onCancel}
-      closePolicy={busy ? { escape: false, backdrop: false, button: false } : undefined}
-      contentClassName="px-6 py-4 space-y-3"
-      footer={
-        <div className="flex justify-end gap-2">
+    <DialogRoot
+      open
+      onOpenChange={next => {
+        if (!next && !busy) onCancel();
+      }}>
+      <DialogContent
+        aria-labelledby={titleId}
+        onEscapeKeyDown={event => {
+          if (busy) event.preventDefault();
+        }}
+        onPointerDownOutside={event => {
+          if (busy) event.preventDefault();
+        }}
+        onInteractOutside={event => {
+          if (busy) event.preventDefault();
+        }}
+        className="border border-line p-6 shadow-soft">
+        {platformLinkUrl ? (
+          <a
+            href={platformLinkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={event => {
+              event.preventDefault();
+              void openUrl(platformLinkUrl).catch(err => {
+                console.warn('[ai-settings] provider platform link open failed', {
+                  slug,
+                  error: err instanceof Error ? err.message : String(err),
+                });
+              });
+            }}
+            style={{ insetInlineEnd: '1.5rem' }}
+            className="absolute top-6 text-xs font-medium leading-6 text-primary-600 hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
+            {t('settings.ai.getProviderApiKey')}
+          </a>
+        ) : null}
+        <div className="mb-4" style={platformLinkUrl ? { paddingInlineEnd: '9rem' } : undefined}>
+          <DialogPrimitive.Title asChild>
+            <h3 id={titleId} className="text-base font-semibold text-content">
+              {`${t('settings.ai.connectProvider')} ${label}`}
+            </h3>
+          </DialogPrimitive.Title>
+          <p className="mt-0.5 text-xs text-content-muted">{helper}</p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="provider-key-input" className="text-xs font-medium text-content-secondary">
+            {fieldLabel}
+          </label>
+          <SettingsTextField
+            id="provider-key-input"
+            type={isLocalRuntime ? 'url' : 'text'}
+            mono={isLocalRuntime}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            value={value}
+            placeholder={placeholder}
+            disabled={busy}
+            onChange={e => {
+              setValue(e.target.value);
+              setError(null);
+            }}
+          />
+          {/* OMLX (endpointKeyMode): render the API key field in addition to
+              the endpoint field above — the runtime is OpenAI-compatible but
+              gated behind a Bearer key. */}
+          {endpointKeyMode ? (
+            <>
+              <label
+                htmlFor="provider-key-input-key"
+                className="mt-3 text-xs font-medium text-content-secondary">
+                {t('settings.ai.apiKeyFieldLabel')}
+              </label>
+              <SettingsTextField
+                id="provider-key-input-key"
+                type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                data-form-type="other"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                value={keyValue}
+                placeholder={keyPlaceholder}
+                disabled={busy}
+                onChange={e => {
+                  setKeyValue(e.target.value);
+                  setError(null);
+                }}
+              />
+            </>
+          ) : null}
+          {error ? <ProviderSetupErrorNotice error={error} /> : null}
+        </div>
+
+        {oauthAction ? (
+          <div className="mt-4 rounded-xl border border-line bg-surface-muted dark:bg-surface-muted/50 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-content-muted">
+              {t('settings.ai.or')}
+            </div>
+            <p className="mt-1 text-xs text-content-muted">
+              {oauthAction.description ?? t('settings.ai.openRouterOauthDescription')}
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleOAuth()}
+              disabled={busy}
+              className="mt-3">
+              {phase === 'oauth' ? t('settings.ai.connecting') : oauthAction.label}
+            </Button>
+          </div>
+        ) : null}
+        <div className="mt-6 flex justify-end gap-2">
           <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={busy}>
             {t('common.cancel')}
           </Button>
@@ -220,101 +343,7 @@ export const ProviderKeyDialog = ({
             {phase === 'saving' ? t('settings.ai.saving') : t('common.save')}
           </Button>
         </div>
-      }>
-      {platformLinkUrl ? (
-        <a
-          href={platformLinkUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={event => {
-            event.preventDefault();
-            void openUrl(platformLinkUrl).catch(err => {
-              console.warn('[ai-settings] provider platform link open failed', {
-                slug,
-                error: err instanceof Error ? err.message : String(err),
-              });
-            });
-          }}
-          className="inline-block text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
-          {t('settings.ai.getProviderApiKey')}
-        </a>
-      ) : null}
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="provider-key-input" className="text-xs font-medium text-content-secondary">
-          {fieldLabel}
-        </label>
-        <SettingsTextField
-          id="provider-key-input"
-          type={isLocalRuntime ? 'url' : 'text'}
-          mono={isLocalRuntime}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          data-form-type="other"
-          data-lpignore="true"
-          data-1p-ignore="true"
-          value={value}
-          placeholder={placeholder}
-          disabled={busy}
-          onChange={e => {
-            setValue(e.target.value);
-            setError(null);
-          }}
-        />
-        {/* OMLX (endpointKeyMode): render the API key field in addition to
-            the endpoint field above — the runtime is OpenAI-compatible but
-            gated behind a Bearer key. */}
-        {endpointKeyMode ? (
-          <>
-            <label
-              htmlFor="provider-key-input-key"
-              className="mt-3 text-xs font-medium text-content-secondary">
-              {t('settings.ai.apiKeyFieldLabel')}
-            </label>
-            <SettingsTextField
-              id="provider-key-input-key"
-              type="text"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              data-form-type="other"
-              data-lpignore="true"
-              data-1p-ignore="true"
-              value={keyValue}
-              placeholder={keyPlaceholder}
-              disabled={busy}
-              onChange={e => {
-                setKeyValue(e.target.value);
-                setError(null);
-              }}
-            />
-          </>
-        ) : null}
-        {error ? <ProviderSetupErrorNotice error={error} /> : null}
-      </div>
-
-      {oauthAction ? (
-        <div className="rounded-xl border border-line bg-surface-muted dark:bg-surface-muted/50 p-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-content-muted">
-            {t('settings.ai.or')}
-          </div>
-          <p className="mt-1 text-xs text-content-muted">
-            {oauthAction.description ?? t('settings.ai.openRouterOauthDescription')}
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => void handleOAuth()}
-            disabled={busy}
-            className="mt-3">
-            {phase === 'oauth' ? t('settings.ai.connecting') : oauthAction.label}
-          </Button>
-        </div>
-      ) : null}
-    </ModalShell>
+      </DialogContent>
+    </DialogRoot>
   );
 };
