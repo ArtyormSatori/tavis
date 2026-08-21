@@ -222,16 +222,6 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
     argsTextareaRef.current?.focus();
   }, []);
 
-  // Click on the backdrop (not the dialog card) closes.
-  const handleBackdropMouseDown = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (event.target === event.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
   return (
     <div
       role="dialog"
