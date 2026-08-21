@@ -59,6 +59,23 @@ pub struct CoreContext {
     /// [`CoreContext::current`] → [`CoreContext::domains`]. `full()` for the
     /// desktop shell / standalone CLI (byte-identical to pre-#4796).
     domains: crate::core::runtime::DomainSet,
+    /// The configuration an embedder supplied to
+    /// [`CoreBuilder::config`](crate::core::runtime::CoreBuilder::config),
+    /// if any.
+    ///
+    /// `None` for every host that lets the core discover its own config, which
+    /// is all of them today except a library embedder — so the default path is
+    /// untouched.
+    ///
+    /// This exists because setting the config at boot is **not** sufficient on
+    /// its own: RPC handlers do not receive it, they call
+    /// `config::ops::load_config_with_timeout()` per dispatch, which re-runs
+    /// `Config::load_or_init()` and re-resolves the process-global workspace.
+    /// An embedder that supplied a config would therefore watch its turns run
+    /// against `~/.openhuman` anyway. Publishing it on the context — the seam
+    /// phase 2 of `docs/plans/pluggable-core/` introduced for exactly this
+    /// migration — lets that loader prefer it without any handler changing.
+    embedder_config: Option<crate::openhuman::config::Config>,
 }
 
 /// The complete input to a workspace-scoped memory binding.
@@ -164,6 +181,9 @@ impl CoreContext {
 
         // 5. Resolve config once, then initialize workspace-bound stores
         //    (memory, attachments, people) with that exact workspace.
+        // Kept for the context: `preloaded_config` is consumed below, and the
+        // whole point is that handlers can reach it after boot.
+        let embedder_config = preloaded_config.clone();
         let loaded = match preloaded_config {
             // A supplied config is authoritative: no disk read, no env overlay,
             // and no `Err` arm to reach, because there was nothing to fail.
@@ -214,6 +234,7 @@ impl CoreContext {
                 memory_subsystem,
             }),
             domains,
+            embedder_config,
         });
 
         // Register the process default context (first build wins). Dispatch
@@ -357,6 +378,21 @@ impl CoreContext {
     /// (e.g. a unit test that dispatches without initializing the core).
     ///
     /// Handlers migrating off process globals read their state through this.
+    /// The configuration this context was built with, when an embedder
+    /// supplied one.
+    ///
+    /// `None` means "discover it the usual way" — see the field docs.
+    pub fn embedder_config(&self) -> Option<&crate::openhuman::config::Config> {
+        self.embedder_config.as_ref()
+    }
+
+    /// The embedder-supplied config for the current dispatch, if there is one.
+    ///
+    /// The read path for `config::ops::load_config_with_timeout`.
+    pub fn current_embedder_config() -> Option<crate::openhuman::config::Config> {
+        Self::current().and_then(|ctx| ctx.embedder_config.clone())
+    }
+
     pub fn current() -> Option<Arc<CoreContext>> {
         CURRENT_CONTEXT
             .try_with(|ctx| ctx.clone())
