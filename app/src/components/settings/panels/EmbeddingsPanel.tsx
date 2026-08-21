@@ -24,8 +24,10 @@ import { isLocalSessionToken } from '../../../utils/localSession';
 import PanelPage from '../../layout/PanelPage';
 import { Alert, AlertDescription, Button, ConfirmDialog } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
-import { SettingsBadge, SettingsRow, SettingsSection, SettingsSelect, SettingsStatusLine } from '../controls';
+import { SettingsStatusLine } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
+import EmbeddingsModelSection from './EmbeddingsModelSection';
+import EmbeddingsProviderList from './EmbeddingsProviderList';
 import EmbeddingsSetupModal from './EmbeddingsSetupModal';
 
 // Grep-friendly, namespaced diagnostics for the custom-endpoint verification
