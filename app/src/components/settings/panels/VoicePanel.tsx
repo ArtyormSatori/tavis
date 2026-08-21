@@ -13,7 +13,6 @@ import {
   loadVoiceSettings,
   saveVoiceSettings,
   setVoiceProviderKey,
-  testVoiceProvider,
   type VoiceProviderView,
   type VoiceSettings,
 } from '../../../services/api/voiceSettingsApi';

@@ -317,15 +317,16 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
               <p className="text-xs font-medium text-content-secondary">
                 {resultIsError ? t('mcp.playground.resultError') : t('mcp.playground.result')}
               </p>
-              <button
-                type="button"
+              <Button
+                variant="tertiary"
+                size="xs"
                 onClick={() => void handleCopyResult()}
                 aria-label={t('mcp.playground.copyResult')}
-                className="text-[10px] font-medium text-primary-600 dark:text-primary-300 hover:underline">
+                className="h-auto p-0 text-[10px] font-medium text-primary-600 hover:underline dark:text-primary-300">
                 {copyStatus === 'copied'
                   ? t('mcp.playground.copied')
                   : t('mcp.playground.copyResult')}
-              </button>
+              </Button>
             </div>
             <pre
               data-testid="mcp-playground-result"
