@@ -27,6 +27,10 @@ pub mod hosted;
 // off the domain is not compiled and the tools are absent from the registry
 // rather than degraded to an error (see `tools::ops`).
 #[cfg(feature = "hosting")]
+/// User-authored hooks — `hooks.json` scripts that observe and gate the agent.
+/// Kernel surface, never gated: the whole point is a policy seam a slim build
+/// still honours, and it costs nothing when nothing is configured.
+pub mod hooks;
 pub mod hosting;
 // The whole http_host domain is an axum static-directory server, so it is
 // exclusive to the `http-server` feature (#5048). Its only outside reference is
