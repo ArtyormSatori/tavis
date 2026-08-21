@@ -108,6 +108,37 @@ impl ToolResult {
     }
 }
 
+impl From<tinymcp_bus::McpToolResult> for ToolResult {
+    /// Converts a rendered MCP result into this application's tool result.
+    ///
+    /// The two shapes are the same by construction — the module's was derived
+    /// from this one when the client was extracted — so this is a mapping, not
+    /// a translation. It exists because they are now types in different crates,
+    /// and a conversion written at each call site would be six chances to get
+    /// the error flag the wrong way round.
+    fn from(result: tinymcp_bus::McpToolResult) -> Self {
+        Self {
+            content: result
+                .content
+                .into_iter()
+                .map(|block| match block {
+                    tinymcp_bus::McpToolContent::Text { text } => ToolContent::Text { text },
+                    tinymcp_bus::McpToolContent::Json { data } => ToolContent::Json { data },
+                    // The contract's block enum is `#[non_exhaustive]`. A kind
+                    // this build does not model is carried through as its JSON
+                    // rather than dropped: a caller can still read it, and
+                    // dropping it would lose content a server deliberately sent.
+                    other => ToolContent::Json {
+                        data: serde_json::to_value(&other).unwrap_or(serde_json::Value::Null),
+                    },
+                })
+                .collect(),
+            is_error: result.is_error,
+            markdown_formatted: result.markdown_formatted,
+        }
+    }
+}
+
 /// A single content block within a `ToolResult`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]

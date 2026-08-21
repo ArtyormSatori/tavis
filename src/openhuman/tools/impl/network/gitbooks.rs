@@ -82,7 +82,7 @@ impl Tool for GitbooksSearchTool {
             .call_tool("searchDocumentation", json!({ "query": query }))
             .await
         {
-            Ok(result) => Ok(result.rendered),
+            Ok(result) => Ok(result.rendered.into()),
             Err(e) => Ok(ToolResult::error(format!("gitbooks_search failed: {e}"))),
         }
     }
@@ -162,7 +162,7 @@ impl Tool for GitbooksGetPageTool {
             .call_tool("getPage", json!({ "url": url }))
             .await
         {
-            Ok(result) => Ok(result.rendered),
+            Ok(result) => Ok(result.rendered.into()),
             Err(e) => Ok(ToolResult::error(format!("gitbooks_get_page failed: {e}"))),
         }
     }
