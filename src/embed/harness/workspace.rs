@@ -65,6 +65,12 @@ impl Workspace {
 pub(super) struct ResolvedWorkspace {
     pub(super) workspace_dir: PathBuf,
     pub(super) action_dir: PathBuf,
+    /// Where `config.toml` would live. **Not** cosmetic: its *parent* is the
+    /// state directory the credential store, the auth profiles and the keyring
+    /// file backend all resolve against. Leave it at the default while pointing
+    /// `workspace_dir` at a temp dir and the harness reads and writes the
+    /// operator's real `~/.openhuman` credentials while looking hermetic.
+    pub(super) config_path: PathBuf,
     /// `None` for `Dir` / `Inherit`; those directories outlive the harness.
     pub(super) _temp: Option<tempfile::TempDir>,
 }
@@ -79,6 +85,11 @@ impl ResolvedWorkspace {
     /// siblings rather than nesting matters — `is_workspace_internal_path`
     /// blocks agent writes beneath the workspace fail-closed, so an `action_dir`
     /// inside it would be an agent that cannot write anywhere.
+    ///
+    /// `config.toml` sits beside the workspace rather than inside it, which is
+    /// the same shape `load_or_init` produces (`<root>/config.toml` next to
+    /// `<root>/workspace`). Credential state follows that file's parent, so the
+    /// layout is what makes an ephemeral harness actually ephemeral.
     pub(super) fn resolve(
         workspace: &Workspace,
         action_dir_override: Option<&Path>,
@@ -105,6 +116,7 @@ impl ResolvedWorkspace {
                 Ok(Self {
                     workspace_dir,
                     action_dir,
+                    config_path: root.join("config.toml"),
                     _temp: Some(temp),
                 })
             }
@@ -118,9 +130,14 @@ impl ResolvedWorkspace {
                     .or_else(|| dir.parent().map(|parent| parent.join("action")))
                     .unwrap_or_else(|| dir.join("action"));
                 create_dirs(&workspace_dir, &action_dir)?;
+                let config_path = dir
+                    .parent()
+                    .unwrap_or(dir.as_path())
+                    .join("config.toml");
                 Ok(Self {
                     workspace_dir,
                     action_dir,
+                    config_path,
                     _temp: None,
                 })
             }
@@ -135,6 +152,7 @@ impl ResolvedWorkspace {
                     action_dir: action_dir_override
                         .map(Path::to_path_buf)
                         .unwrap_or_default(),
+                    config_path: PathBuf::new(),
                     _temp: None,
                 })
             }

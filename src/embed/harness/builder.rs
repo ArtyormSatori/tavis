@@ -211,6 +211,12 @@ impl HarnessBuilder {
                 let mut config = supplied.unwrap_or_default();
                 config.workspace_dir = resolved.workspace_dir.clone();
                 config.action_dir = resolved.action_dir.clone();
+                // Credential state, auth profiles and the keyring file backend
+                // all resolve against this path's parent, not against
+                // `workspace_dir`. Setting only the workspace produces a
+                // harness that looks hermetic and reads the operator's real
+                // credentials.
+                config.config_path = resolved.config_path.clone();
                 Some(config)
             }
         };
