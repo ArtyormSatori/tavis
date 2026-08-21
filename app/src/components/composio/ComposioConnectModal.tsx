@@ -182,7 +182,6 @@ export default function ComposioConnectModal({
   onClose,
 }: ComposioConnectModalProps) {
   const { t } = useT();
-  const modalRef = useRef<HTMLDivElement>(null);
   const pollTimerRef = useRef<number | null>(null);
   const pollDeadlineRef = useRef<number>(0);
   const pollIntervalRef = useRef<number>(POLL_INTERVAL_START_MS);
