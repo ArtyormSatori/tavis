@@ -90,10 +90,8 @@ describe('ComposioPanel', () => {
     renderWithProviders(<Panel />);
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
-    const directRadio = screen.getByLabelText(
-      'Direct (bring your own API key)'
-    ) as HTMLInputElement;
-    expect(directRadio.checked).toBe(true);
+    const directRadio = screen.getByLabelText('Direct (bring your own API key)');
+    expect(directRadio).toBeChecked();
     // Key field is visible.
     expect(screen.getByLabelText('Composio API key')).toBeInTheDocument();
     // "Key currently stored" indicator shows.

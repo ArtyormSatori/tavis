@@ -227,7 +227,7 @@ const ModelDownloadSection = ({
           </div>
           {isPromptLoading && (
             <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-300">
-              <div className="h-3 w-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+              <Spinner className="h-3 w-3" />
               {t('settings.localModel.download.runningPrompt')}
             </div>
           )}

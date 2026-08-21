@@ -164,10 +164,11 @@ const WorkflowRunDetail: React.FC<Props> = ({
               key={name}
               data-testid={`workflow-phase-${name}`}
               className="rounded-xl border border-line bg-surface">
-              <button
-                type="button"
+              <Button
+                variant="tertiary"
                 onClick={() => toggle(name)}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left">
+                aria-expanded={isOpen}
+                className="h-auto w-full justify-between gap-2 rounded-none px-3 py-2 text-left font-normal hover:bg-transparent">
                 <span className="flex min-w-0 items-center gap-2">
                   <span
                     className={`h-2 w-2 flex-none rounded-full ${PHASE_STATUS_DOT[state.status]}`}

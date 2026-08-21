@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ChatSendError } from '../../chat/chatSendError';
 import type { Attachment } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
+import { Button, TextArea } from '../ui';
 import AttachmentPreview from './AttachmentPreview';
 
 /** Max composer height ≈ 8 lines of text-sm + padding. */
