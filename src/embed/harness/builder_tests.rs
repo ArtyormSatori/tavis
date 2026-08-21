@@ -14,7 +14,11 @@ use super::*;
 use crate::openhuman::config::Config;
 
 /// Serializes the tests that claim the process-wide harness slot.
-static GUARD: std::sync::Mutex<()> = std::sync::Mutex::new(());
+///
+/// An async mutex, not a `std` one: these tests hold it across `build().await`,
+/// and a blocking guard held over an await point can deadlock a single-threaded
+/// runtime.
+static GUARD: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 #[test]
 fn default_services_start_no_background_writers() {
@@ -71,7 +75,7 @@ fn inheriting_a_provider_leaves_the_configured_model_alone() {
 #[cfg(feature = "skills")]
 #[tokio::test]
 async fn skills_dir_is_refused_for_an_inherited_workspace() {
-    let _guard = GUARD.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = GUARD.lock().await;
     let err = Harness::builder()
         .workspace(Workspace::Inherit)
         .skills_dir("./skills")
@@ -84,7 +88,7 @@ async fn skills_dir_is_refused_for_an_inherited_workspace() {
 #[cfg(feature = "skills")]
 #[tokio::test]
 async fn a_failed_build_releases_the_process_slot() {
-    let _guard = GUARD.lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = GUARD.lock().await;
     // Otherwise one bad build would poison the process against ever retrying —
     // and the retry is the natural response to an `Invalid` builder input.
     for _ in 0..2 {
