@@ -21,6 +21,8 @@ function chunk(over: Partial<Chunk> = {}): Chunk {
     id: 'chunk-abcdef1234',
     content_preview: 'A short subject line. Followed by the body.',
     source_ref: 'obsidian://vault/note.md',
+    source_id: 'steven|team',
+    owner: 'team',
     has_embedding: true,
     ...over,
   } as Chunk;

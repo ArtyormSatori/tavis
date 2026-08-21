@@ -234,24 +234,6 @@ export default function ComposioConnectModal({
   // that row while the RPC round-trips.
   const [savingScope, setSavingScope] = useState<keyof ComposioUserScopePref | null>(null);
 
-  // Escape to close
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
-  // Focus trap
-  useEffect(() => {
-    const previousFocus = document.activeElement as HTMLElement | null;
-    modalRef.current?.focus();
-    return () => {
-      previousFocus?.focus?.();
-    };
-  }, []);
-
   const stopPolling = useCallback(() => {
     isPollingRef.current = false;
     pokePollRef.current = () => {};

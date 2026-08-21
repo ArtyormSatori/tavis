@@ -195,14 +195,17 @@ function NodeConfigDrawer({
               onChange={e => onChange(node.id, { name: e.target.value })}
             />
           </div>
-          <button
+          <Button
             type="button"
+            variant="tertiary"
+            size="xs"
+            iconOnly
             data-testid="node-config-close"
             onClick={onClose}
             aria-label={t('flows.nodeConfig.close')}
-            className="shrink-0 rounded-full p-1.5 text-content-faint hover:bg-surface-hover hover:text-content-secondary">
+            className="shrink-0 rounded-full">
             ✕
-          </button>
+          </Button>
         </header>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-3.5 py-3.5">

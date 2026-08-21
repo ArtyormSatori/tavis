@@ -237,21 +237,22 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
         </div>
       )}
       {download.state === 'done' && download.path && (
-        <div className="flex items-center gap-2 text-xs text-sage-700 dark:text-sage-300 mt-1">
+        <div className="flex items-center gap-2 text-xs text-sage-600 mt-1">
           <span className="truncate font-mono">
             {t('chat.artifact.downloaded').replace('{path}', download.path)}
           </span>
-          <button
-            type="button"
-            data-analytics-id={`chat-artifact-reveal-${artifact.kind}`}
+          <Button
+            variant="tertiary"
+            size="xs"
+            analyticsId={`chat-artifact-reveal-${artifact.kind}`}
             onClick={handleReveal}
-            className="ml-auto underline hover:text-sage-900 dark:hover:text-sage-100 transition-colors flex-shrink-0">
+            className="ml-auto !h-auto !p-0 underline text-sage-600 hover:bg-transparent hover:text-sage-800 flex-shrink-0">
             {t('chat.artifact.reveal')}
-          </button>
+          </Button>
         </div>
       )}
       {download.state === 'error' && download.error && (
-        <p className="text-xs text-coral-600 dark:text-coral-400 mt-1 break-words">
+        <p className="text-xs text-coral-600 mt-1 break-words">
           {t('chat.artifact.download_failed').replace('{reason}', download.error)}
         </p>
       )}

@@ -22,7 +22,9 @@ import { useCallback, useState } from 'react';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ModelInfo } from '../../../../services/api/aiSettingsApi';
+import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
+import Label from '../../../ui/Label';
 import { SettingsSelect, SettingsTextField } from '../../controls';
 import { isAzureFoundryEndpoint, looksLikeAzureBaseModelId } from '../azureDeployment';
 
@@ -133,12 +135,12 @@ export const ModelEntryField = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-content-secondary">{fieldLabel}</label>
+      <Label className="text-xs text-content-secondary">{fieldLabel}</Label>
 
       {catalogError ? (
-        <div className="rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-300 font-mono break-all">
+        <Alert variant="destructive" className="font-mono text-xs break-all">
           {catalogError}
-        </div>
+        </Alert>
       ) : null}
       {catalogError && onRetry ? (
         <div className="flex items-center gap-2">
