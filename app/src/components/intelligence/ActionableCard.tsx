@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { ActionableItem, SnoozeOption } from '../../types/intelligence';
+import Button from '../ui/Button';
 
 interface ActionableCardProps {
   item: ActionableItem;

@@ -23,6 +23,10 @@ const source: MemorySourceEntry = {
 };
 
 describe('<SourceSettingsPanel />', () => {
+  afterEach(() => {
+    vi.mocked(updateMemorySource).mockReset();
+  });
+
   it('renders a labelled numeric field per relevant limit and a save button', () => {
     render(<SourceSettingsPanel source={source} onSaved={vi.fn()} />);
     const field = screen.getByLabelText(/Max Items/i) as HTMLInputElement;

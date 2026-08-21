@@ -29,6 +29,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import PanelScaffold from '../../components/layout/PanelScaffold';
 import Button from '../../components/ui/Button';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import TextArea from '../../components/ui/TextArea';
+import TextField from '../../components/ui/TextField';
 import {
   type GqlComment,
   type GqlHomeFeedItem,
