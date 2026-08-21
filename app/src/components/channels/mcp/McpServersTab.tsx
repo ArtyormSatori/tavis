@@ -625,18 +625,15 @@ const McpServersTab = () => {
               {(['stdio', 'hosted'] as const).map(tp => {
                 const active = transportFilter === tp;
                 return (
-                  <button
+                  <Button
                     key={tp}
-                    type="button"
+                    variant={active ? 'primary' : 'secondary'}
+                    size="xs"
                     aria-pressed={active}
                     onClick={() => setTransportFilter(prev => (prev === tp ? 'all' : tp))}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                      active
-                        ? 'bg-content text-surface'
-                        : 'border border-line text-content-muted hover:bg-surface-muted'
-                    }`}>
+                    className={`rounded-full font-medium ${active ? 'bg-content text-surface' : ''}`}>
                     {t(tp === 'stdio' ? 'mcp.tab.transport.local' : 'mcp.tab.transport.hosted')}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
