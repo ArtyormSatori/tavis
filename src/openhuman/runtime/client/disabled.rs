@@ -6,9 +6,7 @@
 //! failure: the shell skips its `PATH` injection, and the exec tools are not
 //! registered, exactly as when the runtime is disabled in configuration.
 
-use tinyruntime_bus::{
-    ExecResponse, Language, LanguagesResponse, PoolStatsResponse, ResolvedRuntime,
-};
+use tinyruntime_bus::{ExecResponse, Language, PoolStatsResponse, ResolvedRuntime};
 
 use crate::openhuman::config::Config;
 
@@ -75,15 +73,6 @@ pub async fn execute(
     _cwd: Option<String>,
     _timeout: Option<std::time::Duration>,
 ) -> Result<ExecResponse, RuntimeCallError> {
-    Err(unavailable())
-}
-
-/// Always unavailable: there is no module bus to ask.
-///
-/// # Errors
-///
-/// Always [`RuntimeCallError::Unavailable`].
-pub async fn languages(_config: &Config) -> Result<LanguagesResponse, RuntimeCallError> {
     Err(unavailable())
 }
 
