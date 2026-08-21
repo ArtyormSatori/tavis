@@ -45,7 +45,7 @@ import { ChatThreadView } from './ChatThreadView';
 
 /** Counts every `unwrapToolCallEnvelope` call, wherever in the tree it happens. */
 const unwrapSpy = vi.hoisted(() => vi.fn());
-/** Records the `content` of every agent bubble React actually renders. */
+/** Records the `content` of every agent message body React actually renders. */
 const bubbleRenderSpy = vi.hoisted(() => vi.fn<(content: string) => void>());
 
 // Spy at the module boundary rather than on `JSON.parse` directly: the count
@@ -70,6 +70,14 @@ vi.mock('./AgentMessageBubble', async orig => {
   const actual = await orig<typeof import('./AgentMessageBubble')>();
   return {
     ...actual,
+    // Both agent-body renderers are instrumented: `themeSlice` defaults
+    // `agentMessageViewMode` to `'text'`, so `AgentMessageText` is the one the
+    // default transcript actually mounts — but a host that flips the mode to
+    // `'bubbles'` must hold the same contract.
+    AgentMessageText: (props: Parameters<typeof actual.AgentMessageText>[0]) => {
+      bubbleRenderSpy(props.content);
+      return actual.AgentMessageText(props);
+    },
     AgentMessageBubble: (props: Parameters<typeof actual.AgentMessageBubble>[0]) => {
       bubbleRenderSpy(props.content);
       return actual.AgentMessageBubble(props);
