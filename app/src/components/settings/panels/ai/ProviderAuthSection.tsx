@@ -165,7 +165,7 @@ export const ProviderAuthSection = ({
                 enabled
                 busy={busyAction === `toggle-${existing.slug}`}
                 onToggle={async () => {
-                  onDismissProviderSaveNoticeIfMatching(existing.slug, onDismissProviderSaveNotice);
+                  onProviderRemoved(existing.slug);
                   const remaining = draft.cloudProviders.filter(cp => cp.id !== existing.id);
                   const nextRouting = routingWithProviderRemoved(
                     draft.routing,
