@@ -282,18 +282,17 @@ function FragmentRow({
             <div className="flex items-center justify-end gap-1.5">
               <BinaryChips binary={item.binary} testId={`${testIdPrefix}-binary-${index}`} />
               {canPair && (
-                <Button
-                  type="button"
+                <Toggle
                   variant="secondary"
                   size="xs"
                   data-testid={`${testIdPrefix}-source-toggle-${index}`}
-                  aria-pressed={isRevealed}
-                  onClick={onToggleSource}
+                  pressed={isRevealed}
+                  onPressedChange={onToggleSource}
                   className="h-auto px-1.5 py-0.5 text-[10px]">
                   {isRevealed
                     ? t('flowRuns.inspector.hideSource')
                     : t('flowRuns.inspector.showSource')}
-                </Button>
+                </Toggle>
               )}
             </div>
           </TableCell>
