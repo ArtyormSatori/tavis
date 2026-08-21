@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import Button from '../../ui/Button';
+import TextField from '../../ui/TextField';
 import { clearConfigChat } from './ConfigAssistantPanel';
 import ConfigHelpModal from './ConfigHelpModal';
 import ConnectAuthModal, { authHintMessageKey } from './ConnectAuthModal';
