@@ -5,6 +5,7 @@ import { useT } from '../../lib/i18n/I18nContext';
 import { isTauri } from '../../utils/tauriCommands/common';
 import { openhumanSetSuperContextEnabled } from '../../utils/tauriCommands/config';
 import SettingsSwitch from '../settings/controls/SettingsSwitch';
+import { Button } from '../ui';
 import { trackSuperContextWrite } from './superContextWrite';
 
 const log = debugFactory('chat:super-context-toggle');
@@ -104,12 +105,14 @@ const SuperContextToggle = () => {
           so it grows up-and-left into the app interior — the toggle only shows
           on a fresh thread, where that space is empty, so it never clips. */}
       <span className="group relative inline-flex">
-        <button
-          type="button"
+        <Button
+          iconOnly
+          variant="tertiary"
+          size="xs"
           aria-describedby="super-context-tooltip"
           aria-label={t('chat.superContext.label')}
           data-testid="super-context-info"
-          className="flex h-4 w-4 items-center justify-center rounded-full text-content-faint transition-colors hover:text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+          className="!h-4 !w-4 rounded-full text-content-faint hover:bg-transparent hover:text-content-secondary">
           <svg
             className="h-3.5 w-3.5"
             fill="none"

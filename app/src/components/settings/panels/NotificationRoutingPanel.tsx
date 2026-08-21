@@ -7,6 +7,9 @@ import {
   setNotificationSettings,
 } from '../../../services/notificationService';
 import type { NotificationStats } from '../../../types/notifications';
+import Alert, { AlertDescription, AlertTitle } from '../../ui/Alert';
+import Badge, { type BadgeVariant } from '../../ui/Badge';
+import Slider from '../../ui/Slider';
 import { SettingsCheckbox, SettingsSection } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 
@@ -111,7 +114,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
     <>
       {stats && (
         <SettingsSection title={t('notifications.routing.pipelineStats')}>
-          <div className="grid grid-cols-3 divide-x divide-line-subtle dark:divide-neutral-800">
+          <div className="grid grid-cols-3 divide-x divide-line-subtle">
             {[
               { label: t('notifications.routing.total'), value: stats.total },
               { label: t('notifications.routing.unread'), value: stats.unread },
