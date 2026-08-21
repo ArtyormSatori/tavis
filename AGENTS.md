@@ -585,23 +585,6 @@ The `voice` gate still does not drop `llama` or `cpal`: `cpal` belongs to the `i
 Run the disabled build (`--no-default-features`) before pushing any change to the wallet/web3/x402 surface — it is the only drift catcher. Prove a claimed shed with `scripts/assert-shed.sh`, **not** `cargo tree -i`: the latter exits non-zero when a crate is absent and reports dev-dependency-only survivors as present.
 
 **Leaf-gate variant (`media`, #4804).** Unlike `voice`, the `media` gate needs **no** stub facade: `media::generation` has a single caller (the `build_media_tools` call in `src/openhuman/tools/ops.rs`, itself `#[cfg(feature = "media")]`) and `openhuman::media::image` is unwired scaffold (#2997), so both modules are simply `#[cfg(feature = "media")] pub mod …`. It is a **surface-only** gate: media generation is backend-proxied (`reqwest`, shared) and the `image` crate is shared with channel upload, so no exclusive deps are shed — the issue's "sheds media processing dependencies" / "controllers unregistered" DoD lines are superseded (Media is agent-tools-only; no controller/store/subscriber is tagged `Media`). When a gated domain is a true leaf, prefer this over the facade+stub.
-**`meet` gate (#4800)** — the three Meet domains are one **family directory**, `src/openhuman/meet/`:
-
-| Path | Was | Pattern |
-| --- | --- | --- |
-| `meet/{ops,rpc,schemas,types}` | `meet` | per-submodule `#[cfg(feature = "meet")]` |
-| `meet/agent/` | `meet_agent` | leaf-gate — every submodule (incl. `wav`) is `#[cfg(feature = "meet")]` |
-| `meet/backend_bot/` | `agent_meetings` | facade + `stub.rs` |
-
-`pub mod meet;` in `src/openhuman/mod.rs` is therefore **ungated**: `backend_bot` is a facade+stub domain, and three always-compiled call sites reach into it — the heartbeat planner (`calendar::handle_calendar_meeting_candidate`) and two subscriber registrations (`core::jsonrpc`, `channels::runtime::startup`) — so `meet/backend_bot/stub.rs` must resolve in a `meet`-less build and those callers need no `#[cfg]`. The gate moved down onto each submodule declaration inside `meet/mod.rs`; the set of items that compiles in each configuration is unchanged.
-
-**RPC namespaces did not move.** They are string literals in `ControllerSchema`, not derived from module paths, so `meet`, `meet_agent`, and `agent_meetings` are still three separate namespaces on `/rpc` and `/schema`, `openhuman.meet_agent_*` method names are untouched, and `DomainEvent::domain()` still reports `"agent_meetings"`. Directory layout and wire surface are independent — do not "fix" the namespace strings to match the new paths.
-
-**No deps to shed (do not re-litigate).** Unlike `voice`, this gate drops **zero** dependencies — the Meet domains have no exclusive crates. `meet::agent::wav` is a hand-rolled 79-line RIFF writer with no `use` statements, written precisely so Meet never needed `hound` (which `voice` already owns and sheds). The dependency shed was pre-paid; this gate's value is compile-time surface and binary size, not the dep tree.
-
-
-**Both-ways tests.** `src/core/all_tests.rs` pins the gate in both directions (`meet_controllers_registered_when_feature_on` / `meet_controllers_absent_when_feature_off`). The negative half is the one that proves the gate removes anything. Note CI's smoke lane runs `cargo check` only and never compiles test code, so a disabled-build **test** break is invisible to it — run `cargo test --lib --no-default-features core::all::tests` locally after touching any gated surface.
-
 **`skills` gate — the type carve-out (read before adding the next gate).** The three skill domains follow the same facade+stub shape as `voice`, with one important refinement: **`skills` is not a leaf — it is partly load-bearing infrastructure.** `src/openhuman/tools/traits.rs` re-exports the crate's unified `ToolResult` / `ToolContent` out of `skills::types`, and ~236 files consume them (`mcp`, `runtime::node`, every `Tool` impl). `Workflow` / `WorkflowFrontmatter` / `WorkflowScope` from `skills::ops_types` likewise appear in always-on agent-harness and prompt signatures. Gating `skills` wholesale would take down the entire tool trait system, MCP, and the Node runtime.
 
 So `skills::types` and `skills::ops_types` stay **compiled in both directions** — they are inert serde/std-only definitions with zero coupling to their gated siblings — and only *behaviour* is gated. `src/openhuman/skills/stub.rs` therefore mirrors **functions only** and re-exports the real types (`pub use super::ops_types::{Workflow, …}`), so there is **zero type duplication** — strictly less drift surface than the `voice` stub, which had to re-declare `SttResult` + the `SttProvider` trait because those live inside its gated tree.
