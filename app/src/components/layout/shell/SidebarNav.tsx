@@ -9,7 +9,14 @@ import { selectCompanionSessionActive } from '../../../store/companionSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
 import { AGENT_ACCOUNT_ID } from '../../../utils/accountsFullscreen';
-import { Button } from '../../ui';
+import {
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuIcon,
+  SidebarMenuItem,
+  SidebarMenuLabel,
+} from '../../ui';
 import { NavIcon } from './navIcons';
 
 /**
@@ -33,6 +40,12 @@ function matchActive(path: string, pathname: string): boolean {
  * Static, always-visible navigation rail — the top region of the root-shell
  * sidebar. Renders one icon + label row per {@link NAV_TABS} entry. This is the
  * relocated home of the old floating bottom tab bar's primary destinations.
+ *
+ * Rows are the `SidebarMenu` primitives rather than hand-styled `Button`s. The
+ * active treatment is unchanged and comes from `SidebarMenuButton`'s own
+ * `isActive`: a neutral fill lifted off the chrome plus weight, never an accent
+ * tint — the chrome already carries the theme's hue, so tinting a pill on top
+ * of it stacks two colours and reads as noise.
  */
 export default function SidebarNav() {
   const { t } = useT();
@@ -59,47 +72,41 @@ export default function SidebarNav() {
   };
 
   return (
-    <nav className="flex flex-col gap-0.5 px-2 py-1" aria-label={t('nav.home')}>
-      {tabs.map(tab => {
-        const active = matchActive(tab.path, location.pathname);
-        const showBadge = tab.id === 'notifications' && unreadCount > 0;
-        const showCompanionDot = tab.id === 'settings' && companionActive;
-        return (
-          <Button
-            key={tab.id}
-            variant="tertiary"
-            data-walkthrough={tab.walkthroughAttr}
-            onClick={() => handleClick(tab, active)}
-            title={tab.label}
-            aria-current={active ? 'page' : undefined}
-            // Active state is a neutral fill lifted off the chrome, not an
-            // accent tint: the chrome carries the theme's hue, so tinting a nav
-            // pill on top of it stacks two colours and reads as noise. Weight
-            // and contrast carry the selection instead. Fills are alpha-based so
-            // they lift against whatever backdrop the theme paints behind them.
-            // A nav row, not a control: left-aligned, auto height, 14px type,
-            // and the resting weight stays normal so only the active row reads
-            // as semibold.
-            className={`group h-auto justify-start gap-2.5 rounded-md px-2.5 py-2 text-[14px] cursor-pointer ${
-              active
-                ? 'bg-surface/70 text-content font-semibold hover:bg-surface/70'
-                : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
-            }`}>
-            <span className="relative inline-flex flex-shrink-0">
-              <NavIcon id={tab.id} className="w-4 h-4" />
-              {showBadge && (
-                <span className="absolute -top-1 -right-1 min-w-[13px] h-[13px] px-1 rounded-full bg-coral-500 text-[9px] font-bold text-content-inverted flex items-center justify-center leading-none">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-              {showCompanionDot && (
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              )}
-            </span>
-            <span className="min-w-0 truncate">{tab.label}</span>
-          </Button>
-        );
-      })}
+    <nav className="px-2 py-1" aria-label={t('nav.home')}>
+      <SidebarMenu>
+        {tabs.map(tab => {
+          const active = matchActive(tab.path, location.pathname);
+          const showBadge = tab.id === 'notifications' && unreadCount > 0;
+          const showCompanionDot = tab.id === 'settings' && companionActive;
+          return (
+            <SidebarMenuItem key={tab.id}>
+              <SidebarMenuButton
+                isActive={active}
+                data-walkthrough={tab.walkthroughAttr}
+                onClick={() => handleClick(tab, active)}
+                title={tab.label}
+                // A nav row, not a control: auto height and 14px type, so the
+                // row breathes the way the shell's own spacing scale expects.
+                className="h-auto py-2 text-[14px]">
+                <SidebarMenuIcon>
+                  <NavIcon id={tab.id} className="h-4 w-4" />
+                  {showBadge && (
+                    // Overlaid on the icon rather than trailing the row, so the
+                    // count survives the collapsed rail's icon-only footprint.
+                    <SidebarMenuBadge tone="attention" className="absolute -right-1 -top-1 ml-0">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </SidebarMenuBadge>
+                  )}
+                  {showCompanionDot && (
+                    <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                  )}
+                </SidebarMenuIcon>
+                <SidebarMenuLabel>{tab.label}</SidebarMenuLabel>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+      </SidebarMenu>
     </nav>
   );
 }
