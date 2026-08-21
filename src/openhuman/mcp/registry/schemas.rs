@@ -785,7 +785,8 @@ fn handle_disconnect(params: Map<String, Value>) -> ControllerFuture {
         let config = config_rpc::load_config_with_timeout().await?;
         let server_id = read_required::<String>(&params, "server_id")?;
         to_json(
-            crate::openhuman::mcp::registry::ops::mcp_clients_disconnect(&config, server_id).await?,
+            crate::openhuman::mcp::registry::ops::mcp_clients_disconnect(&config, server_id)
+                .await?,
         )
     })
 }

@@ -128,7 +128,6 @@ impl McpHost {
     }
 }
 
-
 /// The service for `config`'s workspace, opening it on first use.
 ///
 /// This is the entry point for every caller that has a `Config`, which is

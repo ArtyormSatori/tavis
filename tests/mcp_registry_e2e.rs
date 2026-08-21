@@ -235,7 +235,10 @@ async fn successful_connect_clears_last_error() {
         .store()
         .delete_server(&server.server_id)
         .expect("drop the bogus record");
-    h.dynamic().store().insert_server(&server).expect("reinsert");
+    h.dynamic()
+        .store()
+        .insert_server(&server)
+        .expect("reinsert");
     h.dynamic()
         .connect(&server.server_id)
         .await
