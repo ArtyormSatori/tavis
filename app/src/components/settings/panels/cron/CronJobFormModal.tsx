@@ -617,11 +617,9 @@ const CronJobFormModal = ({
 
         {/* Error */}
         {error && (
-          <div
-            data-testid="cron-form-error"
-            className="px-3 py-2 rounded-md bg-coral-50 dark:bg-coral-500/10 border border-coral-200 dark:border-coral-500/30 text-xs text-coral-700 dark:text-coral-300">
+          <Alert variant="destructive" data-testid="cron-form-error" className="text-xs">
             {error}
-          </div>
+          </Alert>
         )}
       </div>
     </ModalShell>

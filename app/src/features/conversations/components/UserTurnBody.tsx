@@ -47,15 +47,21 @@ function AttachmentImage({ dataUri }: { dataUri: string }) {
   );
 }
 
-interface UserTurnBodyProps {
+export interface UserTurnBodyProps {
   msg: ThreadMessage;
   displayText: string;
   fallbackDataUris: string[];
   showTime: boolean;
 }
 
-/** A user turn: its attachments (images, videos, files) above its bubble. */
-function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: UserTurnBodyProps) {
+/**
+ * A user turn: its attachments (images, videos, files) above its bubble.
+ *
+ * Split out of `TranscriptRow` because the attachment rendering — three kinds
+ * of chip, plus the object-URL lifecycle behind `AttachmentImage` — is the bulk
+ * of the row's code and none of it is reached on the agent side.
+ */
+export function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: UserTurnBodyProps) {
   const dataUris = (
     Array.isArray(msg.extraMetadata?.attachmentDataUris)
       ? (msg.extraMetadata.attachmentDataUris as string[])
@@ -167,4 +173,3 @@ function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: UserTurn
     </div>
   );
 }
-
