@@ -34,9 +34,9 @@
 //! paths record `Cancelled`. This gives a typed, queryable lifecycle
 //! (`task_records`) alongside the crate-owned runtime registry.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use tokio::sync::watch;
@@ -45,7 +45,7 @@ use tokio::task::AbortHandle;
 use crate::openhuman::agent::harness::run_queue::{QueueMode, QueuedMessage, RunQueue};
 use crate::openhuman::agent::tinyagents::orchestration::{
     shared_steering_registry, DetachedTaskRegistry, DetachedTaskRegistryError,
-    DetachedTaskWaitOutcome, InMemoryTaskStore, JsonlTaskStore, OrchestrationTaskFilter,
+    DetachedTaskWaitOutcome, InMemoryTaskStore, OrchestrationTaskFilter,
     OrchestrationTaskKind, OrchestrationTaskRecord, OrchestrationTaskResult, OrchestrationTaskSpec,
     OrchestrationTaskStatus, SteeringCommand, SteeringCommandKind, TaskStore, TaskStoreRegistry,
     open_jsonl_task_store_or_memory, reconcile_orphaned_tasks,

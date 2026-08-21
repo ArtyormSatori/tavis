@@ -27,7 +27,7 @@ pub(crate) use tinyagents::graph::orchestration::OrchestrationTaskStatus;
 pub(crate) use tinyagents::graph::orchestration::SteeringRegistry;
 pub(crate) use tinyagents::graph::orchestration::{
     DetachedTaskRegistry, DetachedTaskRegistryError, DetachedTaskWaitOutcome, InMemoryTaskStore,
-    JsonlTaskStore, OrchestrationControlOutcome, OrchestrationTaskFilter, OrchestrationTaskKind,
+    JsonlTaskStore, OrchestrationTaskFilter, OrchestrationTaskKind,
     OrchestrationTaskRecord, OrchestrationTaskResult, OrchestrationTaskSpec, TaskStore,
     TaskStoreRegistry, open_jsonl_task_store_or_memory, reconcile_orphaned_tasks,
 };
