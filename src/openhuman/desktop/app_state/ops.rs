@@ -160,11 +160,6 @@ pub struct AppStateSnapshot {
     /// longer depends on this field.
     pub chat_onboarding_completed: bool,
     pub analytics_enabled: bool,
-    /// Mirror of `Config::meet.auto_orchestrator_handoff` — gates whether
-    /// ending a Google Meet call hands the transcript to the orchestrator
-    /// agent for proactive follow-up actions. Default `false`. See
-    /// issue #1299.
-    pub meet_auto_orchestrator_handoff: bool,
     pub local_state: StoredAppState,
     pub keyring_status: crate::openhuman::security::keyring_consent::KeyringStatus,
     pub runtime: RuntimeSnapshot,
