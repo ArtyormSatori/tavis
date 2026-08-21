@@ -256,7 +256,9 @@ export const ProviderKeyDialog = ({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="provider-key-input" className="text-xs font-medium text-content-secondary">
+          <label
+            htmlFor="provider-key-input"
+            className="text-xs font-medium text-content-secondary">
             {fieldLabel}
           </label>
           <SettingsTextField
