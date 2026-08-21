@@ -470,28 +470,26 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
   );
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('mcp.connectAuth.title').replace('{name}', server.display_name)}
-      onMouseDown={e => {
-        if (e.target === e.currentTarget && !busy) onClose();
-      }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 overflow-y-auto">
-      <div className="w-full max-w-md rounded-xl bg-surface border border-line shadow-xl p-5 space-y-4">
-        <div>
-          <h3 className="text-base font-semibold text-content">
-            {t('mcp.connectAuth.title').replace('{name}', server.display_name)}
-          </h3>
-          <p className="text-xs text-content-muted mt-1">{t('mcp.connectAuth.hint')}</p>
-          <button
-            type="button"
+    <ModalShell
+      onClose={onClose}
+      titleId={titleId}
+      title={t('mcp.connectAuth.title').replace('{name}', server.display_name)}
+      subtitle={
+        <>
+          {t('mcp.connectAuth.hint')}{' '}
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={() => setShowConfigHelp(true)}
-            className="mt-1 text-[11px] font-medium text-primary-600 dark:text-primary-400 hover:underline">
+            className="h-auto p-0 align-baseline text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-400">
             {t('mcp.connectAuth.howToGetToken')}
-          </button>
-        </div>
-
+          </Button>
+        </>
+      }
+      maxWidthClassName="max-w-md"
+      contentClassName="space-y-4 p-5"
+      closePolicy={{ backdrop: !busy, escape: !busy, button: !busy }}>
+      <>
         {error && (
           <div className="rounded-lg border border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 px-3 py-2 text-xs text-coral-700 dark:text-coral-300 break-words">
             {error}
