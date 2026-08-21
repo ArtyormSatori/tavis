@@ -96,7 +96,7 @@ function statusStyle(status: ToolTimelineEntryStatus): {
       };
     case 'cancelled':
       return {
-        dot: 'bg-stone-400 dark:bg-neutral-500',
+        dot: 'bg-content-faint',
         labelKey: 'conversations.backgroundTasks.statusCancelled',
         pill: 'text-content-secondary',
       };

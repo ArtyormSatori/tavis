@@ -30,9 +30,7 @@ describe('<ChannelFieldInput />', () => {
     const input = getByLabelText(/API Key/) as HTMLInputElement;
     expect(input).not.toBeNull();
     expect(input.type).toBe('text');
-    input.dispatchEvent(new Event('focus'));
-    input.value = 'secret-value';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+    fireEvent.change(input, { target: { value: 'secret-value' } });
     expect(onChange).toHaveBeenCalledWith('secret-value');
   });
 
