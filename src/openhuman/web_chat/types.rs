@@ -91,10 +91,6 @@ pub struct ChatRequestMetadata {
     pub agent_id: Option<String>,
 }
 
-impl ChatRequestMetadata {
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub(crate) struct WebChatParams {
     pub(super) client_id: String,
