@@ -1176,7 +1176,6 @@ pub async fn snapshot() -> Result<RpcOutcome<AppStateSnapshot>, String> {
         snapshot_config.onboarding_completed,
         snapshot_config.chat_onboarding_completed,
         snapshot_config.observability.analytics_enabled,
-        snapshot_config.meet.auto_orchestrator_handoff,
         runtime.local_ai.state,
         runtime.service.state
     );
@@ -1192,7 +1191,6 @@ pub async fn snapshot() -> Result<RpcOutcome<AppStateSnapshot>, String> {
             onboarding_completed: snapshot_config.onboarding_completed,
             chat_onboarding_completed: snapshot_config.chat_onboarding_completed,
             analytics_enabled: snapshot_config.observability.analytics_enabled,
-            meet_auto_orchestrator_handoff: snapshot_config.meet.auto_orchestrator_handoff,
             local_state,
             keyring_status,
             runtime,
