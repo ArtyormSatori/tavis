@@ -109,6 +109,12 @@ pub fn all_tools_with_runtime(
     #[cfg(not(feature = "skills"))]
     let _ = (active_profile, skill_allowlist, profile_skills_root);
 
+    // One shared snapshot of this session's configuration for both language
+    // clients. They each hand it to the `tinyruntime` module on every call —
+    // the module holds no configuration of its own — so the two must not be
+    // able to disagree about which version this session asked for.
+    let shared_config = Arc::new(root_config.clone());
+
     // Build a session-scoped managed Node.js bootstrap once, so ShellTool,
     // NodeExecTool, and NpmExecTool all share the same memoised resolution
     // state. Disabled when `node.enabled = false` — in that case shell skips
@@ -124,7 +130,7 @@ pub fn all_tools_with_runtime(
             prefer_system = root_config.node.prefer_system,
             "[tools::ops] node runtime enabled — constructing shared NodeBootstrap"
         );
-        Some(Arc::new(NodeBootstrap::new(Arc::clone(root_config))))
+        Some(Arc::new(NodeBootstrap::new(Arc::clone(&shared_config))))
     } else {
         tracing::debug!(
             "[tools::ops] node runtime disabled — shell PATH injection + node_exec/npm_exec suppressed"
@@ -137,7 +143,7 @@ pub fn all_tools_with_runtime(
             prefer_system = root_config.runtime_python.prefer_system,
             "[tools::ops] python runtime enabled — constructing shared PythonBootstrap"
         );
-        Some(Arc::new(PythonBootstrap::new(Arc::clone(root_config))))
+        Some(Arc::new(PythonBootstrap::new(Arc::clone(&shared_config))))
     } else {
         tracing::debug!(
             "[tools::ops] python runtime disabled — shell python/pip PATH injection suppressed"
