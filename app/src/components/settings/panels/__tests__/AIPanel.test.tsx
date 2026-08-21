@@ -1522,11 +1522,16 @@ describe('AIPanel', () => {
     expect(screen.getByRole('dialog', { name: /Connect OpenAI/i })).toBeInTheDocument();
 
     // The number of provider toggle switches must not have grown — the failed
-    // provider was never added to the draft.
-    expect(screen.getAllByRole('switch').length).toBe(chipsBefore);
+    // provider was never added to the draft. `hidden: true` is required here:
+    // the connect dialog is now a real Radix Dialog (migrated off a hand-rolled
+    // `<div role="dialog">`), so Radix aria-hides the rest of the tree while it
+    // is open and the default role query would otherwise see zero switches.
+    expect(screen.getAllByRole('switch', { hidden: true }).length).toBe(chipsBefore);
 
     // Specifically: no "Disconnect OpenAI" switch (chip is still in off state).
-    expect(screen.queryByRole('switch', { name: /Disconnect OpenAI/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('switch', { name: /Disconnect OpenAI/i, hidden: true })
+    ).not.toBeInTheDocument();
   });
 
   // Regression for #4852: the Codex auth button had a hardcoded Korean fallback
