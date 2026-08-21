@@ -1172,7 +1172,7 @@ const MAX_RPC_BODY_BYTES: usize = 64 * 1024 * 1024;
 /// 3. `http_request_log_middleware` — logs non-RPC HTTP requests with timing
 #[cfg(feature = "http-server")]
 pub fn build_core_http_router(socketio_enabled: bool) -> Router {
-    let mut router = Router::new()
+    let router = Router::new()
         .route("/", get(root_handler))
         .route("/health", get(health_handler))
         .route("/schema", get(schema_handler))
