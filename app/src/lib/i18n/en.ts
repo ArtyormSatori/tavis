@@ -1751,6 +1751,9 @@ const en: TranslationMap = {
   'settings.core.applyRestartNote': 'Saving restarts OpenHuman to reconnect.',
 
   // Gateways — cores this app provisions and runs elsewhere.
+  'devOptions.gateway': 'Gateway',
+  'devOptions.provisionedCore': 'Core provisioned by this app',
+  'devOptions.gatewayId': 'Gateway',
   'settings.gateway.title': 'Run the core somewhere else',
   'settings.gateway.description': 'The core can run in a container, on another machine over SSH, or in a container on another machine. OpenHuman starts it, connects to it, and shuts it down when you switch away.',
   'settings.gateway.add': 'Add a location',

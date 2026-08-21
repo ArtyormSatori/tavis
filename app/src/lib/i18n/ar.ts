@@ -7166,6 +7166,10 @@ const messages: TranslationMap = {
   'settings.gateway.binaryRequired': 'أدخل مسار openhuman-core على ذلك الجهاز.',
   'settings.gateway.portInvalid': 'يجب أن يكون منفذ SSH رقمًا.',
 
+  'devOptions.gateway': 'الموقع',
+  'devOptions.provisionedCore': 'نواة شغّلها هذا التطبيق',
+  'devOptions.gatewayId': 'الموقع',
+
 };
 
 export default messages;

@@ -6936,6 +6936,10 @@ const messages: TranslationMap = {
   'settings.gateway.binaryRequired': '请填写该机器上 openhuman-core 的路径。',
   'settings.gateway.portInvalid': 'SSH 端口必须是数字。',
 
+  'devOptions.gateway': '位置',
+  'devOptions.provisionedCore': '由本应用启动的内核',
+  'devOptions.gatewayId': '位置',
+
 };
 
 export default messages;

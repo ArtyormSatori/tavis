@@ -7324,6 +7324,10 @@ const messages: TranslationMap = {
   'settings.gateway.binaryRequired': 'ওই মেশিনে openhuman-core-এর পথ লিখুন।',
   'settings.gateway.portInvalid': 'SSH পোর্ট একটি সংখ্যা হতে হবে।',
 
+  'devOptions.gateway': 'অবস্থান',
+  'devOptions.provisionedCore': 'এই অ্যাপের চালু করা কোর',
+  'devOptions.gatewayId': 'অবস্থান',
+
 };
 
 export default messages;

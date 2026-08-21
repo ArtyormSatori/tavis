@@ -7244,6 +7244,10 @@ const messages: TranslationMap = {
   'settings.gateway.binaryRequired': '그 컴퓨터의 openhuman-core 경로를 입력하세요.',
   'settings.gateway.portInvalid': 'SSH 포트는 숫자여야 합니다.',
 
+  'devOptions.gateway': '위치',
+  'devOptions.provisionedCore': '이 앱이 시작한 코어',
+  'devOptions.gatewayId': '위치',
+
 };
 
 export default messages;

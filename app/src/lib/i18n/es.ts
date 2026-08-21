@@ -7479,6 +7479,10 @@ const messages: TranslationMap = {
   'settings.gateway.binaryRequired': 'Indica la ruta a openhuman-core en esa máquina.',
   'settings.gateway.portInvalid': 'El puerto SSH debe ser un número.',
 
+  'devOptions.gateway': 'Ubicación',
+  'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicación',
+  'devOptions.gatewayId': 'Ubicación',
+
 };
 
 export default messages;

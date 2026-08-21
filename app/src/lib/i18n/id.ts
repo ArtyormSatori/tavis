@@ -7363,6 +7363,10 @@ const messages: TranslationMap = {
   'settings.gateway.binaryRequired': 'Isi path ke openhuman-core di mesin itu.',
   'settings.gateway.portInvalid': 'Port SSH harus berupa angka.',
 
+  'devOptions.gateway': 'Lokasi',
+  'devOptions.provisionedCore': 'Core yang dijalankan aplikasi ini',
+  'devOptions.gatewayId': 'Lokasi',
+
 };
 
 export default messages;
