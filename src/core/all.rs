@@ -559,12 +559,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Agent,
         crate::openhuman::agent::artifacts::all_artifacts_registered_controllers(),
     );
-    // Background heartbeat loop controls
-    push(
-        &mut controllers,
-        DomainGroup::Automation,
-        crate::openhuman::subconscious::heartbeat::all_heartbeat_registered_controllers(),
-    );
     // Ad-hoc static directory HTTP hosting for local file sharing / previews.
     // Gated with the `http-server` feature (#5048): the domain is an axum server,
     // so a slim build has no `http_host.*` controllers to register.
@@ -631,12 +625,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         &mut controllers,
         DomainGroup::Config,
         crate::openhuman::config::migration_helpers::all_migration_registered_controllers(),
-    );
-    // Background command monitors for agent-scoped event sources
-    push(
-        &mut controllers,
-        DomainGroup::Automation,
-        crate::openhuman::subconscious::monitors::all_monitor_registered_controllers(),
     );
     // Unified inference domain: text / vision / local runtime / cloud providers.
     // (Formerly split across inference, local AI, and providers modules.)
@@ -934,18 +922,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         &mut controllers,
         DomainGroup::Voice,
         crate::openhuman::voice::all_voice_registered_controllers(),
-    );
-    // Background awareness and autonomous tasks
-    push(
-        &mut controllers,
-        DomainGroup::Automation,
-        crate::openhuman::subconscious::all_subconscious_registered_controllers(),
-    );
-    push(
-        &mut controllers,
-        DomainGroup::Automation,
-        crate::openhuman::subconscious::triggers::all_subconscious_triggers_registered_controllers(
-        ),
     );
     // Webhook tunnel management
     push(
