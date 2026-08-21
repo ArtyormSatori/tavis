@@ -230,20 +230,20 @@ const ReferralRewardsSection = () => {
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="lg"
                 onClick={() => void handleCopy()}
-                disabled={!referralCodeToCopy}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-800 disabled:opacity-50">
+                disabled={!referralCodeToCopy}>
                 {t('rewards.referralSection.copyCode')}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={() => void handleShare()}
-                disabled={!referralCodeToCopy}
-                className="inline-flex items-center justify-center rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium text-content-secondary transition-colors hover:bg-surface-hover dark:bg-surface-muted/60 dark:hover:bg-surface-muted/60 disabled:opacity-50">
+                disabled={!referralCodeToCopy}>
                 {t('rewards.referralSection.share')}
-              </button>
+              </Button>
               {copyHint ? (
                 <span className="self-center text-sm text-sage-600 dark:text-sage-300">
                   {copyHint}
