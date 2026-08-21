@@ -14,6 +14,8 @@ import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import { openUrl } from '../../../utils/openUrl';
 import ChipTabs from '../../layout/ChipTabs';
 import Button from '../../ui/Button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/Table';
+import TextField from '../../ui/TextField';
 import InstallDialog from './InstallDialog';
 import InstalledServerDetail from './InstalledServerDetail';
 import McpConnectionHealthToolbar from './McpConnectionHealthToolbar';
