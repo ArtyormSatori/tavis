@@ -1068,7 +1068,9 @@ function FlowEditor({
       variant="secondary"
       size="xs"
       value={sidePanel ?? ''}
-      onValueChange={next => toggleSidePanel(next as Exclude<SidePanel, null>)}
+      onValueChange={next =>
+        setSidePanel(next === 'copilot' || next === 'legend' ? next : null)
+      }
       aria-label={t('flows.canvas.sidePanelToggle')}
       className="rounded-lg border border-line bg-surface p-0.5">
       <ToggleGroupItem value="copilot" data-testid="flow-canvas-copilot-toggle" className="border-0">
