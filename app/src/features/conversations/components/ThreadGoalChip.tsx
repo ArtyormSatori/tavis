@@ -309,7 +309,7 @@ export function ThreadGoalEditorPanel({
         }}
         placeholder={t('conversations.threadGoal.placeholder')}
         aria-label={t('conversations.threadGoal.placeholder')}
-        className="w-full border-0 bg-transparent text-sm text-content outline-none focus:outline-none focus:ring-0 placeholder:text-stone-400"
+        className="w-full border-0 bg-transparent text-sm text-content outline-none focus:outline-none focus:ring-0 placeholder:text-content-faint"
       />
     </div>
   );
