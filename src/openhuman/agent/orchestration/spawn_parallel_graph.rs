@@ -14,7 +14,10 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use tinyagents::graph::export::GraphTopology;
-use tinyagents::graph::parallel::{map_reduce, FailurePolicy, ParallelOptions};
+use tinyagents::graph::parallel::{
+    map_reduce, parse_relative_claim_paths, plan_shared_workspace_dispatch, ClaimConflict,
+    ClaimPathError, DispatchMode, FailurePolicy, ParallelOptions, WorkspaceClaim,
+};
 use tinyagents::graph::{
     ClosureStateReducer, CompiledGraph, GraphBuilder, NodeContext, NodeResult,
 };
