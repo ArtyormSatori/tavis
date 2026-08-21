@@ -1,0 +1,220 @@
+//! What a gateway is, and what activating one produces.
+
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+
+/// The port `openhuman-core` serves RPC on inside a box.
+///
+/// Fixed rather than configurable: it is an address in the box's own namespace,
+/// so it cannot collide with anything on this machine, and the port that
+/// actually matters — the one on this side — is chosen when the forward opens.
+pub const CORE_PORT_IN_BOX: u16 = 7788;
+
+/// Where the frontend's RPC calls should go.
+///
+/// Every gateway resolves to one of these and nothing else, which is what keeps
+/// the rest of the app out of this: `core_rpc_url` and `core_rpc_token` answer
+/// from here, so a screen calling `openhuman.app_state_snapshot` cannot tell a
+/// container on another continent from the core in this process.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ActiveGateway {
+    /// The gateway this came from.
+    pub id: String,
+    /// The full JSON-RPC endpoint, e.g. `http://127.0.0.1:54321/rpc`.
+    pub rpc_url: String,
+    /// The bearer every request must carry, when the core requires one.
+    pub token: Option<String>,
+}
+
+/// How to reach a machine.
+///
+/// Mirrors tinybox's `HostRef` axis. It is *only* reach: what confines the
+/// core once it is there is [`Confinement`], and the two compose freely — which
+/// is why `Ssh` + [`Confinement::Docker`] needs no variant of its own.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "lowercase")]
+pub enum Reach {
+    /// This machine.
+    Local,
+    /// Another machine, over SSH.
+    Ssh(SshReach),
+}
+
+impl Default for Reach {
+    fn default() -> Self {
+        Self::Local
+    }
+}
+
+/// Everything `ssh` needs that the user's `~/.ssh/config` does not already say.
+///
+/// Deliberately thin. Jump hosts, multiplexing, and per-host keys already live
+/// in that file and work better there; re-modelling them here would mean
+/// maintaining a second, worse copy of OpenSSH's configuration language.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SshReach {
+    /// `machine`, `user@machine`, or a name from the user's SSH config.
+    pub destination: String,
+    /// A non-default port.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub port: Option<u16>,
+    /// An explicit private key.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity: Option<PathBuf>,
+    /// Trust an *unknown* host key on first connect.
+    ///
+    /// Never ignores a *changed* one — that is the case that means something is
+    /// wrong, and tinybox does not offer a way to wave it through.
+    #[serde(default)]
+    pub accept_new_host_key: bool,
+}
+
+/// What confines the core on whichever machine it runs on.
+///
+/// Mirrors tinybox's `SandboxRef` axis. Only two of tinybox's four sandboxes
+/// appear: `namespace` and `microvm` decline `Capability::Detach`, so neither
+/// can host a server between commands. Offering them would be offering a
+/// gateway that cannot work.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "lowercase")]
+pub enum Confinement {
+    /// None. The core runs as an ordinary process on the target machine.
+    Passthrough {
+        /// The `openhuman-core` binary over there.
+        binary: PathBuf,
+        /// The directory it runs in.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<PathBuf>,
+    },
+    /// A Docker container built from an image that ships the core.
+    Docker {
+        /// The image reference.
+        image: String,
+    },
+}
+
+/// One way of reaching a core, as the user configured it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum GatewaySpec {
+    /// The core running inside this process. The default, and what the app has
+    /// always done.
+    Desktop,
+    /// A core someone else is running, reached over HTTP.
+    ///
+    /// This is the pre-existing "cloud" mode, expressed through the same seam
+    /// rather than alongside it. Nothing is provisioned: the URL is the answer.
+    Remote {
+        /// The JSON-RPC endpoint.
+        url: String,
+        /// The bearer it expects, if any.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        token: Option<String>,
+    },
+    /// A core this app provisions and runs in a tinybox box.
+    ///
+    /// The two axes are independent, so this one variant covers a container
+    /// here, a bare process on a remote machine, and a container on a remote
+    /// machine — the last of which needs no code naming that pairing.
+    Box {
+        /// Which machine.
+        #[serde(default)]
+        reach: Reach,
+        /// What confines it there.
+        confinement: Confinement,
+        /// Variables for the core process, layered over the box's own.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        env: BTreeMap<String, String>,
+    },
+}
+
+impl GatewaySpec {
+    /// A short, stable word for this kind, for logs and for the UI's picker.
+    #[must_use]
+    pub fn kind(&self) -> &'static str {
+        match self {
+            Self::Desktop => "desktop",
+            Self::Remote { .. } => "remote",
+            Self::Box {
+                reach: Reach::Local,
+                confinement: Confinement::Docker { .. },
+                ..
+            } => "docker",
+            Self::Box {
+                reach: Reach::Ssh(_),
+                confinement: Confinement::Docker { .. },
+                ..
+            } => "ssh+docker",
+            Self::Box {
+                reach: Reach::Ssh(_),
+                ..
+            } => "ssh",
+            Self::Box { .. } => "local-process",
+        }
+    }
+
+    /// Whether activating this needs a box provisioned and a core started.
+    #[must_use]
+    pub const fn provisions(&self) -> bool {
+        matches!(self, Self::Box { .. })
+    }
+}
+
+/// A gateway record as it is stored and shown.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Gateway {
+    /// Stable identifier, referenced by the frontend's `coreMode`.
+    pub id: String,
+    /// What the user called it.
+    pub label: String,
+    /// How to reach a core.
+    pub spec: GatewaySpec,
+}
+
+/// The identifier of the always-present desktop gateway.
+///
+/// A record rather than a special case, so the picker has something to select
+/// and "no gateways configured" is never a state the UI has to handle.
+pub const DESKTOP_ID: &str = "desktop";
+
+impl Gateway {
+    /// The gateway that is always available: the core in this process.
+    #[must_use]
+    pub fn desktop() -> Self {
+        Self {
+            id: DESKTOP_ID.to_owned(),
+            label: "This computer".to_owned(),
+            spec: GatewaySpec::Desktop,
+        }
+    }
+}
+
+/// What a gateway is doing right now.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "state", rename_all = "camelCase")]
+pub enum GatewayStatus {
+    /// Not the active gateway.
+    Inactive,
+    /// Being provisioned — a box created, a core started, a tunnel opened.
+    Activating {
+        /// Which step, for the UI to show instead of an untimed spinner.
+        step: String,
+    },
+    /// Active and answering.
+    Connected {
+        /// Where it is reachable, with any credentials removed.
+        endpoint: String,
+    },
+    /// Activation failed, with the reason it failed.
+    Failed {
+        /// A message safe to show a user: no bearer, no key path.
+        reason: String,
+    },
+}
+
+#[cfg(test)]
+mod types_tests;
