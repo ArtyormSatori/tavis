@@ -2104,7 +2104,7 @@ const Conversations = ({
               type="button"
               data-analytics-id="chat-send-advisory-dismiss"
               onClick={() => setSendAdvisory(null)}
-              className="text-xs text-content-muted hover:text-content-secondary dark:text-neutral-200 dark:hover:text-neutral-200 transition-colors ml-2">
+              className="text-xs text-content-muted hover:text-content-secondary transition-colors ml-2">
               {t('common.dismiss')}
             </button>
           </div>
@@ -2158,7 +2158,7 @@ const Conversations = ({
                   setSendError(null);
                   dispatch(clearCreateThreadError());
                 }}
-                className="text-xs text-content-muted hover:text-content-secondary dark:text-neutral-200 dark:hover:text-neutral-200 transition-colors">
+                className="text-xs text-content-muted hover:text-content-secondary transition-colors">
                 {t('common.dismiss')}
               </button>
             </div>
@@ -2392,7 +2392,7 @@ const Conversations = ({
               data-analytics-id="chat-voice-switch-to-text"
               onClick={() => setInputMode('text')}
               disabled={isRecording || isTranscribing}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-line bg-surface text-content-muted hover:text-content-secondary dark:text-neutral-200 dark:hover:text-neutral-200 hover:border-line-strong dark:hover:border-line-strong transition-colors disabled:opacity-40"
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-line bg-surface text-content-muted hover:text-content-secondary hover:border-line-strong transition-colors disabled:opacity-40"
               title={t('chat.switchToText')}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
