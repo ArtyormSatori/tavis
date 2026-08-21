@@ -255,11 +255,16 @@ describe('ChatThreadView transcript render cost under streaming', () => {
     );
 
     // Pick one stable, non-tail agent message and watch only that bubble.
-    const stableContent = 'Settled agent prose for turn 1. Nothing JSON about it at all.';
-    const rendersOf = (content: string) =>
-      bubbleRenderSpy.mock.calls.filter(([c]) => c === content).length;
+    // Matched by its unique marker rather than by whole-string equality:
+    // `splitAgentMessageIntoBubbles` may hand the bubble a segment rather than
+    // the full message, and that split is not what is under test here.
+    const STABLE_MARKER = 'MARK1_';
+    const rendersOfStable = () =>
+      bubbleRenderSpy.mock.calls.filter(([c]) => c.includes(STABLE_MARKER)).length;
 
-    expect(rendersOf(stableContent)).toBe(1);
+    // Sanity check on the instrument itself: if the mount never rendered this
+    // bubble, the assertion below would pass vacuously and measure nothing.
+    expect(rendersOfStable()).toBe(1);
     bubbleRenderSpy.mockClear();
 
     for (let i = 0; i < 5; i += 1) {
@@ -278,6 +283,6 @@ describe('ChatThreadView transcript render cost under streaming', () => {
 
     // A message nobody touched must not be re-rendered by a token landing on
     // the live tail.
-    expect(rendersOf(stableContent)).toBe(0);
+    expect(rendersOfStable()).toBe(0);
   });
 });
