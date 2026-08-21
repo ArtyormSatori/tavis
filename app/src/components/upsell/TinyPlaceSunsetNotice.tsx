@@ -7,10 +7,10 @@
  * 31 August 2026 in-app removal date, and links out. Non-dismissible: the
  * deadline is fixed, so the notice stays until then.
  */
-import UpsellBanner from '../components/upsell/UpsellBanner';
-import { useT } from '../lib/i18n/I18nContext';
-import { TINYPLACE_URL } from '../utils/links';
-import { openUrl } from '../utils/openUrl';
+import UpsellBanner from './UpsellBanner';
+import { useT } from '../../lib/i18n/I18nContext';
+import { TINYPLACE_URL } from '../../utils/links';
+import { openUrl } from '../../utils/openUrl';
 
 export default function TinyPlaceSunsetNotice() {
   const { t } = useT();

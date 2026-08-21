@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import TinyPlaceSunsetNotice from './TinyPlaceSunsetNotice';
+import TinyPlaceSunsetNotice from '../TinyPlaceSunsetNotice';
 
 const openUrl = vi.fn();
-vi.mock('../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) => k }) }));
-vi.mock('../utils/openUrl', () => ({ openUrl: (url: string) => openUrl(url) }));
+vi.mock('../../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) => k }) }));
+vi.mock('../../../utils/openUrl', () => ({ openUrl: (url: string) => openUrl(url) }));
 
 describe('TinyPlaceSunsetNotice (#5424)', () => {
   it('renders the removal notice with a call to action', () => {

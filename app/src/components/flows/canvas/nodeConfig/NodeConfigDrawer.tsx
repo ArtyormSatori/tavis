@@ -98,13 +98,14 @@ function NodeConfigBody({
     <div className="space-y-3">
       {Form && (
         <div className="flex justify-end">
-          <button
+          <Button
             type="button"
-            className="rounded-md border border-line px-2 py-0.5 text-[11px] font-medium text-content-muted hover:bg-surface-hover"
+            variant="secondary"
+            size="xs"
             data-testid="node-config-raw-toggle"
             onClick={() => setRawMode(m => !m)}>
             {rawMode ? t('flows.nodeConfig.editForm') : t('flows.nodeConfig.editJson')}
-          </button>
+          </Button>
         </div>
       )}
 

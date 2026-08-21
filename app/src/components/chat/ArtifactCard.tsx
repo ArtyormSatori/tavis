@@ -191,25 +191,27 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
           </span>
         </div>
         {artifact.status === 'ready' && download.state !== 'done' && (
-          <button
-            type="button"
-            data-analytics-id={`chat-artifact-download-${artifact.kind}`}
+          <Button
+            variant="primary"
+            size="xs"
+            analyticsId={`chat-artifact-download-${artifact.kind}`}
             onClick={handleDownload}
             disabled={download.state === 'downloading'}
-            className="ml-auto rounded-md bg-ocean-500 hover:bg-ocean-600 disabled:bg-stone-300 dark:disabled:bg-neutral-700 text-white text-xs font-medium px-3 py-1.5 transition-colors">
+            className="ml-auto">
             {download.state === 'downloading'
               ? t('chat.artifact.downloading')
               : t('chat.artifact.download')}
-          </button>
+          </Button>
         )}
         {artifact.status === 'failed' && onRetry && (
-          <button
-            type="button"
-            data-analytics-id={`chat-artifact-retry-${artifact.kind}`}
+          <Button
+            variant="secondary"
+            size="xs"
+            analyticsId={`chat-artifact-retry-${artifact.kind}`}
             onClick={() => onRetry(artifact.artifactId)}
-            className="ml-auto rounded-md bg-surface-strong hover:bg-stone-300 dark:hover:bg-neutral-600 text-content-secondary text-xs font-medium px-3 py-1.5 transition-colors">
+            className="ml-auto">
             {t('chat.artifact.retry')}
-          </button>
+          </Button>
         )}
       </div>
       {artifact.status === 'failed' && artifact.error && (
