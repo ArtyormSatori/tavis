@@ -218,22 +218,23 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
                   />
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-xs text-content-secondary">
-                {t('notifications.routing.threshold')}
-                <input
+              <div className="flex items-center gap-2 text-xs text-content-secondary">
+                <span className="flex-shrink-0">{t('notifications.routing.threshold')}</span>
+                <Slider
                   className="flex-1"
-                  type="range"
                   min={0}
                   max={1}
                   step={0.05}
-                  value={s.importance_threshold}
+                  value={[s.importance_threshold]}
                   disabled={controlsDisabled}
-                  onChange={e => {
-                    void updateSetting(provider, { importance_threshold: Number(e.target.value) });
+                  thumbLabels={[t('notifications.routing.threshold')]}
+                  data-testid={`notification-threshold-${provider}`}
+                  onValueChange={value => {
+                    void updateSetting(provider, { importance_threshold: value[0] });
                   }}
                 />
                 <span>{s.importance_threshold.toFixed(2)}</span>
-              </label>
+              </div>
               <label
                 htmlFor={`notification-orchestrator-${provider}`}
                 className="text-xs text-content-secondary flex items-center gap-2">
