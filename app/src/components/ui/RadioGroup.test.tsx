@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -41,13 +42,13 @@ describe('RadioGroup', () => {
     expect(ref.current).toHaveAttribute('data-slot', 'radio-group');
   });
 
-  it('moves and selects with arrow keys', () => {
+  it('moves and selects with arrow keys', async () => {
+    const user = userEvent.setup();
     const onValueChange = vi.fn();
     renderGroup({ onValueChange });
 
-    const light = screen.getByRole('radio', { name: 'Light' });
-    light.focus();
-    fireEvent.keyDown(light, { key: 'ArrowDown' });
+    screen.getByRole('radio', { name: 'Light' }).focus();
+    await user.keyboard('{ArrowDown}');
 
     expect(onValueChange).toHaveBeenCalledWith('dark');
     expect(screen.getByRole('radio', { name: 'Dark' })).toBeChecked();

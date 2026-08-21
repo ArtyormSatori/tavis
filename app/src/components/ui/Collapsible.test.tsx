@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -45,18 +46,19 @@ describe('Collapsible', () => {
     expect(screen.getByText('Body')).toBeInTheDocument();
   });
 
-  it('toggles from the keyboard', () => {
+  it('toggles from the keyboard', async () => {
+    const user = userEvent.setup();
     renderCollapsible();
     const trigger = screen.getByTestId('trigger');
 
     trigger.focus();
-    fireEvent.keyDown(trigger, { key: 'Enter' });
+    await user.keyboard('{Enter}');
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('Body')).toBeInTheDocument();
 
-    fireEvent.keyDown(trigger, { key: ' ' });
-    fireEvent.keyUp(trigger, { key: ' ' });
+    await user.keyboard(' ');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('Body')).toBeNull();
   });
 
   it('reports open state through onOpenChange', () => {

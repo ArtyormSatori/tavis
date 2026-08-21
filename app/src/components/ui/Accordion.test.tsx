@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -59,15 +60,17 @@ describe('Accordion', () => {
     expect(screen.queryByText('Second body')).toBeNull();
   });
 
-  it('toggles a section open and shut from the keyboard', () => {
+  it('toggles a section open and shut from the keyboard', async () => {
+    const user = userEvent.setup();
     renderAccordion();
     const trigger = screen.getByRole('button', { name: /First/ });
 
     trigger.focus();
-    fireEvent.keyDown(trigger, { key: 'Enter' });
+    await user.keyboard('{Enter}');
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
 
-    fireEvent.keyDown(trigger, { key: 'Enter' });
+    // `collapsible` on the root is what allows the open section to shut again.
+    await user.keyboard(' ');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 

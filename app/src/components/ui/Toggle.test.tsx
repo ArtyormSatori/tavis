@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -28,19 +29,18 @@ describe('Toggle', () => {
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
 
-  it('toggles on Enter and on Space', () => {
+  it('toggles on Enter and on Space', async () => {
+    const user = userEvent.setup();
     const onPressedChange = vi.fn();
     render(<Toggle aria-label="Bold" onPressedChange={onPressedChange} data-testid="bold" />);
     const button = screen.getByTestId('bold');
 
     button.focus();
-    fireEvent.keyDown(button, { key: 'Enter' });
-    fireEvent.keyUp(button, { key: 'Enter' });
+    await user.keyboard('{Enter}');
     expect(button).toHaveAttribute('aria-pressed', 'true');
     expect(button).toHaveAttribute('data-state', 'on');
 
-    fireEvent.keyDown(button, { key: ' ' });
-    fireEvent.keyUp(button, { key: ' ' });
+    await user.keyboard(' ');
     expect(button).toHaveAttribute('aria-pressed', 'false');
 
     expect(onPressedChange).toHaveBeenNthCalledWith(1, true);
