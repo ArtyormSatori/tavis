@@ -20,7 +20,6 @@ import {
 } from '../../../../services/api/aiSettingsApi';
 import { toSelectableChatModels } from '../aiRouting';
 import {
-  authStyleForSlug,
   type CloudProvider,
   EMPTY_SETTINGS,
   maskKeyLabel,
