@@ -144,7 +144,7 @@ pub async fn activate(
             log::debug!("[gateway][activate] desktop core ready on {}", desktop.port());
             Ok(None)
         }
-        GatewaySpec::Remote { url, token } => {
+        GatewaySpec::Remote { url, .. } => {
             // Nothing to provision: someone else is running this core, and the
             // URL is the whole answer. Reachability is still the caller's to
             // check, exactly as it is for a provisioned one.
@@ -152,7 +152,7 @@ pub async fn activate(
                 "[gateway][activate] remote endpoint {}",
                 crate::core_rpc::redact_url_for_log(url)
             );
-            Ok(None).map(|_: Option<Provisioned>| None).and(Ok(None))
+            Ok(None)
         }
         GatewaySpec::Box {
             reach,
@@ -289,7 +289,7 @@ fn ssh_target(ssh: &SshReach) -> Result<SshTarget, String> {
         target = target.with_identity(identity.clone());
     }
     if ssh.accept_new_host_key {
-        target = target.accept_new_host_key();
+        target = target.accepting_new_host_key();
     }
     Ok(target)
 }
@@ -315,6 +315,7 @@ fn box_spec(
     reach: &Reach,
     confinement: &Confinement,
     env: &BTreeMap<String, String>,
+    host_port: u16,
 ) -> Result<BoxSpec, String> {
     let host_ref = match reach {
         Reach::Local => "local",
@@ -345,11 +346,13 @@ fn box_spec(
     }
 
     if matches!(confinement, Confinement::Docker { .. }) {
-        // The published port is how the core is reached at all, and tinybox
-        // refuses to publish on a box whose network is denied — a container
-        // with no network has nowhere for a published port to lead.
-        spec = spec.with_network(NetworkPolicy::Allowed);
-        spec = spec.with_port(PortMapping::dynamic(CORE_PORT_IN_BOX));
+        // Publishing is how the core is reached at all, and tinybox drops the
+        // `--publish` flags entirely on a box whose network is denied — a
+        // container with no network has nowhere for a published port to lead.
+        // `Egress` is the weakest policy that still publishes; the core needs
+        // outbound anyway to reach the TinyHumans backend.
+        spec = spec.with_network(NetworkPolicy::Egress);
+        spec = spec.with_port(PortMapping::fixed(host_port, CORE_PORT_IN_BOX));
     }
     Ok(spec)
 }
