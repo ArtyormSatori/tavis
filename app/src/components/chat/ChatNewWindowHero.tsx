@@ -10,6 +10,7 @@ import { selectBlockingState } from '../../store/connectivitySelectors';
 import { useAppSelector } from '../../store/hooks';
 import { resolveUserName } from '../../utils/userName';
 import { DiscordBanner, PromotionalCreditsBanner, UsageLimitBanner } from '../home/HomeBanners';
+import { Button } from '../ui';
 
 const debug = debugFactory('chat:new-window-hero');
 
