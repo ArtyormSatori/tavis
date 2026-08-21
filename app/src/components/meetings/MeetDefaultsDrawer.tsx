@@ -16,6 +16,8 @@ import {
   openhumanGetMeetSettings,
   openhumanUpdateMeetSettings,
 } from '../../utils/tauriCommands';
+import Button from '../ui/Button';
+import { SheetContent, SheetRoot, SheetTitle } from '../ui/Sheet';
 import {
   SettingsRow,
   SettingsSection,
@@ -232,26 +234,36 @@ export function MeetDefaultsDrawer({ open, onClose }: MeetDefaultsDrawerProps) {
   if (!open) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/40" aria-hidden="true" onClick={onClose} />
-
-      {/* Drawer panel */}
-      <div
-        role="dialog"
-        aria-modal="true"
+    // Radix `Dialog` pinned to the right edge: the hand-rolled backdrop + panel
+    // had no focus trap, no scroll lock and no Escape handling. `open` is
+    // hard-coded because this component is unmounted when closed (the early
+    // return above) — `onOpenChange` is what routes Escape / outside-click back
+    // to the caller's `onClose`.
+    <SheetRoot
+      open
+      onOpenChange={next => {
+        if (!next) onClose();
+      }}>
+      <SheetContent
+        side="right"
         aria-label={t('skills.meetingBots.defaults.drawerTitle')}
-        className="fixed inset-y-0 right-0 z-50 w-80 bg-surface border-l border-line/50 flex flex-col shadow-xl overflow-hidden">
+        aria-describedby={undefined}
+        className="w-80 max-w-full border-l border-line/50 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-line/50 shrink-0">
-          <h2 className="text-sm font-semibold text-content-primary">
-            {t('skills.meetingBots.defaults.drawerTitle')}
-          </h2>
-          <button
-            type="button"
+          {/* `asChild` keeps the historical h2 so the heading role is unchanged. */}
+          <SheetTitle asChild>
+            <h2 className="text-sm font-semibold text-content-primary">
+              {t('skills.meetingBots.defaults.drawerTitle')}
+            </h2>
+          </SheetTitle>
+          <Button
+            variant="tertiary"
+            size="sm"
+            iconOnly
             aria-label={t('skills.meetingBots.defaults.closeDrawer')}
             onClick={onClose}
-            className="text-content-secondary hover:text-content-primary transition-colors p-1 rounded">
+            className="rounded text-content-secondary hover:text-content-primary">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
                 d="M12 4L4 12M4 4l8 8"
@@ -260,7 +272,7 @@ export function MeetDefaultsDrawer({ open, onClose }: MeetDefaultsDrawerProps) {
                 strokeLinecap="round"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         {/* Scrollable content */}
@@ -275,15 +287,16 @@ export function MeetDefaultsDrawer({ open, onClose }: MeetDefaultsDrawerProps) {
               <p className="text-sm text-status-error">
                 {loadError ?? t('settings.meetings.loadError')}
               </p>
-              <button
-                type="button"
+              <Button
+                variant="tertiary"
+                size="sm"
                 onClick={() => {
                   log('retry load');
                   setRetryCount(c => c + 1);
                 }}
-                className="self-start text-sm text-primary-500 hover:text-primary-400 transition-colors underline">
+                className="h-auto self-start px-0 text-sm font-normal text-primary-500 underline hover:bg-transparent hover:text-primary-400">
                 {t('common.retry')}
-              </button>
+              </Button>
             </div>
           ) : (
             <>
@@ -432,7 +445,7 @@ export function MeetDefaultsDrawer({ open, onClose }: MeetDefaultsDrawerProps) {
             savingLabel={t('settings.meetings.saving')}
           />
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </SheetRoot>
   );
 }
