@@ -86,19 +86,21 @@ export function TeamHeader({
                 className={`h-1.5 w-1.5 flex-none rounded-full ${MEMBER_STATUS_DOT[member.memberStatus]}`}
               />
               {onStartMember && member.memberStatus !== 'active' && (
-                <button
-                  type="button"
+                <Button
+                  variant="tertiary"
+                  iconOnly
+                  size="xs"
                   disabled={startingMemberId === member.id}
                   onClick={() => onStartMember(member.id)}
                   title={t('intelligence.teams.member.start')}
                   aria-label={`${t('intelligence.teams.member.start')} ${member.name}`}
-                  className="ml-0.5 inline-flex h-3.5 w-3.5 flex-none items-center justify-center rounded text-ocean-600 hover:text-ocean-700 disabled:opacity-40 dark:text-ocean-300">
+                  className="ml-0.5 h-3.5 w-3.5 min-w-0 flex-none text-ocean-600 hover:text-ocean-700 dark:text-ocean-300">
                   {startingMemberId === member.id ? (
                     <LuLoaderCircle className="h-3 w-3 animate-spin" />
                   ) : (
                     <LuPlay className="h-3 w-3" />
                   )}
-                </button>
+                </Button>
               )}
             </span>
           ))}

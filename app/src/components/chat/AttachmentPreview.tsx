@@ -70,13 +70,15 @@ export default function AttachmentPreview({
               {formatFileSize(attachment.payloadSizeBytes)}
             </span>
           </div>
-          <button
-            type="button"
-            data-analytics-id="chat-attachment-remove"
+          <Button
+            iconOnly
+            variant="secondary"
+            size="xs"
+            analyticsId="chat-attachment-remove"
             aria-label={t('chat.attachment.remove').replace('{name}', attachment.file.name)}
             onClick={() => onRemove(attachment.id)}
             disabled={disabled}
-            className="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center rounded-full bg-stone-400 dark:bg-neutral-600 text-white hover:bg-stone-600 dark:hover:bg-neutral-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0">
+            className="absolute -top-1.5 -right-1.5 !h-4 !w-4 rounded-full border-0 bg-content-muted text-content-inverted hover:bg-content-secondary flex-shrink-0">
             <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -85,7 +87,7 @@ export default function AttachmentPreview({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
       ))}
     </div>
