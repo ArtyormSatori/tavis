@@ -417,13 +417,6 @@ fn build_registered_controllers() -> Vec<GroupedController> {
         DomainGroup::Integrations,
         crate::openhuman::integrations::composio::all_composio_registered_controllers(),
     );
-    // Recall.ai Calendar V1 (backend-proxied) controllers
-    push(
-        &mut controllers,
-        DomainGroup::Integrations,
-        crate::openhuman::integrations::recall_calendar::all_recall_calendar_registered_controllers(
-        ),
-    );
     // Scheduled job management
     push(
         &mut controllers,
