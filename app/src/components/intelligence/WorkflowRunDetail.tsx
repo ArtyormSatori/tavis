@@ -133,17 +133,18 @@ const WorkflowRunDetail: React.FC<Props> = ({
             </Button>
           )}
           {canResume && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               data-testid="workflow-run-resume"
               disabled={busy}
               onClick={() => {
                 log('resume id=%s', run.id);
                 onResume(run.id);
               }}
-              className="rounded-lg border border-ocean-300 bg-surface px-3 py-1.5 text-xs font-medium text-ocean-700 hover:bg-ocean-50 disabled:opacity-50 dark:border-ocean-700 dark:text-ocean-300 dark:hover:bg-ocean-900/40">
+              className="border-ocean-300 text-ocean-700 hover:bg-ocean-50 dark:border-ocean-700 dark:text-ocean-300 dark:hover:bg-ocean-900/40">
               {t('orchestration.detail.resume')}
-            </button>
+            </Button>
           )}
         </div>
       </div>
