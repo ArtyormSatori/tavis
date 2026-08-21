@@ -126,7 +126,10 @@ describe('ObsidianVaultSection', () => {
 
     fireEvent.click(screen.getByTestId('memory-open-in-obsidian'));
     await screen.findByTestId('obsidian-vault-guidance');
-    fireEvent.mouseDown(document.body);
+    // Radix's dismissable layer listens for `pointerdown`, not `mousedown` —
+    // this drives the same outside-click dismissal the old hand-rolled
+    // listener did, just via the event Radix actually listens for.
+    fireEvent.pointerDown(document.body, { pointerId: 1 });
 
     await waitFor(() => expect(screen.queryByTestId('obsidian-vault-guidance')).toBeNull());
   });
