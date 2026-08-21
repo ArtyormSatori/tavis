@@ -215,7 +215,7 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
       <label htmlFor="feedback-title" className="sr-only">
         {t('feedback.submit.titlePlaceholder')}
       </label>
-      <input
+      <TextField
         id="feedback-title"
         type="text"
         value={title}
