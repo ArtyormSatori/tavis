@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { GraphRelation } from '../../utils/tauriCommands';
-import Button from '../ui/Button';
+import { AccordionContent, AccordionItem, AccordionRoot, AccordionTrigger } from '../ui/Accordion';
 
 interface MemoryInsightsProps {
   relations: GraphRelation[];
