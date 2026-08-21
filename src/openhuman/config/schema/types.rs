@@ -513,11 +513,6 @@ pub struct Config {
     #[serde(default)]
     pub dictation: DictationConfig,
 
-    /// Google Meet integration settings — currently the
-    /// `auto_orchestrator_handoff` privacy gate (see
-    /// [`crate::openhuman::config::schema::MeetConfig`]).
-    #[serde(default)]
-    pub meet: MeetConfig,
 
     /// Whether the user has completed the **React UI** onboarding flow.
     ///

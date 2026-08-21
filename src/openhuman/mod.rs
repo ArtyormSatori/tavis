@@ -56,10 +56,6 @@ pub mod mcp;
 #[cfg(feature = "media")]
 pub mod media;
 pub mod medulla;
-// The `meet` family is a facade: the parent module is always compiled so the
-// always-on callers of `meet::backend_bot`'s stub keep resolving, and each
-// submodule carries its own `#[cfg(feature = "meet")]` (see `meet/mod.rs`).
-pub mod meet;
 pub mod memory;
 #[cfg(feature = "modules")]
 pub mod modules;

@@ -45,7 +45,7 @@ pub use schema::{
     IMessageConfig, IntegrationToggle, IntegrationsConfig, LarkConfig, LearningConfig, LinqConfig,
     LlmBackend, LocalAiConfig, MatrixConfig, McpAuthConfig, McpClientConfig,
     McpClientIdentityConfig, McpServerConfig, MedullaClientConfig, MedullaCycleConfig,
-    MedullaCycleLimits, MedullaPromptOverrides, MedullaVerification, MeetConfig, MemoryConfig,
+    MedullaCycleLimits, MedullaPromptOverrides, MedullaVerification, MemoryConfig,
     MemoryTreeConfig, ModelRouteConfig, MultimodalConfig, MultimodalFileConfig,
     ObservabilityConfig, OrchestratorModelConfig, PrivacyConfig, PrivacyMode, ProxyConfig,
     ProxyScope, ReflectionSource, ReliabilityConfig, ResourceLimitsConfig, RuntimeConfig,
