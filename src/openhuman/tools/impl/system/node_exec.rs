@@ -304,7 +304,7 @@ impl NodeExecTool {
         // pool infrastructure failure also transparently falls back below.
         if let Some(code) = inline_code.as_deref() {
             if let Some(result) = self
-                .try_pool_inline(code, &resolved, &path_policy.action_dir, explicit_timeout)
+                .try_pool_inline(code, &path_policy.action_dir, explicit_timeout)
                 .await
             {
                 return Ok(result);

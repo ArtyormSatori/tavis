@@ -364,10 +364,7 @@ impl PythonExecTool {
             return None;
         }
         match crate::openhuman::runtime::pool::python::run_inline(
-            &self.workspace_dir,
-            &self.pool_cfg.python,
-            &resolved.python_bin,
-            &resolved.bin_dir,
+            self.bootstrap.config(),
             code.to_string(),
             Some(action_dir.to_path_buf()),
             timeout,
