@@ -131,7 +131,7 @@ export default function IntelligenceMemoryTab({
         <div className="space-y-6">
           {isRunning && (
             <div className="flex items-center gap-2 text-xs text-content-faint animate-fade-up">
-              <div className="w-3 h-3 border border-stone-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-3 h-3 border border-line-strong border-t-transparent rounded-full animate-spin" />
               {t('memory.analyzing')}
             </div>
           )}

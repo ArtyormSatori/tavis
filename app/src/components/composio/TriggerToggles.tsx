@@ -168,11 +168,9 @@ export default function TriggerToggles({
         <div
           className="border-t border-line-subtle pt-3 mt-1"
           data-testid="trigger-session-expired">
-          <div className="rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-900/10 p-3">
+          <Alert variant="warning">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
-                {t('composio.triggers.sessionExpired')}
-              </p>
+              <p className="text-xs leading-relaxed">{t('composio.triggers.sessionExpired')}</p>
               <Button
                 type="button"
                 variant="secondary"
@@ -182,7 +180,7 @@ export default function TriggerToggles({
                 {t('settings.embeddings.signInAgain')}
               </Button>
             </div>
-          </div>
+          </Alert>
         </div>
       );
     }
