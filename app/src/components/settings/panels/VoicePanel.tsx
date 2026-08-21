@@ -90,12 +90,6 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
   const [pendingKeySlug, setPendingKeySlug] = useState<string | null>(null);
   const [pendingKeyValue, setPendingKeyValue] = useState('');
   const [isSavingPendingKey, setIsSavingPendingKey] = useState(false);
-  const [isTestingKey, setIsTestingKey] = useState(false);
-  const [keyTestResult, setKeyTestResult] = useState<{ ok: boolean; detail: string } | null>(null);
-  const [isTestingStt, setIsTestingStt] = useState(false);
-  const [sttTestResult, setSttTestResult] = useState<{ ok: boolean; detail: string } | null>(null);
-  const [isTestingTts, setIsTestingTts] = useState(false);
-  const [ttsTestResult, setTtsTestResult] = useState<{ ok: boolean; detail: string } | null>(null);
   const settingsRef = useRef<VoiceServerSettings | null>(null);
   const savedSettingsRef = useRef<VoiceServerSettings | null>(null);
   const piperVoicePresets: ReadonlyArray<{ id: string; label: string }> = [
