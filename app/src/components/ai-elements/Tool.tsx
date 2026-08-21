@@ -182,7 +182,7 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     data-slot="tool-content"
     className={cn(
-      'space-y-4 p-4 text-content outline-none data-[state=open]:animate-fade-in',
+      'space-y-4 p-4 text-content outline-none',
       className
     )}
     {...props}

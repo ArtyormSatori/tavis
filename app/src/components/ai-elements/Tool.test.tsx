@@ -48,14 +48,15 @@ describe('Tool', () => {
 
     const header = screen.getByTestId('tool-header');
     expect(header).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByTestId('tool-content')).toBeNull();
+    expect(screen.getByTestId('tool-content')).toHaveAttribute('data-state', 'closed');
 
     await user.click(header);
     expect(header).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByTestId('tool-content')).toBeInTheDocument();
+    expect(screen.getByTestId('tool-content')).toHaveAttribute('data-state', 'open');
 
     await user.click(header);
     expect(header).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByTestId('tool-content')).toHaveAttribute('data-state', 'closed');
   });
 
   it('labels each lifecycle state on the status badge', () => {
