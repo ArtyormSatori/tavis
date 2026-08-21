@@ -213,15 +213,28 @@ pub async fn migrate_legacy_task_runs(
 
 /// The thread id encoded in a `<hex>.runs.json` file name, or `None` for any
 /// other entry (the board files themselves, stray data).
+/// Decode the thread id encoded in a `<hex>.runs.json` file name.
+///
+/// Only strict, ASCII, even-length lowercase hex is accepted. The inner two
+/// bytes of every pair must both be hexadecimal digits (`0-9a-f`), so a signed
+/// or malformed stem such as `+f` is rejected rather than accepted by
+/// `u8::from_str_radix`. Decoding walks `hex.as_bytes()` in whole pairs, never
+/// slicing a multi-byte UTF-8 character, so a non-ASCII stem like `aéb` returns
+/// `None` instead of panicking mid-startup.
 fn legacy_thread_id(path: &Path) -> Option<String> {
     let name = path.file_name()?.to_str()?;
     let hex = name.strip_suffix(".runs.json")?;
-    if hex.is_empty() || hex.len() % 2 != 0 {
+    if hex.is_empty() || hex.len() % 2 != 0 || !hex.is_ascii() {
         return None;
     }
-    let bytes: Option<Vec<u8>> = (0..hex.len())
-        .step_by(2)
-        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok())
+    let bytes: Option<Vec<u8>> = hex
+        .as_bytes()
+        .chunks_exact(2)
+        .map(|pair| {
+            let hi = (pair[0] as char).to_digit(16)?;
+            let lo = (pair[1] as char).to_digit(16)?;
+            u8::try_from(hi * 16 + lo).ok()
+        })
         .collect();
     String::from_utf8(bytes?).ok()
 }
