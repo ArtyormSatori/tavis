@@ -828,7 +828,6 @@ const RecoveryPhrasePanel = () => {
             type="button"
             variant="secondary"
             size="xs"
-            aria-pressed={selectedWordCount === len}
             onClick={() => handleWordCountChange(len)}
             className={`h-auto rounded-lg px-2.5 py-1 text-xs font-medium ${
               selectedWordCount === len
@@ -861,7 +860,7 @@ const RecoveryPhrasePanel = () => {
                 autoComplete="off"
                 spellCheck={false}
                 invalid={importValid === false && word.trim().length > 0}
-                className={`h-auto px-2 py-1.5 text-sm font-medium rounded-lg ${
+                className={`font-medium ${
                   importValid === true
                     ? '!border-sage-400 focus:!border-sage-300 dark:!border-sage-500/40'
                     : ''
