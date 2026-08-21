@@ -23,7 +23,6 @@
  *
  * There is **no** demo loop — the overlay is entirely event-driven.
  */
-import { listen } from '@tauri-apps/api/event';
 import {
   currentMonitor,
   getCurrentWindow,

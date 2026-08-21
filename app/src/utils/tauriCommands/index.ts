@@ -9,7 +9,6 @@ export * from './memory';
 export * from './memoryTree';
 export * from './composio';
 export * from './conscious';
-export * from './subconscious';
 export * from './localAi';
 export * from './config';
 export * from './cron';

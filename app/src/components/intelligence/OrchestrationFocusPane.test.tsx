@@ -88,7 +88,6 @@ describe('OrchestrationFocusPane', () => {
               createdAt: '2026-07-04T00:00:00.000Z',
               expiresAfterCycles: 12,
             },
-            lastTickAt: 1_700_000_000,
           },
         })}
       />
@@ -102,7 +101,7 @@ describe('OrchestrationFocusPane', () => {
   it('shows the running label while a review is in flight', () => {
     render(
       <OrchestrationFocusPane
-        {...props({ selected: chat({ kind: 'subconscious' }), runningReview: true })}
+        {...props({ selected: chat({ kind: 'subconscious' }) })}
       />
     );
     expect(screen.getByText('tinyplaceOrchestration.steeringHeader.running')).toBeInTheDocument();

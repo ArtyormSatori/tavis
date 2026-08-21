@@ -172,7 +172,6 @@ describe('TinyPlaceOrchestrationTab', () => {
         createdAt: '2026-07-04T00:00:00.000Z',
         expiresAfterCycles: 12,
       },
-      lastTickAt: 1_700_000_000,
     });
 
     render(<TinyPlaceOrchestrationTab />);

@@ -22,7 +22,6 @@ import PanelPage from '../components/layout/PanelPage';
 import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import OrchestrationView from '../components/orchestration/OrchestrationView';
-import BetaBanner from '../components/ui/BetaBanner';
 import { useTinyPlaceIdentity } from '../hooks/useTinyPlaceIdentity';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';
