@@ -19,7 +19,7 @@
  * (Flatpak/Snap/portable). "Open anyway" and the config-dir override are the
  * escape hatches for that case; a false "not registered" never blocks the user.
  */
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { ToastNotification } from '../../types/intelligence';
@@ -30,6 +30,7 @@ import {
   revealWorkspacePath,
 } from '../../utils/tauriCommands/workspacePaths';
 import Button from '../ui/Button';
+import { PopoverAnchor, PopoverClose, PopoverContent, PopoverRoot } from '../ui/Popover';
 import TextField from '../ui/TextField';
 import { MEMORY_CONTENT_WORKSPACE_PATH } from './memoryWorkspacePaths';
 import { resolveVaultHostMatch } from './vaultHostMatch';
