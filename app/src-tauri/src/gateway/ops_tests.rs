@@ -9,7 +9,7 @@
 
 use std::collections::BTreeMap;
 
-use super::ops;
+use super::ops::{box_spec, core_command, endpoint_of, is_port_conflict};
 use super::types::{Confinement, Reach, SshReach, CORE_PORT_IN_BOX};
 
 fn docker() -> Confinement {
@@ -40,7 +40,7 @@ fn a_docker_box_permits_the_network_its_published_port_needs() {
     // denied — a container with no network has nowhere for a published port to
     // lead. Denied here would produce a box that looks configured, publishes
     // nothing, and is unreachable with no error anywhere.
-    let spec = ops::box_spec_for_test(&Reach::Local, &docker(), &BTreeMap::new(), 54321)
+    let spec = box_spec(&Reach::Local, &docker(), &BTreeMap::new(), 54321)
         .expect("a spec");
 
     assert!(spec.network.allows_egress());
@@ -56,7 +56,7 @@ fn the_host_port_is_named_rather_than_left_to_docker() {
     // `PortMapping::dynamic` would let Docker choose, and the number it chose
     // would live only in Docker's own state — tinybox has no call that reports
     // it back, and a forward needs that number.
-    let spec = ops::box_spec_for_test(&Reach::Local, &docker(), &BTreeMap::new(), 54321)
+    let spec = box_spec(&Reach::Local, &docker(), &BTreeMap::new(), 54321)
         .expect("a spec");
 
     assert!(spec.ports.iter().all(|mapping| mapping.host.is_some()));
@@ -66,7 +66,7 @@ fn the_host_port_is_named_rather_than_left_to_docker() {
 fn a_passthrough_box_publishes_nothing_because_there_is_no_boundary() {
     // The core listens on the machine's own port; there is nothing to publish
     // across and nothing that could collide beyond the core itself.
-    let spec = ops::box_spec_for_test(&Reach::Local, &passthrough(), &BTreeMap::new(), 54321)
+    let spec = box_spec(&Reach::Local, &passthrough(), &BTreeMap::new(), 54321)
         .expect("a spec");
 
     assert!(spec.ports.is_empty());
@@ -77,7 +77,7 @@ fn the_placement_records_both_axes_independently() {
     // Which is what makes "a container on the build server" need no code of
     // its own: it is these two fields, chosen separately.
     let spec =
-        ops::box_spec_for_test(&ssh(), &docker(), &BTreeMap::new(), 54321).expect("a spec");
+        box_spec(&ssh(), &docker(), &BTreeMap::new(), 54321).expect("a spec");
 
     assert_eq!(spec.placement.host.as_str(), "ssh");
     assert_eq!(spec.placement.sandbox.as_str(), "docker");
@@ -85,7 +85,7 @@ fn the_placement_records_both_axes_independently() {
 
 #[test]
 fn a_passthrough_box_runs_in_the_configured_workspace() {
-    let spec = ops::box_spec_for_test(&Reach::Local, &passthrough(), &BTreeMap::new(), 1)
+    let spec = box_spec(&Reach::Local, &passthrough(), &BTreeMap::new(), 1)
         .expect("a spec");
 
     assert_eq!(
@@ -99,7 +99,7 @@ fn configured_environment_reaches_the_box() {
     let mut env = BTreeMap::new();
     env.insert("BACKEND_URL".to_owned(), "https://api.example.com".to_owned());
 
-    let spec = ops::box_spec_for_test(&Reach::Local, &docker(), &env, 1).expect("a spec");
+    let spec = box_spec(&Reach::Local, &docker(), &env, 1).expect("a spec");
 
     assert_eq!(
         spec.env.get("BACKEND_URL").map(String::as_str),
@@ -111,7 +111,7 @@ fn configured_environment_reaches_the_box() {
 fn the_core_is_started_bound_to_every_interface_inside_the_box() {
     // Loopback inside a container is reachable only from inside it, which is
     // the one place nothing is asking. The published port would lead nowhere.
-    let request = ops::core_command_for_test(&docker(), "deadbeef");
+    let request = core_command(&docker(), "deadbeef");
 
     assert_eq!(
         request.env.get("OPENHUMAN_CORE_HOST").map(String::as_str),
@@ -127,7 +127,7 @@ fn the_core_is_started_bound_to_every_interface_inside_the_box() {
 fn the_bearer_is_handed_over_as_environment_rather_than_written_down() {
     // It is minted per activation and never persisted, so a stored gateway
     // record cannot leak a credential for a core that is still running.
-    let request = ops::core_command_for_test(&docker(), "deadbeef");
+    let request = core_command(&docker(), "deadbeef");
 
     assert_eq!(
         request.env.get("OPENHUMAN_CORE_TOKEN").map(String::as_str),
@@ -138,7 +138,7 @@ fn the_bearer_is_handed_over_as_environment_rather_than_written_down() {
 #[test]
 fn a_docker_box_runs_the_image_s_own_core_rather_than_a_named_path() {
     // Naming a path would tie the gateway to one image's layout.
-    let request = ops::core_command_for_test(&docker(), "t");
+    let request = core_command(&docker(), "t");
 
     assert_eq!(request.program(), Some("openhuman-core"));
     assert_eq!(request.argv.get(1).map(String::as_str), Some("serve"));
@@ -146,7 +146,7 @@ fn a_docker_box_runs_the_image_s_own_core_rather_than_a_named_path() {
 
 #[test]
 fn a_passthrough_box_runs_the_binary_the_user_named() {
-    let request = ops::core_command_for_test(&passthrough(), "t");
+    let request = core_command(&passthrough(), "t");
 
     assert_eq!(request.program(), Some("/usr/local/bin/openhuman-core"));
 }
@@ -155,21 +155,21 @@ fn a_passthrough_box_runs_the_binary_the_user_named() {
 fn a_taken_port_is_recognised_from_the_backend_s_own_words() {
     // tinybox passes Docker's diagnostic through verbatim, so this is what a
     // collision actually looks like coming back.
-    assert!(ops::is_port_conflict_for_test(
+    assert!(is_port_conflict(
         "driver failed programming external connectivity on endpoint: \
          Bind for 0.0.0.0:54321 failed: port is already allocated"
     ));
-    assert!(ops::is_port_conflict_for_test("address already in use"));
+    assert!(is_port_conflict("address already in use"));
 }
 
 #[test]
 fn an_unrelated_failure_is_not_mistaken_for_a_taken_port() {
     // Retrying a missing image seven more times would turn one clear error
     // into a slow, confusing one.
-    assert!(!ops::is_port_conflict_for_test(
+    assert!(!is_port_conflict(
         "Unable to find image 'openhuman-core:latest' locally"
     ));
-    assert!(!ops::is_port_conflict_for_test(
+    assert!(!is_port_conflict(
         "Cannot connect to the Docker daemon"
     ));
 }
@@ -187,7 +187,11 @@ fn a_remote_gateway_resolves_to_its_url_without_provisioning() {
         },
     };
 
-    let resolved = ops::endpoint_of_remote_for_test(&gateway).expect("an endpoint");
+    // The handle is irrelevant for a remote gateway and is never consulted;
+    // it is required only because the desktop arm of the same function needs
+    // one.
+    let unused = crate::core_process::CoreProcessHandle::new(7788);
+    let resolved = endpoint_of(&gateway, &unused).expect("an endpoint");
 
     assert_eq!(resolved.rpc_url, "https://core.example.com/rpc");
     assert_eq!(resolved.token.as_deref(), Some("bearer"));
