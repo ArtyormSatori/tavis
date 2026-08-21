@@ -815,7 +815,6 @@ const ProviderKeyDialog = ({
             href={platformLinkUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ insetInlineEnd: '1.5rem' }}
             onClick={event => {
               event.preventDefault();
               void openUrl(platformLinkUrl).catch(err => {
@@ -825,7 +824,7 @@ const ProviderKeyDialog = ({
                 });
               });
             }}
-            className="absolute top-6 text-xs font-medium leading-6 text-primary-600 hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
+            className="text-xs font-medium leading-6 text-primary-600 hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
             {t('settings.ai.getProviderApiKey')}
           </a>
         ) : null}
