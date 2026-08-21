@@ -4,7 +4,11 @@
  */
 import Button from '../../../ui/Button';
 import { SettingsSelect, SettingsStatusLine } from '../../controls';
-import { type HeartbeatPlannerSummary, type HeartbeatSettings } from '../../../../utils/tauriCommands/heartbeat';
+import {
+  type HeartbeatPlannerSummary,
+  type HeartbeatSettings,
+  type HeartbeatSettingsPatch,
+} from '../../../../utils/tauriCommands/heartbeat';
 import { formatI18n } from './aiPanelTypes';
 import { LoopToggle } from './backgroundLoopPrimitives';
 
