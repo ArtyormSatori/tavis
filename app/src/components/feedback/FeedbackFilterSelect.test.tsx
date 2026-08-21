@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import FeedbackFilterSelect from './FeedbackFilterSelect';
@@ -8,12 +9,6 @@ const OPTIONS = [
   { value: 'feature', label: 'Feature' },
   { value: 'bug', label: 'Bug' },
 ];
-
-/** Resolve the option the listbox currently points at via aria-activedescendant. */
-function activeOptionText(listbox: HTMLElement): string {
-  const id = listbox.getAttribute('aria-activedescendant');
-  return (id && document.getElementById(id)?.textContent) || '';
-}
 
 describe('<FeedbackFilterSelect />', () => {
   it('shows the current selection on the trigger', () => {
@@ -25,37 +20,46 @@ describe('<FeedbackFilterSelect />', () => {
         ariaLabel="Type"
       />
     );
-    expect(screen.getByRole('button', { name: 'Type' })).toHaveTextContent('Feature');
+    // Radix Select's trigger is a real <button> but sets an explicit
+    // role="combobox" (it manages its own popup rather than deferring to the
+    // OS), so the accessible role is combobox, not button.
+    expect(screen.getByRole('combobox', { name: 'Type' })).toHaveTextContent('Feature');
   });
 
-  it('opens the menu and selects an option', () => {
+  it('opens the menu and selects an option', async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(
       <FeedbackFilterSelect value="all" options={OPTIONS} onChange={onChange} ariaLabel="Type" />
     );
 
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Type' }));
+    await user.click(screen.getByRole('combobox', { name: 'Type' }));
     expect(screen.getByRole('listbox')).toBeInTheDocument();
 
     expect(screen.getByRole('option', { name: 'Bug' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Bug' }));
+    await user.click(screen.getByRole('option', { name: 'Bug' }));
     expect(onChange).toHaveBeenCalledWith('bug');
     // Menu closes after selection.
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
-  it('closes on Escape', () => {
+  it('closes on Escape without changing the value', () => {
+    const onChange = vi.fn();
     render(
-      <FeedbackFilterSelect value="all" options={OPTIONS} onChange={() => {}} ariaLabel="Type" />
+      <FeedbackFilterSelect value="all" options={OPTIONS} onChange={onChange} ariaLabel="Type" />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Type' }));
+    const trigger = screen.getByRole('combobox', { name: 'Type' });
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
     expect(screen.getByRole('listbox')).toBeInTheDocument();
-    fireEvent.keyDown(document, { key: 'Escape' });
+
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('opens with arrow keys, focuses the popover, and marks the selected option active', () => {
+  it('opens on ArrowDown and marks the current selection with aria-selected', () => {
     render(
       <FeedbackFilterSelect
         value="feature"
@@ -64,38 +68,30 @@ describe('<FeedbackFilterSelect />', () => {
         ariaLabel="Type"
       />
     );
-    const trigger = screen.getByRole('button', { name: 'Type' });
+    const trigger = screen.getByRole('combobox', { name: 'Type' });
     trigger.focus();
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });
 
-    const listbox = screen.getByRole('listbox');
-    // The popover takes focus, and the active descendant is the current selection.
-    expect(listbox).toHaveFocus();
-    expect(activeOptionText(listbox)).toContain('Feature');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    const selected = screen.getByRole('option', { name: 'Feature' });
+    expect(selected).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('option', { name: 'Bug' })).toHaveAttribute('aria-selected', 'false');
   });
 
-  it('moves the active option with Up/Down/Home/End and selects with Enter', () => {
+  it('commits the highlighted option with Enter', () => {
     const onChange = vi.fn();
     render(
       <FeedbackFilterSelect value="all" options={OPTIONS} onChange={onChange} ariaLabel="Type" />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Type' }));
-    const listbox = screen.getByRole('listbox');
+    const trigger = screen.getByRole('combobox', { name: 'Type' });
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
 
-    expect(activeOptionText(listbox)).toContain('All types');
-    fireEvent.keyDown(listbox, { key: 'ArrowDown' }); // all -> Feature
-    expect(activeOptionText(listbox)).toContain('Feature');
-    fireEvent.keyDown(listbox, { key: 'Home' }); // -> All types
-    expect(activeOptionText(listbox)).toContain('All types');
-    fireEvent.keyDown(listbox, { key: 'ArrowUp' }); // wraps -> Bug
-    expect(activeOptionText(listbox)).toContain('Bug');
-    fireEvent.keyDown(listbox, { key: 'End' }); // -> Bug
-    expect(activeOptionText(listbox)).toContain('Bug');
-    fireEvent.keyDown(listbox, { key: 'ArrowDown' }); // wraps -> All types
-    expect(activeOptionText(listbox)).toContain('All types');
-
-    fireEvent.keyDown(listbox, { key: 'Enter' });
-    expect(onChange).toHaveBeenCalledWith('all');
+    // Enter on the option is the commit path Radix wires to SELECTION_KEYS
+    // (mirrors the coverage already asserted in ui/Select.test.tsx for the
+    // shared primitive; kept here to pin that this call site wires onChange).
+    fireEvent.keyDown(screen.getByRole('option', { name: 'Bug' }), { key: 'Enter' });
+    expect(onChange).toHaveBeenCalledWith('bug');
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 });
