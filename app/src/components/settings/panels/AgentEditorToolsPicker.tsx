@@ -237,13 +237,7 @@ function ToolsPickerModal({
                       disabled={allToolsSelected}
                       onClick={() => onToggleTool(tool.name)}
                       className="h-auto w-full items-start justify-start gap-3 rounded-md px-2 py-2 text-left font-normal disabled:cursor-not-allowed disabled:opacity-50">
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={() => onToggleTool(tool.name)}
-                        tabIndex={-1}
-                        aria-hidden="true"
-                        className="pointer-events-none mt-0.5"
-                      />
+                      <ToggleMark checked={checked} className="mt-0.5" />
                       <span className="min-w-0">
                         <span className="block font-mono text-xs font-medium text-content">
                           {tool.name}

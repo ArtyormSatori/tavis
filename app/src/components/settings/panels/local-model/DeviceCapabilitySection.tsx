@@ -256,7 +256,6 @@ const DeviceCapabilitySection = ({
           {/* Disabled — Cloud fallback tile (always available, recommended on low-RAM) */}
           <TierTile
             active={isDisabledActive}
-            locked={false}
             disabled={applying !== null}
             onClick={() => void handleApply(DISABLED_TIER_ID)}>
             <div className="flex items-center justify-between">

@@ -278,16 +278,17 @@ const PersonaPanel = ({ embedded = false }: PersonaPanelProps) => {
       {/* ── Appearance & Voice (handled in Mascot settings) ──────── */}
       <SettingsSection title={t('settings.persona.appearanceHeading')}>
         <div className="px-4 py-3">
-          <button
+          <Button
             type="button"
+            variant="tertiary"
             data-testid="persona-open-mascot"
             onClick={() => navigateToSettings('personality#face')}
-            className="flex w-full items-center justify-between text-left text-sm text-content hover:text-primary-700 dark:hover:text-primary-300">
+            className="w-full justify-between px-0 text-sm text-content hover:bg-transparent hover:text-primary-700 dark:hover:text-primary-300">
             <span>{t('settings.persona.openMascotSettings')}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </Button>
         </div>
       </SettingsSection>
       <p className="text-xs text-content-muted leading-relaxed px-1">

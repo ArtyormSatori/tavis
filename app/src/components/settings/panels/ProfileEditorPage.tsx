@@ -187,11 +187,7 @@ const ProfileEditorPage = () => {
       }
       description={t('settings.profiles.menuDesc')}>
       {notFound ? (
-        <div className="space-y-3">
-          <div className="rounded-lg border border-coral-200 bg-coral-50 px-4 py-3 text-sm text-coral-700 dark:border-coral-500/30 dark:bg-coral-500/10 dark:text-coral-300">
-            {t('settings.profiles.editor.notFound')}
-          </div>
-        </div>
+        <Alert variant="destructive">{t('settings.profiles.editor.notFound')}</Alert>
       ) : (
         <div className="space-y-5">
           {/* Identity */}
