@@ -347,7 +347,11 @@ pub(super) fn box_spec(
         // `Egress` is the weakest policy that still publishes; the core needs
         // outbound anyway to reach the TinyHumans backend.
         spec = spec.with_network(NetworkPolicy::Egress);
-        spec = spec.with_port(PortMapping::fixed(host_port, CORE_PORT_IN_BOX));
+        // `fixed(guest, host)`, in that order: the core listens on
+        // CORE_PORT_IN_BOX *inside* the box, and that is what gets published
+        // at `host_port` on the machine the box runs on. Reversed, the box
+        // would publish a port nothing is listening on.
+        spec = spec.with_port(PortMapping::fixed(CORE_PORT_IN_BOX, host_port));
     }
     Ok(spec)
 }
