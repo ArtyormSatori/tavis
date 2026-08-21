@@ -859,11 +859,9 @@ mod tests {
             }),
             ..SecurityPolicy::default()
         });
-        let bootstrap = Arc::new(NodeBootstrap::new(
-            NodeConfig::default(),
-            temp.path().to_path_buf(),
-            reqwest::Client::new(),
-        ));
+        let bootstrap = Arc::new(NodeBootstrap::new(Arc::new(
+            crate::openhuman::config::Config::default(),
+        )));
         let tool = NodeExecTool::new(
             security,
             Arc::new(NativeRuntime::new()),
