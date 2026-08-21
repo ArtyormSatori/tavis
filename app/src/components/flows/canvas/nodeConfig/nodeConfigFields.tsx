@@ -569,9 +569,10 @@ export function CredentialPickerField({
 
   return (
     <Field label={resolvedLabel} hint={t('flows.nodeConfig.credentialHint')} htmlFor={id}>
-      <select
+      <NativeSelect
         id={id}
-        className={INPUT_CLASS}
+        inputSize="sm"
+        className="w-full"
         value={value}
         data-testid={testId}
         onChange={e => onChange(e.target.value)}>
@@ -581,7 +582,7 @@ export function CredentialPickerField({
             {conn.display} · {conn.kind}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </Field>
   );
 }
