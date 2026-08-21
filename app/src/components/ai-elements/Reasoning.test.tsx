@@ -25,7 +25,9 @@ describe('Reasoning', () => {
     const trigger = screen.getByTestId('reasoning-trigger');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveTextContent('Thought for a few seconds');
-    expect(screen.queryByTestId('reasoning-content')).toBeNull();
+    // Radix keeps the content mounted and marks it hidden rather than
+    // unmounting it, so the closed state is asserted on `data-state`.
+    expect(screen.getByTestId('reasoning-content')).toHaveAttribute('data-state', 'closed');
   });
 
   it('opens while streaming and shows the streaming message', () => {
@@ -49,7 +51,9 @@ describe('Reasoning', () => {
     expect(screen.getByTestId('reasoning-content')).toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('reasoning-trigger'));
-    expect(screen.queryByTestId('reasoning-content')).toBeNull();
+    // Radix keeps the content mounted and marks it hidden rather than
+    // unmounting it, so the closed state is asserted on `data-state`.
+    expect(screen.getByTestId('reasoning-content')).toHaveAttribute('data-state', 'closed');
   });
 
   it('auto-closes a second after streaming ends', () => {
@@ -61,7 +65,7 @@ describe('Reasoning', () => {
           <ReasoningContent data-testid="content">reasoning</ReasoningContent>
         </Reasoning>
       );
-      expect(screen.getByTestId('content')).toBeInTheDocument();
+      expect(screen.getByTestId('content')).toHaveAttribute('data-state', 'open');
 
       rerender(
         <Reasoning isStreaming={false}>
@@ -74,7 +78,7 @@ describe('Reasoning', () => {
         vi.advanceTimersByTime(1000);
       });
 
-      expect(screen.queryByTestId('content')).toBeNull();
+      expect(screen.getByTestId('content')).toHaveAttribute('data-state', 'closed');
     } finally {
       vi.useRealTimers();
     }
