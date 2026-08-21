@@ -1,5 +1,6 @@
 /**
- * Pure formatting helpers shared by `MemorySyncSchedule` and `MemorySourceRow`.
+ * Pure formatting helpers shared by `MemorySourcesRegistry`, `MemorySyncSchedule`,
+ * and `MemorySourceRow`.
  */
 import type { MemorySourceEntry } from '../../services/memorySourcesService';
 
@@ -21,22 +22,19 @@ export function relativeTimestamp(
 }
 
 export function sourceTreeScope(source: MemorySourceEntry): string | null {
-  switch (source.kind) {
-    case 'folder':
-      return source.path ?? null;
-    case 'github_repo':
-      return source.url ?? null;
-    case 'web_page':
-      return source.url ?? null;
-    case 'twitter_query':
-      return source.query ?? null;
-    default:
-      return null;
+  if (source.kind === 'github_repo' && source.url) {
+    const m = source.url.match(/github\.com\/([^/]+)\/([^/.]+)/);
+    if (m) return `github:${m[1]}/${m[2]}`;
   }
+  return source.id;
 }
 
 export function sourceDetail(source: MemorySourceEntry): string | null {
   switch (source.kind) {
+    case 'composio': {
+      const parts = [source.toolkit, source.connection_id].filter(Boolean);
+      return parts.length ? parts.join(' · ') : null;
+    }
     case 'folder':
       return source.path ?? null;
     case 'github_repo':

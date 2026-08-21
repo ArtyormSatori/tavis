@@ -220,6 +220,7 @@ const FALLBACK_HEADER: CustomHeader = { id: 0, name: 'Authorization', value: '',
 
 const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProps) => {
   const { t } = useT();
+  const titleId = useId();
   // Declared auth fields. Seeded from the install's stored keys (names only),
   // then enriched by a best-effort registry_get that carries each field's
   // description / secret / required metadata. `__`-prefixed keys are internal
