@@ -18,8 +18,14 @@
 import createDebug from 'debug';
 import { useCallback, useId, useMemo, useState } from 'react';
 
+import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { FlowConnection } from '../../../../services/api/flowsApi';
+import Button from '../../../ui/Button';
+import UiInput from '../../../ui/Input';
+import { InputGroupAddon, InputGroupInput, InputGroupRoot } from '../../../ui/InputGroup';
+import NativeSelect from '../../../ui/NativeSelect';
+import UiTextArea from '../../../ui/TextArea';
 import type { UpstreamExpressionOption } from './upstreamOptions';
 
 const log = createDebug('app:flows:nodeConfig:fields');
