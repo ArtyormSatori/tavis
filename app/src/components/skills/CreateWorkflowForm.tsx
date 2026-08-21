@@ -48,7 +48,7 @@ import {
   type WorkflowSummary,
 } from '../../services/api/skillsApi';
 import { cn } from '../../lib/cn';
-import { Checkbox, NativeSelect, TextArea, TextField } from '../ui';
+import { Alert, Checkbox, NativeSelect, TextArea, TextField } from '../ui';
 import Button from '../ui/Button';
 
 /** Mirrors `SkillCreateInputDef` shape used as wire payload, with one
@@ -422,7 +422,7 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
                   <div
                     key={row.localId}
                     data-testid={`create-skill-input-row-${row.localId}`}
-                    className="rounded-lg border border-line bg-surface-muted dark:bg-surface-canvas/40 p-3">
+                    className="rounded-lg border border-line bg-surface-muted p-3">
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
                       <div>
                         <TextField
@@ -510,12 +510,10 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
 
         {/* Error */}
         {error ? (
-          <div
-            role="alert"
-            className="rounded-xl border border-coral-200 bg-coral-50 p-3 text-xs text-coral-900">
+          <Alert variant="destructive" className="flex-col items-start text-xs">
             <p className="font-semibold">{t('workflows.create.createError')}</p>
             <p className="mt-1 whitespace-pre-wrap font-mono">{error}</p>
-          </div>
+          </Alert>
         ) : null}
       </form>
     );

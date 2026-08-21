@@ -1,9 +1,11 @@
 import debug from 'debug';
 import { useCallback, useEffect, useState } from 'react';
 
+import { cn } from '../../../lib/cn';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { callCoreRpc } from '../../../services/coreRpcClient';
 import { CORE_RPC_METHODS } from '../../../services/rpcMethods';
+import { RadioGroupItem, RadioGroupRoot } from '../../ui/RadioGroup';
 import { SettingsSection, SettingsStatusLine } from '../controls';
 
 const log = debug('privacy-mode');

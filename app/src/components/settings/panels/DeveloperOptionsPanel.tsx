@@ -17,6 +17,10 @@ import { APP_ENVIRONMENT } from '../../../utils/config';
 // try/catch handlers see it as a normal IPC failure.
 import { safeInvoke as invoke, isTauri } from '../../../utils/tauriCommands/common';
 import { resetWalkthrough } from '../../walkthrough/AppWalkthrough';
+import Alert, { AlertDescription, AlertTitle } from '../../ui/Alert';
+import Badge from '../../ui/Badge';
+import Button from '../../ui/Button';
+import Card from '../../ui/Card';
 import SettingsMenuItem from '../components/SettingsMenuItem';
 import { SettingsSection } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
