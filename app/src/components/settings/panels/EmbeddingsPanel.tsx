@@ -668,125 +668,121 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                 </Button>
               </div>
             </div>
-          </div>
           }>
-            {setupProvider.slug === 'custom' ? (
-              /* Custom endpoint form */
-              <div className="space-y-3">
-                <div>
+          {setupProvider.slug === 'custom' ? (
+            /* Custom endpoint form */
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                  {t('settings.embeddings.customEndpoint')}
+                </label>
+                <SettingsTextField
+                  type="text"
+                  value={customEndpoint}
+                  onChange={e => setCustomEndpoint(e.target.value)}
+                  placeholder="https://your-endpoint.com/v1"
+                  mono
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
                   <label className="block text-[11px] font-medium text-content-secondary mb-1">
-                    {t('settings.embeddings.customEndpoint')}
+                    {t('settings.embeddings.customModelPlaceholder')}
                   </label>
                   <SettingsTextField
                     type="text"
-                    value={customEndpoint}
-                    onChange={e => setCustomEndpoint(e.target.value)}
-                    placeholder="https://your-endpoint.com/v1"
+                    value={customModel}
+                    onChange={e => setCustomModel(e.target.value)}
+                    placeholder="text-embedding-3-small"
                     mono
-                    autoFocus
                   />
                 </div>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="block text-[11px] font-medium text-content-secondary mb-1">
-                      {t('settings.embeddings.customModelPlaceholder')}
-                    </label>
-                    <SettingsTextField
-                      type="text"
-                      value={customModel}
-                      onChange={e => setCustomModel(e.target.value)}
-                      placeholder="text-embedding-3-small"
-                      mono
-                    />
-                  </div>
-                  <div className="w-24">
-                    <label className="block text-[11px] font-medium text-content-secondary mb-1">
-                      {t('settings.embeddings.dimensions')}
-                    </label>
-                    <SettingsTextField
-                      type="number"
-                      value={customDims}
-                      onChange={e => setCustomDims(e.target.value)}
-                      placeholder="1024"
-                      mono
-                    />
-                  </div>
-                </div>
-                <div>
+                <div className="w-24">
                   <label className="block text-[11px] font-medium text-content-secondary mb-1">
-                    {t('settings.embeddings.apiKeyLabelGeneric')} (
-                    {t('settings.embeddings.optional')})
+                    {t('settings.embeddings.dimensions')}
                   </label>
+                  <SettingsTextField
+                    type="number"
+                    value={customDims}
+                    onChange={e => setCustomDims(e.target.value)}
+                    placeholder="1024"
+                    mono
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                  {t('settings.embeddings.apiKeyLabelGeneric')} ({t('settings.embeddings.optional')}
+                  )
+                </label>
+                <SettingsTextField
+                  type={setupShowKey ? 'text' : 'password'}
+                  value={setupKey}
+                  onChange={e => setSetupKey(e.target.value)}
+                  placeholder={t('settings.embeddings.placeholderKey')}
+                  mono
+                />
+              </div>
+            </div>
+          ) : (
+            /* Standard API key form */
+            <div className="space-y-3">
+              <p className="text-xs text-content-muted">{setupProvider.description}</p>
+              <div>
+                <label className="block text-[11px] font-medium text-content-secondary mb-1">
+                  {t('settings.embeddings.apiKeyLabel').replace('{provider}', setupProvider.label)}
+                </label>
+                <div className="flex gap-2">
                   <SettingsTextField
                     type={setupShowKey ? 'text' : 'password'}
                     value={setupKey}
                     onChange={e => setSetupKey(e.target.value)}
                     placeholder={t('settings.embeddings.placeholderKey')}
                     mono
+                    autoFocus
+                    className="flex-1"
                   />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => setSetupShowKey(s => !s)}>
+                    {setupShowKey ? t('settings.embeddings.hide') : t('settings.embeddings.show')}
+                  </Button>
                 </div>
+                <p className="mt-1 text-[10px] text-content-faint">
+                  {t('settings.embeddings.keyStoredEncrypted')}
+                </p>
               </div>
-            ) : (
-              /* Standard API key form */
-              <div className="space-y-3">
-                <p className="text-xs text-content-muted">{setupProvider.description}</p>
-                <div>
-                  <label className="block text-[11px] font-medium text-content-secondary mb-1">
-                    {t('settings.embeddings.apiKeyLabel').replace(
-                      '{provider}',
-                      setupProvider.label
-                    )}
-                  </label>
-                  <div className="flex gap-2">
-                    <SettingsTextField
-                      type={setupShowKey ? 'text' : 'password'}
-                      value={setupKey}
-                      onChange={e => setSetupKey(e.target.value)}
-                      placeholder={t('settings.embeddings.placeholderKey')}
-                      mono
-                      autoFocus
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="xs"
-                      onClick={() => setSetupShowKey(s => !s)}>
-                      {setupShowKey ? t('settings.embeddings.hide') : t('settings.embeddings.show')}
-                    </Button>
-                  </div>
-                  <p className="mt-1 text-[10px] text-content-faint">
-                    {t('settings.embeddings.keyStoredEncrypted')}
-                  </p>
-                </div>
-              </div>
-            )}
+            </div>
+          )}
 
-            {/* Test result */}
-            {setupTestResult && (
-              <div
-                className={`rounded-lg px-3 py-2 text-xs ${
-                  setupTestResult.success
-                    ? 'bg-sage-50 dark:bg-sage-900/20 text-sage-700 dark:text-sage-300'
-                    : 'bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-300'
-                }`}>
-                {setupTestResult.success
-                  ? t('settings.embeddings.testSuccess').replace(
-                      '{dims}',
-                      String(setupTestResult.actual_dimensions ?? '?')
-                    )
-                  : t('settings.embeddings.testFailed').replace(
-                      '{error}',
-                      setupTestResult.error ?? ''
-                    )}
-              </div>
-            )}
+          {/* Test result */}
+          {setupTestResult && (
+            <div
+              className={`rounded-lg px-3 py-2 text-xs ${
+                setupTestResult.success
+                  ? 'bg-sage-50 dark:bg-sage-900/20 text-sage-700 dark:text-sage-300'
+                  : 'bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-300'
+              }`}>
+              {setupTestResult.success
+                ? t('settings.embeddings.testSuccess').replace(
+                    '{dims}',
+                    String(setupTestResult.actual_dimensions ?? '?')
+                  )
+                : t('settings.embeddings.testFailed').replace(
+                    '{error}',
+                    setupTestResult.error ?? ''
+                  )}
+            </div>
+          )}
 
-            {setupError && (
-              <div className="rounded-lg px-3 py-2 text-xs bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-300">
-                {setupError}
-              </div>
-            )}
+          {setupError && (
+            <div className="rounded-lg px-3 py-2 text-xs bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-300">
+              {setupError}
+            </div>
+          )}
         </ModalShell>
       )}
       {/* ── Confirm wipe dialog ── */}
