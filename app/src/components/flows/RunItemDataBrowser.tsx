@@ -252,11 +252,12 @@ function FragmentRow({
       <TableRow
         data-testid={`${testIdPrefix}-row-${index}`}
         className="align-top hover:bg-transparent">
-        <TableCell asChild>
-          <th scope="row" className="px-1.5 py-1 text-left font-mono font-normal text-content-faint">
-            {index + 1}
-          </th>
-        </TableCell>
+        <th
+          scope="row"
+          data-slot="table-cell"
+          className="px-1.5 py-1 text-left align-middle font-mono font-normal text-content-faint">
+          {index + 1}
+        </th>
         {useColumns ? (
           columns.map(column => {
             const text = formatCell(cellValue(item, column));

@@ -20,12 +20,15 @@
  * no auth.
  */
 import debug from 'debug';
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { mcpClientsApi } from '../../../services/api/mcpClientsApi';
 import { openUrl } from '../../../utils/openUrl';
 import Button from '../../ui/Button';
+import { ModalShell } from '../../ui/ModalShell';
+import NativeSelect from '../../ui/NativeSelect';
+import TextField from '../../ui/TextField';
 import ConfigHelpModal from './ConfigHelpModal';
 import type { InstalledServer, McpTool, SmitheryServerDetail } from './types';
 
