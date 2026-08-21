@@ -184,29 +184,25 @@ const ThemeStudioPanel = () => {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-content-faint">
             {t('settings.theme.presetsHeading', 'Themes')}
           </h3>
-          <div
-            className="inline-flex overflow-hidden rounded-lg border border-line"
-            role="radiogroup"
-            aria-label={t('settings.theme.variantAria', 'Theme variant')}>
-            {VARIANT_OPTIONS.map(opt => {
-              const sel = opt.id === variant;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={sel}
-                  onClick={() => dispatch(setThemeVariant(opt.id))}
-                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${
-                    sel
-                      ? 'bg-primary-500 text-content-inverted'
-                      : 'text-content-secondary hover:bg-surface-hover'
-                  }`}>
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+          <ToggleGroupRoot
+            type="single"
+            variant="secondary"
+            size="xs"
+            value={variant}
+            onValueChange={next => {
+              if (next) dispatch(setThemeVariant(next as ThemeVariant));
+            }}
+            aria-label={t('settings.theme.variantAria', 'Theme variant')}
+            className="overflow-hidden rounded-lg border border-line gap-0 [&>*]:rounded-none [&>*]:border-0">
+            {VARIANT_OPTIONS.map(opt => (
+              <ToggleGroupItem
+                key={opt.id}
+                value={opt.id}
+                className="h-auto px-2.5 py-1 text-xs font-medium data-[state=on]:bg-primary-500 data-[state=on]:text-content-inverted">
+                {opt.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroupRoot>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {families.map(fam => {
