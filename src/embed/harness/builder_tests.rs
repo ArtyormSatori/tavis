@@ -102,6 +102,8 @@ async fn a_failed_build_releases_the_process_slot() {
 #[cfg(feature = "mcp")]
 #[test]
 fn declared_mcp_servers_land_on_the_config() {
+    use super::super::mcp::McpServer;
+
     // The static registry has one constructor, `from_config`, and no public
     // `register` — so the config IS the registration API.
     let mut config = Config::default();
