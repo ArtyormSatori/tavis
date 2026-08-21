@@ -109,14 +109,16 @@ export default function FlowRunsSidebar({ flowId }: FlowRunsSidebarProps) {
         <span className="text-[11px] font-semibold uppercase tracking-wide text-content-faint">
           {t('flows.runs.sidebarTitle')}
         </span>
-        <button
+        <Button
           type="button"
+          variant="tertiary"
+          size="xs"
+          iconOnly
           onClick={() => void refresh()}
           disabled={loading}
           data-testid="flow-runs-sidebar-refresh"
           aria-label={t('flows.runs.refresh')}
-          title={t('flows.runs.refresh')}
-          className="rounded-md p-1 text-content-faint transition-colors hover:bg-surface-hover hover:text-content-secondary disabled:opacity-50">
+          title={t('flows.runs.refresh')}>
           <svg
             className="h-3.5 w-3.5"
             fill="none"
@@ -130,7 +132,7 @@ export default function FlowRunsSidebar({ flowId }: FlowRunsSidebarProps) {
               d="M4 4v5h5M20 20v-5h-5M4 9a8 8 0 0114-3m2 8a8 8 0 01-14 3"
             />
           </svg>
-        </button>
+        </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">

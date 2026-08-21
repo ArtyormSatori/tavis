@@ -344,18 +344,19 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
 
         {/* History */}
         <div>
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={() => setShowHistory(prev => !prev)}
             aria-expanded={showHistory}
-            className="flex items-center gap-1.5 text-xs font-medium text-content-secondary hover:text-content">
+            className="h-auto gap-1.5 p-0 text-xs font-medium text-content-secondary hover:text-content">
             <span
               className={`transition-transform ${showHistory ? 'rotate-90' : ''}`}
               aria-hidden="true">
               ▶
             </span>
             {t('mcp.playground.history')} ({history.length})
-          </button>
+          </Button>
           {showHistory && (
             <div className="mt-1.5">
               {history.length === 0 ? (
