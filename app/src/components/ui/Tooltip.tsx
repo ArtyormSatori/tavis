@@ -150,7 +150,10 @@ export default function Tooltip({ label, children, side = 'right', delayMs = 300
           <div
             data-testid="tooltip"
             aria-hidden="true"
-            className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded-md bg-stone-800 px-2 py-1 text-xs font-medium text-white shadow-md animate-fade-in dark:bg-neutral-700"
+            // Semantic tokens, not `bg-stone-800`/`text-white`/`dark:bg-neutral-700`:
+            // those are raw palette scales, so the pill kept a fixed grey under
+            // every user theme instead of following it.
+            className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in"
             style={{ top: anchor.top, left: anchor.left, transform: TRANSFORM[anchor.side] }}>
             {label}
           </div>,
