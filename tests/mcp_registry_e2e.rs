@@ -217,7 +217,11 @@ async fn successful_connect_clears_last_error() {
     let (_tmp, cfg) = fresh_workspace_config();
     let h = host(&cfg);
     let mut server = make_installed_server();
+
+    // Connecting resolves the install from the store, so a change to the record
+    // only takes effect once it is written there.
     server.command = "/nonexistent".to_string();
+    h.dynamic().store().insert_server(&server).expect("insert");
     let _ = h.dynamic().connect(&server.server_id).await;
     assert!(h
         .dynamic()
@@ -227,6 +231,11 @@ async fn successful_connect_clears_last_error() {
         .is_some());
 
     server.command = env!("CARGO_BIN_EXE_test-mcp-stub").to_string();
+    h.dynamic()
+        .store()
+        .delete_server(&server.server_id)
+        .expect("drop the bogus record");
+    h.dynamic().store().insert_server(&server).expect("reinsert");
     h.dynamic()
         .connect(&server.server_id)
         .await
