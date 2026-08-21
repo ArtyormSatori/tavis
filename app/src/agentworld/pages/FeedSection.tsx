@@ -653,9 +653,13 @@ function CommentRow({
       {confirmingDelete && (
         <ConfirmDialog
           title="Delete comment"
-          message="Delete this comment? This can't be undone."
+          titleId="agentworld-confirm-title"
+          body="Delete this comment? This can't be undone."
           confirmLabel="Delete"
+          cancelLabel="Cancel"
+          destructive
           busy={deleting}
+          busyLabel="Deleting…"
           onConfirm={confirmDeleteComment}
           onCancel={() => {
             if (!deleting) setConfirmingDelete(false);

@@ -1,6 +1,8 @@
 import { useT } from '../../lib/i18n/I18nContext';
 import type { ActionableItem, ActionableItemSource, TimeGroup } from '../../types/intelligence';
 import Button from '../ui/Button';
+import NativeSelect from '../ui/NativeSelect';
+import TextField from '../ui/TextField';
 import { ActionableCard } from './ActionableCard';
 
 interface IntelligenceMemoryTabProps {
