@@ -238,62 +238,60 @@ const CoreModeBadge = () => {
 
   if (mode.kind === 'unset') {
     return (
-      <div className="px-4 py-3 rounded-xl border border-coral-300 dark:border-coral-500/40 bg-coral-50 dark:bg-coral-500/10">
-        <div className="text-sm font-semibold text-coral-900 dark:text-coral-300">
-          {t('devOptions.coreModeNotSet')}
+      <Alert variant="destructive">
+        <div>
+          <AlertTitle>{t('devOptions.coreModeNotSet')}</AlertTitle>
+          <AlertDescription>{t('devOptions.coreModeNotSetDesc')}</AlertDescription>
         </div>
-        <div className="text-xs text-coral-800 dark:text-coral-200 mt-0.5">
-          {t('devOptions.coreModeNotSetDesc')}
-        </div>
-      </div>
+      </Alert>
     );
   }
 
   if (mode.kind === 'local') {
     return (
-      <div className="px-4 py-3 rounded-xl border border-primary-300 dark:border-primary-500/40 bg-primary-50 dark:bg-primary-500/10">
-        <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded-full bg-primary-600 text-content-inverted text-[11px] font-medium">
-            {t('devOptions.local')}
-          </span>
-          <span className="text-sm font-semibold text-primary-900 dark:text-primary-200">
-            {t('devOptions.embeddedCoreSidecar')}
-          </span>
+      <Alert variant="info">
+        <div className="w-full">
+          <div className="flex items-center gap-2">
+            <Badge variant="primary">{t('devOptions.local')}</Badge>
+            <span className="text-sm font-semibold text-content">
+              {t('devOptions.embeddedCoreSidecar')}
+            </span>
+          </div>
+          <p className="text-xs text-content-secondary mt-1">
+            {t('devOptions.sidecarSpawned')}
+          </p>
         </div>
-        <div className="text-xs text-primary-800 dark:text-primary-200 mt-1">
-          {t('devOptions.sidecarSpawned')}
-        </div>
-      </div>
+      </Alert>
     );
   }
 
   return (
-    <div className="px-4 py-3 rounded-xl border border-sage-300 dark:border-sage-500/40 bg-sage-50 dark:bg-sage-500/10">
-      <div className="flex items-center gap-2">
-        <span className="px-2 py-0.5 rounded-full bg-sage-600 text-content-inverted text-[11px] font-medium">
-          {t('devOptions.cloud')}
-        </span>
-        <span className="text-sm font-semibold text-sage-900 dark:text-sage-200">
-          {t('devOptions.remoteCoreRpc')}
-        </span>
+    <Alert variant="success">
+      <div className="w-full">
+        <div className="flex items-center gap-2">
+          <Badge variant="success">{t('devOptions.cloud')}</Badge>
+          <span className="text-sm font-semibold text-content">
+            {t('devOptions.remoteCoreRpc')}
+          </span>
+        </div>
+        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+          <dt className="text-content-secondary">URL:</dt>
+          <dd className="font-mono text-content truncate" title={mode.url}>
+            {mode.url}
+          </dd>
+          <dt className="text-content-secondary">{t('devOptions.token')}:</dt>
+          <dd className="text-content">
+            {mode.token ? (
+              <span className="font-mono">••••••{mode.token.slice(-4)}</span>
+            ) : (
+              <span className="text-coral-600 dark:text-coral-300">
+                {t('devOptions.tokenNotSet')}
+              </span>
+            )}
+          </dd>
+        </dl>
       </div>
-      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-        <dt className="text-sage-700 dark:text-sage-300">URL:</dt>
-        <dd className="font-mono text-sage-900 dark:text-sage-200 truncate" title={mode.url}>
-          {mode.url}
-        </dd>
-        <dt className="text-sage-700 dark:text-sage-300">{t('devOptions.token')}:</dt>
-        <dd className="text-sage-900 dark:text-sage-200">
-          {mode.token ? (
-            <span className="font-mono">••••••{mode.token.slice(-4)}</span>
-          ) : (
-            <span className="text-coral-600 dark:text-coral-300">
-              {t('devOptions.tokenNotSet')}
-            </span>
-          )}
-        </dd>
-      </dl>
-    </div>
+    </Alert>
   );
 };
 
