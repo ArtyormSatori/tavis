@@ -14,6 +14,7 @@ import {
   validateMnemonicPhrase,
 } from '../../../utils/cryptoKeys';
 import Button from '../../ui/Button';
+import TextField from '../../ui/TextField';
 import { SettingsCheckbox } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import SettingsPanel from '../layout/SettingsPanel';
@@ -822,17 +823,20 @@ const RecoveryPhrasePanel = () => {
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs text-content-muted">{t('mnemonic.words')}:</span>
         {BIP39_IMPORT_LENGTHS.map(len => (
-          <button
+          <Button
             key={len}
             type="button"
+            variant="secondary"
+            size="xs"
+            aria-pressed={selectedWordCount === len}
             onClick={() => handleWordCountChange(len)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
+            className={`h-auto rounded-lg px-2.5 py-1 text-xs font-medium ${
               selectedWordCount === len
                 ? 'bg-primary-500/20 border-primary-500/40 text-primary-600 dark:text-primary-300 border'
-                : 'border border-line text-content-muted hover:border-line-strong dark:border-line-strong'
+                : 'border border-line bg-transparent text-content-muted hover:border-line-strong dark:border-line-strong'
             }`}>
             {len}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -843,7 +847,9 @@ const RecoveryPhrasePanel = () => {
               <span className="text-content-muted font-mono text-xs w-5 text-right shrink-0">
                 {index + 1}.
               </span>
-              <input
+              <TextField
+                mono
+                inputSize="sm"
                 aria-label={`Recovery phrase word ${index + 1}`}
                 ref={el => {
                   inputRefs.current[index] = el;
@@ -854,12 +860,11 @@ const RecoveryPhrasePanel = () => {
                 onKeyDown={e => handleImportKeyDown(index, e)}
                 autoComplete="off"
                 spellCheck={false}
-                className={`w-full font-mono text-sm font-medium px-2 py-1.5 rounded-lg border bg-surface text-content outline-none transition-colors ${
-                  importValid === false && word.trim()
-                    ? 'border-coral-400 focus:border-coral-300 dark:border-coral-500/40'
-                    : importValid === true
-                      ? 'border-sage-400 focus:border-sage-300 dark:border-sage-500/40'
-                      : 'border-line focus:border-primary-400'
+                invalid={importValid === false && word.trim().length > 0}
+                className={`h-auto px-2 py-1.5 text-sm font-medium rounded-lg ${
+                  importValid === true
+                    ? '!border-sage-400 focus:!border-sage-300 dark:!border-sage-500/40'
+                    : ''
                 }`}
               />
             </div>
