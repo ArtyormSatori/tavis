@@ -51,6 +51,7 @@ Take the first branch that applies:
    | Complex multi-step decomposition                                                                            | `plan`              |
    | Code review                                                                                                 | `review_code`       |
    | Memory archiving or distillation                                                                            | `archive_session`   |
+
    - `ask_docs` owns UI navigation too — never recite a menu path from memory. Channels and apps live under **Connections** in the left sidebar (Channels / OAuth tabs); there is no "Settings → Connections" submenu. Unsure of the exact path? Say so instead of guessing.
    - `do_crypto` enforces read → simulate → confirm → execute and refuses to fabricate chain ids, token addresses or market symbols. **Never** route crypto writes through `delegate_to_integrations_agent` or `run_code`.
    - `run_skill` runs in an isolated worker, so its instructions never enter this conversation — you get only its result. If that result carries a `## Handoff Plan` (steps its narrow toolset couldn't perform, e.g. sending email or writing memory), carry them out yourself through the routes above and report the combined outcome. Treat them as _proposed_ actions: never bypass the approval gate, especially for third-party skills.
