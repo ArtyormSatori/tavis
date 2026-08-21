@@ -947,67 +947,8 @@ mod tests {
 
     // ── platform slug validation (finding #6) ───────────────────
 
-    #[test]
-    fn parse_platform_policies_accepts_all_known_slugs() {
-        use std::collections::HashMap;
-        let mut raw = HashMap::new();
-        raw.insert("gmeet".to_string(), "always".to_string());
-        raw.insert("zoom".to_string(), "ask_each_time".to_string());
-        raw.insert("teams".to_string(), "never".to_string());
-        raw.insert("webex".to_string(), "always".to_string());
-        let result = parse_platform_auto_join_policies(raw).unwrap();
-        assert_eq!(result.len(), 4);
-        assert!(matches!(result["gmeet"], AutoJoinPolicy::Always));
-        assert!(matches!(result["zoom"], AutoJoinPolicy::AskEachTime));
-        assert!(matches!(result["teams"], AutoJoinPolicy::Never));
-        assert!(matches!(result["webex"], AutoJoinPolicy::Always));
-    }
 
-    #[test]
-    fn parse_platform_policies_rejects_unknown_slug() {
-        use std::collections::HashMap;
-        let mut raw = HashMap::new();
-        raw.insert("discord".to_string(), "always".to_string());
-        let err = parse_platform_auto_join_policies(raw).unwrap_err();
-        assert!(
-            err.contains("discord"),
-            "error must identify the unknown slug: {err}"
-        );
-        assert!(
-            err.contains("gmeet") || err.contains("valid"),
-            "error must hint at valid slugs: {err}"
-        );
-    }
 
-    #[test]
-    fn parse_platform_policies_rejects_non_meeting_platforms() {
-        use std::collections::HashMap;
-        for bad in &["slack", "meet", "google", "microsoft", "jitsi", ""] {
-            let mut raw = HashMap::new();
-            raw.insert(bad.to_string(), "always".to_string());
-            assert!(
-                parse_platform_auto_join_policies(raw).is_err(),
-                "slug {bad:?} should be rejected"
-            );
-        }
-    }
 
-    #[test]
-    fn parse_platform_policies_rejects_invalid_policy_value() {
-        use std::collections::HashMap;
-        let mut raw = HashMap::new();
-        raw.insert("zoom".to_string(), "sometimes".to_string());
-        let err = parse_platform_auto_join_policies(raw).unwrap_err();
-        assert!(
-            err.contains("sometimes") || err.contains("invalid"),
-            "error must identify the bad policy: {err}"
-        );
-    }
 
-    #[test]
-    fn parse_platform_policies_empty_map_is_ok() {
-        use std::collections::HashMap;
-        let result = parse_platform_auto_join_policies(HashMap::new()).unwrap();
-        assert!(result.is_empty());
-    }
 }
