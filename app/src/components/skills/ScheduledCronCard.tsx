@@ -130,11 +130,9 @@ export default function ScheduledCronCard({
           {heading}
         </span>
         {badgeCount && badgeCount > 1 ? (
-          <span
-            data-testid={`${rootId}-count-badge`}
-            className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-strong text-content-secondary shrink-0">
+          <Badge data-testid={`${rootId}-count-badge`} className="shrink-0">
             ×{badgeCount}
-          </span>
+          </Badge>
         ) : null}
       </div>
       <div
