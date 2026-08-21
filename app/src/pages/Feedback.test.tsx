@@ -123,7 +123,10 @@ describe('<Feedback /> keeps the board in sync after local mutations', () => {
   ) {
     await user.click(screen.getByLabelText(triggerLabel));
     const listbox = await screen.findByRole('listbox');
-    await user.click(within(listbox).getByRole('button', { name: optionName }));
+    // FeedbackFilterSelect now renders Radix `Select`, whose items carry
+    // role="option" (not "button" — that was the hand-rolled listbox this
+    // component used before adopting the shared primitive).
+    await user.click(within(listbox).getByRole('option', { name: optionName }));
   }
 
   async function submitFeature(user: ReturnType<typeof userEvent.setup>, title: string) {

@@ -64,35 +64,11 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
   // #4278: set to the core host OS when the vault lives on a different-OS core
   // host, so local actions (Reveal / Open in Obsidian) are disabled + explained.
   const [crossHostOs, setCrossHostOs] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const closePanel = useCallback(() => setExpanded(false), []);
-
-  // The guidance panel is a floating popover, so it needs explicit dismissal:
-  // click outside the section or press Escape to close it. (Clicking the View
-  // Vault button itself stays inside `containerRef`, so it re-runs the check
-  // rather than dismissing — matching the panel's "click View Vault again" copy.)
-  useLayoutEffect(() => {
-    if (!expanded) return;
-    const onPointerDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        console.debug('[ui-flow][obsidian-vault] dismiss: outside click');
-        setExpanded(false);
-      }
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        console.debug('[ui-flow][obsidian-vault] dismiss: escape');
-        setExpanded(false);
-      }
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [expanded]);
+  // Anchors the popover to the View Vault button. The outside-click guard
+  // (onPointerDownOutside below) uses this to recognize a re-click on the
+  // trigger as "inside" rather than "outside" — see the PopoverAnchor comment
+  // near the render for why a plain PopoverTrigger doesn't work here.
+  const anchorRef = useRef<HTMLButtonElement>(null);
 
   /**
    * Build + fire the `obsidian://` deep link.
