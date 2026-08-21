@@ -256,11 +256,16 @@ describe('ConnectAuthModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('closes on backdrop mousedown', async () => {
+  it('closes on Escape', async () => {
     const onClose = vi.fn();
     render(<ConnectAuthModal server={BASE_SERVER} onClose={onClose} onConnected={() => {}} />);
     const dialog = await screen.findByRole('dialog');
-    fireEvent.mouseDown(dialog);
+    // Migrated onto the shared `ModalShell` / Radix `Dialog` (#radix-ui-foundation):
+    // dismissal is now Escape or backdrop pointerdown-outside rather than a
+    // manual mousedown-on-self handler, so this exercises the Radix
+    // escape-key path instead of firing mousedown directly on the dialog role
+    // element (which is now the Content, not the old full-screen backdrop div).
+    fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
 
