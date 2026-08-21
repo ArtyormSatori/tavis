@@ -421,7 +421,7 @@ pub async fn start_chat(
     //   [IMAGE:data:…] → [Image: … #att:<id>] placeholder + out-of-band stash
     // Images are rehydrated to a data URI at provider dispatch for vision-capable
     // models only.
-    let message = if message.contains("[FILE:") || message.contains("[IMAGE:") {
+    let mut message = if message.contains("[FILE:") || message.contains("[IMAGE:") {
         let before_chars = message.chars().count();
         log::debug!(
             "[web-channel][ingress] preprocessing attachment markers thread_id={} client_id={} chars={}",
