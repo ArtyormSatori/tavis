@@ -420,8 +420,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let loc = thread_loc(dir.path(), "reclaim-max-test");
         let card_id = seed_in_progress_card(&loc, "poison work").await;
+        // Two reclaims are tolerated; the one that reaches the limit parks it.
         let limits = RunLimits {
-            max_reclaim_count: 1,
+            max_reclaim_count: 2,
             ..RunLimits::default()
         };
 
@@ -452,7 +453,7 @@ mod tests {
                 .blocker
                 .as_deref()
                 .unwrap_or_default()
-                .contains("exceeding limit of 1")
+                .contains("exceeding limit of 2")
         );
     }
 
