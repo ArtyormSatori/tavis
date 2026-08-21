@@ -42,12 +42,12 @@ interface StatTileProps {
 }
 
 const StatTile = ({ label, value, hint }: StatTileProps) => (
-  <div className="rounded-2xl border border-stone-200 dark:border-neutral-800 p-4 bg-gradient-to-br from-white to-stone-50 dark:from-neutral-900 dark:to-neutral-950">
-    <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{label}</div>
-    <div className="mt-1 text-2xl font-semibold text-neutral-900 dark:text-neutral-50 tabular-nums">
+  <div className="rounded-2xl border border-line p-4 bg-gradient-to-br from-surface to-surface-subtle">
+    <div className="text-xs font-medium text-content-muted">{label}</div>
+    <div className="mt-1 text-2xl font-semibold text-content tabular-nums">
       {value}
     </div>
-    {hint && <div className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">{hint}</div>}
+    {hint && <div className="mt-0.5 text-xs text-content-faint">{hint}</div>}
   </div>
 );
 
