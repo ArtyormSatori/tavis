@@ -235,13 +235,15 @@ fn a_disabled_mcp_section_carries_across() {
 }
 
 #[test]
-fn the_module_configuration_points_at_the_workspace() {
-    // Both stores live under it, so the servers a user installed are found
-    // again after a restart.
-    let config = config_without_docs();
+fn a_host_opens_both_stores_under_the_workspace() {
+    // Both live there, so the servers a user installed are found again after a
+    // restart.
+    let temporary = tempfile::tempdir().expect("tempdir");
+    let mut config = config_without_docs();
+    config.workspace_dir = temporary.path().to_path_buf();
 
-    assert_eq!(
-        module_config(&config).data_dir.as_deref(),
-        Some(config.workspace_dir.as_path())
-    );
+    let _host = McpHost::open(&config).expect("the host opens");
+
+    assert!(tinymcp::Store::path_for(temporary.path()).exists());
+    assert!(tinymcp::AuditStore::path_for(temporary.path()).exists());
 }

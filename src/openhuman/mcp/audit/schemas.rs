@@ -113,7 +113,7 @@ fn handle_list(params: Map<String, Value>) -> ControllerFuture {
             "[mcp_audit] handle_list querying store workspace={} query={query:?}",
             config.workspace_dir.display()
         );
-        let records = match super::list_writes(&config, &query) {
+        let records = match crate::openhuman::mcp::audit::list_writes(&config, &query) {
             Ok(records) => {
                 log::trace!(
                     "[mcp_audit] handle_list store success records={}",
@@ -175,7 +175,7 @@ mod tests {
         let config = config_rpc::load_config_with_timeout()
             .await
             .expect("config");
-        super::record_write(
+        crate::openhuman::mcp::audit::record_write(
             &config,
             crate::openhuman::mcp::audit::NewMcpWriteRecord {
                 timestamp_ms: 10,

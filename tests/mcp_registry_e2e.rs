@@ -416,7 +416,9 @@ async fn update_env_merges_partial_update_preserving_other_secrets() {
     let mut initial = HashMap::new();
     initial.insert("API_KEY".to_string(), "key-1".to_string());
     initial.insert("OTHER_SECRET".to_string(), "other-1".to_string());
-    h.dynamic().store().set_env_values(&server.server_id, &initial).expect("seed env");
+    h.dynamic()
+        .store()
+        .set_env_values(&server.server_id, &initial.clone().into_iter().collect()).expect("seed env");
 
     // Partial update: only API_KEY, as the connect modal would send for a
     // single edited field.

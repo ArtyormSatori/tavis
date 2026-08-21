@@ -211,7 +211,8 @@ mod tests {
         let t = GitbooksSearchTool::new(
             "https://tinyhumans.gitbook.io/openhuman/~gitbook/mcp".into(),
             30,
-        );
+        )
+        .expect("a client builds");
         let result = t
             .execute(json!({"query": "what is openhuman"}))
             .await
