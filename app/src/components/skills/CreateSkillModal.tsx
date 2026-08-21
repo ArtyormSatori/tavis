@@ -17,7 +17,7 @@
  * handle here.
  */
 import debug from 'debug';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { type WorkflowSummary } from '../../services/api/skillsApi';
@@ -40,6 +40,11 @@ export default function CreateSkillModal({ onClose, onCreated, editing }: Props)
   const { t } = useT();
   const [formValid, setFormValid] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    log('mount');
+    return () => log('unmount');
+  }, []);
 
   const handleStateChange = useCallback((state: { valid: boolean; submitting: boolean }) => {
     setFormValid(state.valid);
