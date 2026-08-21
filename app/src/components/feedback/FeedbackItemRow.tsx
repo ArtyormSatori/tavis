@@ -92,10 +92,11 @@ export default function FeedbackItemRow({
           </span>
           <span>·</span>
           <span>{formatDate(item.createdAt)}</span>
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={() => setExpanded(prev => !prev)}
-            className="flex items-center gap-1 transition-colors hover:text-primary-500">
+            className="h-auto gap-1 p-0 text-xs font-normal text-content-faint hover:bg-transparent hover:text-primary-500">
             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -105,13 +106,14 @@ export default function FeedbackItemRow({
               />
             </svg>
             {item.commentCount} {t('feedback.comments')}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="tertiary"
+            size="xs"
             onClick={() => setExpanded(prev => !prev)}
-            className="transition-colors hover:text-primary-500">
+            className="h-auto p-0 text-xs font-normal text-content-faint hover:bg-transparent hover:text-primary-500">
             {expanded ? t('feedback.collapse') : t('feedback.expand')}
-          </button>
+          </Button>
           {item.github?.issueUrl && (
             <a
               href={item.github.issueUrl}
