@@ -610,18 +610,66 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
 
       {/* ── Setup popup (API key entry + test + save) ── */}
       {setupProvider && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={e => {
-            if (e.target === e.currentTarget) {
-              setSetupProvider(null);
-            }
-          }}>
-          <div className="mx-4 max-w-md w-full rounded-2xl bg-surface border border-line dark:border-line-strong p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-semibold text-content">
-              {t('settings.embeddings.setupTitle').replace('{provider}', setupProvider.label)}
-            </h3>
+        <ModalShell
+          titleId="embeddings-setup-title"
+          title={t('settings.embeddings.setupTitle').replace('{provider}', setupProvider.label)}
+          onClose={() => setSetupProvider(null)}
+          contentClassName="px-5 py-4 space-y-4"
+          footer={
+            <div className="flex justify-between pt-1">
+              <Button
+                type="button"
+                variant="secondary"
+                size="xs"
+                onClick={() => {
+                  if (setupProvider.slug !== 'custom') {
+                    void setupTest();
+                  }
+                }}
+                disabled={
+                  setupTesting ||
+                  setupSaving ||
+                  (setupProvider.slug !== 'custom' && !setupKey.trim())
+                }>
+                {setupTesting
+                  ? t('settings.embeddings.testing')
+                  : t('settings.embeddings.testConnection')}
+              </Button>
 
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="tertiary"
+                  size="xs"
+                  onClick={() => setSetupProvider(null)}>
+                  {t('settings.embeddings.cancel')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="xs"
+                  onClick={() => {
+                    if (setupProvider.slug === 'custom') {
+                      void setupSaveCustom();
+                    } else {
+                      void setupSave();
+                    }
+                  }}
+                  disabled={
+                    setupSaving ||
+                    (setupProvider.slug !== 'custom' &&
+                      !setupKey.trim() &&
+                      !setupProvider.has_api_key) ||
+                    (setupProvider.slug === 'custom' && !customEndpoint.trim())
+                  }>
+                  {setupSaving
+                    ? t('settings.embeddings.saving')
+                    : t('settings.embeddings.saveAndSwitch')}
+                </Button>
+              </div>
+            </div>
+          </div>
+          }>
             {setupProvider.slug === 'custom' ? (
               /* Custom endpoint form */
               <div className="space-y-3">
@@ -739,64 +787,8 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                 {setupError}
               </div>
             )}
-
-            {/* Popup actions */}
-            <div className="flex justify-between pt-1">
-              <Button
-                type="button"
-                variant="secondary"
-                size="xs"
-                onClick={() => {
-                  if (setupProvider.slug !== 'custom') {
-                    void setupTest();
-                  }
-                }}
-                disabled={
-                  setupTesting ||
-                  setupSaving ||
-                  (setupProvider.slug !== 'custom' && !setupKey.trim())
-                }>
-                {setupTesting
-                  ? t('settings.embeddings.testing')
-                  : t('settings.embeddings.testConnection')}
-              </Button>
-
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  size="xs"
-                  onClick={() => setSetupProvider(null)}>
-                  {t('settings.embeddings.cancel')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="xs"
-                  onClick={() => {
-                    if (setupProvider.slug === 'custom') {
-                      void setupSaveCustom();
-                    } else {
-                      void setupSave();
-                    }
-                  }}
-                  disabled={
-                    setupSaving ||
-                    (setupProvider.slug !== 'custom' &&
-                      !setupKey.trim() &&
-                      !setupProvider.has_api_key) ||
-                    (setupProvider.slug === 'custom' && !customEndpoint.trim())
-                  }>
-                  {setupSaving
-                    ? t('settings.embeddings.saving')
-                    : t('settings.embeddings.saveAndSwitch')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        </ModalShell>
       )}
-
       {/* ── Confirm wipe dialog ── */}
       {pendingWipe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
