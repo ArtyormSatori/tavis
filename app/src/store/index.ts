@@ -25,7 +25,6 @@ import {
 import backendMeetReducer from './backendMeetSlice';
 import channelConnectionsReducer from './channelConnectionsSlice';
 import chatRuntimeReducer from './chatRuntimeSlice';
-import companionReducer from './companionSlice';
 import connectivityReducer from './connectivitySlice';
 import coreModeReducer from './coreModeSlice';
 import githubStarReducer from './githubStarSlice';
@@ -252,7 +251,6 @@ export const store = configureStore({
     thread: persistedThreadReducer,
     layout: persistedLayoutReducer,
     chatRuntime: persistedChatRuntimeReducer,
-    companion: companionReducer,
     agentProfiles: agentProfileReducer,
     channelConnections: persistedChannelConnectionsReducer,
     accounts: persistedAccountsReducer,

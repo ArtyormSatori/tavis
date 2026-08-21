@@ -134,8 +134,7 @@ export function settingsRouteElements(): ReactNode {
       {/* The Integrations settings section was retired; the composio/OAuth grid
           lives on the Connections page. */}
       <Route path="integrations" element={<Navigate to="/connections" replace />} />
-      <Route path="tools" element={wrapSettingsPage(<ToolsPanel />)} />
-      <Route path="companion" element={<Navigate to="/connections?tab=companion" replace />} />
+      <Route path="tools" element={wrapSettingsPage(<ToolsPanel />)} />} />
       {/* Meeting settings moved to the Connections page (meetings tab). */}
       <Route path="meetings" element={<Navigate to="/connections?tab=meetings" replace />} />
 
