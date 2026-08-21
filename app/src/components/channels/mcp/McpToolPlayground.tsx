@@ -120,10 +120,15 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
   // `Dialog` behavior (its own document-level Escape listener + backdrop
   // pointerdown-outside), so there is no hand-rolled listener here any more.
 
-  // Auto-focus the args editor on mount so keyboard-first users land
-  // exactly where they need to type.
+  // Auto-focus the args editor on mount so keyboard-first users land exactly
+  // where they need to type. `ModalShell` / Radix `Dialog` runs its own
+  // focus-trap auto-focus in an effect that commits after this component's
+  // children (React fires passive effects bottom-up), so a plain
+  // `useEffect` here would be overridden immediately after. Defer to the
+  // next animation frame so this one wins.
   useEffect(() => {
-    argsTextareaRef.current?.focus();
+    const raf = requestAnimationFrame(() => argsTextareaRef.current?.focus());
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const schemaJson = useMemo(() => stringifyResult(tool.input_schema), [tool.input_schema]);
