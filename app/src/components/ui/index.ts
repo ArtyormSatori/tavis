@@ -20,6 +20,40 @@ export { default as Checkbox, type CheckboxProps } from './Checkbox';
 export { default as Switch, type SwitchProps } from './Switch';
 export { default as Label, type LabelProps } from './Label';
 export { default as Field, type FieldProps } from './Field';
+export {
+  RadioGroupItem,
+  RadioGroupRoot,
+  radioGroupItemVariants,
+  type RadioGroupItemProps,
+  type RadioGroupRootProps,
+} from './RadioGroup';
+export { default as Toggle, toggleVariants, type ToggleProps } from './Toggle';
+export {
+  ToggleGroupItem,
+  ToggleGroupRoot,
+  type ToggleGroupItemProps,
+  type ToggleGroupProps,
+} from './ToggleGroup';
+export {
+  default as Slider,
+  sliderThumbVariants,
+  sliderTrackVariants,
+  type SliderProps,
+  type SliderSize,
+} from './Slider';
+export {
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectRoot,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+  type SelectContentProps,
+  type SelectSize,
+  type SelectTriggerProps,
+} from './Select';
 
 // Surfaces & content
 export { default as Card, type CardProps } from './Card';
@@ -30,6 +64,36 @@ export { default as StatusLine, type StatusLineProps } from './StatusLine';
 export { default as ListRow, type ListRowProps } from './ListRow';
 export { default as Progress, type ProgressProps } from './Progress';
 export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './Table';
+export { AvatarFallback, AvatarImage, AvatarRoot } from './Avatar';
+export {
+  AccordionContent,
+  AccordionItem,
+  AccordionRoot,
+  AccordionTrigger,
+  accordionContentVariants,
+  accordionItemVariants,
+  accordionTriggerVariants,
+  accordionVariants,
+  type AccordionContentProps,
+  type AccordionItemProps,
+  type AccordionRootProps,
+  type AccordionSize,
+  type AccordionTriggerProps,
+  type AccordionVariant,
+} from './Accordion';
+export {
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger,
+  collapsibleContentVariants,
+  collapsibleTriggerVariants,
+  collapsibleVariants,
+  type CollapsibleContentProps,
+  type CollapsibleRootProps,
+  type CollapsibleSize,
+  type CollapsibleTriggerProps,
+  type CollapsibleVariant,
+} from './Collapsible';
 
 // Overlays
 export {
@@ -42,6 +106,20 @@ export {
   DialogTrigger,
   type DialogContentProps,
 } from './Dialog';
+export {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogOverlay,
+  AlertDialogRoot,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  type AlertDialogActionProps,
+  type AlertDialogContentProps,
+  type AlertDialogOverlayProps,
+} from './AlertDialog';
 export {
   SheetClose,
   SheetContent,
@@ -80,3 +158,7 @@ export { ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
 export { Spinner, CheckIcon, CloseIcon, WarningIcon } from './icons';
 export { CenteredLoadingState, ErrorBanner, InlineLoadingStatus } from './LoadingState';
 export { default as BetaBanner } from './BetaBanner';
+export {
+  default as VisuallyHidden,
+  type VisuallyHiddenProps,
+} from './VisuallyHidden';
