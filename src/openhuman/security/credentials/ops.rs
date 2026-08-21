@@ -157,20 +157,44 @@ pub async fn start_login_gated_services(config: &Config) {
     //    one-shot history migration. Idempotent (aborts a prior session's loops
     //    first); no-op when orchestration is disabled. Runs here so both startup
     //    (already logged in) and a fresh login start the hosted-client tail.
+    //
+    //    Gated on the `hosted` domain family. `start_hosted_client_services`
+    //    lives in `hosted::orchestration`, which `DomainSet` can switch off —
+    //    and a gated domain is supposed to have no live surface at all, its
+    //    background loops included. Starting it anyway is not merely untidy:
+    //    the loop's first act is a backend call with the stored session, and a
+    //    rejection flips the scheduler gate to signed-out, which then fails
+    //    `verify_session_active` for every subsequent turn. An embedder running
+    //    `DomainSet::embedded()` (hosted: false) with its own inference
+    //    endpoint would watch unrelated turns fail with SESSION_EXPIRED.
+    //
+    //    Read the domain set BEFORE the spawn: `CoreContext::current()` resolves
+    //    a task-local, which a spawned task does not inherit. Absent a context
+    //    (a direct CLI call, a unit test) the answer is "enabled", preserving
+    //    the previous behaviour exactly.
     {
-        let config = config.clone();
-        tasks.push((
-            "orchestration",
-            tokio::spawn(async move {
-                let step = std::time::Instant::now();
-                crate::openhuman::hosted::orchestration::start_hosted_client_services(&config)
-                    .await;
-                log::debug!(
-                    "[services] orchestration hosted-client started ({} ms)",
-                    step.elapsed().as_millis()
-                );
-            }),
-        ));
+        let hosted_enabled = crate::core::runtime::context::CoreContext::current()
+            .map(|ctx| ctx.domains().hosted)
+            .unwrap_or(true);
+        if hosted_enabled {
+            let config = config.clone();
+            tasks.push((
+                "orchestration",
+                tokio::spawn(async move {
+                    let step = std::time::Instant::now();
+                    crate::openhuman::hosted::orchestration::start_hosted_client_services(&config)
+                        .await;
+                    log::debug!(
+                        "[services] orchestration hosted-client started ({} ms)",
+                        step.elapsed().as_millis()
+                    );
+                }),
+            ));
+        } else {
+            log::debug!(
+                "[services] orchestration hosted-client skipped — the `hosted` domain family is off"
+            );
+        }
     }
 
     let total = tasks.len();
