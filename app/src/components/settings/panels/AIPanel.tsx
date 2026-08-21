@@ -3906,117 +3906,21 @@ const CloudProviderEditor = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/30 p-4">
-      <div className="w-full max-w-md rounded-lg border border-line bg-surface shadow-float">
-        <div className="border-b border-line px-4 py-3">
-          <div className="text-sm font-semibold text-content">
-            {initial
-              ? formatI18n(t('settings.ai.editProvider'), { label: initial.label })
-              : t('settings.ai.addCloudProvider')}
-          </div>
-          <div className="mt-0.5 text-xs text-content-muted">
-            {t('settings.ai.apiKeysEncrypted')}{' '}
-            <span className="font-mono">auth-profiles.json</span>.
-          </div>
-        </div>
-        <div className="space-y-3 px-4 py-3">
-          <div>
-            <label
-              htmlFor="cloud-provider-name"
-              className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
-              {t('common.name')}
-            </label>
-            <SettingsTextField
-              id="cloud-provider-name"
-              value={label}
-              onChange={e => setLabel(e.target.value)}
-              className="mt-1"
-              placeholder={t('settings.ai.providerNamePlaceholder')}
-            />
-            <div className="mt-1 text-[11px] text-content-muted">
-              {t('settings.ai.slugLabel')}{' '}
-              <span className="font-mono text-content-secondary">
-                {slug || t('settings.ai.noneDash')}
-              </span>
-            </div>
-            {slugError ? (
-              <div className="mt-1 text-[11px] text-coral-600 dark:text-coral-300">{slugError}</div>
-            ) : null}
-          </div>
-          <div>
-            <label
-              htmlFor="cloud-provider-openai-url"
-              className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
-              {t('settings.ai.openAiUrlLabel')}
-            </label>
-            <SettingsTextField
-              id="cloud-provider-openai-url"
-              mono
-              value={endpoint}
-              onChange={e => setEndpoint(e.target.value)}
-              className="mt-1"
-              placeholder={t('settings.ai.openAiUrlPlaceholder')}
-            />
-            {/* Azure routes by deployment name, which is set on the model
-                field rather than here — point the user at it (#5213). */}
-            {isAzureFoundryEndpoint(endpoint) && (
-              <div className="mt-1 text-[11px] text-content-muted">
-                {t('settings.ai.deploymentNameProviderHint')}
-              </div>
-            )}
-            {/* Only Azure's `/openai/v1` base is OpenAI-shaped: it serves a
-                `/models` listing and accepts the resource key as a bearer
-                token, which is the auth style every custom provider is stored
-                with. The older `api-version` surface wants an `api-key` header
-                and no `/models`, so a user who pastes the portal's bare
-                resource URL fails both the probe and inference (#5213). */}
-            {knownUnusableEndpoint && (
-              <div className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
-                {t('settings.ai.azureV1EndpointHint')}
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-content-muted">
-              <span>{t('settings.ai.apiKeyFieldLabel')}</span>
-              {hasExistingKey && (
-                <Button
-                  variant="tertiary"
-                  tone="danger"
-                  size="xs"
-                  className="text-[10px] font-medium normal-case"
-                  onClick={() => void onClearKey(slug)}>
-                  {t('settings.ai.clearStoredKey')}
-                </Button>
-              )}
-            </label>
-            <SettingsTextField
-              aria-label={t('settings.ai.apiKeyFieldLabel')}
-              type="text"
-              mono
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              data-form-type="other"
-              data-lpignore="true"
-              data-1p-ignore="true"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              className="mt-1"
-              placeholder={hasExistingKey ? t('settings.ai.keepExistingKeyPlaceholder') : 'sk-...'}
-            />
-          </div>
-          {submitError ? <ProviderSetupErrorNotice error={submitError} /> : null}
-          {/* A failed verification is not a failed provider. Explain what the
-              probe does and does not prove, then let the user proceed (#5213).
-              Withheld for an endpoint we already know cannot serve inference. */}
-          {probeFailed && !knownUnusableEndpoint ? (
-            <p className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-200">
-              {t('settings.ai.probeFailedHint')}
-            </p>
-          ) : null}
-        </div>
+    <ModalShell
+      titleId="cloud-provider-form-title"
+      title={
+        initial
+          ? formatI18n(t('settings.ai.editProvider'), { label: initial.label })
+          : t('settings.ai.addCloudProvider')
+      }
+      subtitle={
+        <>
+          {t('settings.ai.apiKeysEncrypted')} <span className="font-mono">auth-profiles.json</span>.
+        </>
+      }
+      onClose={onClose}
+      contentClassName="space-y-3 px-4 py-3"
+      footer={
         <div className="flex items-center justify-end gap-2 border-t border-line px-4 py-3">
           <Button variant="secondary" size="xs" onClick={onClose} disabled={saving}>
             {t('common.cancel')}
@@ -4043,8 +3947,104 @@ const CloudProviderEditor = ({
                 : t('settings.ai.addProvider')}
           </Button>
         </div>
+      }>
+      <div>
+        <label
+          htmlFor="cloud-provider-name"
+          className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
+          {t('common.name')}
+        </label>
+        <SettingsTextField
+          id="cloud-provider-name"
+          value={label}
+          onChange={e => setLabel(e.target.value)}
+          className="mt-1"
+          placeholder={t('settings.ai.providerNamePlaceholder')}
+        />
+        <div className="mt-1 text-[11px] text-content-muted">
+          {t('settings.ai.slugLabel')}{' '}
+          <span className="font-mono text-content-secondary">
+            {slug || t('settings.ai.noneDash')}
+          </span>
+        </div>
+        {slugError ? (
+          <div className="mt-1 text-[11px] text-coral-600 dark:text-coral-300">{slugError}</div>
+        ) : null}
       </div>
-    </div>
+      <div>
+        <label
+          htmlFor="cloud-provider-openai-url"
+          className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
+          {t('settings.ai.openAiUrlLabel')}
+        </label>
+        <SettingsTextField
+          id="cloud-provider-openai-url"
+          mono
+          value={endpoint}
+          onChange={e => setEndpoint(e.target.value)}
+          className="mt-1"
+          placeholder={t('settings.ai.openAiUrlPlaceholder')}
+        />
+        {/* Azure routes by deployment name, which is set on the model
+                field rather than here — point the user at it (#5213). */}
+        {isAzureFoundryEndpoint(endpoint) && (
+          <div className="mt-1 text-[11px] text-content-muted">
+            {t('settings.ai.deploymentNameProviderHint')}
+          </div>
+        )}
+        {/* Only Azure's `/openai/v1` base is OpenAI-shaped: it serves a
+                `/models` listing and accepts the resource key as a bearer
+                token, which is the auth style every custom provider is stored
+                with. The older `api-version` surface wants an `api-key` header
+                and no `/models`, so a user who pastes the portal's bare
+                resource URL fails both the probe and inference (#5213). */}
+        {knownUnusableEndpoint && (
+          <div className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
+            {t('settings.ai.azureV1EndpointHint')}
+          </div>
+        )}
+      </div>
+      <div>
+        <label className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-content-muted">
+          <span>{t('settings.ai.apiKeyFieldLabel')}</span>
+          {hasExistingKey && (
+            <Button
+              variant="tertiary"
+              tone="danger"
+              size="xs"
+              className="text-[10px] font-medium normal-case"
+              onClick={() => void onClearKey(slug)}>
+              {t('settings.ai.clearStoredKey')}
+            </Button>
+          )}
+        </label>
+        <SettingsTextField
+          aria-label={t('settings.ai.apiKeyFieldLabel')}
+          type="text"
+          mono
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          value={apiKey}
+          onChange={e => setApiKey(e.target.value)}
+          className="mt-1"
+          placeholder={hasExistingKey ? t('settings.ai.keepExistingKeyPlaceholder') : 'sk-...'}
+        />
+      </div>
+      {submitError ? <ProviderSetupErrorNotice error={submitError} /> : null}
+      {/* A failed verification is not a failed provider. Explain what the
+              probe does and does not prove, then let the user proceed (#5213).
+              Withheld for an endpoint we already know cannot serve inference. */}
+      {probeFailed && !knownUnusableEndpoint ? (
+        <p className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-200">
+          {t('settings.ai.probeFailedHint')}
+        </p>
+      ) : null}
+    </ModalShell>
   );
 };
 
