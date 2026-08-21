@@ -30,6 +30,35 @@ pub use tinymemory_core::store::{MemoryClient, MemoryState};
 pub use core::runtime::{CoreBuilder, CoreRuntime, DomainSet, ServiceSet, TokenSource};
 pub use core::types::HostKind;
 
+/// Run the OpenHuman agent harness as a library call.
+///
+/// [`CoreBuilder`] composes a core; [`embed::Core`] gives it typed methods.
+/// [`Harness`] is the front door above both: configure a provider, a workspace,
+/// an access tier — and MCP servers and skills where those features are
+/// compiled in — then run turns.
+///
+/// ```no_run
+/// # async fn demo() -> Result<(), Box<dyn std::error::Error>> {
+/// use openhuman_core::{Harness, Provider, Workspace};
+///
+/// let harness = Harness::builder()
+///     .provider(Provider::openai_compatible("https://api.example/v1", "sk-…").model("gpt-5"))
+///     .workspace(Workspace::Ephemeral)
+///     .build()
+///     .await?;
+///
+/// println!("{}", harness.run("Say hello.").await?.reply);
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Read [`embed::harness`](embed) for the two things it cannot do for you: size
+/// the tokio runtime's worker stacks, and share a process with a second harness.
+pub use embed::{Access, Harness, HarnessBuilder, HarnessError, Provider, Workspace};
+#[cfg(feature = "mcp")]
+pub use embed::McpServer;
+pub use embed::{Turn, TurnOutcome, TurnRequest};
+
 /// Live agent-turn progress for **in-process embedders**.
 ///
 /// An embedder that drives a turn through an RPC returning a single final

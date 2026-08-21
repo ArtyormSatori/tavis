@@ -53,12 +53,16 @@
 mod agent;
 mod call;
 mod config;
+mod harness;
 mod error;
 #[cfg(feature = "medulla")]
 mod medulla;
 
 pub use agent::{absolute, Agent, Route, Turn, TurnOutcome, TurnRequest};
 pub use config::{Config, RuntimeFlags};
+pub use harness::{Access, Harness, HarnessBuilder, HarnessError, Provider, Workspace};
+#[cfg(feature = "mcp")]
+pub use harness::{HttpHeader, McpAuthConfig, McpServer};
 pub use error::CoreError;
 #[cfg(feature = "medulla")]
 pub use medulla::{
