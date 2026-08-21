@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { useCoreState } from '../../../providers/CoreStateProvider';
 import { teamApi } from '../../../services/api/teamApi';
+import { AvatarFallback, AvatarRoot } from '../../ui/Avatar';
 import Button from '../../ui/Button';
 import { ConfirmDialog } from '../../ui/ConfirmDialog';
 import { ModalShell } from '../../ui/ModalShell';
