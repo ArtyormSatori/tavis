@@ -83,7 +83,14 @@ export type TaskTriggerProps = ComponentProps<typeof CollapsibleTrigger> & {
 };
 
 export const TaskTrigger = ({ children, className, title, ...props }: TaskTriggerProps) => (
-  <CollapsibleTrigger data-slot="task-trigger" asChild className={cn('group', className)} {...props}>
+  // The shared trigger primitive ships padding, a hover fill and a bold
+  // weight for its standalone card use; a Task trigger is a bare inline row, so
+  // those are merged away here rather than by every caller.
+  <CollapsibleTrigger
+    data-slot="task-trigger"
+    asChild
+    className={cn('group w-full p-0 text-left font-normal hover:bg-transparent', className)}
+    {...props}>
     {children ?? (
       <div className="flex w-full cursor-pointer items-center gap-2 text-sm text-content-muted transition-colors hover:text-content">
         <SearchIcon />
