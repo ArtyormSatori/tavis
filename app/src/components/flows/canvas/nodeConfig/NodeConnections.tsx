@@ -42,7 +42,7 @@ function ConnectionRow({
       label={label}
       onRemove={onRemove}
       removeLabel={removeLabel}
-      removeIcon="\u2715"
+      removeIcon="✕"
       removeTestId={`node-connection-remove-${edgeId}`}
       data-testid={`node-connection-${edgeId}`}
       className="gap-2 rounded-md border border-line bg-surface-muted px-2 py-1"
