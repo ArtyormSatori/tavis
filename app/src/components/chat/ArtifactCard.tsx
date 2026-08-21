@@ -225,13 +225,14 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
               : `${artifact.error.slice(0, ERROR_REASON_PREVIEW_CHARS)}…`}
           </p>
           {artifact.error.length > ERROR_REASON_PREVIEW_CHARS && (
-            <button
-              type="button"
-              data-analytics-id="chat-artifact-error-toggle"
+            <Button
+              variant="tertiary"
+              size="xs"
+              analyticsId="chat-artifact-error-toggle"
               onClick={() => setErrorExpanded(prev => !prev)}
-              className="mt-1 underline text-coral-700 dark:text-coral-300 hover:text-coral-900 dark:hover:text-coral-100">
+              className="mt-1 !h-auto !p-0 underline text-coral-700 hover:bg-transparent hover:text-coral-900">
               {errorExpanded ? t('chat.artifact.show_less') : t('chat.artifact.show_more')}
-            </button>
+            </Button>
           )}
         </div>
       )}

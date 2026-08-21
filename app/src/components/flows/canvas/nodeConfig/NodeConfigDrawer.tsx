@@ -185,9 +185,9 @@ function NodeConfigDrawer({
                 {kindLabel}
               </div>
             )}
-            <input
+            <UiInput
               type="text"
-              className="w-full border-0 bg-transparent p-0 text-sm font-semibold text-content focus:outline-none focus:ring-0"
+              className="!h-auto w-full !border-0 !bg-transparent !p-0 !ring-0 font-semibold focus:!ring-0"
               value={node.data.name}
               aria-label={t('flows.nodeConfig.nameLabel')}
               placeholder={t('flows.nodeConfig.namePlaceholder')}
