@@ -274,7 +274,7 @@ async fn create_box(
     reach: &Reach,
     confinement: &Confinement,
     env: &BTreeMap<String, String>,
-) -> Result<(tinybox_core::BoxInfo, u16), String> {
+) -> Result<(BoxInfo, u16), String> {
     // A passthrough box has no boundary to publish across: the core listens on
     // the machine's own port, so there is nothing to choose and nothing that
     // could collide beyond the core itself.
