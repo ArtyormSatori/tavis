@@ -1214,13 +1214,16 @@ function FlowEditor({
                 <span className="flex-1">
                   {t('flows.editor.runFailed')}: {formatRunError(runError)}
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="tertiary"
+                  size="xs"
+                  iconOnly
                   onClick={() => setRunError(null)}
                   aria-label={t('common.dismiss')}
                   title={t('common.dismiss')}
                   data-testid="flow-canvas-run-error-dismiss"
-                  className="flex-shrink-0 text-coral-500 hover:text-coral-700 dark:text-coral-300 dark:hover:text-coral-100">
+                  className="flex-shrink-0 text-coral-500 hover:bg-transparent hover:text-coral-700 dark:text-coral-300 dark:hover:text-coral-100">
                   <svg
                     className="h-3.5 w-3.5"
                     fill="none"
@@ -1233,7 +1236,7 @@ function FlowEditor({
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
           )}
