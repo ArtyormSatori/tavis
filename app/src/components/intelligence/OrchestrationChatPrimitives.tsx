@@ -26,11 +26,11 @@ export function ChatListButton({
 }: ChatListButtonProps): ReactElement {
   const { t } = useT();
   return (
-    <button
-      type="button"
+    <Button
+      variant="tertiary"
       data-testid={`tinyplace-chat-${chat.id}`}
       onClick={onSelect}
-      className={`flex w-full items-start gap-3 border-b border-line-subtle px-3 py-3 text-left transition last:border-b-0 hover:bg-surface-hover ${
+      className={`h-auto w-full items-start justify-start gap-3 rounded-none border-b border-line-subtle px-3 py-3 text-left font-normal transition last:border-b-0 hover:bg-surface-hover ${
         selected ? 'bg-surface-muted' : ''
       }`}>
       <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-line bg-surface-strong text-xs font-semibold text-content-secondary">
