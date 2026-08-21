@@ -4,8 +4,13 @@
  */
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
-import { type CloudProvider, formatI18n, type ProviderRef, type Workload } from './aiPanelTypes';
-import { WORKLOAD_MODEL_HINT_KEYS } from './aiPanelTypes';
+import {
+  type CloudProvider,
+  formatI18n,
+  type ProviderRef,
+  type Workload,
+  WORKLOAD_MODEL_HINT_KEYS,
+} from './aiPanelTypes';
 
 export type WorkloadRowProps = {
   workload: Workload;

@@ -748,3 +748,5 @@ export default function RewardsCommunityTab({
     </>
   );
 }
+// planted-violation-test
+<div className="bg-neutral-800 text-white">planted</div>
