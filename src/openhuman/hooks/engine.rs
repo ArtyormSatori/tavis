@@ -185,6 +185,33 @@ impl HookEngine {
         self.dispatch_blocking(event, input, selected).await
     }
 
+    /// Run an event's hooks in the foreground regardless of whether the event
+    /// is gating, and report every run.
+    ///
+    /// Only the `hooks.test` RPC uses this. A detached dispatch would report
+    /// nothing, which is precisely the opposite of what an author debugging a
+    /// hook needs — so the test path trades the latency guarantee for
+    /// observability, and nothing on a turn's path may call it.
+    pub async fn dispatch_for_test(&self, event: HookEvent, input: HookInput) -> HookOutcome {
+        let config = self.snapshot().await;
+        let selected: Vec<HookDefinition> = config
+            .for_event(event)
+            .iter()
+            .filter(|definition| definition.enabled)
+            .filter(|definition| {
+                matcher::matches(
+                    definition.matcher.as_deref(),
+                    matcher::subject(event, &input.payload),
+                )
+            })
+            .cloned()
+            .collect();
+        if selected.is_empty() {
+            return HookOutcome::default();
+        }
+        self.dispatch_blocking(event, input, selected).await
+    }
+
     /// Run hooks in order, stopping at the first denial.
     async fn dispatch_blocking(
         &self,
