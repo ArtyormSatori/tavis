@@ -44,22 +44,17 @@ describe('UserTurnBody', () => {
   });
 
   it('renders a timestamp only when asked for one', () => {
-    const { rerender } = render(
-      <UserTurnBody
-        msg={makeMessage()}
-        displayText="Hi"
-        fallbackDataUris={[]}
-        showTime={false}
-      />
+    const { container, rerender } = render(
+      <UserTurnBody msg={makeMessage()} displayText="Hi" fallbackDataUris={[]} showTime={false} />
     );
-    const withoutTime = screen.getByText('Hi').closest('div')?.textContent ?? '';
+    const withoutTime = container.textContent ?? '';
 
     rerender(
       <UserTurnBody msg={makeMessage()} displayText="Hi" fallbackDataUris={[]} showTime />
     );
-    const withTime = screen.getByText('Hi').closest('div')?.textContent ?? '';
 
-    expect(withTime.length).toBeGreaterThan(withoutTime.length);
+    expect(withoutTime.trim()).toBe('Hi');
+    expect((container.textContent ?? '').length).toBeGreaterThan(withoutTime.length);
   });
 
   it('renders file attachment chips from persisted metadata', () => {
