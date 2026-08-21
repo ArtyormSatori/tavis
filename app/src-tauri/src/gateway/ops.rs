@@ -306,7 +306,7 @@ fn build_sandbox(confinement: &Confinement, host: &Arc<dyn Host>) -> Arc<dyn San
 }
 
 /// The spec the box is created from.
-fn box_spec(
+pub(super) fn box_spec(
     reach: &Reach,
     confinement: &Confinement,
     env: &BTreeMap<String, String>,
@@ -352,13 +352,14 @@ fn box_spec(
     Ok(spec)
 }
 
-/// Start `openhuman-core` in the box, detached, and return its handle.
-async fn start_core(
-    sandbox: &dyn Sandbox,
-    box_id: &BoxId,
-    confinement: &Confinement,
-    token: &str,
-) -> Result<ProcessId, String> {
+/// The command that starts `openhuman-core` in a box.
+///
+/// Pure and separate from running it, for the reason tinybox's own backends
+/// keep command construction in an `args` module: which binary is named and
+/// what environment it is handed are the decisions worth asserting, and they
+/// should be values rather than something only observable by starting a
+/// container.
+pub(super) fn core_command(confinement: &Confinement, token: &str) -> ExecRequest {
     let binary = match confinement {
         Confinement::Passthrough { binary, .. } => binary.display().to_string(),
         // The image's own core, on `PATH`. Naming a path here would tie the
@@ -366,16 +367,27 @@ async fn start_core(
         Confinement::Docker { .. } => "openhuman-core".to_owned(),
     };
 
-    let request = ExecRequest::new([binary.as_str(), "serve"])
+    ExecRequest::new([binary.as_str(), "serve"])
+        // Handed over as environment and never written down: minted per
+        // activation, so a stored gateway record cannot leak a credential for
+        // a core that is still running.
         .with_env("OPENHUMAN_CORE_TOKEN", token)
         // Bind every interface *inside the box*, so the published port has
         // something to reach. Loopback there would be reachable only from
         // inside the container, which is the one place nothing is asking.
         .with_env("OPENHUMAN_CORE_HOST", "0.0.0.0")
-        .with_env("OPENHUMAN_CORE_PORT", CORE_PORT_IN_BOX.to_string());
+        .with_env("OPENHUMAN_CORE_PORT", CORE_PORT_IN_BOX.to_string())
+}
 
+/// Start `openhuman-core` in the box, detached, and return its handle.
+async fn start_core(
+    sandbox: &dyn Sandbox,
+    box_id: &BoxId,
+    confinement: &Confinement,
+    token: &str,
+) -> Result<ProcessId, String> {
     sandbox
-        .spawn(box_id, &request)
+        .spawn(box_id, &core_command(confinement, token))
         .await
         .map_err(|error| format!("could not start the core in the box: {error}"))
 }
@@ -471,7 +483,7 @@ fn free_local_port() -> Option<u16> {
 /// specific than anything tinybox could reconstruct. A miss here costs a retry
 /// that fails the same way, not a wrong outcome — the next attempt surfaces
 /// whatever the real error was.
-fn is_port_conflict(message: &str) -> bool {
+pub(super) fn is_port_conflict(message: &str) -> bool {
     let lowered = message.to_ascii_lowercase();
     lowered.contains("port is already allocated")
         || lowered.contains("address already in use")
