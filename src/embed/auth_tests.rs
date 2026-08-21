@@ -49,3 +49,26 @@ fn auth_state_tolerates_a_signed_out_shape() {
     assert!(!state.is_authenticated);
     assert!(state.user_id.is_none());
 }
+
+#[test]
+fn a_token_payload_decodes_both_present_and_absent() {
+    #[derive(serde::Deserialize)]
+    struct TokenPayload {
+        #[serde(default)]
+        token: Option<String>,
+    }
+
+    // `auth_get_session_token_json` emits `{"token": <value|null>}`.
+    let present: TokenPayload =
+        serde_json::from_value(serde_json::json!({ "token": "jwt" })).expect("decodes");
+    assert_eq!(present.token.as_deref(), Some("jwt"));
+
+    let absent: TokenPayload =
+        serde_json::from_value(serde_json::json!({ "token": null })).expect("decodes");
+    assert!(absent.token.is_none());
+
+    // Defensive: the key missing entirely is still the signed-out state, not a
+    // decode failure.
+    let missing: TokenPayload = serde_json::from_value(serde_json::json!({})).expect("decodes");
+    assert!(missing.token.is_none());
+}

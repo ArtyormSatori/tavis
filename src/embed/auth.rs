@@ -134,6 +134,33 @@ impl Auth<'_> {
         call(self.0, "openhuman.auth_get_state", serde_json::json!({})).await
     }
 
+    /// The stored session token, if there is one.
+    ///
+    /// `Ok(None)` is the signed-out state, not a failure — a host polling this
+    /// to decide whether to show a login prompt must be able to tell "nobody is
+    /// signed in" from "the read failed".
+    ///
+    /// A host needs the token itself, not just [`state`](Self::state), whenever
+    /// it authenticates its *own* calls with the same session — the core and
+    /// its embedder talk to one deployment, so reading it here rather than from
+    /// a file on the side keeps one credential in one place.
+    pub async fn token(&self) -> Result<Option<String>, CoreError> {
+        #[derive(Deserialize)]
+        struct TokenPayload {
+            #[serde(default)]
+            token: Option<String>,
+        }
+        let payload: TokenPayload = call(
+            self.0,
+            "openhuman.auth_get_session_token",
+            serde_json::json!({}),
+        )
+        .await?;
+        // A stored-but-blank token is the signed-out state spelled differently;
+        // handing one back would have callers authenticate with an empty bearer.
+        Ok(payload.token.filter(|token| !token.trim().is_empty()))
+    }
+
     /// Remove the stored session.
     pub async fn clear(&self) -> Result<(), CoreError> {
         let _: serde_json::Value = call(
