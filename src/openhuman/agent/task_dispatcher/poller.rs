@@ -9,16 +9,12 @@ use std::time::Duration;
 
 use tinyagents::graph::todos::dispatch::select;
 
-use crate::openhuman::agent::task_board::TaskBoardCard;
+use crate::openhuman::agent::task_board::{TaskApprovalMode, TaskBoardCard};
 use crate::openhuman::config::Config;
 use crate::openhuman::threads::todos::ops::{self, BoardLocation, USER_TASKS_THREAD_ID};
 use crate::openhuman::threads::todos::runs::{self, RunLimits};
 
 use super::dispatch::dispatch_card;
-
-/// Re-exported so the dispatcher's approval gate and the poller agree on one
-/// policy: the card's own `approval_mode` outranks the global default.
-pub(super) use select::requires_plan_approval;
 
 /// Base cadence: how often the poller wakes to look for a dispatchable card
 /// while there is fresh work to do.
@@ -235,6 +231,25 @@ pub(super) fn pick_next_todo(
     agent_assigned_only: bool,
 ) -> Option<TaskBoardCard> {
     select::pick_next_card(cards, agent_assigned_only)
+}
+
+/// Whether a card must be parked at `awaiting_approval` before it can run.
+///
+/// Per-card `approval_mode` is authoritative when set; the global
+/// `require_task_plan_approval` setting is only the fallback for cards with no
+/// explicit preference. In particular `Required` parks the card **even when the
+/// global default is off**: the interactive plan-review gate (WebChat turns,
+/// see [`crate::openhuman::agent::tools::todo`]) stamps `Required`, and that
+/// review must hold regardless of the global switch — otherwise an interactive
+/// plan would execute before the user ever saw the review card.
+///
+/// The rule itself is
+/// [`select::requires_plan_approval`](tinyagents::graph::todos::dispatch::select::requires_plan_approval).
+pub(super) fn requires_plan_approval(
+    global_required: bool,
+    approval_mode: Option<&TaskApprovalMode>,
+) -> bool {
+    select::requires_plan_approval(global_required, approval_mode)
 }
 
 pub(super) fn card_urgency(card: &TaskBoardCard) -> f64 {
