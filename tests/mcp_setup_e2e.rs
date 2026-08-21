@@ -91,8 +91,10 @@ async fn test_connection_against_stub_returns_tools() {
     assert_eq!(env.len(), 1);
 
     let stub_path = env!("CARGO_BIN_EXE_test-mcp-stub");
+    // Through the host conversion, so the test builds the identity the same way
+    // the application does rather than reaching past it.
     let cfg = Config::default();
-    let identity = cfg.mcp_client.client_identity.clone();
+    let identity = openhuman_core::openhuman::mcp::host::client_config(&cfg).client_identity;
     let client = McpStdioClient::new(stub_path.to_string(), Vec::new(), env, None, &identity);
 
     client.initialize().await.expect("stub initialises");
