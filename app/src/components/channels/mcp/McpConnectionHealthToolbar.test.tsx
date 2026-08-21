@@ -167,9 +167,14 @@ describe('McpConnectionHealthToolbar', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /Disconnect all/i }));
     expect(onDisconnect).not.toHaveBeenCalled();
-    // Confirm dialog appears with accessible structure
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    // Confirm dialog appears with accessible structure. Migrated onto the
+    // shared `AlertDialog` (#radix-ui-foundation) per the "use AlertDialog for
+    // disconnect confirmations" convention — its Radix content carries
+    // `role="alertdialog"`, not `role="dialog"`, and this build's Radix
+    // doesn't stamp `aria-modal` (the real focus-trap + inert-background
+    // behavior is still there).
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).toBeInTheDocument();
     expect(screen.getByText('Disconnect all MCP servers?')).toBeInTheDocument();
   });
 
