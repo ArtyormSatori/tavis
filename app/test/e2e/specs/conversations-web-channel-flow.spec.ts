@@ -175,6 +175,12 @@ suiteRunner('Conversations web channel flow', () => {
 
     const chatReq = await waitForRequest('POST', '/openai/v1/chat/completions', 30_000);
     expect(chatReq).toBeDefined();
-    expect(await textExists('Something went wrong — please try again.')).toBe(false);
+    // NOTE: this literal used to read 'Something went wrong — please try again.'
+    // (em dash, lowercase "please"). No such string exists in `app/src` — every
+    // real error copy is 'Something went wrong. Please try again.' — so the
+    // XPath never matched and the guard could never fail. `textExists` does a
+    // substring `contains(text(), …)`, so the shortened prefix below matches
+    // every 'Something went wrong…' variant in `src/lib/i18n/en.ts`.
+    expect(await textExists('Something went wrong')).toBe(false);
   });
 });
