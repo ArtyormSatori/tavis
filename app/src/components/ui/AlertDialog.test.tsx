@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -115,9 +116,9 @@ describe('AlertDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('activates Cancel and Action from the keyboard', () => {
+  it('activates Cancel from the keyboard — Radix focuses it on open', async () => {
+    const user = userEvent.setup();
     const onCancel = vi.fn();
-    const onAction = vi.fn();
     render(
       <AlertDialogRoot defaultOpen>
         <AlertDialogContent>
@@ -125,6 +126,26 @@ describe('AlertDialog', () => {
           <AlertDialogCancel data-testid="cancel" onClick={onCancel}>
             Cancel
           </AlertDialogCancel>
+          <AlertDialogAction data-testid="action">Delete</AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialogRoot>
+    );
+
+    // The escape hatch is the default focus target, deliberately: an alert
+    // dialog must not put a destructive button under a stray Enter.
+    expect(screen.getByTestId('cancel')).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('reaches the Action with Tab and activates it from the keyboard', async () => {
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    render(
+      <AlertDialogRoot defaultOpen>
+        <AlertDialogContent>
+          <AlertDialogTitle>Title</AlertDialogTitle>
+          <AlertDialogCancel data-testid="cancel">Cancel</AlertDialogCancel>
           <AlertDialogAction data-testid="action" onClick={onAction}>
             Delete
           </AlertDialogAction>
@@ -132,11 +153,9 @@ describe('AlertDialog', () => {
       </AlertDialogRoot>
     );
 
-    // Both are real <button>s, so Enter/Space activation is the browser's —
-    // asserting the click handler fires is what proves they are reachable.
-    fireEvent.click(screen.getByTestId('cancel'));
-    expect(onCancel).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByTestId('action'));
+    await user.tab();
+    expect(screen.getByTestId('action')).toHaveFocus();
+    await user.keyboard('{Enter}');
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
