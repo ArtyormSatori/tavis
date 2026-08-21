@@ -2,13 +2,14 @@
  * Provider connect controls — the toggle chip that turns a provider on/off,
  * and the dialog it opens to collect credentials.
  */
+import { Dialog as DialogPrimitive } from 'radix-ui';
 import { useState } from 'react';
 import { LuCheck } from 'react-icons/lu';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import { openUrl } from '../../../../utils/openUrl';
 import Button from '../../../ui/Button';
-import { ModalShell } from '../../../ui/ModalShell';
+import { DialogContent, DialogRoot } from '../../../ui/Dialog';
 import { SettingsSwitch, SettingsTextField } from '../../controls';
 import { builtinCloudProvider } from '../builtinCloudProviders';
 import { presentProviderSetupError, ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
