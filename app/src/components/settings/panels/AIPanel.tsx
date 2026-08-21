@@ -60,7 +60,7 @@ import {
 } from '../../../utils/tauriCommands/heartbeat';
 import { ConfirmationModal } from '../../intelligence/ConfirmationModal';
 import PanelPage from '../../layout/PanelPage';
-import Button from '../../ui/Button';
+import { Button, Checkbox, ModalShell } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
 import { SettingsSelect, SettingsStatusLine, SettingsSwitch, SettingsTextField } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
