@@ -237,7 +237,7 @@ fn legacy_thread_id(path: &Path) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::openhuman::agent::task_board::{TaskBoardCard, TaskCardStatus};
+    use crate::openhuman::agent::task_board::TaskCardStatus;
     use crate::openhuman::threads::todos::ops::{self, CardPatch};
     use tempfile::tempdir;
 
