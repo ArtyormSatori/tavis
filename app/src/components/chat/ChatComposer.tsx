@@ -275,16 +275,18 @@ export default function ChatComposer({
         <div className="flex items-center gap-2 p-3">
           {/* Attach button */}
           {attachmentsEnabled && (
-            <button
-              type="button"
-              data-analytics-id="chat-composer-attach-file"
+            <Button
+              iconOnly
+              variant="tertiary"
+              size="xs"
+              analyticsId="chat-composer-attach-file"
               aria-label={t('composer.attachFile')}
               title={t('composer.attachFile')}
               onClick={() => fileInputRef.current?.click()}
               disabled={
                 composerInteractionBlocked || isSending || attachments.length >= maxAttachments
               }
-              className="flex-shrink-0 flex items-center justify-center w-6 h-6 text-content-faint hover:text-content-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              className="!h-6 !w-6 flex-shrink-0 text-content-faint hover:bg-transparent hover:text-content-secondary">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -293,7 +295,7 @@ export default function ChatComposer({
                   d="M12 5v14m-7-7h14"
                 />
               </svg>
-            </button>
+            </Button>
           )}
 
           {/* Textarea with ghost completion */}
