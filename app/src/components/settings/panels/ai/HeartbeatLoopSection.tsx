@@ -2,13 +2,13 @@
  * Heartbeat controls + loop map — the left column of BackgroundLoopControls.
  * Pure presentational component: all state lives in the parent hook.
  */
-import Button from '../../../ui/Button';
-import { SettingsSelect, SettingsStatusLine } from '../../controls';
 import {
   type HeartbeatPlannerSummary,
   type HeartbeatSettings,
   type HeartbeatSettingsPatch,
 } from '../../../../utils/tauriCommands/heartbeat';
+import Button from '../../../ui/Button';
+import { SettingsSelect, SettingsStatusLine } from '../../controls';
 import { formatI18n } from './aiPanelTypes';
 import { LoopToggle } from './backgroundLoopPrimitives';
 
@@ -95,9 +95,7 @@ export const HeartbeatLoopSection = ({
                 value={maxCalendarConnectionsPerTick}
                 disabled={saving === 'max_calendar_connections_per_tick'}
                 onChange={e =>
-                  onApplyPatch({
-                    max_calendar_connections_per_tick: Number(e.target.value),
-                  })
+                  onApplyPatch({ max_calendar_connections_per_tick: Number(e.target.value) })
                 }
                 className="w-full"
                 inputSize="sm">
@@ -114,11 +112,7 @@ export const HeartbeatLoopSection = ({
                 aria-label={t('settings.ai.meetingLookahead')}
                 value={settings.meeting_lookahead_minutes}
                 disabled={saving === 'meeting_lookahead_minutes'}
-                onChange={e =>
-                  onApplyPatch({
-                    meeting_lookahead_minutes: Number(e.target.value),
-                  })
-                }
+                onChange={e => onApplyPatch({ meeting_lookahead_minutes: Number(e.target.value) })}
                 className="w-full"
                 inputSize="sm">
                 {[15, 30, 60, 120, 240].map(minutes => (
@@ -134,11 +128,7 @@ export const HeartbeatLoopSection = ({
                 aria-label={t('settings.ai.reminderLookahead')}
                 value={settings.reminder_lookahead_minutes}
                 disabled={saving === 'reminder_lookahead_minutes'}
-                onChange={e =>
-                  onApplyPatch({
-                    reminder_lookahead_minutes: Number(e.target.value),
-                  })
-                }
+                onChange={e => onApplyPatch({ reminder_lookahead_minutes: Number(e.target.value) })}
                 className="w-full"
                 inputSize="sm">
                 {[5, 15, 30, 60, 120].map(minutes => (
@@ -162,9 +152,7 @@ export const HeartbeatLoopSection = ({
             checked={settings.notify_relevant_events}
             busy={saving === 'notify_relevant_events'}
             onToggle={() =>
-              onApplyPatch({
-                notify_relevant_events: !settings.notify_relevant_events,
-              })
+              onApplyPatch({ notify_relevant_events: !settings.notify_relevant_events })
             }
           />
           <LoopToggle
@@ -173,14 +161,14 @@ export const HeartbeatLoopSection = ({
             checked={settings.external_delivery_enabled}
             busy={saving === 'external_delivery_enabled'}
             onToggle={() =>
-              onApplyPatch({
-                external_delivery_enabled: !settings.external_delivery_enabled,
-              })
+              onApplyPatch({ external_delivery_enabled: !settings.external_delivery_enabled })
             }
           />
 
           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
-            <label className="text-xs font-medium text-content-secondary" htmlFor="heartbeat-interval">
+            <label
+              className="text-xs font-medium text-content-secondary"
+              htmlFor="heartbeat-interval">
               {t('settings.ai.interval')}
             </label>
             <SettingsSelect

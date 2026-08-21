@@ -113,7 +113,10 @@ export function summarizeSpendSample(transactions: CreditTransaction[]) {
  *  AIPanel-internal extras (`authStyle`, `maskedKey`). */
 export type BackgroundLoopProviderView = { id: string; slug: string; label: string };
 
-export function describeProvider(ref: ProviderRef, providers: BackgroundLoopProviderView[]): string {
+export function describeProvider(
+  ref: ProviderRef,
+  providers: BackgroundLoopProviderView[]
+): string {
   if (ref.kind === 'openhuman') return 'Managed · OpenHuman';
   if (ref.kind === 'default') return 'Default route';
   if (ref.kind === 'local') return `Local ${ref.model}`;

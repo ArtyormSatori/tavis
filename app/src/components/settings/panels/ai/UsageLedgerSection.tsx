@@ -3,13 +3,13 @@
  * BackgroundLoopControls. Pure presentational component: all figures are
  * precomputed by the parent hook.
  */
-import Button from '../../../ui/Button';
 import type { CreditTransaction, TeamUsage } from '../../../../services/api/creditsApi';
+import Button from '../../../ui/Button';
 import {
-  FormulaRow,
   formatCount,
   formatDateTime,
   formatUsd,
+  FormulaRow,
   MetricTile,
 } from './backgroundLoopPrimitives';
 
@@ -279,7 +279,9 @@ export const UsageLedgerSection = ({
         <div className="mt-1 space-y-1">
           {hourSummary.length > 0 ? (
             hourSummary.map(([hour, total]) => (
-              <div key={hour} className="flex items-center justify-between gap-2 text-xs text-content-secondary">
+              <div
+                key={hour}
+                className="flex items-center justify-between gap-2 text-xs text-content-secondary">
                 <span>{hour}</span>
                 <span className="font-mono text-content-muted">{formatUsd(total)}</span>
               </div>

@@ -10,7 +10,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { listConnections as listComposioConnections } from '../../../../lib/composio/composioApi';
 import type { ComposioConnection } from '../../../../lib/composio/types';
 import { useT } from '../../../../lib/i18n/I18nContext';
-import { creditsApi, type CreditTransaction, type TeamUsage } from '../../../../services/api/creditsApi';
+import {
+  creditsApi,
+  type CreditTransaction,
+  type TeamUsage,
+} from '../../../../services/api/creditsApi';
 import {
   type HeartbeatPlannerSummary,
   type HeartbeatSettings,
@@ -22,6 +26,7 @@ import {
 import type { RoutingMap } from './aiPanelTypes';
 import {
   activeConnection,
+  type BackgroundLoopProviderView,
   COMPOSIO_PERIODIC_TICK_MINUTES,
   describeProvider,
   isCalendarConnection,
@@ -33,7 +38,6 @@ import {
   summarizeSpendByHour,
   summarizeSpendSample,
   WEEK_MINUTES,
-  type BackgroundLoopProviderView,
 } from './backgroundLoopPrimitives';
 import { HeartbeatLoopSection } from './HeartbeatLoopSection';
 import { UsageLedgerSection } from './UsageLedgerSection';
@@ -272,7 +276,9 @@ export const BackgroundLoopControls = ({
           <h2 className="text-base font-semibold text-content">
             {t('settings.ai.backgroundLoops')}
           </h2>
-          <p className="mt-0.5 text-xs text-content-muted">{t('settings.ai.backgroundLoopsDesc')}</p>
+          <p className="mt-0.5 text-xs text-content-muted">
+            {t('settings.ai.backgroundLoopsDesc')}
+          </p>
         </div>
       )}
 

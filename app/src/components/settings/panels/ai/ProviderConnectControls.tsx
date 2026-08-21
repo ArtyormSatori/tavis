@@ -6,11 +6,11 @@ import { useState } from 'react';
 import { LuCheck } from 'react-icons/lu';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
+import { openUrl } from '../../../../utils/openUrl';
 import Button from '../../../ui/Button';
 import { ModalShell } from '../../../ui/ModalShell';
 import { SettingsSwitch, SettingsTextField } from '../../controls';
 import { builtinCloudProvider } from '../builtinCloudProviders';
-import { openUrl } from '../../../../utils/openUrl';
 import { presentProviderSetupError, ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
 import {
   defaultEndpointFor,
