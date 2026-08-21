@@ -3,27 +3,8 @@ import type { TranslationMap } from './types';
 // Polish (Polski) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-  'connections.header.companion':
     'Pływający towarzysz pulpitu do szybkiej, zawsze dostępnej pomocy.',
-  'settings.assistant.desktopCompanion': 'Towarzysz pulpitu',
-  'settings.assistant.desktopCompanionDesc':
     'Tryb towarzyski zawsze aktywny ze skrótem w zasobniku systemowym',
-  'pages.settings.features.desktopCompanion': 'Towarzysz pulpitu',
-  'settings.companion.title': 'Towarzysz komputerowy',
-  'settings.companion.session': 'Sesja',
-  'settings.companion.activeLabel': 'Aktywna',
-  'settings.companion.inactiveStatus': 'Nieaktywna',
-  'settings.companion.stopping': 'Zatrzymywanie…',
-  'settings.companion.stopSession': 'Zatrzymaj sesję',
-  'settings.companion.starting': 'Uruchamianie…',
-  'settings.companion.startSession': 'Uruchom sesję',
-  'settings.companion.sessionId': 'ID sesji',
-  'settings.companion.turns': 'Tury',
-  'settings.companion.remaining': 'Pozostało',
-  'settings.companion.configuration': 'Konfiguracja',
-  'settings.companion.hotkey': 'Skrót klawiszowy',
-  'settings.companion.activationMode': 'Tryb aktywacji',
-  'settings.companion.sessionTtl': 'TTL sesji',
   // Share cards (#5006).
   'share.button': 'Udostępnij',
   'share.modalTitle': 'Udostępnij tę chwilę',
@@ -4598,13 +4579,8 @@ const messages: TranslationMap = {
   'onboarding.contextGathering.title': 'Zbieranie kontekstu',
   'openhuman.team_list_teams': 'Lista zespołów',
   'overlay.ariaAttention': 'Wiadomość uwagi',
-  'overlay.ariaCompanion': 'Companion aktywny',
   'overlay.ariaOrb': 'Nakładka OpenHuman',
   'overlay.ariaVoiceActive': 'Wejście głosowe aktywne',
-  'overlay.companion.error': 'Błąd',
-  'overlay.companion.listening': 'Słucham…',
-  'overlay.companion.speaking': 'Mówię…',
-  'overlay.companion.thinking': 'Myślę…',
   'overlay.orbTitle': 'Przeciągnij, aby przesunąć · Kliknij dwukrotnie, aby zresetować pozycję',
   'pages.settings.account.connections': 'Połączenia',
   'pages.settings.account.connectionsDesc': 'Przeglądaj i zarządzaj połączeniami kont',

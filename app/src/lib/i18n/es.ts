@@ -3,27 +3,8 @@ import type { TranslationMap } from './types';
 // Spanish (Español) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-  'connections.header.companion':
     'Un compañero de escritorio flotante para ayuda rápida y siempre disponible.',
-  'settings.assistant.desktopCompanion': 'Compañero de escritorio',
-  'settings.assistant.desktopCompanionDesc':
     'Modo compañero siempre activo con acceso directo en la bandeja del sistema',
-  'pages.settings.features.desktopCompanion': 'Acompañante de escritorio',
-  'settings.companion.title': 'Compañero de escritorio',
-  'settings.companion.session': 'Sesión',
-  'settings.companion.activeLabel': 'Activo',
-  'settings.companion.inactiveStatus': 'Inactivo',
-  'settings.companion.stopping': 'Parando…',
-  'settings.companion.stopSession': 'Detener sesión',
-  'settings.companion.starting': 'Empezando…',
-  'settings.companion.startSession': 'Iniciar sesión',
-  'settings.companion.sessionId': 'ID de sesión',
-  'settings.companion.turns': 'Turnos',
-  'settings.companion.remaining': 'Restante',
-  'settings.companion.configuration': 'Configuración',
-  'settings.companion.hotkey': 'Atajo de teclado',
-  'settings.companion.activationMode': 'Modo de activación',
-  'settings.companion.sessionTtl': 'TTL de sesión',
   // Share cards (#5006).
   'share.button': 'Compartir',
   'share.modalTitle': 'Comparte este momento',
@@ -4617,13 +4598,8 @@ const messages: TranslationMap = {
   'onboarding.contextGathering.title': 'Recopilación de contexto',
   'openhuman.team_list_teams': 'Lista de equipos',
   'overlay.ariaAttention': 'Mensaje de atención',
-  'overlay.ariaCompanion': 'Acompañante activo',
   'overlay.ariaOrb': 'Overlay de OpenHuman',
   'overlay.ariaVoiceActive': 'Entrada de voz activa',
-  'overlay.companion.error': 'error',
-  'overlay.companion.listening': 'Escuchando…',
-  'overlay.companion.speaking': 'Hablando…',
-  'overlay.companion.thinking': 'Pensando…',
   'overlay.orbTitle': 'Arrastra para mover · Doble clic para restablecer posición',
   'pages.settings.account.connections': 'Conexiones',
   'pages.settings.account.connectionsDesc': 'Descripción de conexiones',

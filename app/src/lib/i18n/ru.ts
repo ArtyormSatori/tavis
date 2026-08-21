@@ -3,27 +3,8 @@ import type { TranslationMap } from './types';
 // Russian (Русский) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-  'connections.header.companion':
     'Плавающий помощник на рабочем столе для быстрой, всегда доступной помощи.',
-  'settings.assistant.desktopCompanion': 'Компаньон рабочего стола',
-  'settings.assistant.desktopCompanionDesc':
     'Режим постоянного компаньона с ярлыком в системном лотке',
-  'pages.settings.features.desktopCompanion': 'Десктоп-спутник',
-  'settings.companion.title': 'Помощник на рабочем столе',
-  'settings.companion.session': 'Сеанс',
-  'settings.companion.activeLabel': 'Активен',
-  'settings.companion.inactiveStatus': 'Неактивен',
-  'settings.companion.stopping': 'Остановка…',
-  'settings.companion.stopSession': 'Остановить сеанс',
-  'settings.companion.starting': 'Запуск…',
-  'settings.companion.startSession': 'Запустить сеанс',
-  'settings.companion.sessionId': 'Идентификатор сеанса',
-  'settings.companion.turns': 'Ходы',
-  'settings.companion.remaining': 'Осталось',
-  'settings.companion.configuration': 'Конфигурация',
-  'settings.companion.hotkey': 'Горячая клавиша',
-  'settings.companion.activationMode': 'Режим активации',
-  'settings.companion.sessionTtl': 'TTL сеанса',
   // Share cards (#5006).
   'share.button': 'Поделиться',
   'share.modalTitle': 'Поделитесь этим моментом',
@@ -4581,13 +4562,8 @@ const messages: TranslationMap = {
   'onboarding.contextGathering.title': 'Сбор контекста',
   'openhuman.team_list_teams': 'Список команд',
   'overlay.ariaAttention': 'Сообщение',
-  'overlay.ariaCompanion': 'Спутник активен',
   'overlay.ariaOrb': 'Оверлей OpenHuman',
   'overlay.ariaVoiceActive': 'Голосовой ввод активен',
-  'overlay.companion.error': 'Ошибка',
-  'overlay.companion.listening': 'Слушает…',
-  'overlay.companion.speaking': 'Говорит…',
-  'overlay.companion.thinking': 'Думает…',
   'overlay.orbTitle': 'Перетащи для перемещения · Двойной клик для сброса позиции',
   'pages.settings.account.connections': 'Подключения',
   'pages.settings.account.connectionsDesc': 'Описание подключений',

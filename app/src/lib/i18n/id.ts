@@ -3,27 +3,8 @@ import type { TranslationMap } from './types';
 // Indonesian (Bahasa Indonesia) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-  'connections.header.companion':
     'Pendamping desktop mengambang untuk bantuan cepat yang selalu tersedia.',
-  'settings.assistant.desktopCompanion': 'Pendamping desktop',
-  'settings.assistant.desktopCompanionDesc':
     'Mode pendamping selalu aktif dengan pintasan baki sistem',
-  'pages.settings.features.desktopCompanion': 'Pendamping Desktop',
-  'settings.companion.title': 'Pendamping Desktop',
-  'settings.companion.session': 'Sesi',
-  'settings.companion.activeLabel': 'Aktif',
-  'settings.companion.inactiveStatus': 'Tidak aktif',
-  'settings.companion.stopping': 'Berhenti…',
-  'settings.companion.stopSession': 'Hentikan Sesi',
-  'settings.companion.starting': 'Mulai…',
-  'settings.companion.startSession': 'Mulai Sesi',
-  'settings.companion.sessionId': 'ID Sesi',
-  'settings.companion.turns': 'Giliran',
-  'settings.companion.remaining': 'Tersisa',
-  'settings.companion.configuration': 'Konfigurasi',
-  'settings.companion.hotkey': 'Tombol Pintas',
-  'settings.companion.activationMode': 'Mode Aktivasi',
-  'settings.companion.sessionTtl': 'TTL Sesi',
   // Share cards (#5006).
   'share.button': 'Bagikan',
   'share.modalTitle': 'Bagikan momen ini',
@@ -4557,13 +4538,8 @@ const messages: TranslationMap = {
   'onboarding.contextGathering.title': 'Pengumpulan Konteks',
   'openhuman.team_list_teams': 'Daftar tim',
   'overlay.ariaAttention': 'Pesan perhatian',
-  'overlay.ariaCompanion': 'Pendamping aktif',
   'overlay.ariaOrb': 'Overlay OpenHuman',
   'overlay.ariaVoiceActive': 'Input suara aktif',
-  'overlay.companion.error': 'Kesalahan',
-  'overlay.companion.listening': 'Mendengarkan…',
-  'overlay.companion.speaking': 'Berbicara…',
-  'overlay.companion.thinking': 'Berpikir…',
   'overlay.orbTitle': 'Seret untuk memindahkan · Klik dua kali untuk mereset posisi',
   'pages.settings.account.connections': 'Koneksi',
   'pages.settings.account.connectionsDesc': 'Deskripsi koneksi',

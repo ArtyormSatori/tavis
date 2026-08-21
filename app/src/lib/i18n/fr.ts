@@ -3,27 +3,8 @@ import type { TranslationMap } from './types';
 // French (Français) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-  'connections.header.companion':
     'Un compagnon de bureau flottant pour une aide rapide et toujours disponible.',
-  'settings.assistant.desktopCompanion': 'Compagnon de bureau',
-  'settings.assistant.desktopCompanionDesc':
     'Mode compagnon toujours actif avec raccourci dans la barre système',
-  'pages.settings.features.desktopCompanion': 'Compagnon de bureau',
-  'settings.companion.title': 'Compagnon de bureau',
-  'settings.companion.session': 'Session',
-  'settings.companion.activeLabel': 'Actif',
-  'settings.companion.inactiveStatus': 'Inactif',
-  'settings.companion.stopping': 'Arrêt…',
-  'settings.companion.stopSession': 'Arrêter la session',
-  'settings.companion.starting': 'Démarrage…',
-  'settings.companion.startSession': 'Démarrer la session',
-  'settings.companion.sessionId': 'ID de session',
-  'settings.companion.turns': 'Interactions',
-  'settings.companion.remaining': 'Restant',
-  'settings.companion.configuration': 'Configuration',
-  'settings.companion.hotkey': 'Raccourci clavier',
-  'settings.companion.activationMode': "Mode d'activation",
-  'settings.companion.sessionTtl': 'Durée de vie de la session',
   // Share cards (#5006).
   'share.button': 'Partager',
   'share.modalTitle': 'Partagez ce moment',
@@ -4645,13 +4626,8 @@ const messages: TranslationMap = {
   'onboarding.contextGathering.title': 'Collecte de contexte',
   'openhuman.team_list_teams': 'Liste des équipes',
   'overlay.ariaAttention': "Message d'attention",
-  'overlay.ariaCompanion': 'Compagnon actif',
   'overlay.ariaOrb': 'Overlay OpenHuman',
   'overlay.ariaVoiceActive': 'Saisie vocale active',
-  'overlay.companion.error': 'Erreur',
-  'overlay.companion.listening': 'À l’écoute…',
-  'overlay.companion.speaking': 'En train de parler…',
-  'overlay.companion.thinking': 'Réflexion…',
   'overlay.orbTitle': 'Glisse pour déplacer · Double-clique pour réinitialiser la position',
   'pages.settings.account.connections': 'Connexions',
   'pages.settings.account.connectionsDesc': 'Description des connexions',

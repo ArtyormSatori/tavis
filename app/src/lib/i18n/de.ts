@@ -3,27 +3,8 @@ import type { TranslationMap } from './types';
 // German (Deutsch) translations. Keys mirror en.ts; missing/
 // English-identical values fall back to English via I18nContext.resolveEn().
 const messages: TranslationMap = {
-  'connections.header.companion':
     'Ein schwebender Desktop-Begleiter für schnelle, jederzeit verfügbare Hilfe.',
-  'settings.assistant.desktopCompanion': 'Desktop-Begleiter',
-  'settings.assistant.desktopCompanionDesc':
     'Immer aktiver Begleiter-Modus mit System-Tray-Shortcut',
-  'pages.settings.features.desktopCompanion': 'Desktop-Begleiter',
-  'settings.companion.title': 'Desktop-Begleiter',
-  'settings.companion.session': 'Sitzung',
-  'settings.companion.activeLabel': 'Aktiv',
-  'settings.companion.inactiveStatus': 'Inaktiv',
-  'settings.companion.stopping': 'Wird gestoppt…',
-  'settings.companion.stopSession': 'Sitzung beenden',
-  'settings.companion.starting': 'Wird gestartet…',
-  'settings.companion.startSession': 'Sitzung starten',
-  'settings.companion.sessionId': 'Sitzungs-ID',
-  'settings.companion.turns': 'Interaktionen',
-  'settings.companion.remaining': 'Verbleibend',
-  'settings.companion.configuration': 'Konfiguration',
-  'settings.companion.hotkey': 'Hotkey',
-  'settings.companion.activationMode': 'Aktivierungsmodus',
-  'settings.companion.sessionTtl': 'Sitzungs-TTL',
   // Share cards (#5006).
   'share.button': 'Teilen',
   'share.modalTitle': 'Diesen Moment teilen',
@@ -4666,13 +4647,8 @@ const messages: TranslationMap = {
   'onboarding.contextGathering.title': 'Kontexterfassung',
   'openhuman.team_list_teams': 'Teamlisten-Teams',
   'overlay.ariaAttention': 'Achtung-Nachricht',
-  'overlay.ariaCompanion': 'Begleiter aktiv',
   'overlay.ariaOrb': 'OpenHuman-Overlay',
   'overlay.ariaVoiceActive': 'Spracheingabe aktiv',
-  'overlay.companion.error': 'Fehler',
-  'overlay.companion.listening': 'Zuhören…',
-  'overlay.companion.speaking': 'Apropos…',
-  'overlay.companion.thinking': 'Denken…',
   'overlay.orbTitle': 'Zum Verschieben ziehen · Doppelklicken, um die Position zurückzusetzen',
   'pages.settings.account.connections': 'Verbindungen',
   'pages.settings.account.connectionsDesc': 'Überprüfe und verwalte verknüpfte Kontoverbindungen',
