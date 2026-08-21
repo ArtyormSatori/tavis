@@ -33,7 +33,9 @@ import SettingsBackButton from '../components/SettingsBackButton';
 import { SettingsRow, SettingsSection, SettingsStatusLine, SettingsSwitch } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import VoicePanelKeyModal from './VoicePanelKeyModal';
-import VoicePanelProviderChips from './VoicePanelProviderChips';
+import VoicePanelProviderChips, {
+  BUILTIN_VOICE_PROVIDER_META,
+} from './VoicePanelProviderChips';
 import VoicePanelRoutingSection from './VoicePanelRoutingSection';
 
 // Curated Piper voice presets — a handful of well-known English voices
