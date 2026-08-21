@@ -33,6 +33,8 @@ import {
 } from '../../store/mascotSlice';
 import { selectPersonaDescription, selectPersonaDisplayName } from '../../store/personaSlice';
 import Button from '../ui/Button';
+import Checkbox from '../ui/Checkbox';
+import TextField from '../ui/TextField';
 import {
   buildMeetingMascots,
   platformLabel,
@@ -235,7 +237,7 @@ export function MeetComposer({ onToast, hasSubmittedRef }: MeetComposerProps) {
           <span className="text-[10px] font-medium uppercase tracking-wide text-content-muted">
             {t('skills.meetingBots.meetingLink')}
           </span>
-          <input
+          <TextField
             type="url"
             inputMode="url"
             autoComplete="off"
@@ -245,7 +247,7 @@ export function MeetComposer({ onToast, hasSubmittedRef }: MeetComposerProps) {
             placeholder={urlPlaceholder}
             disabled={submitting}
             aria-label={t('skills.meetingBots.meetingLink')}
-            className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed disabled:bg-surface-muted dark:disabled:bg-surface-muted/60"
+            className="mt-1 rounded-xl disabled:cursor-not-allowed"
             required
           />
         </label>
@@ -255,7 +257,7 @@ export function MeetComposer({ onToast, hasSubmittedRef }: MeetComposerProps) {
           <span className="text-[10px] font-medium uppercase tracking-wide text-content-muted">
             {t('skills.meetingBots.respondToParticipant')}
           </span>
-          <input
+          <TextField
             type="text"
             autoComplete="off"
             spellCheck={false}
@@ -268,7 +270,7 @@ export function MeetComposer({ onToast, hasSubmittedRef }: MeetComposerProps) {
             disabled={submitting}
             required
             aria-label={t('skills.meetingBots.respondToParticipant')}
-            className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed disabled:bg-surface-muted dark:disabled:bg-surface-muted/60"
+            className="mt-1 rounded-xl disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-[10px] text-content-faint">
             {t('skills.meetingBots.respondToParticipantDesc')}
@@ -277,12 +279,11 @@ export function MeetComposer({ onToast, hasSubmittedRef }: MeetComposerProps) {
 
         {/* Respond toggle */}
         <label className="flex items-start gap-3 rounded-xl border border-line px-3 py-2.5">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={!listenOnly}
-            onChange={e => setListenOnly(!e.target.checked)}
+            onCheckedChange={next => setListenOnly(!next)}
             disabled={submitting}
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong text-primary-500 focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed"
+            className="mt-0.5 shrink-0 rounded"
           />
           <span className="min-w-0">
             <span className="block text-sm font-medium text-content">
