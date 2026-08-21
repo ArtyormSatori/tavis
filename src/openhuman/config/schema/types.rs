@@ -875,7 +875,6 @@ impl Default for Config {
             learning: LearningConfig::default(),
             update: UpdateConfig::default(),
             dictation: DictationConfig::default(),
-            meet: MeetConfig::default(),
             onboarding_completed: false,
             chat_onboarding_completed: false,
             model_registry: Vec::new(),
