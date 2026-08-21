@@ -352,7 +352,7 @@ function ReactionRail({
             type="button"
             data-analytics-id="chat-message-reaction-close"
             onClick={() => onOpenReactionPicker(null)}
-            aria-label={t('chat.closeReactionPicker', 'Close reaction picker')}
+            aria-label={t('common.close')}
             className="ml-0.5 px-0.5 text-xs text-content-secondary hover:text-content-faint dark:hover:text-content-faint">
             ✕
           </button>
