@@ -379,8 +379,8 @@ pub async fn run_subagent(
         // denied spawn has no side effects at all.
         if let Err(reason) = crate::openhuman::hooks::ops::subagent_starting(
             crate::openhuman::hooks::context::TurnIdentity {
-                conversation_id: parent.session_id.clone(),
-                session_id: parent.session_id.clone(),
+                conversation_id: Some(parent.session_id.clone()),
+                session_id: Some(parent.session_id.clone()),
                 agent_id: Some(parent.agent_definition_id.clone()),
                 ..Default::default()
             },
