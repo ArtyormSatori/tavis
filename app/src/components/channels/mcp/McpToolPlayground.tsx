@@ -223,44 +223,18 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
   }, []);
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="mcp-playground-title"
-      onMouseDown={handleBackdropMouseDown}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 overflow-y-auto">
-      <div className="bg-surface rounded-xl shadow-xl max-w-2xl w-full p-5 max-h-full overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="min-w-0">
-            <h2
-              id="mcp-playground-title"
-              className="text-base font-semibold text-content font-mono break-words">
-              {t('mcp.playground.title').replace('{name}', tool.name)}
-            </h2>
-            {tool.description && (
-              <p className="text-xs text-content-muted mt-1">{tool.description}</p>
-            )}
-          </div>
-          <Button
-            iconOnly
-            variant="tertiary"
-            size="sm"
-            onClick={onClose}
-            aria-label={t('mcp.playground.close')}
-            className="shrink-0">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </Button>
-        </div>
-
+    <ModalShell
+      onClose={onClose}
+      titleId="mcp-playground-title"
+      title={
+        <span className="font-mono break-words">
+          {t('mcp.playground.title').replace('{name}', tool.name)}
+        </span>
+      }
+      subtitle={tool.description}
+      maxWidthClassName="max-w-2xl"
+      contentClassName="max-h-full overflow-y-auto p-5">
+      <>
         {/* Input schema (collapsible) */}
         <div className="mb-3">
           <button
