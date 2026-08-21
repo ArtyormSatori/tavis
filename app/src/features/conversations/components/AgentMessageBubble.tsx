@@ -91,8 +91,8 @@ export function BubbleMarkdown({
 }) {
   const proseTone =
     tone === 'user'
-      ? 'prose-invert prose-p:text-white prose-li:text-white prose-a:text-white prose-code:text-white prose-strong:text-white prose-headings:text-white [&_li::marker]:text-white/85'
-      : 'dark:prose-invert prose-a:text-primary-500 prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-headings:text-sm [&_li::marker]:text-stone-700 dark:[&_li::marker]:text-neutral-300';
+      ? 'prose-invert prose-p:text-content-inverted prose-li:text-content-inverted prose-a:text-content-inverted prose-code:text-content-inverted prose-strong:text-content-inverted prose-headings:text-content-inverted [&_li::marker]:text-content-inverted/85'
+      : 'dark:prose-invert prose-a:text-primary-500 prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-headings:text-sm [&_li::marker]:text-content-secondary';
 
   const hasMath = hasLatexContent(content);
   const rendered = hasMath ? normalizeLatexDelimiters(content) : content;
