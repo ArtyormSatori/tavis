@@ -67,7 +67,7 @@ export type RoutingMode = 'managed' | 'own' | 'custom';
 export type AISettings = {
   cloudProviders: CloudProvider[];
   routing: RoutingMap;
-  modelRegistry: import('../../../../services/api/aiSettingsApi').ModelRegistryEntry[];
+  modelRegistry: ModelRegistryEntry[];
 };
 
 /** Local-runtime chip slugs (Ollama / LM Studio / OMLX) that aren't actual
