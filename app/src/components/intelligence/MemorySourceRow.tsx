@@ -61,7 +61,7 @@ interface SourceRowProps {
   onSignIn: () => void;
 }
 
-export function SourceRow({
+export function MemorySourceRow({
   source,
   status,
   pipeline,
