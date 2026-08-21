@@ -9,7 +9,7 @@ import {
   setSidebarWidth,
   toggleSidebar,
 } from '../../../store/layoutSlice';
-import { Tooltip } from '../../ui';
+import { Button, Tooltip } from '../../ui';
 import CollapsedNavRail from './CollapsedNavRail';
 import ContentSurface from './ContentSurface';
 import WindowDragBar from './WindowDragBar';
@@ -218,13 +218,16 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
               clear of the lights. */}
           <div className="h-7 w-full flex-none" data-tauri-drag-region />
           <Tooltip label={t('layout.showSidebar')}>
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              iconOnly
               onClick={() => dispatch(setSidebarVisible({ id: LAYOUT_ID, visible: true }))}
               data-testid="root-shell-reopen"
-              data-analytics-id="root-shell-reopen-sidebar"
+              analyticsId="root-shell-reopen-sidebar"
               aria-label={t('layout.showSidebar')}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-content-muted transition-colors hover:bg-surface-hover hover:text-content-secondary">
+              // 32px square: no `size` maps to that, so the footprint is
+              // overridden while the focus ring/transition come from Button.
+              className="h-8 w-8 rounded-lg text-content-muted hover:text-content-secondary">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -233,7 +236,7 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-            </button>
+            </Button>
           </Tooltip>
           {/* Keep the primary nav reachable while collapsed: an icon-only rail. */}
           <div className="mt-1 w-full pt-1">

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useT } from '../../lib/i18n/I18nContext';
 import type { MeetCallActionItem } from '../../services/meetCallService';
 import Button from '../ui/Button';
+import Checkbox from '../ui/Checkbox';
 
 const log = debug('meetings:action');
 
@@ -54,12 +55,11 @@ function ActionItemChecklist({ items }: ActionItemChecklistProps) {
 
           return (
             <li key={i} className="flex items-start gap-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={!!checked[i]}
-                onChange={() => handleCheck(i)}
+                onCheckedChange={() => handleCheck(i)}
                 aria-label={item.description}
-                className="mt-0.5 h-3 w-3 shrink-0 cursor-pointer rounded accent-primary-600"
+                className="mt-0.5 h-3 w-3 shrink-0 rounded accent-primary-600"
               />
               <div className="min-w-0 flex-1">
                 <span

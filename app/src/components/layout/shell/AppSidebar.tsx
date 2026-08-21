@@ -9,6 +9,7 @@ import { normalizeAnalyticsPagePath } from '../../../services/analyticsRoutes';
 import { APP_VERSION } from '../../../utils/config';
 import { isLocalSessionToken } from '../../../utils/localSession';
 import ConnectionIndicator from '../../ConnectionIndicator';
+import { Button } from '../../ui';
 import { NavIcon } from './navIcons';
 import SidebarHeader from './SidebarHeader';
 import SidebarNav from './SidebarNav';
@@ -40,20 +41,22 @@ function FooterNavButton({
   onClick,
 }: FooterNavButtonProps) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="tertiary"
       data-walkthrough={walkthroughAttr}
       onClick={onClick}
       title={label}
       aria-current={active ? 'page' : undefined}
-      className={`group mx-2 flex flex-shrink-0 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors cursor-pointer ${
+      // A nav row, not a control: left-aligned, auto height, 13px type, and the
+      // resting weight stays normal so only the active row reads as semibold.
+      className={`group mx-2 h-auto flex-shrink-0 justify-start gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] cursor-pointer ${
         active
           ? 'bg-surface/70 text-content font-semibold'
-          : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
+          : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
       }`}>
       <NavIcon id={iconId} className="h-4 w-4 flex-shrink-0" />
       <span className="min-w-0 truncate">{label}</span>
-    </button>
+    </Button>
   );
 }
 
