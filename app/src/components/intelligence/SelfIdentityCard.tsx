@@ -170,16 +170,19 @@ export default function SelfIdentityCard({
             {t('tinyplaceOrchestration.identity.undiscoverableHint')}
           </p>
           {onPublish ? (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              tone="danger"
+              size="xs"
               data-testid="tinyplace-self-identity-publish"
               onClick={onPublish}
               disabled={publishing}
-              className="mt-1.5 inline-flex items-center rounded-md bg-coral-600 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-coral-700 disabled:opacity-50 dark:bg-coral-500 dark:hover:bg-coral-400">
+              className="mt-1.5">
               {publishing
                 ? t('tinyplaceOrchestration.identity.publishing')
                 : t('tinyplaceOrchestration.identity.makeDiscoverable')}
-            </button>
+            </Button>
           ) : null}
           {publishError ? (
             <p

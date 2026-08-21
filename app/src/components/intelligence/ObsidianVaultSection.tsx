@@ -313,13 +313,14 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
             </Button>
           </div>
 
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
+            size="sm"
             onClick={() => setShowAdvanced(v => !v)}
             data-testid="obsidian-advanced-toggle"
-            className="mt-3 text-xs font-medium text-violet-600 hover:underline dark:text-violet-300">
+            className="mt-3 h-auto p-0 font-medium text-violet-600 hover:underline hover:bg-transparent dark:text-violet-300">
             {t('workspace.obsidianAdvanced')}
-          </button>
+          </Button>
 
           {showAdvanced && (
             <div className="mt-2 space-y-1.5">
