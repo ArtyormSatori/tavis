@@ -252,6 +252,13 @@ fn shared_workspace_write_preview(write_capable_tools: &[String]) -> String {
     format!("{preview}{suffix}")
 }
 
+/// Parse OpenHuman's `files: a.rs, b.rs` ownership syntax into claimed paths.
+///
+/// The `files:` prefix is this tool's parameter shape, so it is stripped here;
+/// validating what follows is generic and belongs to
+/// [`parse_relative_claim_paths`]. Its typed rejection is rendered into the
+/// sentence the model reads at this boundary, which is why the crate returns
+/// data rather than a message.
 fn ownership_file_paths(ownership: Option<&str>) -> Result<Vec<PathBuf>, String> {
     let Some(ownership) = ownership.map(str::trim).filter(|s| !s.is_empty()) else {
         return Ok(Vec::new());
@@ -259,34 +266,12 @@ fn ownership_file_paths(ownership: Option<&str>) -> Result<Vec<PathBuf>, String>
     let Some(rest) = ownership.strip_prefix("files:") else {
         return Ok(Vec::new());
     };
-    let mut paths = Vec::new();
-    for raw in rest.split([',', '\n']) {
-        let trimmed = raw.trim().trim_start_matches(['-', '*']).trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        let path = PathBuf::from(trimmed);
-        if path.is_absolute()
-            || path.components().any(|component| {
-                matches!(
-                    component,
-                    std::path::Component::ParentDir | std::path::Component::Prefix(_)
-                )
-            })
-        {
-            return Err(format!(
-                "ownership path '{trimmed}' must be a relative file path under the workspace"
-            ));
-        }
-        paths.push(path);
-    }
-    paths.sort();
-    paths.dedup();
-    Ok(paths)
-}
-
-fn paths_overlap(left: &Path, right: &Path) -> bool {
-    left == right || left.starts_with(right) || right.starts_with(left)
+    parse_relative_claim_paths(rest).map_err(|err| {
+        let raw = match &err {
+            ClaimPathError::Absolute { raw } | ClaimPathError::Escaping { raw } => raw,
+        };
+        format!("ownership path '{raw}' must be a relative file path under the workspace")
+    })
 }
 
 fn shared_workspace_write_claim(
@@ -482,47 +467,66 @@ pub(super) fn prepare_spawn_parallel_tasks_from_defs(
                 });
             }
 
-            let dispatch_mode =
-                match shared_workspace_write_claim(&task, &definition, parent) {
-                    Ok(Some(paths)) => {
-                        if let Some((overlap_path, overlap_task)) =
-                            paths.iter().find_map(|path| {
-                                serial_write_claims
-                                    .iter()
-                                    .find(|(claimed, _)| paths_overlap(path, claimed))
-                                    .map(|(claimed, task_id)| (claimed.clone(), task_id.clone()))
-                            })
-                        {
-                            return SpawnParallelTaskPreflight::Rejected(
-                                ParallelTaskRejection {
-                                    task_id,
-                                    agent_id: definition.id.clone(),
-                                    error: format!(
-                                        "agent '{}' requested shared-workspace write access to '{}' but it overlaps with serial worker {overlap_task}; set isolation=\"worktree\" or use disjoint files: ownership",
-                                        definition.id,
-                                        overlap_path.display()
-                                    ),
-                                    ownership: task.ownership,
-                                    kind: ParallelTaskRejectionKind::RequiresIsolation,
-                                },
-                            );
-                        }
-                        for path in paths {
-                            serial_write_claims.push((path, task_id.clone()));
-                        }
-                        WorkerDispatchMode::SerialSharedWorkspaceWrite
+            // Whether this worker needs a claim at all is OpenHuman policy
+            // (sandbox mode, tool permissions, the isolation request). Deciding
+            // whether the claim can be granted alongside its siblings is not, so
+            // it goes through the crate's claim ledger. The ledger is fed one
+            // worker at a time, in input order, so the earlier holder of a
+            // contended path keeps it and the later claimant is the one
+            // rejected — the same first-writer-wins rule this loop always had.
+            let dispatch_mode = match shared_workspace_write_claim(&task, &definition, parent) {
+                Ok(Some(paths)) => {
+                    let plan = plan_shared_workspace_dispatch(&[WorkspaceClaim::writing(
+                        task_id.clone(),
+                        paths.clone(),
+                    )]);
+                    let conflict = plan.conflicts.first().map(|(_, conflict)| conflict);
+                    match conflict {
+                        // The single-claim plan can only report an unbounded
+                        // write, which `shared_workspace_write_claim` has
+                        // already ruled out by returning `Ok(Some(..))`.
+                        Some(_) => unreachable!(
+                            "a non-empty claim cannot be reported as an unbounded write"
+                        ),
+                        None => {}
                     }
-                    Ok(None) => WorkerDispatchMode::Parallel,
-                    Err(error) => {
-                        return SpawnParallelTaskPreflight::Rejected(ParallelTaskRejection {
-                            task_id,
-                            agent_id: definition.id.clone(),
-                            error,
-                            ownership: task.ownership,
-                            kind: ParallelTaskRejectionKind::RequiresIsolation,
-                        });
+
+                    if let Some((overlap_path, overlap_task)) = paths.iter().find_map(|path| {
+                        serial_write_claims
+                            .iter()
+                            .find(|(claimed, _)| paths_overlap(path, claimed))
+                            .map(|(claimed, task_id)| (claimed.clone(), task_id.clone()))
+                    }) {
+                        return SpawnParallelTaskPreflight::Rejected(
+                            ParallelTaskRejection {
+                                task_id,
+                                agent_id: definition.id.clone(),
+                                error: format!(
+                                    "agent '{}' requested shared-workspace write access to '{}' but it overlaps with serial worker {overlap_task}; set isolation=\"worktree\" or use disjoint files: ownership",
+                                    definition.id,
+                                    overlap_path.display()
+                                ),
+                                ownership: task.ownership,
+                                kind: ParallelTaskRejectionKind::RequiresIsolation,
+                            },
+                        );
                     }
-                };
+                    for path in paths {
+                        serial_write_claims.push((path, task_id.clone()));
+                    }
+                    WorkerDispatchMode::SerialSharedWorkspaceWrite
+                }
+                Ok(None) => WorkerDispatchMode::Parallel,
+                Err(error) => {
+                    return SpawnParallelTaskPreflight::Rejected(ParallelTaskRejection {
+                        task_id,
+                        agent_id: definition.id.clone(),
+                        error,
+                        ownership: task.ownership,
+                        kind: ParallelTaskRejectionKind::RequiresIsolation,
+                    });
+                }
+            };
 
             let prompt = with_ownership_boundary(&prompt, task.ownership.as_deref());
             SpawnParallelTaskPreflight::Prepared(PreparedParallelTask {
