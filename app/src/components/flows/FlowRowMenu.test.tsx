@@ -23,6 +23,7 @@ describe('FlowRowMenu', () => {
     );
     expect(screen.queryByTestId('flow-export-flow-1')).not.toBeInTheDocument();
 
+    fireEvent.pointerDown(screen.getByTestId('flow-menu-flow-1'));
     fireEvent.click(screen.getByTestId('flow-menu-flow-1'));
 
     expect(screen.getByTestId('flow-export-flow-1')).toHaveTextContent('Export');

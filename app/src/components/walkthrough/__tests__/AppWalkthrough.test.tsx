@@ -549,7 +549,7 @@ describe('createWalkthroughSteps', () => {
     const steps = createWalkthroughSteps(navigate);
 
     // Steps: 2=chat, 3=integrations, 4=channels, 5=settings, 6=chat-tab, 11=chat-welcome
-    const crossPageIndices = [2, 3, 4, 5, 6, 12];
+    const crossPageIndices = [2, 3, 4, 5, 6, 11];
     for (const idx of crossPageIndices) {
       expect(typeof steps[idx].before, `step[${idx}] should have a before fn`).toBe('function');
     }
