@@ -571,7 +571,7 @@ describe('createWalkthroughSteps', () => {
     { idx: 4, route: null, target: 'skills-channels' },
     { idx: 5, route: '/settings', target: 'settings-menu' },
     { idx: 6, route: '/chat', target: 'tab-chat' },
-    { idx: 12, route: '/chat', target: 'chat-agent-panel' },
+    { idx: 11, route: '/chat', target: 'chat-agent-panel' },
   ])('before hook for step $idx calls navigate("$route")', async ({ idx, route, target }) => {
     const navigate = vi.fn();
 
