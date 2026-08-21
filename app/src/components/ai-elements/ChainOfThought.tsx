@@ -21,6 +21,7 @@ import {
   memo,
   createContext,
   useContext,
+  useId,
   useMemo,
   type ComponentProps,
   type ComponentType,
@@ -45,6 +46,17 @@ export type ChainOfThoughtStepIcon = ComponentType<SVGProps<SVGSVGElement>>;
 interface ChainOfThoughtContextValue {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  /**
+   * Shared id linking the header button to the content region.
+   *
+   * WHY: the header and the content each used to mount their OWN
+   * `CollapsibleRoot` — one holding only a Trigger, the other only a Content.
+   * Radix scopes ids per root, so the header's `aria-controls` pointed at a
+   * content node that never rendered. axe flagged it `aria-valid-attr-value`
+   * (critical): a screen reader following that reference lands nowhere. One id,
+   * owned by the parent, is what actually associates the two.
+   */
+  contentId: string;
 }
 
 const ChainOfThoughtContext = createContext<ChainOfThoughtContextValue | null>(null);
@@ -71,7 +83,11 @@ export const ChainOfThought = memo(
       prop: open,
     });
 
-    const chainOfThoughtContext = useMemo(() => ({ isOpen, setIsOpen }), [isOpen, setIsOpen]);
+    const contentId = useId();
+    const chainOfThoughtContext = useMemo(
+      () => ({ contentId, isOpen, setIsOpen }),
+      [contentId, isOpen, setIsOpen]
+    );
 
     return (
       <ChainOfThoughtContext.Provider value={chainOfThoughtContext}>
@@ -87,11 +103,15 @@ export type ChainOfThoughtHeaderProps = ComponentProps<typeof CollapsibleTrigger
 
 export const ChainOfThoughtHeader = memo(({ className, children, ...props }: ChainOfThoughtHeaderProps) => {
   const { t } = useT();
-  const { isOpen, setIsOpen } = useChainOfThought();
+  const { contentId, isOpen, setIsOpen } = useChainOfThought();
 
   return (
-    <CollapsibleRoot onOpenChange={setIsOpen} open={isOpen}>
-      <CollapsibleTrigger
+    <button
+        type="button"
+        aria-controls={contentId}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen(!isOpen)}
+        data-state={isOpen ? 'open' : 'closed'}
         data-slot="chain-of-thought-header"
         className={cn(
           'flex w-full items-center justify-start gap-2 px-0 py-0 text-sm font-normal',
@@ -104,8 +124,7 @@ export const ChainOfThoughtHeader = memo(({ className, children, ...props }: Cha
           {children ?? t('chat.chainOfThought.title', 'Chain of Thought')}
         </span>
         <ChevronDownIcon className={cn('h-4 w-4 transition-transform', isOpen ? 'rotate-180' : 'rotate-0')} />
-      </CollapsibleTrigger>
-    </CollapsibleRoot>
+      </button>
   );
 });
 
@@ -181,11 +200,12 @@ export const ChainOfThoughtSearchResult = memo(
 export type ChainOfThoughtContentProps = ComponentProps<typeof CollapsibleContent>;
 
 export const ChainOfThoughtContent = memo(({ className, children, ...props }: ChainOfThoughtContentProps) => {
-  const { isOpen } = useChainOfThought();
+  const { contentId, isOpen } = useChainOfThought();
 
   return (
     <CollapsibleRoot open={isOpen}>
       <CollapsibleContent
+        id={contentId}
         data-slot="chain-of-thought-content"
         className={cn('mt-2 space-y-3 px-0 pb-0 text-content outline-none', className)}
         {...props}>

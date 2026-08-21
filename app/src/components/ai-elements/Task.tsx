@@ -90,11 +90,17 @@ export const TaskTrigger = ({ children, className, title, ...props }: TaskTrigge
     className={cn('group w-full p-0 text-left font-normal hover:bg-transparent', className)}
     {...props}>
     {children ?? (
-      <div className="flex w-full cursor-pointer items-center gap-2 text-sm text-content-muted transition-colors hover:text-content">
+      // A BUTTON, not a div: `asChild` merges Radix's `aria-expanded` /
+      // `aria-controls` onto whatever element lands here, and those attributes
+      // are only valid on something with a button role. axe flagged the former
+      // div as `aria-allowed-attr` (critical).
+      <button
+        type="button"
+        className="flex w-full cursor-pointer items-center gap-2 text-sm text-content-muted transition-colors hover:text-content">
         <SearchIcon />
         <p className="text-sm">{title}</p>
         <ChevronDownIcon />
-      </div>
+      </button>
     )}
   </CollapsibleTrigger>
 );
