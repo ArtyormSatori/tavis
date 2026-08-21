@@ -65,20 +65,14 @@ pub enum DecideMiss {
 /// written into the persisted row.
 const DEFAULT_APPROVAL_TTL: Duration = Duration::from_secs(60 * 10);
 
-/// Shorter park window for approvals raised mid-call (issue #3513): a
-/// live meeting can't idle on a parked tool for the default ten
-/// minutes — if nobody approves within two, deny and move on.
-const IN_CALL_APPROVAL_TTL: Duration = Duration::from_secs(120);
-
 /// Shorter park window for approvals raised by the Flow Canvas copilot's
 /// live-run path — `flows_build` streaming into the copilot pane calling
 /// `run_flow` / `resume_flow_run` (PR #5090). A stale ten-minute park on a
 /// copilot pane the user may have already navigated away from is a long time
 /// to leave a live Slack/Gmail/HTTP node waiting; if nobody approves within
 /// three minutes, deny and let the authoring turn continue (the user can
-/// still re-trigger the run from the Runs rail). Mirrors
-/// [`IN_CALL_APPROVAL_TTL`]'s clamp, scoped by [`APPROVAL_COPILOT_STREAM_CONTEXT`]
-/// instead of [`APPROVAL_IN_CALL_CONTEXT`]. Deliberately NOT applied to
+/// still re-trigger the run from the Runs rail). Scoped by
+/// [`APPROVAL_COPILOT_STREAM_CONTEXT`]. Deliberately NOT applied to
 /// main-chat `WebChat` parks — only `flows::ops::flows_build`'s streaming
 /// branch scopes the task-local below.
 const COPILOT_APPROVAL_TTL: Duration = Duration::from_secs(180);
@@ -98,26 +92,6 @@ pub struct ApprovalChatContext {
 
 tokio::task_local! {
     pub static APPROVAL_CHAT_CONTEXT: ApprovalChatContext;
-}
-
-/// In-call meeting context (issue #3513) — set by `agent_meetings::in_call`
-/// around the orchestrator turn for a live meeting. When present, a parked
-/// approval additionally:
-/// - publishes [`DomainEvent::InCallApprovalRequested`] so the meeting bus
-///   can speak the approval prompt into the call (`bot:speak`),
-/// - registers a meeting → request mapping so a spoken
-///   "Hey Tiny, approve" can be routed to [`ApprovalGate::decide`], and
-/// - clamps the park window to [`IN_CALL_APPROVAL_TTL`].
-#[derive(Clone, Debug)]
-pub struct InCallApprovalContext {
-    /// Stable per-meeting key (the correlation id, or `"default"`).
-    pub meeting_key: String,
-    /// Original correlation id, echoed on spoken prompts.
-    pub correlation_id: Option<String>,
-}
-
-tokio::task_local! {
-    pub static APPROVAL_IN_CALL_CONTEXT: InCallApprovalContext;
 }
 
 tokio::task_local! {
@@ -223,11 +197,6 @@ pub struct ApprovalGate {
     /// In-memory only (session-scoped — a parked approval doesn't survive a
     /// restart, and the oneshot waiter is in-memory anyway).
     thread_to_request: Mutex<HashMap<String, String>>,
-    /// meeting_key → request_id for the approval currently parked on a live
-    /// meeting, so a spoken "Hey Tiny, approve" can be routed to a decision
-    /// (issue #3513). Same in-memory/session-scoped semantics as
-    /// `thread_to_request`.
-    meeting_to_request: Mutex<HashMap<String, String>>,
 }
 
 /// RAII guard that tears the parked waiter down even when the surrounding turn
@@ -251,7 +220,6 @@ struct WaiterGuard<'a> {
     gate: &'a ApprovalGate,
     request_id: String,
     thread_id: Option<String>,
-    meeting_key: Option<String>,
     armed: bool,
 }
 
@@ -268,24 +236,20 @@ impl Drop for WaiterGuard<'_> {
             return;
         }
         // External teardown: the normal cleanup was skipped. Evict the waiter,
-        // drop the routing mappings so a later chat/voice reply is not
+        // drop the routing mapping so a later chat reply is not
         // mis-routed to this now-dead request, and deny the still-open pending
         // row. `store::decide` is `WHERE decided_at IS NULL`, so a decision that
         // committed in the same instant is honored rather than overwritten.
         self.gate.evict_waiter(&self.request_id);
         // Only clear the routing entry when it still points at *this* request.
         // On external teardown a replacement turn can park a new approval on the
-        // same thread/meeting and overwrite the mapping before this guard drops;
+        // same thread and overwrite the mapping before this guard drops;
         // an unconditional `remove` would delete the *new* request's routing, so
         // the next typed yes/no would fall through as a fresh chat turn instead
         // of resolving the live gate (#4774).
         if let Some(thread_id) = &self.thread_id {
             self.gate
                 .clear_thread_route_if_owned(thread_id, &self.request_id);
-        }
-        if let Some(meeting_key) = &self.meeting_key {
-            self.gate
-                .clear_meeting_route_if_owned(meeting_key, &self.request_id);
         }
         let _ = store::decide(&self.gate.config, &self.request_id, ApprovalDecision::Deny);
         tracing::warn!(
@@ -341,7 +305,6 @@ impl ApprovalGate {
             ttl,
             waiters: Mutex::new(HashMap::new()),
             thread_to_request: Mutex::new(HashMap::new()),
-            meeting_to_request: Mutex::new(HashMap::new()),
         }
     }
 
@@ -1078,7 +1041,6 @@ impl ApprovalGate {
             gate: self,
             request_id: request_id.clone(),
             thread_id: chat_thread_id.clone(),
-            meeting_key: in_call_ctx.as_ref().map(|ic| ic.meeting_key.clone()),
             armed: true,
         };
 
