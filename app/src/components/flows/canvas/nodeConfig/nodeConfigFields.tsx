@@ -100,10 +100,11 @@ export function TextField({ label, hint, value, onChange, placeholder, testId }:
   const id = useId();
   return (
     <Field label={label} hint={hint} htmlFor={id}>
-      <input
+      <UiInput
         id={id}
         type="text"
-        className={INPUT_CLASS}
+        inputSize="sm"
+        className="w-full"
         value={value}
         placeholder={placeholder}
         data-testid={testId}
