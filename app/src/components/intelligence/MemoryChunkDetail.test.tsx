@@ -19,11 +19,16 @@ vi.mock('../../utils/tauriCommands', async () => {
 function chunk(over: Partial<Chunk> = {}): Chunk {
   return {
     id: 'chunk-abcdef1234',
-    content_preview: 'A short subject line. Followed by the body.',
-    source_ref: 'obsidian://vault/note.md',
+    source_kind: 'obsidian',
     source_id: 'steven|team',
+    source_ref: 'obsidian://vault/note.md',
     owner: 'team',
+    timestamp_ms: 1_700_000_000_000,
+    token_count: 42,
+    lifecycle_status: 'active',
+    content_preview: 'A short subject line. Followed by the body.',
     has_embedding: true,
+    tags: [],
     ...over,
   } as Chunk;
 }
