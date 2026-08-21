@@ -272,7 +272,7 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
           {t('chat.files.panel.empty')}
         </div>
       ) : (
-        <ul className="divide-y divide-line-subtle dark:divide-neutral-800">
+        <ul className="divide-y divide-line-subtle">
           {artifacts.map(artifact => {
             const row = downloadState[artifact.artifactId] ?? { state: 'idle' as const };
             const isConfirming = confirmDeleteId === artifact.artifactId;

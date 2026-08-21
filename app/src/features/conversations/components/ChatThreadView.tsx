@@ -201,15 +201,35 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
       scrollResetKey
     );
 
-    const handleCopyMessage = async (messageId: string, content: string) => {
-      try {
-        await navigator.clipboard.writeText(content);
-        setCopiedMessageId(messageId);
-        setTimeout(() => setCopiedMessageId(null), 1500);
-      } catch {
-        // Clipboard API not available — silently fail
-      }
-    };
+    // Every callback handed to a `TranscriptRow` has to keep the same identity
+    // for the row's `memo` to bail out, and `dispatch` / `threadId` both change
+    // out from under a long-lived transcript (a new store in a test harness, a
+    // thread switch). So the changing values are read through refs and the
+    // callbacks themselves have empty dependency lists.
+    const dispatchRef = useRef(dispatch);
+    dispatchRef.current = dispatch;
+    const threadIdRef = useRef(threadId);
+    threadIdRef.current = threadId;
+
+    const handleCopyMessage = useCallback((messageId: string, content: string) => {
+      void (async () => {
+        try {
+          await navigator.clipboard.writeText(content);
+          setCopiedMessageId(messageId);
+          setTimeout(() => setCopiedMessageId(null), 1500);
+        } catch {
+          // Clipboard API not available — silently fail
+        }
+      })();
+    }, []);
+
+    const handleReact = useCallback((messageId: string, emoji: string) => {
+      const activeThreadId = threadIdRef.current;
+      if (!activeThreadId) return;
+      void dispatchRef.current(
+        persistReaction({ threadId: activeThreadId, messageId, emoji })
+      );
+    }, []);
 
     const selectedThreadToolTimeline = threadId
       ? (toolTimelineByThread[threadId] ?? EMPTY_TOOL_TIMELINE)
@@ -238,8 +258,15 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     // them (they are its only record). They remain reachable via "View full
     // agent process Source"; the Flows copilot drops them outright.
     const supersededInterim = useMemo(() => supersededInterimIndexes(messages), [messages]);
-    const visibleMessages = messages.filter(
-      (msg, index) => !msg.extraMetadata?.hidden && !supersededInterim.has(index)
+    // Memoized: a fresh array here would give `timelineMessages` (and through it
+    // `pastTurnAnchors`) a new identity on every render, re-running the whole
+    // projection for each streamed token.
+    const visibleMessages = useMemo(
+      () =>
+        messages.filter(
+          (msg, index) => !msg.extraMetadata?.hidden && !supersededInterim.has(index)
+        ),
+      [messages, supersededInterim]
     );
     const hasVisibleMessages = visibleMessages.length > 0;
     const latestVisibleMessage = visibleMessages[visibleMessages.length - 1] ?? null;
@@ -281,10 +308,7 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
       ? (turnTranscriptsByThread[threadId] ?? EMPTY_TURN_TRANSCRIPTS)
       : EMPTY_TURN_TRANSCRIPTS;
     const pastTurnAnchors = useMemo(() => {
-      const anchors: Record<
-        string,
-        { entries: ToolTimelineEntry[]; transcript: ProcessingTranscriptItem[] }
-      > = {};
+      const anchors: Record<string, PastTurnAnchor> = {};
       const seen = new Set<string>();
       for (const msg of timelineMessages) {
         if (msg.sender !== 'agent') continue;
