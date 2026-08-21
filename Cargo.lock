@@ -4200,6 +4200,7 @@ dependencies = [
  "tinymemory-core",
  "tinymemory-tinycortex",
  "tinyplace",
+ "tinyruntime-bus",
  "tinywallet",
  "tokio",
  "tokio-stream",
@@ -6653,6 +6654,14 @@ dependencies = [
  "tokio-tungstenite 0.29.0",
  "url",
  "x25519-dalek",
+]
+
+[[package]]
+name = "tinyruntime-bus"
+version = "0.2.1"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
