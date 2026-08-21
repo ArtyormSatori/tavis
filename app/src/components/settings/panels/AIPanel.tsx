@@ -2204,286 +2204,13 @@ const CustomRoutingDialog = ({
   const noProviders = customCloud.length === 0 && !localAvailable && !claudeCodeEnabled;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={formatI18n(t('settings.ai.customRoutingForWorkload'), {
-        label: t(workload.labelKey),
-      })}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-soft">
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-base font-semibold text-content">
-              {t('settings.ai.customRouting')}
-            </h3>
-            <p className="mt-0.5 text-xs text-content-muted">{t(workload.labelKey)}</p>
-            <p className="mt-2 max-w-md text-xs leading-5 text-content-muted">
-              {t(WORKLOAD_MODEL_HINT_KEYS[workload.id])}
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="tertiary"
-            size="xs"
-            onClick={onClose}
-            aria-label={t('common.close')}>
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </Button>
-        </div>
-
-        {noProviders ? (
-          <div className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
-            {t('settings.ai.noCustomProviders')}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-content-secondary">
-                {t('settings.ai.providerLabel')}
-              </label>
-              <SettingsSelect
-                value={
-                  source
-                    ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}`
-                    : ''
-                }
-                onChange={e => {
-                  const colonIdx = e.target.value.indexOf(':');
-                  const kind = e.target.value.slice(0, colonIdx);
-                  const slug = e.target.value.slice(colonIdx + 1);
-                  resetTestState();
-                  if (kind === 'local') {
-                    setSource({ kind: 'local' });
-                    setModel(localModels[0]?.id ?? '');
-                    modelEntry.syncToEndpoint(undefined);
-                  } else if (kind === 'cloud') {
-                    setSource({ kind: 'cloud', providerSlug: slug });
-                    setModel('');
-                    // Azure connections need a deployment name, which the
-                    // catalog never lists — start on free text (#5213).
-                    modelEntry.syncToEndpoint(customCloud.find(c => c.slug === slug)?.endpoint);
-                  } else if (kind === 'claude-code') {
-                    setSource({ kind: 'claude-code' });
-                    setModel(CLAUDE_CODE_DEFAULT_MODEL);
-                    modelEntry.syncToEndpoint(undefined);
-                  }
-                }}
-                className="w-full">
-                {customCloud.map(p => (
-                  <option key={p.slug} value={`cloud:${p.slug}`}>
-                    {p.label}
-                  </option>
-                ))}
-                {localAvailable && <option value="local:">{t('settings.ai.localOllama')}</option>}
-                {/* Offered only when the peer chip is enabled — or when this
-                    workload is already pinned to it (keeps the select value
-                    valid). */}
-                {(claudeCodeEnabled || source?.kind === 'claude-code') && (
-                  <option value="claude-code:">{t('settings.ai.claudeCode.modalTitle')}</option>
-                )}
-              </SettingsSelect>
-            </div>
-
-            {source?.kind === 'local' ? (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-content-secondary">
-                  {t('settings.ai.modelLabel')}
-                </label>
-                <SettingsSelect
-                  value={model}
-                  onChange={e => {
-                    resetTestState();
-                    setModel(e.target.value);
-                  }}
-                  className="w-full">
-                  {localModels.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.id}
-                    </option>
-                  ))}
-                </SettingsSelect>
-              </div>
-            ) : source?.kind === 'claude-code' ? (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-content-secondary">
-                  {t('settings.ai.modelLabel')}
-                </label>
-                <SettingsTextField
-                  type="text"
-                  mono
-                  value={model}
-                  onChange={e => setModel(e.target.value)}
-                  placeholder="sonnet"
-                />
-                <p className="text-[11px] text-content-muted">
-                  {t('settings.ai.claudeCode.modelHelp')}
-                </p>
-              </div>
-            ) : (
-              <ModelEntryField
-                mode={modelEntry}
-                model={model}
-                onModelChange={next => {
-                  resetTestState();
-                  setModel(next);
-                }}
-                catalog={cloudModels}
-                catalogLoading={cloudModelsLoading}
-                catalogError={cloudModelsError}
-                onRetry={() => setModelsKey(k => k + 1)}
-                label={t('settings.ai.modelLabel')}
-                placeholder={
-                  selectedCloud
-                    ? formatI18n(t('settings.ai.modelIdPlaceholderForProvider'), {
-                        slug: selectedCloud.slug,
-                      })
-                    : t('settings.ai.modelIdPlaceholder')
-                }
-                analyticsId="ai-model-entry-mode-toggle"
-                optionLabel={m => `${humanizeModelId(m.id)} — ${m.id}`}
-              />
-            )}
-
-            {/* Temperature override (optional). When unchecked, the workload
-                inherits the provider/global default temperature. */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center justify-between gap-2 text-xs font-medium text-content-secondary">
-                <span className="inline-flex items-center gap-2">
-                  <Checkbox
-                    checked={temperature != null}
-                    onCheckedChange={next => {
-                      resetTestState();
-                      setTemperature(next ? 0.7 : null);
-                    }}
-                    className="h-3.5 w-3.5"
-                  />
-                  {t('settings.ai.temperatureOverride')}
-                </span>
-                {temperature != null && (
-                  <span className="font-mono text-[11px] text-content-muted">
-                    {temperature.toFixed(2)}
-                  </span>
-                )}
-              </label>
-              {temperature != null && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="range"
-                    aria-label={t('settings.ai.temperatureOverrideSlider')}
-                    min={0}
-                    max={2}
-                    step={0.05}
-                    value={temperature}
-                    onChange={e => {
-                      resetTestState();
-                      setTemperature(Number(e.target.value));
-                    }}
-                    className="flex-1 accent-primary-500"
-                  />
-                  <input
-                    type="number"
-                    aria-label={t('settings.ai.temperatureOverrideValue')}
-                    min={0}
-                    max={2}
-                    step={0.05}
-                    value={temperature}
-                    onChange={e => {
-                      const v = Number(e.target.value);
-                      if (Number.isFinite(v)) {
-                        resetTestState();
-                        setTemperature(Math.max(0, Math.min(2, v)));
-                      }
-                    }}
-                    className="w-16 rounded-lg border border-line-strong bg-surface px-2 py-1 text-xs font-mono text-content focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                  />
-                </div>
-              )}
-              <p className="text-[11px] text-content-faint">
-                {t('settings.ai.temperatureOverrideDesc')}
-              </p>
-            </div>
-
-            {/* Vision capability (optional). Marks a custom/BYOK model as
-                accepting image input so the chat composer offers image
-                attachments for it. Only shown once a concrete model is chosen. */}
-            {registrySlug && model.trim().length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                <label className="inline-flex items-center gap-2 text-xs font-medium text-content-secondary">
-                  <Checkbox
-                    checked={visionLocked ? true : vision}
-                    onCheckedChange={setVision}
-                    disabled={visionLocked}
-                    className="h-3.5 w-3.5 disabled:opacity-60"
-                  />
-                  {t('settings.ai.modelVision')}
-                </label>
-                <p className="text-[11px] text-content-faint">{t('settings.ai.modelVisionDesc')}</p>
-              </div>
-            )}
-
-            {(testBusy || testReply || testError || testStartedAt) && (
-              <div
-                role={testError ? 'alert' : 'status'}
-                className={`rounded-lg border px-3 py-2 text-xs ${
-                  testError
-                    ? 'border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 text-coral-700 dark:text-coral-300'
-                    : testBusy
-                      ? 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200'
-                      : 'border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 text-sage-800 dark:text-sage-200'
-                }`}>
-                <div className="font-semibold">
-                  {testError
-                    ? t('settings.ai.testFailed')
-                    : testBusy
-                      ? t('settings.ai.testingModel')
-                      : t('settings.ai.modelResponse')}
-                </div>
-                <div className="mt-1 space-y-1">
-                  <div className="font-mono text-[11px] text-current/80">
-                    {formatI18n(t('settings.ai.providerWithValue'), {
-                      value: currentProviderString ?? t('settings.ai.noneDash'),
-                    })}
-                  </div>
-                  <div className="font-mono text-[11px] text-current/80">
-                    {t('settings.ai.promptHelloWorld')}
-                  </div>
-                  {testStartedAt && (
-                    <div className="font-mono text-[11px] text-current/80">
-                      {formatI18n(t('settings.ai.startedAt'), { value: testStartedAt })}
-                    </div>
-                  )}
-                </div>
-                {testBusy ? (
-                  <div className="mt-2 rounded-md border border-current/15 bg-surface/50 px-3 py-2 text-[12px] dark:bg-black/10">
-                    {t('settings.ai.waitingForModelResponse')}
-                  </div>
-                ) : testError ? (
-                  <div className="mt-2 rounded-md border border-current/15 bg-surface/50 px-3 py-2 font-mono text-[11px] whitespace-pre-wrap break-words dark:bg-black/10">
-                    {testError}
-                  </div>
-                ) : (
-                  <div className="mt-3 space-y-1.5">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-current/80">
-                      {t('settings.ai.response')}
-                    </div>
-                    <div className="rounded-md border border-current/15 bg-surface/70 px-3 py-3 text-[13px] leading-relaxed text-content whitespace-pre-wrap break-words dark:bg-black/10">
-                      {testReply}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
+    <ModalShell
+      titleId="workload-routing-dialog-title"
+      title={t('settings.ai.customRouting')}
+      subtitle={t(workload.labelKey)}
+      onClose={onClose}
+      contentClassName="px-6 py-4"
+      footer={
         <div className="mt-6 flex justify-end gap-2">
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             {t('common.cancel')}
@@ -2505,8 +2232,253 @@ const CustomRoutingDialog = ({
             {t('common.save')}
           </Button>
         </div>
-      </div>
-    </div>
+      }>
+      <p className="mt-2 max-w-md text-xs leading-5 text-content-muted">
+        {t(WORKLOAD_MODEL_HINT_KEYS[workload.id])}
+      </p>
+      {noProviders ? (
+        <div className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+          {t('settings.ai.noCustomProviders')}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-content-secondary">
+              {t('settings.ai.providerLabel')}
+            </label>
+            <SettingsSelect
+              value={
+                source ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}` : ''
+              }
+              onChange={e => {
+                const colonIdx = e.target.value.indexOf(':');
+                const kind = e.target.value.slice(0, colonIdx);
+                const slug = e.target.value.slice(colonIdx + 1);
+                resetTestState();
+                if (kind === 'local') {
+                  setSource({ kind: 'local' });
+                  setModel(localModels[0]?.id ?? '');
+                  modelEntry.syncToEndpoint(undefined);
+                } else if (kind === 'cloud') {
+                  setSource({ kind: 'cloud', providerSlug: slug });
+                  setModel('');
+                  // Azure connections need a deployment name, which the
+                  // catalog never lists — start on free text (#5213).
+                  modelEntry.syncToEndpoint(customCloud.find(c => c.slug === slug)?.endpoint);
+                } else if (kind === 'claude-code') {
+                  setSource({ kind: 'claude-code' });
+                  setModel(CLAUDE_CODE_DEFAULT_MODEL);
+                  modelEntry.syncToEndpoint(undefined);
+                }
+              }}
+              className="w-full">
+              {customCloud.map(p => (
+                <option key={p.slug} value={`cloud:${p.slug}`}>
+                  {p.label}
+                </option>
+              ))}
+              {localAvailable && <option value="local:">{t('settings.ai.localOllama')}</option>}
+              {/* Offered only when the peer chip is enabled — or when this
+                    workload is already pinned to it (keeps the select value
+                    valid). */}
+              {(claudeCodeEnabled || source?.kind === 'claude-code') && (
+                <option value="claude-code:">{t('settings.ai.claudeCode.modalTitle')}</option>
+              )}
+            </SettingsSelect>
+          </div>
+
+          {source?.kind === 'local' ? (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-content-secondary">
+                {t('settings.ai.modelLabel')}
+              </label>
+              <SettingsSelect
+                value={model}
+                onChange={e => {
+                  resetTestState();
+                  setModel(e.target.value);
+                }}
+                className="w-full">
+                {localModels.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.id}
+                  </option>
+                ))}
+              </SettingsSelect>
+            </div>
+          ) : source?.kind === 'claude-code' ? (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-content-secondary">
+                {t('settings.ai.modelLabel')}
+              </label>
+              <SettingsTextField
+                type="text"
+                mono
+                value={model}
+                onChange={e => setModel(e.target.value)}
+                placeholder="sonnet"
+              />
+              <p className="text-[11px] text-content-muted">
+                {t('settings.ai.claudeCode.modelHelp')}
+              </p>
+            </div>
+          ) : (
+            <ModelEntryField
+              mode={modelEntry}
+              model={model}
+              onModelChange={next => {
+                resetTestState();
+                setModel(next);
+              }}
+              catalog={cloudModels}
+              catalogLoading={cloudModelsLoading}
+              catalogError={cloudModelsError}
+              onRetry={() => setModelsKey(k => k + 1)}
+              label={t('settings.ai.modelLabel')}
+              placeholder={
+                selectedCloud
+                  ? formatI18n(t('settings.ai.modelIdPlaceholderForProvider'), {
+                      slug: selectedCloud.slug,
+                    })
+                  : t('settings.ai.modelIdPlaceholder')
+              }
+              analyticsId="ai-model-entry-mode-toggle"
+              optionLabel={m => `${humanizeModelId(m.id)} — ${m.id}`}
+            />
+          )}
+
+          {/* Temperature override (optional). When unchecked, the workload
+                inherits the provider/global default temperature. */}
+          <div className="flex flex-col gap-1.5">
+            <label className="flex items-center justify-between gap-2 text-xs font-medium text-content-secondary">
+              <span className="inline-flex items-center gap-2">
+                <Checkbox
+                  checked={temperature != null}
+                  onCheckedChange={next => {
+                    resetTestState();
+                    setTemperature(next ? 0.7 : null);
+                  }}
+                  className="h-3.5 w-3.5"
+                />
+                {t('settings.ai.temperatureOverride')}
+              </span>
+              {temperature != null && (
+                <span className="font-mono text-[11px] text-content-muted">
+                  {temperature.toFixed(2)}
+                </span>
+              )}
+            </label>
+            {temperature != null && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  aria-label={t('settings.ai.temperatureOverrideSlider')}
+                  min={0}
+                  max={2}
+                  step={0.05}
+                  value={temperature}
+                  onChange={e => {
+                    resetTestState();
+                    setTemperature(Number(e.target.value));
+                  }}
+                  className="flex-1 accent-primary-500"
+                />
+                <input
+                  type="number"
+                  aria-label={t('settings.ai.temperatureOverrideValue')}
+                  min={0}
+                  max={2}
+                  step={0.05}
+                  value={temperature}
+                  onChange={e => {
+                    const v = Number(e.target.value);
+                    if (Number.isFinite(v)) {
+                      resetTestState();
+                      setTemperature(Math.max(0, Math.min(2, v)));
+                    }
+                  }}
+                  className="w-16 rounded-lg border border-line-strong bg-surface px-2 py-1 text-xs font-mono text-content focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+            )}
+            <p className="text-[11px] text-content-faint">
+              {t('settings.ai.temperatureOverrideDesc')}
+            </p>
+          </div>
+
+          {/* Vision capability (optional). Marks a custom/BYOK model as
+                accepting image input so the chat composer offers image
+                attachments for it. Only shown once a concrete model is chosen. */}
+          {registrySlug && model.trim().length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label className="inline-flex items-center gap-2 text-xs font-medium text-content-secondary">
+                <Checkbox
+                  checked={visionLocked ? true : vision}
+                  onCheckedChange={setVision}
+                  disabled={visionLocked}
+                  className="h-3.5 w-3.5 disabled:opacity-60"
+                />
+                {t('settings.ai.modelVision')}
+              </label>
+              <p className="text-[11px] text-content-faint">{t('settings.ai.modelVisionDesc')}</p>
+            </div>
+          )}
+
+          {(testBusy || testReply || testError || testStartedAt) && (
+            <div
+              role={testError ? 'alert' : 'status'}
+              className={`rounded-lg border px-3 py-2 text-xs ${
+                testError
+                  ? 'border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 text-coral-700 dark:text-coral-300'
+                  : testBusy
+                    ? 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200'
+                    : 'border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 text-sage-800 dark:text-sage-200'
+              }`}>
+              <div className="font-semibold">
+                {testError
+                  ? t('settings.ai.testFailed')
+                  : testBusy
+                    ? t('settings.ai.testingModel')
+                    : t('settings.ai.modelResponse')}
+              </div>
+              <div className="mt-1 space-y-1">
+                <div className="font-mono text-[11px] text-current/80">
+                  {formatI18n(t('settings.ai.providerWithValue'), {
+                    value: currentProviderString ?? t('settings.ai.noneDash'),
+                  })}
+                </div>
+                <div className="font-mono text-[11px] text-current/80">
+                  {t('settings.ai.promptHelloWorld')}
+                </div>
+                {testStartedAt && (
+                  <div className="font-mono text-[11px] text-current/80">
+                    {formatI18n(t('settings.ai.startedAt'), { value: testStartedAt })}
+                  </div>
+                )}
+              </div>
+              {testBusy ? (
+                <div className="mt-2 rounded-md border border-current/15 bg-surface/50 px-3 py-2 text-[12px] dark:bg-black/10">
+                  {t('settings.ai.waitingForModelResponse')}
+                </div>
+              ) : testError ? (
+                <div className="mt-2 rounded-md border border-current/15 bg-surface/50 px-3 py-2 font-mono text-[11px] whitespace-pre-wrap break-words dark:bg-black/10">
+                  {testError}
+                </div>
+              ) : (
+                <div className="mt-3 space-y-1.5">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-current/80">
+                    {t('settings.ai.response')}
+                  </div>
+                  <div className="rounded-md border border-current/15 bg-surface/70 px-3 py-3 text-[13px] leading-relaxed text-content whitespace-pre-wrap break-words dark:bg-black/10">
+                    {testReply}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </ModalShell>
   );
 };
 
