@@ -154,7 +154,6 @@ export default function UiGallery() {
   const [range, setRange] = useState([20, 70]);
   const [fruit, setFruit] = useState('apple');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [picked, setPicked] = useState<string | null>(null);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
