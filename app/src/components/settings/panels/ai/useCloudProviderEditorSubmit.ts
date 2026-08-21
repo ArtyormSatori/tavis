@@ -12,7 +12,12 @@ import {
   setCloudProviderKey,
 } from '../../../../services/api/aiSettingsApi';
 import { presentProviderSetupError } from '../ProviderSetupErrorNotice';
-import { type AISettings, type CloudProvider, maskKeyLabel, ProviderProbeError } from './aiPanelTypes';
+import {
+  type AISettings,
+  type CloudProvider,
+  maskKeyLabel,
+  ProviderProbeError,
+} from './aiPanelTypes';
 
 export function useCloudProviderEditorSubmit({
   editing,

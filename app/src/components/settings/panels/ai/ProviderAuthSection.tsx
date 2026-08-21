@@ -107,7 +107,9 @@ export const ProviderAuthSection = ({
       {/* ─── Provider chip-toggle list ────────────────────────────────── */}
       <section className="space-y-3">
         {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
-        {error && <SettingsStatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
+        {error && (
+          <SettingsStatusLine saving={false} error={error} savedNote={null} savingLabel="" />
+        )}
 
         <div className="flex flex-wrap gap-1.5">
           <ProviderToggleChip

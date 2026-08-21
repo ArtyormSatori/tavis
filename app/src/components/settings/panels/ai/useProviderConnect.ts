@@ -22,9 +22,9 @@ import {
 import { openhumanUpdateLocalAiSettings } from '../../../../utils/tauriCommands/config';
 import { presentProviderSetupError } from '../ProviderSetupErrorNotice';
 import {
+  type AISettings,
   authStyleForSlug,
   BUILTIN_PROVIDER_META,
-  type AISettings,
   type CloudProvider,
   defaultEndpointFor,
   maskKeyLabel,

@@ -13,12 +13,28 @@
 import { useRef, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
-import { clearCloudProviderKey, upsertModelRegistryVision } from '../../../services/api/aiSettingsApi';
+import {
+  clearCloudProviderKey,
+  upsertModelRegistryVision,
+} from '../../../services/api/aiSettingsApi';
 import { connectOpenRouterViaOAuth } from '../../../utils/openrouterOAuth';
 import { ConfirmationModal } from '../../intelligence/ConfirmationModal';
 import PanelPage from '../../layout/PanelPage';
 import SettingsBackButton from '../components/SettingsBackButton';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
+import {
+  buildRoutingDiffSummary,
+  BUILTIN_PROVIDER_META,
+  type CloudProvider,
+  defaultEndpointFor,
+  formatI18n,
+  inferRoutingMode,
+  inferSharedModelRef,
+  ROUTING_WORKLOAD_IDS,
+  routingWithAllWorkloads,
+  type WorkloadId,
+  WORKLOADS,
+} from './ai/aiPanelTypes';
 import { BackgroundLoopControls } from './ai/BackgroundLoopControls';
 import { CloudProviderEditor } from './ai/CloudProviderEditor';
 import { CustomRoutingDialog } from './ai/CustomRoutingDialog';
@@ -28,19 +44,6 @@ import { ProviderKeyDialog } from './ai/ProviderConnectControls';
 import { RoutingModeCards } from './ai/RoutingModeCards';
 import { SaveBar } from './ai/SaveBar';
 import { useAISettings, useInstalledModels, useOllamaStatus } from './ai/useAISettingsState';
-import {
-  BUILTIN_PROVIDER_META,
-  buildRoutingDiffSummary,
-  type CloudProvider,
-  defaultEndpointFor,
-  formatI18n,
-  inferRoutingMode,
-  inferSharedModelRef,
-  ROUTING_WORKLOAD_IDS,
-  routingWithAllWorkloads,
-  WORKLOADS,
-  type WorkloadId,
-} from './ai/aiPanelTypes';
 import { useCloudProviderEditorSubmit } from './ai/useCloudProviderEditorSubmit';
 import { useProviderConnect } from './ai/useProviderConnect';
 import { WorkloadRow } from './ai/WorkloadRow';
@@ -145,7 +148,9 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
           providerAuthErrors={providerAuthErrors}
           providerSaveNotice={providerSaveNotice}
           onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
-          onProviderRemoved={slug => setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))}
+          onProviderRemoved={slug =>
+            setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
+          }
           codexAuthError={codexAuthError}
           onConnectCodex={() => void connectOpenAiViaCodexAuth()}
           onConnectProvider={connectProvider}
@@ -172,10 +177,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
               effectiveRoutingMode={effectiveRoutingMode}
               onSelectManaged={() => {
                 setRoutingEditorMode(null);
-                void persist({
-                  ...draft,
-                  routing: routingWithAllWorkloads({ kind: 'openhuman' }),
-                });
+                void persist({ ...draft, routing: routingWithAllWorkloads({ kind: 'openhuman' }) });
               }}
               onSelectOwn={() => setRoutingEditorMode('own')}
               onSelectCustom={() => setRoutingEditorMode('custom')}
