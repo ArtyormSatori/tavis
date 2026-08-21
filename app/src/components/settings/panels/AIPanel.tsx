@@ -868,7 +868,6 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                       slug: upserted.slug,
                       summary: presentProviderSetupError(msg, t).summary,
                     });
-                    const { ProviderProbeError } = await import('./ai/aiPanelTypes');
                     throw new ProviderProbeError(`Could not reach ${upserted.label}: ${msg}`);
                   }
                 }
