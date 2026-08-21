@@ -83,10 +83,38 @@ impl CoreContext {
     /// 1. register controllers, 2. master key, 3. AgentBox GMI provider,
     /// 4. seed RPC bearer, 5. workspace stores ([`init_stores`]),
     /// 6. pure runtime registration.
+    ///
+    /// `preloaded_config` lets an embedder supply the [`Config`] outright
+    /// instead of having step 5 discover one from disk and the environment. See
+    /// [`init_with_config`](Self::init_with_config) for why that matters.
     pub async fn init(
         host_kind: HostKind,
         token: &TokenSource,
         domains: crate::core::runtime::DomainSet,
+    ) -> anyhow::Result<(
+        Arc<CoreContext>,
+        bool,
+        Option<crate::openhuman::config::Config>,
+    )> {
+        Self::init_with_config(host_kind, token, domains, None).await
+    }
+
+    /// [`init`](Self::init) with an optional caller-supplied configuration.
+    ///
+    /// Passing `Some(config)` skips `Config::load_or_init()` entirely — the
+    /// config is used verbatim, exactly as loaded config would be. This is the
+    /// seam that lets a library embedder configure the core with struct fields
+    /// rather than by mutating the process environment before `build()`, which
+    /// is order-dependent, process-global, and invisible at the call site.
+    ///
+    /// Note it does not make the core hermetic on its own: `init_stores`, the
+    /// session database and the keyring still write beneath
+    /// `config.workspace_dir`. It decides *where*, not *whether*.
+    pub async fn init_with_config(
+        host_kind: HostKind,
+        token: &TokenSource,
+        domains: crate::core::runtime::DomainSet,
+        preloaded_config: Option<crate::openhuman::config::Config>,
     ) -> anyhow::Result<(
         Arc<CoreContext>,
         bool,
@@ -136,7 +164,19 @@ impl CoreContext {
 
         // 5. Resolve config once, then initialize workspace-bound stores
         //    (memory, attachments, people) with that exact workspace.
-        let config = match crate::openhuman::config::Config::load_or_init().await {
+        let loaded = match preloaded_config {
+            // A supplied config is authoritative: no disk read, no env overlay,
+            // and no `Err` arm to reach, because there was nothing to fail.
+            Some(cfg) => {
+                log::debug!(
+                    "[core-context] init: using caller-supplied config workspace={}",
+                    cfg.workspace_dir.display()
+                );
+                Ok(cfg)
+            }
+            None => crate::openhuman::config::Config::load_or_init().await,
+        };
+        let config = match loaded {
             Ok(cfg) => {
                 init_stores(&cfg, domains).await;
                 Some(cfg)
