@@ -18,7 +18,6 @@ import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import MeetingsPage from '../components/meetings/MeetingsPage';
 import { SettingsLayoutProvider } from '../components/settings/layout/SettingsLayoutContext';
-import CompanionPanel from '../components/settings/panels/CompanionPanel';
 import ComposioPanel from '../components/settings/panels/ComposioPanel';
 import EmbeddingsPanel from '../components/settings/panels/EmbeddingsPanel';
 import LlmConnectionsPanel from '../components/settings/panels/LlmConnectionsPanel';
@@ -440,8 +439,7 @@ type ConnectionsTab =
   | 'search'
   | 'usage'
   | 'composio-key'
-  | 'wallet'
-  | 'companion';
+  | 'wallet';
 
 /**
  * Tabs that render a relocated settings panel inside the shared card surface.
@@ -472,10 +470,6 @@ const INTELLIGENCE_HEADERS: Partial<Record<ConnectionsTab, { titleKey: string; d
     },
     search: { titleKey: 'settings.search.title', descKey: 'connections.header.search' },
     usage: { titleKey: 'settings.usage.title', descKey: 'settings.usage.menuDesc' },
-    companion: {
-      titleKey: 'pages.settings.features.desktopCompanion',
-      descKey: 'connections.header.companion',
-    },
   };
 
 /** Intelligence tabs whose panel renders its own header card (with chip tabs in
@@ -490,7 +484,6 @@ const INTELLIGENCE_TABS: ReadonlySet<ConnectionsTab> = new Set<ConnectionsTab>([
   'usage',
   'composio-key',
   'wallet',
-  'companion',
 ]);
 
 export default function Skills() {
@@ -519,8 +512,7 @@ export default function Skills() {
       raw === 'search' ||
       raw === 'usage' ||
       raw === 'composio-key' ||
-      raw === 'wallet' ||
-      raw === 'companion'
+      raw === 'wallet'
     )
       return raw;
     // Legacy back-compat aliases
@@ -963,19 +955,6 @@ export default function Skills() {
                 ],
               },
               {
-                // Desktop capabilities relocated from Settings → Connections.
-                label: t('connections.groups.desktop'),
-                items: [
-                  {
-                    value: 'companion',
-                    label: t('pages.settings.features.desktopCompanion'),
-                    icon: navIcon(
-                      'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'
-                    ),
-                  },
-                ],
-              },
-              {
                 label: t('connections.groups.apiKeys'),
                 items: [
                   {
@@ -1107,7 +1086,6 @@ export default function Skills() {
                     {activeTab === 'search' && <SearchPanel />}
                     {activeTab === 'usage' && <UsagePanel />}
                     {activeTab === 'composio-key' && <ComposioPanel />}
-                    {activeTab === 'companion' && <CompanionPanel />}
                   </SettingsLayoutProvider>
                 </div>
               </>
