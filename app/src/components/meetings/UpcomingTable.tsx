@@ -609,68 +609,67 @@ export function UpcomingTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-            {loading && meetings.length === 0 && (
-              <>
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-              </>
-            )}
+          {loading && meetings.length === 0 && (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          )}
 
-            {!loading && error && (
-              <tr>
-                <td colSpan={6} className="py-6 px-3 text-center">
-                  <p className="text-sm text-coral-400 mb-2">
-                    {t('skills.meetingBots.upcoming.error')}
-                  </p>
-                  <Button variant="secondary" size="xs" onClick={refresh}>
-                    {t('skills.meetingBots.upcoming.retry')}
-                  </Button>
-                </td>
-              </tr>
-            )}
+          {!loading && error && (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={6} className="py-6 px-3 text-center">
+                <p className="text-sm text-coral-400 mb-2">
+                  {t('skills.meetingBots.upcoming.error')}
+                </p>
+                <Button variant="secondary" size="xs" onClick={refresh}>
+                  {t('skills.meetingBots.upcoming.retry')}
+                </Button>
+              </TableCell>
+            </TableRow>
+          )}
 
-            {!loading && !error && filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="py-8 px-3 text-center">
-                  <p className="text-sm text-content-secondary">
-                    {t('skills.meetingBots.upcoming.empty')}
-                  </p>
-                </td>
-              </tr>
-            )}
+          {!loading && !error && filtered.length === 0 && (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={6} className="py-8 px-3 text-center">
+                <p className="text-sm text-content-secondary">
+                  {t('skills.meetingBots.upcoming.empty')}
+                </p>
+              </TableCell>
+            </TableRow>
+          )}
 
-            {groups.flatMap(group => [
-              /* Date-group separator row */
-              <tr key={`gh-${group.label}`}>
-                <td
-                  colSpan={6}
-                  className="py-1 px-3 text-xs font-semibold text-content-secondary uppercase tracking-wide bg-surface-hover/50 border-b border-line/30">
-                  {group.label}
-                </td>
-              </tr>,
-              /* Meeting rows for this group */
-              ...group.meetings.map(m => {
-                const policy: JoinPolicy =
-                  (joinPolicies[m.calendar_event_id] as JoinPolicy | undefined) ??
-                  (m.join_policy as JoinPolicy) ??
-                  'ask';
-                return (
-                  <MeetingRow
-                    key={m.calendar_event_id}
-                    meeting={m}
-                    joinPolicy={policy}
-                    onJoinPolicyChange={v => handleJoinPolicyChange(m.calendar_event_id, v)}
-                    onJoin={handleJoin}
-                    joining={joiningId === m.calendar_event_id}
-                    joined={isMeetingJoined(m)}
-                  />
-                );
-              }),
-            ])}
-          </tbody>
-        </table>
-      </div>
+          {groups.flatMap(group => [
+            /* Date-group separator row */
+            <TableRow key={`gh-${group.label}`} className="hover:bg-transparent">
+              <TableCell
+                colSpan={6}
+                className="py-1 px-3 text-xs font-semibold text-content-secondary uppercase tracking-wide bg-surface-hover/50 border-b border-line/30">
+                {group.label}
+              </TableCell>
+            </TableRow>,
+            /* Meeting rows for this group */
+            ...group.meetings.map(m => {
+              const policy: JoinPolicy =
+                (joinPolicies[m.calendar_event_id] as JoinPolicy | undefined) ??
+                (m.join_policy as JoinPolicy) ??
+                'ask';
+              return (
+                <MeetingRow
+                  key={m.calendar_event_id}
+                  meeting={m}
+                  joinPolicy={policy}
+                  onJoinPolicyChange={v => handleJoinPolicyChange(m.calendar_event_id, v)}
+                  onJoin={handleJoin}
+                  joining={joiningId === m.calendar_event_id}
+                  joined={isMeetingJoined(m)}
+                />
+              );
+            }),
+          ])}
+        </TableBody>
+      </Table>
     </div>
   );
 }
