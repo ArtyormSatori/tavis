@@ -53,13 +53,14 @@ const McpToolList = ({ tools, onTryTool }: McpToolListProps) => {
                   {tool.name}
                 </p>
                 {onTryTool && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="tertiary"
+                    size="xs"
                     onClick={() => onTryTool(tool)}
                     aria-label={t('mcp.toolList.tryToolAria').replace('{name}', tool.name)}
-                    className="shrink-0 text-[10px] font-medium text-primary-600 dark:text-primary-300 hover:underline">
+                    className="h-auto shrink-0 p-0 text-[10px] font-medium text-primary-600 hover:underline dark:text-primary-300">
                     {t('mcp.toolList.tryTool')}
-                  </button>
+                  </Button>
                 )}
               </div>
               {tool.description && (
