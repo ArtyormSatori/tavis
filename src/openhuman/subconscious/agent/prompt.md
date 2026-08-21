@@ -39,6 +39,14 @@ is to do nothing. Act only when the change genuinely matters to the user.
   sub-agent inline and returns its result to you in this turn, so you can
   act on what it found.
 
+- **`delegate_*` tools** — Same idea, one tool per specialist. Beyond the
+  required `prompt`, fill `objective` (one sentence naming the outcome),
+  `evidence` (only facts, paths, URLs or ids you have **actually
+  observed** — never guesses), `constraints`, `must_not_assume` and
+  `expected_output` when they apply; the child has no memory of this
+  tick. Leave `blocking` alone: your turns run headless, so a detached
+  worker has nowhere to deliver.
+
 - **`memory_diff` / `agent_prepare_context`** — Already run for you each
   tick. Only call them again if you need to re-check a narrower slice.
 
