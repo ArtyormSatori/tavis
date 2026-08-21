@@ -15,6 +15,7 @@ import debug from 'debug';
 import { useState } from 'react';
 
 import { useMascotManifest } from '../../features/human/Mascot/manifest/useMascotManifest';
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import {
   joinMeetViaBackendBot,
@@ -34,6 +35,15 @@ import {
 } from '../../store/mascotSlice';
 import { selectPersonaDescription, selectPersonaDisplayName } from '../../store/personaSlice';
 import Button from '../ui/Button';
+import NativeSelect from '../ui/NativeSelect';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/Table';
 import { type JoinPolicy, JoinPolicyToggle } from './JoinPolicyToggle';
 import {
   buildMeetingMascots,
@@ -197,15 +207,13 @@ function MeetingRow({
   const platformName = platform ? platformLabel(platform, t) : '—';
 
   return (
-    <tr
-      className={[
-        'border-b border-line/50 transition-colors',
-        imminent ? 'bg-amber-500/5 hover:bg-amber-500/10' : 'hover:bg-surface-hover',
-      ]
-        .filter(Boolean)
-        .join(' ')}>
+    <TableRow
+      className={cn(
+        'border-b border-line/50',
+        imminent ? 'bg-amber-500/5 hover:bg-amber-500/10' : 'hover:bg-surface-hover'
+      )}>
       {/* WHEN */}
-      <td className="py-2 px-3 whitespace-nowrap">
+      <TableCell className="py-2 px-3 whitespace-nowrap">
         <div className="flex flex-col">
           <span
             className={[
@@ -219,7 +227,7 @@ function MeetingRow({
       </td>
 
       {/* MEETING */}
-      <td className="py-2 px-3 min-w-0 max-w-xs">
+      <TableCell className="py-2 px-3 min-w-0 max-w-xs">
         <span
           className="block truncate text-sm text-content-primary font-medium"
           title={meeting.title}>
@@ -228,7 +236,7 @@ function MeetingRow({
       </td>
 
       {/* PLATFORM */}
-      <td className="py-2 px-3 whitespace-nowrap">
+      <TableCell className="py-2 px-3 whitespace-nowrap">
         <div className="flex items-center gap-1.5">
           {logoUrl && (
             <img
@@ -246,7 +254,7 @@ function MeetingRow({
       </td>
 
       {/* PEOPLE */}
-      <td className="py-2 px-3 whitespace-nowrap text-xs text-content-secondary">
+      <TableCell className="py-2 px-3 whitespace-nowrap text-xs text-content-secondary">
         {meeting.participant_count != null
           ? t('skills.meetingBots.upcoming.participants').replace(
               '{count}',
@@ -256,7 +264,7 @@ function MeetingRow({
       </td>
 
       {/* JOIN POLICY */}
-      <td className="py-2 px-3">
+      <TableCell className="py-2 px-3">
         <div className="flex flex-col gap-0.5">
           <JoinPolicyToggle value={joinPolicy} onChange={onJoinPolicyChange} compact />
           {joinPolicy === 'auto' && (
@@ -279,7 +287,7 @@ function MeetingRow({
       </td>
 
       {/* ACTION */}
-      <td className="py-2 px-3 whitespace-nowrap">
+      <TableCell className="py-2 px-3 whitespace-nowrap">
         {joined ? (
           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400">
             <span
