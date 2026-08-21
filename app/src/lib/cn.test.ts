@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
@@ -14,7 +14,8 @@ import { cn } from './cn';
  * `index.css`.
  */
 function loadTailwindConfig(): { theme: { extend: Record<string, Record<string, unknown>> } } {
-  const configPath = fileURLToPath(new URL('../../tailwind.config.js', import.meta.url));
+  // Vitest runs with `app/` as cwd (see test/vitest.config.ts).
+  const configPath = resolve(process.cwd(), 'tailwind.config.js');
   const source = readFileSync(configPath, 'utf8');
   const sandboxedModule = { exports: {} as Record<string, unknown> };
   const evaluate = new Function(
