@@ -107,7 +107,7 @@ pub async fn dispatch_card(
         "[task_dispatcher] card claimed (→in_progress), spawning autonomous run"
     );
 
-    if let Err(e) = runs::create_run(&location, &run_id, &card_id, &executor.label) {
+    if let Err(e) = runs::create_run(&location, &run_id, &card_id, &executor.label).await {
         tracing::warn!(
             run_id = %run_id,
             card_id = %card_id,
