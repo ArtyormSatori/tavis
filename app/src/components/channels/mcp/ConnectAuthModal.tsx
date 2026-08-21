@@ -568,7 +568,8 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
                 )}
                 <div className="flex gap-2">
                   {isAuthorizationField(field.name) && (
-                    <select
+                    <NativeSelect
+                      inputSize="sm"
                       value={schemeFor(field.name)}
                       onChange={e =>
                         setAuthSchemes(prev => ({
@@ -578,13 +579,14 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
                       }
                       disabled={busy}
                       title={t('mcp.connectAuth.schemeLabel')}
-                      className="shrink-0 rounded-lg border border-line bg-surface px-1.5 py-1.5 text-[11px] text-content-secondary focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50">
+                      className="shrink-0 text-[11px]">
                       <option value="bearer">{t('mcp.connectAuth.schemeBearer')}</option>
                       <option value="raw">{t('mcp.connectAuth.schemeRaw')}</option>
-                    </select>
+                    </NativeSelect>
                   )}
-                  <input
+                  <TextField
                     id={`auth-${field.name}`}
+                    inputSize="sm"
                     type={field.secret && !reveal[field.name] ? 'password' : 'text'}
                     value={values[field.name] ?? ''}
                     onChange={e => setValues(prev => ({ ...prev, [field.name]: e.target.value }))}
@@ -596,7 +598,7 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
                     data-1p-ignore
                     data-lpignore="true"
                     data-form-type="other"
-                    className="flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs text-content placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50"
+                    className="flex-1"
                   />
                   {field.secret && (
                     <Button
