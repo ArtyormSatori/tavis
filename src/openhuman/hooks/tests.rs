@@ -386,3 +386,28 @@ async fn an_unconfigured_engine_reports_no_hooks_for_any_event() {
         assert!(!engine.has_hooks(event).await, "{event}");
     }
 }
+
+#[test]
+fn configuring_an_unwired_event_warns_rather_than_failing_silently() {
+    let parsed = config::parse_one(
+        &PathBuf::from("/tmp/hooks.json"),
+        HookLayer::Project,
+        r#"{"version": 1, "hooks": {"sessionStart": [{"command": "x"}]}}"#,
+    );
+    assert_eq!(parsed.for_event(HookEvent::SessionStart).len(), 1);
+    assert!(
+        parsed.warnings.iter().any(|w| w.contains("never run")),
+        "{:?}",
+        parsed.warnings
+    );
+}
+
+#[test]
+fn wired_events_do_not_warn() {
+    let parsed = config::parse_one(
+        &PathBuf::from("/tmp/hooks.json"),
+        HookLayer::Project,
+        r#"{"version": 1, "hooks": {"preToolUse": [{"command": "x"}]}}"#,
+    );
+    assert!(parsed.warnings.is_empty(), "{:?}", parsed.warnings);
+}
