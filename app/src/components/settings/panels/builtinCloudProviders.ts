@@ -13,7 +13,7 @@ const TONE = {
   emerald:
     'bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-200 text-emerald-900 dark:text-emerald-100',
   orange: 'bg-orange-50 dark:bg-orange-500/10 ring-orange-200 text-orange-900 dark:text-orange-100',
-  slate: 'bg-slate-100 dark:bg-slate-500/15 ring-slate-300 text-slate-900 dark:text-slate-100',
+  cyan: 'bg-cyan-100 dark:bg-cyan-500/15 ring-cyan-300 text-cyan-900 dark:text-cyan-100',
   sky: 'bg-sky-50 dark:bg-sky-500/10 ring-sky-200 text-sky-900 dark:text-sky-100',
   fuchsia:
     'bg-fuchsia-50 dark:bg-fuchsia-500/10 ring-fuchsia-200 text-fuchsia-900 dark:text-fuchsia-100',
@@ -47,7 +47,7 @@ export const BUILTIN_CLOUD_PROVIDERS: BuiltinCloudProvider[] = [
     label: 'OpenRouter',
     endpoint: 'https://openrouter.ai/api/v1',
     authStyle: 'bearer',
-    tone: TONE.slate,
+    tone: TONE.cyan,
     keyPlaceholder: 'sk-or-...',
   },
   {
@@ -185,7 +185,7 @@ export const BUILTIN_CLOUD_PROVIDERS: BuiltinCloudProvider[] = [
     label: 'DeepInfra',
     endpoint: 'https://api.deepinfra.com/v1/openai',
     authStyle: 'bearer',
-    tone: TONE.slate,
+    tone: TONE.cyan,
   },
   {
     slug: 'novita',
