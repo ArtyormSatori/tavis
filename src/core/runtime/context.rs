@@ -492,6 +492,7 @@ impl CoreContext {
                 memory_subsystem: memory_subsystem.unwrap_or_default(),
             }),
             domains,
+            embedder_config: None,
         })
     }
 }
@@ -856,6 +857,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         };
 
         // `workspace_dir()` is the gate every workspace-bound store goes
@@ -903,6 +905,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         });
         let b = Arc::new(CoreContext {
             host_kind: HostKind::Cli,
@@ -911,6 +914,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         });
 
         let bind_a = a.memory_binding().expect("bind workspace A");
@@ -935,6 +939,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         };
 
         let bind_a = ctx.memory_binding().expect("bind workspace A");
@@ -960,6 +965,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         };
 
         let bind_a = ctx.memory_binding().expect("bind workspace A");
@@ -998,6 +1004,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         };
         let b = CoreContext {
             host_kind: HostKind::Cli,
@@ -1006,6 +1013,7 @@ mod tests {
                 memory_subsystem: untrusted_external_memory_cfg(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         };
 
         let bind_a = a.memory_binding().expect("bind workspace A");
@@ -1034,6 +1042,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         };
         assert!(ctx.memory_binding().is_err(), "no workspace ⇒ no binding");
         assert_eq!(
