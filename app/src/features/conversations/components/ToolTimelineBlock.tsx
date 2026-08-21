@@ -204,7 +204,7 @@ function LiveResponseBlock({ text }: { text: string }) {
         <span className="text-[11px] font-semibold tracking-wide text-primary-500 uppercase dark:text-primary-300">
           {t('conversations.agentTaskInsights.response')}
         </span>
-        <span className="text-[10px] text-content-faint transition-transform group-open/resp:rotate-90 dark:text-neutral-600">
+        <span className="text-[10px] text-content-faint transition-transform group-open/resp:rotate-90">
           ▶
         </span>
       </summary>
@@ -784,7 +784,7 @@ export function ToolTimelineBlock({
                         <span className={`text-[13px] font-medium ${nameTone}`}>
                           {formatted.title}
                         </span>
-                        <span className="text-[11px] text-content-faint transition-transform group-open/row:rotate-90 dark:text-neutral-600">
+                        <span className="text-[11px] text-content-faint transition-transform group-open/row:rotate-90">
                           ▶
                         </span>
                       </summary>
