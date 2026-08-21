@@ -49,9 +49,8 @@ function kindLabel(kind: PrivacyDataKind, t: (key: string) => string): string {
 }
 
 const PrivacyPanel = () => {
-  const { snapshot, setAnalyticsEnabled, setMeetAutoOrchestratorHandoff } = useCoreState();
+  const { snapshot, setAnalyticsEnabled } = useCoreState();
   const analyticsEnabled = snapshot.analyticsEnabled;
-  const meetAutoHandoff = snapshot.meetAutoOrchestratorHandoff;
   const { t } = useT();
 
   const [capabilities, setCapabilities] = useState<AnnotatedCapability[]>([]);
@@ -89,14 +88,6 @@ const PrivacyPanel = () => {
     }
   };
 
-  const handleToggleMeetAutoHandoff = async () => {
-    const newValue = !meetAutoHandoff;
-    try {
-      await setMeetAutoOrchestratorHandoff(newValue);
-    } catch (error) {
-      console.warn('[privacy] failed to persist meet auto-handoff setting:', error);
-    }
-  };
 
   return (
     <SettingsPanel
@@ -171,25 +162,6 @@ const PrivacyPanel = () => {
           />
         </SettingsSection>
 
-        {/* Meeting Follow-ups Section (#1299) */}
-        <SettingsSection title={t('privacy.meetingFollowUps')}>
-          <SettingsRow
-            htmlFor="switch-meet-handoff"
-            label={t('privacy.autoHandoffMeet')}
-            description={t('privacy.autoHandoffMeetDesc')}
-            control={
-              <SettingsSwitch
-                id="switch-meet-handoff"
-                checked={meetAutoHandoff}
-                onCheckedChange={() => {
-                  void handleToggleMeetAutoHandoff();
-                }}
-                aria-label={t('privacy.autoHandoffMeet')}
-                data-testid="privacy-meet-handoff-toggle"
-              />
-            }
-          />
-        </SettingsSection>
 
         {/* Info Box */}
         <div className="p-4 bg-surface-muted rounded-xl border border-line">

@@ -11,7 +11,7 @@ const setMeetAutoOrchestratorHandoffMock = vi.fn();
 const setAnalyticsEnabledMock = vi.fn();
 vi.mock('../../../../providers/CoreStateProvider', () => ({
   useCoreState: () => ({
-    snapshot: { analyticsEnabled: false, meetAutoOrchestratorHandoff: false },
+    snapshot: { analyticsEnabled: false },
     setAnalyticsEnabled: (v: boolean) => setAnalyticsEnabledMock(v),
     setMeetAutoOrchestratorHandoff: (v: boolean) => setMeetAutoOrchestratorHandoffMock(v),
   }),

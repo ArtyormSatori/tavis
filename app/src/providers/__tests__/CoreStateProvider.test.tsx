@@ -557,7 +557,6 @@ describe('CoreStateProvider — identity-change cache clearing', () => {
     );
 
     await waitFor(() => expect(screen.getByTestId('ready').textContent).toBe('ready'));
-    expect(ctx?.snapshot.meetAutoOrchestratorHandoff).toBe(false);
 
     await act(async () => {
       await ctx!.setMeetAutoOrchestratorHandoff(true);
