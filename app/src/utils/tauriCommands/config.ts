@@ -764,30 +764,6 @@ export async function openhumanGetAnalyticsSettings(): Promise<
   });
 }
 
-
-
-
-export async function openhumanUpdateMeetSettings(
-  update: MeetSettingsUpdate
-): Promise<CommandResponse<ConfigSnapshot>> {
-  if (!isTauri()) {
-    throw new Error('Not running in Tauri');
-  }
-  return await callCoreRpc<CommandResponse<ConfigSnapshot>>({
-    method: 'openhuman.config_update_meet_settings',
-    params: update,
-  });
-}
-
-export async function openhumanGetMeetSettings(): Promise<CommandResponse<MeetSettings>> {
-  if (!isTauri()) {
-    throw new Error('Not running in Tauri');
-  }
-  return await callCoreRpc<CommandResponse<MeetSettings>>({
-    method: 'openhuman.config_get_meet_settings',
-  });
-}
-
 export type SearchEngineId = 'disabled' | 'managed' | 'parallel' | 'brave' | 'querit' | 'exa';
 
 export interface SearchSettingsUpdate {
