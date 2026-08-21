@@ -51,6 +51,13 @@ mod deep_link_ipc_windows;
 mod deep_link_registration_check;
 mod dictation_hotkeys;
 mod file_logging;
+// Routing the frontend to a core that is not the one in this process. Leaf
+// gated: with `gateways` off the commands are simply absent, which is what the
+// renderer's feature detection expects — a stub that registered them and then
+// failed at runtime would turn "this build cannot do that" into "that gateway
+// is broken".
+#[cfg(feature = "gateways")]
+mod gateway;
 mod imessage_scanner;
 mod local_data_reset;
 mod loopback_oauth;
@@ -106,8 +113,20 @@ static EARLY_TEARDOWN_RAN: std::sync::atomic::AtomicBool =
 const APP_QUIT_MENU_ID: &str = "app_quit";
 
 #[tauri::command]
-fn core_rpc_url() -> String {
-    crate::core_rpc::core_rpc_url_value()
+async fn core_rpc_url(
+    #[allow(unused_variables)] desktop: tauri::State<'_, core_process::CoreProcessHandle>,
+) -> Result<String, String> {
+    #[cfg(feature = "gateways")]
+    {
+        // The one line that makes every remote gateway work. Each of the
+        // renderer's ~hundreds of RPC call sites resolves its endpoint through
+        // here, so pointing this at the active gateway points all of them at
+        // it — without a transport abstraction threaded through the frontend.
+        let active = gateway::registry::current(desktop.inner()).await;
+        return Ok(active.rpc_url);
+    }
+    #[cfg(not(feature = "gateways"))]
+    Ok(crate::core_rpc::core_rpc_url_value())
 }
 
 /// Tauri command: return the per-process bearer token that must be sent with
@@ -118,9 +137,23 @@ fn core_rpc_url() -> String {
 /// `OPENHUMAN_CORE_TOKEN`, and stored in the handle — available immediately
 /// with no file I/O or timing issues.
 #[tauri::command]
-fn core_rpc_token(state: tauri::State<'_, core_process::CoreProcessHandle>) -> String {
-    log::debug!("[auth] core_rpc_token: returning token to frontend");
-    state.inner().rpc_token().to_string()
+async fn core_rpc_token(
+    state: tauri::State<'_, core_process::CoreProcessHandle>,
+) -> Result<String, String> {
+    #[cfg(feature = "gateways")]
+    {
+        // Paired with `core_rpc_url`: a bearer minted for the embedded core is
+        // meaningless to a core in a container, so the two must be answered
+        // from the same place or every call to a provisioned gateway 401s.
+        let active = gateway::registry::current(state.inner()).await;
+        log::debug!("[auth] core_rpc_token: returning token for gateway {}", active.id);
+        return Ok(active.token.unwrap_or_default());
+    }
+    #[cfg(not(feature = "gateways"))]
+    {
+        log::debug!("[auth] core_rpc_token: returning token to frontend");
+        Ok(state.inner().rpc_token().to_string())
+    }
 }
 
 #[tauri::command]
