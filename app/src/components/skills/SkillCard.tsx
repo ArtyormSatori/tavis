@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import Button from '../ui/Button';
 
@@ -146,9 +147,10 @@ function UnifiedSkillCard({
             {menuOpen && (
               <div className="absolute right-0 top-8 z-10 w-36 rounded-xl border border-line bg-surface py-1 shadow-md">
                 {secondaryActions.map(action => (
-                  <button
+                  <Button
                     key={action.label}
-                    type="button"
+                    variant="tertiary"
+                    size="sm"
                     data-testid={action.testId}
                     disabled={action.disabled}
                     onClick={e => {
@@ -156,26 +158,31 @@ function UnifiedSkillCard({
                       setMenuOpen(false);
                       action.onClick();
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-xs text-content-secondary hover:bg-surface-hover disabled:opacity-40">
-                    {action.icon}
+                    leadingIcon={action.icon}
+                    className="h-auto w-full justify-start rounded-none px-3 py-2 text-xs text-content-secondary hover:bg-surface-hover">
                     {action.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
           </div>
         )}
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="xs"
           data-testid={ctaTestId}
           disabled={ctaDisabled}
           onClick={e => {
             e.stopPropagation();
             onCtaClick();
           }}
-          className={`flex-shrink-0 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors ${ctaStyle} ${ctaDisabled ? 'cursor-not-allowed opacity-50' : ''}`}>
+          className={cn(
+            'h-auto flex-shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-medium',
+            ctaStyle,
+            ctaDisabled && 'cursor-not-allowed opacity-50'
+          )}>
           {ctaLabel}
-        </button>
+        </Button>
       </div>
     </div>
   );
