@@ -48,7 +48,9 @@ describe('Plan', () => {
 
     const trigger = screen.getByTestId('plan-trigger');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.getByTestId('plan-content')).toHaveAttribute('data-state', 'closed');
+    // `CollapsibleContent asChild` unmounts its child while closed, so absence
+    // — not a `data-state` — is the closed contract here.
+    expect(screen.queryByTestId('plan-content')).toBeNull();
 
     await user.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
