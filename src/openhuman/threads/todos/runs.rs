@@ -202,10 +202,13 @@ pub async fn migrate_legacy_task_runs(
             thread_id: thread_id.clone(),
         };
         let (store, thread_id) = target(&location);
-        if map_err(crate_runs::import_if_absent(&store, thread_id, runs).await)? {
-            report.copied += 1;
-        } else {
-            report.skipped += 1;
+        match map_err(crate_runs::import_if_absent(&store, thread_id, runs).await) {
+            Ok(true) => report.copied += 1,
+            Ok(false) => report.skipped += 1,
+            Err(error) => {
+                tracing::debug!(path = %path.display(), %error, "skip legacy run ledger: store write failed");
+                report.skipped += 1;
+            }
         }
     }
     Ok(report)
