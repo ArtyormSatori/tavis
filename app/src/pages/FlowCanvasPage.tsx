@@ -1135,8 +1135,9 @@ function FlowEditor({
   // Editable title: an unstyled input that reads as the page heading until
   // focused, so renaming is discoverable without a separate edit affordance.
   const titleNode = (
-    <input
+    <UiInput
       type="text"
+      inputSize="sm"
       value={titleDraft}
       disabled={renaming}
       data-testid="flow-canvas-title"
@@ -1152,7 +1153,7 @@ function FlowEditor({
           e.currentTarget.blur();
         }
       }}
-      className="w-full max-w-md truncate rounded-md border border-transparent bg-transparent px-1 py-0.5 text-base font-semibold text-content hover:border-line focus:border-primary-400 focus:outline-none disabled:opacity-60"
+      className="w-full max-w-md truncate border-transparent bg-transparent text-base font-semibold hover:border-line"
     />
   );
 
