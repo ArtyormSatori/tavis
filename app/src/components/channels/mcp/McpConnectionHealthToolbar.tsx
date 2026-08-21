@@ -97,18 +97,9 @@ const McpConnectionHealthToolbar = ({
 
   const counts = useMemo(() => computeHealthCounts(statuses), [statuses]);
 
-  // Escape closes the "Disconnect all" confirmation WITHOUT firing the bulk
-  // RPC — the standard modal-dismiss affordance, matching the other MCP
-  // dialogs. The listener is only attached while the dialog is open. (Must
-  // be declared before the early return below to satisfy the rules of hooks.)
-  useEffect(() => {
-    if (!confirmDisconnect) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setConfirmDisconnect(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [confirmDisconnect]);
+  // Escape closing the "Disconnect all" confirmation WITHOUT firing the bulk
+  // RPC is now `AlertDialog` / Radix's own default behavior — no hand-rolled
+  // listener needed.
 
   // Nothing to summarise — match the parent's existing "hide chrome when
   // there's nothing installed" pattern.
