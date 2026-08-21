@@ -1,7 +1,6 @@
 //! UI-facing config operations: browser, analytics,
 //! search, dictation, voice server, onboarding flags.
 
-use std::collections::HashMap;
 
 use serde_json::json;
 
