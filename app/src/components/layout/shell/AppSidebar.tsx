@@ -38,8 +38,9 @@ interface FooterNavButtonProps {
 }
 
 /**
- * Slim footer affordance button shared by the Rewards and Feedback rows. Kept
- * thin and low-profile so it reads as a footer entry, not a primary nav tab.
+ * Slim footer affordance row shared by the Rewards and Feedback entries. Kept
+ * thin and low-profile so it reads as a footer entry, not a primary nav tab —
+ * hence the tighter `sm` footprint and 13px type over {@link SidebarNav}'s rows.
  */
 function FooterNavButton({
   iconId,
@@ -49,22 +50,20 @@ function FooterNavButton({
   onClick,
 }: FooterNavButtonProps) {
   return (
-    <Button
-      variant="tertiary"
-      data-walkthrough={walkthroughAttr}
-      onClick={onClick}
-      title={label}
-      aria-current={active ? 'page' : undefined}
-      // A nav row, not a control: left-aligned, auto height, 13px type, and the
-      // resting weight stays normal so only the active row reads as semibold.
-      className={`group mx-2 h-auto flex-shrink-0 justify-start gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] cursor-pointer ${
-        active
-          ? 'bg-surface/70 text-content font-semibold hover:bg-surface/70'
-          : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
-      }`}>
-      <NavIcon id={iconId} className="h-4 w-4 flex-shrink-0" />
-      <span className="min-w-0 truncate">{label}</span>
-    </Button>
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        size="sm"
+        isActive={active}
+        data-walkthrough={walkthroughAttr}
+        onClick={onClick}
+        title={label}
+        className="h-auto gap-2.5 px-2.5 py-1.5 text-[13px]">
+        <SidebarMenuIcon>
+          <NavIcon id={iconId} className="h-4 w-4" />
+        </SidebarMenuIcon>
+        <SidebarMenuLabel>{label}</SidebarMenuLabel>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }
 
