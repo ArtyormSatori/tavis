@@ -253,7 +253,7 @@ pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
 
     if report.is_empty() {
         log::debug!(
-            "[taskstore] reconcile found no orphaned sub-agent tasks workspace_dir={}",
+            "[running_subagents] reconcile found no orphaned sub-agent tasks workspace_dir={}",
             workspace_dir.display()
         );
         return 0;
@@ -276,7 +276,7 @@ pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
             reason,
         );
         log::info!(
-            "[orchestrator] reconciled orphaned sub-agent task_id={} prior_status={} -> terminal",
+            "[running_subagents] reconciled orphaned sub-agent task_id={} prior_status={} -> terminal",
             task_id,
             prior
         );
@@ -284,7 +284,7 @@ pub(crate) fn reconcile_orphaned_tasks_on_boot(workspace_dir: &Path) -> usize {
 
     let reconciled = report.reconciled_count();
     log::info!(
-        "[taskstore] reconciled {reconciled} orphaned sub-agent task(s) on boot workspace_dir={} errors={}",
+        "[running_subagents] reconciled {reconciled} orphaned sub-agent task(s) on boot workspace_dir={} errors={}",
         workspace_dir.display(),
         report.error_count()
     );
