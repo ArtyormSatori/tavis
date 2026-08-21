@@ -158,7 +158,4 @@ export { ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
 export { Spinner, CheckIcon, CloseIcon, WarningIcon } from './icons';
 export { CenteredLoadingState, ErrorBanner, InlineLoadingStatus } from './LoadingState';
 export { default as BetaBanner } from './BetaBanner';
-export {
-  default as VisuallyHidden,
-  type VisuallyHiddenProps,
-} from './VisuallyHidden';
+export { default as VisuallyHidden, type VisuallyHiddenProps } from './VisuallyHidden';
