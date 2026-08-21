@@ -550,6 +550,22 @@ impl CoreBuilder {
         self
     }
 
+    /// Point the core's backend calls at `url` (`Config::api_url`).
+    ///
+    /// Sugar over [`config`](Self::config), like [`workspace`](Self::workspace).
+    /// Worth having as its own method because the value reaches more than the
+    /// obvious client: `/auth/me` session validation, the hosted-backend
+    /// surfaces, and — with no `OPENHUMAN_MEDULLA_BASE_URL` override — the
+    /// Medulla client all resolve through it. A host that sets only one of
+    /// those has the other two pointing at a different deployment, which fails
+    /// as "backend rejected session token" rather than as a mismatch.
+    pub fn backend_url(mut self, url: impl Into<String>) -> Self {
+        let mut config = self.config.take().unwrap_or_default();
+        config.api_url = Some(url.into());
+        self.config = Some(config);
+        self
+    }
+
     /// Initialize the core: register controllers, load the master key, seed the
     /// RPC bearer, initialize workspace-bound stores, and run
     /// [`bootstrap_core_runtime`]. Binds no port and starts no transport.

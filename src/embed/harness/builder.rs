@@ -32,6 +32,7 @@ pub struct HarnessBuilder {
     host_kind: HostKind,
     config: Option<Config>,
     session: Option<Session>,
+    backend_url: Option<String>,
 }
 
 impl Default for HarnessBuilder {
@@ -57,6 +58,7 @@ impl HarnessBuilder {
             host_kind: HostKind::Cli,
             config: None,
             session: None,
+            backend_url: None,
         }
     }
 
@@ -152,9 +154,7 @@ impl HarnessBuilder {
     /// Set it to a stub (or a self-hosted backend) whenever the harness is not
     /// signed in to the real one.
     pub fn backend_url(mut self, url: impl Into<String>) -> Self {
-        let mut config = self.config.take().unwrap_or_default();
-        config.api_url = Some(url.into());
-        self.config = Some(config);
+        self.backend_url = Some(url.into());
         self
     }
 
@@ -242,6 +242,9 @@ impl HarnessBuilder {
         };
 
         if let Some(config) = config.as_mut() {
+            if let Some(url) = self.backend_url.clone() {
+                config.api_url = Some(url);
+            }
             self.access.apply(config);
             apply_provider(config, &self.provider);
 
