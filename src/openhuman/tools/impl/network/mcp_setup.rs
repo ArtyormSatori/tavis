@@ -368,7 +368,7 @@ mod tests {
         );
         assert_eq!(McpSetupGetTool::new(cfg.clone()).name(), "mcp_setup_get");
         assert_eq!(
-            McpSetupRequestSecretTool::new().name(),
+            McpSetupRequestSecretTool::new(cfg.clone()).name(),
             "mcp_setup_request_secret"
         );
         assert_eq!(

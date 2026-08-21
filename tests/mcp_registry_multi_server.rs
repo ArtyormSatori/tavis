@@ -22,12 +22,13 @@ use openhuman_core::openhuman::config::Config;
 use openhuman_core::openhuman::mcp::registry::ops;
 use tinymcp_bus::{CommandKind, InstalledServer, Transport};
 
-/// A host over `config`'s workspace.
+/// The service over `config`'s workspace.
 ///
-/// Built per test rather than through the process-wide holder: each case wants
-/// a fresh store, and the holder is a `OnceLock`.
-fn host(config: &Config) -> openhuman_core::openhuman::mcp::host::McpHost {
-    openhuman_core::openhuman::mcp::host::McpHost::open(config).expect("the mcp host opens")
+/// Resolved the same way the RPC handlers resolve it, so a connection this test
+/// opens directly is the same one a handler sees. Each case uses its own
+/// workspace, so each gets its own store.
+fn host(config: &Config) -> std::sync::Arc<openhuman_core::openhuman::mcp::host::McpHost> {
+    openhuman_core::openhuman::mcp::host::for_config(config).expect("the mcp host opens")
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
