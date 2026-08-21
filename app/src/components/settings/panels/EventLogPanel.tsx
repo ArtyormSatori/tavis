@@ -31,7 +31,7 @@ const DOMAIN_BADGE_KEYS: Record<string, string> = {
 const DOMAIN_BADGE_COLORS: Record<string, { bg: string; text: string }> = {
   tool: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
   agent: { bg: 'bg-green-500/20', text: 'text-green-400' },
-  system: { bg: 'bg-slate-500/20', text: 'text-slate-400' },
+  system: { bg: 'bg-content-muted/20', text: 'text-content-secondary' },
   memory: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
   channel: { bg: 'bg-cyan-500/20', text: 'text-cyan-400' },
   cron: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
