@@ -227,6 +227,7 @@ describe('McpInventoryPanel — Import tab', () => {
   });
 
   const switchToImport = () => {
+    // Radix `Tabs.Trigger` activates on `mousedown`, not `click`.
     fireEvent.mouseDown(screen.getByRole('tab', { name: 'Import' }));
   };
 
