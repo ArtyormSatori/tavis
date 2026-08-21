@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { it, expect } from 'vitest';
+import { it, expect, vi } from 'vitest';
 import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValue } from './Select';
 
 it('debug', () => {
+  const onValueChange = vi.fn();
   render(
-    <SelectRoot defaultValue="calm">
+    <SelectRoot defaultValue="calm" onValueChange={onValueChange}>
       <SelectTrigger data-testid="t" aria-label="Tone"><SelectValue /></SelectTrigger>
       <SelectContent>
         <SelectItem value="calm">Calm</SelectItem>
@@ -15,9 +16,8 @@ it('debug', () => {
   const trigger = screen.getByTestId('t');
   trigger.focus();
   fireEvent.keyDown(trigger, { key: 'Enter' });
-  const a1 = document.activeElement?.outerHTML?.slice(0, 120);
-  fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' });
-  const a2 = document.activeElement?.outerHTML?.slice(0, 120);
-  fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
-  expect({ a1, a2, txt: trigger.textContent }).toEqual('SHOW');
+  const opts = screen.getAllByRole('option').map(o => o.outerHTML.slice(0, 140));
+  const direct = screen.getByRole('option', { name: 'Direct' });
+  fireEvent.keyDown(direct, { key: 'Enter' });
+  expect({ opts, calls: onValueChange.mock.calls, txt: trigger.textContent }).toEqual('SHOW');
 });
