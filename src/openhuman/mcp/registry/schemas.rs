@@ -820,9 +820,10 @@ fn handle_tool_call(params: Map<String, Value>) -> ControllerFuture {
             .get("arguments")
             .cloned()
             .unwrap_or(Value::Object(Map::new()));
+        let config = config_rpc::load_config_with_timeout().await?;
         to_json(
             crate::openhuman::mcp::registry::ops::mcp_clients_tool_call(
-                server_id, tool_name, arguments,
+                &config, server_id, tool_name, arguments,
             )
             .await?,
         )

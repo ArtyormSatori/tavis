@@ -506,6 +506,7 @@ pub async fn mcp_clients_list_tools(
 // ── tool_call ────────────────────────────────────────────────────────────────
 
 pub async fn mcp_clients_tool_call(
+    config: &Config,
     server_id: String,
     tool_name: String,
     arguments: Value,

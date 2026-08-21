@@ -311,7 +311,16 @@ impl Tool for McpRegistryDisconnectTool {
 }
 
 /// Call a tool on a connected MCP server.
-pub struct McpRegistryToolCallTool;
+pub struct McpRegistryToolCallTool {
+    config: Arc<Config>,
+}
+impl McpRegistryToolCallTool {
+    /// Builds the tool over `config`.
+    #[must_use]
+    pub fn new(config: Arc<Config>) -> Self {
+        Self { config }
+    }
+}
 #[async_trait]
 impl Tool for McpRegistryToolCallTool {
     fn name(&self) -> &str {
@@ -340,7 +349,7 @@ impl Tool for McpRegistryToolCallTool {
         let tool_name = req_str(&args, "tool_name")?;
         let arguments = args.get("arguments").cloned().unwrap_or(json!({}));
         emit!(
-            ops::mcp_clients_tool_call(sid, tool_name, arguments).await,
+            ops::mcp_clients_tool_call(&self.config, sid, tool_name, arguments).await,
             "mcp_registry_tool_call"
         )
     }
@@ -496,7 +505,7 @@ mod tests {
             PermissionLevel::Execute
         );
         assert_eq!(
-            McpRegistryToolCallTool.permission_level(),
+            McpRegistryToolCallTool::new(cfg()).permission_level(),
             PermissionLevel::Execute
         );
         // Discovery tool: read-only, names match.
