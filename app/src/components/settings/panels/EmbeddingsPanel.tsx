@@ -22,8 +22,7 @@ import {
 } from '../../../services/api/embeddingsApi';
 import { isLocalSessionToken } from '../../../utils/localSession';
 import PanelPage from '../../layout/PanelPage';
-import Button from '../../ui/Button';
-import { ConfirmDialog, ModalShell } from '../../ui';
+import { Button, ConfirmDialog, ModalShell } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
 import {
   SettingsBadge,
