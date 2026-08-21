@@ -45,7 +45,7 @@ function ConnectionRow({
       removeIcon="\u2715"
       removeTestId={`node-connection-remove-${edgeId}`}
       data-testid={`node-connection-${edgeId}`}
-      className="gap-2 rounded-md border border-line bg-surface-muted px-2 py-1 text-[11px]"
+      className="gap-2 rounded-md border border-line bg-surface-muted px-2 py-1"
     />
   );
 }
