@@ -5,7 +5,7 @@ import { useUser } from '../../hooks/useUser';
 import { useT } from '../../lib/i18n/I18nContext';
 import { useCoreState } from '../../providers/CoreStateProvider';
 import { type CreditBalance, creditsApi, type RedeemedCoupon } from '../../services/api/creditsApi';
-import Button from '../ui/Button';
+import { Button, TextField } from '../ui';
 
 const log = createDebug('openhuman:rewards-coupons');
 
