@@ -294,16 +294,16 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
               data-testid="obsidian-reveal">
               {t('workspace.revealFolder')}
             </Button>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={openAnyway}
               disabled={crossHostOs !== null}
               data-testid="obsidian-open-anyway"
-              className="rounded-md border border-violet-300 bg-surface px-3 py-1.5 text-xs font-semibold
-                         text-violet-700 hover:bg-violet-50 disabled:opacity-50 dark:border-violet-500/40
-                         dark:bg-surface-muted dark:text-violet-300">
+              className="border-violet-300 text-violet-700 hover:bg-violet-50 dark:border-violet-500/40
+                         dark:text-violet-300">
               {t('workspace.openAnyway')}
-            </button>
+            </Button>
             <Button
               variant="secondary"
               size="sm"

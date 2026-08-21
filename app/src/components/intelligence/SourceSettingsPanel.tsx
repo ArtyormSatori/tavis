@@ -18,6 +18,7 @@ import {
   updateMemorySource,
 } from '../../services/memorySourcesService';
 import Button from '../ui/Button';
+import Input from '../ui/Input';
 
 // Which limit fields are relevant per kind. Order determines display order.
 // Only caps that are actually enforced at sync time are surfaced — the
