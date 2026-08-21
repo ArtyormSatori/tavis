@@ -193,6 +193,7 @@ function ToolsPickerModal({
             type="button"
             variant="secondary"
             onClick={onToggleAll}
+            aria-pressed={allToolsSelected}
             className={
               'mt-2 h-auto w-full items-start justify-between gap-2 rounded-md px-3 py-2 text-left font-normal ' +
               (allToolsSelected

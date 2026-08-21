@@ -1402,20 +1402,17 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                                 ) : (
                                   hist.runs.map(r => {
                                     const open = hist.expandedRunId === r.id;
-                                    const okClass =
-                                      r.status === 'ok'
-                                        ? 'bg-sage-100 dark:bg-sage-500/20 text-sage-700 dark:text-sage-300'
-                                        : 'bg-coral-100 dark:bg-coral-500/20 text-coral-700 dark:text-coral-300';
                                     return (
                                       <div
                                         key={r.id}
                                         className="rounded bg-surface">
-                                        <button
+                                        <Button
                                           type="button"
+                                          variant="tertiary"
                                           onClick={() => toggleHistoryRun(job.id, r.id)}
                                           aria-expanded={open}
                                           data-testid={`history-run-${job.id}-${r.id}`}
-                                          className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-surface-muted rounded">
+                                          className="w-full flex items-center justify-between px-2 py-1.5 rounded font-normal">
                                           <div className="flex items-center gap-2">
                                             <span className="text-content-faint">
                                               {open ? '▾' : '▸'}
@@ -1430,12 +1427,11 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                                                 {(r.duration_ms / 1000).toFixed(1)}s
                                               </span>
                                             )}
-                                            <span
-                                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${okClass}`}>
+                                            <Badge variant={r.status === 'ok' ? 'success' : 'danger'}>
                                               {r.status}
-                                            </span>
+                                            </Badge>
                                           </div>
-                                        </button>
+                                        </Button>
                                         {open && r.output && (
                                           <pre className="mx-2 mb-2 px-3 py-2 rounded-md bg-surface-subtle border border-line text-[11px] text-content-secondary font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
                                             {r.output}
