@@ -1,5 +1,9 @@
 use super::*;
 
+// The adapter no longer imports these itself — the encoding lives in the crate
+// now — but the tests still build fixture data by hand.
+use base64::Engine as _;
+
 #[test]
 fn parse_image_markers_extracts_multiple_markers() {
     let input = "Check this [IMAGE:/tmp/a.png] and this [IMAGE:https://example.com/b.jpg]";
