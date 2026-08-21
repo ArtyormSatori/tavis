@@ -36,7 +36,10 @@ const tailwindConfig = loadTailwindConfig();
 
 describe('cn', () => {
   it('flattens conditionals like clsx', () => {
-    expect(cn('a', false && 'b', undefined, ['c', 'd'])).toBe('a c d');
+    // Held in a variable rather than written inline: `false && 'b'` is a
+    // constant expression, which `no-constant-binary-expression` rejects.
+    const isActive = false;
+    expect(cn('a', isActive && 'b', undefined, ['c', 'd'])).toBe('a c d');
   });
 
   it('resolves conflicts last-wins so a caller className beats the default', () => {
