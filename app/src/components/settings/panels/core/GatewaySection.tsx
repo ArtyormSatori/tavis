@@ -138,6 +138,12 @@ const GatewaySection = ({ available }: Props) => {
   }, [available]);
 
   useEffect(() => {
+    // Reading external state — the shell's gateway records and which one is
+    // active — which is what an effect is for. The rule fires because `refresh`
+    // ends in setState; it does so after an await, not synchronously, so there
+    // is no cascading render. Same shape and same exemption as
+    // `CoreConnectionPanel`'s live check.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 
