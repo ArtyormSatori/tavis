@@ -459,6 +459,10 @@ const TINYRUNTIME: ModuleRecord = ModuleRecord {
 /// this machine, where the binaries land, and what a warm Node worker is. It
 /// installs nothing itself.
 ///
+/// It implements the shared `ai.tinyhumans.runtime.Provider` interface but
+/// serves at its own object path, because two modules cannot claim one bus name
+/// and tinybus derives the path from the name.
+///
 /// Lazy, and loaded by the same call that loads the router: a language is only
 /// worth its `dlopen` when something asks for that language.
 ///
@@ -467,7 +471,7 @@ const TINYRUNTIME_NODEJS: ModuleRecord = ModuleRecord {
     id: "tinyruntime-nodejs",
     description: "Node.js runtime provider for tinyruntime",
     bus_name: "ai.tinyhumans.runtime.nodejs.Provider",
-    object_path: "/ai/tinyhumans/runtime/Provider",
+    object_path: "/ai/tinyhumans/runtime/nodejs/Provider",
     version: "0.1.0",
     release_url: "https://github.com/tinyhumansai/tinyruntime-nodejs/releases/tag/v0.1.0",
     assets: &[],
@@ -484,7 +488,7 @@ const TINYRUNTIME_PYTHON: ModuleRecord = ModuleRecord {
     id: "tinyruntime-python",
     description: "Python runtime provider for tinyruntime",
     bus_name: "ai.tinyhumans.runtime.python.Provider",
-    object_path: "/ai/tinyhumans/runtime/Provider",
+    object_path: "/ai/tinyhumans/runtime/python/Provider",
     version: "0.1.0",
     release_url: "https://github.com/tinyhumansai/tinyruntime-python/releases/tag/v0.1.0",
     assets: &[],
