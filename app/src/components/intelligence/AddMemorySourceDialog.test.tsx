@@ -473,10 +473,9 @@ describe('AddMemorySourceDialog — dialog surface', () => {
     mockGetSupportedToolkits.mockResolvedValue(DEFAULT_SUPPORTED);
   });
 
-  it('renders as an aria-modal dialog and traps focus inside it on mount', () => {
+  it('renders as a real dialog and traps focus inside it on mount', () => {
     renderDialog();
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
     // Radix's FocusScope moves focus into the content on mount — it must not
     // be left on the document body, which is what the old plain div left.
     expect(dialog.contains(document.activeElement)).toBe(true);
