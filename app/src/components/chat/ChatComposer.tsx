@@ -418,7 +418,7 @@ export default function ChatComposer({
                   />
                 </svg>
               )}
-            </button>
+            </Button>
           )}
         </div>
       </div>

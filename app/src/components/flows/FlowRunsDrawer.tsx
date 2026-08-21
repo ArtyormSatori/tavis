@@ -116,11 +116,12 @@ function FlowRunsDrawer({ flowId, flowName, onClose, onFixWithAgent }: Props) {
         data-testid="flow-runs-drawer"
         onPointerDownCapture={onPointerDownCapture}>
         {/* Backdrop */}
-        <button
+        <Button
           type="button"
+          variant="tertiary"
           aria-label={t('conversations.subagent.close')}
           data-testid="flow-runs-backdrop"
-          className="absolute inset-0 bg-stone-900/30 dark:bg-black/50"
+          className="absolute inset-0 h-auto w-auto rounded-none bg-surface-overlay/50 backdrop-blur-sm hover:bg-surface-overlay/50"
           onClick={event => {
             // Keyboard and assistive activation produces a click without a
             // preceding pointer event. Pointer clicks were already handled
