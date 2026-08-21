@@ -1243,7 +1243,7 @@ function FlowEditor({
 
           {leaveConfirm && (
             <div
-              className="absolute inset-0 z-30 flex items-center justify-center bg-black/30 p-4"
+              className="absolute inset-0 z-30 flex items-center justify-center bg-surface-overlay/50 p-4 backdrop-blur-sm"
               data-testid="flow-leave-confirm">
               <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-4 shadow-xl">
                 <h2 className="text-sm font-semibold text-content">
@@ -1307,7 +1307,7 @@ function FlowEditor({
         {/* Confirm popup for the header's Run / Save / Discard icon buttons. */}
         {confirmAction && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay/50 p-4 backdrop-blur-sm"
             data-testid="flow-action-confirm">
             <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-4 shadow-xl">
               <h2 className="text-sm font-semibold text-content">
