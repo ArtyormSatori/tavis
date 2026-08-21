@@ -33,7 +33,9 @@ pub mod registry;
 pub mod store;
 pub mod types;
 
-pub use types::{ActiveGateway, Gateway, GatewaySpec, GatewayStatus};
+// No re-exports: every consumer of this module is either `lib.rs` reaching
+// `registry`/`commands`, or one of the submodules reaching a sibling. A
+// convenience `pub use` here would be surface nothing asks for.
 
 // Test modules are declared here rather than beside each file so they resolve
 // as siblings in this directory. Each is named for the module it covers.

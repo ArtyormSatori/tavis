@@ -503,20 +503,21 @@ async fn wait_until_healthy(base_url: &str) -> Result<(), String> {
         .map_err(|error| format!("could not build an HTTP client: {error}"))?;
     let url = format!("{base_url}/health");
     let deadline = tokio::time::Instant::now() + HEALTH_TIMEOUT;
-    let mut last: Option<String> = None;
 
     loop {
-        match client.get(&url).send().await {
+        // Kept so the timeout message can name why it never answered.
+        // "did not become reachable" alone sends an operator looking at the
+        // network when the core was answering 503 the whole time.
+        let detail = match client.get(&url).send().await {
             Ok(response) if response.status().is_success() => {
                 log::debug!("[gateway][health] {base_url} is up");
                 return Ok(());
             }
-            Ok(response) => last = Some(format!("HTTP {}", response.status())),
-            Err(error) => last = Some(error.to_string()),
-        }
+            Ok(response) => format!("HTTP {}", response.status()),
+            Err(error) => error.to_string(),
+        };
 
         if tokio::time::Instant::now() >= deadline {
-            let detail = last.unwrap_or_else(|| "no response".to_owned());
             return Err(format!(
                 "the core did not become reachable within {}s ({detail})",
                 HEALTH_TIMEOUT.as_secs()
