@@ -1068,38 +1068,21 @@ function FlowEditor({
   // segment again collapses the rail (full-width graph). Replaces the old
   // single copilot on/off button.
   const sidePanelToggle = (
-    <div
-      role="group"
+    <ToggleGroupRoot
+      type="single"
+      variant="secondary"
+      size="xs"
+      value={sidePanel ?? ''}
+      onValueChange={next => toggleSidePanel(next as Exclude<SidePanel, null>)}
       aria-label={t('flows.canvas.sidePanelToggle')}
-      className="inline-flex items-center rounded-lg border border-line bg-surface p-0.5">
-      {(
-        [
-          { key: 'copilot', label: t('flows.copilot.open'), testId: 'flow-canvas-copilot-toggle' },
-          {
-            key: 'legend',
-            label: t('flows.canvas.legendTab'),
-            testId: 'flow-canvas-legend-toggle',
-          },
-        ] as const
-      ).map(tab => {
-        const active = sidePanel === tab.key;
-        return (
-          <button
-            key={tab.key}
-            type="button"
-            aria-pressed={active}
-            data-testid={tab.testId}
-            onClick={() => toggleSidePanel(tab.key)}
-            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-              active
-                ? 'bg-primary-500 text-content-inverted shadow-sm'
-                : 'text-content-secondary hover:bg-surface-hover'
-            }`}>
-            {tab.label}
-          </button>
-        );
-      })}
-    </div>
+      className="rounded-lg border border-line bg-surface p-0.5">
+      <ToggleGroupItem value="copilot" data-testid="flow-canvas-copilot-toggle" className="border-0">
+        {t('flows.copilot.open')}
+      </ToggleGroupItem>
+      <ToggleGroupItem value="legend" data-testid="flow-canvas-legend-toggle" className="border-0">
+        {t('flows.canvas.legendTab')}
+      </ToggleGroupItem>
+    </ToggleGroupRoot>
   );
 
   // Save / Discard moved out of the canvas into the header (the canvas keeps
