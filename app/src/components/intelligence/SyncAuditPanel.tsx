@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import { memorySyncAuditLog, type SyncAuditEntry } from '../../utils/tauriCommands';
 
 function formatDuration(ms: number): string {

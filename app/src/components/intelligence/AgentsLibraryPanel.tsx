@@ -207,7 +207,7 @@ export default function AgentsLibraryPanel({
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
+                  <TextField
                     type="text"
                     aria-label={t('intelligence.agents.taskPlaceholder')}
                     value={draft}
@@ -215,16 +215,17 @@ export default function AgentsLibraryPanel({
                       setDrafts(prev => ({ ...prev, [agent.id]: event.target.value }))
                     }
                     placeholder={t('intelligence.agents.taskPlaceholder')}
-                    className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-2 text-sm text-content placeholder:text-stone-400 focus:border-ocean-400 focus:outline-none focus:ring-2 focus:ring-ocean-100 dark:bg-surface-canvas dark:placeholder:text-neutral-600"
+                    className="min-w-0 flex-1"
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
                     onClick={() => void handleRun(agent, draft)}
                     disabled={!draft.trim() || Boolean(runningAgentId)}
-                    className="inline-flex flex-none items-center justify-center gap-1.5 rounded-md bg-ocean-600 px-3 py-2 text-sm font-medium text-white hover:bg-ocean-700 disabled:opacity-50">
-                    <LuPlay className="h-4 w-4" />
+                    leadingIcon={<LuPlay className="h-4 w-4" />}
+                    className="flex-none">
                     {running ? t('intelligence.agents.running') : t('intelligence.agents.runTask')}
-                  </button>
+                  </Button>
                 </div>
               </li>
             );
