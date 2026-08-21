@@ -31,7 +31,7 @@ function consumersOf(name) {
   try {
     out = execFileSync(
       'rg',
-      ['-l', '--type', 'ts', '--type', 'tsx', `\\b${name}\\b`, '.'],
+      ['-l', '-g', '*.ts', '-g', '*.tsx', `\\b${name}\\b`, '.'],
       { cwd: APP_SRC, encoding: 'utf8' },
     );
   } catch {
