@@ -130,7 +130,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
       )}
 
       {/* Info card */}
-      <Alert variant="info">
+      <Alert variant="info" className="items-start">
         <svg
           className="w-5 h-5 flex-shrink-0 mt-0.5"
           fill="none"
