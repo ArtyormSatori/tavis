@@ -90,8 +90,21 @@ export const Reasoning = memo(
     ...props
   }: ReasoningProps) => {
     const resolvedDefaultOpen = defaultOpen ?? isStreaming;
-    // Track if defaultOpen was explicitly set to false (to prevent auto-open)
-    const isExplicitlyClosed = defaultOpen === false;
+
+    /**
+     * Sticky record of a manual open/close, mirroring `userOverrideOpen` in
+     * `features/conversations/components/ToolTimelineBlock.tsx`.
+     *
+     * WHY THIS EXISTS (#4942): the auto-open effect below re-runs whenever
+     * `isOpen` changes. Guarding it only on the `defaultOpen === false` PROP
+     * meant a user who collapsed the panel mid-stream was forced straight back
+     * open on the next commit — the panel could not be closed while streaming,
+     * which is the #4942 report inverted. A prop cannot record a runtime
+     * interaction; this state can.
+     *
+     * `null` = the user has not touched it, so the automatic rules apply.
+     */
+    const [userOverrideOpen, setUserOverrideOpen] = useState<boolean | null>(null);
 
     const [isOpen, setIsOpen] = useControllableState<boolean>({
       defaultProp: resolvedDefaultOpen,
@@ -120,16 +133,23 @@ export const Reasoning = memo(
       }
     }, [isStreaming, setDuration]);
 
-    // Auto-open when streaming starts (unless explicitly closed)
+    // Auto-open when streaming starts, unless the caller opted out via
+    // `defaultOpen={false}` or the user has manually toggled (#4942).
     useEffect(() => {
-      if (isStreaming && !isOpen && !isExplicitlyClosed) {
+      if (isStreaming && !isOpen && userOverrideOpen === null && defaultOpen !== false) {
         setIsOpen(true);
       }
-    }, [isStreaming, isOpen, setIsOpen, isExplicitlyClosed]);
+    }, [isStreaming, isOpen, setIsOpen, userOverrideOpen, defaultOpen]);
 
     // Auto-close when streaming ends (once only, and only if it ever streamed)
     useEffect(() => {
-      if (hasEverStreamedRef.current && !isStreaming && isOpen && !hasAutoClosed) {
+      if (
+        hasEverStreamedRef.current &&
+        !isStreaming &&
+        isOpen &&
+        !hasAutoClosed &&
+        userOverrideOpen === null
+      ) {
         const timer = setTimeout(() => {
           setIsOpen(false);
           setHasAutoClosed(true);
@@ -137,10 +157,12 @@ export const Reasoning = memo(
 
         return () => clearTimeout(timer);
       }
-    }, [isStreaming, isOpen, setIsOpen, hasAutoClosed]);
+    }, [isStreaming, isOpen, setIsOpen, hasAutoClosed, userOverrideOpen]);
 
     const handleOpenChange = useCallback(
       (newOpen: boolean) => {
+        // Record the manual choice so neither auto rule can undo it (#4942).
+        setUserOverrideOpen(newOpen);
         setIsOpen(newOpen);
       },
       [setIsOpen]
