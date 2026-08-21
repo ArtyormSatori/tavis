@@ -39,7 +39,7 @@
  */
 import { useT } from '../../lib/i18n/I18nContext';
 import type { CoreCronJob } from '../../utils/tauriCommands/cron';
-import { Switch } from '../ui';
+import { Badge, Switch } from '../ui';
 import { formatSchedule } from './scheduledCronFormat';
 
 interface ScheduledCronCardProps {
@@ -107,8 +107,8 @@ export default function ScheduledCronCard({
   // dashboard's grouped-skill card.
   const containerClass = `rounded-2xl border shadow-soft transition-colors ${
     isActive
-      ? 'border-sage-200 dark:border-sage-500/30 bg-gradient-to-br from-sage-50 via-white to-sage-100 dark:from-sage-500/10 dark:via-neutral-900 dark:to-sage-500/5'
-      : 'border-line bg-gradient-to-br from-white via-stone-50 to-stone-100/60 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800/80'
+      ? 'border-sage-200 dark:border-sage-500/30 bg-gradient-to-br from-sage-50 via-surface to-sage-100 dark:from-sage-500/10 dark:via-surface dark:to-sage-500/5'
+      : 'border-line bg-gradient-to-br from-surface via-surface-subtle to-surface-muted dark:from-surface dark:via-surface dark:to-surface-strong'
   }`;
 
   const headingRow = (
