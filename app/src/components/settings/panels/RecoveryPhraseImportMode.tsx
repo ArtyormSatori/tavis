@@ -43,22 +43,26 @@ const RecoveryPhraseImportMode = ({
         </p>
       </div>
 
-      <div className="flex items-center gap-2 mb-3" role="group" aria-label={t('mnemonic.words')}>
+      <ToggleGroupRoot
+        type="single"
+        variant="secondary"
+        size="xs"
+        value={String(selectedWordCount)}
+        onValueChange={next => {
+          if (next) onWordCountChange(Number(next));
+        }}
+        aria-label={t('mnemonic.words')}
+        className="flex items-center gap-2 mb-3">
         <span className="text-xs text-content-muted">{t('mnemonic.words')}:</span>
         {BIP39_IMPORT_LENGTHS.map(len => (
-          <Button
+          <ToggleGroupItem
             key={len}
-            type="button"
-            variant="secondary"
-            size="xs"
-            aria-pressed={selectedWordCount === len}
-            data-selected={selectedWordCount === len}
-            onClick={() => onWordCountChange(len)}
-            className="rounded-lg data-[selected=true]:bg-primary-500/20 data-[selected=true]:border-primary-500/40 data-[selected=true]:text-primary-600 dark:data-[selected=true]:text-primary-300">
+            value={String(len)}
+            className="rounded-lg data-[state=on]:bg-primary-500/20 data-[state=on]:border-primary-500/40 data-[state=on]:text-primary-600 dark:data-[state=on]:text-primary-300">
             {len}
-          </Button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroupRoot>
 
       <div className="bg-surface-muted rounded-2xl p-4 mb-4 border border-line">
         <div className="grid grid-cols-3 gap-2">
