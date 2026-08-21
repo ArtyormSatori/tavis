@@ -1,7 +1,5 @@
 import { type Location, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
-import AgentWorldShell from './agentworld/AgentWorldShell';
-import AgentWorld from './agentworld/pages/AgentWorld';
 import AppRoutesIOS from './AppRoutesIOS';
 import DefaultRedirect from './components/DefaultRedirect';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -313,19 +311,6 @@ const AppRoutes = ({ location }: AppRoutesProps = {}) => {
 
       {/* Dev-only gallery of every shared UI primitive, in the active theme. */}
       <Route path="/dev/ui" element={<UiGallery />} />
-
-      {/* Agent World — tiny.place A2A social network integration.
-          Nested routes (explore, directory, …) are handled inside AgentWorld. */}
-      <Route
-        path="/agent-world/*"
-        element={
-          <ProtectedRoute requireAuth={true}>
-            <AgentWorldShell>
-              <AgentWorld />
-            </AgentWorldShell>
-          </ProtectedRoute>
-        }
-      />
 
       {/* Default redirect based on auth status */}
       <Route path="*" element={<DefaultRedirect />} />

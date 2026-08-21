@@ -21,10 +21,6 @@ vi.mock('./pages/WebCallbackPage', () => ({
   ),
 }));
 
-vi.mock('./agentworld/AgentWorldShell', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-vi.mock('./agentworld/pages/AgentWorld', () => ({ default: () => <div /> }));
 vi.mock('./AppRoutesIOS', () => ({ default: () => <div /> }));
 vi.mock('./features/human/HumanPage', () => ({ default: () => <div /> }));
 vi.mock('./pages/Accounts', () => ({ default: () => <div data-testid="accounts-page" /> }));
