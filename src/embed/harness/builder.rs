@@ -138,6 +138,26 @@ impl HarnessBuilder {
         self
     }
 
+    /// Point the core's backend calls at `url`.
+    ///
+    /// Even a harness running entirely on its own inference endpoint still
+    /// talks to a backend for everything that is not a completion — the session
+    /// check, integrations, billing, telemetry. Left unset, that is whatever
+    /// [`Config`] resolves to, which for a fresh config is the hosted
+    /// TinyHumans backend: a harness with no real account will make live calls
+    /// there, be rejected, and — because a rejection publishes `SessionExpired`
+    /// — have its *next* turn fail the custom-provider gate for reasons that
+    /// have nothing to do with the turn.
+    ///
+    /// Set it to a stub (or a self-hosted backend) whenever the harness is not
+    /// signed in to the real one.
+    pub fn backend_url(mut self, url: impl Into<String>) -> Self {
+        let mut config = self.config.take().unwrap_or_default();
+        config.api_url = Some(url.into());
+        self.config = Some(config);
+        self
+    }
+
     /// Install a session before the first turn.
     ///
     /// Routing a turn at a custom provider is gated on an active app session
