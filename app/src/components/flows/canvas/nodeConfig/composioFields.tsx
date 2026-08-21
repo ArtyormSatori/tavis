@@ -19,6 +19,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 
+import { cn } from '../../../../lib/cn';
 import { listAvailableTriggers, listTools } from '../../../../lib/composio/composioApi';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { FlowConnection } from '../../../../services/api/flowsApi';

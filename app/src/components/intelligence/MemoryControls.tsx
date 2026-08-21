@@ -166,54 +166,58 @@ export function MemoryControls({
 
       <div className="flex flex-wrap items-center gap-2">
         {/* Destructive actions — muted, set apart behind a divider. */}
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          tone="danger"
+          size="sm"
           onClick={handleWipe}
           disabled={busy}
           data-testid="memory-wipe-all"
-          className={`${BTN_MUTED} hover:border-coral-300 hover:bg-coral-50 hover:text-coral-600 dark:hover:border-coral-500/30 dark:hover:bg-coral-500/10 dark:hover:text-coral-300`}
+          className="text-content-muted border-line"
+          leadingIcon={wiping ? <Spinner /> : <TrashIcon />}
           title={t('workspace.wipeTitle')}>
-          {wiping ? <Spinner /> : <TrashIcon />}
           {wiping ? t('workspace.resetting') : t('workspace.resetMemory')}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleResetTree}
           disabled={busy}
           data-testid="memory-reset-tree"
-          className={`${BTN_MUTED} hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 dark:hover:border-amber-500/30 dark:hover:bg-amber-500/10 dark:hover:text-amber-300`}
+          className="text-content-muted border-line hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 dark:hover:border-amber-500/30 dark:hover:bg-amber-500/10 dark:hover:text-amber-300"
+          leadingIcon={resetting ? <Spinner /> : <RefreshIcon />}
           title={t('workspace.resetTreeTitle')}>
-          {resetting ? <Spinner /> : <RefreshIcon />}
           {resetting ? t('workspace.rebuilding') : t('workspace.resetMemoryTree')}
-        </button>
+        </Button>
 
         <span aria-hidden className="mx-1 h-5 w-px self-center bg-surface-strong" />
 
         {/* Secondary actions — quiet ghost buttons. */}
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleRefresh}
           disabled={refreshing}
           aria-busy={refreshing}
           data-testid="memory-graph-refresh"
-          className={BTN_GHOST}
+          leadingIcon={refreshing ? <Spinner /> : <RefreshIcon />}
           title={t('common.refresh')}>
-          {refreshing ? <Spinner /> : <RefreshIcon />} {t('common.refresh')}
-        </button>
+          {t('common.refresh')}
+        </Button>
         {contentRootAbs ? (
           <ObsidianVaultSection contentRootAbs={contentRootAbs} onToast={onToast} />
         ) : null}
 
         {/* Primary action. */}
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleBuildTrees}
           disabled={building}
           data-testid="memory-build-trees"
-          className={BTN_PRIMARY}>
-          {building ? <Spinner /> : <BrainIcon />}
+          leadingIcon={building ? <Spinner /> : <BrainIcon />}>
           {building ? t('workspace.building') : t('workspace.buildSummaryTrees')}
-        </button>
+        </Button>
       </div>
     </div>
   );
