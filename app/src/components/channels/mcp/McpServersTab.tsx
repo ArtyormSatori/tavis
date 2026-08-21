@@ -176,8 +176,8 @@ const CatalogRow = memo(
     const repoUrl = deriveRepoUrl(server.qualified_name);
     const author = deriveAuthor(server.qualified_name);
     return (
-      <tr
-        className="hover:bg-surface-muted dark:hover:bg-surface-muted/40 cursor-pointer transition-colors"
+      <TableRow
+        className="cursor-pointer"
         tabIndex={0}
         role="button"
         aria-label={t('mcp.tab.aria.installServer').replace('{name}', server.display_name)}
@@ -192,7 +192,7 @@ const CatalogRow = memo(
             onInstall(server.qualified_name);
           }
         }}>
-        <td className="px-4 py-3">
+        <TableCell>
           <div className="flex items-center gap-2.5">
             {server.icon_url ? (
               <img
