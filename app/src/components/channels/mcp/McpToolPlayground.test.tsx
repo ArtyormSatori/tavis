@@ -154,18 +154,20 @@ describe('McpToolPlayground', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose on backdrop pointerdown but NOT on pointerdown inside the dialog card', () => {
+  it('calls onClose on an outside click but NOT on a click inside the dialog card', async () => {
     const onClose = vi.fn();
     renderPlayground({ onClose });
     // Migrated onto `ModalShell` / Radix `Dialog`: the backdrop is now a
     // separate overlay element rather than the dialog role element itself,
-    // so this exercises Radix's own pointerdown-outside dismissal.
+    // so this exercises Radix's own outside-pointer dismissal.
     const overlay = document.querySelector('[data-slot="dialog-overlay"]') as HTMLElement;
     expect(overlay).not.toBeNull();
-    fireEvent.pointerDown(overlay);
+    await flushDeferredWork();
+    dismissByOutsideClick(overlay);
     expect(onClose).toHaveBeenCalledTimes(1);
-    // Pointerdown on a descendant (the title) should NOT close.
+    // A click on a descendant (the title) should NOT close.
     fireEvent.pointerDown(screen.getByText('Run read_file'));
+    fireEvent.click(screen.getByText('Run read_file'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
