@@ -317,7 +317,7 @@ function MeetingRow({
 
 function SkeletonRow() {
   return (
-    <TableRow className="border-b border-line/50 animate-pulse">
+    <TableRow className="border-b border-line/50 animate-pulse hover:bg-transparent">
       {Array.from({ length: 6 }).map((_, i) => (
         <TableCell key={i} className="py-2 px-3">
           <div className="h-4 bg-surface-hover rounded w-16" />

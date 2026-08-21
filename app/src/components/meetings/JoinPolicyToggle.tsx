@@ -57,7 +57,7 @@ export function JoinPolicyToggle({
             className={cn(
               'h-auto rounded-none focus-visible:ring-offset-0',
               compact ? 'px-2 py-0.5' : 'px-2.5 py-1',
-              !isActive && 'hover:text-content'
+              !isActive && 'font-normal hover:text-content'
             )}>
             {t(KEY_MAP[seg])}
           </Button>

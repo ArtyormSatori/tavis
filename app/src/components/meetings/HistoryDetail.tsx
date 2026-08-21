@@ -224,7 +224,7 @@ function HistoryDetail({ record }: HistoryDetailProps) {
             variant="tertiary"
             size="xs"
             onClick={() => void loadDetail(record.request_id)}
-            className="h-auto rounded-none bg-transparent px-0 text-inherit underline underline-offset-2 hover:bg-transparent hover:text-coral-700 dark:hover:text-coral-300">
+            className="h-auto rounded-none bg-transparent px-0 text-[11px] text-inherit underline underline-offset-2 hover:bg-transparent hover:text-coral-700 dark:hover:text-coral-300">
             {t('skills.meetingBots.callDetailRetry')}
           </Button>
         </p>

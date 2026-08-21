@@ -90,7 +90,7 @@ export function PlatformChips({ selected, onSelect, disabled = false }: Platform
               'h-auto gap-1.5 rounded-full border px-3 py-1.5 text-xs',
               'focus-visible:ring-primary-500 focus-visible:ring-offset-1',
               isSelected
-                ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300'
+                ? 'border-primary-500 bg-primary-50 text-primary-700 hover:bg-primary-50 dark:bg-primary-500/15 dark:text-primary-300 dark:hover:bg-primary-500/15'
                 : 'border-line bg-surface text-content-secondary hover:border-primary-300 hover:bg-primary-50/40 dark:hover:bg-primary-500/10'
             )}>
             <PlatformLogo platform={platform} label={label} />
