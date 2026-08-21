@@ -128,14 +128,13 @@ describe('ObsidianVaultSection', () => {
     fireEvent.click(screen.getByTestId('memory-open-in-obsidian'));
     await screen.findByTestId('obsidian-vault-guidance');
     // Radix's dismissable layer listens for `pointerdown`, not `mousedown` —
-    // this drives the same outside-click dismissal the old hand-rolled
-    // listener did, just via the event Radix actually listens for. Radix also
-    // defers attaching that listener by a `setTimeout(0)` (so the pointerdown
-    // that opened the popover doesn't immediately close it again) — flush that
-    // macrotask before dispatching, or the outside click fires before Radix is
-    // listening at all.
-    await new Promise(resolve => setTimeout(resolve, 0));
-    fireEvent.pointerDown(document.body, { pointerId: 1 });
+    // `userEvent.click` drives the full native pointerdown/pointerup/click
+    // sequence (and, unlike a bare `fireEvent.pointerDown`, waits out Radix's
+    // internal `setTimeout(0)` that defers attaching the outside-pointerdown
+    // listener — otherwise a synchronous dispatch fires before Radix is
+    // listening at all).
+    const user = userEvent.setup();
+    await user.click(document.body);
 
     await waitFor(() => expect(screen.queryByTestId('obsidian-vault-guidance')).toBeNull());
   });
