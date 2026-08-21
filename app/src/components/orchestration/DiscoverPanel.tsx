@@ -8,7 +8,7 @@
  */
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { apiClient } from '../../agentworld/AgentWorldShell';
+import { apiClient } from '../../lib/agentworld/apiClient';
 import { useT } from '../../lib/i18n/I18nContext';
 import {
   orchestrationClient,

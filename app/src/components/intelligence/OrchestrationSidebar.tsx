@@ -12,7 +12,7 @@
 import debugFactory from 'debug';
 import type { FormEvent, ReactElement } from 'react';
 
-import { apiClient } from '../../agentworld/AgentWorldShell';
+import { apiClient } from '../../lib/agentworld/apiClient';
 import type { ContactView, PairingSnapshot } from '../../lib/agentworld/invokeApiClient';
 import { useT } from '../../lib/i18n/I18nContext';
 import type {

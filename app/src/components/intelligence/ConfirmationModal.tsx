@@ -78,8 +78,8 @@ export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
               </div>
             )}
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-content">{modal.title}</h2>
-              <p className="text-sm text-content-secondary mt-1">{modal.message}</p>
+              <AlertDialogTitle className="text-lg font-semibold">{modal.title}</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">{modal.message}</AlertDialogDescription>
             </div>
           </div>
         </div>
