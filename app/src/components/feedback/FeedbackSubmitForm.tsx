@@ -284,7 +284,7 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
         <div className="flex items-center gap-3">
           {message && <p className={`text-xs ${messageClass}`}>{message}</p>}
           {body.length > 0 && (
-            <span className="text-[11px] tabular-nums text-content-faint dark:text-neutral-600">
+            <span className="text-[11px] tabular-nums text-content-faint">
               {body.length}/{BODY_MAX}
             </span>
           )}
