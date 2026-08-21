@@ -2554,8 +2554,9 @@ const Conversations = ({
       className={
         isSidebar
           ? 'h-full relative z-10 flex overflow-hidden'
-          : // No background of its own. The old `bg-surface/70 dark:bg-black/40`
-            // was a translucent tint over the app canvas, which composed to pure
+          : // No background of its own.
+            // The old bg-surface/70 with a dark-mode black/40 override was a
+            // translucent tint over the app canvas, which composed to pure
             // black in dark — the colour the composer fade below hardcoded. On
             // the opaque content card it instead composes to an un-tokened
             // ~#0e0e0e that nothing else in the app can name or match, so the
