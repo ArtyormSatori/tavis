@@ -1875,8 +1875,6 @@ pub struct DomainSubscriberPlan {
     pub flows: bool,
     /// memory conversation-persistence + sync-stage bridge.
     pub memory: bool,
-    /// agent_meetings calendar + meeting-event subscribers.
-    pub meet: bool,
     /// agent handlers + background delivery + run-ledger finalizer + orchestration ingest.
     pub agent: bool,
     /// hosted orchestration ingest.
@@ -1898,7 +1896,6 @@ impl DomainSubscriberPlan {
             channels: domains.allows(DomainGroup::Channels),
             flows: domains.allows(DomainGroup::Flows),
             memory: domains.allows(DomainGroup::Memory),
-            meet: domains.allows(DomainGroup::Meet),
             agent: domains.allows(DomainGroup::Agent),
             hosted: domains.allows(DomainGroup::Hosted),
             mcp: domains.allows(DomainGroup::Mcp),
@@ -2264,12 +2261,6 @@ fn register_domain_subscribers(
         );
     }
 
-    // Meet: calendar + meeting-event subscribers.
-    if plan.meet {
-        if group_first_time(DomainGroup::Meet) {
-            crate::openhuman::meet::backend_bot::calendar::register_meet_calendar_subscriber();
-            crate::openhuman::meet::backend_bot::bus::register_meeting_event_subscriber();
-        }
     } else {
         log::debug!("[event_bus] agent_meetings subscribers SKIPPED — Meet domain disabled");
     }

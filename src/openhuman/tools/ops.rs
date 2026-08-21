@@ -1390,17 +1390,13 @@ fn tool_group(name: &str) -> crate::core::all::DomainGroup {
         return DomainGroup::Channels;
     }
     // Voice family: explicit audio_* podcast tools plus the defensive
-    // voice_/tts_/stt_ prefixes for any future tool. Meet has no agent tools in
-    // the current surface, but the `meet_` prefix is mapped defensively.
+    // voice_/tts_/stt_ prefixes for any future tool.
     if VOICE.contains(&name)
         || name.starts_with("voice_")
         || name.starts_with("tts_")
         || name.starts_with("stt_")
     {
         return DomainGroup::Voice;
-    }
-    if name.starts_with("meet_") {
-        return DomainGroup::Meet;
     }
     // Memory family (harness-kept): memory_* store/search/etc + goals_* + extras.
     if name.starts_with("memory_") || name.starts_with("goals_") || MEMORY_EXTRA.contains(&name) {
