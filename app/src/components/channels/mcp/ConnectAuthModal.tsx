@@ -624,13 +624,14 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
             <p className="text-[11px] font-medium uppercase tracking-wide text-content-faint">
               {t('mcp.connectAuth.customHeadersLabel')}
             </p>
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="xs"
               onClick={addCustomHeader}
               disabled={busy}
-              className="text-[11px] font-medium text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50">
+              className="h-auto p-0 text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-400">
               {t('mcp.connectAuth.addHeader')}
-            </button>
+            </Button>
           </div>
           {displayHeaders.length === 0 && (
             <p className="text-[11px] text-content-faint">
