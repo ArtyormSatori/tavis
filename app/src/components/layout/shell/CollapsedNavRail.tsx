@@ -86,14 +86,15 @@ export default function CollapsedNavRail() {
       {/* Keyboard shortcuts — mirrors SidebarHeader's shortcuts button for the
           collapsed state. Opens the help directory (also reachable via ? / ⌘/). */}
       <Tooltip label={t('shortcuts.title')}>
-        <button
-          type="button"
+        <Button
+          variant="tertiary"
+          iconOnly
           onClick={() => registry.runAction('meta.keyboard-shortcuts')}
           aria-label={t('shortcuts.title')}
-          data-analytics-id="collapsed-rail-shortcuts"
+          analyticsId="collapsed-rail-shortcuts"
           className={`${RAIL_BTN} text-content-muted hover:bg-surface-hover hover:text-content-secondary`}>
           <NavIcon id="keyboard" className="h-5 w-5" />
-        </button>
+        </Button>
       </Tooltip>
 
       {/* Primary nav destinations */}
