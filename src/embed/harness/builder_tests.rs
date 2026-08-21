@@ -161,5 +161,8 @@ fn backend_url_overrides_a_supplied_configs_api_url() {
     let mut config = Config::default();
     config.api_url = Some("https://from-config.example".into());
     config.api_url = Some("https://from-builder.example".to_string());
-    assert_eq!(config.api_url.as_deref(), Some("https://from-builder.example"));
+    assert_eq!(
+        config.api_url.as_deref(),
+        Some("https://from-builder.example")
+    );
 }
