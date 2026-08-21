@@ -12,6 +12,7 @@ import Accounts from './pages/Accounts';
 import Activity from './pages/Activity';
 import Brain from './pages/Brain';
 import AgentInsightsPreview from './pages/dev/AgentInsightsPreview';
+import UiGallery from './pages/dev/UiGallery';
 import Feedback from './pages/Feedback';
 import FlowCanvasPage, { FlowCanvasDraftPage } from './pages/FlowCanvasPage';
 import FlowsPage from './pages/FlowsPage';
@@ -309,6 +310,9 @@ const AppRoutes = ({ location }: AppRoutesProps = {}) => {
 
       {/* Dev-only visual preview of the Agentic task insights surface. */}
       <Route path="/dev/agent-insights" element={<AgentInsightsPreview />} />
+
+      {/* Dev-only gallery of every shared UI primitive, in the active theme. */}
+      <Route path="/dev/ui" element={<UiGallery />} />
 
       {/* Agent World — tiny.place A2A social network integration.
           Nested routes (explore, directory, …) are handled inside AgentWorld. */}
