@@ -131,9 +131,21 @@ suiteRunner('Conversations web channel flow', () => {
     clearRequestLog();
     await navigateToConversations();
 
-    const initialAgentCount = await browser.execute(() => {
-      return document.querySelectorAll('.group\\/msg.flex.justify-start').length;
-    });
+    // Count agent message rows by a stable test hook, never by Tailwind
+    // classes: a restyle would either break this assertion or — worse — make
+    // it pass vacuously (0 > 0 is false, but 0 === 0 silently hides a
+    // transcript that stopped rendering entirely). `data-testid`/`data-sender`
+    // live on the message row in ChatThreadView and survive any restyle.
+    const countAgentRows = () =>
+      browser.execute(
+        () =>
+          document.querySelectorAll('[data-testid="chat-message-row"][data-sender="agent"]').length
+      );
+
+    const initialAgentCount = await countAgentRows();
+    // Guard against the vacuous-pass shape above: the transcript must contain
+    // the agent reply rendered by the previous test before we count deltas.
+    expect(initialAgentCount).toBeGreaterThan(0);
 
     const uniquePayload = `tab-switch-${Date.now()}`;
     await waitForSocketConnected(15_000);
@@ -152,9 +164,7 @@ suiteRunner('Conversations web channel flow', () => {
 
     await browser.waitUntil(
       async () => {
-        const n = await browser.execute(() => {
-          return document.querySelectorAll('.group\\/msg.flex.justify-start').length;
-        });
+        const n = await countAgentRows();
         return n > initialAgentCount;
       },
       {
