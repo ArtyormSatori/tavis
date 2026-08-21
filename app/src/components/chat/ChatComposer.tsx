@@ -331,14 +331,16 @@ export default function ChatComposer({
 
           {/* Voice mode */}
           {micEnabled && (
-            <button
-              type="button"
-              data-analytics-id="chat-composer-voice-mode"
+            <Button
+              iconOnly
+              variant="tertiary"
+              size="xs"
+              analyticsId="chat-composer-voice-mode"
               aria-label={t('composer.voiceMode')}
               title={t('composer.voiceMode')}
               onClick={onSwitchToMicCloud}
               disabled={composerInteractionBlocked || isSending}
-              className="flex-shrink-0 flex items-center justify-center w-6 h-6 text-content-faint hover:text-content-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              className="!h-6 !w-6 flex-shrink-0 text-content-faint hover:bg-transparent hover:text-content-secondary">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -353,7 +355,7 @@ export default function ChatComposer({
                   d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"
                 />
               </svg>
-            </button>
+            </Button>
           )}
 
           {/* Send / Stop button — while a turn is in flight and a cancel handler
