@@ -15,7 +15,7 @@ use super::workspace::{ResolvedWorkspace, Workspace};
 use super::{Harness, HARNESS_LIVE};
 use crate::core::runtime::{CoreBuilder, DomainSet, ServiceSet, TokenSource};
 use crate::core::types::HostKind;
-use crate::embed::Core;
+use crate::embed::{Core, Session};
 use crate::openhuman::config::Config;
 
 /// Builder for a [`Harness`]. Obtain with [`Harness::builder`].
@@ -31,6 +31,7 @@ pub struct HarnessBuilder {
     domains: Option<DomainSet>,
     host_kind: HostKind,
     config: Option<Config>,
+    session: Option<Session>,
 }
 
 impl Default for HarnessBuilder {
@@ -55,6 +56,7 @@ impl HarnessBuilder {
             domains: None,
             host_kind: HostKind::Cli,
             config: None,
+            session: None,
         }
     }
 
@@ -133,6 +135,20 @@ impl HarnessBuilder {
     /// standalone bootstrap path.
     pub fn host_kind(mut self, host_kind: HostKind) -> Self {
         self.host_kind = host_kind;
+        self
+    }
+
+    /// Install a session before the first turn.
+    ///
+    /// Routing a turn at a custom provider is gated on an active app session
+    /// (`verify_session_active`), so a harness given its own endpoint and key
+    /// **still needs one** — the gate cannot distinguish a library host from an
+    /// unregistered desktop user trying to skip registration.
+    ///
+    /// [`Session::backend`] for a real JWT; [`Session::local`] for a host that
+    /// brings its own provider credentials and needs nothing from the backend.
+    pub fn session(mut self, session: Session) -> Self {
+        self.session = Some(session);
         self
     }
 
@@ -254,9 +270,17 @@ impl HarnessBuilder {
         }
 
         let runtime = builder.build().await.map_err(HarnessError::Build)?;
+        let core = Core::from_runtime(Arc::new(runtime));
+
+        // After the build, because storing a session is an ordinary RPC and
+        // needs a dispatchable core. Before returning, so the harness a caller
+        // receives is one whose first turn will not fail the provider gate.
+        if let Some(session) = self.session {
+            core.auth().store(session).await?;
+        }
 
         Ok(Harness {
-            core: Core::from_runtime(Arc::new(runtime)),
+            core,
             provider: self.provider,
             access: self.access,
             _workspace: resolved,
