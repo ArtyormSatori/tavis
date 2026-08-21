@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
+import { Button } from '../ui';
 import type { FeedbackItem } from '../../types/feedback';
 import FeedbackAdminMenu from './FeedbackAdminMenu';
 import FeedbackComments from './FeedbackComments';
