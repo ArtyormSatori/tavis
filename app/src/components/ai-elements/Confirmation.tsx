@@ -21,8 +21,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { createContext, useContext, useMemo } from 'react';
 
 import { cn } from '../../lib/cn';
-import { Alert, AlertDescription } from '../ui/Alert';
-import { Button } from '../ui';
+import { Alert, AlertDescription, Button } from '../ui';
 
 /**
  * The tool-call lifecycle states this component branches on. Mirrors the
