@@ -130,7 +130,7 @@ export const FlowPreauthorizationCard: React.FC<Props> = ({
  */
 export const FlowPreauthorizationOverlay: React.FC<Props> = props => (
   <div
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay/50 p-4 backdrop-blur-sm"
     data-testid="flow-preauthorization-overlay">
     <div className="w-full max-w-md">
       <FlowPreauthorizationCard {...props} />
