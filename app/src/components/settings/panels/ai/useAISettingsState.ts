@@ -41,7 +41,7 @@ function toPanelProvider(p: CloudProviderView): CloudProvider {
     slug: p.slug,
     label: p.label,
     endpoint: p.endpoint,
-    authStyle: p.auth_style ?? authStyleForSlug(p.slug),
+    authStyle: p.auth_style,
     maskedKey: maskKeyLabel(p.has_api_key),
   };
 }
