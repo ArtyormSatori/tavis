@@ -676,6 +676,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: None,
         })
     }
 
@@ -684,6 +685,65 @@ mod tests {
     // not the process default or another tenant's. These assert the primitive
     // directly (independent of the process DEFAULT_CONTEXT global, since
     // `current()` inside a scope resolves the scoped value).
+
+    // ---- embedder-supplied config (the library-embedding seam) ---------------
+    //
+    // `CoreBuilder::config(..)` is only half of the story, and the half that is
+    // easy to get wrong. Setting the config at boot does NOT reach RPC handlers:
+    // they call `load_config_with_timeout()` per dispatch, which re-runs
+    // `Config::load_or_init()` and re-resolves the process-global workspace. The
+    // context has to carry it, and the loader has to prefer it, or an embedder
+    // configures boot and watches its turns run somewhere else entirely.
+
+    fn ctx_with_config(config: crate::openhuman::config::Config) -> Arc<CoreContext> {
+        Arc::new(CoreContext {
+            host_kind: HostKind::Cli,
+            workspace_binding: RwLock::new(WorkspaceBinding {
+                workspace_dir: Some(config.workspace_dir.clone()),
+                memory_subsystem: Default::default(),
+            }),
+            domains: crate::core::runtime::DomainSet::full(),
+            embedder_config: Some(config),
+        })
+    }
+
+    #[test]
+    fn a_context_without_an_embedder_config_reports_none() {
+        // The default for every host that lets the core discover its own
+        // config, which is all of them but a library embedder.
+        assert!(ctx("/tmp/ws").embedder_config().is_none());
+    }
+
+    #[test]
+    fn an_embedder_config_is_readable_from_the_context() {
+        let mut config = crate::openhuman::config::Config::default();
+        config.workspace_dir = PathBuf::from("/tmp/embedder-ws");
+        config.default_model = Some("embedder-model".into());
+
+        let ctx = ctx_with_config(config);
+        let read = ctx.embedder_config().expect("supplied config is readable");
+        assert_eq!(read.workspace_dir, PathBuf::from("/tmp/embedder-ws"));
+        assert_eq!(read.default_model.as_deref(), Some("embedder-model"));
+    }
+
+    #[tokio::test]
+    async fn the_current_dispatch_sees_the_scoped_embedder_config() {
+        // This is the read path `load_config_with_timeout` uses. If it resolved
+        // to the process default instead of the scoped context, a second
+        // embedder in the same process would silently serve the first's config.
+        let mut config = crate::openhuman::config::Config::default();
+        config.workspace_dir = PathBuf::from("/tmp/scoped-ws");
+        config.default_model = Some("scoped-model".into());
+
+        let scoped = CoreContext::scope(ctx_with_config(config), async {
+            CoreContext::current_embedder_config()
+        })
+        .await;
+
+        let scoped = scoped.expect("a scoped embedder config is visible to the dispatch");
+        assert_eq!(scoped.default_model.as_deref(), Some("scoped-model"));
+        assert_eq!(scoped.workspace_dir, PathBuf::from("/tmp/scoped-ws"));
+    }
 
     // ---- store-init gating (#4796 DoD item 3) --------------------------------
     // `init_stores` side-effects on process globals with no init-state probe, so
