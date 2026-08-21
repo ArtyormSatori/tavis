@@ -407,10 +407,3 @@ export function defaultEndpointFor(slug: string): string {
       return '';
   }
 }
-
-function requireBuiltinCloudProviders2(): {
-  defaultEndpointForBuiltinCloudProvider: (slug: string) => string;
-} {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('../builtinCloudProviders');
-}
