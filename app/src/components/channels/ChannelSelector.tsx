@@ -4,6 +4,7 @@ import { resolvePreferredAuthModeForChannel } from '../../lib/channels/routing';
 import { useT } from '../../lib/i18n/I18nContext';
 import { useAppSelector } from '../../store/hooks';
 import type { ChannelConnectionStatus, ChannelDefinition, ChannelType } from '../../types/channels';
+import Button from '../ui/Button';
 import { renderChannelIcon } from './channelIcon';
 import ChannelStatusBadge from './ChannelStatusBadge';
 

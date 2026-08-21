@@ -8,6 +8,7 @@ import type { ReactElement } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import type { ChatMessage, ChatWindow } from '../../lib/orchestration/useOrchestrationChats';
+import Button from '../ui/Button';
 import { formatTime } from './orchestrationTabHelpers';
 
 interface ChatListButtonProps {

@@ -130,60 +130,58 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
       )}
 
       {/* Info card */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl">
-        <div className="flex items-start space-x-3">
-          <svg
-            className="w-5 h-5 text-blue-600 dark:text-blue-300 flex-shrink-0 mt-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
-          <div>
-            <p className="font-medium text-blue-800 dark:text-blue-200 text-sm">
-              {t('notifications.routing.intelligenceTitle')}
-            </p>
-            <p className="text-blue-700 dark:text-blue-300 text-xs mt-1 leading-relaxed">
-              {t('notifications.routing.intelligenceDesc')}
-            </p>
-          </div>
+      <Alert variant="info">
+        <svg
+          className="w-5 h-5 flex-shrink-0 mt-0.5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+          />
+        </svg>
+        <div>
+          <AlertTitle>{t('notifications.routing.intelligenceTitle')}</AlertTitle>
+          <AlertDescription className="mt-1">
+            {t('notifications.routing.intelligenceDesc')}
+          </AlertDescription>
         </div>
-      </div>
+      </Alert>
 
       {/* How it works */}
       <SettingsSection title={t('notifications.routing.howItWorks')}>
-        {[
-          {
-            label: t('notifications.routing.level.drop'),
-            desc: t('notifications.routing.level.dropDesc'),
-            color: 'bg-surface-subtle text-content-secondary',
-          },
-          {
-            label: t('notifications.routing.level.acknowledge'),
-            desc: t('notifications.routing.level.acknowledgeDesc'),
-            color: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300',
-          },
-          {
-            label: t('notifications.routing.level.react'),
-            desc: t('notifications.routing.level.reactDesc'),
-            color: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
-          },
-          {
-            label: t('notifications.routing.level.escalate'),
-            desc: t('notifications.routing.level.escalateDesc'),
-            color: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300',
-          },
-        ].map(row => (
+        {(
+          [
+            {
+              label: t('notifications.routing.level.drop'),
+              desc: t('notifications.routing.level.dropDesc'),
+              variant: 'neutral',
+            },
+            {
+              label: t('notifications.routing.level.acknowledge'),
+              desc: t('notifications.routing.level.acknowledgeDesc'),
+              variant: 'primary',
+            },
+            {
+              label: t('notifications.routing.level.react'),
+              desc: t('notifications.routing.level.reactDesc'),
+              variant: 'warning',
+            },
+            {
+              label: t('notifications.routing.level.escalate'),
+              desc: t('notifications.routing.level.escalateDesc'),
+              variant: 'danger',
+            },
+          ] as { label: string; desc: string; variant: BadgeVariant }[]
+        ).map(row => (
           <div key={row.label} className="flex items-center gap-3 px-4 py-3">
-            <span
-              className={`flex-shrink-0 px-2 py-0.5 rounded text-[11px] font-semibold ${row.color}`}>
+            <Badge variant={row.variant} className="flex-shrink-0">
               {row.label}
-            </span>
+            </Badge>
             <span className="text-xs text-content-secondary">{row.desc}</span>
           </div>
         ))}
