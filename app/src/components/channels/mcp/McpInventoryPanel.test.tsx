@@ -123,6 +123,10 @@ describe('McpInventoryPanel — shell', () => {
 
   it('switches to the Import tab on click', () => {
     renderPanel();
+    // Migrated onto Radix `Tabs` (#radix-ui-foundation): its trigger switches
+    // on `mousedown`, not `click` (so it activates on the same gesture as
+    // real pointer-driven browsers, before the click's mouseup) — `fireEvent`
+    // has to fire the event Radix actually listens for.
     fireEvent.mouseDown(screen.getByRole('tab', { name: 'Import' }));
     expect(screen.getByRole('tab', { name: 'Import' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: 'Export' })).toHaveAttribute('aria-selected', 'false');
