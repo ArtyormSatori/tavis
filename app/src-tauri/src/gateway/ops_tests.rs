@@ -271,7 +271,10 @@ mod provisioning {
             "a provisioned core is behind a bearer"
         );
         assert!(
-            provisioned.active.rpc_url.contains(&CORE_PORT_IN_BOX.to_string()),
+            provisioned
+                .active
+                .rpc_url
+                .contains(&CORE_PORT_IN_BOX.to_string()),
             "a passthrough box publishes nothing, so the core's own port is the endpoint: {}",
             provisioned.active.rpc_url
         );
