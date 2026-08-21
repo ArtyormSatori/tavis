@@ -5,7 +5,13 @@
  */
 import Button from '../../../ui/Button';
 import type { CreditTransaction, TeamUsage } from '../../../../services/api/creditsApi';
-import { FormulaRow, formatCount, formatUsd, MetricTile } from './backgroundLoopPrimitives';
+import {
+  FormulaRow,
+  formatCount,
+  formatDateTime,
+  formatUsd,
+  MetricTile,
+} from './backgroundLoopPrimitives';
 
 export const UsageLedgerSection = ({
   t,
