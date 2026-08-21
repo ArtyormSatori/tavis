@@ -7,6 +7,8 @@ import type {
   LocalAiTtsResult,
 } from '../../../../utils/tauriCommands';
 import Button from '../../../ui/Button';
+import Checkbox from '../../../ui/Checkbox';
+import { Spinner } from '../../../ui/icons';
 import {
   SettingsSection,
   SettingsStatusLine,
