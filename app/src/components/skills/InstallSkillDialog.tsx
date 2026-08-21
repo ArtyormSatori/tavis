@@ -213,73 +213,39 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
     [formValid, onInstalled, timeoutSecs, url]
   );
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={e => {
-        if (e.target === e.currentTarget && !submitting) {
-          log('backdrop-click close');
-          onClose();
-        }
-      }}>
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 animate-fade-in bg-black/50 backdrop-blur-sm"
-        onClick={() => {
-          if (!submitting) {
-            log('backdrop-direct close');
-            onClose();
-          }
-        }}
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="install-skill-title"
-        className="relative w-full max-w-[560px] animate-fade-in rounded-2xl bg-surface shadow-2xl">
-        <form onSubmit={handleSubmit}>
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 border-b border-line-subtle px-5 py-4">
-            <div className="min-w-0 flex-1">
-              <h2
-                id="install-skill-title"
-                className="font-sans text-base font-semibold text-content">
-                {t('skills.install.title')}
-              </h2>
-              <p className="mt-0.5 text-xs text-content-muted">
-                {t('skills.install.subtitlePrefix')} <code className="font-mono">SKILL.md</code>{' '}
-                {t('skills.install.subtitleMiddle')}{' '}
-                <code className="font-mono">.openhuman/skills/</code>.{' '}
-                {t('skills.install.subtitleSuffix')}
-              </p>
-            </div>
-            <Button
-              iconOnly
-              variant="tertiary"
-              size="md"
-              onClick={() => {
-                if (!submitting) {
-                  log('close-button');
-                  onClose();
-                }
-              }}
-              disabled={submitting}
-              aria-label={t('common.close')}
-              className="h-8 w-8 flex-shrink-0 text-content-faint">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+  return (
+    <ModalShell
+      onClose={() => {
+        if (submitting) return;
+        log('close-request');
+        onClose();
+      }}
+      title={t('skills.install.title')}
+      titleId="install-skill-title"
+      subtitle={
+        <>
+          {t('skills.install.subtitlePrefix')} <code className="font-mono">SKILL.md</code>{' '}
+          {t('skills.install.subtitleMiddle')}{' '}
+          <code className="font-mono">.openhuman/skills/</code>.{' '}
+          {t('skills.install.subtitleSuffix')}
+        </>
+      }
+      maxWidthClassName="max-w-[560px]"
+      contentClassName="max-h-[70vh] overflow-y-auto px-5 py-4"
+      closePolicy={submitting ? { escape: false, backdrop: false, button: false } : undefined}
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="tertiary" onClick={onClose} disabled={submitting}>
+            {result ? t('common.finish') : t('common.cancel')}
+          </Button>
+          {result ? null : (
+            <Button type="submit" form={INSTALL_FORM_ID} variant="primary" disabled={!formValid}>
+              {submitting ? t('skills.install.installing') : t('skills.install.installBtn')}
             </Button>
-          </div>
-
-          {/* Body */}
-          <div className="max-h-[70vh] space-y-4 overflow-y-auto px-5 py-4">
+          )}
+        </div>
+      }>
+      <form id={INSTALL_FORM_ID} onSubmit={handleSubmit} className="space-y-4">
             {/* URL */}
             <div>
               <label
@@ -439,22 +405,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 })()}
               </div>
             ) : null}
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-2 border-t border-line-subtle px-5 py-3">
-            <Button variant="tertiary" onClick={onClose} disabled={submitting}>
-              {result ? t('common.finish') : t('common.cancel')}
-            </Button>
-            {result ? null : (
-              <Button type="submit" variant="primary" disabled={!formValid}>
-                {submitting ? t('skills.install.installing') : t('skills.install.installBtn')}
-              </Button>
-            )}
-          </div>
-        </form>
-      </div>
-    </div>,
-    document.body
+      </form>
+    </ModalShell>
   );
 }
