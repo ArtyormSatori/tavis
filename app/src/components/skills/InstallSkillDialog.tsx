@@ -254,10 +254,11 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 {t('skills.install.urlLabel')}
                 <span className="text-coral-500"> *</span>
               </label>
-              <input
+              <TextField
                 id="install-skill-url"
                 ref={firstFieldRef}
                 type="url"
+                mono
                 inputMode="url"
                 autoComplete="off"
                 value={url}
@@ -265,7 +266,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 disabled={submitting || result !== null}
                 required
                 maxLength={2048}
-                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 font-mono text-sm text-content shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:bg-surface-muted dark:disabled:bg-surface-muted/60 disabled:text-content-muted dark:text-content-muted"
+                className="mt-1 shadow-sm disabled:text-content-muted"
                 placeholder={t('skills.install.urlPlaceholder')}
               />
               {url.trim() && !urlValid ? (
@@ -294,7 +295,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                   {t('skills.install.timeoutHint')}
                 </span>
               </label>
-              <input
+              <TextField
                 id="install-skill-timeout"
                 type="number"
                 inputMode="numeric"
@@ -303,7 +304,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 value={timeoutSecs}
                 onChange={e => setTimeoutSecs(e.target.value)}
                 disabled={submitting || result !== null}
-                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:bg-surface-muted dark:disabled:bg-surface-muted/60 disabled:text-content-muted dark:text-content-muted"
+                className="mt-1 shadow-sm disabled:text-content-muted"
                 placeholder={t('skills.install.timeoutPlaceholder')}
               />
               {!timeoutValid ? (
