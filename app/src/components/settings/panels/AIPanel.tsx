@@ -2358,14 +2358,13 @@ const CustomRoutingDialog = ({
             <div className="flex flex-col gap-1.5">
               <label className="flex items-center justify-between gap-2 text-xs font-medium text-content-secondary">
                 <span className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={temperature != null}
-                    onChange={e => {
+                    onCheckedChange={next => {
                       resetTestState();
-                      setTemperature(e.target.checked ? 0.7 : null);
+                      setTemperature(next ? 0.7 : null);
                     }}
-                    className="h-3.5 w-3.5 rounded border-line-strong text-primary-500 focus:ring-primary-500"
+                    className="h-3.5 w-3.5"
                   />
                   {t('settings.ai.temperatureOverride')}
                 </span>
@@ -2419,12 +2418,11 @@ const CustomRoutingDialog = ({
             {registrySlug && model.trim().length > 0 && (
               <div className="flex flex-col gap-1.5">
                 <label className="inline-flex items-center gap-2 text-xs font-medium text-content-secondary">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={visionLocked ? true : vision}
-                    onChange={e => setVision(e.target.checked)}
+                    onCheckedChange={setVision}
                     disabled={visionLocked}
-                    className="h-3.5 w-3.5 rounded border-line-strong text-primary-500 focus:ring-primary-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="h-3.5 w-3.5 disabled:opacity-60"
                   />
                   {t('settings.ai.modelVision')}
                 </label>
@@ -2821,11 +2819,10 @@ const GlobalOwnModelSelector = ({
           </div>
           {registrySlug && model.trim().length > 0 && (
             <label className="flex items-start gap-2 text-xs font-medium text-content-secondary">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={vision}
-                onChange={e => setVision(e.target.checked)}
-                className="mt-0.5 h-3.5 w-3.5 rounded border-line-strong text-primary-500 focus:ring-primary-500"
+                onCheckedChange={setVision}
+                className="mt-0.5 h-3.5 w-3.5"
               />
               <span>
                 {t('settings.ai.modelVision')}
