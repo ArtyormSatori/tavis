@@ -237,19 +237,19 @@ const CatalogRow = memo(
               )}
             </div>
           </div>
-        </td>
-        <td className="px-4 py-3 hidden sm:table-cell">
+        </TableCell>
+        <TableCell className="hidden sm:table-cell">
           <TransportBadge transport={transportOf(server)} />
-        </td>
-        <td className="px-4 py-3 hidden sm:table-cell">
+        </TableCell>
+        <TableCell className="hidden sm:table-cell">
           <span className="text-xs text-content-muted truncate block">{author ?? '—'}</span>
-        </td>
-        <td className="px-4 py-3 text-right">
+        </TableCell>
+        <TableCell className="text-right">
           <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
             {t('mcp.install.button')}
           </span>
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 );
