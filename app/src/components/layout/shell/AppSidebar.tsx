@@ -51,7 +51,7 @@ function FooterNavButton({
       // resting weight stays normal so only the active row reads as semibold.
       className={`group mx-2 h-auto flex-shrink-0 justify-start gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] cursor-pointer ${
         active
-          ? 'bg-surface/70 text-content font-semibold'
+          ? 'bg-surface/70 text-content font-semibold hover:bg-surface/70'
           : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
       }`}>
       <NavIcon id={iconId} className="h-4 w-4 flex-shrink-0" />

@@ -76,7 +76,7 @@ export default function CollapsedNavRail() {
           aria-current={homeActive ? 'page' : undefined}
           className={`${RAIL_BTN} ${
             homeActive
-              ? 'bg-surface/70 text-content'
+              ? 'bg-surface/70 text-content hover:bg-surface/70'
               : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
           }`}>
           <NavIcon id="home" className="h-5 w-5" />
@@ -112,7 +112,7 @@ export default function CollapsedNavRail() {
               aria-current={active ? 'page' : undefined}
               className={`${RAIL_BTN} ${
                 active
-                  ? 'bg-surface/70 text-content'
+                  ? 'bg-surface/70 text-content hover:bg-surface/70'
                   : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
               }`}>
               <NavIcon id={tab.id} className="h-5 w-5" />
@@ -138,7 +138,7 @@ export default function CollapsedNavRail() {
         analyticsId="collapsed-rail-settings"
         className={`${RAIL_BTN} ${
           settingsActive
-            ? 'bg-surface/70 text-content'
+            ? 'bg-surface/70 text-content hover:bg-surface/70'
             : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
         }`}>
         <NavIcon id="settings" className="h-5 w-5" />

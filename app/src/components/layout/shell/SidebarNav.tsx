@@ -92,7 +92,7 @@ export default function SidebarNav() {
             // as semibold.
             className={`group h-auto justify-start gap-2.5 rounded-md px-2.5 py-2 text-[14px] cursor-pointer ${
               active
-                ? 'bg-surface/70 text-content font-semibold'
+                ? 'bg-surface/70 text-content font-semibold hover:bg-surface/70'
                 : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
             }`}>
             <span className="relative inline-flex flex-shrink-0">

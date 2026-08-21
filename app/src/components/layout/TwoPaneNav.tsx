@@ -74,7 +74,7 @@ export default function TwoPaneNav({
                       // translucent chrome and an opaque pane.
                       className={`h-auto w-full justify-start rounded-md px-2.5 py-1.5 text-left text-[14px] ${
                         active
-                          ? 'bg-surface/70 font-semibold text-content'
+                          ? 'bg-surface/70 font-semibold text-content hover:bg-surface/70'
                           : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
                       }`}>
                       <span
