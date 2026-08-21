@@ -23,12 +23,7 @@ export {
   type ToolOutputProps,
   type ToolProps,
 } from './Tool';
-export type {
-  DynamicToolPart,
-  StaticToolPart,
-  ToolPart,
-  ToolPartState,
-} from './types';
+export type { DynamicToolPart, StaticToolPart, ToolPart, ToolPartState } from './types';
 
 // Tool approval
 export {
@@ -142,12 +137,7 @@ export {
 } from './Sources';
 
 // Composer affordances
-export {
-  Suggestion,
-  Suggestions,
-  type SuggestionProps,
-  type SuggestionsProps,
-} from './Suggestion';
+export { Suggestion, Suggestions, type SuggestionProps, type SuggestionsProps } from './Suggestion';
 
 // Icons
 export { BookIcon, BrainIcon, ChevronDownIcon, DotIcon } from './icons';

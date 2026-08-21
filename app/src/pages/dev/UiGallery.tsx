@@ -1,111 +1,6 @@
 import { useState } from 'react';
 
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  AccordionContent,
-  AccordionItem,
-  AccordionRoot,
-  AccordionTrigger,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogRoot,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  AvatarFallback,
-  AvatarImage,
-  AvatarRoot,
-  Badge,
-  Button,
-  ButtonGroupItem,
-  ButtonGroupRoot,
-  Card,
-  Checkbox,
-  CollapsibleContent,
-  CollapsibleRoot,
-  CollapsibleTrigger,
-  ConfirmDialog,
-  DialogContent,
-  DialogRoot,
-  DialogTitle,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuRoot,
-  DropdownMenuTrigger,
-  EmptyState,
-  Field,
-  HoverCardContent,
-  HoverCardRoot,
-  HoverCardTrigger,
-  Input,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-  InputGroupRoot,
-  Label,
-  ListRow,
-  NativeSelect,
-  NumberField,
-  PopoverContent,
-  PopoverRoot,
-  PopoverTrigger,
-  Progress,
-  RadioGroupItem,
-  RadioGroupRoot,
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValue,
-  Separator,
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuIcon,
-  SidebarMenuItem,
-  SidebarMenuLabel,
-  SidebarProvider,
-  SidebarRail,
-  SidebarSeparator,
-  SidebarTrigger,
-  SheetContent,
-  SheetRoot,
-  SheetTitle,
-  SheetTrigger,
-  Slider,
-  StatusLine,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TabsContent,
-  TabsList,
-  TabsRoot,
-  TabsTrigger,
-  TextArea,
-  TextField,
-  Toggle,
-  ToggleGroupItem,
-  ToggleGroupRoot,
-  Tooltip,
-  VisuallyHidden,
-} from '../../components/ui';
-import {
   Artifact,
   ArtifactAction,
   ArtifactActions,
@@ -155,6 +50,111 @@ import {
   ToolInput,
   ToolOutput,
 } from '../../components/ai-elements';
+import {
+  AccordionContent,
+  AccordionItem,
+  AccordionRoot,
+  AccordionTrigger,
+  Alert,
+  AlertDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogRoot,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertTitle,
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
+  Badge,
+  Button,
+  ButtonGroupItem,
+  ButtonGroupRoot,
+  Card,
+  Checkbox,
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger,
+  ConfirmDialog,
+  DialogContent,
+  DialogRoot,
+  DialogTitle,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
+  EmptyState,
+  Field,
+  HoverCardContent,
+  HoverCardRoot,
+  HoverCardTrigger,
+  Input,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupRoot,
+  Label,
+  ListRow,
+  NativeSelect,
+  NumberField,
+  PopoverContent,
+  PopoverRoot,
+  PopoverTrigger,
+  Progress,
+  RadioGroupItem,
+  RadioGroupRoot,
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  SheetContent,
+  SheetRoot,
+  SheetTitle,
+  SheetTrigger,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuIcon,
+  SidebarMenuItem,
+  SidebarMenuLabel,
+  SidebarProvider,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+  Slider,
+  StatusLine,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TabsContent,
+  TabsList,
+  TabsRoot,
+  TabsTrigger,
+  TextArea,
+  TextField,
+  Toggle,
+  ToggleGroupItem,
+  ToggleGroupRoot,
+  Tooltip,
+  VisuallyHidden,
+} from '../../components/ui';
 
 /**
  * Dev-only gallery of every shared UI primitive, reachable at `#/dev/ui`.
@@ -727,7 +727,9 @@ export default function UiGallery() {
                 </AvatarRoot>
                 <div>
                   <p className="text-sm font-medium text-content">Ada Byron</p>
-                  <p className="text-xs text-content-muted">Rich, optional preview — not a label.</p>
+                  <p className="text-xs text-content-muted">
+                    Rich, optional preview — not a label.
+                  </p>
                 </div>
               </div>
             </HoverCardContent>
@@ -795,6 +797,13 @@ export default function UiGallery() {
             </p>
           </SidebarInset>
         </SidebarProvider>
+      </Section>
+
+      <Section title="Feedback">
+        <Progress value={42} aria-label="Progress" />
+        <StatusLine saving={false} savedNote="Saved" savingLabel="Saving…" />
+        <StatusLine saving savingLabel="Saving…" />
+        <StatusLine saving={false} error="Could not reach the server." savingLabel="Saving…" />
       </Section>
 
       <header className="space-y-1 pt-4">
@@ -983,13 +992,6 @@ export default function UiGallery() {
           <Suggestion suggestion="Show the failing tests" onClick={setPicked} />
         </Suggestions>
         <p className="text-xs text-content-muted">Picked: {picked ?? 'nothing yet'}</p>
-      </Section>
-
-      <Section title="Feedback">
-        <Progress value={42} aria-label="Progress" />
-        <StatusLine saving={false} savedNote="Saved" savingLabel="Saving…" />
-        <StatusLine saving savingLabel="Saving…" />
-        <StatusLine saving={false} error="Could not reach the server." savingLabel="Saving…" />
       </Section>
     </div>
   );
