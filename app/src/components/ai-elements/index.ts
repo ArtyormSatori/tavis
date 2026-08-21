@@ -5,126 +5,41 @@
  * Same rule as `components/ui`: if a component exists here, import it from
  * `components/ai-elements` rather than reaching into the file. These are
  * compound components — a root plus its slots — so each family is exported as
- * a group, and the shared tool-part wire shapes come from `./types`.
+ * a group.
+ *
+ * WHAT IS NOT HERE, AND WHY. The port originally landed ten families. Eight of
+ * them — Artifact, ChainOfThought, Confirmation, Plan, Reasoning, Suggestion,
+ * Task and Tool — were written, tested, exported and then imported by nothing
+ * outside the dev gallery. That state is worse than absence: a component that
+ * renders nowhere reads as "already migrated" in every audit while the
+ * hand-rolled UI it was meant to replace stays in place, and its passing tests
+ * give false confidence about code no user reaches. Each was checked against
+ * this product's real transcript surfaces and deleted rather than force-fitted:
+ *
+ * - `Reasoning` / `ChainOfThought` — this product renders the agent's thinking
+ *   INLINE at the position it streamed (`ToolTimelineBlock`'s `ThoughtBlock`,
+ *   explicitly "no heading, no collapse"; `ProcessingTranscriptView`'s
+ *   interleaved narration). Both upstream components are whole-panel
+ *   collapsibles that hide that trail behind one "Thought for N seconds"
+ *   summary — the opposite of the chosen design.
+ * - `Task` / `Plan` — `ThreadTodoStrip` and `PlanReviewCard` are the real
+ *   surfaces. The strip wants a plain `ui/Collapsible`, not `Task`'s
+ *   search-icon trigger and bordered rail; the review card is a blocking
+ *   decision surface that must not be collapsible at all.
+ * - `Confirmation` — models the AI SDK's tool-part approval lifecycle.
+ *   `ApprovalRequestCard` resolves approvals over an RPC with optimistic
+ *   dispatch; the state machines do not correspond.
+ * - `Artifact` — a side-panel document-viewer shell. `ArtifactCard` is a
+ *   compact inline in_progress/ready/failed status row with a download action.
+ * - `Suggestion` — there are no suggested-reply chips in this product.
+ * - `Tool` — `ToolTimelineBlock` carries run-loop coalescing that upstream has
+ *   no equivalent for and stays. Nothing else needs a tool-call renderer.
+ *
+ * If one of these is wanted later, it is a `git log` away — but it should come
+ * back with a caller in the same change.
  */
 
-// Tool calls
-export {
-  Tool,
-  ToolContent,
-  ToolHeader,
-  ToolInput,
-  ToolOutput,
-  ToolStatusBadge,
-  getStatusBadge,
-  type ToolContentProps,
-  type ToolHeaderProps,
-  type ToolInputProps,
-  type ToolOutputProps,
-  type ToolProps,
-} from './Tool';
-export type { DynamicToolPart, StaticToolPart, ToolPart, ToolPartState } from './types';
-
-// Tool approval
-export {
-  Confirmation,
-  ConfirmationAccepted,
-  ConfirmationAction,
-  ConfirmationActions,
-  ConfirmationRejected,
-  ConfirmationRequest,
-  ConfirmationTitle,
-  type ConfirmationAcceptedProps,
-  type ConfirmationActionProps,
-  type ConfirmationActionsProps,
-  type ConfirmationProps,
-  type ConfirmationRejectedProps,
-  type ConfirmationRequestProps,
-  type ConfirmationState,
-  type ConfirmationTitleProps,
-  type ToolApproval,
-} from './Confirmation';
-
-// Model thinking
-export {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-  useReasoning,
-  type ReasoningContentProps,
-  type ReasoningProps,
-  type ReasoningTriggerProps,
-} from './Reasoning';
-export {
-  ChainOfThought,
-  ChainOfThoughtContent,
-  ChainOfThoughtHeader,
-  ChainOfThoughtImage,
-  ChainOfThoughtSearchResult,
-  ChainOfThoughtSearchResults,
-  ChainOfThoughtStep,
-  type ChainOfThoughtContentProps,
-  type ChainOfThoughtHeaderProps,
-  type ChainOfThoughtImageProps,
-  type ChainOfThoughtProps,
-  type ChainOfThoughtSearchResultProps,
-  type ChainOfThoughtSearchResultsProps,
-  type ChainOfThoughtStepIcon,
-  type ChainOfThoughtStepProps,
-  type ChainOfThoughtStepStatus,
-} from './ChainOfThought';
-
-// Work in progress
-export {
-  Plan,
-  PlanAction,
-  PlanContent,
-  PlanDescription,
-  PlanFooter,
-  PlanHeader,
-  PlanTitle,
-  PlanTrigger,
-  type PlanActionProps,
-  type PlanContentProps,
-  type PlanDescriptionProps,
-  type PlanFooterProps,
-  type PlanHeaderProps,
-  type PlanProps,
-  type PlanTitleProps,
-  type PlanTriggerProps,
-} from './Plan';
-export {
-  Task,
-  TaskContent,
-  TaskItem,
-  TaskItemFile,
-  TaskTrigger,
-  type TaskContentProps,
-  type TaskItemFileProps,
-  type TaskItemProps,
-  type TaskProps,
-  type TaskTriggerProps,
-} from './Task';
-
-// Output surfaces
-export {
-  Artifact,
-  ArtifactAction,
-  ArtifactActions,
-  ArtifactClose,
-  ArtifactContent,
-  ArtifactDescription,
-  ArtifactHeader,
-  ArtifactTitle,
-  type ArtifactActionProps,
-  type ArtifactActionsProps,
-  type ArtifactCloseProps,
-  type ArtifactContentProps,
-  type ArtifactDescriptionProps,
-  type ArtifactHeaderProps,
-  type ArtifactProps,
-  type ArtifactTitleProps,
-} from './Artifact';
+// Web sources the agent visited
 export {
   Source,
   Sources,
@@ -155,8 +70,5 @@ export {
   type MessageRole,
 } from './Message';
 
-// Composer affordances
-export { Suggestion, Suggestions, type SuggestionProps, type SuggestionsProps } from './Suggestion';
-
 // Icons
-export { BookIcon, BrainIcon, ChevronDownIcon, DotIcon } from './icons';
+export { BookIcon, ChevronDownIcon } from './icons';

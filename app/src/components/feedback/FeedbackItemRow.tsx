@@ -83,12 +83,12 @@ export default function FeedbackItemRow({
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-content-faint">
           <span className="flex items-center gap-1.5">
-            <span
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${avatarTint(
-                item.createdBy
-              )}`}>
-              {avatarInitial}
-            </span>
+            <AvatarRoot className={`h-5 w-5 bg-transparent`}>
+              <AvatarFallback
+                className={`bg-transparent text-[10px] font-semibold ${avatarTint(item.createdBy)}`}>
+                {avatarInitial}
+              </AvatarFallback>
+            </AvatarRoot>
             <span className="font-medium text-content-muted">{authorName}</span>
           </span>
           <span>·</span>
