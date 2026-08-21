@@ -987,6 +987,41 @@ fn dispatch_task(
     }
 }
 
+/// An absolute or parent-escaping ownership path is rejected with the host's
+/// own sentence, not the crate's typed error.
+#[test]
+fn invalid_ownership_paths_are_rejected_with_the_host_message() {
+    for raw in ["files: /etc/passwd", "files: ../outside.rs"] {
+        let definition = definition_with_tool_scope(
+            "writer",
+            ToolScope::Named(vec!["write_fixture".into()]),
+            SandboxMode::None,
+        );
+        let definitions = HashMap::from([(definition.id.clone(), definition)]);
+        let parent = parent_admitting(&["writer"], write_fixture_tools());
+
+        let preflight = prepare_spawn_parallel_tasks_from_defs(
+            vec![dispatch_task("writer", Some(raw), None)],
+            &definitions,
+            &parent,
+        );
+
+        match &preflight[0] {
+            SpawnParallelTaskPreflight::Rejected(rejection) => {
+                assert_eq!(rejection.kind, ParallelTaskRejectionKind::RequiresIsolation);
+                assert!(
+                    rejection.error.contains("must be a relative file path"),
+                    "ownership rejection wording changed for {raw}: {}",
+                    rejection.error
+                );
+            }
+            SpawnParallelTaskPreflight::Prepared(_) => {
+                panic!("an out-of-workspace ownership path must be rejected: {raw}")
+            }
+        }
+    }
+}
+
 /// Pins the write-safety dispatch decision for a mixed batch.
 ///
 /// This is the assertion that must not move: a regression here does not fail a
