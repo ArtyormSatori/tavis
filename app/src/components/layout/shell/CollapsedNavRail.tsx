@@ -7,7 +7,13 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import { trackEvent } from '../../../services/analytics';
 import { useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
-import { Button, Tooltip } from '../../ui';
+import {
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  Tooltip,
+} from '../../ui';
 import { NavIcon } from './navIcons';
 import { useHomeNav } from './useHomeNav';
 
@@ -21,18 +27,21 @@ function matchActive(path: string, pathname: string): boolean {
 }
 
 /**
- * Rail footprint layered on top of `<Button variant="tertiary" iconOnly>`: the
- * rail is 32px square where the `md` icon-only button is 36px, and the badge
- * needs a positioning context. Everything else (focus ring, transition) comes
- * from the primitive.
+ * Rail footprint layered on `SidebarMenuButton`: the rail is a 32px square
+ * where the primitive's rows are full-width and left-aligned, and the unread
+ * badge needs a positioning context. Everything else — the active fill, the
+ * focus ring, the transition — comes from the primitive.
  */
-const RAIL_BTN = 'group relative h-8 w-8 rounded-lg cursor-pointer';
+const RAIL_BTN = 'relative h-8 w-8 justify-center rounded-lg p-0';
 
 /**
  * Icon-only navigation shown in the collapsed root-shell rail: the Home action
  * plus every primary {@link NAV_TABS} destination. Mirrors {@link SidebarNav}'s
  * routing/active rules and {@link SidebarHeader}'s Home behaviour (via the shared
  * {@link useHomeNav} hook) so a collapsed sidebar still navigates the app.
+ *
+ * Renders outside the `Sidebar` column (the column is unmounted while
+ * collapsed), which is fine: the menu primitives read no sidebar context.
  */
 export default function CollapsedNavRail() {
   const { t } = useT();
@@ -60,84 +69,74 @@ export default function CollapsedNavRail() {
   const settingsActive = matchActive('/settings', location.pathname);
 
   return (
-    <nav className="flex flex-col items-center gap-2" aria-label={t('nav.home')}>
-      {/* Home */}
-      <Tooltip label={t('nav.home')}>
-        <Button
-          variant="tertiary"
-          iconOnly
-          onClick={handleHome}
-          aria-label={t('nav.home')}
-          aria-current={homeActive ? 'page' : undefined}
-          className={`${RAIL_BTN} ${
-            homeActive
-              ? 'bg-surface/70 text-content hover:bg-surface/70'
-              : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
-          }`}>
-          <NavIcon id="home" className="h-5 w-5" />
-        </Button>
-      </Tooltip>
-
-      {/* Keyboard shortcuts — mirrors SidebarHeader's shortcuts button for the
-          collapsed state. Opens the help directory (also reachable via ? / ⌘/). */}
-      <Tooltip label={t('shortcuts.title')}>
-        <Button
-          variant="tertiary"
-          iconOnly
-          onClick={() => registry.runAction('meta.keyboard-shortcuts')}
-          aria-label={t('shortcuts.title')}
-          analyticsId="collapsed-rail-shortcuts"
-          className={`${RAIL_BTN} text-content-muted hover:bg-surface-hover hover:text-content-secondary`}>
-          <NavIcon id="keyboard" className="h-5 w-5" />
-        </Button>
-      </Tooltip>
-
-      {/* Primary nav destinations */}
-      {tabs.map(tab => {
-        const active = matchActive(tab.path, location.pathname);
-        const showBadge = tab.id === 'notifications' && unreadCount > 0;
-        return (
-          <Tooltip key={tab.id} label={tab.label}>
-            <Button
-              variant="tertiary"
-              iconOnly
-              data-walkthrough={tab.walkthroughAttr}
-              onClick={() => handleClick(tab, active)}
-              aria-label={tab.label}
-              aria-current={active ? 'page' : undefined}
-              className={`${RAIL_BTN} ${
-                active
-                  ? 'bg-surface/70 text-content hover:bg-surface/70'
-                  : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
-              }`}>
-              <NavIcon id={tab.id} className="h-5 w-5" />
-              {showBadge && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-[13px] min-w-[13px] items-center justify-center rounded-full bg-coral-500 px-1 text-[9px] font-bold leading-none text-content-inverted">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Button>
+    <nav aria-label={t('nav.home')}>
+      <SidebarMenu className="items-center gap-2">
+        {/* Home */}
+        <SidebarMenuItem>
+          <Tooltip label={t('nav.home')}>
+            <SidebarMenuButton
+              isActive={homeActive}
+              onClick={handleHome}
+              aria-label={t('nav.home')}
+              className={RAIL_BTN}>
+              <NavIcon id="home" className="h-5 w-5" />
+            </SidebarMenuButton>
           </Tooltip>
-        );
-      })}
+        </SidebarMenuItem>
 
-      {/* Settings — reached via the header gear when expanded, which is hidden
-          in the collapsed rail, so it gets its own icon here. */}
-      <Button
-        variant="tertiary"
-        iconOnly
-        onClick={() => navigate('/settings')}
-        title={t('nav.settings')}
-        aria-label={t('nav.settings')}
-        aria-current={settingsActive ? 'page' : undefined}
-        analyticsId="collapsed-rail-settings"
-        className={`${RAIL_BTN} ${
-          settingsActive
-            ? 'bg-surface/70 text-content hover:bg-surface/70'
-            : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
-        }`}>
-        <NavIcon id="settings" className="h-5 w-5" />
-      </Button>
+        {/* Keyboard shortcuts — mirrors SidebarHeader's shortcuts button for the
+            collapsed state. Opens the help directory (also reachable via ? / ⌘/). */}
+        <SidebarMenuItem>
+          <Tooltip label={t('shortcuts.title')}>
+            <SidebarMenuButton
+              onClick={() => registry.runAction('meta.keyboard-shortcuts')}
+              aria-label={t('shortcuts.title')}
+              data-analytics-id="collapsed-rail-shortcuts"
+              className={RAIL_BTN}>
+              <NavIcon id="keyboard" className="h-5 w-5" />
+            </SidebarMenuButton>
+          </Tooltip>
+        </SidebarMenuItem>
+
+        {/* Primary nav destinations */}
+        {tabs.map(tab => {
+          const active = matchActive(tab.path, location.pathname);
+          const showBadge = tab.id === 'notifications' && unreadCount > 0;
+          return (
+            <SidebarMenuItem key={tab.id}>
+              <Tooltip label={tab.label}>
+                <SidebarMenuButton
+                  isActive={active}
+                  data-walkthrough={tab.walkthroughAttr}
+                  onClick={() => handleClick(tab, active)}
+                  aria-label={tab.label}
+                  className={RAIL_BTN}>
+                  <NavIcon id={tab.id} className="h-5 w-5" />
+                  {showBadge && (
+                    <SidebarMenuBadge tone="attention" className="absolute -right-0.5 -top-0.5 ml-0">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </SidebarMenuBadge>
+                  )}
+                </SidebarMenuButton>
+              </Tooltip>
+            </SidebarMenuItem>
+          );
+        })}
+
+        {/* Settings — reached via the header gear when expanded, which is hidden
+            in the collapsed rail, so it gets its own icon here. */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={settingsActive}
+            onClick={() => navigate('/settings')}
+            title={t('nav.settings')}
+            aria-label={t('nav.settings')}
+            data-analytics-id="collapsed-rail-settings"
+            className={RAIL_BTN}>
+            <NavIcon id="settings" className="h-5 w-5" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
     </nav>
   );
 }
