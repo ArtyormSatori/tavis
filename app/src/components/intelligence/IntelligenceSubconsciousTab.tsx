@@ -9,6 +9,8 @@ import type {
   SubconsciousStatus,
 } from '../../utils/tauriCommands/subconscious';
 import { settingsNavState } from '../settings/modal/settingsOverlay';
+import Button from '../ui/Button';
+import Slider from '../ui/Slider';
 import SubconsciousInstanceCard from './SubconsciousInstanceCard';
 
 interface ModeOption {
