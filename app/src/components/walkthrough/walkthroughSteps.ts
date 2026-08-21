@@ -177,7 +177,7 @@ export function createWalkthroughSteps(
       skipBeacon: true,
     },
 
-    // ── Step 13 — /chat (pre-seeded welcome message) ──────────────────────
+    // ── Step 12 — /chat (pre-seeded welcome message) ──────────────────────
     {
       target: '[data-walkthrough="chat-agent-panel"]',
       title: t('walkthrough.steps.allSet.title'),
