@@ -6,8 +6,10 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogRoot,
+  AlertDialogTitle,
 } from '../ui/AlertDialog';
 import Checkbox from '../ui/Checkbox';
 import Label from '../ui/Label';
