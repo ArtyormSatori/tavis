@@ -139,9 +139,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       className={cn(buttonVariants({ variant, tone, size, iconOnly }), className)}
       data-analytics-id={analyticsId}
       {...rest}>
-      {leadingIcon}
-      {children}
-      {trailingIcon}
+      {/* `Slot` requires exactly one element child, so under `asChild` the
+          caller owns its own layout and the icon slots are not applied. */}
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {leadingIcon}
+          {children}
+          {trailingIcon}
+        </>
+      )}
     </Comp>
   );
 });
