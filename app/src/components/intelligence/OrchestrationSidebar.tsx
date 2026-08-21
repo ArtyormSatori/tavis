@@ -321,22 +321,26 @@ export default function OrchestrationSidebar({
               {t('tinyplaceOrchestration.noContacts')}
             </div>
           ) : (
-            <div className="space-y-1 px-2 pb-2">
+            <AccordionRoot
+              type="multiple"
+              value={openContactAddresses}
+              onValueChange={handleContactValueChange}
+              className="divide-y-0 space-y-1 px-2 pb-2">
               {acceptedContactList.map((contact, index) => {
                 const address = contactAddress(contact);
                 const handle = address ? agentHandles[address] : null;
                 const isOpen = !!expandedContacts[address];
                 const contactSessions = address ? (sessionsByContact.get(address) ?? []) : [];
                 return (
-                  <div
+                  <AccordionItem
                     key={address || `contact-${index}`}
+                    value={address}
                     className="overflow-hidden rounded-lg border border-line bg-surface">
-                    <button
-                      type="button"
+                    <AccordionTrigger
+                      showChevron={false}
+                      size="sm"
                       data-testid={`tinyplace-contact-${address}`}
-                      aria-expanded={isOpen}
-                      onClick={() => onToggleContact(address)}
-                      className="flex w-full items-center gap-2 px-2 py-2 text-left transition hover:bg-surface-hover">
+                      className="px-2 py-2">
                       <span className="flex-none text-[10px] text-content-muted">
                         {isOpen ? '▾' : '▸'}
                       </span>
@@ -355,8 +359,8 @@ export default function OrchestrationSidebar({
                           {contactSessions.length}
                         </span>
                       ) : null}
-                    </button>
-                    {isOpen ? (
+                    </AccordionTrigger>
+                    <AccordionContent className="px-0 pb-0">
                       <div className="border-t border-line-subtle">
                         {contactSessions.map(chat => (
                           <ChatListButton
@@ -379,11 +383,11 @@ export default function OrchestrationSidebar({
                           + {t('tinyplaceOrchestration.newSession')}
                         </button>
                       </div>
-                    ) : null}
-                  </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 );
               })}
-            </div>
+            </AccordionRoot>
           )}
         </section>
 
