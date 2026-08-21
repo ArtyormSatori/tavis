@@ -1259,7 +1259,12 @@ pub fn all_tools_with_runtime(
          memory capabilities",
         tools.len()
     );
-    tools
+
+    // Last step, after every gate: move the packed families behind
+    // `load_skill` / `use_skill`. It runs here rather than at the individual
+    // registration sites so pack membership stays one table and a tool that
+    // gains a new construction site cannot escape its pack.
+    crate::openhuman::tools::toolpacks::split_packed_tools(tools)
 }
 
 /// Classify an agent tool into its [`DomainGroup`](crate::core::all::DomainGroup)

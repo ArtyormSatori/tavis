@@ -288,7 +288,7 @@ fn main() {
 
     // Delegate to the core library to handle the command.
     if let Err(err) = openhuman_core::run_core_from_args(&args) {
-        eprintln!("{err}");
+        eprintln!("{err:#}");
         std::process::exit(1);
     }
 }
