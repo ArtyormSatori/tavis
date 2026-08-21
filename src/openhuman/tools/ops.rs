@@ -477,14 +477,6 @@ pub fn all_tools_with_runtime(
         // per-query recall). Written verbatim to user_pref_{general,situational};
         // bypasses the inference/stability pipeline. Always registered.
         Box::new(SavePreferenceTool::new(security.clone())),
-        Box::new(MonitorTool::new(
-            security.clone(),
-            Arc::clone(&runtime),
-            Arc::clone(&audit),
-        )),
-        Box::new(MonitorListTool),
-        Box::new(MonitorStopTool),
-        Box::new(MonitorReadTool),
         // WhatsApp data store — read-only agent surface (issue #1341). The
         // store lives in the Tauri shell; these tools reach it over the
         // in-process native request bus. The matching ingest write-path is
@@ -777,9 +769,6 @@ pub fn all_tools_with_runtime(
     // choosing it and reporting the failure back to the user.
     #[cfg(feature = "memory-git")]
     tools.push(Box::new(crate::openhuman::memory::diff::MemoryDiffTool));
-
-    // Subconscious user-facing handoff — notify_user proactive delivery.
-    tools.extend(crate::openhuman::subconscious::user_thread::all_user_thread_tools());
 
     // tiny.place agent surface. These wrap the internal tiny.place controllers
     // so the dedicated tinyplace subagent can register identities, inspect
