@@ -57,7 +57,7 @@ pub use core::types::HostKind;
 pub use embed::{Access, Harness, HarnessBuilder, HarnessError, Provider, Workspace};
 #[cfg(feature = "mcp")]
 pub use embed::McpServer;
-pub use embed::{Turn, TurnOutcome, TurnRequest};
+pub use embed::{Session, Turn, TurnOutcome, TurnRequest};
 
 /// Live agent-turn progress for **in-process embedders**.
 ///

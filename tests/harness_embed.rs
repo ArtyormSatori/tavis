@@ -18,7 +18,7 @@
 
 use openhuman_core::core::runtime::{AGENT_WORKER_STACK_BYTES, MAX_BLOCKING_THREADS};
 use openhuman_core::openhuman::config::Config;
-use openhuman_core::{Access, Harness, Provider, Workspace};
+use openhuman_core::{Access, Harness, Provider, Session, Workspace};
 use serde_json::json;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -92,6 +92,11 @@ fn a_harness_runs_a_turn_against_the_provider_it_was_given() {
             // Read-only: the turn has no business acting, and this keeps the
             // test from depending on the approval gate's timing.
             .access(Access::readonly())
+            // Routing at a custom provider is gated on an active app session,
+            // even though this harness was handed its own endpoint and key. A
+            // local session satisfies that gate without asserting anything at
+            // the backend — see `Session::local`.
+            .session(Session::local("harness-embed-test"))
             .build()
             .await
             .expect("harness builds");
