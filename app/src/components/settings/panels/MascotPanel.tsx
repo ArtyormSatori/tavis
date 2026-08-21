@@ -569,7 +569,7 @@ const MascotPanel = ({ embedded = false }: MascotPanelProps) => {
               data-testid="mascot-voice-preview"
               onClick={() => void onVoicePreview()}
               disabled={isPreviewingVoice}
-              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500">
+              className="bg-sage-500 hover:bg-sage-600 dark:hover:bg-sage-400">
               {isPreviewingVoice
                 ? t('settings.mascot.voice.previewing')
                 : t('settings.mascot.voice.preview')}
@@ -725,7 +725,7 @@ const MascotPanel = ({ embedded = false }: MascotPanelProps) => {
             <p className="p-4 text-sm text-content-muted">{t('settings.mascot.noCharacters')}</p>
           )}
           {manifest && manifest.mascots.length > 0 && (
-            <ul className="divide-y divide-line-subtle dark:divide-neutral-800">
+            <ul className="divide-y divide-line-subtle">
               <li>
                 <button
                   type="button"
