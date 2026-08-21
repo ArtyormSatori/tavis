@@ -335,21 +335,13 @@ impl ApprovalGate {
     }
 
     /// Resolve the actual park duration from the gate's own `effective_ttl`
-    /// plus whichever origin-specific clamp is active for this call
-    /// (`in_call` → [`IN_CALL_APPROVAL_TTL`], `copilot_stream` →
-    /// [`COPILOT_APPROVAL_TTL`]). A clamp only ever *shortens* the park — it
-    /// can never extend `effective_ttl` past what the gate itself allows
-    /// (e.g. a debug env override). Both flags are expected to be mutually
-    /// exclusive in production (a live-meeting turn and a `flows_build`
-    /// copilot stream are different call sites), but if both were ever true
-    /// the tighter of the two clamps wins, since each `min` only narrows.
-    /// Split out (rather than inlined at the call site) so it is unit
-    /// testable without needing to actually park a future.
-    fn resolve_park_ttl(effective_ttl: Duration, in_call: bool, copilot_stream: bool) -> Duration {
+    /// plus the `copilot_stream` clamp ([`COPILOT_APPROVAL_TTL`]) when that
+    /// origin is active. A clamp only ever *shortens* the park — it can never
+    /// extend `effective_ttl` past what the gate itself allows (e.g. a debug
+    /// env override). Split out (rather than inlined at the call site) so it is
+    /// unit testable without needing to actually park a future.
+    fn resolve_park_ttl(effective_ttl: Duration, copilot_stream: bool) -> Duration {
         let mut ttl = effective_ttl;
-        if in_call {
-            ttl = ttl.min(IN_CALL_APPROVAL_TTL);
-        }
         if copilot_stream {
             ttl = ttl.min(COPILOT_APPROVAL_TTL);
         }
@@ -676,11 +668,6 @@ impl ApprovalGate {
             .map(|c| c.client_id.clone())
             .or_else(|| origin_chat_route.as_ref().map(|(_, c)| c.clone()));
 
-        // In-call meeting context — set by agent_meetings::in_call around a
-        // live-meeting orchestrator turn. Enables the spoken approval
-        // channel alongside the thread card (issue #3513).
-        let in_call_ctx = APPROVAL_IN_CALL_CONTEXT.try_with(|c| c.clone()).ok();
-
         // Copilot-streaming context — set by `flows::ops::flows_build` around
         // the streaming `run_single` call. Presence alone clamps the park
         // window to `COPILOT_APPROVAL_TTL`; see that task-local's doc.
@@ -709,16 +696,13 @@ impl ApprovalGate {
                     sender = %sender.as_deref().unwrap_or("<unknown>"),
                     reply_target = %reply_target,
                     message_id = %message_id,
-                    in_call = in_call_ctx.is_some(),
                     "[approval::gate] external channel turn — persisting audit row and parking"
                 );
                 // Fall through to the parking flow: a `pending_approvals` row
                 // is persisted (audit trail) and the future parks. We do NOT
                 // short-circuit to Allow here — remote inputs are untrusted.
-                // Without a routable surface the park TTL-denies; with the
-                // in-call context set (live meeting, issue #3513) a decision
-                // can arrive via the spoken channel (`pending_for_meeting` →
-                // `decide`) or the thread card before the (clamped) TTL.
+                // Without a routable surface the park TTL-denies; a decision
+                // can still arrive via the thread card before the TTL.
             }
             AgentTurnOrigin::TrustedAutomation {
                 source: TrustedAutomationSource::Cron,
@@ -852,14 +836,14 @@ impl ApprovalGate {
         // Resolve the clamped park TTL up front so the persisted `expires_at`
         // and the actual wait below (see `resolve_park_ttl` further down)
         // use the same value — see `Self::resolve_park_ttl` and the
-        // COPILOT_APPROVAL_TTL / IN_CALL_APPROVAL_TTL clamps. Computing this
+        // COPILOT_APPROVAL_TTL clamp. Computing this
         // only after persisting the pending row let a copilot-streaming park
         // advertise the old 10-minute `expires_at` while only actually
         // waiting 180s, so a core restart or an `expire_stale` sweep mid-park
         // could leave the row "actionable" for the wrong window (CodeRabbit
         // + Codex review on PR #5112).
         let effective_ttl =
-            Self::resolve_park_ttl(self.effective_ttl(), in_call_ctx.is_some(), copilot_stream);
+            Self::resolve_park_ttl(self.effective_ttl(), copilot_stream);
         let expires_at = Some(now + chrono::Duration::from_std(effective_ttl).unwrap_or_default());
 
         // Correlation context (flow-approval-surface, PR2): a Workflow-origin
@@ -912,18 +896,9 @@ impl ApprovalGate {
                 .lock()
                 .insert(thread_id.clone(), request_id.clone());
         }
-        // Record the meeting → request mapping so a spoken approval reply
-        // ("Hey Tiny, approve") can be routed to a decision.
-        if let Some(ic) = in_call_ctx.as_ref() {
-            self.meeting_to_request
-                .lock()
-                .insert(ic.meeting_key.clone(), request_id.clone());
-        }
-
         if let Err(err) = store::insert_pending(&self.config, &pending, &self.session_id) {
             self.evict_waiter(&request_id);
             self.clear_thread(&chat_thread_id, &request_id);
-            self.clear_meeting(&in_call_ctx, &request_id);
             tracing::error!(
                 error = %err,
                 tool = tool_name,
@@ -987,26 +962,14 @@ impl ApprovalGate {
             publish_flow_gate_notification(&request_id, flow_id, run_id, tool_name, action_summary);
         }
 
-        // Voice channel (issue #3513): tell the meeting bus to speak the
-        // approval prompt into the call.
-        if let Some(ic) = in_call_ctx.as_ref() {
-            BUS.publish(DomainEvent::InCallApprovalRequested {
-                request_id: request_id.clone(),
-                tool_name: tool_name.to_string(),
-                action_summary: action_summary.to_string(),
-                correlation_id: ic.correlation_id.clone(),
-            });
-        }
-
         tracing::info!(
             request_id = %request_id,
             tool = tool_name,
             "[approval::gate] tool call parked, waiting for decision"
         );
 
-        // Live meetings and copilot-streaming flows_build runs each get a
-        // clamped park window — see IN_CALL_APPROVAL_TTL / COPILOT_APPROVAL_TTL
-        // and `Self::resolve_park_ttl`. `effective_ttl` was resolved above
+        // Copilot-streaming flows_build runs get a clamped park window — see
+        // COPILOT_APPROVAL_TTL and `Self::resolve_park_ttl`. `effective_ttl` was resolved above
         // (before `expires_at` was built) so the persisted expiry and this
         // wait use the identical clamped duration; `effective_ttl()` applies
         // the debug-only env override, and the clamp is applied on top so a
@@ -1176,7 +1139,6 @@ impl ApprovalGate {
         // The routing mappings are only needed while parked; clear them on
         // every exit (decision, channel drop, or timeout).
         self.clear_thread(&chat_thread_id, &request_id);
-        self.clear_meeting(&in_call_ctx, &request_id);
         outcome
     }
 
@@ -1367,24 +1329,10 @@ impl ApprovalGate {
         self.thread_to_request.lock().get(thread_id).cloned()
     }
 
-    /// The request_id of the approval currently parked on a live meeting, if
-    /// any. Used by `agent_meetings::in_call` to route a spoken
-    /// "Hey Tiny, approve" to a decision (issue #3513).
-    pub fn pending_for_meeting(&self, meeting_key: &str) -> Option<String> {
-        self.meeting_to_request.lock().get(meeting_key).cloned()
-    }
-
     /// Drop the thread → request mapping when it still belongs to this request.
     fn clear_thread(&self, thread_id: &Option<String>, request_id: &str) {
         if let Some(t) = thread_id {
             self.clear_thread_route_if_owned(t, request_id);
-        }
-    }
-
-    /// Drop the meeting → request mapping when it still belongs to this request.
-    fn clear_meeting(&self, ctx: &Option<InCallApprovalContext>, request_id: &str) {
-        if let Some(ic) = ctx {
-            self.clear_meeting_route_if_owned(&ic.meeting_key, request_id);
         }
     }
 
@@ -1400,13 +1348,6 @@ impl ApprovalGate {
         }
     }
 
-    /// Meeting-map analogue of [`Self::clear_thread_route_if_owned`].
-    fn clear_meeting_route_if_owned(&self, meeting_key: &str, request_id: &str) {
-        let mut map = self.meeting_to_request.lock();
-        if map.get(meeting_key).is_some_and(|rid| rid == request_id) {
-            map.remove(meeting_key);
-        }
-    }
 }
 
 /// Wall-clock milliseconds since the Unix epoch, for `CoreNotificationEvent::timestamp_ms`.
