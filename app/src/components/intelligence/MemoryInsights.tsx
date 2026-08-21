@@ -291,7 +291,8 @@ export function MemoryInsights({ relations, loading }: MemoryInsightsProps) {
 
               <div className={`space-y-1.5 ${isExpanded ? 'max-h-80 overflow-y-auto pr-1' : ''}`}>
                 {previewItems.map((item, idx) => (
-                  <InsightItemRow key={`${item.subject}-${item.predicate}-${item.object}-${idx}`}
+                  <InsightItemRow
+                    key={`${item.subject}-${item.predicate}-${item.object}-${idx}`}
                     item={item}
                   />
                 ))}
