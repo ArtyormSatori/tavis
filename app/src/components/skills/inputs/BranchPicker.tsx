@@ -15,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { execute as composioExecute } from '../../../lib/composio/composioApi';
 import { useT } from '../../../lib/i18n/I18nContext';
+import { NativeSelect } from '../../ui';
 
 const log = createDebug('app:skills:BranchPicker');
 

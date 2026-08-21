@@ -43,12 +43,12 @@ export default function InstanceCard({
   const identity = handle ? `@${handle}` : (session.label ?? shortAddress(session.agentId));
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="tertiary"
       data-testid={`instance-card-${session.sessionId}`}
       data-selected={selected ? 'true' : 'false'}
       onClick={onSelect}
-      className={`flex w-full items-center gap-3 border-l-2 px-3 py-2 text-left transition hover:bg-surface-hover ${
+      className={`h-auto w-full items-center justify-start gap-3 rounded-none border-l-2 px-3 py-2 text-left ${
         selected ? 'border-ocean-500 bg-surface-muted' : 'border-transparent'
       }`}>
       <HarnessGlyph harness={glyph} />
