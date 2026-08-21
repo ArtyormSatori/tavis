@@ -88,7 +88,6 @@ const PrivacyPanel = () => {
     }
   };
 
-
   return (
     <SettingsPanel
       testId="settings-privacy-panel"
@@ -161,7 +160,6 @@ const PrivacyPanel = () => {
             }
           />
         </SettingsSection>
-
 
         {/* Info Box */}
         <div className="p-4 bg-surface-muted rounded-xl border border-line">

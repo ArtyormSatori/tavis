@@ -282,7 +282,6 @@ export default function OverlayApp() {
     [scheduleDismiss]
   );
 
-
   // ── Socket.IO subscription lifecycle ───────────────────────────────────
   useEffect(() => {
     let socket: Socket | null = null;
@@ -625,7 +624,7 @@ export default function OverlayApp() {
                 ? t('overlay.ariaVoiceActive')
                 : mode === 'attention'
                   ? t('overlay.ariaAttention')
-                    : t('overlay.ariaOrb')
+                  : t('overlay.ariaOrb')
             }
             onMouseDown={handleDragStart}
             onMouseMove={handleMouseMove}

@@ -44,7 +44,6 @@ vi.mock('../../services/socketService', () => {
 
 vi.mock('../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) => k }) }));
 
-
 const sessionsListMock = vi.mocked(orchestrationClient.sessionsList);
 const sessionsCreateMock = vi.mocked(orchestrationClient.sessionsCreate);
 const messagesListMock = vi.mocked(orchestrationClient.messagesList);
@@ -160,7 +159,6 @@ describe('TinyPlaceOrchestrationTab', () => {
       remote: { agentId: '@worker-pending', status: 'blocked' },
     });
   });
-
 
   it('renders pinned master and subconscious chats plus app sessions', async () => {
     sessionsListMock.mockResolvedValue({

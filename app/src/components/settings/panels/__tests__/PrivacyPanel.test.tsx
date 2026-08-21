@@ -110,5 +110,4 @@ describe('PrivacyPanel', () => {
     // Analytics toggle still rendered
     expect(screen.getAllByRole('switch').length).toBeGreaterThanOrEqual(1);
   });
-
 });

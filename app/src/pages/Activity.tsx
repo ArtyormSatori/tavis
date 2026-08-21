@@ -135,7 +135,6 @@ export default function Activity() {
 
               {/* Tab content */}
               {activeTab === 'automations' && <WorkflowsTab />}
-
             </div>
           </div>
         )}

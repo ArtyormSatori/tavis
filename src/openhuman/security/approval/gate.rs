@@ -842,8 +842,7 @@ impl ApprovalGate {
         // waiting 180s, so a core restart or an `expire_stale` sweep mid-park
         // could leave the row "actionable" for the wrong window (CodeRabbit
         // + Codex review on PR #5112).
-        let effective_ttl =
-            Self::resolve_park_ttl(self.effective_ttl(), copilot_stream);
+        let effective_ttl = Self::resolve_park_ttl(self.effective_ttl(), copilot_stream);
         let expires_at = Some(now + chrono::Duration::from_std(effective_ttl).unwrap_or_default());
 
         // Correlation context (flow-approval-surface, PR2): a Workflow-origin
@@ -1347,7 +1346,6 @@ impl ApprovalGate {
             map.remove(thread_id);
         }
     }
-
 }
 
 /// Wall-clock milliseconds since the Unix epoch, for `CoreNotificationEvent::timestamp_ms`.
@@ -1468,9 +1466,6 @@ mod tests {
         }
     }
 
-
-
-
     #[test]
     fn guard_cleanup_only_clears_routing_it_still_owns() {
         // Regression for #4774: on external turn teardown a replacement turn may
@@ -1494,8 +1489,6 @@ mod tests {
         gate.clear_thread_route_if_owned("thread-1", "req-new");
         assert!(gate.pending_for_thread("thread-1").is_none());
     }
-
-
 
     #[tokio::test]
     async fn approve_once_returns_allow() {
@@ -1637,9 +1630,6 @@ mod tests {
         assert!(matches!(new_handle.await.unwrap(), GateOutcome::Allow));
         assert!(gate.pending_for_thread("t-test").is_none());
     }
-
-
-
 
     #[tokio::test]
     async fn auto_approve_tool_skips_prompt() {
@@ -2374,7 +2364,6 @@ mod tests {
             );
         }
 
-
         #[test]
         fn a_clamp_never_extends_a_shorter_boot_time_ttl() {
             // Mirrors production's env-override guard: a clamp may only
@@ -2388,7 +2377,6 @@ mod tests {
                 "copilot clamp must not extend a boot-time TTL that is already shorter"
             );
         }
-
     }
 
     /// Integration regression test for the streaming-to-gate contract

@@ -9,11 +9,7 @@ import type {
   ToolTimelineEntryStatus,
 } from '../../../store/chatRuntimeSlice';
 import { useBackgroundActivity } from '../hooks/useBackgroundActivity';
-import {
-  CronJobRow,
-  MemorySection,
-  SectionHeader,
-} from './BackgroundActivityRows';
+import { CronJobRow, MemorySection, SectionHeader } from './BackgroundActivityRows';
 
 /**
  * A background process = a *detached* sub-agent spawned with

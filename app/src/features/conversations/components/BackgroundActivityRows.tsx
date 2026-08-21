@@ -103,7 +103,6 @@ export function CronJobRow({ job }: { job: CoreCronJob }) {
   );
 }
 
-
 /**
  * Per-provider status pill, driven *only* by freshness (recency of the last
  * ingested chunk). Deliberately NOT keyed off `batch_total > batch_processed`:

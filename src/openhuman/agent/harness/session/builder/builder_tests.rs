@@ -199,15 +199,11 @@ async fn build_session_agent_applies_extended_policy_definition_cap() {
     let def = builtin_def("code_executor");
     assert_eq!(def.effective_max_iterations(), 50);
 
-    let agent = Agent::build_session_agent_inner(
-        &config,
-        "code_executor",
-        Some(&def),
-        None,
-        false,
-        None,
-    )
-    .expect("build_session_agent_inner should succeed for a valid extended-policy definition");
+    let agent =
+        Agent::build_session_agent_inner(&config, "code_executor", Some(&def), None, false, None)
+            .expect(
+                "build_session_agent_inner should succeed for a valid extended-policy definition",
+            );
 
     assert_eq!(
         agent.agent_config().max_tool_iterations,
@@ -259,9 +255,8 @@ async fn build_session_agent_falls_back_to_global_default_when_no_definition() {
     // No `target_def` at all (e.g. registry not yet initialised, or a
     // legacy caller that never resolved one) — must fall back to the
     // unmodified global `config.agent.max_tool_iterations`.
-    let agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
-            .expect("build_session_agent_inner should succeed with no definition");
+    let agent = Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
+        .expect("build_session_agent_inner should succeed with no definition");
 
     assert_eq!(
         agent.agent_config().max_tool_iterations,
@@ -356,15 +351,9 @@ async fn channel_ceiling_does_not_inherit_orchestrator_role_visibility() {
         .insert("internal".to_string(), "execute".to_string());
     let def = builtin_def("orchestrator");
 
-    let agent = Agent::build_session_agent_inner(
-        &config,
-        "orchestrator",
-        Some(&def),
-        None,
-        false,
-        None,
-    )
-    .expect("build channel-scoped orchestrator session");
+    let agent =
+        Agent::build_session_agent_inner(&config, "orchestrator", Some(&def), None, false, None)
+            .expect("build channel-scoped orchestrator session");
 
     assert!(
         agent.visible_tool_names_for_test().contains("file_write"),
@@ -424,9 +413,8 @@ async fn build_session_agent_leaves_active_profile_id_none_without_profile() {
 
     // The profile-less path (the legacy default) must stay byte-identical:
     // no active profile id is stamped.
-    let agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
-            .expect("build_session_agent_inner with no profile should succeed");
+    let agent = Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
+        .expect("build_session_agent_inner with no profile should succeed");
 
     assert_eq!(
         agent.active_profile_id, None,
@@ -496,9 +484,8 @@ async fn build_session_agent_profile_less_uses_shared_memory_subtree() {
 
     // Profile-less path stays byte-identical: session memory uses the shared
     // `memory/` subtree, and no per-profile subtree is created.
-    let _agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
-            .expect("build_session_agent_inner without a profile should succeed");
+    let _agent = Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
+        .expect("build_session_agent_inner without a profile should succeed");
 
     assert!(
         config
@@ -731,9 +718,8 @@ async fn build_session_agent_profile_less_prompt_has_no_personality_soul() {
     std::fs::create_dir_all(&home).unwrap();
     std::fs::write(home.join("SOUL.md"), "I am Alice, a meticulous archivist.").unwrap();
 
-    let agent =
-        Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
-            .expect("build_session_agent_inner without a profile should succeed");
+    let agent = Agent::build_session_agent_inner(&config, "orchestrator", None, None, false, None)
+        .expect("build_session_agent_inner without a profile should succeed");
 
     let prompt = agent
         .build_system_prompt(LearnedContextData::default())

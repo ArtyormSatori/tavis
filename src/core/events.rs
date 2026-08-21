@@ -1428,7 +1428,6 @@ impl DomainEvent {
             | Self::McpSetupSecretRequested { .. }
             | Self::McpToolRejected { .. } => "mcp_client",
 
-
             Self::TinyPlaceStreamMessage { .. } | Self::TinyPlaceStreamStatusChanged { .. } => {
                 "tinyplace"
             }

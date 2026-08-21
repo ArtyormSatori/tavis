@@ -241,7 +241,6 @@ impl SystemPromptBuilder {
         self
     }
 
-
     /// Render every section in order into a single prompt string.
     ///
     /// The rendered bytes are intended to be **frozen for the whole

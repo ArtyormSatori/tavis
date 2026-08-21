@@ -99,11 +99,7 @@ describe('OrchestrationFocusPane', () => {
   });
 
   it('shows the running label while a review is in flight', () => {
-    render(
-      <OrchestrationFocusPane
-        {...props({ selected: chat({ kind: 'subconscious' }) })}
-      />
-    );
+    render(<OrchestrationFocusPane {...props({ selected: chat({ kind: 'subconscious' }) })} />);
     expect(screen.getByText('tinyplaceOrchestration.steeringHeader.running')).toBeInTheDocument();
   });
 

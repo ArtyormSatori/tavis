@@ -218,4 +218,3 @@ describe('socketService — socket event handler dispatches (lines 212, 230, 237
     expect((disconnectedCall![0] as { error: string }).error).toBe('connection refused');
   });
 });
-

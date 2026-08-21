@@ -1102,7 +1102,6 @@ fn flows_controllers_absent_when_feature_off() {
     );
 }
 
-
 /// The `modules` namespace registers when the `modules` feature is on.
 #[cfg(feature = "modules")]
 #[test]
@@ -1128,7 +1127,6 @@ fn modules_controllers_absent_when_feature_off() {
         "`modules` must leave no trace in the registry when the feature is off"
     );
 }
-
 
 /// The external-channel namespace registers when the `channels` feature is on
 /// (#4801).

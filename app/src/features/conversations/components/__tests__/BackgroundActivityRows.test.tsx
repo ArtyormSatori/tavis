@@ -82,7 +82,6 @@ describe('CronJobRow', () => {
   });
 });
 
-
 describe('MemorySection', () => {
   function provider(
     partial: Partial<MemorySyncStatusRow> & { provider: string }

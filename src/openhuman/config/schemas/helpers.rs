@@ -102,7 +102,6 @@ pub(super) struct AnalyticsSettingsUpdate {
     pub(super) enabled: Option<bool>,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub(super) struct SearchSettingsUpdate {
     pub(super) engine: Option<String>,

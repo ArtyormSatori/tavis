@@ -49,7 +49,6 @@ pub fn spawn_login_gated_services(embedded_core: bool) {
                         &config,
                     )
                     .await;
-
                 } else {
                     log::info!(
                         "[services] no active session — deferring service startup until login"

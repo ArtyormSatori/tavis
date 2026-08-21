@@ -111,9 +111,7 @@ export const fetchCoreAppSnapshot = async (): Promise<AppStateSnapshotResult> =>
   });
   // Normalise the optional #1299 field at the API boundary so older core
   // privacy-conservative `false` to callers (e.g. CoreStateProvider).
-  return {
-    ...response.result,
-  };
+  return { ...response.result };
 };
 
 export const updateCoreLocalState = async (params: UpdateCoreLocalStateParams): Promise<void> => {

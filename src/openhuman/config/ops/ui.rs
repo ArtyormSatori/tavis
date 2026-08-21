@@ -1,7 +1,6 @@
 //! UI-facing config operations: browser, analytics,
 //! search, dictation, voice server, onboarding flags.
 
-
 use serde_json::json;
 
 use crate::openhuman::config::Config;
@@ -19,7 +18,6 @@ pub struct BrowserSettingsPatch {
 pub struct AnalyticsSettingsPatch {
     pub enabled: Option<bool>,
 }
-
 
 #[derive(Debug, Clone, Default)]
 pub struct SearchSettingsPatch {
@@ -153,8 +151,6 @@ pub async fn load_and_apply_analytics_settings(
     let mut config = load_config_with_timeout().await?;
     apply_analytics_settings(&mut config, update).await
 }
-
-
 
 /// Updates the search engine configuration. Empty API-key strings clear the
 /// stored value rather than treat empty-string as "credential present".

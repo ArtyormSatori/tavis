@@ -634,7 +634,9 @@ mod tests {
         // silently open an unauthenticated route.
         assert!(!is_public_path("/run"));
         assert!(!is_public_path("/jobs/abc-123"));
-        assert!(!is_public_path("/jobs/00000000-0000-0000-0000-000000000000"));
+        assert!(!is_public_path(
+            "/jobs/00000000-0000-0000-0000-000000000000"
+        ));
         // Sanity: still protect the executable surface.
         assert!(!is_public_path("/rpc"));
         assert!(!is_public_path("/v1/chat/completions"));

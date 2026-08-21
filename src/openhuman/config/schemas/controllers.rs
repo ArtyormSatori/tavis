@@ -599,9 +599,6 @@ fn handle_get_dashboard_settings(_params: Map<String, Value>) -> ControllerFutur
 
 /// Known platform slugs for per-platform auto-join policies.
 
-
-
-
 fn handle_agent_server_status(_params: Map<String, Value>) -> ControllerFuture {
     Box::pin(async { to_json(config_rpc::agent_server_status()) })
 }
@@ -946,9 +943,4 @@ mod tests {
     }
 
     // ── platform slug validation (finding #6) ───────────────────
-
-
-
-
-
 }

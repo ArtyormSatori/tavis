@@ -1308,8 +1308,6 @@ async fn apply_analytics_settings_updates_enabled() {
     assert!(!cfg.observability.analytics_enabled);
 }
 
-
-
 #[tokio::test]
 async fn get_config_snapshot_wraps_snapshot_in_rpc_outcome() {
     let tmp = tempdir().unwrap();

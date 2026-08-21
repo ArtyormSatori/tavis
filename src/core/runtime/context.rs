@@ -100,7 +100,6 @@ impl CoreContext {
         //    run_core_from_args for the CLI).
         crate::openhuman::security::keyring::init_master_key();
 
-
         // 4. Seed the per-process RPC bearer. `Fixed` seeds the in-memory value
         //    directly (never touches the env); `EnvOrFile` reads
         //    OPENHUMAN_CORE_TOKEN or generates + writes {root}/core.token.

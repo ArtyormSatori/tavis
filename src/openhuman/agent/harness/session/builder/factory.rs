@@ -105,14 +105,7 @@ impl Agent {
                 .unwrap_or(config.default_temperature)
         );
 
-        Self::build_session_agent_inner(
-            config,
-            agent_id,
-            target_def.as_ref(),
-            None,
-            false,
-            None,
-        )
+        Self::build_session_agent_inner(config, agent_id, target_def.as_ref(), None, false, None)
     }
 
     /// Construct a session agent with an additional profile prompt section. Used by the web channel when the user

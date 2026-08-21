@@ -536,7 +536,6 @@ describe('CoreStateProvider — identity-change cache clearing', () => {
     expect(vi.mocked(tauriCommands.logout)).not.toHaveBeenCalled();
   });
 
-
   it('dispatching core-rpc-auth-expired triggers clearSession (and debounces repeated fires within 10s)', async () => {
     fetchSnapshot.mockResolvedValue(makeSnapshot({ userId: 'u1', sessionToken: 'tok1' }));
     listTeams.mockResolvedValue([]);
@@ -853,7 +852,6 @@ describe('CoreStateProvider — identity-change cache clearing', () => {
 
     expect(vi.mocked(tauriCommands.storeSession)).toHaveBeenCalled();
   });
-
 });
 
 describe('coreStatePollFailureWarningMessage', () => {

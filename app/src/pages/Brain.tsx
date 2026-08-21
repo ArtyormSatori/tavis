@@ -32,13 +32,7 @@ import {
   memoryTreeGraphExport,
 } from '../utils/tauriCommands';
 
-type BrainTab =
-  | 'welcome'
-  | 'graph'
-  | 'goals'
-  | 'sources'
-  | 'sync'
-  | 'orchestration';
+type BrainTab = 'welcome' | 'graph' | 'goals' | 'sources' | 'sync' | 'orchestration';
 
 /** Small inline icon helper for the Brain sidebar nav. */
 const navIcon = (d: string) => (
@@ -376,7 +370,6 @@ export default function Brain() {
                     </div>
                   </div>
                 )}
-
               </div>
             </PanelPage>
           )}

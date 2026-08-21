@@ -195,11 +195,7 @@ const diagnosticsLogsGroup: DevGroup = {
 };
 
 /** All debug-only groups in display order */
-const DEV_GROUPS: DevGroup[] = [
-  agentDebugGroup,
-  automationDebugGroup,
-  diagnosticsLogsGroup,
-];
+const DEV_GROUPS: DevGroup[] = [agentDebugGroup, automationDebugGroup, diagnosticsLogsGroup];
 
 // ---------------------------------------------------------------------------
 // Diagnostic callout sub-components

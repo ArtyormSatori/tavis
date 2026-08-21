@@ -58,8 +58,6 @@ describe('tauriCommands/config', () => {
     });
   });
 
-
-
   describe('openhumanUpdateAutonomySettings', () => {
     test('throws when not running in Tauri', async () => {
       mockIsTauri.mockReturnValue(false);
