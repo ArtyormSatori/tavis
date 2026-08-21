@@ -41,11 +41,12 @@ pub use embed::McpServer;
 ///
 /// ```no_run
 /// # async fn demo() -> Result<(), Box<dyn std::error::Error>> {
-/// use openhuman_core::{Harness, Provider, Workspace};
+/// use openhuman_core::{Harness, Provider, Session, Workspace};
 ///
 /// let harness = Harness::builder()
 ///     .provider(Provider::openai_compatible("https://api.example/v1", "sk-…").model("gpt-5"))
 ///     .workspace(Workspace::Ephemeral)
+///     .session(Session::local("my-host"))
 ///     .build()
 ///     .await?;
 ///
@@ -54,8 +55,10 @@ pub use embed::McpServer;
 /// # }
 /// ```
 ///
-/// Read [`embed::harness`](embed) for the two things it cannot do for you: size
-/// the tokio runtime's worker stacks, and share a process with a second harness.
+/// Read the `embed::harness` module docs before using it: they cover the two
+/// things it cannot do for you (size the tokio runtime's worker stacks, and
+/// share a process with a second harness) and what running on your own
+/// inference endpoint additionally needs.
 pub use embed::{Access, Harness, HarnessBuilder, HarnessError, Provider, Workspace};
 pub use embed::{Session, Turn, TurnOutcome, TurnRequest};
 
