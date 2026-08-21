@@ -396,7 +396,7 @@ const WalletBalancesPanel = () => {
               </div>
             </div>
           </div>
-          <div className="divide-y divide-line-subtle dark:divide-neutral-800">
+          <div className="divide-y divide-line-subtle">
             {PLACEHOLDER_ROWS.map(row => (
               <ChainPlaceholderRow
                 key={`${row.chain}-${row.evmNetwork ?? 'native'}`}
@@ -434,7 +434,7 @@ const WalletBalancesPanel = () => {
 
     if (balances && balances.length > 0) {
       return (
-        <div className="divide-y divide-line-subtle dark:divide-neutral-800">
+        <div className="divide-y divide-line-subtle">
           {balances.map(balance => (
             <BalanceRow
               key={balanceKey(balance)}

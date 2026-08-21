@@ -222,7 +222,7 @@ export default function GoalsPanel() {
           ) : goals.length === 0 ? (
             <p className="py-6 text-center text-sm text-content-faint">{t('brain.goals.empty')}</p>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line dark:divide-neutral-800">
+            <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
               {goals.map(goal => (
                 <li key={goal.id} className="bg-surface px-3 py-2.5">
                   {editingId === goal.id ? (
