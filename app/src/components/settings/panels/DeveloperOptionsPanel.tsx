@@ -1,6 +1,6 @@
 // [settings] Developer & Diagnostics panel — debug-only entries only.
 // User-facing routes (agents, autonomy, agent-access, sandbox-settings,
-// activity-level, tools, companion, voice, embeddings,
+// activity-level, tools, voice, embeddings,
 // heartbeat, ledger-usage, cost-dashboard, task-sources, composio-routing,
 // webhooks-triggers, migration, security) have been moved to their canonical
 // section pages. Only genuine diagnostics remain here.
@@ -46,7 +46,7 @@ interface DevGroup {
 // Removed from all groups (moved to canonical section pages):
 //   agents, autonomy, agent-access, sandbox-settings, activity-level
 //   → Settings → Agents
-//   tools, companion
+//   tools
 //   → Settings → Features
 //   voice, embeddings, heartbeat, ledger-usage, cost-dashboard
 //   → Settings → AI & Models
