@@ -77,11 +77,13 @@ export function TeamHeader({
               key={member.id}
               title={`${member.agentId ?? member.name} · ${t(MEMBER_STATUS_KEY[member.memberStatus])}`}
               className="inline-flex items-center gap-1 rounded-md border border-line bg-surface-muted px-1.5 py-0.5 text-[10px] text-content-secondary">
-              <span
-                className="inline-flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full text-[7px] font-semibold text-content-inverted"
-                style={{ backgroundColor: memberColor(member.id) }}>
-                {member.name.charAt(0).toUpperCase()}
-              </span>
+              <AvatarRoot className="h-3.5 w-3.5">
+                <AvatarFallback
+                  className="text-[7px] font-semibold text-content-inverted"
+                  style={{ backgroundColor: memberColor(member.id) }}>
+                  {member.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </AvatarRoot>
               <span className="max-w-[7rem] truncate">{member.name}</span>
               <span
                 className={`h-1.5 w-1.5 flex-none rounded-full ${MEMBER_STATUS_DOT[member.memberStatus]}`}
