@@ -197,8 +197,10 @@ export default function WalletAddressChip() {
       <span className="font-mono text-[11px] leading-none tracking-tight" title={address}>
         {truncated}
       </span>
-      <button
-        type="button"
+      <Button
+        variant="tertiary"
+        size="xs"
+        iconOnly
         aria-label={
           clipboard.status === 'copied'
             ? t('agentWorld.addressCopied')
@@ -210,9 +212,9 @@ export default function WalletAddressChip() {
             : t('agentWorld.copyAddress')
         }
         onClick={() => void clipboard.copy(address)}
-        className="shrink-0 rounded p-0.5 text-content-faint transition-colors hover:text-content-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500">
+        className="h-auto w-auto shrink-0 rounded p-0.5 text-content-faint hover:bg-transparent hover:text-content-secondary focus-visible:ring-offset-0">
         {clipboard.status === 'copied' ? <CheckIcon /> : <CopyIcon />}
-      </button>
+      </Button>
     </div>
   );
 }
