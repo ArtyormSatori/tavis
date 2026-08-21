@@ -8,11 +8,11 @@
 //! the mock.
 
 use super::{
-    MODULE_ID, NODEJS_PROVIDER_ID, PYTHON_PROVIDER_ID, RuntimeCallError, pool_settings_for,
-    provider_id, settings_for,
+    pool_settings_for, provider_id, settings_for, RuntimeCallError, MODULE_ID, NODEJS_PROVIDER_ID,
+    PYTHON_PROVIDER_ID,
 };
-use crate::openhuman::modules::registry;
 use crate::openhuman::config::Config;
+use crate::openhuman::modules::registry;
 use tinyruntime_bus::Language;
 
 #[test]
@@ -75,7 +75,10 @@ fn the_two_languages_do_not_read_each_others_configuration() {
     config.node.version = "v22.11.0".to_string();
     config.runtime_python.minimum_version = "3.12".to_string();
 
-    assert_eq!(settings_for(&config, &Language::nodejs()).version, "v22.11.0");
+    assert_eq!(
+        settings_for(&config, &Language::nodejs()).version,
+        "v22.11.0"
+    );
     assert_eq!(settings_for(&config, &Language::python()).version, "3.12");
 }
 

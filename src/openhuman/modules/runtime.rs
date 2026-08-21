@@ -33,8 +33,8 @@
 //! which the worker honours and reports back.
 
 use tinyruntime_bus::{
-    ExecRequest, ExecResponse, Language, LanguagesResponse, PoolSettings, PoolStatsResponse,
-    ResolveRequest, ResolveResponse, ResolvedRuntime, RuntimeSettings, names,
+    names, ExecRequest, ExecResponse, Language, LanguagesResponse, PoolSettings, PoolStatsResponse,
+    ResolveRequest, ResolveResponse, ResolvedRuntime, RuntimeSettings,
 };
 
 use super::{host, ops, registry};
@@ -71,9 +71,9 @@ pub enum RuntimeCallError {
 impl std::fmt::Display for RuntimeCallError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Unavailable(message)
-            | Self::InvalidRequest(message)
-            | Self::Failed(message) => f.write_str(message),
+            Self::Unavailable(message) | Self::InvalidRequest(message) | Self::Failed(message) => {
+                f.write_str(message)
+            }
         }
     }
 }
@@ -101,10 +101,7 @@ pub fn provider_id(language: &Language) -> Option<&'static str> {
 ///
 /// [`RuntimeCallError::Unavailable`] naming which of the two could not be
 /// loaded.
-pub async fn ensure_language(
-    config: &Config,
-    language: &Language,
-) -> Result<(), RuntimeCallError> {
+pub async fn ensure_language(config: &Config, language: &Language) -> Result<(), RuntimeCallError> {
     ops::ensure_loaded(config, MODULE_ID)
         .await
         .map_err(RuntimeCallError::Unavailable)?;
@@ -162,9 +159,8 @@ pub async fn execute(
     let mut request = ExecRequest::new(language.clone(), settings_for(config, language), code);
     request.pool = pool_settings_for(config, language);
     request.cwd = cwd;
-    request.timeout_ms = timeout.map(|budget| {
-        u64::try_from(budget.as_millis()).unwrap_or(u64::MAX)
-    });
+    request.timeout_ms =
+        timeout.map(|budget| u64::try_from(budget.as_millis()).unwrap_or(u64::MAX));
 
     call(names::methods::EXECUTE, (request,)).await
 }
