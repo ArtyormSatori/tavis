@@ -12,6 +12,23 @@ import { buildManifest, CURRENT_MANIFEST_SCHEMA, serializeManifest } from './Mcp
 import McpInventoryPanel from './McpInventoryPanel';
 import type { InstalledServer } from './types';
 
+/**
+ * Radix registers its outside-pointer listener in a macrotask, so the render
+ * that opened the dialog cannot immediately be dismissed by it — flush first.
+ * Same helper as `ui/ModalShell.test.tsx`.
+ */
+async function flushDeferredWork(): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/**
+ * Radix treats an outside interaction as pointerdown *followed by* a click.
+ */
+function dismissByOutsideClick(overlay: HTMLElement): void {
+  fireEvent.pointerDown(overlay);
+  fireEvent.click(overlay);
+}
+
 const SERVER_FS: InstalledServer = {
   server_id: 'srv-uuid-1',
   qualified_name: 'acme/fs-server',
