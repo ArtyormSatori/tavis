@@ -488,7 +488,17 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
       }
       maxWidthClassName="max-w-md"
       contentClassName="space-y-4 p-5"
-      closePolicy={{ backdrop: !busy, escape: !busy, button: !busy }}>
+      closePolicy={{ backdrop: !busy, escape: !busy, button: !busy }}
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={onClose} disabled={busy}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="primary" size="sm" onClick={handleConnect} disabled={busy}>
+            {busy ? t('mcp.detail.connecting') : t('mcp.detail.connect')}
+          </Button>
+        </div>
+      }>
       <>
         {error && (
           <div className="rounded-lg border border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 px-3 py-2 text-xs text-coral-700 dark:text-coral-300 break-words">
