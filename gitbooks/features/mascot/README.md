@@ -24,7 +24,7 @@ See [Native Voice](../native-tools/voice.md) for the speech-to-text, text-to-spe
 
 The mascot is OpenHuman's flagship voice integration. It can join a Google Meet call as a real participant: it hears everyone, takes notes into your [Memory Tree](../obsidian-wiki/memory-tree.md), speaks back into the call when it has something to say, and pipes its own animated face into the meeting as the camera feed.
 
-This is the headline use case and has its own page, see [Meeting Agents](meeting-agents.md).
+This is the headline use case and has its own page, see Meeting Agents.
 
 ### It moves and reacts to its surroundings
 
@@ -69,7 +69,6 @@ The mascot exists because:
 
 ## See also
 
-- [Meeting Agents](meeting-agents.md), the mascot in Google Meet: listening, speaking, animating, using tools.
 - [Native Voice](../native-tools/voice.md), the STT / TTS plumbing the mascot rides on.
 - [Memory Tree](../obsidian-wiki/memory-tree.md), what the mascot remembers, and how.
 - [Subconscious Loop](../subconscious.md), what it thinks about while you're away.
