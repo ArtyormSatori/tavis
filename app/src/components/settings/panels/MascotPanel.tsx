@@ -37,7 +37,7 @@ import {
   setSelectedMascotId,
   SUPPORTED_MASCOT_COLORS,
 } from '../../../store/mascotSlice';
-import Button from '../../ui/Button';
+import { Button, Checkbox } from '../../ui';
 import { SettingsSelect, SettingsTextField } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 import {
@@ -494,12 +494,11 @@ const MascotPanel = ({ embedded = false }: MascotPanelProps) => {
 
           {/* Locale default checkbox — bespoke inline label layout */}
           <label className="flex items-start gap-2 text-sm text-content-secondary cursor-pointer">
-            <input
-              type="checkbox"
+            <Checkbox
               data-testid="mascot-voice-locale-default"
               checked={useLocaleDefault}
-              onChange={e => onLocaleDefaultToggle(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-line-strong text-primary-600 focus:ring-primary-500"
+              onCheckedChange={onLocaleDefaultToggle}
+              className="mt-0.5"
             />
             <span className="flex flex-col">
               <span>{t('settings.mascot.voice.useLocaleDefault')}</span>
