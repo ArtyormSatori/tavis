@@ -25,7 +25,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex as StdMutex};
 
 use async_trait::async_trait;
-use futures::stream::StreamExt;
+use tinyagents::graph::parallel::{map_reduce, FailurePolicy, ParallelOptions};
 use serde_json::{json, Value};
 
 use super::handoff::{chunk_content, ResultHandoffCache, HANDOFF_MAX_ENTRIES};
