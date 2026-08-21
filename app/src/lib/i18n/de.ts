@@ -7292,16 +7292,6 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Einstellungsdatei wiederhergestellt',
   'notifications.configRecovered.body':
     'Deine Einstellungsdatei konnte nicht gelesen werden und wurde daher aus einer Sicherung wiederhergestellt oder auf die Standardwerte zurückgesetzt. Die unlesbare Datei wurde mit der Endung ".corrupted" aufbewahrt, falls du sie noch brauchst.',
-  'aiElements.plan.toggle': 'Plan ein- oder ausblenden',
-  'aiElements.tool.parameters': 'Parameter',
-  'aiElements.tool.result': 'Ergebnis',
-  'aiElements.tool.status.approvalRequested': 'Warten auf Freigabe',
-  'aiElements.tool.status.approvalResponded': 'Beantwortet',
-  'aiElements.tool.status.denied': 'Abgelehnt',
-  'aiElements.tool.status.pending': 'Ausstehend',
-  'chat.chainOfThought.title': 'Gedankengang',
-  'chat.reasoning.thoughtForAFewSeconds': 'Einige Sekunden nachgedacht',
-  'chat.reasoning.thoughtForSeconds': '{n} Sekunden nachgedacht',
   'chat.sources.usedCount': '{n} Quellen verwendet',
 };
 

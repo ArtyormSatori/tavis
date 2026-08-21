@@ -7089,16 +7089,6 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'सेटिंग फ़ाइल पुनर्प्राप्त की गई',
   'notifications.configRecovered.body':
     'आपकी सेटिंग फ़ाइल पढ़ी नहीं जा सकी, इसलिए इसे बैकअप से पुनर्स्थापित किया गया या डिफ़ॉल्ट पर रीसेट कर दिया गया। न पढ़ी जा सकने वाली फ़ाइल को, ज़रूरत पड़ने पर, ".corrupted" प्रत्यय के साथ रखा गया है।',
-  'aiElements.plan.toggle': 'योजना दिखाएँ या छिपाएँ',
-  'aiElements.tool.parameters': 'पैरामीटर',
-  'aiElements.tool.result': 'परिणाम',
-  'aiElements.tool.status.approvalRequested': 'अनुमोदन की प्रतीक्षा',
-  'aiElements.tool.status.approvalResponded': 'उत्तर दिया गया',
-  'aiElements.tool.status.denied': 'अस्वीकृत',
-  'aiElements.tool.status.pending': 'लंबित',
-  'chat.chainOfThought.title': 'विचार शृंखला',
-  'chat.reasoning.thoughtForAFewSeconds': 'कुछ सेकंड तक सोचा',
-  'chat.reasoning.thoughtForSeconds': '{n} सेकंड तक सोचा',
   'chat.sources.usedCount': '{n} स्रोतों का उपयोग किया',
 };
 

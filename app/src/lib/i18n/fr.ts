@@ -7275,16 +7275,6 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Fichier de paramètres récupéré',
   'notifications.configRecovered.body':
     'Votre fichier de paramètres n\'a pas pu être lu ; il a donc été restauré à partir d\'une sauvegarde ou réinitialisé aux valeurs par défaut. Le fichier illisible a été conservé avec le suffixe ".corrupted" au cas où vous en auriez besoin.',
-  'aiElements.plan.toggle': 'Afficher ou masquer le plan',
-  'aiElements.tool.parameters': 'Paramètres',
-  'aiElements.tool.result': 'Résultat',
-  'aiElements.tool.status.approvalRequested': 'En attente d\'approbation',
-  'aiElements.tool.status.approvalResponded': 'Répondu',
-  'aiElements.tool.status.denied': 'Refusé',
-  'aiElements.tool.status.pending': 'En attente',
-  'chat.chainOfThought.title': 'Chaîne de raisonnement',
-  'chat.reasoning.thoughtForAFewSeconds': 'A réfléchi pendant quelques secondes',
-  'chat.reasoning.thoughtForSeconds': 'A réfléchi pendant {n} secondes',
   'chat.sources.usedCount': '{n} sources utilisées',
 };
 

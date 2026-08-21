@@ -7171,16 +7171,6 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Файл настроек восстановлен',
   'notifications.configRecovered.body':
     'Не удалось прочитать файл настроек, поэтому он был восстановлен из резервной копии или сброшен к значениям по умолчанию. Нечитаемый файл сохранён с суффиксом ".corrupted" на случай, если он вам понадобится.',
-  'aiElements.plan.toggle': 'Показать или скрыть план',
-  'aiElements.tool.parameters': 'Параметры',
-  'aiElements.tool.result': 'Результат',
-  'aiElements.tool.status.approvalRequested': 'Ожидает подтверждения',
-  'aiElements.tool.status.approvalResponded': 'Ответ получен',
-  'aiElements.tool.status.denied': 'Отклонено',
-  'aiElements.tool.status.pending': 'В очереди',
-  'chat.chainOfThought.title': 'Ход рассуждений',
-  'chat.reasoning.thoughtForAFewSeconds': 'Думал несколько секунд',
-  'chat.reasoning.thoughtForSeconds': 'Думал {n} с',
   'chat.sources.usedCount': 'Использовано источников: {n}',
 };
 

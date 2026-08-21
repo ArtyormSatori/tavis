@@ -6935,16 +6935,6 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'تمت استعادة ملف الإعدادات',
   'notifications.configRecovered.body':
     'تعذّرت قراءة ملف الإعدادات، لذا تمت استعادته من نسخة احتياطية أو إعادة تعيينه إلى الإعدادات الافتراضية. تم الاحتفاظ بالملف غير القابل للقراءة باللاحقة ".corrupted" في حال احتجت إليه.',
-  'aiElements.plan.toggle': 'إظهار الخطة أو إخفاؤها',
-  'aiElements.tool.parameters': 'المعاملات',
-  'aiElements.tool.result': 'النتيجة',
-  'aiElements.tool.status.approvalRequested': 'في انتظار الموافقة',
-  'aiElements.tool.status.approvalResponded': 'تم الرد',
-  'aiElements.tool.status.denied': 'مرفوض',
-  'aiElements.tool.status.pending': 'قيد الانتظار',
-  'chat.chainOfThought.title': 'سلسلة الاستدلال',
-  'chat.reasoning.thoughtForAFewSeconds': 'فكّر لبضع ثوانٍ',
-  'chat.reasoning.thoughtForSeconds': 'فكّر لمدة {n} ثانية',
   'chat.sources.usedCount': 'استخدم {n} مصدرًا',
 };
 

@@ -6710,16 +6710,6 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': '已恢复设置文件',
   'notifications.configRecovered.body':
     '无法读取你的设置文件，因此已从备份恢复或重置为默认值。无法读取的文件已保留并加上 ".corrupted" 后缀，以备你需要。',
-  'aiElements.plan.toggle': '展开或收起计划',
-  'aiElements.tool.parameters': '参数',
-  'aiElements.tool.result': '结果',
-  'aiElements.tool.status.approvalRequested': '等待批准',
-  'aiElements.tool.status.approvalResponded': '已响应',
-  'aiElements.tool.status.denied': '已拒绝',
-  'aiElements.tool.status.pending': '待处理',
-  'chat.chainOfThought.title': '思维链',
-  'chat.reasoning.thoughtForAFewSeconds': '思考了几秒',
-  'chat.reasoning.thoughtForSeconds': '思考了 {n} 秒',
   'chat.sources.usedCount': '使用了 {n} 个来源',
 };
 
