@@ -100,17 +100,17 @@ describe('MeetDefaultsDrawer', () => {
     }
   });
 
-  it('closes when backdrop is clicked', async () => {
+  // Was: "closes when backdrop is clicked", which reached for
+  // `document.querySelector('[aria-hidden="true"]')` — an internal of the
+  // hand-rolled backdrop div. The drawer is a Radix `Sheet` now, so dismissal
+  // is asserted through the user-facing route Radix owns instead.
+  it('closes when Escape is pressed', async () => {
     const onClose = vi.fn();
     renderWithProviders(<MeetDefaultsDrawer open onClose={onClose} />);
     await waitFor(() => expect(getMock).toHaveBeenCalled());
 
-    // The backdrop div has aria-hidden="true" but should have onClick
-    const backdrop = document.querySelector('[aria-hidden="true"]');
-    if (backdrop) {
-      fireEvent.click(backdrop);
-      expect(onClose).toHaveBeenCalled();
-    }
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
   // ── watch_calendar master switch ──────────────────────────────────────────
