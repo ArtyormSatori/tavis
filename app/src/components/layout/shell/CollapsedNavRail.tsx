@@ -121,7 +121,7 @@ export default function CollapsedNavRail() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </button>
+            </Button>
           </Tooltip>
         );
       })}
