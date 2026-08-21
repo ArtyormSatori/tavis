@@ -68,8 +68,9 @@ export default function CollapsedNavRail() {
     <nav className="flex flex-col items-center gap-2" aria-label={t('nav.home')}>
       {/* Home */}
       <Tooltip label={t('nav.home')}>
-        <button
-          type="button"
+        <Button
+          variant="tertiary"
+          iconOnly
           onClick={handleHome}
           aria-label={t('nav.home')}
           aria-current={homeActive ? 'page' : undefined}
@@ -79,7 +80,7 @@ export default function CollapsedNavRail() {
               : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary'
           }`}>
           <NavIcon id="home" className="h-5 w-5" />
-        </button>
+        </Button>
       </Tooltip>
 
       {/* Keyboard shortcuts — mirrors SidebarHeader's shortcuts button for the
