@@ -22,7 +22,7 @@ export interface NavTab {
 
 /**
  * Ordered list of sidebar nav entries:
- *   chat → human → brain → flows → agent-world → connections
+ *   chat → human → brain → flows → connections
  *
  * Orchestration (TinyPlace multi-agent coordination) is no longer a top-level
  * tab — it was folded back under Brain as the `/brain?tab=orchestration`
