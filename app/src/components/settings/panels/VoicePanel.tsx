@@ -28,48 +28,13 @@ import {
   type VoiceStatus,
 } from '../../../utils/tauriCommands';
 import PanelPage from '../../layout/PanelPage';
-import { Button, ModalShell } from '../../ui';
+import { Button } from '../../ui';
 import SettingsBackButton from '../components/SettingsBackButton';
-import {
-  SettingsRow,
-  SettingsSection,
-  SettingsSelect,
-  SettingsStatusLine,
-  SettingsSwitch,
-  SettingsTextField,
-} from '../controls';
+import { SettingsRow, SettingsSection, SettingsStatusLine, SettingsSwitch } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
-import { ELEVENLABS_VOICE_PRESETS, isCuratedVoicePreset } from './elevenlabsVoicePresets';
-
-/** Built-in voice provider slugs with display metadata. */
-const BUILTIN_VOICE_PROVIDER_META: Record<
-  string,
-  { label: string; tone: string; capability: 'stt' | 'tts' | 'both'; comingSoon?: boolean }
-> = {
-  deepgram: {
-    label: 'Deepgram',
-    tone: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-700',
-    capability: 'stt',
-    comingSoon: true,
-  },
-  elevenlabs: {
-    label: 'ElevenLabs',
-    tone: 'bg-purple-50 text-purple-700 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-700',
-    capability: 'both',
-  },
-  openai: {
-    label: 'OpenAI',
-    tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-700',
-    capability: 'both',
-    comingSoon: true,
-  },
-};
-
-/** Local provider (Piper) chip tone — no API key required. */
-const LOCAL_VOICE_PROVIDER_TONE: Record<'piper', string> = {
-  piper:
-    'bg-teal-50 text-teal-700 ring-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:ring-teal-700',
-};
+import VoicePanelKeyModal from './VoicePanelKeyModal';
+import VoicePanelProviderChips from './VoicePanelProviderChips';
+import VoicePanelRoutingSection from './VoicePanelRoutingSection';
 
 // Curated Piper voice presets — a handful of well-known English voices
 // covering male/female and US/GB accents at the recommended `medium`
