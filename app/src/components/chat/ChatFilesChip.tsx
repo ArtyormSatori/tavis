@@ -104,7 +104,7 @@ export default function ChatFilesChip({ threadId }: ChatFilesChipProps) {
         <span data-testid="chat-files-chip-count" className="font-mono leading-none">
           {count}
         </span>
-      </button>
+      </Button>
       {open && (
         <ChatFilesPanel
           threadId={normalizedThreadId}

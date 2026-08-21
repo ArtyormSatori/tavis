@@ -10,6 +10,7 @@ import type { FormEvent, ReactElement } from 'react';
 import { useT } from '../../lib/i18n/I18nContext';
 import type { useOrchestrationChats } from '../../lib/orchestration/useOrchestrationChats';
 import Button from '../ui/Button';
+import TextField from '../ui/TextField';
 import { MessageBubble } from './OrchestrationChatPrimitives';
 
 type ChatsApi = ReturnType<typeof useOrchestrationChats>;
