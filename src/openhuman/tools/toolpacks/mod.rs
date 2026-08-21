@@ -26,8 +26,9 @@ pub mod registry;
 pub mod tools;
 pub mod types;
 
-pub use ops::split_packed_tools;
+pub use ops::{append_pack_tools, bind_pack_registry, strip_packed_from_visible};
 pub use registry::{all_packed_tool_names, pack, pack_for_tool, PACKS};
+pub use tools::{PackRegistryHandle, LOAD_SKILL, USE_SKILL};
 pub use types::ToolPack;
 
 #[cfg(test)]

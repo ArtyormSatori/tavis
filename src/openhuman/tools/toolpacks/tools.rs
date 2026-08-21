@@ -1,71 +1,129 @@
 //! The two always-on tools that stand in for every packed tool.
-//!
-//! `load_skill` pulls a pack's schemas into the conversation as text;
-//! `use_skill` executes one of them. Together they cost ~150 tokens of
-//! advertised schema in place of the ~4.1k the packed tools would spend.
 
-use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock, Weak};
 
 use async_trait::async_trait;
 use serde_json::{json, Value};
 
 use super::registry;
-use crate::openhuman::tools::traits::{
-    PermissionLevel, Tool, ToolCallOptions, ToolContent, ToolResult,
-};
+use crate::openhuman::tools::traits::{PermissionLevel, Tool, ToolCallOptions, ToolResult};
 
-/// Shared map of packed tool name -> tool. Built once by
-/// [`super::ops::split_packed_tools`] and handed to both tools below.
-pub type PackedTools = Arc<HashMap<String, Box<dyn Tool>>>;
+pub const LOAD_SKILL: &str = "load_skill";
+pub const USE_SKILL: &str = "use_skill";
 
-fn render_pack(id: &str, packed: &PackedTools) -> Option<String> {
-    let pack = registry::pack(id)?;
-    let mut out = format!("# Skill `{}`\n\n{}\n\n", pack.id, pack.summary);
-    out.push_str(
-        "Call these through `use_skill { skill: \"",
-    );
-    out.push_str(pack.id);
-    out.push_str("\", tool: \"<name>\", args: { … } }`. `args` is the tool's own argument object, exactly as documented below.\n\n");
-    for name in pack.tools {
-        let Some(tool) = packed.get(*name) else {
-            // A pack naming a tool this build does not compile (feature-gated
-            // out) is normal, not an error: report the pack that exists.
-            continue;
-        };
-        out.push_str(&format!("## `{}`\n\n{}\n\n", tool.name(), tool.description()));
-        let schema = serde_json::to_string_pretty(&tool.parameters_schema())
-            .unwrap_or_else(|_| "{}".to_string());
-        out.push_str("```json\n");
-        out.push_str(&schema);
-        out.push_str("\n```\n\n");
-    }
-    Some(out)
+/// A late-bound, non-owning view of the tool registry a pack tool lives in.
+///
+/// Late-bound because the pack tools are *inside* the registry they read: the
+/// vector cannot be built until they exist, and they cannot see it until it is
+/// built. Non-owning because an `Arc` back into that same vector would be a
+/// cycle that never drops.
+#[derive(Clone, Default)]
+pub struct PackRegistryHandle {
+    inner: Arc<OnceLock<Weak<Vec<Box<dyn Tool>>>>>,
 }
 
-/// Loads one pack's tool schemas into the conversation.
+impl PackRegistryHandle {
+    pub fn bind(&self, registry: Weak<Vec<Box<dyn Tool>>>) {
+        // Binding twice is not an error: an agent that rebuilds its tool `Arc`
+        // re-binds, and the first write simply wins for that generation. What
+        // must never happen is a *silent* mismatch, so log the redundant bind.
+        if self.inner.set(registry).is_err() {
+            tracing::trace!("[toolpacks] registry handle already bound — keeping first binding");
+        }
+    }
+
+    fn tools(&self) -> Option<Arc<Vec<Box<dyn Tool>>>> {
+        self.inner.get()?.upgrade()
+    }
+
+    /// Resolve a packed tool by name, enforcing that it belongs to `skill`.
+    ///
+    /// The pack check is not decoration: without it `use_skill` would dispatch
+    /// into any packed tool regardless of the skill named, and the model could
+    /// reach a crypto write through a workflow skill.
+    fn resolve(&self, skill: &str, tool: &str) -> Option<(Arc<Vec<Box<dyn Tool>>>, usize)> {
+        registry::pack(skill).filter(|p| p.owns(tool))?;
+        let tools = self.tools()?;
+        let idx = tools.iter().position(|t| t.name() == tool)?;
+        Some((tools, idx))
+    }
+}
+
+fn render_pack(skill: &str, handle: &PackRegistryHandle) -> Result<String, String> {
+    let Some(pack) = registry::pack(skill) else {
+        return Err(format!(
+            "Unknown skill `{skill}`. Available:\n{}",
+            registry::pack_index_markdown()
+        ));
+    };
+    let Some(tools) = handle.tools() else {
+        return Err(
+            "The skill registry is not available in this session; the tools in this skill \
+             cannot be loaded."
+                .to_string(),
+        );
+    };
+
+    let mut out = format!("# Skill `{}`\n\n{}\n\n", pack.id, pack.summary);
+    out.push_str(&format!(
+        "Call these with `use_skill {{ \"skill\": \"{}\", \"tool\": \"<name>\", \"args\": {{ … }} }}`. \
+         `args` is the tool's own argument object, exactly as documented below.\n\n",
+        pack.id
+    ));
+
+    let mut found = 0usize;
+    for name in pack.tools {
+        // A pack may name a tool this build compiled out (feature gate) or that
+        // this agent never had. Rendering the ones that exist beats failing the
+        // whole load.
+        let Some(tool) = tools.iter().find(|t| t.name() == *name) else {
+            continue;
+        };
+        found += 1;
+        out.push_str(&format!("## `{}`\n\n{}\n\n", tool.name(), tool.description()));
+        out.push_str("```json\n");
+        out.push_str(
+            &serde_json::to_string_pretty(&tool.parameters_schema())
+                .unwrap_or_else(|_| "{}".to_string()),
+        );
+        out.push_str("\n```\n\n");
+    }
+
+    if found == 0 {
+        return Err(format!(
+            "Skill `{}` has no tools available in this session.",
+            pack.id
+        ));
+    }
+    Ok(out)
+}
+
+fn skill_enum() -> Vec<&'static str> {
+    registry::PACKS.iter().map(|p| p.id).collect()
+}
+
+/// Renders a pack's tool schemas into the conversation on demand.
 pub struct LoadSkillTool {
-    packed: PackedTools,
+    handle: PackRegistryHandle,
     description: String,
 }
 
 impl LoadSkillTool {
-    pub fn new(packed: PackedTools) -> Self {
+    pub fn new(handle: PackRegistryHandle) -> Self {
         let description = format!(
-            "Load a skill's tools into this conversation. Their schemas are not in your \
-             context until you do. Call this BEFORE `use_skill` for a skill you have not \
-             loaded in this conversation, then call `use_skill` with the tool and arguments \
-             it describes.\n\nAvailable skills:\n{}",
+            "Load a skill's tools into this conversation. Their names, descriptions and argument \
+             schemas are NOT in your context until you do. Call this before `use_skill` for any \
+             skill you have not already loaded in this conversation.\n\nSkills:\n{}",
             registry::pack_index_markdown()
         );
-        Self { packed, description }
+        Self { handle, description }
     }
 }
 
 #[async_trait]
 impl Tool for LoadSkillTool {
     fn name(&self) -> &str {
-        "load_skill"
+        LOAD_SKILL
     }
 
     fn description(&self) -> &str {
@@ -76,72 +134,66 @@ impl Tool for LoadSkillTool {
         json!({
             "type": "object",
             "properties": {
-                "skill": {
-                    "type": "string",
-                    "enum": registry::PACKS.iter().map(|p| p.id).collect::<Vec<_>>(),
-                    "description": "Which skill to load."
-                }
+                "skill": { "type": "string", "enum": skill_enum(), "description": "Skill to load." }
             },
             "required": ["skill"]
         })
     }
 
     async fn execute(&self, args: Value) -> anyhow::Result<ToolResult> {
-        let Some(id) = args.get("skill").and_then(Value::as_str) else {
+        let Some(skill) = args.get("skill").and_then(Value::as_str) else {
             return Ok(ToolResult::error("`skill` is required."));
         };
-        match render_pack(id, &self.packed) {
-            Some(text) => Ok(ToolResult::success(text)),
-            None => Ok(ToolResult::error(format!(
-                "Unknown skill `{id}`. Available:\n{}",
-                registry::pack_index_markdown()
-            ))),
-        }
+        Ok(match render_pack(skill, &self.handle) {
+            Ok(text) => ToolResult::success(text),
+            Err(message) => ToolResult::error(message),
+        })
     }
 
     fn permission_level(&self) -> PermissionLevel {
         PermissionLevel::ReadOnly
     }
+
+    fn pack_registry_handle(&self) -> Option<&PackRegistryHandle> {
+        Some(&self.handle)
+    }
 }
 
-/// Executes a tool that lives inside a pack.
+/// Executes a tool belonging to a pack.
 ///
 /// **Permission forwarding is load-bearing.** The harness gates a call on the
-/// tool's `permission_level_with_args`, so a proxy that reported its own level
-/// would launder every packed tool's risk down to this one's. Both the
-/// arg-aware and arg-less accessors resolve the inner tool and defer to it; the
-/// arg-less one has no call to resolve from, so it reports the highest level any
-/// packed tool requires rather than guessing low.
+/// tool's `permission_level_with_args`, so a proxy reporting its own level would
+/// launder every packed tool's risk down to this one's — a crypto write would
+/// be admitted on a channel that refuses crypto writes. Both accessors resolve
+/// the inner tool and defer to it; the arg-less one has nothing to resolve
+/// from, so it reports the highest level any packed tool needs rather than
+/// guessing low.
 pub struct UseSkillTool {
-    packed: PackedTools,
+    handle: PackRegistryHandle,
     description: String,
 }
 
 impl UseSkillTool {
-    pub fn new(packed: PackedTools) -> Self {
+    pub fn new(handle: PackRegistryHandle) -> Self {
         let description = format!(
             "Execute a tool belonging to a skill. Call `load_skill` first to see the skill's \
              tools and their arguments.\n\nSkills:\n{}",
             registry::pack_index_markdown()
         );
-        Self { packed, description }
+        Self { handle, description }
     }
 
-    fn resolve(&self, args: &Value) -> Option<&Box<dyn Tool>> {
+    fn resolve(&self, args: &Value) -> Option<(Arc<Vec<Box<dyn Tool>>>, usize)> {
         let skill = args.get("skill").and_then(Value::as_str)?;
         let tool = args.get("tool").and_then(Value::as_str)?;
-        // The tool must belong to the named skill. Without this check `use_skill`
-        // would be a universal dispatcher into any packed tool, and the skill
-        // argument would be decoration rather than scoping.
-        registry::pack(skill).filter(|p| p.owns(tool))?;
-        self.packed.get(tool)
+        self.handle.resolve(skill, tool)
     }
 }
 
 #[async_trait]
 impl Tool for UseSkillTool {
     fn name(&self) -> &str {
-        "use_skill"
+        USE_SKILL
     }
 
     fn description(&self) -> &str {
@@ -152,15 +204,8 @@ impl Tool for UseSkillTool {
         json!({
             "type": "object",
             "properties": {
-                "skill": {
-                    "type": "string",
-                    "enum": registry::PACKS.iter().map(|p| p.id).collect::<Vec<_>>(),
-                    "description": "The skill owning the tool."
-                },
-                "tool": {
-                    "type": "string",
-                    "description": "Tool name, as listed by `load_skill`."
-                },
+                "skill": { "type": "string", "enum": skill_enum(), "description": "Skill owning the tool." },
+                "tool": { "type": "string", "description": "Tool name, as listed by `load_skill`." },
                 "args": {
                     "type": "object",
                     "description": "The tool's own arguments, as documented by `load_skill`.",
@@ -182,52 +227,56 @@ impl Tool for UseSkillTool {
         options: ToolCallOptions,
         context: Option<&tinyagents::harness::tool::ToolExecutionContext>,
     ) -> anyhow::Result<ToolResult> {
-        let Some(tool) = self.resolve(&args) else {
+        let Some((tools, idx)) = self.resolve(&args) else {
             let skill = args.get("skill").and_then(Value::as_str).unwrap_or("");
             let name = args.get("tool").and_then(Value::as_str).unwrap_or("");
             return Ok(ToolResult::error(format!(
-                "No tool `{name}` in skill `{skill}`. Call `load_skill {{ skill: \"{skill}\" }}` \
+                "No tool `{name}` in skill `{skill}`. Call `load_skill {{ \"skill\": \"{skill}\" }}` \
                  to see what it contains.\n\nSkills:\n{}",
                 registry::pack_index_markdown()
             )));
         };
         let inner_args = args.get("args").cloned().unwrap_or_else(|| json!({}));
-        tracing::debug!(
-            tool = tool.name(),
-            "[toolpacks] use_skill dispatching to packed tool"
-        );
-        tool.execute_with_context(inner_args, options, context).await
+        tracing::debug!(tool = tools[idx].name(), "[toolpacks] use_skill dispatch");
+        tools[idx]
+            .execute_with_context(inner_args, options, context)
+            .await
     }
 
     fn supports_markdown(&self) -> bool {
-        // Any packed tool may render markdown; the result is forwarded verbatim,
-        // so advertise the capability rather than suppressing a saving.
+        // The inner result is forwarded verbatim, markdown rendering included,
+        // so advertise the capability rather than suppressing a real saving.
         true
     }
 
     fn permission_level(&self) -> PermissionLevel {
-        self.packed
-            .values()
+        let Some(tools) = self.handle.tools() else {
+            return PermissionLevel::Dangerous;
+        };
+        let packed = registry::all_packed_tool_names();
+        tools
+            .iter()
+            .filter(|t| packed.contains(&t.name()))
             .map(|t| t.permission_level())
             .max()
-            .unwrap_or(PermissionLevel::ReadOnly)
+            // Unbound or empty: report the ceiling, never a permissive default.
+            .unwrap_or(PermissionLevel::Dangerous)
     }
 
     fn permission_level_with_args(&self, args: &Value) -> PermissionLevel {
         match self.resolve(args) {
-            Some(tool) => {
+            Some((tools, idx)) => {
                 let inner = args.get("args").cloned().unwrap_or_else(|| json!({}));
-                tool.permission_level_with_args(&inner)
+                tools[idx].permission_level_with_args(&inner)
             }
-            // Unresolvable call: it will fail anyway, but report the ceiling so a
-            // malformed call can never be admitted on a channel the real tool
-            // would have been refused on.
+            // Unresolvable: the call will fail anyway, but report the ceiling so
+            // a malformed call can never be admitted on a channel that would
+            // have refused the real tool.
             None => self.permission_level(),
         }
     }
-}
 
-/// Silence the unused-import warning for `ToolContent` in builds where no
-/// packed tool is compiled in.
-#[allow(dead_code)]
-fn _unused(_: ToolContent) {}
+    fn pack_registry_handle(&self) -> Option<&PackRegistryHandle> {
+        Some(&self.handle)
+    }
+}
