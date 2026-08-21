@@ -16,6 +16,7 @@ import type {
   AttentionItem,
   AttentionKind,
 } from '../../lib/orchestration/orchestrationClient';
+import Button from '../ui/Button';
 
 interface AttentionQueueItemProps {
   item: AttentionItem;

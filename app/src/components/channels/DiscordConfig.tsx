@@ -380,18 +380,20 @@ const DiscordConfig = ({ definition }: DiscordConfigProps) => {
             {/* Connected state for managed_dm — show only Disconnect */}
             {spec.mode === 'managed_dm' && status === 'connected' ? (
               <>
-                <label className="mt-3 flex items-start gap-2 rounded-lg border border-line bg-surface px-3 py-2">
-                  <input
-                    type="checkbox"
+                <label
+                  htmlFor={`${compositeKey}-clear-memory`}
+                  className="mt-3 flex items-start gap-2 rounded-lg border border-line bg-surface px-3 py-2">
+                  <Checkbox
+                    id={`${compositeKey}-clear-memory`}
                     checked={Boolean(clearMemoryOnDisconnect[compositeKey])}
-                    onChange={event => {
-                      // See the sibling checkbox below / #5161: `currentTarget`
-                      // is null by the time a functional updater runs, so the
-                      // value has to be read synchronously in the handler.
-                      const { checked } = event.currentTarget;
+                    className="mt-0.5"
+                    onCheckedChange={checked => {
+                      // See the sibling checkbox below / #5161: `Checkbox`
+                      // reads `e.target.checked` synchronously in its own
+                      // handler before calling back here, so the boolean is
+                      // already settled by the time the functional updater runs.
                       setClearMemoryOnDisconnect(prev => ({ ...prev, [compositeKey]: checked }));
                     }}
-                    className="mt-0.5 h-4 w-4 rounded border-line-strong text-primary-600 focus:ring-primary-500"
                   />
                   <span className="min-w-0">
                     <span className="block text-xs font-medium text-content">
