@@ -508,7 +508,7 @@ export function MemorySourcesRegistry({
       ) : (
         <ul className="divide-y divide-line-subtle">
           {sources.map(source => (
-            <SourceRow
+            <MemorySourceRow
               key={source.id}
               source={source}
               status={statusById.get(source.id) ?? null}
