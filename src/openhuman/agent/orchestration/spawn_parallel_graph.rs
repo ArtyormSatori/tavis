@@ -500,8 +500,20 @@ pub(super) fn prepare_spawn_parallel_tasks_from_defs(
             let claim = match shared_workspace_write_claim(&task, &definition, parent) {
                 // Needs the shared workspace and declares what it owns.
                 Ok(Some(paths)) => WorkspaceClaim::writing(task_id.clone(), paths),
-                // Isolated, read-only, or otherwise unable to collide.
-                Ok(None) => WorkspaceClaim::read_only(task_id.clone()),
+                // Cannot collide. Both arms plan as parallel, but they say so
+                // for different reasons and the claim should carry the real one:
+                // an isolated worker has its own root, a shared one simply never
+                // writes.
+                Ok(None) => {
+                    if matches!(
+                        worktree_request_for_task(&task),
+                        ParallelWorktreeRequest::Isolated { .. }
+                    ) {
+                        WorkspaceClaim::isolated(task_id.clone())
+                    } else {
+                        WorkspaceClaim::read_only(task_id.clone())
+                    }
+                }
                 Err(error) => {
                     return Admission::Rejected(ParallelTaskRejection {
                         task_id,
