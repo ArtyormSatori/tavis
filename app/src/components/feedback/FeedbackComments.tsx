@@ -94,9 +94,7 @@ export default function FeedbackComments({ feedbackId, onCommentAdded }: Feedbac
           {comments.map(comment => {
             const isMine = user?._id === comment.user;
             return (
-              <li
-                key={comment.id}
-                className="rounded-xl bg-surface-muted px-3 py-2 dark:bg-white/[0.03]">
+              <li key={comment.id} className="rounded-xl bg-surface-muted px-3 py-2">
                 <div className="flex items-center gap-2 text-xs text-content-faint">
                   <span className="font-medium text-content-secondary">
                     {isMine
