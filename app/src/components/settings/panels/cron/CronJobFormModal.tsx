@@ -373,47 +373,24 @@ const CronJobFormModal = ({
           <div className="text-xs font-medium text-content-secondary mb-1.5">
             {t('settings.cron.jobs.formScheduleType')}
           </div>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-              <input
-                data-testid="cron-form-schedule-cron"
-                type="radio"
-                name="cron-schedule-kind"
-                value="cron"
-                checked={scheduleKind === 'cron'}
-                onChange={() => handleScheduleKindChange('cron')}
-                disabled={saving}
-                className="accent-primary-600"
-              />
+          <RadioGroupRoot
+            className="flex flex-row gap-4"
+            value={scheduleKind}
+            onValueChange={value => handleScheduleKindChange(value as ScheduleKind)}
+            disabled={saving}>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-content-secondary">
+              <RadioGroupItem data-testid="cron-form-schedule-cron" value="cron" />
               {t('settings.cron.jobs.formScheduleCron')}
             </label>
-            <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-              <input
-                data-testid="cron-form-schedule-at"
-                type="radio"
-                name="cron-schedule-kind"
-                value="at"
-                checked={scheduleKind === 'at'}
-                onChange={() => handleScheduleKindChange('at')}
-                disabled={saving}
-                className="accent-primary-600"
-              />
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-content-secondary">
+              <RadioGroupItem data-testid="cron-form-schedule-at" value="at" />
               {t('settings.cron.jobs.formScheduleAt')}
             </label>
-            <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-              <input
-                data-testid="cron-form-schedule-every"
-                type="radio"
-                name="cron-schedule-kind"
-                value="every"
-                checked={scheduleKind === 'every'}
-                onChange={() => handleScheduleKindChange('every')}
-                disabled={saving}
-                className="accent-primary-600"
-              />
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-content-secondary">
+              <RadioGroupItem data-testid="cron-form-schedule-every" value="every" />
               {t('settings.cron.jobs.formScheduleEvery')}
             </label>
-          </div>
+          </RadioGroupRoot>
         </div>
 
         {/* Cron schedule fields */}

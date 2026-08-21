@@ -235,9 +235,11 @@ export function MemoryInsights({ relations, loading }: MemoryInsightsProps) {
               className={`rounded-lg border ${group.borderColor} ${group.bgColor} p-3 transition-all ${
                 isExpanded ? 'col-span-2 lg:col-span-3' : ''
               }`}>
-              <button
+              <Button
+                variant="tertiary"
                 onClick={() => setExpandedCategory(isExpanded ? null : group.category)}
-                className="flex items-center gap-2 w-full text-left mb-2">
+                aria-expanded={isExpanded}
+                className="h-auto w-full justify-start gap-2 p-0 text-left font-normal mb-2 hover:bg-transparent">
                 <div
                   className={`w-7 h-7 rounded-md ${group.bgColor} flex items-center justify-center flex-shrink-0`}>
                   <svg
@@ -271,7 +273,7 @@ export function MemoryInsights({ relations, loading }: MemoryInsightsProps) {
                     d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </button>
+              </Button>
 
               <div className={`space-y-1.5 ${isExpanded ? 'max-h-80 overflow-y-auto pr-1' : ''}`}>
                 {displayItems.map((item, idx) => (
