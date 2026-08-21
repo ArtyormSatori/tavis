@@ -165,8 +165,9 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
       <p className="mb-4 mt-0.5 text-xs text-content-muted">{t('feedback.submit.subheading')}</p>
 
       <div className="mb-4 grid grid-cols-2 gap-2.5">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={() => {
             // Changing the type is an edit like any other: the advice the last
             // submission came back with is no longer about what is on screen.
@@ -174,11 +175,11 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
             setSubmittedQuality(null);
           }}
           aria-pressed={type === 'feature'}
-          className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
+          className={
             type === 'feature'
               ? 'border-primary-500 bg-primary-500/10 text-primary-600 ring-1 ring-primary-500/30 dark:text-primary-400'
-              : 'border-line text-content-muted hover:border-line-strong hover:bg-surface-muted dark:border-line-strong dark:hover:bg-white/[0.03]'
-          }`}>
+              : 'text-content-muted'
+          }>
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -188,19 +189,17 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
             />
           </svg>
           {t('feedback.type.feature')}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={() => {
             setType('bug');
             setSubmittedQuality(null);
           }}
           aria-pressed={type === 'bug'}
-          className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
-            type === 'bug'
-              ? 'border-coral-500 bg-coral-500/10 text-coral-600 ring-1 ring-coral-500/30 dark:text-coral-400'
-              : 'border-line text-content-muted hover:border-line-strong hover:bg-surface-muted dark:border-line-strong dark:hover:bg-white/[0.03]'
-          }`}>
+          tone={type === 'bug' ? 'danger' : 'default'}
+          className={type === 'bug' ? 'ring-1 ring-coral-500/30' : 'text-content-muted'}>
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -210,7 +209,7 @@ export default function FeedbackSubmitForm({ onAccepted }: FeedbackSubmitFormPro
             />
           </svg>
           {t('feedback.type.bug')}
-        </button>
+        </Button>
       </div>
 
       <label htmlFor="feedback-title" className="sr-only">
