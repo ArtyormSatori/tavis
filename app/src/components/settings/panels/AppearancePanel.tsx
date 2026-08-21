@@ -1,4 +1,4 @@
-import { type ChangeEvent, type ReactElement, useState } from 'react';
+import { type ReactElement, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -20,6 +20,7 @@ import {
   type ThemeMode,
 } from '../../../store/themeSlice';
 import LanguageSelect from '../../LanguageSelect';
+import Slider from '../../ui/Slider';
 import { SettingsNumberField, SettingsRow, SettingsSection, SettingsSwitch } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 
