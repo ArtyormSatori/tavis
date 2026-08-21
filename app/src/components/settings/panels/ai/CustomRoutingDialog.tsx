@@ -18,7 +18,6 @@ import Checkbox from '../../../ui/Checkbox';
 import { ModalShell } from '../../../ui/ModalShell';
 import { SettingsSelect, SettingsTextField } from '../../controls';
 import { isAzureFoundryEndpoint } from '../azureDeployment';
-import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import {
   appendTemperatureToProviderString,
   CLAUDE_CODE_DEFAULT_MODEL,
@@ -31,6 +30,7 @@ import {
   type Workload,
   WORKLOAD_MODEL_HINT_KEYS,
 } from './aiPanelTypes';
+import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import { ModelTestResultPanel } from './ModelTestResultPanel';
 import { TemperatureOverrideField } from './TemperatureOverrideField';
 
@@ -304,7 +304,12 @@ export const CustomRoutingDialog = ({
             disabled={!canTest || testBusy}>
             {testBusy ? t('settings.ai.testing') : t('settings.ai.test')}
           </Button>
-          <Button type="button" variant="primary" size="sm" onClick={handleSave} disabled={!canSave}>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            disabled={!canSave}>
             {t('common.save')}
           </Button>
         </div>

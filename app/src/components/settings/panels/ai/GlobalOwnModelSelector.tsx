@@ -15,15 +15,15 @@ import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
 import { SettingsSelect } from '../../controls';
 import { isAzureFoundryEndpoint } from '../azureDeployment';
-import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import {
   CLAUDE_CODE_DEFAULT_MODEL,
   type CloudProvider,
   type CustomDialogSource,
   type OllamaModel,
-  providerRefSignature,
   type ProviderRef,
+  providerRefSignature,
 } from './aiPanelTypes';
+import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 
 export const GlobalOwnModelSelector = ({
   current,
@@ -258,7 +258,10 @@ export const GlobalOwnModelSelector = ({
                 <label className="text-xs font-medium text-content-secondary">
                   {t('settings.ai.globalModel.model')}
                 </label>
-                <SettingsSelect value={model} onChange={e => setModel(e.target.value)} className="w-full">
+                <SettingsSelect
+                  value={model}
+                  onChange={e => setModel(e.target.value)}
+                  className="w-full">
                   {localModels.map(m => (
                     <option key={m.id} value={m.id}>
                       {m.id}
@@ -282,7 +285,11 @@ export const GlobalOwnModelSelector = ({
           </div>
           {registrySlug && model.trim().length > 0 && (
             <label className="flex items-start gap-2 text-xs font-medium text-content-secondary">
-              <Checkbox checked={vision} onCheckedChange={setVision} className="mt-0.5 h-3.5 w-3.5" />
+              <Checkbox
+                checked={vision}
+                onCheckedChange={setVision}
+                className="mt-0.5 h-3.5 w-3.5"
+              />
               <span>
                 {t('settings.ai.modelVision')}
                 <span className="block font-normal text-[11px] text-content-faint">

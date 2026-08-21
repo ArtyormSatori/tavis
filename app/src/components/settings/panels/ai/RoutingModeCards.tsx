@@ -30,7 +30,9 @@ export const RoutingModeCards = ({
               ? 'border-sage-300 bg-sage-50 dark:border-sage-500/40 dark:bg-sage-500/10'
               : 'bg-surface hover:bg-surface-hover'
           }`}>
-          <div className="text-sm font-semibold text-content">{t('settings.ai.routing.managed')}</div>
+          <div className="text-sm font-semibold text-content">
+            {t('settings.ai.routing.managed')}
+          </div>
           <p className="mt-2 text-xs leading-5 text-content-secondary">
             {t('settings.ai.routing.managedDesc')}
           </p>

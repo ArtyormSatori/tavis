@@ -27,9 +27,7 @@ export const TemperatureOverrideField = ({
           {t('settings.ai.temperatureOverride')}
         </span>
         {temperature != null && (
-          <span className="font-mono text-[11px] text-content-muted">
-            {temperature.toFixed(2)}
-          </span>
+          <span className="font-mono text-[11px] text-content-muted">{temperature.toFixed(2)}</span>
         )}
       </label>
       {temperature != null && (

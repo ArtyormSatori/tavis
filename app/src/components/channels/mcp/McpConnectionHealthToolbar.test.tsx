@@ -192,7 +192,7 @@ describe('McpConnectionHealthToolbar', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onDisconnect).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('Escape closes the confirm dialog without calling onDisconnect', () => {
@@ -212,7 +212,7 @@ describe('McpConnectionHealthToolbar', () => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
     expect(onDisconnect).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('confirm in the dialog fires onDisconnect with connected IDs and closes the dialog', async () => {
@@ -238,7 +238,7 @@ describe('McpConnectionHealthToolbar', () => {
     });
     expect(onDisconnect).toHaveBeenCalledTimes(1);
     expect(onDisconnect).toHaveBeenCalledWith(['srv-1', 'srv-3']);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('disables both action buttons while a bulk operation is pending', async () => {
