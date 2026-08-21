@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SourceSettingsPanel } from './SourceSettingsPanel';
 import type { MemorySourceEntry } from '../../services/memorySourcesService';

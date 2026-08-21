@@ -302,7 +302,7 @@ function CommunitySkeletonGrid() {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <Card>
+        <Card key={i}>
           <div className="animate-pulse p-3">
           <div className="space-y-2">
             <div className="h-4 w-3/4 rounded bg-surface-strong" />
@@ -377,7 +377,7 @@ function JobSkeletonList() {
   return (
     <div className="space-y-2">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Card>
+        <Card key={i}>
           <div className="animate-pulse p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 space-y-2">
@@ -464,7 +464,7 @@ function BountySkeletonList() {
   return (
     <div className="space-y-2">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Card>
+        <Card key={i}>
           <div className="animate-pulse p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 space-y-2">
@@ -563,7 +563,7 @@ function AgentSkeletonGrid() {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <Card>
+        <Card key={i}>
           <div className="animate-pulse p-3">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="h-10 w-10 rounded-full bg-surface-strong" />
