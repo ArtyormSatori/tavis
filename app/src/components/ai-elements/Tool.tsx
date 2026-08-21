@@ -90,13 +90,19 @@ export const Tool = ({ className, ...props }: ToolProps) => (
   />
 );
 
-export type ToolHeaderProps = {
+/**
+ * `type` and `title` are the component's own props here, so the button's native
+ * versions are omitted before the rest is spread onto the trigger.
+ */
+export type ToolHeaderProps = Omit<
+  ComponentProps<typeof CollapsibleTrigger>,
+  'type' | 'title'
+> & {
   title?: string;
-  className?: string;
 } & (
-  | { type: `tool-${string}`; state: ToolPartState; toolName?: never }
-  | { type: 'dynamic-tool'; state: ToolPartState; toolName: string }
-);
+    | { type: `tool-${string}`; state: ToolPartState; toolName?: never }
+    | { type: 'dynamic-tool'; state: ToolPartState; toolName: string }
+  );
 
 /**
  * Status icons carry no colour of their own: the surrounding `Badge` variant
@@ -138,15 +144,15 @@ const statusLabelKeys: Record<ToolPartState, readonly [string, string]> = {
 export const ToolStatusBadge = ({ status }: { status: ToolPartState }) => {
   const { t } = useT();
   const [key, fallback] = statusLabelKeys[status];
+  // `Badge` takes a curated prop list rather than `...rest`, so the slot
+  // contract that tests assert rides on a wrapper element.
   return (
-    <Badge
-      variant={statusVariants[status]}
-      data-slot="tool-status"
-      data-state-name={status}
-      className="gap-1.5 rounded-full px-2 py-1 text-xs">
-      {statusIcons[status]}
-      {t(key, fallback)}
-    </Badge>
+    <span data-slot="tool-status" data-status={status} className="inline-flex">
+      <Badge variant={statusVariants[status]} className="gap-1.5 rounded-full px-2 py-1 text-xs">
+        {statusIcons[status]}
+        {t(key, fallback)}
+      </Badge>
+    </span>
   );
 };
 
