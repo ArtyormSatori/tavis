@@ -751,12 +751,7 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
 
           {/* Test result */}
           {setupTestResult && (
-            <div
-              className={`rounded-lg px-3 py-2 text-xs ${
-                setupTestResult.success
-                  ? 'bg-sage-50 dark:bg-sage-900/20 text-sage-700 dark:text-sage-300'
-                  : 'bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-300'
-              }`}>
+            <Alert variant={setupTestResult.success ? 'success' : 'destructive'} className="text-xs">
               {setupTestResult.success
                 ? t('settings.embeddings.testSuccess').replace(
                     '{dims}',
@@ -766,13 +761,13 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
                     '{error}',
                     setupTestResult.error ?? ''
                   )}
-            </div>
+            </Alert>
           )}
 
           {setupError && (
-            <div className="rounded-lg px-3 py-2 text-xs bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-300">
+            <Alert variant="destructive" className="text-xs">
               {setupError}
-            </div>
+            </Alert>
           )}
         </ModalShell>
       )}

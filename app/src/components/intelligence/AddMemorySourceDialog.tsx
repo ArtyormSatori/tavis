@@ -395,16 +395,12 @@ function Field({ label, value, onChange, placeholder, type = 'text' }: FieldProp
   return (
     <label className="block">
       <span className="text-xs font-medium text-content-secondary">{label}</span>
-      <input
+      <TextField
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 block w-full rounded-md border border-line-strong bg-surface px-3 py-2
-                   text-sm text-content placeholder-content-faint
-                   focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400
-                   dark:border-neutral-600 dark:bg-surface-muted dark:text-content
-                   dark:placeholder-content-faint dark:focus:border-primary-500"
+        className="mt-1"
       />
     </label>
   );
