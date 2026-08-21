@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
+import { Source, Sources, SourcesContent, SourcesTrigger } from '../../../components/ai-elements';
 import Button from '../../../components/ui/Button';
 import { useT } from '../../../lib/i18n/I18nContext';
 import type { ProcessingTranscriptItem, ToolTimelineEntry } from '../../../store/chatRuntimeSlice';
@@ -34,22 +35,28 @@ function GlobeIcon({ className }: { className?: string }) {
   );
 }
 
-/** One web-source row: globe + hostname title (left) + full URL (right). */
+/**
+ * One web-source row: globe + hostname title (left) + full URL (right).
+ *
+ * The anchor itself is `ai-elements`' {@link Source}, which owns the
+ * `target="_blank"` + `rel` hardening and the `data-slot="source"` contract;
+ * the two-column body is this panel's own, passed as children so the shared
+ * primitive does not have to grow a layout variant for it.
+ */
 function AgentSourceRow({ source }: { source: AgentSource }) {
   return (
     <li>
-      <a
+      <Source
         href={source.url}
-        target="_blank"
         rel="noreferrer noopener"
-        className="flex items-center justify-between gap-3 rounded-md px-1.5 py-1 text-[11px] hover:bg-surface-hover"
+        className="flex items-center justify-between gap-3 rounded-md px-1.5 py-1 text-[11px] text-content-secondary hover:bg-surface-hover"
         data-testid="agent-source-row">
         <span className="flex min-w-0 items-center gap-1.5">
           <GlobeIcon className="shrink-0 text-content-faint" />
           <span className="truncate text-content-secondary">{source.title}</span>
         </span>
         <span className="shrink-0 truncate text-content-faint">{source.url}</span>
-      </a>
+      </Source>
     </li>
   );
 }
@@ -218,17 +225,28 @@ export function AgentProcessSourcePanel({
             </section>
           ) : null}
 
+          {/* Sources — `ai-elements`' Sources disclosure rather than a static
+              heading: a long run can visit dozens of pages, and Radix's
+              Collapsible gives the header real `aria-expanded`/`aria-controls`
+              wiring that an <h3> never had. `defaultOpen` keeps the previous
+              always-visible behaviour, so nothing is hidden by the change. */}
           {sources.length > 0 ? (
-            <section>
-              <h3 className="mb-2 text-[10px] font-semibold tracking-wide text-content-faint uppercase">
-                {t('conversations.agentTaskInsights.sourcesHeading')}
-              </h3>
-              <ul className="space-y-0.5">
-                {sources.map(source => (
-                  <AgentSourceRow key={source.id} source={source} />
-                ))}
-              </ul>
-            </section>
+            <Sources asChild defaultOpen className="mb-0 text-content">
+              <section>
+                <SourcesTrigger
+                  count={sources.length}
+                  className="mb-2 text-[10px] font-semibold tracking-wide text-content-faint uppercase">
+                  {t('conversations.agentTaskInsights.sourcesHeading')} ({sources.length})
+                </SourcesTrigger>
+                <SourcesContent className="mt-0 w-full gap-0">
+                  <ul className="space-y-0.5">
+                    {sources.map(source => (
+                      <AgentSourceRow key={source.id} source={source} />
+                    ))}
+                  </ul>
+                </SourcesContent>
+              </section>
+            </Sources>
           ) : null}
         </div>
       </aside>
