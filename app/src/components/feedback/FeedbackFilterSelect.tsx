@@ -124,18 +124,17 @@ export default function FeedbackFilterSelect({
 
   return (
     <div ref={rootRef} className="relative">
-      <button
+      <Button
         ref={triggerRef}
-        type="button"
+        variant="secondary"
+        size="sm"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
         onClick={() => (open ? closeMenu() : openMenu())}
         onKeyDown={onTriggerKeyDown}
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-          open
-            ? 'border-primary-500/50 bg-surface text-content ring-2 ring-primary-500/20'
-            : 'border-line bg-surface-muted text-content-secondary hover:border-line-strong hover:text-content dark:border-line-strong dark:bg-white/[0.03] dark:hover:text-content'
+        className={`gap-1.5 text-xs font-medium ${
+          open ? 'border-primary-500/50 ring-2 ring-primary-500/20' : ''
         }`}>
         {current?.label}
         <svg
@@ -145,7 +144,7 @@ export default function FeedbackFilterSelect({
           viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
-      </button>
+      </Button>
 
       {open && (
         <ul
