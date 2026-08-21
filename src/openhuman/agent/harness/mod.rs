@@ -69,7 +69,12 @@ pub use turn_subagent_usage::{LastTurnUsage, SubagentUsageEntry};
 pub(crate) use graph::run_channel_turn_via_graph;
 #[cfg(feature = "channels")]
 pub(crate) use instructions::build_tool_instructions_filtered;
-pub(crate) use parse::{parse_tool_calls, parse_tool_calls_with_pformat};
+pub(crate) use parse::parse_tool_calls_with_pformat;
+// The bare text parser has no production call site left here: the dispatcher
+// reaches it through `tinyagents`' dialect layer now. Only this module's own
+// tests still name it through the harness path.
+#[cfg(test)]
+pub(crate) use parse::parse_tool_calls;
 
 #[cfg(test)]
 mod harness_gap_tests;
