@@ -365,7 +365,7 @@ function TaskBoardArticle({
               title={t('chat.approval.approve')}
               disabled={disabled}
               onClick={() => onDecidePlan(card, true)}
-              className="rounded-md bg-ocean-600 px-1.5 py-0.5 text-[10px] font-medium text-white transition-colors hover:bg-ocean-700 disabled:opacity-40">
+              className="rounded-md bg-ocean-600 px-1.5 py-0.5 text-[10px] font-medium text-content-inverted transition-colors hover:bg-ocean-700 disabled:opacity-40">
               {t('chat.approval.approve')}
             </button>
             <button
@@ -383,7 +383,7 @@ function TaskBoardArticle({
             title={t('conversations.taskKanban.workTask')}
             disabled={disabled || working}
             onClick={() => onWorkTask(card)}
-            className="inline-flex flex-shrink-0 items-center gap-1 rounded-md bg-ocean-600 px-1.5 py-0.5 text-[10px] font-medium text-white transition-colors hover:bg-ocean-700 disabled:opacity-40">
+            className="inline-flex flex-shrink-0 items-center gap-1 rounded-md bg-ocean-600 px-1.5 py-0.5 text-[10px] font-medium text-content-inverted transition-colors hover:bg-ocean-700 disabled:opacity-40">
             <LuPlay className="h-3 w-3" />
             {working
               ? t('conversations.taskKanban.startingTask')
