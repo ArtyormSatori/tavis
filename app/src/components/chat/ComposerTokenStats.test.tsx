@@ -95,7 +95,9 @@ describe('<ComposerTokenStats />', () => {
 
     fireEvent.click(screen.getByRole('button'));
     expect(screen.getByTestId('composer-token-breakdown')).toBeInTheDocument();
-    fireEvent.mouseDown(document.body);
+    // Radix's dismissable layer listens for `pointerdown`, not `mousedown` (the
+    // hand-rolled listener this used to have).
+    fireEvent.pointerDown(document.body);
     expect(screen.queryByTestId('composer-token-breakdown')).not.toBeInTheDocument();
   });
 
