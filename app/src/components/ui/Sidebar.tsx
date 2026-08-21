@@ -4,10 +4,10 @@ import {
   createContext,
   forwardRef,
   type HTMLAttributes,
-  type KeyboardEvent as ReactKeyboardEvent,
   type LiHTMLAttributes,
-  type PointerEvent as ReactPointerEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useContext,
   useEffect,
@@ -532,7 +532,14 @@ const MENU_BUTTON_SIZES: Record<SidebarMenuButtonSize, string> = {
  */
 export const SidebarMenuButton = forwardRef<HTMLButtonElement, SidebarMenuButtonProps>(
   (
-    { asChild = false, isActive = false, size = 'md', className, 'aria-current': ariaCurrent, ...rest },
+    {
+      asChild = false,
+      isActive = false,
+      size = 'md',
+      className,
+      'aria-current': ariaCurrent,
+      ...rest
+    },
     ref
   ) => {
     const Comp = asChild ? Slot.Root : 'button';
@@ -592,7 +599,10 @@ export const SidebarMenuIcon = forwardRef<HTMLSpanElement, HTMLAttributes<HTMLSp
     <span
       ref={ref}
       data-slot="sidebar-menu-icon"
-      className={cn('relative inline-flex h-4 w-4 flex-none items-center justify-center', className)}
+      className={cn(
+        'relative inline-flex h-4 w-4 flex-none items-center justify-center',
+        className
+      )}
       {...rest}
     />
   )

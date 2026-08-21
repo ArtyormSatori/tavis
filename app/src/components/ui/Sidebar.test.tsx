@@ -5,6 +5,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   Sidebar,
+  SIDEBAR_ICON_WIDTH,
+  SIDEBAR_KEYBOARD_STEP,
+  type SidebarCollapsible,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -22,10 +25,7 @@ import {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  SIDEBAR_ICON_WIDTH,
-  SIDEBAR_KEYBOARD_STEP,
   useSidebar,
-  type SidebarCollapsible,
 } from './Sidebar';
 
 const RAW_PALETTE = /\b(bg|text|border|ring)-(neutral|stone|slate|canvas|white|black)\b/;
