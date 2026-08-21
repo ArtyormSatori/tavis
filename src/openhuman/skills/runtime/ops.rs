@@ -132,7 +132,7 @@ async fn resolve_python(config: &Config) -> ResolvedRuntimeSummary {
             error: Some("python runtime disabled".to_string()),
         };
     }
-    let bootstrap = PythonBootstrap::new(config.runtime_python.clone());
+    let bootstrap = PythonBootstrap::new(std::sync::Arc::new(config.clone()));
     match bootstrap.resolve().await {
         Ok(resolved) => ResolvedRuntimeSummary {
             runtime: "python".to_string(),
