@@ -92,11 +92,13 @@ describe('ConfirmDialog', () => {
     const user = userEvent.setup();
     const { unmount } = render(<ConfirmDialog {...props} />);
 
-    expect(screen.getByRole('dialog')).toHaveFocus();
+    // Radix moves focus to the first focusable element inside the panel rather
+    // than to the panel itself, so this asserts containment.
+    expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true);
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     unmount();
 
-    expect(trigger).toHaveFocus();
+    await waitFor(() => expect(trigger).toHaveFocus());
     trigger.remove();
   });
 });
