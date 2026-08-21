@@ -45,7 +45,7 @@ export const HeartbeatLoopSection = ({
   loops: HeartbeatLoop[];
   maxCalendarConnectionsPerTick: number;
   onRefresh: () => void;
-  onApplyPatch: (patch: Record<string, unknown>) => void;
+  onApplyPatch: (patch: HeartbeatSettingsPatch) => void;
   onRunPlannerNow: () => void;
 }) => (
   <div className="space-y-3">
