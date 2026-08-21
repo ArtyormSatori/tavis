@@ -139,7 +139,7 @@ function buildTranscript(tailContent: string): ThreadMessage[] {
             tool_calls: [{ id: 'call_1', name: 'memory_search', arguments: '{}' }],
           })
         : isAgent
-          ? `Settled agent prose for turn ${i}. Nothing JSON about it at all.`
+          ? `Settled agent prose MARK${i}_ nothing JSON about it at all`
           : `User question ${i}?`,
       extraMetadata: {},
       createdAt: new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString(),
@@ -273,7 +273,6 @@ describe('ChatThreadView transcript render cost under streaming', () => {
     // Sanity check on the instrument itself: if the mount never rendered this
     // bubble, the assertion below would pass vacuously and measure nothing.
     // eslint-disable-next-line no-console
-    expect(bubbleRenderSpy.mock.calls.map(c => c[0]).slice(0, 5)).toBe('DEBUG');
     expect(rendersOfStable()).toBe(1);
     bubbleRenderSpy.mockClear();
 
