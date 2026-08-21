@@ -668,6 +668,7 @@ const messages: TranslationMap = {
   'common.cancel': '取消',
   'common.save': '保存',
   'common.confirm': '确认',
+  'common.working': '处理中…',
   'common.delete': '删除',
   'common.edit': '编辑',
   'common.create': '创建',

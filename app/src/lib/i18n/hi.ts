@@ -702,6 +702,7 @@ const messages: TranslationMap = {
   'common.cancel': 'रद्द करें',
   'common.save': 'सेव करें',
   'common.confirm': 'कन्फर्म करें',
+  'common.working': 'काम चल रहा है…',
   'common.delete': 'डिलीट करें',
   'common.edit': 'एडिट करें',
   'common.create': 'बनाएं',

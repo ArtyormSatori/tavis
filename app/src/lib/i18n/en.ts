@@ -452,6 +452,7 @@ const en: TranslationMap = {
   'common.cancel': 'Cancel',
   'common.save': 'Save',
   'common.confirm': 'Confirm',
+  'common.working': 'Working…',
   'common.delete': 'Delete',
   'common.edit': 'Edit',
   'common.create': 'Create',

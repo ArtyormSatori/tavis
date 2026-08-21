@@ -719,6 +719,7 @@ const messages: TranslationMap = {
   'common.cancel': 'Annulla',
   'common.save': 'Salva',
   'common.confirm': 'Conferma',
+  'common.working': 'Elaborazione…',
   'common.delete': 'Elimina',
   'common.edit': 'Modifica',
   'common.create': 'Crea',

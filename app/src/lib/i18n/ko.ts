@@ -696,6 +696,7 @@ const messages: TranslationMap = {
   'common.cancel': '취소',
   'common.save': '저장',
   'common.confirm': '확인',
+  'common.working': '처리 중…',
   'common.delete': '삭제',
   'common.edit': '편집',
   'common.create': '생성',

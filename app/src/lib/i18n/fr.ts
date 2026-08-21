@@ -725,6 +725,7 @@ const messages: TranslationMap = {
   'common.cancel': 'Annuler',
   'common.save': 'Enregistrer',
   'common.confirm': 'Confirmer',
+  'common.working': 'Traitement…',
   'common.delete': 'Supprimer',
   'common.edit': 'Modifier',
   'common.create': 'Créer',
