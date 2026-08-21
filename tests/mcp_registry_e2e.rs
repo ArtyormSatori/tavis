@@ -109,6 +109,7 @@ async fn connect_lists_one_tool_then_disconnect() {
     .expect("call_tool succeeds");
 
     let text = result
+        .result
         .get("content")
         .and_then(|c| c.as_array())
         .and_then(|arr| arr.first())
@@ -129,7 +130,7 @@ async fn connect_lists_one_tool_then_disconnect() {
     )
     .await
     .expect_err("call_tool fails after disconnect");
-    assert!(err.contains("not connected"));
+    assert!(err.to_string().contains("not connected"));
 }
 
 #[tokio::test]
@@ -146,7 +147,7 @@ async fn unknown_tool_call_returns_error() {
         .await
         .expect_err("stub rejects unknown tools");
     assert!(
-        err.to_lowercase().contains("unknown tool") || err.contains("error"),
+        err.to_string().to_lowercase().contains("unknown tool") || err.to_string().contains("error"),
         "expected unknown-tool error, got: {err}"
     );
 
@@ -313,7 +314,7 @@ async fn set_enabled_false_disconnects_running_server() {
         .expect("set_enabled ok");
     assert_eq!(outcome.value["enabled"], serde_json::json!(false));
 
-    let loaded = store::get_server(&cfg, &server.server_id).unwrap();
+    let loaded = h.dynamic().store().get_server(&server.server_id).unwrap();
     assert!(!loaded.enabled);
     let statuses = h.dynamic().status().await.expect("status");
     let mine = statuses
@@ -336,7 +337,7 @@ async fn connect_refuses_disabled_server() {
     let err = ops::mcp_clients_connect(&cfg, server.server_id.clone())
         .await
         .expect_err("connect must reject disabled server");
-    assert!(err.to_lowercase().contains("disabled"), "got: {err}");
+    assert!(err.to_string().to_lowercase().contains("disabled"), "got: {err}");
 }
 
 #[tokio::test]
@@ -415,7 +416,7 @@ async fn update_env_merges_partial_update_preserving_other_secrets() {
     let mut initial = HashMap::new();
     initial.insert("API_KEY".to_string(), "key-1".to_string());
     initial.insert("OTHER_SECRET".to_string(), "other-1".to_string());
-    store::set_env_values(&cfg, &server.server_id, &initial).expect("seed env");
+    h.dynamic().store().set_env_values(&server.server_id, &initial).expect("seed env");
 
     // Partial update: only API_KEY, as the connect modal would send for a
     // single edited field.
@@ -425,7 +426,7 @@ async fn update_env_merges_partial_update_preserving_other_secrets() {
         .await
         .expect("update_env returns Ok");
 
-    let stored = store::load_env_values(&cfg, &server.server_id).expect("load env");
+    let stored = h.dynamic().store().load_env_values(&server.server_id).expect("load env");
     assert_eq!(
         stored.get("API_KEY").map(String::as_str),
         Some("key-2"),
@@ -448,23 +449,22 @@ async fn probe_alive_reflects_transport_liveness() {
     h.dynamic().store().insert_server(&server).expect("insert installed server");
 
     h.dynamic().connect(&server.server_id).await.expect("connect").tools;
-    assert!(connections::is_connected(&server.server_id).await);
+    assert!(h.dynamic().connections().is_connected(&server.server_id).await);
     assert!(
-        connections::probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await,
+        h.dynamic().connections().probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await,
         "a live stub answers the tools/list probe"
     );
 
     h.dynamic().connections().disconnect(&server.server_id).await;
-    assert!(!connections::is_connected(&server.server_id).await);
+    assert!(!h.dynamic().connections().is_connected(&server.server_id).await);
     assert!(
-        !connections::probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await,
+        !h.dynamic().connections().probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await,
         "a disconnected server is not alive"
     );
 }
 
 #[tokio::test]
 async fn supervisor_reconnects_a_dropped_server() {
-    use openhuman_core::openhuman::mcp::registry::supervisor;
 
     let (_tmp, cfg) = fresh_workspace_config();
     let h = host(&cfg);
@@ -475,24 +475,23 @@ async fn supervisor_reconnects_a_dropped_server() {
     // it stays installed + enabled in the store.
     h.dynamic().connect(&server.server_id).await.expect("connect").tools;
     h.dynamic().connections().disconnect(&server.server_id).await;
-    assert!(!connections::is_connected(&server.server_id).await);
+    assert!(!h.dynamic().connections().is_connected(&server.server_id).await);
 
     // One supervisor tick should notice the enabled-but-disconnected server and
     // reconnect it.
     supervise_once(&h).await;
 
     assert!(
-        connections::is_connected(&server.server_id).await,
+        h.dynamic().connections().is_connected(&server.server_id).await,
         "supervisor reconnects a dropped-but-installed server"
     );
-    assert!(connections::probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await);
+    assert!(h.dynamic().connections().probe_alive(&server.server_id, std::time::Duration::from_secs(8)).await);
 
     h.dynamic().connections().disconnect(&server.server_id).await;
 }
 
 #[tokio::test]
 async fn supervisor_leaves_a_healthy_connection_intact() {
-    use openhuman_core::openhuman::mcp::registry::supervisor;
 
     let (_tmp, cfg) = fresh_workspace_config();
     let h = host(&cfg);
@@ -503,14 +502,13 @@ async fn supervisor_leaves_a_healthy_connection_intact() {
     // A tick over a healthy server must keep it connected (probe succeeds → no
     // disconnect/reconnect churn).
     supervise_once(&h).await;
-    assert!(connections::is_connected(&server.server_id).await);
+    assert!(h.dynamic().connections().is_connected(&server.server_id).await);
 
     h.dynamic().connections().disconnect(&server.server_id).await;
 }
 
 #[tokio::test]
 async fn supervisor_skips_a_disabled_server() {
-    use openhuman_core::openhuman::mcp::registry::supervisor;
 
     let (_tmp, cfg) = fresh_workspace_config();
     let h = host(&cfg);
@@ -521,7 +519,7 @@ async fn supervisor_skips_a_disabled_server() {
     // A disabled server must never be connected by the supervisor.
     supervise_once(&h).await;
     assert!(
-        !connections::is_connected(&server.server_id).await,
+        !h.dynamic().connections().is_connected(&server.server_id).await,
         "supervisor does not connect disabled servers"
     );
 }
