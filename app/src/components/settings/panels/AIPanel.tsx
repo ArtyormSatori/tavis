@@ -130,16 +130,6 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
         : inferredRoutingModeRaw;
   const sharedModelRef = inferSharedModelRef(draft.routing);
 
-  const removeProvider = useCallback(
-    async (slug: string, isLocalRuntime: boolean) => {
-      setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev));
-      const remaining = draft.cloudProviders.filter(cp => cp.slug !== slug);
-      const nextRouting = routingWithProviderRemoved(draft.routing, { slug, isLocalRuntime }, remaining);
-      await persist({ ...draft, cloudProviders: remaining, routing: nextRouting });
-    },
-    [draft, persist, setProviderSaveNotice]
-  );
-
   return (
     <PanelPage
       className="z-10"
