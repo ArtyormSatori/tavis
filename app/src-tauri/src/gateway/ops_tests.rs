@@ -192,3 +192,89 @@ fn a_remote_gateway_resolves_to_its_url_without_provisioning() {
     assert_eq!(resolved.rpc_url, "https://core.example.com/rpc");
     assert_eq!(resolved.token.as_deref(), Some("bearer"));
 }
+
+/// End-to-end provisioning against a real box, with a stand-in for the core.
+///
+/// Everything the gateway itself owns is exercised for real here: a box is
+/// created, a long-lived process is started in it and outlives the call that
+/// started it, the host is asked for reach, and the endpoint is polled until it
+/// answers. Only the program is substituted — a shell script that serves
+/// `/health`, because building `openhuman-core` to assert that a *gateway*
+/// works would test the wrong thing and take half an hour.
+///
+/// `#[ignore]` because it spawns processes and binds a port. Run with:
+/// `cargo test --manifest-path app/src-tauri/Cargo.toml --lib
+///  gateway::ops_tests::provisioning -- --ignored --nocapture`
+mod provisioning {
+    use std::collections::BTreeMap;
+
+    use super::super::ops;
+    use super::super::types::{Confinement, Gateway, GatewaySpec, Reach, CORE_PORT_IN_BOX};
+
+    /// A stand-in core: answers `/health` on the port it is handed, forever.
+    ///
+    /// Written to disk rather than shipped as a fixture so the test is
+    /// self-contained, and in `sh` because that is the one interpreter every
+    /// box tinybox can host a server in already has.
+    fn fake_core(dir: &std::path::Path) -> std::path::PathBuf {
+        let path = dir.join("fake-openhuman-core");
+        std::fs::write(
+            &path,
+            "#!/bin/sh\n\
+             # Ignores argv (`serve`) and reads the same environment the real\n\
+             # core does, so the gateway's own contract is what is under test.\n\
+             while true; do\n\
+             printf 'HTTP/1.1 200 OK\\r\\nContent-Length: 2\\r\\n\\r\\nok' \\\n\
+             | nc -l -p \"${OPENHUMAN_CORE_PORT}\" >/dev/null 2>&1 || sleep 1\n\
+             done\n",
+        )
+        .expect("write the stand-in core");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
+                .expect("make it executable");
+        }
+        path
+    }
+
+    #[tokio::test]
+    #[ignore = "spawns a process and binds a port; run explicitly"]
+    async fn a_local_box_is_provisioned_and_answers_through_its_endpoint() {
+        let dir = tempfile::TempDir::new().expect("a temporary directory");
+        let gateway = Gateway {
+            id: "e2e".to_owned(),
+            label: "End to end".to_owned(),
+            spec: GatewaySpec::Box {
+                reach: Reach::Local,
+                confinement: Confinement::Passthrough {
+                    binary: fake_core(dir.path()),
+                    workspace: Some(dir.path().to_path_buf()),
+                },
+                env: BTreeMap::new(),
+            },
+        };
+        let desktop = crate::core_process::CoreProcessHandle::new(0);
+        let progress = |step: &str| println!("[e2e] {step}");
+
+        let provisioned = ops::activate(&gateway, &desktop, &progress)
+            .await
+            .expect("provisioning succeeds")
+            .expect("a box gateway is provisioned");
+
+        // The endpoint is what the frontend would be handed, and it answers —
+        // which is the whole claim this feature makes.
+        assert!(provisioned.active.rpc_url.ends_with("/rpc"));
+        assert!(
+            provisioned.active.token.is_some(),
+            "a provisioned core is behind a bearer"
+        );
+        assert!(
+            provisioned.active.rpc_url.contains(&CORE_PORT_IN_BOX.to_string()),
+            "a passthrough box publishes nothing, so the core's own port is the endpoint: {}",
+            provisioned.active.rpc_url
+        );
+
+        provisioned.tear_down().await;
+    }
+}
