@@ -12,12 +12,28 @@ vi.mock('./CollapsedNavRail', () => ({ default: () => null }));
 // macOS/Tauri-gated, and covered by its own spec.
 vi.mock('./WindowDragBar', () => ({ default: () => null }));
 
-function renderShell(props: { unframed?: boolean } = {}) {
+/** Seeds the persisted `app-shell` geometry the shell reads on mount. */
+function withLayout(sidebarVisible: boolean, sidebarWidth: number) {
+  return { layout: { panels: { 'app-shell': { sidebarVisible, sidebarWidth } } } };
+}
+
+function renderShell(
+  props: { unframed?: boolean } = {},
+  preloadedState?: ReturnType<typeof withLayout>
+) {
   return renderWithProviders(
     <RootShellLayout sidebar={<nav>sidebar body</nav>} {...props}>
       <main>routed page</main>
-    </RootShellLayout>
+    </RootShellLayout>,
+    preloadedState ? { preloadedState } : undefined
   );
+}
+
+function panel(store: { getState: () => { layout: { panels: Record<string, unknown> } } }) {
+  return store.getState().layout.panels['app-shell'] as {
+    sidebarVisible: boolean;
+    sidebarWidth: number;
+  };
 }
 
 describe('RootShellLayout', () => {

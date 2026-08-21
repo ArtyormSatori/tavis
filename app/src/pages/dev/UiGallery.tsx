@@ -1,54 +1,10 @@
 import { useState } from 'react';
 
 import {
-  Artifact,
-  ArtifactAction,
-  ArtifactActions,
-  ArtifactClose,
-  ArtifactContent,
-  ArtifactDescription,
-  ArtifactHeader,
-  ArtifactTitle,
-  ChainOfThought,
-  ChainOfThoughtContent,
-  ChainOfThoughtHeader,
-  ChainOfThoughtSearchResult,
-  ChainOfThoughtSearchResults,
-  ChainOfThoughtStep,
-  Confirmation,
-  ConfirmationAccepted,
-  ConfirmationAction,
-  ConfirmationActions,
-  ConfirmationRejected,
-  ConfirmationRequest,
-  ConfirmationTitle,
-  Plan,
-  PlanAction,
-  PlanContent,
-  PlanDescription,
-  PlanFooter,
-  PlanHeader,
-  PlanTitle,
-  PlanTrigger,
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
   Source,
   Sources,
   SourcesContent,
   SourcesTrigger,
-  Suggestion,
-  Suggestions,
-  Task,
-  TaskContent,
-  TaskItem,
-  TaskItemFile,
-  TaskTrigger,
-  Tool,
-  ToolContent,
-  ToolHeader,
-  ToolInput,
-  ToolOutput,
 } from '../../components/ai-elements';
 import {
   AccordionContent,
@@ -815,172 +771,12 @@ export default function UiGallery() {
         </p>
       </div>
 
-      <Section title="Tool call">
-        {/* ToolInput/ToolOutput label their panels with <h4>, so the section
-            needs an <h3> between them and the Section's own <h2> for the
-            heading order to be valid. */}
-        <h3 className="text-xs font-medium uppercase tracking-wide text-content-muted">
-          Static, dynamic and errored calls
-        </h3>
-        <Tool defaultOpen>
-          <ToolHeader type="tool-memory_search" state="output-available" />
-          <ToolContent>
-            <ToolInput input={{ limit: 5, query: 'quarterly revenue' }} />
-            <ToolOutput output="3 matches across 2 sources." errorText={undefined} />
-          </ToolContent>
-        </Tool>
-        <Tool>
-          <ToolHeader type="dynamic-tool" toolName="fetch_invoice" state="input-streaming" />
-          <ToolContent>
-            <ToolInput input={{ invoice: 'INV-…' }} />
-          </ToolContent>
-        </Tool>
-        <Tool defaultOpen>
-          <ToolHeader type="tool-shell" state="output-error" />
-          <ToolContent>
-            <ToolInput input={{ command: 'rm -rf /' }} />
-            <ToolOutput errorText="Blocked by the security policy." output={undefined} />
-          </ToolContent>
-        </Tool>
-      </Section>
 
-      <Section title="Confirmation">
-        <Confirmation approval={{ id: 'a1' }} state="approval-requested">
-          <ConfirmationTitle>Allow the agent to write to ~/OpenHuman/projects?</ConfirmationTitle>
-          <ConfirmationRequest>
-            <p className="text-xs text-content-muted">
-              Only the request state renders these children.
-            </p>
-          </ConfirmationRequest>
-          <ConfirmationActions>
-            <ConfirmationAction variant="secondary">Deny</ConfirmationAction>
-            <ConfirmationAction>Allow</ConfirmationAction>
-          </ConfirmationActions>
-        </Confirmation>
-        <Confirmation approval={{ id: 'a2', approved: true }} state="approval-responded">
-          <ConfirmationTitle>Write access</ConfirmationTitle>
-          <ConfirmationAccepted>
-            <p className="text-xs text-content-muted">Approved.</p>
-          </ConfirmationAccepted>
-        </Confirmation>
-        <Confirmation approval={{ id: 'a3', approved: false }} state="output-denied">
-          <ConfirmationTitle>Write access</ConfirmationTitle>
-          <ConfirmationRejected>
-            <p className="text-xs text-content-muted">Denied.</p>
-          </ConfirmationRejected>
-        </Confirmation>
-      </Section>
 
-      <Section title="Reasoning">
-        <Reasoning defaultOpen duration={4}>
-          <ReasoningTrigger />
-          <ReasoningContent>
-            First the constraint, then the two candidates, then why the second one loses.
-          </ReasoningContent>
-        </Reasoning>
-        <Separator />
-        <Reasoning isStreaming>
-          <ReasoningTrigger />
-          <ReasoningContent>Still thinking…</ReasoningContent>
-        </Reasoning>
-      </Section>
 
-      <Section title="Chain of thought">
-        <ChainOfThought defaultOpen>
-          <ChainOfThoughtHeader />
-          <ChainOfThoughtContent>
-            <ChainOfThoughtStep label="Read the spec" status="complete" />
-            <ChainOfThoughtStep
-              label="Search the codebase"
-              description="Two call sites, one of them dead."
-              status="active">
-              <ChainOfThoughtSearchResults>
-                <ChainOfThoughtSearchResult>tools/ops.rs</ChainOfThoughtSearchResult>
-                <ChainOfThoughtSearchResult>core/all.rs</ChainOfThoughtSearchResult>
-              </ChainOfThoughtSearchResults>
-            </ChainOfThoughtStep>
-            <ChainOfThoughtStep label="Write the patch" status="pending" />
-          </ChainOfThoughtContent>
-        </ChainOfThought>
-      </Section>
 
-      <Section title="Plan">
-        <Plan defaultOpen>
-          <PlanHeader>
-            <div>
-              <PlanTitle>Migrate the barrel</PlanTitle>
-              <PlanDescription>Three steps, no schema change.</PlanDescription>
-            </div>
-            <PlanAction>
-              <PlanTrigger />
-            </PlanAction>
-          </PlanHeader>
-          <PlanContent>
-            <ol className="list-inside list-decimal space-y-1 text-sm text-content-muted">
-              <li>Export the primitives.</li>
-              <li>Create the ai-elements barrel.</li>
-              <li>Extend the gallery.</li>
-            </ol>
-          </PlanContent>
-          <PlanFooter>
-            <Badge variant="neutral">draft</Badge>
-          </PlanFooter>
-        </Plan>
-        <Plan isStreaming defaultOpen>
-          <PlanHeader>
-            <div>
-              <PlanTitle>Streaming in…</PlanTitle>
-              <PlanDescription>The title and description shimmer while streaming.</PlanDescription>
-            </div>
-            <PlanAction>
-              <PlanTrigger />
-            </PlanAction>
-          </PlanHeader>
-          <PlanContent>
-            <p className="text-sm text-content-muted">Steps arrive as the model emits them.</p>
-          </PlanContent>
-        </Plan>
-      </Section>
 
-      <Section title="Task">
-        <Task defaultOpen>
-          <TaskTrigger title="Searched the workspace" />
-          <TaskContent>
-            <TaskItem>Scanned 412 files.</TaskItem>
-            <TaskItem>
-              Matched <TaskItemFile>src/components/ui/index.ts</TaskItemFile>
-            </TaskItem>
-            <TaskItem>
-              Matched <TaskItemFile>src/pages/dev/UiGallery.tsx</TaskItemFile>
-            </TaskItem>
-          </TaskContent>
-        </Task>
-      </Section>
 
-      <Section title="Artifact">
-        <Artifact>
-          <ArtifactHeader>
-            <div>
-              <ArtifactTitle>quarterly-report.docx</ArtifactTitle>
-              <ArtifactDescription>Generated 12 seconds ago · 42 KB</ArtifactDescription>
-            </div>
-            <ArtifactActions>
-              <ArtifactAction tooltip="Copy" label="Copy">
-                ⧉
-              </ArtifactAction>
-              <ArtifactAction tooltip="Download" label="Download">
-                ↓
-              </ArtifactAction>
-              <ArtifactClose />
-            </ArtifactActions>
-          </ArtifactHeader>
-          <ArtifactContent>
-            <p className="text-sm text-content-muted">
-              The document body renders here — the artifact is a frame, not a viewer.
-            </p>
-          </ArtifactContent>
-        </Artifact>
-      </Section>
 
       <Section title="Sources">
         <Sources defaultOpen>
@@ -992,15 +788,6 @@ export default function UiGallery() {
         </Sources>
       </Section>
 
-      <Section title="Suggestions">
-        <Suggestions>
-          <Suggestion suggestion="Summarise this thread" onClick={setPicked} />
-          <Suggestion suggestion="What changed since Friday?" onClick={setPicked} />
-          <Suggestion suggestion="Draft a reply" onClick={setPicked} />
-          <Suggestion suggestion="Show the failing tests" onClick={setPicked} />
-        </Suggestions>
-        <p className="text-xs text-content-muted">Picked: {picked ?? 'nothing yet'}</p>
-      </Section>
     </div>
   );
 }
