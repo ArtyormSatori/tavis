@@ -415,8 +415,12 @@ describe('ConnectAuthModal', () => {
     await screen.findByRole('dialog');
     fireEvent.click(screen.getByRole('button', { name: /Where do I get the token/ }));
     await waitFor(() => {
-      // The connect modal plus the stacked config-help modal.
-      expect(screen.getAllByRole('dialog').length).toBeGreaterThan(1);
+      // The connect modal plus the stacked config-help modal. Both dialogs are
+      // Radix `Dialog`s portalled to `document.body` now, so opening the
+      // second correctly marks the first `aria-hidden` for assistive tech
+      // (real background content while a modal is on top of it) — query with
+      // `{ hidden: true }` to still see it in the accessibility-tree count.
+      expect(screen.getAllByRole('dialog', { hidden: true }).length).toBeGreaterThan(1);
     });
   });
 

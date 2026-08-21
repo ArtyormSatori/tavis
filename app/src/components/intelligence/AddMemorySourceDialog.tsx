@@ -357,7 +357,7 @@ function FolderField({ label, value, onChange }: FolderFieldProps) {
           className="shrink-0 cursor-pointer rounded-md border border-line-strong bg-surface px-3 py-2
                      text-xs font-medium text-content-secondary transition-colors
                      hover:border-primary-400 hover:text-primary-600
-                     dark:border-neutral-600 dark:bg-surface-muted dark:text-content-secondary
+                     dark:bg-surface-muted dark:text-content-secondary
                      dark:hover:border-primary-500 dark:hover:text-primary-400">
           {t('memorySources.browse')}
           <input
@@ -760,7 +760,7 @@ function ComposioPicker({
           className="flex w-full items-center justify-between rounded-md border border-line-strong
                      bg-surface px-3 py-2 text-left text-sm text-content
                      focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400
-                     dark:border-neutral-600 dark:bg-surface-muted dark:text-content
+                     dark:bg-surface-muted dark:text-content
                      dark:focus:border-primary-500">
           <span className={selected ? '' : 'text-content-faint'}>
             {selected ? selected.label : t('memorySources.selectConnection')}
@@ -818,7 +818,7 @@ function ComposioPicker({
                       data-testid={`composio-option-coming-soon-${entry.conn.id}`}
                       className="shrink-0 rounded-full bg-surface-subtle px-2 py-0.5 text-[10px]
                                  font-medium uppercase tracking-wide text-content-muted
-                                 dark:bg-neutral-700 dark:text-content-muted">
+                                 dark:bg-surface-strong dark:text-content-muted">
                       {t('memorySources.comingSoon')}
                     </span>
                   )}
