@@ -72,6 +72,18 @@ function makeFlow(overrides: Partial<Flow> = {}): Flow {
   };
 }
 
+/**
+ * Opens a row's "⋯" overflow menu. `FlowRowMenu` is now Radix `DropdownMenu`
+ * (issue: UI library adoption), whose trigger opens on `pointerdown` rather
+ * than `click` (so a press-and-drag select onto an item keeps working) — a
+ * plain `fireEvent.click` never dispatches that event.
+ */
+function openRowMenu(rowId = 'flow-1') {
+  const trigger = screen.getByTestId(`flow-menu-${rowId}`);
+  fireEvent.pointerDown(trigger);
+  fireEvent.click(trigger);
+}
+
 describe('FlowsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
