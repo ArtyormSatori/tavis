@@ -58,7 +58,7 @@ pub async fn init(config: &crate::openhuman::config::schema::Config) {
 
 fn workspace_roots(config: &crate::openhuman::config::schema::Config) -> Vec<PathBuf> {
     let mut roots = vec![config.action_dir.clone()];
-    if let Some(turn_root) = crate::openhuman::agent::turn_workspace::current_turn_workspace() {
+    if let Some(turn_root) = crate::openhuman::agent::turn_workspace::current() {
         if !roots.contains(&turn_root) {
             roots.push(turn_root);
         }
