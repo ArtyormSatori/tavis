@@ -34,13 +34,18 @@ pub struct Provisioned {
     /// Where the frontend should send RPC.
     pub active: ActiveGateway,
     /// The tunnel, if reaching the box needed one. Dropping it closes it.
-    _forward: Option<Forward>,
+    ///
+    /// The three below are `pub(super)` only so [`provision`] can build one:
+    /// it is the sibling that creates all of this, and moving it back in here
+    /// would put four hundred lines of box mechanics in the module whose job is
+    /// deciding which gateway needs them.
+    pub(super) _forward: Option<Forward>,
     /// The sandbox the box lives in, for tearing it down.
-    sandbox: Arc<dyn Sandbox>,
+    pub(super) sandbox: Arc<dyn Sandbox>,
     /// The box.
-    box_id: BoxId,
+    pub(super) box_id: BoxId,
     /// The core process inside it.
-    process: ProcessId,
+    pub(super) process: ProcessId,
 }
 
 impl std::fmt::Debug for Provisioned {
