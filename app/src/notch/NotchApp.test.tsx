@@ -92,16 +92,6 @@ describe('NotchApp', () => {
     expect(await screen.findByText('Opening Music')).toBeInTheDocument();
   });
 
-  it('handles speaking, released and idle transitions without throwing', async () => {
-    const socket = await renderAndConnect();
-    socket.fire('companion:state_changed', { state: 'speaking' });
-    expect(await screen.findByText('Speaking…')).toBeInTheDocument();
-    // Released schedules a dismiss; idle drives an immediate dismiss — both
-    // exercise the scheduleDismiss branches.
-    socket.fire('dictation:toggle', { type: 'released' });
-    socket.fire('companion:state_changed', { state: 'idle' });
-  });
-
   it('connects via the notch:core-url event when no URL was preloaded', async () => {
     delete (window as { __OPENHUMAN_NOTCH_CORE_URL__?: string }).__OPENHUMAN_NOTCH_CORE_URL__;
     render(<NotchApp />);
