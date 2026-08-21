@@ -108,20 +108,22 @@ export function TeamActivityRail({ messages, members, onSend, sending }: TeamAct
       {onSend && (
         <div className="mt-3 border-t border-line-subtle pt-2">
           <div className="flex items-center gap-1.5">
-            <select
+            <NativeSelect
+              inputSize="sm"
               value={recipient}
               onChange={e => setRecipient(e.target.value)}
               aria-label={t('intelligence.teams.composer.recipient')}
-              className="max-w-[40%] flex-none rounded-md border border-line bg-surface px-1.5 py-1 text-[11px] text-content-secondary">
+              className="max-w-[40%] flex-none text-[11px] text-content-secondary">
               <option value="">{t('intelligence.teams.composer.toTeam')}</option>
               {members.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>
               ))}
-            </select>
-            <input
+            </NativeSelect>
+            <TextField
               type="text"
+              inputSize="sm"
               value={draft}
               disabled={sending}
               onChange={e => setDraft(e.target.value)}
@@ -132,17 +134,19 @@ export function TeamActivityRail({ messages, members, onSend, sending }: TeamAct
                 }
               }}
               placeholder={t('intelligence.teams.composer.placeholder')}
-              className="min-w-0 flex-1 rounded-md border border-line px-2 py-1 text-[11px] text-content-secondary placeholder:text-stone-400 disabled:opacity-50 dark:bg-surface"
+              className="min-w-0 flex-1 text-[11px] text-content-secondary"
             />
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              iconOnly
+              size="xs"
               disabled={sending || draft.trim() === ''}
               onClick={submit}
               aria-label={t('intelligence.teams.composer.send')}
               title={t('intelligence.teams.composer.send')}
-              className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-md bg-ocean-500 text-white hover:bg-ocean-600 disabled:opacity-40">
+              className="h-6 w-6 min-w-0 flex-none bg-ocean-500 hover:bg-ocean-600">
               <LuSend className="h-3 w-3" />
-            </button>
+            </Button>
           </div>
         </div>
       )}
