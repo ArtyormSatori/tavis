@@ -53,7 +53,6 @@ const ListRow = ({
         aria-label={removeLabel}
         title={removeIcon != null ? removeLabel : undefined}
         data-testid={removeTestId}
-        data-slot="list-row-remove"
         className="flex-shrink-0 text-coral-500 hover:text-coral-600 dark:text-coral-400 dark:hover:text-coral-300">
         {removeIcon ?? removeLabel}
       </Button>
