@@ -796,7 +796,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
       <div className="pb-3">
         <div className="flex items-center gap-2">
           <TabsRoot value={view} onValueChange={value => setView(value as ExplorerView)}>
-            <TabsList aria-label={t('skills.explorer.title')}>
+            <TabsList variant="line" aria-label={t('skills.explorer.title')}>
               <TabsTrigger value="registry">
                 {t('skills.explorer.registryTab')}
                 {catalogTotal > 0 && <span className="text-[10px] opacity-70">{catalogTotal.toLocaleString()}</span>}
