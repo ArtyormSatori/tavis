@@ -56,6 +56,7 @@ use crate::openhuman::inference::INFERENCE_AGENT_CHAT as AGENT_CHAT;
 /// `INFERENCE_AGENT_CHAT` is owned by the inference domain; referencing it
 /// keeps this facade's dispatch string in lockstep with the registered
 /// controller rather than duplicating the wire name.
+///
 /// Where one turn's inference should go.
 ///
 /// Both halves are required together: an endpoint with no credential and a
