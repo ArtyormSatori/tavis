@@ -53,12 +53,9 @@ use crate::openhuman::inference::INFERENCE_AGENT_CHAT as AGENT_CHAT;
 /// strictly less capable, so the facade uses the wider surface and lets
 /// [`Route`] be `None` when the account's own route is what is wanted.
 ///
-/// The operation constant is owned by the inference domain; this facade must
-/// not spell the wire name out so a rename upstream cannot silently drift the
-/// dispatch string away from the registered controller.
-/*
- * placeholder
- */
+/// `INFERENCE_AGENT_CHAT` is owned by the inference domain; referencing it
+/// keeps this facade's dispatch string in lockstep with the registered
+/// controller rather than duplicating the wire name.
 /// Where one turn's inference should go.
 ///
 /// Both halves are required together: an endpoint with no credential and a
