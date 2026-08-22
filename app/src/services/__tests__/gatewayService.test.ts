@@ -143,14 +143,10 @@ describe('mutating and activating', () => {
     expect(invoke).toHaveBeenCalledWith('gateway_delete', { id: 'builder' });
   });
 
-  it('returns the endpoint the shell resolved', async () => {
-    invoke.mockResolvedValue({ id: 'builder', rpcUrl: 'http://127.0.0.1:54321/rpc', token: 'b' });
+  it('acknowledges an activation without exposing credentials to the renderer', async () => {
+    invoke.mockResolvedValue(undefined);
 
-    await expect(activateGateway('builder')).resolves.toEqual({
-      id: 'builder',
-      rpcUrl: 'http://127.0.0.1:54321/rpc',
-      token: 'b',
-    });
+    await expect(activateGateway('builder')).resolves.toBeUndefined();
     expect(invoke).toHaveBeenCalledWith('gateway_activate', { id: 'builder' });
   });
 
