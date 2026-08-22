@@ -110,7 +110,7 @@ export const ProviderSwatch = ({
       aria-hidden
       data-slot="provider-swatch"
       className={cn(
-        'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-semibold ring-1',
+        'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-xs font-semibold ring-1',
         PROVIDER_SWATCH_TONES[slug] ?? tone
       )}>
       {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
