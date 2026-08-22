@@ -795,7 +795,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden animate-fade-up">
       <div className="pb-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <ChipTabs<ExplorerView>
             className="flex gap-2"
             ariaLabel={t('skills.explorer.title')}
@@ -836,11 +836,9 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             className="flex-shrink-0">
             {t('skills.explorer.installFromUrl')}
           </Button>
-        </div>
-
       {/* Source filter */}
       {view === 'registry' && sources.length > 0 && (
-        <div className="pb-3">
+        <div className="shrink-0">
           <DropdownMenuRoot>
             <DropdownMenuTrigger asChild>
               <Button
@@ -878,7 +876,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
       )}
 
       {/* Search */}
-      <div className="flex gap-2 pb-3">
+      <div className="flex min-w-0 flex-1 gap-2">
         <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-content-faint"
