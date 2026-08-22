@@ -86,6 +86,12 @@ const PROVIDER_SWATCH_TONES: Record<string, string> = {
   ollama: 'bg-black text-white ring-white/30',
   openrouter: 'bg-[#7624F4]/10 text-[#7624F4] ring-[#7624F4]/35',
   deepseek: 'bg-[#4D6BFE]/10 text-[#4D6BFE] ring-[#4D6BFE]/35',
+  cerebras: 'bg-[#FF6A00]/10 text-[#FF6A00] ring-[#FF6A00]/35',
+  fireworks: 'bg-[#EF476F]/10 text-[#EF476F] ring-[#EF476F]/35',
+  groq: 'bg-[#F55036]/10 text-[#F55036] ring-[#F55036]/35',
+  minimax: 'bg-[#7048E8]/10 text-[#7048E8] ring-[#7048E8]/35',
+  moonshot: 'bg-[#5B5CE2]/10 text-[#5B5CE2] ring-[#5B5CE2]/35',
+  together: 'bg-[#9D36D5]/10 text-[#9D36D5] ring-[#9D36D5]/35',
 };
 
 /**

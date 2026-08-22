@@ -29,8 +29,23 @@ import {
   SiX,
 } from 'react-icons/si';
 
+import cerebrasLogo from '../../../../assets/provider-icons/cerebras.svg';
+import deepinfraLogo from '../../../../assets/provider-icons/deepinfra.svg';
 import deepseekLogo from '../../../../assets/provider-icons/deepseek.svg';
+import fireworksLogo from '../../../../assets/provider-icons/fireworks.svg';
+import groqLogo from '../../../../assets/provider-icons/groq.svg';
+import kilocodeLogo from '../../../../assets/provider-icons/kilocode.ico';
+import minimaxLogo from '../../../../assets/provider-icons/minimax.svg';
+import modelscopeLogo from '../../../../assets/provider-icons/modelscope.svg';
+import moonshotLogo from '../../../../assets/provider-icons/moonshot.svg';
+import novitaLogo from '../../../../assets/provider-icons/novita.svg';
 import openrouterLogo from '../../../../assets/provider-icons/openrouter.svg';
+import orcarouterLogo from '../../../../assets/provider-icons/orcarouter.ico';
+import stepfunLogo from '../../../../assets/provider-icons/stepfun.svg';
+import sumopodLogo from '../../../../assets/provider-icons/sumopod.ico';
+import togetherLogo from '../../../../assets/provider-icons/together.svg';
+import veniceLogo from '../../../../assets/provider-icons/venice.ico';
+import zaiLogo from '../../../../assets/provider-icons/zai.ico';
 import { cn } from '../../../../lib/cn';
 
 /**
@@ -60,8 +75,23 @@ const PROVIDER_ICONS: Record<string, IconType> = {
 
 /** Locally bundled marks for providers absent from the installed icon set. */
 const PROVIDER_ASSETS: Record<string, string> = {
+  cerebras: cerebrasLogo,
+  deepinfra: deepinfraLogo,
   openrouter: openrouterLogo,
   deepseek: deepseekLogo,
+  fireworks: fireworksLogo,
+  groq: groqLogo,
+  kilocode: kilocodeLogo,
+  minimax: minimaxLogo,
+  modelscope: modelscopeLogo,
+  moonshot: moonshotLogo,
+  novita: novitaLogo,
+  orcarouter: orcarouterLogo,
+  stepfun: stepfunLogo,
+  sumopod: sumopodLogo,
+  together: togetherLogo,
+  venice: veniceLogo,
+  zai: zaiLogo,
 };
 
 /** Brand colour treatment for marks that appear inside neutral provider swatches. */
