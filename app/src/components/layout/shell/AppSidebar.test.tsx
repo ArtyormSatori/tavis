@@ -2,7 +2,21 @@ import { fireEvent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '../../../test/test-utils';
+import { SidebarProvider } from '../../ui';
 import AppSidebar from './AppSidebar';
+
+/** `AppSidebar` reads `useSidebar()` — it must render inside a `<SidebarProvider>`. */
+function renderAppSidebar(
+  options?: Parameters<typeof renderWithProviders>[1],
+  providerProps?: { open?: boolean }
+) {
+  return renderWithProviders(
+    <SidebarProvider open={providerProps?.open ?? true}>
+      <AppSidebar />
+    </SidebarProvider>,
+    options
+  );
+}
 
 const mockNavigate = vi.fn();
 const mockTrackEvent = vi.fn();
