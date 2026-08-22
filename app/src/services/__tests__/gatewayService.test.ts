@@ -9,12 +9,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  activateGateway,
   activeGatewayId,
+  deleteGateway,
   DESKTOP_GATEWAY_ID,
   gatewayKind,
   type GatewaySpec,
   gatewayStatus,
   listGateways,
+  saveGateway,
 } from '../gatewayService';
 
 const invoke = vi.fn();
