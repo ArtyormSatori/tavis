@@ -1,3 +1,4 @@
+import debugFactory from 'debug';
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
@@ -16,12 +17,11 @@ import {
   SIDEBAR_MIN_WIDTH,
   SidebarProvider,
   SidebarRail,
-  SidebarTrigger,
-  Tooltip,
 } from '../../ui';
-import CollapsedNavRail from './CollapsedNavRail';
 import ContentSurface from './ContentSurface';
 import WindowDragBar from './WindowDragBar';
+
+const log = debugFactory('sidebar');
 
 // `app-shell` (not the older `root-shell`) so the persisted geometry seeds
 // fresh with the sidebar visible by default. Exported so the global command
