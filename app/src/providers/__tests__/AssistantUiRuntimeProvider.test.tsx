@@ -117,13 +117,13 @@ describe('AssistantUiRuntimeProvider', () => {
     registerChatSurface(THREAD_ID, { send });
 
     function Sender() {
-      const thread = useThread();
+      const aui = useAui();
       return (
         <button
           type="button"
           data-testid="send"
           onClick={() =>
-            void thread.append({ role: 'user', content: [{ type: 'text', text: 'hi' }] })
+            void aui.thread.append({ role: 'user', content: [{ type: 'text', text: 'hi' }] })
           }>
           send
         </button>
