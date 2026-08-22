@@ -531,8 +531,17 @@ impl CoreBuilder {
     /// configuration, different workspace"; starts from the config already
     /// supplied, or [`Config::default`](Default::default) when none is.
     pub fn workspace(mut self, dir: impl Into<std::path::PathBuf>) -> Self {
+        let dir = dir.into();
         let mut config = self.config.take().unwrap_or_default();
-        config.workspace_dir = dir.into();
+        config.workspace_dir = dir.clone();
+        // Credential profiles and the file-backed keyring resolve from
+        // `config_path`'s parent, not from `workspace_dir`. Rooting only the
+        // workspace while leaving the default config path would keep sessions
+        // and credentials in the previous config root even though this method
+        // documents `dir` as rooting "core state" — so set a deterministic
+        // config path beside the workspace, mirroring the harness's `Dir`
+        // layout (`<root>/config.toml` next to `<root>/workspace`).
+        config.config_path = dir.join("config.toml");
         self.config = Some(config);
         self
     }
