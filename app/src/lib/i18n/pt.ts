@@ -3312,7 +3312,8 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'O runtime não conseguiu ler o seu ficheiro de configuração. O config.toml pode pertencer a outra conta de utilizador ou estar inacessível ao processo por outro motivo. Reinicie o runtime e, se isso não resolver, corrija a propriedade da pasta de trabalho ou recrie o seu volume.',
   'welcome.localSessionErrorFallback': 'Não foi possível iniciar uma sessão local.',
-  'welcome.gatewaySessionErrorFallback': 'Não foi possível concluir o login neste momento. O armazenamento de sessão não respondeu a tempo (mesmo após tentar novamente). Reinicie o OpenHuman e tente de novo.',
+  'welcome.gatewaySessionErrorFallback':
+    'Não foi possível concluir o login neste momento. O armazenamento de sessão não respondeu a tempo (mesmo após tentar novamente). Reinicie o OpenHuman e tente de novo.',
   'welcome.localSessionDesc': 'Usa um perfil local offline e ignora TinyHumans OAuth.',
   'chat.agentChatDesc': 'Abrir uma sessão de chat direto com o agente.',
   'chat.modelPlaceholder': 'gpt-4o',

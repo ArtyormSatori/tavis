@@ -3188,7 +3188,8 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'تعذّر على بيئة التشغيل قراءة ملف الإعدادات الخاص بها. قد يكون الملف config.toml مملوكًا لحساب مستخدم آخر، أو غير متاح لعملية التشغيل لسبب آخر. أعد تشغيل بيئة التشغيل، وإن لم يُجدِ ذلك فأصلح ملكية مجلد العمل أو أعد إنشاء وحدة التخزين الخاصة به.',
   'welcome.localSessionErrorFallback': 'تعذّر بدء جلسة محلية.',
-  'welcome.gatewaySessionErrorFallback': 'تعذّر إتمام تسجيل الدخول في الوقت الحالي. لم يستجب تخزين الجلسة في الوقت المحدد (حتى بعد إعادة المحاولة). يرجى إعادة تشغيل OpenHuman والمحاولة مرة أخرى.',
+  'welcome.gatewaySessionErrorFallback':
+    'تعذّر إتمام تسجيل الدخول في الوقت الحالي. لم يستجب تخزين الجلسة في الوقت المحدد (حتى بعد إعادة المحاولة). يرجى إعادة تشغيل OpenHuman والمحاولة مرة أخرى.',
   'welcome.localSessionDesc': 'يستخدم ملف تعريف محلي غير متصل ويتخطى TinyHumans OAuth.',
   'chat.agentChatDesc': 'فتح جلسة محادثة مباشرة مع الوكيل.',
   'chat.modelPlaceholder': 'gpt-4o',
