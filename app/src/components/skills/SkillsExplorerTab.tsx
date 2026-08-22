@@ -748,7 +748,8 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
   const error = view === 'installed' ? skillsError : catalogError;
 
   return (
-    <div className="rounded-2xl border border-line bg-surface p-3 shadow-soft animate-fade-up">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface animate-fade-up">
+      <div className="p-3 pb-0">
       <div className="px-1 pb-3 pt-1">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -882,6 +883,10 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           </Button>
         )}
       </div>
+
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 pt-0">
 
       {/* Loading */}
       {loading && (
@@ -1024,6 +1029,8 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           )}
         </>
       )}
+
+      </div>
 
       {installDialogOpen && (
         <InstallSkillDialog
