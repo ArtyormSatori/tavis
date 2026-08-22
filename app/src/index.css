@@ -247,14 +247,12 @@
 
 /* Component layer - Reusable patterns */
 @layer components {
-
   /* ============================================
      Dark-mode overrides for @apply'd component classes.
      Most classes are now token-driven (semantic surface/content/line) and flip
      automatically, so only the tinted status badges — which keep a light accent
      tint in light mode — still need an explicit dark override.
      ============================================ */
-
 }
 
 /* Utility layer - Custom utilities */
