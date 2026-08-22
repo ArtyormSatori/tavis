@@ -94,6 +94,16 @@ pub(crate) async fn post_json_rpc(
     token: Option<&str>,
     body: String,
 ) -> Result<RelayHttpResponse, String> {
+    // Defense in depth behind `store::save`'s validation: never attach a
+    // bearer over plain HTTP to a non-loopback host, whatever the caller is.
+    // The local core (loopback) and any `https` endpoint keep working; a
+    // Remote gateway that slipped past persistence is still rejected here.
+    let relay_token = relay_bearer_header(token);
+    if relay_token.is_some() && crate::gateway::types::validate_remote_transport(url, token).is_err()
+    {
+        return Err(format!("refusing to send a bearer to {url} over an insecure transport"));
+    }
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()
@@ -104,15 +114,14 @@ pub(crate) async fn post_json_rpc(
         .header("Content-Type", "application/json")
         .body(body);
 
-    let bearer = relay_bearer_header(token);
-    if let Some(value) = bearer.as_deref() {
+    if let Some(value) = relay_token.as_deref() {
         builder = builder.header("Authorization", value);
     }
 
     let safe_url = redact_url_for_log(url);
     log::debug!(
         "[core_rpc][relay] POST {safe_url} (auth={})",
-        bearer.is_some()
+        relay_token.is_some()
     );
 
     let resp = builder
