@@ -41,15 +41,16 @@ fn relay_bearer_header(token: Option<&str>) -> Option<String> {
 }
 
 /// Redact a relay URL before it lands in a log line or error string: drop the
-/// query, fragment, and any userinfo (which can carry tokens/credentials),
-/// keeping just `scheme://host[:port]/path` so transport diagnostics stay
-/// useful without persisting secrets. Falls back to a coarse sentinel when the
-/// URL can't be parsed.
+/// query, fragment, path, and any userinfo (which can carry tokens/credentials
+/// or PII in the path itself), keeping just `scheme://host[:port]` so transport
+/// diagnostics stay useful without persisting secrets. Falls back to a coarse
+/// sentinel when the URL can't be parsed.
 pub(crate) fn redact_url_for_log(url: &str) -> String {
     url.parse::<url::Url>()
         .map(|mut parsed| {
             parsed.set_query(None);
             parsed.set_fragment(None);
+            parsed.set_path("");
             let _ = parsed.set_username("");
             let _ = parsed.set_password(None);
             parsed.to_string()
