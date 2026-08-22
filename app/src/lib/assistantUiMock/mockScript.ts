@@ -4,6 +4,12 @@
  * Kept apart from the adapter so the *content* (what a turn contains) and the
  * *timing* (how it arrives) can be read separately. Everything here is fiction:
  * no file is read, no search is run, no subagent exists.
+ *
+ * The order below is the order the parts are *created*, not the order they
+ * finish. A `subagent` step is dispatched and the script moves on immediately —
+ * delegation is asynchronous and does not block the turn — so its nested steps
+ * land while later tool calls and prose are already streaming. See
+ * `mockChatModel` for how that is scheduled.
  */
 
 /**
@@ -26,6 +32,12 @@ export type MockSubagentResult = {
   status: 'running' | 'complete';
   steps: MockSubagentStep[];
   report?: string;
+  /**
+   * Seconds since dispatch, ticked while the delegation runs. Rendering it is
+   * what makes "still going while the answer streams" visible rather than
+   * merely true.
+   */
+  elapsedSeconds?: number;
 };
 
 /** A tool call in the script, with the result it eventually returns. */
