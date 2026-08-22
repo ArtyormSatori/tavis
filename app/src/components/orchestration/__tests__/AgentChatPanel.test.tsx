@@ -43,7 +43,6 @@ vi.mock('../../../lib/orchestration/useOrchestrationChats', () => ({
   useOrchestrationChats: () => chatsApi.current,
 }));
 
-const subconsciousTrigger = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 
 const sendMasterMessage = vi.hoisted(() => vi.fn().mockResolvedValue({ ok: true, messageId: 'm' }));
 vi.mock('../../../lib/orchestration/orchestrationClient', async orig => ({
