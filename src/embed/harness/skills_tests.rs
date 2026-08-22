@@ -100,6 +100,26 @@ fn a_symlink_inside_a_bundle_is_skipped_not_followed() {
     );
 }
 
+#[cfg(unix)]
+#[test]
+fn a_symlinked_manifest_does_not_make_a_directory_a_bundle() {
+    // `is_bundle` must not trust symlinks: `is_file()` follows a link, so a
+    // manifest that is itself a symlink would count the directory as a bundle
+    // even though `copy_tree` skips symlinks — installing a directory with no
+    // manifest that discovery then ignores (a silent-absence failure). A
+    // symlinked manifest must be rejected like a symlinked bundle dir.
+    let src = tempfile::tempdir().expect("src");
+    let ws = tempfile::tempdir().expect("ws");
+    let outside = tempfile::tempdir().expect("outside");
+    let dir = src.path().join("tricky");
+    std::fs::create_dir_all(&dir).expect("mkdir");
+    std::fs::write(outside.path().join("SKILL.md"), "# real").expect("write");
+    std::os::unix::fs::symlink(outside.path().join("SKILL.md"), dir.join("SKILL.md"))
+        .expect("symlink manifest");
+
+    assert!(!is_bundle(&dir), "a symlinked manifest must not be treated as a bundle");
+}
+
 #[test]
 fn a_missing_skills_dir_is_a_clear_error_not_a_silent_skip() {
     let ws = tempfile::tempdir().expect("ws");
