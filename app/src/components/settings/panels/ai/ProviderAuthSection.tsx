@@ -18,12 +18,13 @@
  */
 import { LuCircleAlert } from 'react-icons/lu';
 
+import { useState } from 'react';
+
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ProviderAuthError } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
 import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
-import Card from '../../../ui/Card';
 import StatusLine from '../../../ui/StatusLine';
 import Switch from '../../../ui/Switch';
 import { routingWithProviderRemoved } from '../aiRouting';
@@ -105,6 +106,7 @@ export const ProviderAuthSection = ({
   onEditCustomProvider: (provider: CloudProvider) => void;
 }) => {
   const { t } = useT();
+  const [addOpen, setAddOpen] = useState(false);
 
   /** Drop a provider and scrub every routing entry pinned to it, so a workload
    *  cannot keep pointing at a provider that no longer exists. */
@@ -159,6 +161,7 @@ export const ProviderAuthSection = ({
   ];
 
   const handlePick = (slug: string) => {
+    setAddOpen(false);
     if (slug === CUSTOM_OPTION) {
       onAddCustomProvider();
       return;
