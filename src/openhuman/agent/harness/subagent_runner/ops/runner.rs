@@ -389,10 +389,14 @@ pub async fn run_subagent(
         )
         .await
         {
+            // A denial reason is hook-supplied (`agent_message`/`user_message`),
+            // so it can carry arbitrary content. Log a fixed sentence with the
+            // task identity; the caller still surfaces the detailed reason back
+            // to the model through `SubagentRunError::HookDenied`.
             tracing::info!(
                 agent_id = %definition.id,
                 task_id = %task_id,
-                "[subagent_runner] spawn denied by a configured hook: {reason}"
+                "[subagent_runner] spawn denied by a configured hook"
             );
             return Err(SubagentRunError::HookDenied(reason));
         }
