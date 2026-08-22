@@ -34,3 +34,6 @@
 [submodule "vendor/tinymcp"]
 	path = vendor/tinymcp
 	url = https://github.com/tinyhumansai/tinymcp
+[submodule "vendor/tinyruntime"]
+	path = vendor/tinyruntime
+	url = https://github.com/tinyhumansai/tinyruntime.git

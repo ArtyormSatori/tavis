@@ -12,6 +12,7 @@ const mockSubmit = vi.fn();
 const mockUpdateStatus = vi.fn();
 const mockGetFeedback = vi.fn();
 const mockAddComment = vi.fn();
+const mockValidateFeedback = vi.fn();
 
 vi.mock('../services/api/feedbackApi', () => ({
   feedbackApi: {
@@ -21,11 +22,7 @@ vi.mock('../services/api/feedbackApi', () => ({
     updateStatus: (...args: unknown[]) => mockUpdateStatus(...args),
     getFeedback: (...args: unknown[]) => mockGetFeedback(...args),
     addComment: (...args: unknown[]) => mockAddComment(...args),
-    // The submit form debounces an advisory quality check on the draft. Its
-    // `.catch` covers a *rejected* call, not a missing method: leaving this out
-    // makes the timer callback throw synchronously, which lands as an unhandled
-    // error after the test that rendered the form has already passed.
-    validateFeedback: () => Promise.resolve({ tier: 'pass', reason: '' }),
+    validateFeedback: (...args: unknown[]) => mockValidateFeedback(...args),
   },
 }));
 
@@ -71,6 +68,8 @@ describe('<Feedback />', () => {
     mockUpdateStatus.mockReset();
     mockGetFeedback.mockReset();
     mockAddComment.mockReset();
+    mockValidateFeedback.mockReset();
+    mockValidateFeedback.mockResolvedValue({ tier: 'pass', reason: 'ok' });
     userRole.current = 'user';
   });
 
@@ -118,6 +117,8 @@ describe('<Feedback /> keeps the board in sync after local mutations', () => {
     mockUpdateStatus.mockReset();
     mockGetFeedback.mockReset();
     mockAddComment.mockReset();
+    mockValidateFeedback.mockReset();
+    mockValidateFeedback.mockResolvedValue({ tier: 'pass', reason: 'ok' });
     userRole.current = 'user';
   });
 
