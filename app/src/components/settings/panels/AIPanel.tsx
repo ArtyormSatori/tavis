@@ -1091,7 +1091,7 @@ const FormulaRow = ({ label, value, detail }: { label: string; value: string; de
   </div>
 );
 
-type BackgroundLoopControlsView = 'all' | 'heartbeat' | 'ledger';
+type BackgroundLoopControlsView = 'all' | 'ledger';
 
 /** Minimal cloud-provider shape consumed by the loop map's `describeProvider`
  *  helper — only slug/label/id are read. Accepting this narrower shape lets
