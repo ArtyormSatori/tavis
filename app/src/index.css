@@ -248,19 +248,6 @@
 /* Component layer - Reusable patterns */
 @layer components {
 
-  .app-dotted-canvas {
-    background-color: transparent;
-    /* Dots follow the theme's content colour at low alpha (dark dots on light
-       themes, light dots on dark themes, accent-tinted on custom themes). */
-    background-image: radial-gradient(
-      circle at center,
-      rgb(var(--content) / 0.1) 1px,
-      transparent 1px
-    );
-    background-size: 18px 18px;
-    background-position: 0 0;
-  }
-
   /* ============================================
      Dark-mode overrides for @apply'd component classes.
      Most classes are now token-driven (semantic surface/content/line) and flip
