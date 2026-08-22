@@ -67,13 +67,6 @@ export interface Gateway {
   spec: GatewaySpec;
 }
 
-/** What the shell resolved a gateway to. */
-export interface ActiveGateway {
-  id: string;
-  rpcUrl: string;
-  token?: string;
-}
-
 /** What a gateway is doing right now. */
 export type GatewayStatus =
   | { state: 'inactive' }
@@ -122,12 +115,18 @@ export async function listGateways(): Promise<Gateway[]> {
 
 /** Add or replace a gateway. Does not activate it. */
 export async function saveGateway(gateway: Gateway): Promise<void> {
+  if (!gatewaysAvailable()) {
+    throw new Error('gateways are unavailable in this build');
+  }
   await invoke('gateway_save', { gateway });
   log('saved gateway %s', gateway.id);
 }
 
 /** Forget a gateway. The running session is unaffected. */
 export async function deleteGateway(id: string): Promise<void> {
+  if (!gatewaysAvailable()) {
+    throw new Error('gateways are unavailable in this build');
+  }
   await invoke('gateway_delete', { id });
   log('deleted gateway %s', id);
 }
@@ -142,11 +141,13 @@ export async function deleteGateway(id: string): Promise<void> {
  * On failure the previously active gateway is still active: the shell tears the
  * old one down only after the new one answers.
  */
-export async function activateGateway(id: string): Promise<ActiveGateway> {
+export async function activateGateway(id: string): Promise<void> {
   log('activating gateway %s', id);
-  const active = await invoke<ActiveGateway>('gateway_activate', { id });
-  log('gateway %s active', active.id);
-  return active;
+  // The shell answers `core_rpc_url` / `core_rpc_token` from the active
+  // gateway and never hands the bearer to the renderer — this call is an
+  // acknowledgment that the switch happened.
+  await invoke('gateway_activate', { id });
+  log('gateway %s active', id);
 }
 
 /** Which gateway is active right now. */
