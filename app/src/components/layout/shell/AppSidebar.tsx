@@ -73,7 +73,13 @@ function FooterNavButton({
 }
 
 /**
- * The root-shell sidebar, split top-to-bottom into:
+ * The root-shell sidebar. Mounted as the sole child of `RootShellLayout`'s
+ * `<Sidebar collapsible="icon">` column, so it renders one of two bodies
+ * depending on that primitive's own `useSidebar()` state — the column itself
+ * never unmounts, only narrows, so this component is what actually decides
+ * what the collapsed state looks like:
+ *
+ * **Expanded**, split top-to-bottom:
  *
  *   ┌──────────────┐
  *   │ SidebarHeader │  utility row (collapse / settings / language)
@@ -89,11 +95,19 @@ function FooterNavButton({
  *
  * Pages project content into the slot region with {@link SidebarContent}.
  * Background matches the previous in-page sidebar pane (white / neutral-900).
+ *
+ * **Collapsed**: a draggable strip (clears the macOS traffic lights), a
+ * reopen trigger, and {@link CollapsedNavRail}'s icon-only nav — formerly a
+ * sibling `<div>` rendered by `RootShellLayout` outside the (unmounted)
+ * `Sidebar` column; now the column's own body while narrow. See
+ * `RootShellLayout`'s `collapsible="icon"` comment for why that's safe.
  */
 export default function AppSidebar() {
   const { t } = useT();
   const location = useLocation();
   const navigate = useNavigate();
+  const { state: sidebarState } = useSidebar();
+  const collapsed = sidebarState === 'collapsed';
   const { snapshot: coreSnapshot, isReady } = useCoreState();
   // Rewards is a cloud-only surface (credits/referrals/coupons live behind the
   // backend rewards API); the page itself renders an "unavailable" state for
