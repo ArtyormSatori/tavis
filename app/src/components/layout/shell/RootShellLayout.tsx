@@ -203,18 +203,42 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
       minWidth={SIDEBAR_MIN_WIDTH}
       maxWidth={SIDEBAR_MAX_WIDTH}
       className="bg-surface-chrome/30">
-      {/* `collapsible="offcanvas"` unmounts the column when collapsed, which is
-          exactly what the hand-rolled `{isOpen && …}` did — the native webview
-          glued to the content bounds has historically punched through a
-          zero-width-but-present column. */}
-      <Sidebar collapsible="offcanvas" data-testid="root-shell-sidebar">
+      {/* `collapsible="icon"` — a real, non-zero {@link SIDEBAR_ICON_WIDTH}px
+          column that stays mounted when collapsed, rather than the previous
+          `offcanvas` (unmount) + a hand-rolled sibling `<div>` standing in for
+          the collapsed rail outside this column.
+
+          `offcanvas` was chosen deliberately when this shell was built: "the
+          native webview glued to the content bounds has historically punched
+          through a zero-width-but-present column." That failure mode was
+          CEF's per-provider child-webview architecture (`webview_accounts` /
+          the CDP scanners) positioning a *separate* native webview by
+          tracking a DOM placeholder's bounds — a zero-width-but-mounted
+          column could desync from what the native layer painted over.
+
+          Both halves of that architecture are gone from this codebase: the
+          CDP-driven scanners and the `webview_accounts` surface they ran
+          inside were removed (#5478), and the app itself moved off CEF onto
+          Wry (#5456) — see `CLAUDE.md`'s Tauri-shell section. `grep -rln
+          "webview_accounts\|WebviewWindow::builder" app/src-tauri/src`
+          confirms there is no bounds-tracked child webview left anywhere in
+          the shell; the whole app renders as one native webview, so there is
+          no second compositing layer for a narrowed HTML column to be
+          "punched through" by. `icon` mode's real ~48–56px column — never
+          zero-width, in either state — does not reintroduce the failure mode
+          `offcanvas` was chosen for; that failure mode's precondition no
+          longer exists. `AppSidebar` reads {@link useSidebar}'s `state` to
+          render its own compact, icon-only body while collapsed (formerly
+          the sibling `<div>` here). */}
+      <Sidebar collapsible="icon" data-testid="root-shell-sidebar">
         {sidebar}
       </Sidebar>
 
       {/* Resize seam. Transparent at rest — the sidebar and the content card
           separate by fill contrast, so a filled seam would draw a line across
           the chrome that the two-layer look is trying to remove. Arrow keys
-          resize in 16px steps; the pointer drag is bracketed above. */}
+          resize in 16px steps; the pointer drag is bracketed above. Hidden
+          while collapsed — the icon-width column is fixed, not draggable. */}
       {isOpen && (
         <SidebarRail
           aria-label={t('layout.resizeSidebar')}
@@ -223,45 +247,6 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
           data-analytics-id="root-shell-resize-divider"
           onPointerDown={handleRailPointerDown}
         />
-      )}
-
-      {/* Reshow affordance — only when the sidebar is collapsed. A thin rail
-          that occupies layout space (NOT an overlay) so the content — and the
-          native CEF webview glued to the content's bounds, which composites
-          above the HTML layer — starts to its right and never covers it. */}
-      {!isOpen && (
-        <div className="flex w-14 flex-none flex-col items-center gap-0.5">
-          {/* macOS overlay title bar (titleBarStyle: Overlay) floats the traffic
-              lights over the top-left. The expanded SidebarHeader dodges them by
-              right-aligning, but this narrow rail can't — so reserve a draggable
-              strip the height of the window controls and start the rail below it,
-              clear of the lights. */}
-          <div className="h-7 w-full flex-none" data-tauri-drag-region />
-          <Tooltip label={t('layout.showSidebar')}>
-            {/* The primitive's own trigger, so reopening goes through the same
-                controlled `onOpenChange` as every other visibility change. 32px
-                square: no primitive size maps to that, so the footprint is
-                overridden while the focus ring/transition come from the trigger. */}
-            <SidebarTrigger
-              data-testid="root-shell-reopen"
-              data-analytics-id="root-shell-reopen-sidebar"
-              aria-label={t('layout.showSidebar')}
-              className="h-8 w-8 rounded-lg">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </SidebarTrigger>
-          </Tooltip>
-          {/* Keep the primary nav reachable while collapsed: an icon-only rail. */}
-          <div className="mt-1 w-full pt-1">
-            <CollapsedNavRail />
-          </div>
-        </div>
       )}
 
       <div
