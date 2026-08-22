@@ -5,8 +5,8 @@
 import { useEffect, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import { memorySyncAuditLog, type SyncAuditEntry } from '../../utils/tauriCommands';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;

@@ -33,15 +33,7 @@ export const sliderThumbVariants = cva(
   'block rounded-full border-2 border-primary-500 bg-surface shadow-sm transition-colors ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25 ' +
     'disabled:pointer-events-none data-[disabled]:opacity-50',
-  {
-    variants: {
-      size: {
-        sm: 'h-3 w-3',
-        md: 'h-4 w-4',
-      },
-    },
-    defaultVariants: { size: 'md' },
-  }
+  { variants: { size: { sm: 'h-3 w-3', md: 'h-4 w-4' } }, defaultVariants: { size: 'md' } }
 );
 
 export type SliderSize = NonNullable<VariantProps<typeof sliderThumbVariants>['size']>;

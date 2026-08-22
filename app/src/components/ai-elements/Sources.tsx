@@ -19,7 +19,6 @@ import type { ComponentProps } from 'react';
 import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from '../ui';
-
 import { BookIcon, ChevronDownIcon } from './icons';
 
 export type SourcesProps = ComponentProps<typeof CollapsibleRoot>;
@@ -32,9 +31,7 @@ export const Sources = ({ className, ...props }: SourcesProps) => (
   />
 );
 
-export type SourcesTriggerProps = ComponentProps<typeof CollapsibleTrigger> & {
-  count: number;
-};
+export type SourcesTriggerProps = ComponentProps<typeof CollapsibleTrigger> & { count: number };
 
 export const SourcesTrigger = ({ className, count, children, ...props }: SourcesTriggerProps) => {
   const { t } = useT();

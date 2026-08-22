@@ -14,6 +14,7 @@
  */
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 
+import { cn } from '../../../../lib/cn';
 import {
   buildCron,
   type CronFreq,
@@ -26,7 +27,6 @@ import {
   WEEKDAYS,
   weekdayShortLabel,
 } from '../../../../lib/flows/cron';
-import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
 import UiInput from '../../../ui/Input';

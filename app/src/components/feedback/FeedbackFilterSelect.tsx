@@ -30,7 +30,10 @@ export default function FeedbackFilterSelect({
 }: FeedbackFilterSelectProps) {
   return (
     <SelectRoot value={value} onValueChange={onChange}>
-      <SelectTrigger aria-label={ariaLabel} inputSize="sm" className="w-auto gap-1.5 text-xs font-medium">
+      <SelectTrigger
+        aria-label={ariaLabel}
+        inputSize="sm"
+        className="w-auto gap-1.5 text-xs font-medium">
         <SelectValue />
       </SelectTrigger>
       <SelectContent align="end">

@@ -39,8 +39,8 @@ import {
 import { ToastContainer } from '../components/intelligence/Toast';
 import PanelPage from '../components/layout/PanelPage';
 import Button from '../components/ui/Button';
-import { CenteredLoadingState, ErrorBanner } from '../components/ui/LoadingState';
 import UiInput from '../components/ui/Input';
+import { CenteredLoadingState, ErrorBanner } from '../components/ui/LoadingState';
 import { ToggleGroupItem, ToggleGroupRoot } from '../components/ui/ToggleGroup';
 import { useFlowPreauthorization } from '../hooks/useFlowPreauthorization';
 import { asFlowCanvasDraftState } from '../lib/flows/canvasDraft';
@@ -1068,12 +1068,13 @@ function FlowEditor({
       variant="secondary"
       size="xs"
       value={sidePanel ?? ''}
-      onValueChange={next =>
-        setSidePanel(next === 'copilot' || next === 'legend' ? next : null)
-      }
+      onValueChange={next => setSidePanel(next === 'copilot' || next === 'legend' ? next : null)}
       aria-label={t('flows.canvas.sidePanelToggle')}
       className="rounded-lg border border-line bg-surface p-0.5">
-      <ToggleGroupItem value="copilot" data-testid="flow-canvas-copilot-toggle" className="border-0">
+      <ToggleGroupItem
+        value="copilot"
+        data-testid="flow-canvas-copilot-toggle"
+        className="border-0">
         {t('flows.copilot.open')}
       </ToggleGroupItem>
       <ToggleGroupItem value="legend" data-testid="flow-canvas-legend-toggle" className="border-0">

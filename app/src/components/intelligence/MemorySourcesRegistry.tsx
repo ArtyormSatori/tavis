@@ -35,10 +35,14 @@ import {
 import Button from '../ui/Button';
 import { AddMemorySourceDialog } from './AddMemorySourceDialog';
 import { ConfirmationModal } from './ConfirmationModal';
+import { MemorySourceRow } from './MemorySourceRow';
 import { AllInIcon, PlusIcon } from './memorySourcesIcons';
 import { sourceTreeScope } from './memorySourcesRowHelpers';
-import { STAGE_FALLBACK_PERCENT, type SyncProgress, type SyncResult } from './memorySourcesSyncTypes';
-import { MemorySourceRow } from './MemorySourceRow';
+import {
+  STAGE_FALLBACK_PERCENT,
+  type SyncProgress,
+  type SyncResult,
+} from './memorySourcesSyncTypes';
 import { MemorySyncSchedule } from './MemorySyncSchedule';
 
 interface MemorySourcesRegistryProps {
@@ -550,4 +554,3 @@ export function MemorySourcesRegistry({
     </section>
   );
 }
-

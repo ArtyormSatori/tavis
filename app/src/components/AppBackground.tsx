@@ -30,9 +30,7 @@ export default function AppBackground({ className = '' }: AppBackgroundProps) {
         />
       )}
       {showDots && (
-        <div
-          className="absolute inset-0 bg-transparent bg-[radial-gradient(circle_at_center,rgb(var(--content)/0.1)_1px,transparent_1px)] bg-[length:18px_18px] bg-[position:0_0]"
-        />
+        <div className="absolute inset-0 bg-transparent bg-[radial-gradient(circle_at_center,rgb(var(--content)/0.1)_1px,transparent_1px)] bg-[length:18px_18px] bg-[position:0_0]" />
       )}
     </div>
   );

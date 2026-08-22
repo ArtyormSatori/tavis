@@ -63,9 +63,7 @@ export const UnsubscribeApprovalCard: React.FC<Props> = ({ payload }) => {
           <h4 className="font-semibold text-sm text-content">
             {t('chat.unsubscribeApproval.title')}
           </h4>
-          <p className="text-sm text-content-secondary mt-1">
-            {payload.metadata.message}
-          </p>
+          <p className="text-sm text-content-secondary mt-1">{payload.metadata.message}</p>
           <div className="text-xs text-content-muted mt-2 font-mono break-all bg-surface-subtle p-2 rounded">
             {payload.metadata.unsubscribe_link}
           </div>

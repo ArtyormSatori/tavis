@@ -15,8 +15,8 @@ import {
 } from '../../../utils/cryptoKeys';
 import { Alert } from '../../ui/Alert';
 import Button from '../../ui/Button';
-import { CenteredLoadingState } from '../../ui/LoadingState';
 import { CheckIcon, Spinner } from '../../ui/icons';
+import { CenteredLoadingState } from '../../ui/LoadingState';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import SettingsPanel from '../layout/SettingsPanel';
 import RecoveryPhraseGenerateMode from './RecoveryPhraseGenerateMode';

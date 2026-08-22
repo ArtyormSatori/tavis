@@ -1,5 +1,5 @@
-import { MNEMONIC_GENERATE_WORD_COUNT } from '../../../utils/cryptoKeys';
 import { useT } from '../../../lib/i18n/I18nContext';
+import { MNEMONIC_GENERATE_WORD_COUNT } from '../../../utils/cryptoKeys';
 import { Alert } from '../../ui/Alert';
 import Button from '../../ui/Button';
 import { CheckIcon } from '../../ui/icons';
@@ -118,11 +118,7 @@ const RecoveryPhraseGenerateMode = ({
         )}
       </Button>
 
-      <Button
-        type="button"
-        variant="tertiary"
-        onClick={onSwitchToImport}
-        className="w-full mb-3">
+      <Button type="button" variant="tertiary" onClick={onSwitchToImport} className="w-full mb-3">
         {t('mnemonic.alreadyHavePhrase')}
       </Button>
 

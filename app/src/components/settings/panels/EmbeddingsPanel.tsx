@@ -439,7 +439,9 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
         />
 
         {showManagedLoginPrompt && (
-          <Alert variant="warning" className="flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <Alert
+            variant="warning"
+            className="flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <AlertDescription className="opacity-100">
               {t('settings.embeddings.managedBannerIntro')}{' '}
               {isLocalSession
@@ -464,20 +466,22 @@ const EmbeddingsPanel = ({ embedded = false }: EmbeddingsPanelProps = {}) => {
         )}
 
         {/* Model & dimensions (for active provider with catalog models) */}
-        {currentModels.length > 0 && selectedProvider !== 'custom' && selectedProvider !== 'none' && (
-          <EmbeddingsModelSection
-            currentModels={currentModels}
-            allowedDims={allowedDims}
-            model={settings.model}
-            dimensions={settings.dimensions}
-            onModelChange={modelId => void handleModelChange(modelId)}
-            onDimsChange={dims => void handleDimsChange(dims)}
-            canClearKey={Boolean(currentEntry?.requires_api_key && currentEntry.has_api_key)}
-            onClearKey={() => void handleClearKey()}
-            onTestConnection={() => void handleTestConnection()}
-            testConnectionDisabled={selectedProvider === 'none' || managedRequiresLogin}
-          />
-        )}
+        {currentModels.length > 0 &&
+          selectedProvider !== 'custom' &&
+          selectedProvider !== 'none' && (
+            <EmbeddingsModelSection
+              currentModels={currentModels}
+              allowedDims={allowedDims}
+              model={settings.model}
+              dimensions={settings.dimensions}
+              onModelChange={modelId => void handleModelChange(modelId)}
+              onDimsChange={dims => void handleDimsChange(dims)}
+              canClearKey={Boolean(currentEntry?.requires_api_key && currentEntry.has_api_key)}
+              onClearKey={() => void handleClearKey()}
+              onTestConnection={() => void handleTestConnection()}
+              testConnectionDisabled={selectedProvider === 'none' || managedRequiresLogin}
+            />
+          )}
 
         {/* Status bar */}
         <SettingsStatusLine

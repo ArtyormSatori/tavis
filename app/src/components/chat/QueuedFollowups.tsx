@@ -1,6 +1,6 @@
 import { useT } from '../../lib/i18n/I18nContext';
-import { Button } from '../ui';
 import type { QueuedFollowup } from '../../store/chatRuntimeSlice';
+import { Button } from '../ui';
 
 interface QueuedFollowupsProps {
   /** Follow-ups queued for the current thread while a turn is streaming. */

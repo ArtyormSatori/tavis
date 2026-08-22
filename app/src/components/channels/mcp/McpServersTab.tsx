@@ -669,9 +669,7 @@ const McpServersTab = () => {
         <TableHeader>
           <TableRow className="bg-surface-muted">
             <TableHead>{t('mcp.tab.column.name')}</TableHead>
-            <TableHead className="hidden w-28 sm:table-cell">
-              {t('mcp.tab.column.type')}
-            </TableHead>
+            <TableHead className="hidden w-28 sm:table-cell">{t('mcp.tab.column.type')}</TableHead>
             <TableHead className="hidden w-36 sm:table-cell">
               {t('mcp.tab.column.author')}
             </TableHead>
@@ -690,10 +688,7 @@ const McpServersTab = () => {
                   className="cursor-pointer"
                   tabIndex={0}
                   role="button"
-                  aria-label={t('mcp.tab.aria.viewDetails').replace(
-                    '{name}',
-                    server.display_name
-                  )}
+                  aria-label={t('mcp.tab.aria.viewDetails').replace('{name}', server.display_name)}
                   onClick={() => handleSelectServer(server.server_id)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -736,10 +731,10 @@ const McpServersTab = () => {
               );
             })}
 
-            {/* Registry servers — official first, then the registry's relevance
+          {/* Registry servers — official first, then the registry's relevance
                 order. Each row shows its transport, website/repo links, and the
                 real auth surfaces on install. */}
-            {showRegistry && catalogRows}
+          {showRegistry && catalogRows}
         </TableBody>
       </Table>
 

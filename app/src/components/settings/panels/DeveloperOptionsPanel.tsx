@@ -16,11 +16,11 @@ import { APP_ENVIRONMENT } from '../../../utils/config';
 // TAURI-REACT-6 — into a rejected Promise so the existing `.catch(...)` /
 // try/catch handlers see it as a normal IPC failure.
 import { safeInvoke as invoke, isTauri } from '../../../utils/tauriCommands/common';
-import { resetWalkthrough } from '../../walkthrough/AppWalkthrough';
 import Alert, { AlertDescription, AlertTitle } from '../../ui/Alert';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
+import { resetWalkthrough } from '../../walkthrough/AppWalkthrough';
 import SettingsMenuItem from '../components/SettingsMenuItem';
 import { SettingsSection } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
@@ -230,9 +230,7 @@ const CoreModeBadge = () => {
               {t('devOptions.embeddedCoreSidecar')}
             </span>
           </div>
-          <p className="text-xs text-content-secondary mt-1">
-            {t('devOptions.sidecarSpawned')}
-          </p>
+          <p className="text-xs text-content-secondary mt-1">{t('devOptions.sidecarSpawned')}</p>
         </div>
       </Alert>
     );
@@ -365,7 +363,12 @@ const LogsFolderRow = () => {
               <div className="text-[11px] text-content-muted mt-1 font-mono truncate">{path}</div>
             )}
           </div>
-          <Button type="button" variant="secondary" size="sm" onClick={onClick} className="shrink-0">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onClick}
+            className="shrink-0">
             {t('devOptions.openLogsFolder')}
           </Button>
         </div>

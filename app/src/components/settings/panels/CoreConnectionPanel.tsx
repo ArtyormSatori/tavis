@@ -389,7 +389,9 @@ const CoreConnectionPanel = () => {
         {useRemote && (
           <div className="flex flex-col gap-3 px-4 py-4">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="core-remote-url" className="text-xs font-medium text-content-secondary">
+              <Label
+                htmlFor="core-remote-url"
+                className="text-xs font-medium text-content-secondary">
                 {t('bootCheck.coreRpcUrl')}
               </Label>
               <SettingsTextField

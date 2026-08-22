@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
+import type { FeedbackItem } from '../../types/feedback';
 import { Button } from '../ui';
 import { AvatarFallback, AvatarRoot } from '../ui/Avatar';
-import type { FeedbackItem } from '../../types/feedback';
 import FeedbackAdminMenu from './FeedbackAdminMenu';
 import FeedbackComments from './FeedbackComments';
 import FeedbackStatusBadge from './FeedbackStatusBadge';

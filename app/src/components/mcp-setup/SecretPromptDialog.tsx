@@ -11,9 +11,9 @@
 // `mcp_setup_request_secret`; the raw value never enters the LLM context.
 import { useCallback, useEffect, useId, useState } from 'react';
 
-import { Button, ModalShell, TextField } from '../ui';
 import { useT } from '../../lib/i18n/I18nContext';
 import { callCoreRpc } from '../../services/coreRpcClient';
+import { Button, ModalShell, TextField } from '../ui';
 
 type Request = { refId: string; keyName: string; prompt: string };
 
@@ -90,11 +90,7 @@ function SecretPromptDialog() {
       onClose={handleCancel}
       title={t('mcp.setup.secretDialog.title')}
       titleId={titleId}
-      closePolicy={{
-        escape: !submitting,
-        backdrop: !submitting,
-        button: !submitting,
-      }}
+      closePolicy={{ escape: !submitting, backdrop: !submitting, button: !submitting }}
       contentClassName="px-0 py-0"
       footer={
         <div className="flex items-center justify-end gap-3">
@@ -128,7 +124,9 @@ function SecretPromptDialog() {
         </div>
 
         <div className="px-6 pb-2">
-          <label htmlFor={inputId} className="block text-xs font-medium text-content-secondary mb-1">
+          <label
+            htmlFor={inputId}
+            className="block text-xs font-medium text-content-secondary mb-1">
             {t('mcp.setup.secretDialog.inputLabel')}
           </label>
           <div className="flex items-stretch gap-2">

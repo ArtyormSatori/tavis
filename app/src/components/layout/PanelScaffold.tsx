@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '../../lib/cn';
-import { contentWidthVariants, type ContentWidth } from './contentWidth';
+import { type ContentWidth, contentWidthVariants } from './contentWidth';
 import PanelHeader, { type PanelHeaderProps } from './PanelHeader';
 
 interface PanelScaffoldProps {
@@ -98,7 +98,9 @@ export default function PanelScaffold({
   const showBorder = bodyBorder ?? hasVisibleHeader;
 
   const body =
-    width === 'full' ? children : (
+    width === 'full' ? (
+      children
+    ) : (
       <div className={cn('mx-auto w-full', contentWidthVariants({ width }))}>{children}</div>
     );
 

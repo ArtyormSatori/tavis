@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '../../lib/cn';
-import { contentWidthVariants, type ContentWidth } from './contentWidth';
+import { type ContentWidth, contentWidthVariants } from './contentWidth';
 
 /**
  * PageSectionHeader — the canonical header for a functional page view: a title

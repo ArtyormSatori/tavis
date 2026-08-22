@@ -463,7 +463,6 @@ export function useComposioConnectFlow({
     [activeConnection, activeConnections, clearMemoryOnDisconnect, onChanged, t]
   );
 
-
   return {
     t,
     phase,

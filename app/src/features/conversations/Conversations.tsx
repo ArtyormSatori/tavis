@@ -42,7 +42,6 @@ import {
   handleComposerSlashCommand,
 } from '../../features/conversations/composerSendDecision';
 import { useMemorySyncActive } from '../../features/conversations/hooks/useBackgroundActivity';
-import { useChatSurfaceRegistration } from './hooks/useChatSurfaceRegistration';
 import { formatResetTime } from '../../features/conversations/utils/format';
 import {
   GENERAL_TAB_VALUE,
@@ -128,6 +127,7 @@ import {
   openhumanVoiceTranscribeBytes,
   openhumanVoiceTts,
 } from '../../utils/tauriCommands';
+import { useChatSurfaceRegistration } from './hooks/useChatSurfaceRegistration';
 import { ThreadList } from './threadList/ThreadList';
 
 const CHAT_MODEL_HINT = 'hint:chat';

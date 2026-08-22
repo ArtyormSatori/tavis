@@ -31,8 +31,9 @@ export const SelectGroup = SelectPrimitive.Group;
 
 export type SelectSize = 'sm' | 'md';
 
-export interface SelectTriggerProps
-  extends ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
+export interface SelectTriggerProps extends ComponentPropsWithoutRef<
+  typeof SelectPrimitive.Trigger
+> {
   inputSize?: SelectSize;
   children: ReactNode;
 }
@@ -55,10 +56,7 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       {...rest}>
       {children}
       <SelectPrimitive.Icon asChild>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 12 12"
-          className="h-3 w-3 shrink-0 text-content-muted">
+        <svg aria-hidden="true" viewBox="0 0 12 12" className="h-3 w-3 shrink-0 text-content-muted">
           <path
             d="M2 4l4 4 4-4"
             fill="none"
@@ -74,8 +72,9 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 );
 SelectTrigger.displayName = 'SelectTrigger';
 
-export interface SelectContentProps
-  extends ComponentPropsWithoutRef<typeof SelectPrimitive.Content> {
+export interface SelectContentProps extends ComponentPropsWithoutRef<
+  typeof SelectPrimitive.Content
+> {
   /** Portal target — see `DialogContent`. Defaults to `document.body`. */
   container?: HTMLElement | null;
 }

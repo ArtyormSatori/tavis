@@ -4,10 +4,7 @@
  */
 import type { MemorySourceEntry } from '../../services/memorySourcesService';
 
-export function relativeTimestamp(
-  epochMs: number | null,
-  t: (k: string) => string
-): string | null {
+export function relativeTimestamp(epochMs: number | null, t: (k: string) => string): string | null {
   if (epochMs === null) return null;
   const delta = Date.now() - epochMs;
   if (delta < 1000) return t('time.justNow');

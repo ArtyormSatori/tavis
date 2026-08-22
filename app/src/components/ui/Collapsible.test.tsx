@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   CollapsibleContent,
   CollapsibleRoot,
-  CollapsibleTrigger,
   type CollapsibleSize,
+  CollapsibleTrigger,
   type CollapsibleVariant,
 } from './Collapsible';
 

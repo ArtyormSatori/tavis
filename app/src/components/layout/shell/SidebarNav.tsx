@@ -97,9 +97,7 @@ export default function SidebarNav() {
                       // Overlaid on the icon rather than trailing the row, so
                       // the count survives the collapsed rail's icon-only
                       // footprint.
-                      <SidebarMenuBadge
-                        tone="attention"
-                        className="absolute -right-1 -top-1 ml-0">
+                      <SidebarMenuBadge tone="attention" className="absolute -right-1 -top-1 ml-0">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </SidebarMenuBadge>
                     )}

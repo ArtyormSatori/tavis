@@ -41,10 +41,7 @@ describe('OrchestratorTaskBoard', () => {
 
     fireEvent.click(submit);
     await waitFor(() =>
-      expect(add).toHaveBeenCalledWith({
-        threadId: 'orchestrator-tasks',
-        content: 'Ship the rail',
-      })
+      expect(add).toHaveBeenCalledWith({ threadId: 'orchestrator-tasks', content: 'Ship the rail' })
     );
     await waitFor(() => expect((input as HTMLInputElement).value).toBe(''));
   });

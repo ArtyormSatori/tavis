@@ -209,7 +209,11 @@ export default function TwoPanelLayout({
   // Drag/keyboard mechanics (clamp + commit-on-release) live in a shared hook
   // — see `useResizableDivider` for why this isn't the same code as the shell
   // sidebar's `SidebarRail`.
-  const { dragWidth, onPointerDown, onKeyDown: onDividerKeyDown } = useResizableDivider({
+  const {
+    dragWidth,
+    onPointerDown,
+    onKeyDown: onDividerKeyDown,
+  } = useResizableDivider({
     width: persistedWidth,
     minWidth: minSidebarWidth,
     maxWidth: maxSidebarWidth,

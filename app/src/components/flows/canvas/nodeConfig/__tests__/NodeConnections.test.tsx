@@ -17,9 +17,7 @@ const edges: FlowEdge[] = [
 
 describe('NodeConnections', () => {
   it('shows an empty state when the node has no edges', () => {
-    render(
-      <NodeConnections nodeId="n1" edges={[]} nodeLabelById={{}} onRemoveEdge={vi.fn()} />
-    );
+    render(<NodeConnections nodeId="n1" edges={[]} nodeLabelById={{}} onRemoveEdge={vi.fn()} />);
     expect(screen.getByTestId('node-connections-empty')).toBeInTheDocument();
   });
 

@@ -6,8 +6,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionRoot,
-  AccordionTrigger,
   type AccordionSize,
+  AccordionTrigger,
   type AccordionVariant,
 } from './Accordion';
 

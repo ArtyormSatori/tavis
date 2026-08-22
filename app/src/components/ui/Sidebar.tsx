@@ -330,7 +330,10 @@ export const SidebarRail = forwardRef<HTMLDivElement, SidebarRailProps>(
         {/* Widened hit area — the visible seam stays 1px. */}
         <span className="absolute inset-y-0 -left-1 -right-1 z-10" />
         <span
-          className={cn('absolute inset-0 transition-colors', indicatorClassName ?? DEFAULT_RAIL_INDICATOR)}
+          className={cn(
+            'absolute inset-0 transition-colors',
+            indicatorClassName ?? DEFAULT_RAIL_INDICATOR
+          )}
         />
       </div>
     );

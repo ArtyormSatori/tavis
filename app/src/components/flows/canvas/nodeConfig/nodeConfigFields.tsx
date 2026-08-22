@@ -317,7 +317,10 @@ export function ExpressionField({
         <InputGroupInput
           id={id}
           type="text"
-          className={cn(MONO_CLASS, warning && 'border-amber-400 focus:border-amber-500 focus:ring-amber-500/20')}
+          className={cn(
+            MONO_CLASS,
+            warning && 'border-amber-400 focus:border-amber-500 focus:ring-amber-500/20'
+          )}
           value={value}
           placeholder={placeholder}
           data-testid={testId}

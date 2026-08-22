@@ -6,7 +6,10 @@
  * through as props.
  */
 import { useT } from '../../../lib/i18n/I18nContext';
-import type { EmbeddingProviderEntry, EmbeddingsTestResult } from '../../../services/api/embeddingsApi';
+import type {
+  EmbeddingProviderEntry,
+  EmbeddingsTestResult,
+} from '../../../services/api/embeddingsApi';
 import { Alert, Button, Label, ModalShell } from '../../ui';
 import { SettingsTextField } from '../controls';
 
@@ -72,7 +75,9 @@ const EmbeddingsSetupModal = ({
               if (!isCustom) onTest();
             }}
             disabled={setupTesting || setupSaving || (!isCustom && !setupKey.trim())}>
-            {setupTesting ? t('settings.embeddings.testing') : t('settings.embeddings.testConnection')}
+            {setupTesting
+              ? t('settings.embeddings.testing')
+              : t('settings.embeddings.testConnection')}
           </Button>
 
           <div className="flex gap-2">
@@ -88,7 +93,9 @@ const EmbeddingsSetupModal = ({
                 (!isCustom && !setupKey.trim() && !setupProvider.has_api_key) ||
                 (isCustom && !customEndpoint.trim())
               }>
-              {setupSaving ? t('settings.embeddings.saving') : t('settings.embeddings.saveAndSwitch')}
+              {setupSaving
+                ? t('settings.embeddings.saving')
+                : t('settings.embeddings.saveAndSwitch')}
             </Button>
           </div>
         </div>
@@ -97,7 +104,9 @@ const EmbeddingsSetupModal = ({
         /* Custom endpoint form */
         <div className="space-y-3">
           <div>
-            <Label className="block text-[11px] mb-1">{t('settings.embeddings.customEndpoint')}</Label>
+            <Label className="block text-[11px] mb-1">
+              {t('settings.embeddings.customEndpoint')}
+            </Label>
             <SettingsTextField
               type="text"
               value={customEndpoint}
@@ -121,7 +130,9 @@ const EmbeddingsSetupModal = ({
               />
             </div>
             <div className="w-24">
-              <Label className="block text-[11px] mb-1">{t('settings.embeddings.dimensions')}</Label>
+              <Label className="block text-[11px] mb-1">
+                {t('settings.embeddings.dimensions')}
+              </Label>
               <SettingsTextField
                 type="number"
                 value={customDims}

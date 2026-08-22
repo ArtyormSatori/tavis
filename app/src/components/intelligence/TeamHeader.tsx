@@ -63,7 +63,9 @@ export function TeamHeader({
           <div className="break-words text-sm font-semibold text-content">{title}</div>
           <div className="mt-0.5 text-[11px] text-content-muted">
             {t('intelligence.teams.header.lead')}{' '}
-            <span className="font-mono text-primary-600 dark:text-primary-300">{team.leadAgentId}</span>
+            <span className="font-mono text-primary-600 dark:text-primary-300">
+              {team.leadAgentId}
+            </span>
             {' · '}
             {t('intelligence.teams.header.taskCount').replace('{count}', String(taskCount))}
             {' · '}

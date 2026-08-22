@@ -2,12 +2,12 @@ import { useState } from 'react';
 
 import { formatFileSize } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
-import { Button } from '../ui';
 import {
   revealArtifactInFileManager,
   saveArtifactViaDialog,
 } from '../../services/artifactDownloadService';
 import type { ArtifactSnapshot } from '../../store/chatRuntimeSlice';
+import { Button } from '../ui';
 import { extensionFor } from './artifactExtension';
 
 /**

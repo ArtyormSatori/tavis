@@ -28,8 +28,9 @@ export const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
  * Do not "fix" the missing outside-click dismissal by adding an
  * `onInteractOutside` that closes — that is the whole point of the component.
  */
-export interface AlertDialogOverlayProps
-  extends ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay> {}
+export interface AlertDialogOverlayProps extends ComponentPropsWithoutRef<
+  typeof AlertDialogPrimitive.Overlay
+> {}
 
 export const AlertDialogOverlay = forwardRef<
   ElementRef<typeof AlertDialogPrimitive.Overlay>,
@@ -47,8 +48,9 @@ export const AlertDialogOverlay = forwardRef<
 ));
 AlertDialogOverlay.displayName = 'AlertDialogOverlay';
 
-export interface AlertDialogContentProps
-  extends ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> {
+export interface AlertDialogContentProps extends ComponentPropsWithoutRef<
+  typeof AlertDialogPrimitive.Content
+> {
   /**
    * Portal target. Defaults to `document.body`.
    *
@@ -149,7 +151,8 @@ const alertDialogActionVariants = cva(
 );
 
 export interface AlertDialogActionProps
-  extends ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>,
+  extends
+    ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>,
     VariantProps<typeof alertDialogActionVariants> {}
 
 /** The confirming choice. Defaults to the danger tone — this overlay exists for

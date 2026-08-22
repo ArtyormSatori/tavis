@@ -1,8 +1,8 @@
 import { fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { FieldRequirement } from '../../types/channels';
 import { renderWithProviders } from '../../test/test-utils';
+import type { FieldRequirement } from '../../types/channels';
 import ChannelFieldInput from './ChannelFieldInput';
 
 const textField: FieldRequirement = {

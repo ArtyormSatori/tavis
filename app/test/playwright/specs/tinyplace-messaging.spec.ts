@@ -139,7 +139,10 @@ test.describe('tiny.place direct messaging (core RPC)', () => {
       plaintext: reply,
     });
 
-    const decrypted = await receiveMessage(aliceCore, { fromCryptoId: bob.cryptoId, timeoutMs: 15_000 });
+    const decrypted = await receiveMessage(aliceCore, {
+      fromCryptoId: bob.cryptoId,
+      timeoutMs: 15_000,
+    });
     expect(decrypted, 'app core decrypts the peer reply').toBe(reply);
   });
 });

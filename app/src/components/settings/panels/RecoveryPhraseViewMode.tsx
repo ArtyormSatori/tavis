@@ -214,7 +214,12 @@ const RecoveryPhraseViewMode = ({
         </>
       )}
 
-      <Button type="button" variant="secondary" size="md" onClick={onReplaceClick} className="w-full">
+      <Button
+        type="button"
+        variant="secondary"
+        size="md"
+        onClick={onReplaceClick}
+        className="w-full">
         {t('mnemonic.replaceWallet')}
       </Button>
     </div>

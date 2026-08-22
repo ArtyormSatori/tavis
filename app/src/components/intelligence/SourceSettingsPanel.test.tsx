@@ -2,8 +2,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { SourceSettingsPanel } from './SourceSettingsPanel';
 import type { MemorySourceEntry } from '../../services/memorySourcesService';
+import { updateMemorySource } from '../../services/memorySourcesService';
+import { SourceSettingsPanel } from './SourceSettingsPanel';
 
 vi.mock('../../services/memorySourcesService', async () => {
   const actual = await vi.importActual<typeof import('../../services/memorySourcesService')>(
@@ -11,8 +12,6 @@ vi.mock('../../services/memorySourcesService', async () => {
   );
   return { ...actual, updateMemorySource: vi.fn() };
 });
-
-import { updateMemorySource } from '../../services/memorySourcesService';
 
 const source: MemorySourceEntry = {
   id: 'src-1',

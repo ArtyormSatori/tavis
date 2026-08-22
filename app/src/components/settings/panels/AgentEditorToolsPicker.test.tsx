@@ -13,9 +13,7 @@ import { agentRegistryApi } from '../../../services/api/agentRegistryApi';
 import { AgentEditorToolsField } from './AgentEditorToolsPicker';
 
 vi.mock('../../../services/api/agentRegistryApi', () => ({
-  agentRegistryApi: {
-    availableTools: vi.fn(),
-  },
+  agentRegistryApi: { availableTools: vi.fn() },
 }));
 
 const mockAvailableTools = vi.mocked(agentRegistryApi.availableTools);
@@ -27,7 +25,9 @@ describe('AgentEditorToolsField', () => {
   });
 
   it('renders selected tools as chips', () => {
-    render(<AgentEditorToolsField toolAllowlist={['memory_search', 'web_fetch']} onChange={vi.fn()} />);
+    render(
+      <AgentEditorToolsField toolAllowlist={['memory_search', 'web_fetch']} onChange={vi.fn()} />
+    );
     expect(screen.getByText('memory_search')).toBeInTheDocument();
     expect(screen.getByText('web_fetch')).toBeInTheDocument();
   });

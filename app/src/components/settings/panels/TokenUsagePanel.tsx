@@ -44,9 +44,7 @@ interface StatTileProps {
 const StatTile = ({ label, value, hint }: StatTileProps) => (
   <div className="rounded-2xl border border-line p-4 bg-gradient-to-br from-surface to-surface-subtle">
     <div className="text-xs font-medium text-content-muted">{label}</div>
-    <div className="mt-1 text-2xl font-semibold text-content tabular-nums">
-      {value}
-    </div>
+    <div className="mt-1 text-2xl font-semibold text-content tabular-nums">{value}</div>
     {hint && <div className="mt-0.5 text-xs text-content-faint">{hint}</div>}
   </div>
 );

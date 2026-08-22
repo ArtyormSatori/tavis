@@ -24,11 +24,11 @@ import { act, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { WorkflowGraph, WorkflowNode } from '../../lib/flows/types';
 import { __resetChatSurfaces, getChatSurface } from '../../providers/chatSurfaceHandlers';
 import chatRuntimeReducer, { type WorkflowProposal } from '../../store/chatRuntimeSlice';
 import threadReducer from '../../store/threadSlice';
 import type { ThreadMessage } from '../../types/thread';
-import type { WorkflowGraph, WorkflowNode } from '../../lib/flows/types';
 import WorkflowCopilotPanel from './WorkflowCopilotPanel';
 
 vi.mock('../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (key: string) => key }) }));

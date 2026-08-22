@@ -22,14 +22,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
  *   which centers by design).
  */
 export const contentWidthVariants = cva('', {
-  variants: {
-    width: {
-      sm: 'max-w-lg',
-      md: 'max-w-2xl',
-      lg: 'max-w-3xl',
-      full: '',
-    },
-  },
+  variants: { width: { sm: 'max-w-lg', md: 'max-w-2xl', lg: 'max-w-3xl', full: '' } },
   defaultVariants: { width: 'full' },
 });
 

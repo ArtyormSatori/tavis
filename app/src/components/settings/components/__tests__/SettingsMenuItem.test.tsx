@@ -28,7 +28,11 @@ describe('<SettingsMenuItem />', () => {
 
   it('renders a static row when no onClick is provided', () => {
     renderWithProviders(
-      <SettingsMenuItem icon={<svg aria-hidden="true" />} title="Version" testId="settings-menu-version" />
+      <SettingsMenuItem
+        icon={<svg aria-hidden="true" />}
+        title="Version"
+        testId="settings-menu-version"
+      />
     );
 
     const row = screen.getByTestId('settings-menu-version');

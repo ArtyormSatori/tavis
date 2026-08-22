@@ -144,8 +144,7 @@ const MemoryWindowControl = ({ onError, onSaved }: Props) => {
                   isActive
                     ? 'border-primary-500 bg-primary-500/10'
                     : 'border-line-strong hover:bg-surface-hover',
-                  (!loaded || (saving !== null && !isSaving)) &&
-                    'opacity-60 pointer-events-none'
+                  (!loaded || (saving !== null && !isSaving)) && 'opacity-60 pointer-events-none'
                 )}>
                 <RadioGroupItem
                   id={inputId}

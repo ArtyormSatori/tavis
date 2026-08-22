@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { Button, CloseIcon } from '../ui';
 import type { ToastNotification } from '../../types/intelligence';
+import { Button, CloseIcon } from '../ui';
 
 interface ToastProps {
   notification: ToastNotification;

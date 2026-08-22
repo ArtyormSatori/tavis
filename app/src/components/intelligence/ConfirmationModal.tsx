@@ -105,7 +105,9 @@ export function ConfirmationModal({ modal, onClose }: ConfirmationModalProps) {
           {/* No onClick here: Radix's Cancel already closes the dialog, which
               routes through the Root's onOpenChange -> handleCancel above. */}
           <AlertDialogCancel>{modal.cancelText || t('common.cancel')}</AlertDialogCancel>
-          <AlertDialogAction tone={modal.destructive ? 'danger' : 'default'} onClick={handleConfirm}>
+          <AlertDialogAction
+            tone={modal.destructive ? 'danger' : 'default'}
+            onClick={handleConfirm}>
             {modal.confirmText || t('common.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>

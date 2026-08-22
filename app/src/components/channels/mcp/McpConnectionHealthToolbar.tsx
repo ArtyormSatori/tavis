@@ -226,7 +226,11 @@ const McpConnectionHealthToolbar = ({
               </Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button variant="primary" tone="danger" size="sm" onClick={() => void runDisconnectAll()}>
+              <Button
+                variant="primary"
+                tone="danger"
+                size="sm"
+                onClick={() => void runDisconnectAll()}>
                 {t('mcp.health.disconnectConfirm.confirm')}
               </Button>
             </AlertDialogAction>

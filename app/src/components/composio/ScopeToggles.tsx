@@ -1,6 +1,6 @@
+import type { ComposioUserScopePref } from '../../lib/composio/types';
 import { useT } from '../../lib/i18n/I18nContext';
 import { Switch } from '../ui';
-import type { ComposioUserScopePref } from '../../lib/composio/types';
 
 type ScopeRowDef = { key: keyof ComposioUserScopePref; labelKey: string; hintKey: string };
 

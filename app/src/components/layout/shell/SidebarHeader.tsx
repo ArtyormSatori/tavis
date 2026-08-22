@@ -32,9 +32,7 @@ export default function SidebarHeader() {
     // top padding). `data-tauri-drag-region` lives directly on the primitive
     // (rather than a wrapping div in `AppSidebar`) so the header band is
     // draggable window chrome without an extra hand-rolled layout element.
-    <SidebarHeaderShell
-      data-tauri-drag-region
-      className="flex-row items-center justify-end gap-1">
+    <SidebarHeaderShell data-tauri-drag-region className="flex-row items-center justify-end gap-1">
       <div className="flex items-center gap-0.5">
         {/* Keyboard shortcuts — one-click open of the help directory (also ? / ⌘/). */}
         <Tooltip label={t('shortcuts.title')}>

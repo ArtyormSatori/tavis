@@ -8,13 +8,7 @@ describe('NAV_TABS', () => {
   });
 
   it('has the correct ids in order', () => {
-    expect(NAV_TABS.map(t => t.id)).toEqual([
-      'chat',
-      'human',
-      'brain',
-      'flows',
-      'connections',
-    ]);
+    expect(NAV_TABS.map(t => t.id)).toEqual(['chat', 'human', 'brain', 'flows', 'connections']);
   });
 
   it('has the correct paths', () => {

@@ -2,8 +2,8 @@ import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '../../../test/test-utils';
-import { buildManifest, serializeManifest } from './McpInventoryManifest';
 import McpInventoryImportTab from './McpInventoryImportTab';
+import { buildManifest, serializeManifest } from './McpInventoryManifest';
 import type { InstalledServer } from './types';
 
 const SERVER: InstalledServer = {
@@ -20,9 +20,7 @@ const SERVER: InstalledServer = {
 
 describe('<McpInventoryImportTab />', () => {
   it('renders the paste textarea, disables Preview until there is input', () => {
-    renderWithProviders(
-      <McpInventoryImportTab installedServers={[]} onInstallServer={vi.fn()} />
-    );
+    renderWithProviders(<McpInventoryImportTab installedServers={[]} onInstallServer={vi.fn()} />);
     expect(screen.getByLabelText('Paste manifest JSON')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Preview' })).toBeDisabled();
   });
@@ -39,9 +37,7 @@ describe('<McpInventoryImportTab />', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
     expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Install DB Server from this manifest' })
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Install DB Server from this manifest' }));
     expect(onInstallServer).toHaveBeenCalledWith('acme/db-server', { DB_URL: '' });
   });
 });

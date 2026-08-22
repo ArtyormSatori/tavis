@@ -33,16 +33,47 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(here, '..');
 
 const SHADES = new Set([
-  '50', '100', '150', '200', '300', '400', '500', '600', '700', '800', '900', '950',
+  '50',
+  '100',
+  '150',
+  '200',
+  '300',
+  '400',
+  '500',
+  '600',
+  '700',
+  '800',
+  '900',
+  '950',
 ]);
 
 /** Colour-bearing utility prefixes, including directional border/divide forms. */
 const UTILITY_PREFIXES = [
-  'bg', 'text', 'border', 'border-x', 'border-y',
-  'border-t', 'border-r', 'border-b', 'border-l',
-  'ring', 'ring-offset', 'divide', 'divide-x', 'divide-y',
-  'outline', 'shadow', 'fill', 'stroke', 'accent', 'caret',
-  'decoration', 'placeholder', 'from', 'to', 'via',
+  'bg',
+  'text',
+  'border',
+  'border-x',
+  'border-y',
+  'border-t',
+  'border-r',
+  'border-b',
+  'border-l',
+  'ring',
+  'ring-offset',
+  'divide',
+  'divide-x',
+  'divide-y',
+  'outline',
+  'shadow',
+  'fill',
+  'stroke',
+  'accent',
+  'caret',
+  'decoration',
+  'placeholder',
+  'from',
+  'to',
+  'via',
 ];
 
 /**
@@ -101,11 +132,13 @@ function shadeResolver() {
   // Names carrying at least one numeric shade — what a caller may legally write
   // as `<utility>-<name>-<shade>`. Used only for the operator-facing message.
   const scaleNames = Object.keys(colors).filter(
-    k => typeof colors[k] === 'object' && colors[k] !== null && Object.keys(colors[k]).some(x => /^\d+$/.test(x))
+    k =>
+      typeof colors[k] === 'object' &&
+      colors[k] !== null &&
+      Object.keys(colors[k]).some(x => /^\d+$/.test(x))
   );
   return { shadeExists, scaleNames };
 }
-
 
 const PATTERN = new RegExp(
   `\\b(${UTILITY_PREFIXES.join('|')})-([a-z][a-z0-9]+)-(\\d{2,3})\\b`,

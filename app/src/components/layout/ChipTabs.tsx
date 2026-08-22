@@ -75,7 +75,8 @@ const compactChipSpacingClass = 'px-2 py-0.5';
 // high-contrast and on-theme under any palette (light, dark, or custom).
 // The hover fill is pinned to the same colour — a selected chip does not react
 // to hover, and `tertiary` would otherwise contribute one.
-const activeChipClass = 'data-[state=active]:bg-content data-[state=active]:text-surface data-[state=active]:hover:bg-content';
+const activeChipClass =
+  'data-[state=active]:bg-content data-[state=active]:text-surface data-[state=active]:hover:bg-content';
 const inactiveChipClass =
   'bg-surface border border-line text-content-secondary hover:bg-surface-hover';
 

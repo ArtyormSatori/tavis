@@ -58,11 +58,7 @@ export const accordionTriggerVariants = cva(
   ],
   {
     variants: {
-      size: {
-        sm: 'px-3 py-2 text-xs',
-        md: 'px-4 py-3 text-sm',
-        lg: 'px-5 py-4 text-base',
-      },
+      size: { sm: 'px-3 py-2 text-xs', md: 'px-4 py-3 text-sm', lg: 'px-5 py-4 text-base' },
     },
     defaultVariants: { size: 'md' },
   }
@@ -73,11 +69,7 @@ export const accordionContentVariants = cva(
   'overflow-hidden text-content-secondary data-[state=open]:animate-fade-up',
   {
     variants: {
-      size: {
-        sm: 'px-3 pb-2 text-xs',
-        md: 'px-4 pb-3 text-sm',
-        lg: 'px-5 pb-4 text-sm',
-      },
+      size: { sm: 'px-3 pb-2 text-xs', md: 'px-4 pb-3 text-sm', lg: 'px-5 pb-4 text-sm' },
     },
     defaultVariants: { size: 'md' },
   }
@@ -105,7 +97,8 @@ export const AccordionRoot = ({ className, variant, ...rest }: AccordionRootProp
 );
 
 export interface AccordionItemProps
-  extends ComponentPropsWithRef<typeof AccordionPrimitive.Item>,
+  extends
+    ComponentPropsWithRef<typeof AccordionPrimitive.Item>,
     VariantProps<typeof accordionItemVariants> {}
 
 export const AccordionItem = ({ className, variant, ...rest }: AccordionItemProps) => (
@@ -118,7 +111,8 @@ export const AccordionItem = ({ className, variant, ...rest }: AccordionItemProp
 );
 
 export interface AccordionTriggerProps
-  extends ComponentPropsWithRef<typeof AccordionPrimitive.Trigger>,
+  extends
+    ComponentPropsWithRef<typeof AccordionPrimitive.Trigger>,
     VariantProps<typeof accordionTriggerVariants> {
   /** The disclosure chevron. Opt out when the caller renders its own affordance. */
   showChevron?: boolean;
@@ -171,7 +165,8 @@ export const AccordionTrigger = ({
 );
 
 export interface AccordionContentProps
-  extends ComponentPropsWithRef<typeof AccordionPrimitive.Content>,
+  extends
+    ComponentPropsWithRef<typeof AccordionPrimitive.Content>,
     VariantProps<typeof accordionContentVariants> {}
 
 export const AccordionContent = ({ className, size, ...rest }: AccordionContentProps) => (

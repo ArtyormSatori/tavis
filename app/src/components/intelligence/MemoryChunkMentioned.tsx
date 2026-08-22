@@ -6,8 +6,8 @@
  * result list to chunks tagged with that entity.
  */
 import { useT } from '../../lib/i18n/I18nContext';
-import Button from '../ui/Button';
 import type { EntityRef } from '../../utils/tauriCommands';
+import Button from '../ui/Button';
 
 interface MemoryChunkMentionedProps {
   entities: EntityRef[];

@@ -113,7 +113,9 @@ export default function CollapsedNavRail() {
                   className={RAIL_BTN}>
                   <NavIcon id={tab.id} className="h-5 w-5" />
                   {showBadge && (
-                    <SidebarMenuBadge tone="attention" className="absolute -right-0.5 -top-0.5 ml-0">
+                    <SidebarMenuBadge
+                      tone="attention"
+                      className="absolute -right-0.5 -top-0.5 ml-0">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </SidebarMenuBadge>
                   )}

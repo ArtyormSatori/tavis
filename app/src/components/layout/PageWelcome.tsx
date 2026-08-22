@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { cn } from '../../lib/cn';
 import Button from '../ui/Button';
-import { contentWidthVariants, type ContentWidth } from './contentWidth';
+import { type ContentWidth, contentWidthVariants } from './contentWidth';
 
 /**
  * PageWelcome — the welcome landing shown as the first destination of a sidebar

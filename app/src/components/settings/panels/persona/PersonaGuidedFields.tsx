@@ -1,7 +1,7 @@
 import { useT } from '../../../../lib/i18n/I18nContext';
+import Button from '../../../ui/Button';
 import { SettingsRow, SettingsTextArea } from '../../controls';
 import { useSettingsNavigation } from '../../hooks/useSettingsNavigation';
-import Button from '../../../ui/Button';
 import { applyPersonaField, parsePersonaFields, type PersonaFieldKey } from './personaSections';
 import PersonaTemplatePicker from './PersonaTemplatePicker';
 

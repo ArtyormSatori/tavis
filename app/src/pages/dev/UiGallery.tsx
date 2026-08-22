@@ -1,11 +1,6 @@
 import { useState } from 'react';
 
-import {
-  Source,
-  Sources,
-  SourcesContent,
-  SourcesTrigger,
-} from '../../components/ai-elements';
+import { Source, Sources, SourcesContent, SourcesTrigger } from '../../components/ai-elements';
 import {
   AccordionContent,
   AccordionItem,

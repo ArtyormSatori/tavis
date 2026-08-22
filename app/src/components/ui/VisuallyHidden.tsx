@@ -3,8 +3,9 @@ import { type ComponentPropsWithoutRef, type ElementRef, forwardRef } from 'reac
 
 import { cn } from '../../lib/cn';
 
-export interface VisuallyHiddenProps
-  extends ComponentPropsWithoutRef<typeof VisuallyHiddenPrimitive.Root> {}
+export interface VisuallyHiddenProps extends ComponentPropsWithoutRef<
+  typeof VisuallyHiddenPrimitive.Root
+> {}
 
 /**
  * Content that is removed from the visual layout but stays in the accessibility

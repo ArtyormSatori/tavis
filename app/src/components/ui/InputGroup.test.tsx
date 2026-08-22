@@ -3,11 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import InputGroupRoot, {
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from './InputGroup';
+import InputGroupRoot, { InputGroupAddon, InputGroupButton, InputGroupInput } from './InputGroup';
 
 const RAW_PALETTE = /\b(bg|text|border|ring)-(neutral|stone|slate|canvas|white|black)\b/;
 

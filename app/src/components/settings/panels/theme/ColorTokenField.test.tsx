@@ -7,7 +7,12 @@ import ColorTokenField from './ColorTokenField';
 describe('ColorTokenField', () => {
   it('renders the label and the token key / hex description', () => {
     renderWithProviders(
-      <ColorTokenField tokenKey="surface-canvas" label="Canvas" value="47 110 244" onChange={() => {}} />
+      <ColorTokenField
+        tokenKey="surface-canvas"
+        label="Canvas"
+        value="47 110 244"
+        onChange={() => {}}
+      />
     );
 
     expect(screen.getByText('Canvas')).toBeInTheDocument();
@@ -16,7 +21,12 @@ describe('ColorTokenField', () => {
 
   it('exposes the native colour swatch with the converted hex value and an accessible name', () => {
     renderWithProviders(
-      <ColorTokenField tokenKey="surface-canvas" label="Canvas" value="47 110 244" onChange={() => {}} />
+      <ColorTokenField
+        tokenKey="surface-canvas"
+        label="Canvas"
+        value="47 110 244"
+        onChange={() => {}}
+      />
     );
 
     const swatch = screen.getByLabelText('Canvas') as HTMLInputElement;
@@ -27,7 +37,12 @@ describe('ColorTokenField', () => {
   it('calls onChange with the channel triple when the swatch changes', () => {
     const onChange = vi.fn();
     renderWithProviders(
-      <ColorTokenField tokenKey="surface-canvas" label="Canvas" value="47 110 244" onChange={onChange} />
+      <ColorTokenField
+        tokenKey="surface-canvas"
+        label="Canvas"
+        value="47 110 244"
+        onChange={onChange}
+      />
     );
 
     const swatch = screen.getByLabelText('Canvas');

@@ -3,8 +3,8 @@ import { useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { feedbackApi } from '../../services/api/feedbackApi';
-import { NativeSelect } from '../ui';
 import type { FeedbackItem, FeedbackStatus } from '../../types/feedback';
+import { NativeSelect } from '../ui';
 
 const log = debugFactory('feedback:admin');
 

@@ -11,13 +11,13 @@ import { APP_VERSION } from '../../../utils/config';
 import { isLocalSessionToken } from '../../../utils/localSession';
 import ConnectionIndicator from '../../ConnectionIndicator';
 import {
-  SidebarContent as SidebarScrollRegion,
   SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuIcon,
   SidebarMenuItem,
   SidebarMenuLabel,
+  SidebarContent as SidebarScrollRegion,
   SidebarTrigger,
   Tooltip,
   useSidebar,

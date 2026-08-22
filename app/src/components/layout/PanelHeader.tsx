@@ -22,11 +22,7 @@ export const DEFAULT_PANEL_HEADER_BG = 'bg-surface-muted';
  */
 export const panelHeaderVariants = cva(DEFAULT_PANEL_HEADER_CLASS, {
   variants: {
-    tone: {
-      muted: DEFAULT_PANEL_HEADER_BG,
-      surface: 'bg-surface',
-      transparent: 'bg-transparent',
-    },
+    tone: { muted: DEFAULT_PANEL_HEADER_BG, surface: 'bg-surface', transparent: 'bg-transparent' },
   },
   defaultVariants: { tone: 'muted' },
 });

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { useT } from '../../lib/i18n/I18nContext';
-import { Button } from '../ui';
 import { listArtifactsForThread } from '../../services/artifactDownloadService';
 import { upsertArtifactReadyForThread } from '../../store/chatRuntimeSlice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { Button } from '../ui';
 import ChatFilesPanel from './ChatFilesPanel';
 
 /**

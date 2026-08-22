@@ -36,10 +36,7 @@ describe('AlertDialog', () => {
 
     const content = screen.getByRole('alertdialog');
     expect(content).toHaveAttribute('data-slot', 'alert-dialog-content');
-    expect(screen.getByText('Delete workspace')).toHaveAttribute(
-      'data-slot',
-      'alert-dialog-title'
-    );
+    expect(screen.getByText('Delete workspace')).toHaveAttribute('data-slot', 'alert-dialog-title');
     expect(screen.getByText('This cannot be undone.')).toHaveAttribute(
       'data-slot',
       'alert-dialog-description'

@@ -7,8 +7,8 @@
  * only appears when both `CanvasActionsContext` is provided and the node is
  * selected, and that each action fires through.
  */
-import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { FlowNode } from '../../../lib/flows/graphAdapter';
@@ -34,9 +34,10 @@ function sampleNode(overrides: Partial<FlowNode> = {}): FlowNode {
   };
 }
 
-function renderNode(node: FlowNode, actions?: React.ComponentProps<
-  typeof CanvasActionsContext.Provider
->['value']) {
+function renderNode(
+  node: FlowNode,
+  actions?: React.ComponentProps<typeof CanvasActionsContext.Provider>['value']
+) {
   const tree = (
     <ReactFlowProvider>
       <ReactFlow nodes={[node]} edges={[]} nodeTypes={nodeTypes} />

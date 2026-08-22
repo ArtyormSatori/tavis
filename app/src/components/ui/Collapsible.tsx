@@ -41,11 +41,7 @@ export const collapsibleTriggerVariants = cva(
   ],
   {
     variants: {
-      size: {
-        sm: 'px-3 py-2 text-xs',
-        md: 'px-4 py-3 text-sm',
-        lg: 'px-5 py-4 text-base',
-      },
+      size: { sm: 'px-3 py-2 text-xs', md: 'px-4 py-3 text-sm', lg: 'px-5 py-4 text-base' },
     },
     defaultVariants: { size: 'md' },
   }
@@ -55,11 +51,7 @@ export const collapsibleContentVariants = cva(
   'overflow-hidden text-content-secondary data-[state=open]:animate-fade-in',
   {
     variants: {
-      size: {
-        sm: 'px-3 pb-2 text-xs',
-        md: 'px-4 pb-3 text-sm',
-        lg: 'px-5 pb-4 text-sm',
-      },
+      size: { sm: 'px-3 pb-2 text-xs', md: 'px-4 pb-3 text-sm', lg: 'px-5 pb-4 text-sm' },
     },
     defaultVariants: { size: 'md' },
   }
@@ -69,7 +61,8 @@ export type CollapsibleVariant = NonNullable<VariantProps<typeof collapsibleVari
 export type CollapsibleSize = NonNullable<VariantProps<typeof collapsibleTriggerVariants>['size']>;
 
 export interface CollapsibleRootProps
-  extends ComponentPropsWithRef<typeof CollapsiblePrimitive.Root>,
+  extends
+    ComponentPropsWithRef<typeof CollapsiblePrimitive.Root>,
     VariantProps<typeof collapsibleVariants> {}
 
 export const CollapsibleRoot = ({ className, variant, ...rest }: CollapsibleRootProps) => (
@@ -82,7 +75,8 @@ export const CollapsibleRoot = ({ className, variant, ...rest }: CollapsibleRoot
 );
 
 export interface CollapsibleTriggerProps
-  extends ComponentPropsWithRef<typeof CollapsiblePrimitive.Trigger>,
+  extends
+    ComponentPropsWithRef<typeof CollapsiblePrimitive.Trigger>,
     VariantProps<typeof collapsibleTriggerVariants> {}
 
 export const CollapsibleTrigger = ({ className, size, ...rest }: CollapsibleTriggerProps) => (
@@ -95,7 +89,8 @@ export const CollapsibleTrigger = ({ className, size, ...rest }: CollapsibleTrig
 );
 
 export interface CollapsibleContentProps
-  extends ComponentPropsWithRef<typeof CollapsiblePrimitive.Content>,
+  extends
+    ComponentPropsWithRef<typeof CollapsiblePrimitive.Content>,
     VariantProps<typeof collapsibleContentVariants> {}
 
 export const CollapsibleContent = ({ className, size, ...rest }: CollapsibleContentProps) => (

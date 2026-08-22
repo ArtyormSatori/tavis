@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ToastContainer } from './Toast';
 import type { ToastNotification } from '../../types/intelligence';
+import { ToastContainer } from './Toast';
 
 const notification: ToastNotification = {
   id: 'n1',
