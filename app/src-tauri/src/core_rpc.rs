@@ -225,7 +225,7 @@ mod tests {
         // the scheme://host[:port] surface is kept for transport diagnostics.
         assert_eq!(
             redact_url_for_log("http://user:pass@192.168.1.74:7788/rpc/secret?token=t0k#frag"),
-            "http://user@192.168.1.74:7788/"
+            "http://192.168.1.74:7788/"
         );
         assert_eq!(
             redact_url_for_log("https://core.example.com/rpc"),
