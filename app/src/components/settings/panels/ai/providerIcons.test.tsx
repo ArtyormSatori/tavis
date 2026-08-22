@@ -19,14 +19,13 @@ describe('providerIcons', () => {
     expect(orphans, 'icon keyed to a slug no provider uses').toEqual([]);
   });
 
-  it('returns null for a provider with no shipped mark, so the caller can letter it', () => {
-    // Coverage is partial by design; the fallback is the contract, not a bug.
+  it('returns null for an unknown custom endpoint, so the caller can letter it', () => {
     expect(providerIcon('a-provider-that-does-not-exist', 'h-4 w-4')).toBeNull();
   });
 
-  it('returns a rendered element for a covered provider', () => {
-    // An ELEMENT, not a component: see the note on `providerIcon`.
-    expect(providerIcon('openai', 'h-4 w-4')).toHaveProperty('type');
-    expect(providerIcon('anthropic', 'h-4 w-4')).toHaveProperty('type');
+  it('returns a rendered mark for every built-in and local provider', () => {
+    for (const slug of [...BUILTIN_CLOUD_PROVIDER_SLUGS, ...NON_CLOUD_SLUGS]) {
+      expect(providerIcon(slug, 'h-4 w-4'), slug).toHaveProperty('type');
+    }
   });
 });
