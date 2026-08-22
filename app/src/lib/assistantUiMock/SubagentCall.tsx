@@ -76,7 +76,7 @@ export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => 
       data-slot="aui_subagent-call"
       defaultOpen
       className={cn(
-        'aui-subagent-call border-border/60 dark:border-muted-foreground/15 my-2 rounded-xl border',
+        'aui-subagent-call border-border/60 dark:border-muted-foreground/15 rounded-xl border',
         running && 'border-dashed'
       )}>
       <CollapsibleTrigger className="group/subagent text-muted-foreground hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors">

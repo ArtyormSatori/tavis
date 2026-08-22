@@ -362,6 +362,17 @@ const AssistantMessage: FC = () => {
       data-slot="aui_assistant-message-root"
       data-role="assistant"
       className="fade-in slide-in-from-bottom-1 animate-in relative -mb-7.5 pb-7.5 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto]">
+      {/*
+       * One vertical rhythm for the whole message, rather than each part
+       * bringing its own margin. Measured before this change the gaps ran
+       * 16 / 0 / 0 / 16 / 0 / 0 px — `reasoning-root` carries `mb-4` and
+       * nothing else carried anything, so a reasoning block sat apart while a
+       * tool group and the prose beneath it touched. `[&>*+*]:mt-3` spaces
+       * adjacent blocks evenly and the `mb-0` override neutralises the one
+       * component with an opinion. The chain-of-thought wrapper below gets the
+       * same pair, because reasoning and tool groups are siblings *inside* it
+       * rather than of it, so spacing only the outer level misses them.
+       */}
       <div
         data-slot="aui_assistant-message-content"
         className="text-foreground [&>*+*]:mt-3 [&_[data-slot=reasoning-root]]:mb-0 px-2 leading-relaxed wrap-break-word">
