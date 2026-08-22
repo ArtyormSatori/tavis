@@ -215,7 +215,6 @@ export const ProviderAuthSection = ({
     onOpenKeyDialog(slug, localLabel);
   };
 
-  const codexBusy = busyAction === 'codex-auth' || busyAction === 'toggle-openai';
   const claudeCodeConnected = Boolean(bySlug('claude-code'));
 
   return (
@@ -389,53 +388,45 @@ export const ProviderAuthSection = ({
           })}
         </ProviderGroup>
 
-        {/* ─── CLI logins ───────────────────────────────────────────────── */}
-        <ProviderGroup title={t('settings.ai.providers.groupCli')} data-testid="provider-group-cli">
-          <ProviderListRow
-            label={t('settings.ai.claudeCode.button')}
-            tone={BUILTIN_PROVIDER_META.custom?.tone ?? ''}
-            detail={
-              claudeCodeConnected
-                ? t('settings.ai.providers.connected')
-                : t('settings.ai.providers.notConnected')
-            }
-            control={
-              <ClaudeCodeConnect
-                connected={claudeCodeConnected}
-                busy={busyAction === 'toggle-claude-code'}
-                onConnect={() =>
-                  onConnectProvider({
-                    slug: 'claude-code',
-                    value: 'cli_login',
-                    credentialMode: 'cli_login',
-                  })
-                }
-                onDisconnect={async () => {
-                  const existing = bySlug('claude-code');
-                  if (existing) await removeProvider(existing, false);
-                }}
-              />
-            }
-            data-testid="provider-row-claude-code"
-          />
-
-          <ProviderListRow
-            label={t('settings.ai.codexAuthButton')}
-            tone={BUILTIN_PROVIDER_META.openai?.tone ?? ''}
-            detail={t('settings.ai.codexAuthHelper')}
-            control={
-              <Button
-                type="button"
-                variant="secondary"
-                size="xs"
-                onClick={onConnectCodex}
-                disabled={codexBusy}>
-                {codexBusy ? t('settings.ai.connecting') : t('settings.ai.codexAuthButton')}
-              </Button>
-            }
-            data-testid="provider-row-codex"
-          />
-        </ProviderGroup>
+        {/* ─── CLI logins ────────────────────────────────────────────────
+          Only Claude Code earns a row here, and only once connected: it owns a
+          status probe and a modal that no other provider has, and disconnecting
+          goes through them. Codex deliberately has NO row — its credential is
+          stored as `openai`, so it is already the OpenAI row above, and a second
+          row would imply a second connection the user could remove separately. */}
+        {claudeCodeConnected && (
+          <ProviderGroup
+            title={t('settings.ai.providers.groupCli')}
+            data-testid="provider-group-cli">
+            <ProviderListRow
+              label={t('settings.ai.claudeCode.button')}
+              tone={
+                BUILTIN_PROVIDER_META['claude-code']?.tone ??
+                BUILTIN_PROVIDER_META.custom?.tone ??
+                ''
+              }
+              detail={t('settings.ai.providers.cliDetail')}
+              control={
+                <ClaudeCodeConnect
+                  connected
+                  busy={busyAction === 'toggle-claude-code'}
+                  onConnect={() =>
+                    onConnectProvider({
+                      slug: 'claude-code',
+                      value: 'cli_login',
+                      credentialMode: 'cli_login',
+                    })
+                  }
+                  onDisconnect={async () => {
+                    const existing = bySlug('claude-code');
+                    if (existing) await removeProvider(existing, false);
+                  }}
+                />
+              }
+              data-testid="provider-row-claude-code"
+            />
+          </ProviderGroup>
+        )}
 
         <div className="flex flex-col gap-3 px-4">
           {codexAuthError ? <ProviderSetupErrorNotice error={codexAuthError} /> : null}
