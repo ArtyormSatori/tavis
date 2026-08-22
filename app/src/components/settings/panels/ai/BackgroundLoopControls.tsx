@@ -1,11 +1,14 @@
 /*
- * Background loop controls + usage diagnostics.
+ * Background loop map + usage diagnostics.
  *
- * Two independently useful views composed under one component: the
- * heartbeat/planner controls (left) and the recent-usage ledger + budget math
- * (right). `view` lets a host panel (UsagePanel) mount just one half.
+ * The heartbeat planner, its calendar collector and the subconscious tick were
+ * retired upstream along with the subconscious domain, so the planner controls
+ * that used to occupy the left column are gone. What remains is the loop map of
+ * the background work that still runs, plus the recent-usage ledger + budget
+ * math. `view` lets a host panel (UsagePanel) mount just the ledger.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import debug from 'debug';
+import { useCallback, useEffect, useState } from 'react';
 
 import { listConnections as listComposioConnections } from '../../../../lib/composio/composioApi';
 import type { ComposioConnection } from '../../../../lib/composio/types';
@@ -15,21 +18,15 @@ import {
   type CreditTransaction,
   type TeamUsage,
 } from '../../../../services/api/creditsApi';
-import {
-  type HeartbeatPlannerSummary,
-  type HeartbeatSettings,
-  type HeartbeatSettingsPatch,
-  openhumanHeartbeatSettingsGet,
-  openhumanHeartbeatSettingsSet,
-  openhumanHeartbeatTickNow,
-} from '../../../../utils/tauriCommands/heartbeat';
+import Button from '../../../ui/Button';
+import { SettingsStatusLine } from '../../controls';
 import type { RoutingMap } from './aiPanelTypes';
 import {
   activeConnection,
   type BackgroundLoopProviderView,
   COMPOSIO_PERIODIC_TICK_MINUTES,
   describeProvider,
-  isCalendarConnection,
+  formatCount,
   LEARNING_REBUILD_MINUTES,
   MEMORY_POLL_SECONDS,
   MEMORY_WORKERS,
@@ -39,10 +36,11 @@ import {
   summarizeSpendSample,
   WEEK_MINUTES,
 } from './backgroundLoopPrimitives';
-import { HeartbeatLoopSection } from './HeartbeatLoopSection';
 import { UsageLedgerSection } from './UsageLedgerSection';
 
-type BackgroundLoopControlsView = 'all' | 'heartbeat' | 'ledger';
+const log = debug('settings:background-loops');
+
+type BackgroundLoopControlsView = 'all' | 'ledger';
 
 export const BackgroundLoopControls = ({
   routing,
@@ -56,107 +54,51 @@ export const BackgroundLoopControls = ({
   hideHeader?: boolean;
 }) => {
   const { t } = useT();
-  const [settings, setSettings] = useState<HeartbeatSettings | null>(null);
   const [usage, setUsage] = useState<TeamUsage | null>(null);
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
   const [connections, setConnections] = useState<ComposioConnection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [runningTick, setRunningTick] = useState(false);
-  const [plannerSummary, setPlannerSummary] = useState<HeartbeatPlannerSummary | null>(null);
   const [error, setError] = useState<string>('');
-  const settingsRef = useRef<HeartbeatSettings | null>(null);
-  const patchRequestIdRef = useRef(0);
-
-  const commitSettings = useCallback((nextSettings: HeartbeatSettings | null) => {
-    settingsRef.current = nextSettings;
-    setSettings(nextSettings);
-  }, []);
 
   const refresh = useCallback(async () => {
+    log('[settings:background-loops] refresh:start');
     setLoading(true);
     setError('');
-    const [heartbeatResult, usageResult, transactionsResult, connectionsResult] =
-      await Promise.allSettled([
-        openhumanHeartbeatSettingsGet(),
-        creditsApi.getTeamUsage(),
-        creditsApi.getTransactions(200, 0),
-        listComposioConnections(),
-      ]);
+    const [usageResult, transactionsResult, connectionsResult] = await Promise.allSettled([
+      creditsApi.getTeamUsage(),
+      creditsApi.getTransactions(200, 0),
+      listComposioConnections(),
+    ]);
 
-    if (heartbeatResult.status === 'fulfilled') {
-      commitSettings(heartbeatResult.value.result.settings);
-    } else {
-      setError(
-        heartbeatResult.reason instanceof Error ? heartbeatResult.reason.message : 'Load failed'
-      );
-    }
+    log(
+      '[settings:background-loops] refresh:settled usage=%s transactions=%s connections=%s',
+      usageResult.status,
+      transactionsResult.status,
+      connectionsResult.status
+    );
 
     if (usageResult.status === 'fulfilled') {
       setUsage(usageResult.value);
     }
 
     if (transactionsResult.status === 'fulfilled') {
-      setTransactions(transactionsResult.value.transactions ?? []);
+      const rows = transactionsResult.value.transactions ?? [];
+      log('[settings:background-loops] refresh:transactions count=%d', rows.length);
+      setTransactions(rows);
     }
 
     if (connectionsResult.status === 'fulfilled') {
-      setConnections(connectionsResult.value.connections ?? []);
+      const rows = connectionsResult.value.connections ?? [];
+      log('[settings:background-loops] refresh:connections count=%d', rows.length);
+      setConnections(rows);
     }
     setLoading(false);
-  }, [commitSettings]);
+    log('[settings:background-loops] refresh:done');
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
-  }, [refresh]);
-
-  const applyHeartbeatPatch = useCallback(
-    async (patch: HeartbeatSettingsPatch) => {
-      const requestId = patchRequestIdRef.current + 1;
-      patchRequestIdRef.current = requestId;
-      const savingKey = Object.keys(patch).join(',');
-      const previous = settingsRef.current;
-      setError('');
-      setSaving(savingKey);
-      if (!previous) {
-        // No baseline to patch against — abandon this request.
-        if (patchRequestIdRef.current === requestId) {
-          setSaving(null);
-        }
-        return;
-      }
-      commitSettings({ ...previous, ...patch });
-      try {
-        const response = await openhumanHeartbeatSettingsSet(patch);
-        // Stale response — a newer patch superseded us; drop this result.
-        if (patchRequestIdRef.current !== requestId) return;
-        commitSettings(response.result.settings);
-      } catch (err) {
-        if (patchRequestIdRef.current !== requestId) return;
-        commitSettings(previous);
-        setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        if (patchRequestIdRef.current === requestId) {
-          setSaving(null);
-        }
-      }
-    },
-    [commitSettings]
-  );
-
-  const runPlannerNow = useCallback(async () => {
-    setRunningTick(true);
-    setError('');
-    try {
-      const response = await openhumanHeartbeatTickNow();
-      setPlannerSummary(response.result.summary);
-      await refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setRunningTick(false);
-    }
   }, [refresh]);
 
   const spendSample = summarizeSpendSample(transactions);
@@ -164,25 +106,14 @@ export const BackgroundLoopControls = ({
   const actionSummary = summarizeSpendByAction(transactions);
   const hourSummary = summarizeSpendByHour(transactions);
   const latestSpend = spendRows[0] ?? null;
-  const heartbeatIntervalMinutes = settings ? Math.max(settings.interval_minutes, 5) : 5;
-  const heartbeatTicksPerWeek = settings?.enabled
-    ? Math.ceil(WEEK_MINUTES / heartbeatIntervalMinutes)
-    : 0;
   const activeConnections = connections.filter(activeConnection);
-  const activeCalendarConnections = activeConnections.filter(isCalendarConnection);
-  const maxCalendarConnectionsPerTick = settings
-    ? Math.max(settings.max_calendar_connections_per_tick ?? 2, 1)
-    : 2;
-  const calendarConnectionsPolled = settings?.notify_meetings
-    ? Math.min(activeCalendarConnections.length, maxCalendarConnectionsPerTick)
-    : 0;
-  const calendarConnectionsSkipped = settings?.notify_meetings
-    ? Math.max(activeCalendarConnections.length - calendarConnectionsPolled, 0)
-    : 0;
-  const calendarPlannerCallsPerTick = settings?.notify_meetings ? 1 + calendarConnectionsPolled : 0;
-  const calendarPlannerCallsPerWeek = heartbeatTicksPerWeek * calendarPlannerCallsPerTick;
-  const subconsciousModelCallsPerWeek =
-    settings?.enabled && settings.inference_enabled ? heartbeatTicksPerWeek : 0;
+  // The heartbeat planner, its calendar collector and the subconscious tick
+  // went with the subconscious domain, so none of them contributes scheduled
+  // wakeups or background API reads any more. Kept as named zeros so the
+  // ledger arithmetic below still reads as "everything that runs in the
+  // background" instead of silently dropping the terms.
+  const heartbeatTicksPerWeek = 0;
+  const calendarPlannerCallsPerWeek = 0;
   const composioPeriodicTicksPerWeek = Math.ceil(WEEK_MINUTES / COMPOSIO_PERIODIC_TICK_MINUTES);
   const learningTicksPerWeek = Math.ceil(WEEK_MINUTES / LEARNING_REBUILD_MINUTES);
   const memoryPollsPerWeek = Math.ceil((WEEK_MINUTES * 60 * MEMORY_WORKERS) / MEMORY_POLL_SECONDS);
@@ -218,27 +149,6 @@ export const BackgroundLoopControls = ({
 
   const loops = [
     {
-      name: 'Heartbeat planner',
-      enabled: Boolean(settings?.enabled),
-      cadence: `${settings?.interval_minutes ?? 5} min`,
-      route: describeProvider(routing.heartbeat, cloudProviders),
-      work: 'Runs proactive collectors: cron reminders, calendar meetings, relevant notifications.',
-      risk: settings?.notify_meetings
-        ? `${calendarPlannerCallsPerTick} Composio read call(s)/tick; ${calendarConnectionsSkipped} calendar link(s) over cap skipped.`
-        : 'Calendar collector off; planner reads only local enabled categories.',
-    },
-    {
-      name: 'Subconscious tick',
-      enabled: Boolean(settings?.enabled && settings?.inference_enabled),
-      cadence: `${settings?.interval_minutes ?? 5} min`,
-      route: describeProvider(routing.subconscious, cloudProviders),
-      work: 'Evaluates subconscious tasks/reflections through kind=subconscious_tick.',
-      risk:
-        subconsciousModelCallsPerWeek > 0
-          ? `${subconsciousModelCallsPerWeek} model call(s)/week at current interval.`
-          : 'Inference off; no scheduled subconscious model calls.',
-    },
-    {
       name: 'Memory tree workers',
       enabled: true,
       cadence: 'queue',
@@ -252,7 +162,7 @@ export const BackgroundLoopControls = ({
       cadence: '30 min',
       route: describeProvider(routing.learning, cloudProviders),
       work: 'Refreshes reflection state after memory activity.',
-      risk: `${learningTicksPerWeek} wakeups/week; LLM work only when rebuild needs reflection.`,
+      risk: `${formatCount(learningTicksPerWeek)} wakeups/week; LLM work only when rebuild needs reflection.`,
     },
     {
       name: 'Composio sync',
@@ -260,11 +170,10 @@ export const BackgroundLoopControls = ({
       cadence: '20 min',
       route: 'Integration APIs',
       work: 'Polls connected tools when provider sync is due.',
-      risk: `${composioPeriodicTicksPerWeek} wakeups/week; scans ${activeConnections.length} active connection(s).`,
+      risk: `${formatCount(composioPeriodicTicksPerWeek)} wakeups/week; scans ${activeConnections.length} active connection(s).`,
     },
   ];
 
-  const showHeartbeat = view === 'all' || view === 'heartbeat';
   const showLedger = view === 'all' || view === 'ledger';
   const gridCols =
     view === 'all' ? 'md:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]' : 'grid-cols-1';
@@ -282,23 +191,44 @@ export const BackgroundLoopControls = ({
         </div>
       )}
 
+      {error && <SettingsStatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
+
       <section className={`grid gap-3 ${gridCols}`}>
-        {showHeartbeat && (
-          <HeartbeatLoopSection
-            t={t}
-            settings={settings}
-            loading={loading}
-            saving={saving}
-            runningTick={runningTick}
-            plannerSummary={plannerSummary}
-            error={error}
-            loops={loops}
-            maxCalendarConnectionsPerTick={maxCalendarConnectionsPerTick}
-            onRefresh={() => void refresh()}
-            onApplyPatch={patch => void applyHeartbeatPatch(patch)}
-            onRunPlannerNow={() => void runPlannerNow()}
-          />
-        )}
+        <div className="overflow-hidden rounded-lg border border-line bg-surface-muted">
+          <div className="flex items-center justify-between gap-3 border-b border-line px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-content-faint">
+              {t('settings.ai.loopMap')}
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="xs"
+              onClick={() => void refresh()}
+              disabled={loading}>
+              {t('common.refresh')}
+            </Button>
+          </div>
+          <div className="divide-y divide-line">
+            {loops.map(loop => (
+              <div key={loop.name} className="grid gap-2 px-3 py-3 md:grid-cols-[150px_1fr]">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-content">{loop.name}</div>
+                  <div className="mt-0.5 flex flex-wrap gap-1 text-[11px] text-content-muted">
+                    <span>{loop.enabled ? t('settings.ai.on') : t('settings.ai.off')}</span>
+                    <span>{loop.cadence}</span>
+                  </div>
+                </div>
+                <div className="min-w-0 text-xs text-content-secondary">
+                  <div>{loop.work}</div>
+                  <div className="mt-1 font-mono text-[11px] text-content-muted">
+                    {t('settings.ai.routeLabel').replace('{route}', loop.route)}
+                  </div>
+                  <div className="mt-1 text-content-muted">{loop.risk}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {showLedger && (
           <UsageLedgerSection
@@ -325,15 +255,6 @@ export const BackgroundLoopControls = ({
             projectedExhaustAt={projectedExhaustAt}
             projectedHoursLeft={projectedHoursLeft}
             scheduledCallsPerRemainingDollar={scheduledCallsPerRemainingDollar}
-            heartbeatTicksPerWeek={heartbeatTicksPerWeek}
-            heartbeatIntervalMinutes={heartbeatIntervalMinutes}
-            calendarConnectionsPolled={calendarConnectionsPolled}
-            activeCalendarConnectionsCount={activeCalendarConnections.length}
-            maxCalendarConnectionsPerTick={maxCalendarConnectionsPerTick}
-            calendarConnectionsSkipped={calendarConnectionsSkipped}
-            notifyMeetingsEnabled={Boolean(settings?.notify_meetings)}
-            subconsciousModelCallsPerWeek={subconsciousModelCallsPerWeek}
-            subconsciousEnabled={Boolean(settings?.enabled && settings.inference_enabled)}
             activeConnectionsCount={activeConnections.length}
           />
         )}
