@@ -68,10 +68,24 @@ const TRANSFORM: Record<TooltipSide, string> = {
 };
 
 function transformFor(side: TooltipSide, align: TooltipAlign): string {
-  if (side === 'top' || side === 'bottom') {
-    return align === 'start' ? 'translate(0, -100%)' : align === 'end' ? 'translate(-100%, 0)' : TRANSFORM[side];
+  if (side === 'top') {
+    return align === 'start'
+      ? 'translate(0, -100%)'
+      : align === 'end'
+        ? 'translate(-100%, -100%)'
+        : TRANSFORM[side];
   }
-  return align === 'start' ? 'translate(-100%, 0)' : align === 'end' ? 'translate(-100%, -100%)' : TRANSFORM[side];
+  if (side === 'bottom') {
+    return align === 'start' ? 'translate(0, 0)' : align === 'end' ? 'translate(-100%, 0)' : TRANSFORM[side];
+  }
+  if (side === 'left') {
+    return align === 'start'
+      ? 'translate(-100%, 0)'
+      : align === 'end'
+        ? 'translate(-100%, -100%)'
+        : TRANSFORM[side];
+  }
+  return align === 'start' ? 'translate(0, 0)' : align === 'end' ? 'translate(0, -100%)' : TRANSFORM[side];
 }
 
 /**
