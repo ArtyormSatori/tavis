@@ -72,7 +72,7 @@ export default function IntelligenceMemoryTab({
       </div>
 
       {itemsLoading && !usingMemoryData ? (
-        <div className="glass rounded-2xl p-8 text-center animate-fade-up">
+        <div className="backdrop-blur-lg bg-surface/80 border border-line/60 shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] rounded-2xl p-8 text-center animate-fade-up">
           <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-primary-500/10">
             <div className="w-8 h-8 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -80,7 +80,7 @@ export default function IntelligenceMemoryTab({
           <p className="text-content-faint text-sm">{t('memory.fetching')}</p>
         </div>
       ) : isRunning && items.length === 0 ? (
-        <div className="glass rounded-2xl p-8 text-center animate-fade-up">
+        <div className="backdrop-blur-lg bg-surface/80 border border-line/60 shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] rounded-2xl p-8 text-center animate-fade-up">
           <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-primary-500/10">
             <div className="w-8 h-8 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -88,7 +88,7 @@ export default function IntelligenceMemoryTab({
           <p className="text-content-faint text-sm">{t('memory.analyzingHint')}</p>
         </div>
       ) : timeGroups.length === 0 ? (
-        <div className="glass rounded-2xl p-8 text-center animate-fade-up">
+        <div className="backdrop-blur-lg bg-surface/80 border border-line/60 shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] rounded-2xl p-8 text-center animate-fade-up">
           <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-primary-500/10">
             <svg
               className="w-8 h-8 text-primary-400"
