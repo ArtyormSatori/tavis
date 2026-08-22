@@ -458,37 +458,38 @@ function ChatComposerBody({
                 follow-up is typed the Send arrow returns so the follow-up can be
                 queued (parallel send) instead of cancelling the current turn. */}
             {showStopButton ? (
-            <Button
-              type="button"
-              iconOnly
-              variant="primary"
-              size="xs"
-              analyticsId="chat-composer-stop"
-              data-testid="stop-generation-button"
-              aria-label={t('chat.stopGeneration')}
-              title={t('chat.stopGeneration')}
-              onClick={onStopGeneration}
-              className={COMPOSER_SEND}>
-              <StopIcon />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              iconOnly
-              variant="primary"
-              size="xs"
-              analyticsId="chat-composer-send"
-              data-testid="send-message-button"
-              aria-label={t('chat.send')}
-              title={t('chat.send')}
-              onClick={() => {
-                debug('[chat-composer] send click: parallel=%s', allowParallelSend);
-                void onSend();
-              }}
-              disabled={!hasContent || composerLocked}
-              className={COMPOSER_SEND}>
-              {showSendingSpinner ? <SendingSpinnerIcon /> : <SendIcon />}
-            </Button>
+              <Button
+                type="button"
+                iconOnly
+                variant="primary"
+                size="xs"
+                analyticsId="chat-composer-stop"
+                data-testid="stop-generation-button"
+                aria-label={t('chat.stopGeneration')}
+                title={t('chat.stopGeneration')}
+                onClick={onStopGeneration}
+                className={COMPOSER_SEND}>
+                <StopIcon />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                iconOnly
+                variant="primary"
+                size="xs"
+                analyticsId="chat-composer-send"
+                data-testid="send-message-button"
+                aria-label={t('chat.send')}
+                title={t('chat.send')}
+                onClick={() => {
+                  debug('[chat-composer] send click: parallel=%s', allowParallelSend);
+                  void onSend();
+                }}
+                disabled={!hasContent || composerLocked}
+                className={COMPOSER_SEND}>
+                {showSendingSpinner ? <SendingSpinnerIcon /> : <SendIcon />}
+              </Button>
+          </div>
           )}
         </div>
       </div>
