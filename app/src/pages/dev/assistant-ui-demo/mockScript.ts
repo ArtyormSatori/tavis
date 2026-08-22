@@ -150,3 +150,55 @@ export const MOCK_SCRIPT: readonly MockStep[] = [
   },
   { kind: 'text', text: ANSWER },
 ];
+
+/** The prompt the seeded transcript is a reply to. */
+export const SEED_PROMPT = 'Show me everything this transcript can render.';
+
+/**
+ * `MOCK_SCRIPT` as a finished turn, for `initialMessages`.
+ *
+ * The demo used to open on the empty welcome screen, so opening the page showed
+ * nothing until you typed — which is not much of a demo. Seeding the first
+ * thread means the reasoning blocks, tool calls and subagent delegations are on
+ * screen immediately, and sending a message still replays them streaming.
+ *
+ * Derived from the same script the adapter streams, so the two cannot drift.
+ */
+export function buildSeedMessages() {
+  const content = MOCK_SCRIPT.map((step, index) => {
+    switch (step.kind) {
+      case 'reasoning':
+        return { type: 'reasoning' as const, text: step.text };
+      case 'text':
+        return { type: 'text' as const, text: step.text };
+      case 'tool':
+        return {
+          type: 'tool-call' as const,
+          toolCallId: `seed-tool-${index}`,
+          toolName: step.toolName,
+          args: step.args,
+          argsText: JSON.stringify(step.args, null, 2),
+          result: step.result,
+        };
+      case 'subagent':
+        return {
+          type: 'tool-call' as const,
+          toolCallId: `seed-task-${index}`,
+          toolName: 'task',
+          args: step.args,
+          argsText: JSON.stringify(step.args, null, 2),
+          result: {
+            subagent: step.subagent,
+            status: 'complete',
+            steps: step.steps,
+            report: step.report,
+          } satisfies MockSubagentResult,
+        };
+    }
+  });
+
+  return [
+    { role: 'user' as const, content: [{ type: 'text' as const, text: SEED_PROMPT }] },
+    { role: 'assistant' as const, content },
+  ];
+}
