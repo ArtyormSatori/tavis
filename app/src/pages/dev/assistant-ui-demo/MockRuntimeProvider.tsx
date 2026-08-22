@@ -39,6 +39,9 @@ const FirstThreadContext = createContext<{ id: string | null }>({ id: null });
 function useDemoThreadRuntime() {
   const box = useContext(FirstThreadContext);
   const id = useId();
+  // The provider owns this stable, page-scoped marker. It is initialized once
+  // as the remote thread-list runtime mounts its first child runtime.
+  // eslint-disable-next-line react-hooks/immutability
   if (box.id === null) box.id = id;
   const isFirstThread = box.id === id;
 
