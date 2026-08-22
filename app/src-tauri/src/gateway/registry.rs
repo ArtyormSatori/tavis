@@ -136,7 +136,10 @@ pub async fn activate(
                 // (Connected/Failed) written by this or a later activation, or
                 // resurrect `Activating` for one that has been superseded.
                 if state.generation == generation
-                    && !matches!(state.status, Some(GatewayStatus::Connected { .. } | GatewayStatus::Failed { .. }))
+                    && !matches!(
+                        state.status,
+                        Some(GatewayStatus::Connected { .. } | GatewayStatus::Failed { .. })
+                    )
                 {
                     state.status = Some(GatewayStatus::Activating { step });
                 }
