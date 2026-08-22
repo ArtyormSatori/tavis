@@ -11,7 +11,6 @@ import {
 
 import { Conversation, ConversationContent } from '../../../components/ai-elements';
 import { useStickToBottom } from '../../../hooks/useStickToBottom';
-import { useT } from '../../../lib/i18n/I18nContext';
 import { subagentApi } from '../../../services/api/subagentApi';
 import {
   markSubagentCancelled,
@@ -21,21 +20,22 @@ import {
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { persistReaction } from '../../../store/threadSlice';
 import type { ThreadMessage } from '../../../types/thread';
-import { formatTimelineEntry } from '../../../utils/toolTimelineFormatting';
 import { buildThreadTimeline } from '../timeline/selectors';
 import { supersededInterimIndexes } from '../utils/interimNarration';
 import { AgentProcessSourcePanel } from './AgentProcessSourcePanel';
+import { AgentInsightsSlot } from './aui/AgentInsightsSlot';
+import { useAuiThreadRunning } from './aui/auiThreadState';
+import { InferenceStatusLine } from './aui/InferenceStatusLine';
+import {
+  ParallelBranchPreviews,
+  StreamingAssistantPreview,
+  TypingIndicator,
+} from './aui/StreamingPreview';
+import { TranscriptLoadError, TranscriptSkeleton } from './aui/TranscriptStates';
 import { BackgroundProcessesPanel, selectBackgroundProcesses } from './BackgroundProcessesPanel';
 import { InterruptedAnswer } from './InterruptedAnswer';
 import { SubagentDrawer } from './SubagentDrawer';
-import { ToolTimelineBlock } from './ToolTimelineBlock';
 import { type PastTurnAnchor, TranscriptRow } from './TranscriptRow';
-
-/** Maximum trailing characters rendered in the live-streaming assistant
- *  preview bubble. The full response is revealed via `addInferenceResponse`
- *  on `chat_done` — this is purely a ticker-tape affordance to signal
- *  progress without jumping the scroll position as tokens arrive. */
-const STREAMING_PREVIEW_CHARS = 120;
 
 // Stable empty reference for a thread with no persisted messages yet, so the
 // selector below keeps the same identity when the slice field is absent
@@ -121,6 +121,28 @@ interface ChatThreadViewProps {
  * same rich rendering. Everything here is keyed off the `threadId` prop
  * rather than the global `state.thread.selectedThreadId` — all state reads
  * are per-thread Redux slices already keyed by thread id.
+ *
+ * ## assistant-ui
+ *
+ * The presentation leaves under `./aui/` are built on assistant-ui's HEADLESS
+ * primitives and styled with OpenHuman semantic tokens; `@assistant-ui/react-ui`
+ * and `@assistant-ui/styles` are deliberately NOT used (compiled Tailwind v4,
+ * which this repo's `safari15` CSS target cannot downlevel, and a second theming
+ * system competing with Theme Studio).
+ *
+ * Render ORDER, however, still comes from Redux via `buildThreadTimeline`, not
+ * from `ThreadPrimitive.Messages`. That is not laziness: this transcript
+ * interleaves things the runtime's message list has no concept of — superseded
+ * interim narration is filtered out, each past turn's restored process trail is
+ * anchored above its answer, and the live insights slot is anchored after the
+ * latest USER message. Handing ordering to the runtime would drop all three.
+ * The two views stay in agreement because `assistantUiMessages.ts` projects the
+ * same Redux state the rows read.
+ *
+ * The runtime is read from CONTEXT (`./aui/auiThreadState`), never from
+ * `state.thread.selectedThreadId` — `AssistantUiRuntimeProvider` is
+ * thread-parameterized and `WorkflowCopilotPanel` mounts its own instance on a
+ * dedicated builder thread.
  */
 export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewProps>(
   (
@@ -138,7 +160,6 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     },
     ref
   ) => {
-    const { t } = useT();
     const dispatch = useAppDispatch();
 
     const isSidebar = variant === 'sidebar';
@@ -175,6 +196,13 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     // bubble loading) stand in for it, with the full run one click away in the
     // Agent Process Source side panel. See themeSlice.hideAgentInsights.
     const hideAgentInsights = useAppSelector(state => state.theme?.hideAgentInsights ?? false);
+
+    // The assistant-ui runtime's own view of "a turn is running", read from
+    // context so the copilot's nested runtime answers for the copilot's thread.
+    // `undefined` when no runtime is mounted above this transcript (several unit
+    // tests, and any future host that skips the provider) — ORed rather than
+    // substituted, so those hosts keep the exact Redux-only behaviour.
+    const auiRunning = useAuiThreadRunning();
 
     const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
     // Sub-agent whose full live transcript is open in the drawer, keyed by the
@@ -349,6 +377,7 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     const isSending = Boolean(
       threadId &&
       (pendingSendActive ||
+        auiRunning === true ||
         inferenceTurnLifecycleByThread[threadId] === 'started' ||
         inferenceTurnLifecycleByThread[threadId] === 'streaming')
     );
@@ -377,9 +406,6 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     // multi-agent-message split from issue #3717.
     const lastUserMessageId = [...visibleMessages].reverse().find(m => m.sender === 'user')?.id;
 
-    // The insights panel (timeline + "View full agent process Source" opener),
-    // built once and rendered inline above the latest answer. `null` when there
-    // are no recorded steps for the thread.
     // Open the Agent Process Source panel scoped to one step, or to the whole run.
     const openScopedDetail = (entry: ToolTimelineEntry) => {
       setScopedDetailEntryId(entry.id);
@@ -394,88 +420,19 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
         ? selectedThreadToolTimeline.find(e => e.id === scopedDetailEntryId)
         : undefined;
 
-    const agentInsights =
-      // Render when there are tool steps OR a persisted reasoning/narration
-      // transcript. A tool-less turn (the agent only thinks/narrates, no tool
-      // calls) has an empty timeline but still persists thoughts — without the
-      // transcript guard those thoughts would be unreachable.
-      selectedThreadToolTimeline.length > 0 || selectedThreadProcessing.length > 0 ? (
-        <>
-          {hideAgentInsights ? (
-            // "Hide agent thinking" is ON: suppress the verbose step rows.
-            // While in flight, surface a compact blinking "Processing" link; once
-            // settled the "View full agent process Source" opener below takes
-            // over (so only render this fallback when that opener won't).
-            isSending ? (
-              <button
-                type="button"
-                onClick={openWholeRunSource}
-                data-testid="agent-processing-link"
-                className="flex items-center gap-1.5 px-1 py-1 text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-300">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
-                <span>{t('conversations.agentTaskInsights.processing')} →</span>
-              </button>
-            ) : !shouldRenderTimelineBeforeLatestAgentMessage ? (
-              <button
-                type="button"
-                onClick={openWholeRunSource}
-                data-testid="agent-process-source-fallback"
-                className="px-1 text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-300">
-                {t('conversations.agentTaskInsights.viewProcessSource')} →
-              </button>
-            ) : null
-          ) : selectedThreadToolTimeline.length > 0 ? (
-            <ToolTimelineBlock
-              entries={selectedThreadToolTimeline}
-              onViewDetails={openScopedDetail}
-              onViewWholeRun={openWholeRunSource}
-              // Reuse `isSending` rather than a raw `in` membership check on
-              // `inferenceTurnLifecycleByThread`: that map also carries
-              // `'interrupted'` entries (a turn that crashed mid-flight in a
-              // PRIOR core process, written by `hydrateRuntimeFromSnapshot` on
-              // cold boot) which have no live driver and must NOT read as an
-              // active turn, or stale disclosure state leaks into a later
-              // retry. `isSending` already excludes it (only `'started'` /
-              // `'streaming'`, same as this component's own live-turn checks).
-              turnActive={isSending}
-              // Interleaved narration + thinking + tool steps in stream order.
-              // Renders through the same `ProcessingTranscriptView` the Agent
-              // Process Source panel uses, so the rail IS a windowed view of the
-              // panel rather than a second, divergent rendering of the turn.
-              transcript={selectedThreadProcessing}
-            />
-          ) : (
-            // Transcript-only turn: reasoning/narration was streamed but no tool
-            // calls were made, so the inline step timeline is empty. The thoughts
-            // are still persisted — surface a standalone opener (matching the
-            // settled insights header) so the full-run panel stays reachable.
-            <button
-              type="button"
-              onClick={openWholeRunSource}
-              data-testid="view-process-source"
-              className="flex items-center gap-1.5 px-1 py-1 text-left">
-              <span className="text-[13px] font-medium text-content-muted">
-                {t('conversations.agentTaskInsights.title')}
-              </span>
-              <span className="text-[13px] font-medium text-primary-600 dark:text-primary-300">
-                →
-              </span>
-            </button>
-          )}
-          {/* "View full agent process Source" — only needed in the hidden-insights
-              settled state; when the timeline is visible the link lives in its
-              header (ToolTimelineBlock onViewWholeRun). */}
-          {shouldRenderTimelineBeforeLatestAgentMessage && hideAgentInsights && (
-            <button
-              type="button"
-              onClick={openWholeRunSource}
-              data-testid="view-process-source"
-              className="px-1 text-[11px] font-medium text-primary-600 hover:underline dark:text-primary-300">
-              {t('conversations.agentTaskInsights.viewProcessSource')} →
-            </button>
-          )}
-        </>
-      ) : null;
+    // The insights panel (timeline + "View full agent process Source" opener),
+    // built once and rendered inline above the latest answer.
+    const agentInsights = (
+      <AgentInsightsSlot
+        entries={selectedThreadToolTimeline}
+        transcript={selectedThreadProcessing}
+        turnActive={isSending}
+        timelineBeforeLatestAnswer={shouldRenderTimelineBeforeLatestAgentMessage}
+        hideAgentInsights={hideAgentInsights}
+        onViewDetails={openScopedDetail}
+        onViewWholeRun={openWholeRunSource}
+      />
+    );
 
     // Standalone fallback slot (rendered once, below all messages) for the
     // rare thread with no user message at all (e.g. a proactive-only run), so
@@ -488,12 +445,20 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
     // review on #4942). Keying on thread id forces a clean remount on every
     // thread switch, matching the `key={msg.id}` pattern used for the in-flow
     // timeline above.
-    const proactiveInsightsFallback = (() => {
-      if (lastUserMessageId) return null;
-      return <Fragment key={threadId ?? 'none'}>{agentInsights}</Fragment>;
-    })();
+    const proactiveInsightsFallback = lastUserMessageId ? null : (
+      <Fragment key={threadId ?? 'none'}>{agentInsights}</Fragment>
+    );
 
     const hasContent = hasVisibleMessages || hasFooterContent || hasLiveAgentActivity;
+    // Suppress the legacy 3-dot placeholder once streaming output (visible text
+    // or thinking) has started — the streaming preview bubble below takes over
+    // as the activity indicator.
+    const showTypingIndicator =
+      isSending &&
+      !(
+        (selectedStreamingAssistant?.content.length ?? 0) > 0 ||
+        (selectedStreamingAssistant?.thinking.length ?? 0) > 0
+      );
 
     return (
       <>
@@ -504,41 +469,9 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
             this component's, wired through the forwarded ref. */}
         <Conversation ref={messagesContainerRef} data-testid="chat-messages-scroll">
           {isLoading ? (
-            <div className="mx-auto w-full max-w-[48.75rem] space-y-4 px-5 py-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                  <div
-                    className={`h-12 rounded-2xl animate-pulse bg-surface-subtle ${
-                      i % 2 === 0 ? 'w-2/3' : 'w-1/2'
-                    }`}
-                  />
-                </div>
-              ))}
-            </div>
+            <TranscriptSkeleton />
           ) : loadError ? (
-            <div className="flex-1 flex flex-col items-center justify-center h-full">
-              <svg
-                className="w-8 h-8 text-coral-500/70 mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <p className="text-sm text-content-faint mb-1">{t('chat.failedToLoadMessages')}</p>
-              <p className="text-xs text-content-secondary mb-3 text-center">{loadError}</p>
-              <button
-                type="button"
-                data-analytics-id="chat-messages-reload"
-                onClick={() => window.location.reload()}
-                className="text-xs text-primary-400 hover:text-primary-300 transition-colors">
-                {t('common.reload')}
-              </button>
-            </div>
+            <TranscriptLoadError message={loadError} />
           ) : hasContent ? (
             <ConversationContent
               data-testid="chat-message-list"
@@ -558,7 +491,10 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
                       (`ChatThreadView.renderPerf.test.tsx`). `agentInsights` is
                       deliberately rendered OUTSIDE the row: it is rebuilt on
                       every render, and passing it in would defeat the memo for
-                      whichever row happened to anchor it. */}
+                      whichever row happened to anchor it. The edit composer and
+                      `BranchPickerPrimitive` would attach INSIDE the row when
+                      the adapter grows `onEdit` / `setMessages` — see
+                      `EDIT_AND_BRANCH_SEAM` in `./aui/auiThreadState`. */}
                   <TranscriptRow
                     msg={msg}
                     threadId={threadId}
@@ -575,134 +511,35 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
                   {msg.id === lastUserMessageId ? agentInsights : null}
                 </Fragment>
               ))}
-              {isSending &&
-                // Suppress the legacy 3-dot placeholder once streaming
-                // output (visible text or thinking) has started — the
-                // streaming preview bubble below takes over as the
-                // activity indicator.
-                !(
-                  (selectedStreamingAssistant?.content.length ?? 0) > 0 ||
-                  (selectedStreamingAssistant?.thinking.length ?? 0) > 0
-                ) && (
-                  <div className="flex justify-start">
-                    <div className="bg-surface-strong/80 dark:bg-surface-muted rounded-2xl rounded-bl-md px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-surface-muted dark:bg-surface-muted/600 animate-bounce [animation-delay:0ms]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-surface-muted dark:bg-surface-muted/600 animate-bounce [animation-delay:150ms]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-surface-muted dark:bg-surface-muted/600 animate-bounce [animation-delay:300ms]" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              {/* Streaming assistant preview — compact trailing tail of the
-                    in-flight response. Rendered as plain text (not Markdown) to
-                    avoid jitter from partially-parsed fences. The final bubble
-                    replaces this via addInferenceResponse on chat_done. */}
-              {selectedStreamingAssistant && selectedStreamingAssistant.content.length > 0 && (
-                <div className="flex justify-start">
-                  <div className="relative w-fit max-w-[75%]">
-                    {/* Reasoning is not rendered here — the rail above renders
-                          the same reasoning through `ProcessingTranscriptView`,
-                          interleaved with the narration and tool steps it
-                          happened between. A separate bubble would show it twice
-                          with two lifetimes. The in-flight ANSWER preview below
-                          stays: that is the terminal response streaming in. */}
-                    {selectedStreamingAssistant.content.length > 0 && (
-                      <div className="rounded-2xl rounded-bl-md px-3 py-1.5 bg-surface-strong/80 dark:bg-surface-muted text-content">
-                        <p className="text-xs text-content-secondary font-mono whitespace-pre-wrap break-words leading-snug">
-                          {selectedStreamingAssistant.content.length > STREAMING_PREVIEW_CHARS && (
-                            <span className="text-content-faint">…</span>
-                          )}
-                          {selectedStreamingAssistant.content.slice(-STREAMING_PREVIEW_CHARS)}
-                          <span className="inline-block w-1 h-3 ml-0.5 align-middle bg-primary-400 animate-pulse" />
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {showTypingIndicator && <TypingIndicator />}
+              {selectedStreamingAssistant && (
+                <StreamingAssistantPreview content={selectedStreamingAssistant.content} />
               )}
               {/* Interrupted turn's partial answer (restore-fidelity fix 2):
-                    a settled, marked-interrupted bubble surfaced on restore. Only
-                    when NOT streaming live (the buffer is cleared by any live turn
-                    in the slice; this guard is belt-and-braces). */}
+                  a settled, marked-interrupted bubble surfaced on restore. Only
+                  when NOT streaming live (the buffer is cleared by any live turn
+                  in the slice; this guard is belt-and-braces). */}
               {!isSending && selectedInterruptedAssistant ? (
                 <InterruptedAnswer
                   content={selectedInterruptedAssistant.content}
                   thinking={selectedInterruptedAssistant.thinking}
                 />
               ) : null}
-              {/* Parallel (forked) branch streams — concurrent turns on this
-                    thread, each its own labeled bubble so they don't collide with
-                    the primary stream above. */}
-              {selectedParallelStreams.map(
-                branch =>
-                  (branch.content.length > 0 || branch.thinking.length > 0) && (
-                    <div key={branch.requestId} className="flex justify-start">
-                      <div className="relative w-fit max-w-[75%]">
-                        <div className="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-primary-500 dark:text-primary-400">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
-                          <span>{t('chat.parallelBranchLabel')}</span>
-                        </div>
-                        {branch.content.length > 0 && (
-                          <div className="rounded-2xl rounded-bl-md px-3 py-1.5 bg-surface-strong/80 dark:bg-surface-muted text-content border-l-2 border-primary-400/60">
-                            <p className="text-xs text-content-secondary font-mono whitespace-pre-wrap break-words leading-snug">
-                              {branch.content.length > STREAMING_PREVIEW_CHARS && (
-                                <span className="text-content-faint">…</span>
-                              )}
-                              {branch.content.slice(-STREAMING_PREVIEW_CHARS)}
-                              <span className="inline-block w-1 h-3 ml-0.5 align-middle bg-primary-400 animate-pulse" />
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-              )}
+              <ParallelBranchPreviews branches={selectedParallelStreams} />
               {/* Inference status indicator.
-                    For the tool_use / subagent phases this line just restates the
-                    active row already shown in the agentic-task-insights timeline,
-                    so suppress it once that timeline is on screen — keep it only
-                    for the `thinking` phase (which has no timeline row yet) or when
-                    there is no timeline to fall back on. */}
+                  For the tool_use / subagent phases this line just restates the
+                  active row already shown in the agentic-task-insights timeline,
+                  so suppress it once that timeline is on screen — keep it only
+                  for the `thinking` phase (which has no timeline row yet) or when
+                  there is no timeline to fall back on. */}
               {selectedInferenceStatus &&
                 (selectedInferenceStatus.phase === 'thinking' ||
                   selectedThreadToolTimeline.length === 0) && (
-                  <div className="flex items-center gap-2 px-1 py-1.5 text-xs text-content-muted">
-                    <span className="inline-block w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-                    <span>
-                      {selectedInferenceStatus.phase === 'thinking' &&
-                        (selectedInferenceStatus.iteration > 0
-                          ? t('chat.thinkingIteration').replace(
-                              '{n}',
-                              String(selectedInferenceStatus.iteration)
-                            )
-                          : t('chat.thinkingDots'))}
-                      {selectedInferenceStatus.phase === 'tool_use' &&
-                        `${
-                          formatTimelineEntry(
-                            activeToolTimelineEntry ?? {
-                              id: 'active-tool',
-                              name: selectedInferenceStatus.activeTool ?? 'tool',
-                              round: selectedInferenceStatus.iteration,
-                              seq: 0,
-                              status: 'running',
-                            }
-                          ).title
-                        }...`}
-                      {selectedInferenceStatus.phase === 'subagent' &&
-                        `${
-                          formatTimelineEntry(
-                            activeSubagentTimelineEntry ?? {
-                              id: 'active-subagent',
-                              name: `subagent:${selectedInferenceStatus.activeSubagent ?? ''}`,
-                              round: selectedInferenceStatus.iteration,
-                              seq: 0,
-                              status: 'running',
-                            }
-                          ).title
-                        }...`}
-                    </span>
-                  </div>
+                  <InferenceStatusLine
+                    status={selectedInferenceStatus}
+                    activeToolEntry={activeToolTimelineEntry}
+                    activeSubagentEntry={activeSubagentTimelineEntry}
+                  />
                 )}
               {/* The "Agentic task insights" panel is rendered inline *above* the
                   latest answer (right after the latest turn's user message) so
