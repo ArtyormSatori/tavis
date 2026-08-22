@@ -259,11 +259,12 @@ module.exports = {
         'float': '0 12px 32px -8px rgba(0, 0, 0, 0.12), 0 24px 48px -12px rgba(0, 0, 0, 0.12)',
         'crisp': '0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.08)',
         'cmd-palette': 'var(--cmd-shadow-palette)',
-        // Zero-blur, zero-spread hairline offset up-left — the seam where the
-        // inset content card meets the window chrome. Deliberately NOT a drop
-        // shadow: the card separates from the chrome by fill contrast, and this
-        // only sharpens the top/left edge where the two surfaces are closest.
-        'content-edge': 'inset 0 0 0 1px rgb(var(--line-chrome) / 0.45)',
+        // Full four-sided, zero-blur inset seam for the routed content card.
+        // The extra bottom inset is intentional: scroll/fade layers sit above
+        // the lower edge in several pages, so it needs a little more contrast
+        // than the general hairline to remain visibly closed.
+        'content-edge':
+          'inset 0 0 0 1px rgb(var(--line-chrome) / 0.45), inset 0 -1px 0 rgb(var(--line-chrome) / 0.7)',
       },
 
       // Premium animations for polished interactions
