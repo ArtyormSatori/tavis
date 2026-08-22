@@ -64,3 +64,12 @@ pub use types::{
 pub(crate) fn inference_test_guard() -> std::sync::MutexGuard<'static, ()> {
     local::inference_test_guard()
 }
+
+/// The canonical rack for `inference.agent_chat`.
+///
+/// The controller's `namespace` + `function` combine into the wire method
+/// `openhuman.inference_agent_chat` ([`rpc_method_name`](crate::core::ControllerSchema)).
+/// Host facades (the embed library) reference this constant rather than
+/// spelling the string out, so a rename upstream cannot silently drift an
+/// embedder's dispatch string away from the registered controller.
+pub const INFERENCE_AGENT_CHAT: &str = "openhuman.inference_agent_chat";
