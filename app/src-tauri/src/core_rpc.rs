@@ -197,6 +197,7 @@ fn unwrap_rpc_outcome(value: serde_json::Value) -> serde_json::Value {
 #[cfg(test)]
 mod tests {
     use super::relay_bearer_header;
+    use super::redact_url_for_log;
 
     #[test]
     fn bearer_header_present_for_real_token() {
