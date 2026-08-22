@@ -46,7 +46,9 @@
 //! feature still serves `/rpc` without those namespaces.
 
 pub mod audit;
-#[cfg(feature = "mcp")]
+// Ungated, like the transport below and for the same reason: `tinymcp` is an
+// ordinary dependency, and the startup path calls `host::init` without a `cfg`
+// of its own. Gating this would break the build with the domain turned off.
 pub mod host;
 pub mod registry;
 pub mod server;
@@ -54,8 +56,8 @@ pub mod server;
 /// The Streamable HTTP transport, from the wire contract's implementation.
 ///
 /// Re-exported under the path this module used to define it at. The bespoke
-/// documentation tool and the observability classifier both name these.
-#[cfg(feature = "mcp")]
+/// documentation tool and the observability classifier both name these, and
+/// neither is gated — so this is not either, exactly as before the extraction.
 pub mod http_client {
     pub use tinymcp::transport::http::{McpHttpClient, McpHttpClientBuilder};
     pub use tinymcp::{redact_endpoint, render_tool_result};
