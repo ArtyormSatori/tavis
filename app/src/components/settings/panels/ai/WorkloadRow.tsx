@@ -15,7 +15,6 @@
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
-import { TableCell, TableRow } from '../../../ui/Table';
 import {
   slugTone,
   type CloudProvider,
@@ -90,8 +89,8 @@ export const WorkloadRow = ({
   const { provider, providerSlug, model } = resolveTarget(ref_, cloudProviders, t);
 
   return (
-    <TableRow data-slot="workload-row" data-pinned={isPinned} className="align-top">
-      <TableCell className="py-3">
+    <li data-slot="workload-row" data-pinned={isPinned} className="flex flex-wrap items-center gap-3 px-4 py-3">
+      <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-content">{t(workload.labelKey)}</span>
           <span className="text-xs leading-5 text-content-muted">{t(workload.descriptionKey)}</span>
@@ -99,42 +98,31 @@ export const WorkloadRow = ({
             {t(WORKLOAD_MODEL_HINT_KEYS[workload.id])}
           </span>
         </div>
-      </TableCell>
+      </div>
 
-      <TableCell className="py-3">
+      <div className="flex min-w-[13rem] flex-1 items-center gap-2">
         {provider && providerSlug ? (
-          <div className="flex min-w-[9rem] items-center gap-2">
+          <>
             <ProviderSwatch slug={providerSlug} label={provider} tone={slugTone(providerSlug)} />
             <div className="min-w-0">
               <span className="block truncate text-sm font-medium text-content">{provider}</span>
-              <Badge variant={isPinned ? 'primary' : 'neutral'} className="mt-1">
-                {isPinned ? 'Pinned' : 'Managed'}
-              </Badge>
+              <div className="mt-1 flex items-center gap-2">
+                <Badge variant={isPinned ? 'primary' : 'neutral'}>
+                  {isPinned ? 'Pinned' : 'Managed'}
+                </Badge>
+                {model ? <span className="truncate font-mono text-xs text-content-secondary">{model}</span> : null}
+              </div>
             </div>
-          </div>
+          </>
         ) : (
-          <span className="text-[11px] text-content-faint">
-            {t('settings.ai.workload.noModel')}
-          </span>
+          <span className="text-[11px] text-content-faint">{t('settings.ai.workload.noModel')}</span>
         )}
-      </TableCell>
+      </div>
 
-      <TableCell className="py-3">
-        {model ? (
-          <span className="block max-w-[22ch] truncate font-mono text-xs text-content-secondary">
-            {model}
-          </span>
-        ) : (
-          <span className="text-xs text-content-faint">{'—'}</span>
-        )}
-      </TableCell>
-
-      <TableCell className="py-3 text-right">
-        <Button type="button" variant="secondary" size="xs" onClick={onCustomClick}>
-          {isPinned ? 'Change provider and model' : 'Select provider and model'}
-        </Button>
-      </TableCell>
-    </TableRow>
+      <Button type="button" variant="secondary" size="xs" onClick={onCustomClick}>
+        {isPinned ? 'Change provider and model' : 'Select provider and model'}
+      </Button>
+    </li>
   );
 };
 
