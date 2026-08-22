@@ -113,12 +113,7 @@ export const providerIcon = (slug: string, className: string): ReactElement | nu
   if (icon) return createElement(icon, { className: cn(className, 'text-white') });
   const asset = PROVIDER_ASSETS[slug];
   return asset ? (
-    <img
-      src={asset}
-      alt=""
-      aria-hidden
-      className={cn(className, 'object-contain')}
-    />
+    <img src={asset} alt="" aria-hidden className={cn(className, 'object-contain')} />
   ) : null;
 };
 
