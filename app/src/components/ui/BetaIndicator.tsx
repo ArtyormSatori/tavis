@@ -18,7 +18,7 @@ export default function BetaIndicator({ message, side = 'bottom', className }: B
   const label = message ?? t('common.betaDisclaimer');
 
   return (
-    <Tooltip label={label} side={side} multiline>
+    <Tooltip label={label} side={side} align="end" multiline>
       <Button
         type="button"
         iconOnly

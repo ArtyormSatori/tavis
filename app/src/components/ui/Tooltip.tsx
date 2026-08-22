@@ -16,6 +16,7 @@ const log = debug('ui:tooltip');
 
 /** Which edge of the trigger the tooltip floats from. Sidebar icons use `right`. */
 type TooltipSide = 'right' | 'top' | 'bottom' | 'left';
+type TooltipAlign = 'start' | 'center' | 'end';
 
 interface TooltipProps {
   /** Short, minimal label — e.g. "Wallet", "Settings". */
@@ -28,6 +29,8 @@ interface TooltipProps {
   delayMs?: number;
   /** Allow explanatory copy to wrap instead of using the compact one-line pill. */
   multiline?: boolean;
+  /** Alignment along the selected edge. */
+  align?: TooltipAlign;
 }
 
 /** Gap in px between the trigger and the tooltip pill. */
@@ -37,19 +40,22 @@ interface Anchor {
   top: number;
   left: number;
   side: TooltipSide;
+  align: TooltipAlign;
 }
 
-function anchorFor(rect: DOMRect, side: TooltipSide): Anchor {
+function anchorFor(rect: DOMRect, side: TooltipSide, align: TooltipAlign): Anchor {
+  const horizontal = align === 'start' ? rect.left : align === 'end' ? rect.right : rect.left + rect.width / 2;
+  const vertical = align === 'start' ? rect.top : align === 'end' ? rect.bottom : rect.top + rect.height / 2;
   switch (side) {
     case 'top':
-      return { top: rect.top - GAP, left: rect.left + rect.width / 2, side };
+      return { top: rect.top - GAP, left: horizontal, side, align };
     case 'bottom':
-      return { top: rect.bottom + GAP, left: rect.left + rect.width / 2, side };
+      return { top: rect.bottom + GAP, left: horizontal, side, align };
     case 'left':
-      return { top: rect.top + rect.height / 2, left: rect.left - GAP, side };
+      return { top: vertical, left: rect.left - GAP, side, align };
     case 'right':
     default:
-      return { top: rect.top + rect.height / 2, left: rect.right + GAP, side };
+      return { top: vertical, left: rect.right + GAP, side, align };
   }
 }
 
@@ -60,6 +66,13 @@ const TRANSFORM: Record<TooltipSide, string> = {
   top: 'translate(-50%, -100%)',
   bottom: 'translate(-50%, 0)',
 };
+
+function transformFor(side: TooltipSide, align: TooltipAlign): string {
+  if (side === 'top' || side === 'bottom') {
+    return align === 'start' ? 'translate(0, -100%)' : align === 'end' ? 'translate(-100%, 0)' : TRANSFORM[side];
+  }
+  return align === 'start' ? 'translate(-100%, 0)' : align === 'end' ? 'translate(-100%, -100%)' : TRANSFORM[side];
+}
 
 /**
  * Lightweight, dependency-free hover/focus tooltip for icon-only controls.
@@ -84,6 +97,7 @@ export default function Tooltip({
   side = 'right',
   delayMs = 300,
   multiline = false,
+  align = 'center',
 }: TooltipProps) {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -100,10 +114,10 @@ export default function Tooltip({
       clearTimer();
       timerRef.current = setTimeout(() => {
         log('show', label);
-        setAnchor(anchorFor(rect, side));
+        setAnchor(anchorFor(rect, side, align));
       }, delayMs);
     },
-    [clearTimer, delayMs, label, side]
+    [align, clearTimer, delayMs, label, side]
   );
 
   const hide = useCallback(() => {
@@ -164,7 +178,7 @@ export default function Tooltip({
             className={`pointer-events-none fixed z-[9999] rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in ${
               multiline ? 'max-w-xs whitespace-normal' : 'whitespace-nowrap'
             }`}
-            style={{ top: anchor.top, left: anchor.left, transform: TRANSFORM[anchor.side] }}>
+            style={{ top: anchor.top, left: anchor.left, transform: transformFor(anchor.side, anchor.align) }}>
             {label}
           </div>,
           document.body
