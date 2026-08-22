@@ -287,11 +287,16 @@ export function clearStoredCoreToken(): void {
  * Read the synchronous core-mode marker. Returns `null` when nothing has
  * been written yet (first launch, or after `clearStoredCoreMode`).
  */
-export function getStoredCoreMode(): 'local' | 'cloud' | null {
+export function getStoredCoreMode(): 'local' | 'cloud' | 'gateway' | null {
   try {
     const stored = localStorage.getItem(CORE_MODE_STORAGE_KEY)?.trim();
     if (stored) {
-      if (stored === 'local' || stored === 'cloud') return stored;
+      // `gateway` must be recognised here, not just written by
+      // `storeCoreMode`. Returning null for it would read as "the picker has
+      // not run yet", which is what `oauthAuthReadiness` treats as licence to
+      // start the local core and proceed as though the session were local —
+      // for a user whose core is in a container on another machine.
+      if (stored === 'local' || stored === 'cloud' || stored === 'gateway') return stored;
       return null;
     }
   } catch {
