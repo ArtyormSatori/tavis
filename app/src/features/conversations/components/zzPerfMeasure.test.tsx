@@ -35,6 +35,8 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { act, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
+
+import { AssistantUiRuntimeProvider } from '../../../providers/AssistantUiRuntimeProvider';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import chatRuntimeReducer, { streamDeltaReceived } from '../../../store/chatRuntimeSlice';
@@ -194,7 +196,9 @@ describe('ChatThreadView transcript render cost under streaming', () => {
     const store = buildStore(buildTranscript('Starting the answer'));
     render(
       <Provider store={store}>
-        <ChatThreadView threadId={THREAD_ID} />
+        <AssistantUiRuntimeProvider>
+          <ChatThreadView threadId={THREAD_ID} />
+        </AssistantUiRuntimeProvider>
       </Provider>
     );
 
@@ -220,7 +224,7 @@ describe('ChatThreadView transcript render cost under streaming', () => {
       });
     }
 
-    require('node:fs').appendFileSync('/tmp/perf-numbers.txt', `unwraps_per_5_stream_tokens=${unwrapSpy.mock.calls.length}\n`);
+    require('node:fs').appendFileSync('/tmp/perf-numbers-runtime.txt', `unwraps_per_5_stream_tokens=${unwrapSpy.mock.calls.length}\n`);
     expect(unwrapSpy.mock.calls.length).toBeLessThanOrEqual(MAX_WORK_PER_TAIL_TOKEN * TOKENS);
   });
 
@@ -252,7 +256,7 @@ describe('ChatThreadView transcript render cost under streaming', () => {
       );
     }
 
-    require('node:fs').appendFileSync('/tmp/perf-numbers.txt', `unwraps_per_5_tail_growths=${unwrapSpy.mock.calls.length}\n`);
+    require('node:fs').appendFileSync('/tmp/perf-numbers-runtime.txt', `unwraps_per_5_tail_growths=${unwrapSpy.mock.calls.length}\n`);
     expect(unwrapSpy.mock.calls.length).toBeLessThanOrEqual(MAX_WORK_PER_TAIL_TOKEN * GROWTHS);
   });
 
@@ -260,7 +264,9 @@ describe('ChatThreadView transcript render cost under streaming', () => {
     const store = buildStore(buildTranscript('Starting the answer'));
     render(
       <Provider store={store}>
-        <ChatThreadView threadId={THREAD_ID} />
+        <AssistantUiRuntimeProvider>
+          <ChatThreadView threadId={THREAD_ID} />
+        </AssistantUiRuntimeProvider>
       </Provider>
     );
 
@@ -293,7 +299,7 @@ describe('ChatThreadView transcript render cost under streaming', () => {
 
     // A message nobody touched must not be re-rendered by a token landing on
     // the live tail.
-    require('node:fs').appendFileSync('/tmp/perf-numbers.txt', `settled_bubble_rerenders=${rendersOfStable()}\n`);
+    require('node:fs').appendFileSync('/tmp/perf-numbers-runtime.txt', `settled_bubble_rerenders=${rendersOfStable()}\n`);
     expect(rendersOfStable()).toBe(0);
   });
 });
