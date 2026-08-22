@@ -16,7 +16,6 @@ import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
 import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
-import TextField from '../../../ui/TextField';
 import {
   appendTemperatureToProviderString,
   CLAUDE_CODE_DEFAULT_MODEL,
