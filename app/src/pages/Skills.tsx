@@ -22,7 +22,6 @@ import EmbeddingsPanel from '../components/settings/panels/EmbeddingsPanel';
 import LlmConnectionsPanel from '../components/settings/panels/LlmConnectionsPanel';
 import SearchPanel from '../components/settings/panels/SearchPanel';
 import UsagePanel from '../components/settings/panels/UsagePanel';
-import VoicePanel from '../components/settings/panels/VoicePanel';
 import VoiceConnectionsPanel from '../components/settings/panels/VoiceConnectionsPanel';
 import WalletPanel from '../components/settings/panels/WalletPanel';
 import UnifiedSkillCard from '../components/skills/SkillCard';
