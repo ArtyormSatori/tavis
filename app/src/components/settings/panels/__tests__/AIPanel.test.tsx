@@ -1324,6 +1324,15 @@ describe('AIPanel', () => {
     await waitFor(() => expect(screen.getByText(/Add cloud provider/i)).toBeInTheDocument());
     expect(screen.getByLabelText(/^Name$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/OpenAI URL/i)).toBeInTheDocument();
+
+    // The API-key row's visible label is associated with the field by `for`
+    // rather than by wrapping it. The old markup wrapped the field's label
+    // around the "clear stored key" button, so clicking that button also
+    // counted as a click on the input.
+    const apiKeyLabel = screen.getByText(/^API Key$/i);
+    expect(apiKeyLabel.tagName).toBe('LABEL');
+    expect(apiKeyLabel).toHaveAttribute('for', 'cloud-provider-api-key');
+    expect(apiKeyLabel.querySelector('button')).toBeNull();
   });
 
   // ─── chip toggle: toggle OFF scrubs routing entries ──────────────────────────
