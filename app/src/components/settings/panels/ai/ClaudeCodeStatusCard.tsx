@@ -10,6 +10,7 @@ import {
   openhumanClaudeCodeSettings,
 } from '../../../../utils/tauriCommands/config';
 import Button from '../../../ui/Button';
+import Card from '../../../ui/Card';
 import { ModalShell } from '../../../ui/ModalShell';
 import Switch from '../../../ui/Switch';
 
@@ -267,11 +268,11 @@ function ClaudeCodeModal({
       titleId={titleId}
       subtitle={t('settings.ai.claudeCode.modalDescription')}
       onClose={onClose}
-      contentClassName="px-6 py-5">
-      <>
+      contentClassName="p-4 space-y-4">
         {/* Connection */}
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2">
-          <div className="text-xs">
+        <Card title={t('settings.ai.claudeCode.connection')}>
+          <div className="flex items-center justify-between gap-3 p-4">
+            <div className="text-xs">
             <div className="font-medium text-content">{t('settings.ai.claudeCode.connection')}</div>
             <div className={connected ? 'text-sage-600 dark:text-sage-400' : 'text-content-muted'}>
               {connected
@@ -295,14 +296,13 @@ function ClaudeCodeModal({
               {busy ? t('settings.ai.claudeCode.enabling') : t('settings.ai.claudeCode.enable')}
             </Button>
           )}
-        </div>
+          </div>
+        </Card>
 
         {/* Authentication */}
-        <div className="mt-3 rounded-lg border border-line px-3 py-2">
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-xs font-medium text-content">
-              {t('settings.ai.claudeCode.authentication')}
-            </span>
+        <Card title={t('settings.ai.claudeCode.authentication')}>
+          <div className="space-y-3 p-4">
+          <div className="flex items-center justify-end">
             <Button
               variant="tertiary"
               size="xs"
@@ -314,7 +314,7 @@ function ClaudeCodeModal({
             </Button>
           </div>
           <AuthDetail auth={auth} loading={authLoading} />
-          <div className="mt-2">
+          <div>
             <Button
               variant="secondary"
               size="sm"
@@ -335,10 +335,12 @@ function ClaudeCodeModal({
               </p>
             )}
           </div>
-        </div>
+          </div>
+        </Card>
 
         {/* Permissions — full access vs. the default acceptEdits posture. */}
-        <div className="mt-3 rounded-lg border border-line px-3 py-2">
+        <Card title={t('settings.ai.claudeCode.fullAccess')}>
+          <div className="p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-xs font-medium text-content">
@@ -363,8 +365,8 @@ function ClaudeCodeModal({
               ? t('settings.ai.claudeCode.sandboxNoteMac')
               : t('settings.ai.claudeCode.sandboxNoteOther')}
           </p>
-        </div>
-      </>
+          </div>
+        </Card>
     </ModalShell>
   );
 }
