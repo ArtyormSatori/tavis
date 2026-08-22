@@ -465,8 +465,9 @@ describe('coreRpcClient', () => {
     vi.resetModules();
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'http://127.0.0.1:7788/rpc';
-      if (cmd === 'core_rpc_token') return 'test-local-token';
+      if (cmd === 'core_rpc_endpoint') {
+        return { url: 'http://127.0.0.1:7788/rpc', token: 'test-local-token' };
+      }
       throw new Error(`unexpected command: ${cmd}`);
     });
     const { callCoreRpc: callFreshCoreRpc } = await import('../coreRpcClient');
@@ -487,8 +488,7 @@ describe('coreRpcClient', () => {
     vi.resetModules();
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'http://127.0.0.1:7788/rpc';
-      if (cmd === 'core_rpc_token') throw new Error('denied');
+      if (cmd === 'core_rpc_endpoint') throw new Error('denied');
       throw new Error(`unexpected command: ${cmd}`);
     });
     const { callCoreRpc: callFreshCoreRpc } = await import('../coreRpcClient');
@@ -503,8 +503,7 @@ describe('coreRpcClient', () => {
     vi.resetModules();
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'http://127.0.0.1:7788/rpc';
-      if (cmd === 'core_rpc_token') throw new Error('denied');
+      if (cmd === 'core_rpc_endpoint') throw new Error('denied');
       throw new Error(`unexpected command: ${cmd}`);
     });
     const { callCoreRpc: callFreshCoreRpc } = await import('../coreRpcClient');
@@ -518,7 +517,7 @@ describe('coreRpcClient', () => {
 
     const tokenCalls = vi
       .mocked(invoke)
-      .mock.calls.filter(([cmd]) => cmd === 'core_rpc_token').length;
+      .mock.calls.filter(([cmd]) => cmd === 'core_rpc_endpoint').length;
     expect(tokenCalls).toBe(1);
     expect(fetch).not.toHaveBeenCalled();
   });
