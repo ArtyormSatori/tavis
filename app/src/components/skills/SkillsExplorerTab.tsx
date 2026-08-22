@@ -1,7 +1,7 @@
 import debug from 'debug';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LuFilter } from 'react-icons/lu';
 
-import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import { type CatalogEntry, skillRegistryApi } from '../../services/api/skillRegistryApi';
 import {
@@ -11,9 +11,14 @@ import {
 } from '../../services/api/skillsApi';
 import EmptyStateCard from '../EmptyStateCard';
 import ChipTabs from '../layout/ChipTabs';
-import { ModalShell, TextField } from '../ui';
+import { Checkbox, ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
-import { ToggleGroupItem, ToggleGroupRoot } from '../ui/ToggleGroup';
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
+} from '../ui/DropdownMenu';
 import InstallSkillDialog from './InstallSkillDialog';
 import UninstallSkillConfirmDialog from './UninstallSkillConfirmDialog';
 
@@ -793,33 +798,43 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           </Button>
         </div>
 
-      {/* Source toggles */}
+      {/* Source filter */}
       {view === 'registry' && sources.length > 0 && (
-        <ToggleGroupRoot
-          type="multiple"
-          variant="secondary"
-          size="xs"
-          value={[...activeSources]}
-          onValueChange={next => setActiveSources(new Set(next))}
-          aria-label={t('skills.explorer.sourceFilterAria', 'Filter by source')}
-          className="flex flex-wrap gap-1.5 pb-3">
-          {sources.map(src => {
-            const active = activeSources.has(src);
-            return (
-              <ToggleGroupItem
-                key={src}
-                value={src}
-                className={cn(
-                  'h-auto rounded-full px-2.5 py-1 text-[10px] font-medium',
-                  active
-                    ? 'border-primary-300 dark:border-primary-500/50 bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300'
-                    : 'border-line bg-surface-muted text-content-faint hover:text-content-secondary'
-                )}>
-                {src}
-              </ToggleGroupItem>
-            );
-          })}
-        </ToggleGroupRoot>
+        <div className="pb-3">
+          <DropdownMenuRoot>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="secondary"
+                size="xs"
+                leadingIcon={<LuFilter className="h-3.5 w-3.5" />}
+                aria-label={t('skills.explorer.sourceFilterAria', 'Filter by source')}>
+                Filter{activeSources.size < sources.length ? ` (${activeSources.size})` : ''}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-48">
+              {sources.map(src => {
+                const active = activeSources.has(src);
+                return (
+                  <DropdownMenuItem
+                    key={src}
+                    onSelect={event => {
+                      event.preventDefault();
+                      setActiveSources(previous => {
+                        const next = new Set(previous);
+                        if (next.has(src)) next.delete(src);
+                        else next.add(src);
+                        return next;
+                      });
+                    }}>
+                    <Checkbox checked={active} className="pointer-events-none" />
+                    <span>{src}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenuRoot>
+        </div>
       )}
 
       {/* Search */}
