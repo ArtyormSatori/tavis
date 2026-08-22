@@ -528,6 +528,13 @@ const Conversations = ({
   const sendingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   // Ref so the mount-time dictation event handler can call the latest send fn.
   const handleSendMessageRef = useRef<((text?: string) => Promise<void>) | null>(null);
+  // Refs the assistant-ui chat-surface registration binds through. Both target
+  // functions are re-created every render; the registration must NOT be, or the
+  // registry slot would be rewritten on every keystroke and could be dropped
+  // mid-turn. So the effect below depends only on the thread id and reads the
+  // latest implementation out of these refs at call time.
+  const handleComposerSendRef = useRef<((text?: string) => Promise<void>) | null>(null);
+  const handleStopGenerationRef = useRef<(() => void) | null>(null);
   // Per-thread "turn signature": the last-seen tuple of progress-slice
   // references [inferenceStatus, streamingAssistant, toolTimeline, taskBoard]
   // for each thread that owns a live silence timer. Redux Toolkit (immer)
