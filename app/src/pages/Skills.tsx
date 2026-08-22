@@ -914,16 +914,6 @@ export default function Skills() {
               {
                 items: [
                   {
-                    value: 'welcome',
-                    label: t('connections.welcome.nav'),
-                    icon: navIcon('M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'),
-                  },
-                ],
-              },
-              {
-                label: t('connections.groups.integrations'),
-                items: [
-                  {
                     value: 'composio',
                     label: t('connections.tabs.oauth'),
                     icon: navIcon('M13 10V3L4 14h7v7l9-11h-7z'),

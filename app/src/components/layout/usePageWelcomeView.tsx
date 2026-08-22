@@ -1,5 +1,4 @@
 import { type ReactNode, useCallback, useMemo } from 'react';
-import { LuCircleCheck } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { SidebarContent } from './shell/SidebarSlot';
@@ -23,9 +22,6 @@ const navIcon = (d: string) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
   </svg>
 );
-
-/** Check-circle glyph, shared by every Welcome sidebar entry. */
-const WELCOME_ICON = <LuCircleCheck className="h-4 w-4" aria-hidden />;
 
 /** `'welcome'` / `'main'`, plus any extra sub-page value the caller declares. */
 type PageWelcomeViewId = string;
@@ -71,7 +67,7 @@ interface PageWelcomeView {
  * to the Welcome landing.
  */
 export function usePageWelcomeView(opts: UsePageWelcomeViewOptions): PageWelcomeView {
-  const { ariaLabel, welcomeLabel, mainLabel, mainIconPath, header, extraItems } = opts;
+  const { ariaLabel, mainLabel, mainIconPath, header, extraItems } = opts;
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -105,7 +101,6 @@ export function usePageWelcomeView(opts: UsePageWelcomeViewOptions): PageWelcome
             groups={[
               {
                 items: [
-                  { value: 'welcome', label: welcomeLabel, icon: WELCOME_ICON },
                   { value: 'main', label: mainLabel, icon: navIcon(mainIconPath) },
                   ...(extraItems ?? []).map(item => ({
                     value: item.value,
@@ -120,7 +115,7 @@ export function usePageWelcomeView(opts: UsePageWelcomeViewOptions): PageWelcome
         </div>
       </SidebarContent>
     ),
-    [ariaLabel, welcomeLabel, mainLabel, mainIconPath, header, extraItems, view, setView]
+    [ariaLabel, mainLabel, mainIconPath, header, extraItems, view, setView]
   );
 
   return { view, setView, nav };
