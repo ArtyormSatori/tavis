@@ -143,161 +143,170 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
   const sharedModelRef = inferSharedModelRef(draft.routing);
 
   return (
-    <PanelPage
-      className="z-10"
-      contentClassName=""
-      description={embedded ? undefined : t('pages.settings.ai.llmDesc')}
-      leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}
-      tabsAriaLabel={t('pages.settings.ai.llm')}
-      tabsTestIdPrefix="ai-tab"
-      value={tab}
-      onChange={setTab}
-      tabs={[
-        {
-          id: 'providers',
-          label: t('settings.ai.llmProviders'),
-          contentClassName: embedded ? '' : 'p-4',
-          content: (
-            <div className="flex w-full flex-col">
-              <ProviderAuthSection
-                draft={draft}
-                persist={persist}
-                loading={loading}
-                error={error}
-                busyAction={busyAction}
-                providerAuthErrors={providerAuthErrors}
-                providerSaveNotice={providerSaveNotice}
-                onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
-                onProviderRemoved={slug =>
-                  setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
-                }
-                codexAuthError={codexAuthError}
-                onConnectCodex={() => void connectOpenAiViaCodexAuth()}
-                onConnectProvider={connectProvider}
-                onOpenKeyDialog={(slug, localLabel) => {
-                  setKeyDialogFor(slug);
-                  setPendingLocalLabel(localLabel);
-                }}
-                onAddCustomProvider={() => setEditing('new')}
-                onEditCustomProvider={provider => setEditing(provider)}
-              />
-            </div>
-          ),
-        },
-        {
-          id: 'routing',
-          label: t('settings.ai.routing'),
-          contentClassName: embedded ? '' : 'p-4',
-          description: t('settings.ai.routingDesc'),
-          content: (
-            <div className="flex w-full flex-col">
-              {/* ═══════════════════════════════════════════════════════════════
+    <>
+      <PanelPage
+        className="z-10"
+        contentClassName=""
+        description={embedded ? undefined : t('pages.settings.ai.llmDesc')}
+        leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}
+        tabsAriaLabel={t('pages.settings.ai.llm')}
+        tabsTestIdPrefix="ai-tab"
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          {
+            id: 'providers',
+            label: t('settings.ai.llmProviders'),
+            contentClassName: embedded ? '' : 'p-4',
+            content: (
+              <div className="flex w-full flex-col">
+                <ProviderAuthSection
+                  draft={draft}
+                  persist={persist}
+                  loading={loading}
+                  error={error}
+                  busyAction={busyAction}
+                  providerAuthErrors={providerAuthErrors}
+                  providerSaveNotice={providerSaveNotice}
+                  onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
+                  onProviderRemoved={slug =>
+                    setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
+                  }
+                  codexAuthError={codexAuthError}
+                  onConnectCodex={() => void connectOpenAiViaCodexAuth()}
+                  onConnectProvider={connectProvider}
+                  onOpenKeyDialog={(slug, localLabel) => {
+                    setKeyDialogFor(slug);
+                    setPendingLocalLabel(localLabel);
+                  }}
+                  onAddCustomProvider={() => setEditing('new')}
+                  onEditCustomProvider={provider => setEditing(provider)}
+                />
+                {isDirty && (
+                  <SaveBar
+                    diffSummary={diffSummary}
+                    changeCount={diffSummary.length}
+                    onSave={() => void handleSave()}
+                    onDiscard={discard}
+                  />
+                )}
+              </div>
+            ),
+          },
+          {
+            id: 'routing',
+            label: t('settings.ai.routing'),
+            contentClassName: embedded ? '' : 'p-4',
+            description: t('settings.ai.routingDesc'),
+            content: (
+              <div className="flex w-full flex-col">
+                {/* ═══════════════════════════════════════════════════════════════
               ROUTING — top-level routing mode. Managed = OpenHuman decides.
               Own = one provider/model for everything. Custom = fine-grained
               per-workload routing.
               ═══════════════════════════════════════════════════════════════ */}
-              <div className="flex w-full flex-col gap-4 p-4">
-                <RoutingModeCards
-                  effectiveRoutingMode={effectiveRoutingMode}
-                  onSelectManaged={() => {
-                    setRoutingEditorMode(null);
-                    void persist({
-                      ...draft,
-                      routing: routingWithAllWorkloads({ kind: 'openhuman' }),
-                    });
-                  }}
-                  onSelectOwn={() => setRoutingEditorMode('own')}
-                  onSelectCustom={() => setRoutingEditorMode('custom')}
-                />
-
-                {effectiveRoutingMode === 'own' ? (
-                  <GlobalOwnModelSelector
-                    current={sharedModelRef}
-                    saved={inferSharedModelRef(saved.routing)}
-                    cloudProviders={draft.cloudProviders}
-                    localModels={installed}
-                    ollamaRunning={ollama.state === 'running'}
-                    modelRegistry={draft.modelRegistry}
-                    onApply={async (next, vision) => {
-                      const reg =
-                        next.kind === 'cloud'
-                          ? { slug: next.providerSlug, model: next.model }
-                          : next.kind === 'local'
-                            ? { slug: 'ollama', model: next.model }
-                            : next.kind === 'claude-code'
-                              ? { slug: 'claude-code', model: next.model }
-                              : null;
-                      await persist({
+                <div className="flex w-full flex-col gap-4 p-4">
+                  <RoutingModeCards
+                    effectiveRoutingMode={effectiveRoutingMode}
+                    onSelectManaged={() => {
+                      setRoutingEditorMode(null);
+                      void persist({
                         ...draft,
-                        routing: routingWithAllWorkloads(next),
-                        modelRegistry: reg
-                          ? upsertModelRegistryVision(
-                              draft.modelRegistry,
-                              reg.slug,
-                              reg.model,
-                              vision
-                            )
-                          : draft.modelRegistry,
+                        routing: routingWithAllWorkloads({ kind: 'openhuman' }),
                       });
                     }}
+                    onSelectOwn={() => setRoutingEditorMode('own')}
+                    onSelectCustom={() => setRoutingEditorMode('custom')}
                   />
-                ) : null}
 
-                {effectiveRoutingMode === 'custom' ? (
-                  <>
-                    <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
+                  {effectiveRoutingMode === 'own' ? (
+                    <GlobalOwnModelSelector
+                      current={sharedModelRef}
+                      saved={inferSharedModelRef(saved.routing)}
+                      cloudProviders={draft.cloudProviders}
+                      localModels={installed}
+                      ollamaRunning={ollama.state === 'running'}
+                      modelRegistry={draft.modelRegistry}
+                      onApply={async (next, vision) => {
+                        const reg =
+                          next.kind === 'cloud'
+                            ? { slug: next.providerSlug, model: next.model }
+                            : next.kind === 'local'
+                              ? { slug: 'ollama', model: next.model }
+                              : next.kind === 'claude-code'
+                                ? { slug: 'claude-code', model: next.model }
+                                : null;
+                        await persist({
+                          ...draft,
+                          routing: routingWithAllWorkloads(next),
+                          modelRegistry: reg
+                            ? upsertModelRegistryVision(
+                                draft.modelRegistry,
+                                reg.slug,
+                                reg.model,
+                                vision
+                              )
+                            : draft.modelRegistry,
+                        });
+                      }}
+                    />
+                  ) : null}
 
-                    <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
-                      <WorkloadTable
-                        title={t('settings.ai.routing.chatAndConversations')}
-                        description={t('settings.ai.routing.chatDesc')}>
-                        {chatRows.map(w => (
-                          <WorkloadRow
-                            key={w.id}
-                            workload={w}
-                            ref_={draft.routing[w.id]}
-                            cloudProviders={draft.cloudProviders}
-                            onCustomClick={() => setCustomDialogFor(w.id)}
-                          />
-                        ))}
-                      </WorkloadTable>
+                  {effectiveRoutingMode === 'custom' ? (
+                    <>
+                      <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
 
-                      <WorkloadTable
-                        title={t('settings.ai.routing.backgroundTasks')}
-                        description={t('settings.ai.routing.bgTasksDesc')}>
-                        {bgRows.map(w => (
-                          <WorkloadRow
-                            key={w.id}
-                            workload={w}
-                            ref_={draft.routing[w.id]}
-                            cloudProviders={draft.cloudProviders}
-                            onCustomClick={() => setCustomDialogFor(w.id)}
-                          />
-                        ))}
-                      </WorkloadTable>
-                    </div>
-                  </>
-                ) : null}
+                      <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
+                        <WorkloadTable
+                          title={t('settings.ai.routing.chatAndConversations')}
+                          description={t('settings.ai.routing.chatDesc')}>
+                          {chatRows.map(w => (
+                            <WorkloadRow
+                              key={w.id}
+                              workload={w}
+                              ref_={draft.routing[w.id]}
+                              cloudProviders={draft.cloudProviders}
+                              onCustomClick={() => setCustomDialogFor(w.id)}
+                            />
+                          ))}
+                        </WorkloadTable>
+
+                        <WorkloadTable
+                          title={t('settings.ai.routing.backgroundTasks')}
+                          description={t('settings.ai.routing.bgTasksDesc')}>
+                          {bgRows.map(w => (
+                            <WorkloadRow
+                              key={w.id}
+                              workload={w}
+                              ref_={draft.routing[w.id]}
+                              cloudProviders={draft.cloudProviders}
+                              onCustomClick={() => setCustomDialogFor(w.id)}
+                            />
+                          ))}
+                        </WorkloadTable>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+                {isDirty && (
+                  <SaveBar
+                    diffSummary={diffSummary}
+                    changeCount={diffSummary.length}
+                    onSave={() => void handleSave()}
+                    onDiscard={discard}
+                  />
+                )}
               </div>
-            </div>
-          ),
-        },
-      ]}>
-      {isDirty && (
-        <SaveBar
-          diffSummary={diffSummary}
-          changeCount={diffSummary.length}
-          onSave={() => void handleSave()}
-          onDiscard={discard}
-        />
-      )}
-
+            ),
+          },
+        ]}
+      />
       {/* Informational, not a decision: one acknowledging action and no
-          second choice. That rules out `AlertDialog`, whose own contract
-          requires rendering a Cancel — offering "Cancel" for a notice the user
-          can only acknowledge invents a branch that does not exist. `Dialog`
-          via `ModalShell` is the right primitive, and it still brings the focus
-          trap, scroll lock and Escape handling. */}
+        second choice. That rules out `AlertDialog`, whose own contract
+        requires rendering a Cancel — offering "Cancel" for a notice the user
+        can only acknowledge invents a branch that does not exist. `Dialog`
+        via `ModalShell` is the right primitive, and it still brings the focus
+        trap, scroll lock and Escape handling. */}
       {reembed.open && (
         <ModalShell
           title={t('settings.ai.reindexingMemory')}
@@ -444,7 +453,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
           }
         />
       )}
-    </PanelPage>
+    </>
   );
 };
 
