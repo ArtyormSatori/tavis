@@ -1238,6 +1238,42 @@ export const BackgroundLoopControls = ({
       {error && <SettingsStatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
 
       <section className={`grid gap-3 ${gridCols}`}>
+        <div className="overflow-hidden rounded-lg border border-line bg-surface-muted">
+          <div className="flex items-center justify-between gap-3 border-b border-line px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-content-faint">
+              {t('settings.ai.loopMap')}
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="xs"
+              onClick={() => void refresh()}
+              disabled={loading}>
+              {t('common.refresh')}
+            </Button>
+          </div>
+          <div className="divide-y divide-line dark:divide-neutral-800">
+            {loops.map(loop => (
+              <div key={loop.name} className="grid gap-2 px-3 py-3 md:grid-cols-[150px_1fr]">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-content">{loop.name}</div>
+                  <div className="mt-0.5 flex flex-wrap gap-1 text-[11px] text-content-muted">
+                    <span>{loop.enabled ? t('settings.ai.on') : t('settings.ai.off')}</span>
+                    <span>{loop.cadence}</span>
+                  </div>
+                </div>
+                <div className="min-w-0 text-xs text-content-secondary">
+                  <div>{loop.work}</div>
+                  <div className="mt-1 font-mono text-[11px] text-content-muted">
+                    {t('settings.ai.routeLabel').replace('{route}', loop.route)}
+                  </div>
+                  <div className="mt-1 text-content-muted">{loop.risk}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {showLedger && (
           <div className="rounded-lg border border-line bg-surface p-3">
             <div className="flex items-center justify-between gap-3">
