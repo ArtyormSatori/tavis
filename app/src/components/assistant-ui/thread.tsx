@@ -5,6 +5,7 @@ import {
   ComposerAttachments,
   UserMessageAttachments,
 } from '@/components/assistant-ui/attachment';
+import { ComposerTriggerPopover } from '@/components/assistant-ui/composer-trigger-popover';
 import { File } from '@/components/assistant-ui/file';
 import { ThreadFollowupSuggestions } from '@/components/assistant-ui/follow-up-suggestions';
 import { Image } from '@/components/assistant-ui/image';
@@ -47,7 +48,6 @@ import {
   useAuiState,
 } from '@assistant-ui/react';
 import { LexicalComposerInput } from '@assistant-ui/react-lexical';
-import { ComposerTriggerPopover } from '@/components/assistant-ui/composer-trigger-popover';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -270,27 +270,45 @@ const ThreadSuggestionItem: FC = () => {
 
 const Composer: FC = () => {
   const [model, setModel] = useState<string | null>('hint:chat');
+  const commands = useContext(SlashCommandsContext);
+  const slash = unstable_useSlashCommandAdapter({ commands, fallbackIcon: SlashIcon });
 
   return (
-    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
-      <ComposerPrimitive.AttachmentDropzone asChild>
-        <div
-          data-slot="aui_composer-shell"
-          className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]">
-          <ComposerAttachments />
-          <ComposerPrimitive.Input
-            placeholder="Send a message..."
-            className="aui-composer-input caret-primary placeholder:text-muted-foreground/60 max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-hidden"
-            rows={1}
-            autoFocus
-            enterKeyHint="send"
-            aria-label="Message input"
-          />
-          <ComposerAction model={model} onModelChange={setModel} />
-        </div>
-      </ComposerPrimitive.AttachmentDropzone>
-    </ComposerPrimitive.Root>
+    <ComposerPrimitive.Unstable_TriggerPopoverRoot>
+      <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
+        <ComposerPrimitive.AttachmentDropzone asChild>
+          <div
+            data-slot="aui_composer-shell"
+            className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]">
+            <ComposerAttachments />
+            {/*
+             * Lexical rather than the plain `ComposerPrimitive.Input` textarea,
+             * because `/` commands need a rich input: the trigger popover has to
+             * anchor to the caret and the accepted command has to become a chip
+             * rather than literal text the model would read. `commands` is empty
+             * unless the host supplies some, and with none the popover never
+             * opens, so a host that wants a plain box still gets one.
+             */}
+            <LexicalComposerInput
+              placeholder="Send a message..."
+              className="aui-composer-input caret-primary [&_.aui-lexical-placeholder]:text-muted-foreground/60 relative max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none [&_.aui-lexical-input]:min-h-lh [&_.aui-lexical-input]:outline-none [&_.aui-lexical-placeholder]:pointer-events-none [&_.aui-lexical-placeholder]:absolute [&_.aui-lexical-placeholder]:top-0 [&_.aui-lexical-placeholder]:right-0 [&_.aui-lexical-placeholder]:left-0 [&_.aui-lexical-placeholder]:truncate [&_.aui-lexical-placeholder]:px-2.5 [&_.aui-lexical-placeholder]:py-1"
+              aria-label="Message input"
+            />
+            <ComposerAction model={model} onModelChange={setModel} />
+          </div>
+        </ComposerPrimitive.AttachmentDropzone>
+
+        {commands.length > 0 && (
+          <ComposerTriggerPopover char="/" {...slash} emptyItemsLabel="No matching commands" />
+        )}
+      </ComposerPrimitive.Root>
+    </ComposerPrimitive.Unstable_TriggerPopoverRoot>
   );
+};
+
+const ComposerExtrasSlot: FC = () => {
+  const { ComposerExtras } = useContext(ThreadComponentsContext);
+  return ComposerExtras ? <ComposerExtras /> : null;
 };
 
 const ComposerAction: FC<{ model: string | null; onModelChange: (value: string) => void }> = ({
@@ -299,9 +317,10 @@ const ComposerAction: FC<{ model: string | null; onModelChange: (value: string) 
 }) => {
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 items-center gap-1">
         <ComposerAddAttachment />
         <ModelQualityPill value={model} onValueChange={onModelChange} />
+        <ComposerExtrasSlot />
       </div>
       <div className="flex items-center gap-1.5">
         <AuiIf condition={s => s.thread.capabilities.dictation}>
