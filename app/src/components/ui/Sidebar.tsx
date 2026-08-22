@@ -240,7 +240,17 @@ Sidebar.displayName = 'Sidebar';
 export interface SidebarRailProps extends HTMLAttributes<HTMLDivElement> {
   /** Required for a11y — the primitive ships no strings of its own. */
   'aria-label'?: string;
+  /**
+   * Classes for the hover/focus seam indicator (the inner `<span>`), separate
+   * from `className` (the outer `role="separator"` hit-target). Defaults to
+   * `line-chrome` — every current caller paints this rail directly on the
+   * chrome background, where the plain `line` token reads too faint. Override
+   * this, not `className`, if a future caller sits on a regular surface.
+   */
+  indicatorClassName?: string;
 }
+
+const DEFAULT_RAIL_INDICATOR = 'group-hover:bg-line-chrome group-focus:bg-line-chrome';
 
 /**
  * Draggable seam between the column and the content. Transparent at rest so it
@@ -248,7 +258,7 @@ export interface SidebarRailProps extends HTMLAttributes<HTMLDivElement> {
  * advertise the affordance. Arrow keys resize by {@link SIDEBAR_KEYBOARD_STEP}.
  */
 export const SidebarRail = forwardRef<HTMLDivElement, SidebarRailProps>(
-  ({ className, onPointerDown, onKeyDown, ...rest }, ref) => {
+  ({ className, indicatorClassName, onPointerDown, onKeyDown, ...rest }, ref) => {
     const { width, setWidth, minWidth, maxWidth, open } = useSidebar();
     const detachRef = useRef<(() => void) | null>(null);
 
