@@ -105,6 +105,9 @@ export interface ChatComposerProps {
    * omit it and render exactly as before.
    */
   mascotDock?: React.ReactNode;
+  /** Per-composer model route selected from the assistant-ui-style control. */
+  modelOverride?: string | null;
+  onModelOverrideChange?: (value: string) => void;
 }
 
 /**
@@ -192,6 +195,8 @@ function ChatComposerBody({
   placeholder,
   headerSlots = [],
   mascotDock,
+  modelOverride,
+  onModelOverrideChange,
 }: ChatComposerProps) {
   const { t } = useT();
   const [isDragging, setIsDragging] = useState(false);
@@ -431,7 +436,11 @@ function ChatComposerBody({
             {/* Read-only model chip. Carries the only text label in the row, so
                 it is the element that must give way when space runs out — see
                 its own `min-w-0` + truncating name span. */}
-            <ModelQualityPill className="min-w-0" />
+            <ModelQualityPill
+              className="min-w-0"
+              value={modelOverride}
+              onValueChange={onModelOverrideChange}
+            />
           </div>
 
           {/* Right group — mic, then the primary send/stop action. */}

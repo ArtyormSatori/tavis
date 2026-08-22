@@ -449,6 +449,9 @@ const Conversations = ({
     onCancel: () => {},
   });
   const [resolvedModel, setResolvedModel] = useState<string | null>(null);
+  // A picker choice belongs to this composer session. It overrides the active
+  // profile route for subsequent sends without mutating the shared profile.
+  const [composerModelOverride, setComposerModelOverride] = useState<string | null>(null);
   // Whether the resolved model for the active profile accepts image input.
   // Managed tiers do; custom/BYOK models only when the user flagged them. Gates
   // the composer's image-attachment affordance (docs flow regardless). Resolved
@@ -1082,7 +1085,9 @@ const Conversations = ({
     await whenSuperContextWriteSettled();
     const pendingAttachments = attachments.slice();
     const modelOverride =
-      agentProfiles.find(p => p.id === selectedAgentProfileId)?.modelOverride ?? CHAT_MODEL_HINT;
+      composerModelOverride ??
+      agentProfiles.find(p => p.id === selectedAgentProfileId)?.modelOverride ??
+      CHAT_MODEL_HINT;
     const messageText = buildMessageWithAttachments(trimmed, pendingAttachments);
     const userMessage: ThreadMessage = {
       id: `msg_${globalThis.crypto.randomUUID()}`,
@@ -1209,7 +1214,9 @@ const Conversations = ({
 
     const pendingAttachments = attachments.slice();
     const modelOverride =
-      agentProfiles.find(p => p.id === selectedAgentProfileId)?.modelOverride ?? CHAT_MODEL_HINT;
+      composerModelOverride ??
+      agentProfiles.find(p => p.id === selectedAgentProfileId)?.modelOverride ??
+      CHAT_MODEL_HINT;
     const messageText = buildMessageWithAttachments(normalized, pendingAttachments);
     const userMessage: ThreadMessage = {
       id: `msg_${globalThis.crypto.randomUUID()}`,
@@ -1288,7 +1295,9 @@ const Conversations = ({
     if (!normalized && pendingAttachments.length === 0) return;
 
     const modelOverride =
-      agentProfiles.find(p => p.id === selectedAgentProfileId)?.modelOverride ?? CHAT_MODEL_HINT;
+      composerModelOverride ??
+      agentProfiles.find(p => p.id === selectedAgentProfileId)?.modelOverride ??
+      CHAT_MODEL_HINT;
     const messageText = buildMessageWithAttachments(normalized, pendingAttachments);
     // Build the full user message exactly like a normal send (content +
     // attachment metadata) so the follow-up persists identically when it is
@@ -2406,6 +2415,8 @@ const Conversations = ({
                 <ThreadGoalEditorPanel key="thread-goal" ctl={threadGoal} />,
               ]}
               mascotDock={mascotDock}
+              modelOverride={composerModelOverride ?? resolvedModel}
+              onModelOverrideChange={setComposerModelOverride}
             />
           </>
         ) : (
