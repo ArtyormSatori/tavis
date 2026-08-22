@@ -5,7 +5,6 @@ import { NAV_TABS, type NavTab } from '../../../config/navConfig';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { trackEvent } from '../../../services/analytics';
 import { setActiveAccount } from '../../../store/accountsSlice';
-import { selectCompanionSessionActive } from '../../../store/companionSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
 import { AGENT_ACCOUNT_ID } from '../../../utils/accountsFullscreen';
@@ -54,7 +53,6 @@ export default function SidebarNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const unreadCount = useAppSelector(state => selectUnreadCount(state.notifications.items));
-  const companionActive = useAppSelector(selectCompanionSessionActive);
 
   const tabs = useMemo(() => NAV_TABS.map(tab => ({ ...tab, label: t(tab.labelKey) })), [t]);
   const activeTab = tabs.find(tab => matchActive(tab.path, location.pathname));
@@ -83,7 +81,6 @@ export default function SidebarNav() {
           {tabs.map(tab => {
             const active = matchActive(tab.path, location.pathname);
             const showBadge = tab.id === 'notifications' && unreadCount > 0;
-            const showCompanionDot = tab.id === 'settings' && companionActive;
             return (
               <SidebarMenuItem key={tab.id}>
                 <SidebarMenuButton
@@ -105,9 +102,6 @@ export default function SidebarNav() {
                         className="absolute -right-1 -top-1 ml-0">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </SidebarMenuBadge>
-                    )}
-                    {showCompanionDot && (
-                      <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full bg-blue-500" />
                     )}
                   </SidebarMenuIcon>
                   <SidebarMenuLabel>{tab.label}</SidebarMenuLabel>
