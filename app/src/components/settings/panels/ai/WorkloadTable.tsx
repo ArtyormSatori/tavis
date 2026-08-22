@@ -24,7 +24,7 @@ export const WorkloadTable = ({
 }) => {
   return (
     <div className="flex w-full flex-col">
-      <div className="flex flex-col gap-0.5 px-4 pb-2 pt-4">
+      <div className="flex flex-col gap-0.5 px-4 py-3">
         <h4 className="text-sm font-semibold text-content">{title}</h4>
         <p className="text-xs text-content-muted">{description}</p>
       </div>
