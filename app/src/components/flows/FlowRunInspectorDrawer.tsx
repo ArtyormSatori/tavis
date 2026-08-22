@@ -70,7 +70,7 @@ function formatTimestamp(value: string | null | undefined): string | null {
 /**
  * Live per-node status dot colour, keyed off the socket `flow:run_progress`
  * feed (Phase 3e). Mirrors the run-level status-dot language:
- * ocean (running, pulsing), sage (success), coral (error). Falls back to the
+ * primary (running, pulsing), sage (success), coral (error). Falls back to the
  * faint dot when the node has no live status yet (the poller stays the source
  * of truth for the durable step list).
  */

@@ -41,6 +41,7 @@ import {
   useContactSessions,
   useSessionTranscript,
 } from '../../lib/orchestration/useOrchestrationSessions';
+import { AssistantUiRuntimeProvider } from '../../providers/AssistantUiRuntimeProvider';
 import { subconsciousTrigger } from '../../utils/tauriCommands/subconscious';
 import ChatComposer from '../chat/ChatComposer';
 import ChatNewWindowHero from '../chat/ChatNewWindowHero';
@@ -181,30 +182,45 @@ function AgentComposer({
   );
 
   return (
-    <ChatComposer
-      inputValue={value}
-      setInputValue={setValue}
-      onSend={async text => {
-        await onSend(text);
-      }}
-      textInputRef={textInputRef}
-      fileInputRef={fileInputRef}
-      composerInteractionBlocked={false}
-      isSending={isSending}
-      attachments={[]}
-      onAttachFiles={async () => {}}
-      onRemoveAttachment={() => {}}
-      attachError={null}
-      onSwitchToMicCloud={() => {}}
-      handleInputKeyDown={handleInputKeyDown}
-      inlineCompletionSuffix=""
-      isComposingTextRef={isComposingTextRef}
-      maxAttachments={0}
-      allowedMimeTypes={[]}
-      attachmentsEnabled={false}
-      micEnabled={false}
-      placeholder={placeholder}
-    />
+    /* This panel's chats are orchestration sessions, not chat threads — there is
+       no thread id to scope a runtime to. `ChatComposer` is built on
+       `ComposerPrimitive`, which resolves its runtime from React context, and
+       this panel renders inside the app shell: without a provider of its own it
+       would silently inherit the app-wide runtime from `ChatRuntimeProvider`,
+       which is bound to `selectedThreadId` — the HOME chat's thread. That is a
+       data-loss-shaped mistake, not a cosmetic one, so the surface mounts its
+       own runtime with an explicit `threadId={null}`: "this surface owns no
+       thread". `null` is not a fallback request — `AssistantUiRuntimeProvider`
+       treats an omitted prop as "follow the selection" and an explicit `null`
+       as "no thread", which is precisely the distinction needed here. The
+       resulting runtime has no messages and is never running; sending stays on
+       this panel's own `onSend`, which goes through `orchestrationClient`. */
+    <AssistantUiRuntimeProvider threadId={null}>
+      <ChatComposer
+        inputValue={value}
+        setInputValue={setValue}
+        onSend={async text => {
+          await onSend(text);
+        }}
+        textInputRef={textInputRef}
+        fileInputRef={fileInputRef}
+        composerInteractionBlocked={false}
+        isSending={isSending}
+        attachments={[]}
+        onAttachFiles={async () => {}}
+        onRemoveAttachment={() => {}}
+        attachError={null}
+        onSwitchToMicCloud={() => {}}
+        handleInputKeyDown={handleInputKeyDown}
+        inlineCompletionSuffix=""
+        isComposingTextRef={isComposingTextRef}
+        maxAttachments={0}
+        allowedMimeTypes={[]}
+        attachmentsEnabled={false}
+        micEnabled={false}
+        placeholder={placeholder}
+      />
+    </AssistantUiRuntimeProvider>
   );
 }
 

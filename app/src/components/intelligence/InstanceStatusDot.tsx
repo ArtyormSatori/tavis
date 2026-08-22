@@ -3,7 +3,7 @@
  * agent instance's status at a glance, scannable across many rows.
  *
  * Five states (color + motion), matching the core's {@link InstanceStatus}:
- * running (ocean, pulsing) · idle (sage) · waiting-approval (amber) ·
+ * running (primary, pulsing) · idle (sage) · waiting-approval (amber) ·
  * errored (coral) · stopped (faint). The core derives only idle/stopped today;
  * the other three are wired ahead of the attention-queue / run-state work.
  *

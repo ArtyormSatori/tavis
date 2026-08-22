@@ -356,26 +356,26 @@ describe('ChatComposer', () => {
       // First, render normally.
       const { rerender } = render(
         <Runtime>
-        <ChatComposer
-          inputValue=""
-          setInputValue={vi.fn()}
-          onSend={vi.fn().mockResolvedValue(undefined)}
-          textInputRef={textInputRef}
-          fileInputRef={fileInputRef}
-          composerInteractionBlocked={false}
-          isSending={false}
-          attachments={[]}
-          onAttachFiles={vi.fn().mockResolvedValue(undefined)}
-          onRemoveAttachment={vi.fn()}
-          attachError={null}
-          onSwitchToMicCloud={vi.fn()}
-          handleInputKeyDown={vi.fn()}
-          inlineCompletionSuffix=""
-          isComposingTextRef={isComposingTextRef}
-          maxAttachments={5}
-          allowedMimeTypes={[]}
-          attachmentsEnabled={false}
-        />
+          <ChatComposer
+            inputValue=""
+            setInputValue={vi.fn()}
+            onSend={vi.fn().mockResolvedValue(undefined)}
+            textInputRef={textInputRef}
+            fileInputRef={fileInputRef}
+            composerInteractionBlocked={false}
+            isSending={false}
+            attachments={[]}
+            onAttachFiles={vi.fn().mockResolvedValue(undefined)}
+            onRemoveAttachment={vi.fn()}
+            attachError={null}
+            onSwitchToMicCloud={vi.fn()}
+            handleInputKeyDown={vi.fn()}
+            inlineCompletionSuffix=""
+            isComposingTextRef={isComposingTextRef}
+            maxAttachments={5}
+            allowedMimeTypes={[]}
+            attachmentsEnabled={false}
+          />
         </Runtime>
       );
 
@@ -385,26 +385,26 @@ describe('ChatComposer', () => {
       // Then render again — should not warn because the counter was reset.
       rerender(
         <Runtime>
-        <ChatComposer
-          inputValue="hello"
-          setInputValue={vi.fn()}
-          onSend={vi.fn().mockResolvedValue(undefined)}
-          textInputRef={textInputRef}
-          fileInputRef={fileInputRef}
-          composerInteractionBlocked={false}
-          isSending={false}
-          attachments={[]}
-          onAttachFiles={vi.fn().mockResolvedValue(undefined)}
-          onRemoveAttachment={vi.fn()}
-          attachError={null}
-          onSwitchToMicCloud={vi.fn()}
-          handleInputKeyDown={vi.fn()}
-          inlineCompletionSuffix=""
-          isComposingTextRef={isComposingTextRef}
-          maxAttachments={5}
-          allowedMimeTypes={[]}
-          attachmentsEnabled={false}
-        />
+          <ChatComposer
+            inputValue="hello"
+            setInputValue={vi.fn()}
+            onSend={vi.fn().mockResolvedValue(undefined)}
+            textInputRef={textInputRef}
+            fileInputRef={fileInputRef}
+            composerInteractionBlocked={false}
+            isSending={false}
+            attachments={[]}
+            onAttachFiles={vi.fn().mockResolvedValue(undefined)}
+            onRemoveAttachment={vi.fn()}
+            attachError={null}
+            onSwitchToMicCloud={vi.fn()}
+            handleInputKeyDown={vi.fn()}
+            inlineCompletionSuffix=""
+            isComposingTextRef={isComposingTextRef}
+            maxAttachments={5}
+            allowedMimeTypes={[]}
+            attachmentsEnabled={false}
+          />
         </Runtime>
       );
 

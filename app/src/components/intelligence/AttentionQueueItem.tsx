@@ -30,7 +30,7 @@ const KIND_LABEL_KEY: Record<AttentionKind, string> = {
 };
 
 /** Left accent + chip tone per kind. Approvals and blocked runs read amber
- * (action required); unread reads ocean (informational). */
+ * (action required); unread reads primary (informational). */
 const KIND_TONE: Record<AttentionKind, { accent: string; chip: string }> = {
   approval: {
     accent: 'border-l-amber-500',

@@ -1,4 +1,4 @@
-import { useAui, useAuiState, type AssistantState } from '@assistant-ui/react';
+import { type AssistantState, useAui, useAuiState } from '@assistant-ui/react';
 import debugFactory from 'debug';
 import { useEffect } from 'react';
 

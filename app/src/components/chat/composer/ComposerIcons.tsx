@@ -3,7 +3,12 @@ import { COMPOSER_CANCEL_ICON, COMPOSER_SEND_ICON } from './composerStyles';
 /** Plus glyph for the add-attachment control (`.aui-composer-add-attachment`). */
 export function AddAttachmentIcon() {
   return (
-    <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14m-7-7h14" />
     </svg>
   );
@@ -12,7 +17,12 @@ export function AddAttachmentIcon() {
 /** Microphone glyph for the voice-mode control. No upstream equivalent. */
 export function MicIcon() {
   return (
-    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className="size-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
