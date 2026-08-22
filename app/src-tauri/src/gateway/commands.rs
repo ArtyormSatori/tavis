@@ -5,7 +5,7 @@
 
 use super::registry;
 use super::store;
-use super::types::{ActiveGateway, Gateway, GatewayStatus};
+use super::types::{Gateway, GatewayStatus};
 
 /// Every configured gateway, the built-in desktop one first.
 #[tauri::command]
