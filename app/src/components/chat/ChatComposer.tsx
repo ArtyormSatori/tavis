@@ -428,6 +428,14 @@ function ChatComposerBody({
               </Button>
             )}
 
+            {/* Read-only model chip. Carries the only text label in the row, so
+                it is the element that must give way when space runs out — see
+                its own `min-w-0` + truncating name span. */}
+            <ModelQualityPill className="min-w-0" />
+          </div>
+
+          {/* Right group — mic, then the primary send/stop action. */}
+          <div className="flex shrink-0 items-center gap-1">
             {micEnabled && (
               <Button
                 type="button"
@@ -443,14 +451,13 @@ function ChatComposerBody({
                 <MicIcon />
               </Button>
             )}
-          </div>
 
-          {/* Send / Stop — upstream's `ComposerAction`. While a turn is in
-              flight and a cancel handler is wired, Send becomes Stop so
-              generation can be halted from inside the composer. Once a
-              follow-up is typed the Send arrow returns so the follow-up can be
-              queued (parallel send) instead of cancelling the current turn. */}
-          {showStopButton ? (
+            {/* Send / Stop — upstream's `ComposerAction`. While a turn is in
+                flight and a cancel handler is wired, Send becomes Stop so
+                generation can be halted from inside the composer. Once a
+                follow-up is typed the Send arrow returns so the follow-up can be
+                queued (parallel send) instead of cancelling the current turn. */}
+            {showStopButton ? (
             <Button
               type="button"
               iconOnly
