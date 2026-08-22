@@ -42,7 +42,7 @@ import {
   handleComposerSlashCommand,
 } from '../../features/conversations/composerSendDecision';
 import { useMemorySyncActive } from '../../features/conversations/hooks/useBackgroundActivity';
-import { useChatSurfaceRegistration } from '../../features/conversations/hooks/useChatSurfaceRegistration';
+import { useChatSurfaceRegistration } from './hooks/useChatSurfaceRegistration';
 import { formatResetTime } from '../../features/conversations/utils/format';
 import {
   GENERAL_TAB_VALUE,
