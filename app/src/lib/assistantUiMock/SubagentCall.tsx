@@ -16,6 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/assistant-ui/ui/collapsible';
+import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import type { ToolCallMessagePartComponent } from '@assistant-ui/react';
 import { CheckIcon, ChevronDownIcon, Loader2Icon, WorkflowIcon } from 'lucide-react';
 
@@ -86,3 +87,13 @@ export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => 
 };
 
 export default SubagentCall;
+
+/**
+ * Drop-in for `Thread`'s `components.ToolFallback` seam: routes a `task` call
+ * to {@link SubagentCall} and leaves every other tool to the stock fallback.
+ *
+ * Using the seam rather than editing `thread.tsx` keeps the vendored component
+ * set unmodified, so it can still be re-pulled from the registry.
+ */
+export const MockToolFallback: ToolCallMessagePartComponent = props =>
+  props.toolName === 'task' ? <SubagentCall {...props} /> : <ToolFallback {...props} />;
