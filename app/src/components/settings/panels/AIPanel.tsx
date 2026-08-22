@@ -174,7 +174,7 @@ const AIPanel = ({
           {
             id: 'providers',
             label: t('settings.ai.llmProviders'),
-            contentClassName: embedded ? '' : 'p-4',
+            contentClassName: embedded || hideTabChrome ? '' : 'p-4',
             content: (
               <div className="flex w-full flex-col">
                 <ProviderAuthSection
@@ -213,7 +213,7 @@ const AIPanel = ({
           {
             id: 'routing',
             label: t('settings.ai.routing'),
-            contentClassName: embedded ? '' : 'p-4',
+            contentClassName: embedded || hideTabChrome ? '' : 'p-4',
             description: t('settings.ai.routingDesc'),
             content: (
               <div className="flex w-full flex-col">
