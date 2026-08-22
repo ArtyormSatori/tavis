@@ -138,8 +138,22 @@ impl McpHost {
 ///
 /// Returns an error when the stores cannot be opened or an HTTP client cannot
 /// be built.
+/// Opens the service for `config`, without holding the process-wide lock.
+///
+/// Building a host runs the store's migrations and constructs an HTTP client,
+/// which no request path should pay for and no lock should be held across.
+/// So the host is opened first, and only then is the map locked to see whether
+/// another initializer won the race; if one did, its service is returned and
+/// the freshly-built one is dropped.
 pub fn for_config(config: &Config) -> anyhow::Result<Arc<McpHost>> {
     let workspace = config.workspace_dir.clone();
+
+    // Fast path: a host for this workspace already exists.
+    if let Some(existing) = try_get_host(&workspace) {
+        return Ok(existing);
+    }
+
+    let service = Arc::new(McpHost::open(config)?);
 
     let mut hosts = HOSTS
         .get_or_init(|| Mutex::new(HashMap::new()))
@@ -152,10 +166,17 @@ pub fn for_config(config: &Config) -> anyhow::Result<Arc<McpHost>> {
         return Ok(Arc::clone(existing));
     }
 
-    let service = Arc::new(McpHost::open(config)?);
     hosts.insert(workspace, Arc::clone(&service));
 
     Ok(service)
+}
+
+/// The registered host for `workspace`, if any. Lock-free read used to short-
+/// circuit [`for_config`] on the common path.
+fn try_get_host(workspace: &Path) -> Option<Arc<McpHost>> {
+    let hosts = HOSTS.get()?;
+    let hosts = hosts.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    hosts.get(workspace).cloned()
 }
 
 /// Opens the service for `config` and marks its workspace the default.
