@@ -148,7 +148,8 @@ export default function PanelPage<T extends string = string>({
         action={action}
         headerExtra={headerExtra}
         contentClassName={contentClassName}
-        width={width}>
+        width={width}
+        scrollable={scrollable}>
         {children}
       </PanelScaffold>
     );
