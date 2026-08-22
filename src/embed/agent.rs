@@ -316,6 +316,7 @@ impl Turn<'_> {
             if let Some(endpoint) = self.request.inference_url.as_deref() {
                 if !is_https_endpoint(endpoint) {
                     return Err(crate::embed::error::CoreError::InsecureRoute {
+                        method: AGENT_CHAT,
                         endpoint: sanitize_url_for_display(endpoint),
                     });
                 }
