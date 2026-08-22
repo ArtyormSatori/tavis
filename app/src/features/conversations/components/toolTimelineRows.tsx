@@ -92,9 +92,7 @@ export function coalesceTimelineEntries(entries: ToolTimelineEntry[]): Coalesced
 export function RepeatCount({ count }: { count: number }) {
   if (count <= 1) return null;
   return (
-    <Badge
-      className="shrink-0 rounded-full text-[10px]"
-      data-testid="timeline-repeat-count">
+    <Badge className="shrink-0 rounded-full text-[10px]" data-testid="timeline-repeat-count">
       ×{count}
     </Badge>
   );

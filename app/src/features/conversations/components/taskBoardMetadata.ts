@@ -61,10 +61,7 @@ export function providerLabel(provider: string | undefined, t: (key: string) => 
   }
 }
 
-export function sourceBadgeLabel(
-  source: TaskSourceMetadata,
-  t: (key: string) => string
-): string {
+export function sourceBadgeLabel(source: TaskSourceMetadata, t: (key: string) => string): string {
   const provider = providerLabel(source.provider, t);
   if (source.repo && source.externalId) return `${provider} · ${source.repo}#${source.externalId}`;
   if (source.externalId) return `${provider} · ${source.externalId}`;

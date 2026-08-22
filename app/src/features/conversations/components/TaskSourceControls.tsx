@@ -33,13 +33,7 @@ const log = createDebug('app:conversations:task-sources');
  * {@link Button} — the previous `text-ocean-600` link colour named a scale that
  * does not exist in `tailwind.config.js` and therefore emitted no CSS.
  */
-export function TaskSourceControls({
-  disabled,
-  compact,
-}: {
-  disabled: boolean;
-  compact: boolean;
-}) {
+export function TaskSourceControls({ disabled, compact }: { disabled: boolean; compact: boolean }) {
   const { t } = useT();
   const navigate = useNavigate();
   const location = useLocation();

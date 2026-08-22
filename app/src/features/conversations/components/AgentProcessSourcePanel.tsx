@@ -117,7 +117,12 @@ export function AgentProcessSourcePanel({
       normalizeScopedBody(scopedEntry.argsBuffer))
     : undefined;
 
-  log('render panel scoped=%s entries=%d sources=%d', Boolean(scopedEntry), entries.length, sources.length);
+  log(
+    'render panel scoped=%s entries=%d sources=%d',
+    Boolean(scopedEntry),
+    entries.length,
+    sources.length
+  );
 
   // The overlay is the shared Radix-backed `Sheet`: the hand-rolled portal +
   // backdrop `<button>` + `keydown` listener it replaced had no focus trap, no

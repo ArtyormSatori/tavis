@@ -9,6 +9,7 @@ import {
 } from '../../../components/ui/Collapsible';
 import { useT } from '../../../lib/i18n/I18nContext';
 import type { TaskBoard, TaskBoardCard, TaskBoardCardStatus } from '../../../types/turnState';
+import { TaskBoardCardArticle } from './TaskBoardCardArticle';
 import {
   COLUMN_ACCENT,
   COLUMN_DEFS,
@@ -17,7 +18,6 @@ import {
   isColumnStatus,
 } from './taskBoardColumns';
 import { readSourceMetadata } from './taskBoardMetadata';
-import { TaskBoardCardArticle } from './TaskBoardCardArticle';
 import { TaskBriefDialog } from './TaskBriefDialog';
 import { TaskSourceControls } from './TaskSourceControls';
 

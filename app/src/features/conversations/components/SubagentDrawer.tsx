@@ -16,8 +16,8 @@ import { stripToolCallEnvelopes } from '../../../utils/toolTimelineFormatting';
 import { BubbleMarkdown } from './AgentMessageBubble';
 import {
   formatElapsed,
-  SubagentToolCallRow,
   subagentStatusVariant,
+  SubagentToolCallRow,
   useSubagentStatusLabel,
 } from './SubagentToolCallRow';
 

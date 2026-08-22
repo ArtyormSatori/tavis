@@ -154,7 +154,12 @@ export function BackgroundProcessesPanel({
     String(processes.length)
   );
 
-  log('render panel processes=%d running=%d cron=%d', processes.length, running, activity.cronJobs.length);
+  log(
+    'render panel processes=%d running=%d cron=%d',
+    processes.length,
+    running,
+    activity.cronJobs.length
+  );
 
   // The overlay is the shared Radix-backed `Sheet`: the hand-rolled portal +
   // backdrop `<div onClick>` + `keydown` listener it replaced had no focus
