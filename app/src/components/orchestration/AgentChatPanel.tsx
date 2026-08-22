@@ -43,6 +43,7 @@ import {
 } from '../../lib/orchestration/useOrchestrationSessions';
 import ChatComposer from '../chat/ChatComposer';
 import ChatNewWindowHero from '../chat/ChatNewWindowHero';
+import { DetachedComposerRuntime } from '../chat/composer/DetachedComposerRuntime';
 import Button from '../ui/Button';
 import SessionTranscript from './SessionTranscript';
 
@@ -180,30 +181,41 @@ function AgentComposer({
   );
 
   return (
-    <ChatComposer
-      inputValue={value}
-      setInputValue={setValue}
-      onSend={async text => {
-        await onSend(text);
-      }}
-      textInputRef={textInputRef}
-      fileInputRef={fileInputRef}
-      composerInteractionBlocked={false}
-      isSending={isSending}
-      attachments={[]}
-      onAttachFiles={async () => {}}
-      onRemoveAttachment={() => {}}
-      attachError={null}
-      onSwitchToMicCloud={() => {}}
-      handleInputKeyDown={handleInputKeyDown}
-      inlineCompletionSuffix=""
-      isComposingTextRef={isComposingTextRef}
-      maxAttachments={0}
-      allowedMimeTypes={[]}
-      attachmentsEnabled={false}
-      micEnabled={false}
-      placeholder={placeholder}
-    />
+    /* This panel's chats are orchestration sessions, not chat threads — there is
+       no thread id to scope a runtime to, and no Redux projection to build. But
+       `ChatComposer` is built on `ComposerPrimitive`, which resolves its runtime
+       from React context, and this panel renders inside the app shell: without a
+       runtime of its own the composer would silently inherit the app-wide one
+       from `ChatRuntimeProvider`, which is bound to `selectedThreadId` — the
+       HOME chat's thread. Sending stays on this panel's own `onSend`, which goes
+       through `orchestrationClient`. See `DetachedComposerRuntime` for why that
+       rather than `AssistantUiRuntimeProvider threadId={null}`. */
+    <DetachedComposerRuntime>
+      <ChatComposer
+        inputValue={value}
+        setInputValue={setValue}
+        onSend={async text => {
+          await onSend(text);
+        }}
+        textInputRef={textInputRef}
+        fileInputRef={fileInputRef}
+        composerInteractionBlocked={false}
+        isSending={isSending}
+        attachments={[]}
+        onAttachFiles={async () => {}}
+        onRemoveAttachment={() => {}}
+        attachError={null}
+        onSwitchToMicCloud={() => {}}
+        handleInputKeyDown={handleInputKeyDown}
+        inlineCompletionSuffix=""
+        isComposingTextRef={isComposingTextRef}
+        maxAttachments={0}
+        allowedMimeTypes={[]}
+        attachmentsEnabled={false}
+        micEnabled={false}
+        placeholder={placeholder}
+      />
+    </DetachedComposerRuntime>
   );
 }
 
@@ -489,17 +501,18 @@ export default function AgentChatPanel({
             ? t('orchPage.agent.subconsciousTab')
             : t('orchPage.agent.consciousTab');
         return (
-          <button
+          <Button
             key={chat.id}
-            type="button"
+            variant="tertiary"
+            size="xs"
             role="radio"
             aria-checked={active}
             data-testid={`orch-agent-tab-${chat.id}`}
             onClick={() => selectChat(chat.id)}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium transition-all ${
+            className={`h-auto gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium ${
               active
-                ? 'bg-surface text-content shadow-sm'
-                : 'text-content-muted hover:text-content-secondary'
+                ? 'bg-surface text-content shadow-sm hover:bg-surface'
+                : 'text-content-muted hover:bg-transparent hover:text-content-secondary'
             }`}>
             {label}
             {chat.unread > 0 ? (
@@ -507,7 +520,7 @@ export default function AgentChatPanel({
                 {chat.unread}
               </span>
             ) : null}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -590,11 +603,11 @@ export default function AgentChatPanel({
               subpage (same as clicking it in the sidebar's active sub-agents). */}
           {pinged.map(session => (
             <div key={session.sessionId} className="flex justify-start">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 data-testid={`orch-agent-view-session-${session.sessionId}`}
                 onClick={() => setOpenSessionId(session.sessionId)}
-                className="flex w-full max-w-[85%] items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2.5 text-left transition hover:bg-primary-100/60 dark:border-primary-500/30 dark:bg-primary-900/20">
+                className="h-auto w-full max-w-[85%] justify-start gap-3 rounded-xl border-primary-200 bg-primary-50 px-3 py-2.5 text-left hover:bg-primary-100/60 dark:border-primary-500/30 dark:bg-primary-900/20">
                 <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary-500/15 text-sm text-primary-600 dark:text-primary-300">
                   ⧉
                 </span>
@@ -609,7 +622,7 @@ export default function AgentChatPanel({
                 <span className="flex-none rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-semibold text-white">
                   {t('orchPage.agent.viewSession')}
                 </span>
-              </button>
+              </Button>
             </div>
           ))}
         </div>

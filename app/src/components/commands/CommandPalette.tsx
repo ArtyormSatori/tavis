@@ -1,5 +1,5 @@
-import * as Dialog from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
+import { Dialog } from 'radix-ui';
 import { useMemo, useSyncExternalStore } from 'react';
 
 import { GROUP_LABEL_KEYS } from '../../lib/commands/globalActions';

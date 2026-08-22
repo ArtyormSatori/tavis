@@ -15,6 +15,7 @@ import { useT } from '../../lib/i18n/I18nContext';
 import { mergeToolActivity, type ToolActivity } from '../../lib/orchestration/mergeToolActivity';
 import type { ChatMessage } from '../../lib/orchestration/useOrchestrationChats';
 import { formatTime } from '../intelligence/orchestrationTabHelpers';
+import Button from '../ui/Button';
 
 type ApprovalDecision = 'approve' | 'deny' | 'always';
 
@@ -241,25 +242,28 @@ function ApprovalRow({
           </div>
         ) : onDecide ? (
           <div className="mt-2.5 flex gap-2">
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="xs"
               onClick={() => onDecide(message, 'approve')}
-              className="rounded-lg bg-amber-500 px-3 py-1 text-xs font-semibold text-white transition hover:bg-amber-600">
+              className="rounded-lg bg-amber-500 px-3 font-semibold text-white hover:bg-amber-600 active:bg-amber-700 focus-visible:ring-amber-500/25 dark:hover:bg-amber-600 dark:active:bg-amber-600">
               {t('chat.approval.approve')}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="secondary"
+              size="xs"
               onClick={() => onDecide(message, 'deny')}
-              className="rounded-lg border border-line bg-surface px-3 py-1 text-xs font-medium text-content-secondary transition hover:bg-surface-hover">
+              className="rounded-lg border-line px-3 text-content-secondary">
               {t('chat.approval.deny')}
-            </button>
+            </Button>
             {allowAlways ? (
-              <button
-                type="button"
+              <Button
+                variant="tertiary"
+                size="xs"
                 onClick={() => onDecide(message, 'always')}
-                className="rounded-lg px-2 py-1 text-xs font-medium text-content-faint transition hover:text-content-secondary">
+                className="rounded-lg px-2 text-content-faint hover:bg-transparent hover:text-content-secondary">
                 {t('chat.approval.alwaysAllow')}
-              </button>
+              </Button>
             ) : null}
           </div>
         ) : null}

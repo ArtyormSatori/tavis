@@ -42,6 +42,7 @@ import {
 } from '../../../utils/configPersistence';
 import { restartApp } from '../../../utils/tauriCommands/core';
 import Button from '../../ui/Button';
+import Label from '../../ui/Label';
 import { SettingsRow, SettingsSection, SettingsSwitch, SettingsTextField } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 
@@ -388,11 +389,11 @@ const CoreConnectionPanel = () => {
         {useRemote && (
           <div className="flex flex-col gap-3 px-4 py-4">
             <div className="flex flex-col gap-1">
-              <label
+              <Label
                 htmlFor="core-remote-url"
                 className="text-xs font-medium text-content-secondary">
                 {t('bootCheck.coreRpcUrl')}
-              </label>
+              </Label>
               <SettingsTextField
                 id="core-remote-url"
                 type="url"
@@ -411,19 +412,21 @@ const CoreConnectionPanel = () => {
 
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <label
+                <Label
                   htmlFor="core-remote-token"
                   className="text-xs font-medium text-content-secondary">
                   {t('bootCheck.authToken')} (
                   <code className="text-[10px]">OPENHUMAN_CORE_TOKEN</code>)
-                </label>
-                <button
+                </Label>
+                <Button
                   type="button"
-                  className="text-[11px] text-content-muted hover:text-content-secondary"
+                  variant="tertiary"
+                  size="xs"
+                  className="h-auto p-0 text-[11px] text-content-muted hover:bg-transparent hover:text-content-secondary"
                   onClick={() => setShowToken(s => !s)}
                   data-testid="core-token-reveal">
                   {showToken ? t('settings.search.hide') : t('settings.search.show')}
-                </button>
+                </Button>
               </div>
               <SettingsTextField
                 id="core-remote-token"

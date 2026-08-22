@@ -8,7 +8,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import TinyPlaceSunsetNotice from '../agentworld/TinyPlaceSunsetNotice';
 import { CodingSessionsCard } from '../components/intelligence/CodingSessionsCard';
 import GoalsPanel from '../components/intelligence/GoalsPanel';
 import { MemoryControls } from '../components/intelligence/MemoryControls';
@@ -22,6 +21,7 @@ import PanelPage from '../components/layout/PanelPage';
 import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import OrchestrationView from '../components/orchestration/OrchestrationView';
+import TinyPlaceSunsetNotice from '../components/upsell/TinyPlaceSunsetNotice';
 import { useTinyPlaceIdentity } from '../hooks/useTinyPlaceIdentity';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';

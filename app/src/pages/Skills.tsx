@@ -992,7 +992,11 @@ export default function Skills() {
           />
         </div>
       </SidebarContent>
-      <div className="mx-auto h-full w-full max-w-3xl">
+      {/* The content pane is no longer capped at a centered 3xl column.
+          Views that read best as a narrow column still center themselves
+          (PageWelcome by design, the skills/integrations branch below via
+          its own wrapper); the panel views are free to use the width. */}
+      <div className="h-full w-full">
         {/* Welcome landing — the first destination; pitches the page and offers
             a few immediate actions into the functional views. */}
         {activeTab === 'welcome' ? (

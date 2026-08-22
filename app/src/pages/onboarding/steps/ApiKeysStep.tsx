@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import Button from '../../../components/ui/Button';
+import Separator from '../../../components/ui/Separator';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { setCloudProviderKey } from '../../../services/api/aiSettingsApi';
 import { callCoreRpc } from '../../../services/coreRpcClient';
@@ -202,11 +203,11 @@ const ApiKeysStep = ({ onNext, onSkip }: ApiKeysStepProps) => {
             </div>
           ) : null}
           <div className="relative flex items-center gap-2 py-1">
-            <div className="h-px flex-1 bg-surface-strong" />
+            <Separator className="flex-1 bg-surface-strong" />
             <span className="text-[10px] uppercase tracking-wide text-content-faint">
               {t('onboarding.apiKeys.orApiKey')}
             </span>
-            <div className="h-px flex-1 bg-surface-strong" />
+            <Separator className="flex-1 bg-surface-strong" />
           </div>
           <input
             id="onboarding-openai-key"

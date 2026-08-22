@@ -127,6 +127,7 @@ import {
   openhumanVoiceTranscribeBytes,
   openhumanVoiceTts,
 } from '../../utils/tauriCommands';
+import { useChatSurfaceRegistration } from './hooks/useChatSurfaceRegistration';
 import { ThreadList } from './threadList/ThreadList';
 
 const CHAT_MODEL_HINT = 'hint:chat';
@@ -527,6 +528,13 @@ const Conversations = ({
   const sendingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   // Ref so the mount-time dictation event handler can call the latest send fn.
   const handleSendMessageRef = useRef<((text?: string) => Promise<void>) | null>(null);
+  // Refs the assistant-ui chat-surface registration binds through. Both target
+  // functions are re-created every render; the registration must NOT be, or the
+  // registry slot would be rewritten on every keystroke and could be dropped
+  // mid-turn. So the effect below depends only on the thread id and reads the
+  // latest implementation out of these refs at call time.
+  const handleComposerSendRef = useRef<((text?: string) => Promise<void>) | null>(null);
+  const handleStopGenerationRef = useRef<(() => void) | null>(null);
   // Per-thread "turn signature": the last-seen tuple of progress-slice
   // references [inferenceStatus, streamingAssistant, toolTimeline, taskBoard]
   // for each thread that owns a live silence timer. Redux Toolkit (immer)
@@ -1366,6 +1374,8 @@ const Conversations = ({
   const handleComposerSend = (text?: string): Promise<void> =>
     selectedThreadActive ? handleSendFollowup(text) : handleSendMessage(text);
 
+  handleComposerSendRef.current = handleComposerSend;
+
   // Cancel the in-flight turn for the selected thread. Shared by the in-composer
   // Stop button (text mode), the ESC-to-interrupt shortcut, and the footer
   // Cancel control (mic-cloud / voice modes) so the cancel path lives in one
@@ -1424,6 +1434,19 @@ const Conversations = ({
       }
     });
   }, [selectedThreadId, streamingAssistantByThread, dispatch]);
+
+  handleStopGenerationRef.current = handleStopGeneration;
+
+  // Claim the selected thread's write path for assistant-ui's runtime, so its
+  // `onNew`/`onCancel` forward here instead of reimplementing ~200 lines of
+  // send orchestration (see `providers/chatSurfaceHandlers`).
+  //
+  // `send` routes through `handleComposerSend` — the SAME function the Send
+  // button and plain Enter use — so the streaming-vs-idle decision (queued
+  // follow-up vs. fresh turn) is made in exactly one place, and
+  // `handleSendMessage`'s `evaluateComposerSend` block/allow half runs
+  // unchanged. Re-deriving either here is the drift this seam exists to stop.
+  useChatSurfaceRegistration(selectedThreadId, handleComposerSendRef, handleStopGenerationRef);
 
   const transcribeAndSendAudio = async (mimeType: string) => {
     setIsRecording(false);
@@ -2104,7 +2127,7 @@ const Conversations = ({
               type="button"
               data-analytics-id="chat-send-advisory-dismiss"
               onClick={() => setSendAdvisory(null)}
-              className="text-xs text-content-muted hover:text-content-secondary dark:text-neutral-200 dark:hover:text-neutral-200 transition-colors ml-2">
+              className="text-xs text-content-muted hover:text-content-secondary transition-colors ml-2">
               {t('common.dismiss')}
             </button>
           </div>
@@ -2158,7 +2181,7 @@ const Conversations = ({
                   setSendError(null);
                   dispatch(clearCreateThreadError());
                 }}
-                className="text-xs text-content-muted hover:text-content-secondary dark:text-neutral-200 dark:hover:text-neutral-200 transition-colors">
+                className="text-xs text-content-muted hover:text-content-secondary transition-colors">
                 {t('common.dismiss')}
               </button>
             </div>
@@ -2392,7 +2415,7 @@ const Conversations = ({
               data-analytics-id="chat-voice-switch-to-text"
               onClick={() => setInputMode('text')}
               disabled={isRecording || isTranscribing}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-line bg-surface text-content-muted hover:text-content-secondary dark:text-neutral-200 dark:hover:text-neutral-200 hover:border-line-strong dark:hover:border-line-strong transition-colors disabled:opacity-40"
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-line bg-surface text-content-muted hover:text-content-secondary hover:border-line-strong transition-colors disabled:opacity-40"
               title={t('chat.switchToText')}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -2554,8 +2577,9 @@ const Conversations = ({
       className={
         isSidebar
           ? 'h-full relative z-10 flex overflow-hidden'
-          : // No background of its own. The old `bg-surface/70 dark:bg-black/40`
-            // was a translucent tint over the app canvas, which composed to pure
+          : // No background of its own.
+            // The old bg-surface/70 with a dark-mode black/40 override was a
+            // translucent tint over the app canvas, which composed to pure
             // black in dark — the colour the composer fade below hardcoded. On
             // the opaque content card it instead composes to an un-tokened
             // ~#0e0e0e that nothing else in the app can name or match, so the

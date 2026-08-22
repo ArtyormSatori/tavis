@@ -313,7 +313,7 @@ const PermissionsPanel = () => {
                       <Button
                         variant="tertiary"
                         size="xs"
-                        className="text-ocean hover:underline"
+                        className="text-primary-600 hover:underline"
                         onClick={startEditActionDir}
                         data-testid="permissions-action-dir-edit">
                         {t('settings.agentAccess.actionDir.edit')}

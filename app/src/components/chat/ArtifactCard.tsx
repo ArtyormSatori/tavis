@@ -7,6 +7,7 @@ import {
   saveArtifactViaDialog,
 } from '../../services/artifactDownloadService';
 import type { ArtifactSnapshot } from '../../store/chatRuntimeSlice';
+import { Button } from '../ui';
 import { extensionFor } from './artifactExtension';
 
 /**
@@ -190,25 +191,27 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
           </span>
         </div>
         {artifact.status === 'ready' && download.state !== 'done' && (
-          <button
-            type="button"
-            data-analytics-id={`chat-artifact-download-${artifact.kind}`}
+          <Button
+            variant="primary"
+            size="xs"
+            analyticsId={`chat-artifact-download-${artifact.kind}`}
             onClick={handleDownload}
             disabled={download.state === 'downloading'}
-            className="ml-auto rounded-md bg-ocean-500 hover:bg-ocean-600 disabled:bg-stone-300 dark:disabled:bg-neutral-700 text-white text-xs font-medium px-3 py-1.5 transition-colors">
+            className="ml-auto">
             {download.state === 'downloading'
               ? t('chat.artifact.downloading')
               : t('chat.artifact.download')}
-          </button>
+          </Button>
         )}
         {artifact.status === 'failed' && onRetry && (
-          <button
-            type="button"
-            data-analytics-id={`chat-artifact-retry-${artifact.kind}`}
+          <Button
+            variant="secondary"
+            size="xs"
+            analyticsId={`chat-artifact-retry-${artifact.kind}`}
             onClick={() => onRetry(artifact.artifactId)}
-            className="ml-auto rounded-md bg-surface-strong hover:bg-stone-300 dark:hover:bg-neutral-600 text-content-secondary text-xs font-medium px-3 py-1.5 transition-colors">
+            className="ml-auto">
             {t('chat.artifact.retry')}
-          </button>
+          </Button>
         )}
       </div>
       {artifact.status === 'failed' && artifact.error && (
@@ -222,32 +225,34 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
               : `${artifact.error.slice(0, ERROR_REASON_PREVIEW_CHARS)}…`}
           </p>
           {artifact.error.length > ERROR_REASON_PREVIEW_CHARS && (
-            <button
-              type="button"
-              data-analytics-id="chat-artifact-error-toggle"
+            <Button
+              variant="tertiary"
+              size="xs"
+              analyticsId="chat-artifact-error-toggle"
               onClick={() => setErrorExpanded(prev => !prev)}
-              className="mt-1 underline text-coral-700 dark:text-coral-300 hover:text-coral-900 dark:hover:text-coral-100">
+              className="mt-1 !h-auto !p-0 underline text-coral-700 hover:bg-transparent hover:text-coral-900">
               {errorExpanded ? t('chat.artifact.show_less') : t('chat.artifact.show_more')}
-            </button>
+            </Button>
           )}
         </div>
       )}
       {download.state === 'done' && download.path && (
-        <div className="flex items-center gap-2 text-xs text-sage-700 dark:text-sage-300 mt-1">
+        <div className="flex items-center gap-2 text-xs text-sage-600 mt-1">
           <span className="truncate font-mono">
             {t('chat.artifact.downloaded').replace('{path}', download.path)}
           </span>
-          <button
-            type="button"
-            data-analytics-id={`chat-artifact-reveal-${artifact.kind}`}
+          <Button
+            variant="tertiary"
+            size="xs"
+            analyticsId={`chat-artifact-reveal-${artifact.kind}`}
             onClick={handleReveal}
-            className="ml-auto underline hover:text-sage-900 dark:hover:text-sage-100 transition-colors flex-shrink-0">
+            className="ml-auto !h-auto !p-0 underline text-sage-600 hover:bg-transparent hover:text-sage-800 flex-shrink-0">
             {t('chat.artifact.reveal')}
-          </button>
+          </Button>
         </div>
       )}
       {download.state === 'error' && download.error && (
-        <p className="text-xs text-coral-600 dark:text-coral-400 mt-1 break-words">
+        <p className="text-xs text-coral-600 mt-1 break-words">
           {t('chat.artifact.download_failed').replace('{reason}', download.error)}
         </p>
       )}

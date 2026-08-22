@@ -10,6 +10,7 @@ import { selectBlockingState } from '../../store/connectivitySelectors';
 import { useAppSelector } from '../../store/hooks';
 import { resolveUserName } from '../../utils/userName';
 import { DiscordBanner, PromotionalCreditsBanner, UsageLimitBanner } from '../home/HomeBanners';
+import { Button } from '../ui';
 
 const debug = debugFactory('chat:new-window-hero');
 
@@ -168,19 +169,28 @@ export default function ChatNewWindowHero() {
         {/* Recovery: only when the local core is the broken link. */}
         {blocking === 'core-unreachable' && (
           <div className="mt-4">
-            <button
-              type="button"
+            <Button
+              size="lg"
               onClick={handleRestartCore}
               disabled={isRestartingCore}
-              className="w-full rounded-xl bg-amber-500 py-3 font-medium text-content-inverted transition-colors duration-200 hover:bg-amber-600 disabled:opacity-50">
+              className="w-full rounded-xl bg-amber-500 text-content-inverted hover:bg-amber-600">
               {isRestartingCore ? t('home.restartingCore') : t('home.restartCore')}
-            </button>
+            </Button>
             {restartError && (
               <p className="mt-2 text-center text-xs text-coral-500">{restartError}</p>
             )}
           </div>
         )}
       </div>
+
+      {/* Prompt heading — sits directly above the composer, which is the call
+          to action. This is the string the composer placeholder used to carry
+          (`chat.typeMessage`); the placeholder is now the plain
+          "Send a message" affordance, so the question moved here where it can
+          be a real heading rather than hint text inside an input. */}
+      <h2 className="mt-6 text-center text-lg font-semibold text-content">
+        {t('chat.newWindowPrompt')}
+      </h2>
 
       <DiscordBanner />
     </div>

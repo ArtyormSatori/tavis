@@ -110,7 +110,7 @@ const AgentsPanel = () => {
 
       {loading ? (
         <div className="flex items-center justify-center py-12 text-content-faint">
-          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-ocean-500 border-t-transparent" />
+          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
           <span className="text-sm">{t('common.loading')}</span>
         </div>
       ) : error ? (
@@ -120,7 +120,7 @@ const AgentsPanel = () => {
       ) : agents.length === 0 ? (
         <SettingsEmptyState label={t('settings.agents.empty')} />
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line dark:divide-neutral-800">
+        <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
           {agents.map(agent => (
             <AgentRow
               key={agent.id}

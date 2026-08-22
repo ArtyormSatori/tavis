@@ -1,10 +1,23 @@
 import { type ReactNode, useCallback, useMemo } from 'react';
+import { LuCircleCheck } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { SidebarContent } from './shell/SidebarSlot';
 import TwoPaneNav from './TwoPaneNav';
 
-/** Small inline stroke-icon helper matching the other sidebar navs. */
+/**
+ * Small inline stroke-icon helper matching the other sidebar navs.
+ *
+ * Callers (`FlowsPage`, `Rewards`, `Feedback`, `Notifications` — none owned
+ * by this directory) supply `mainIconPath` / `extraItems[].iconPath` as raw
+ * SVG `d` strings through `UsePageWelcomeViewOptions`, so this stays a
+ * path-to-`<svg>` renderer rather than a `react-icons/lu` swap: doing that
+ * would mean changing what those props accept (a path string vs. an
+ * `IconType`/`ReactNode`), which touches four files outside this directory's
+ * ownership. See the migration note in the PR description for the exact diff
+ * each would need. `WELCOME_ICON` below has no such caller — it's fully
+ * owned here — so it moved to `LuCircleCheck`.
+ */
 const navIcon = (d: string) => (
   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
@@ -12,7 +25,7 @@ const navIcon = (d: string) => (
 );
 
 /** Check-circle glyph, shared by every Welcome sidebar entry. */
-const WELCOME_ICON = navIcon('M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z');
+const WELCOME_ICON = <LuCircleCheck className="h-4 w-4" aria-hidden />;
 
 /** `'welcome'` / `'main'`, plus any extra sub-page value the caller declares. */
 type PageWelcomeViewId = string;

@@ -130,9 +130,7 @@ const ApprovalHistoryPanel = () => {
             <SettingsEmptyState label={t('settings.approvalHistory.emptyState')} />
           </div>
         ) : (
-          <ul
-            className="divide-y divide-line-subtle dark:divide-neutral-800"
-            data-testid="approval-history-list">
+          <ul className="divide-y divide-line-subtle" data-testid="approval-history-list">
             {entries.map(entry => (
               <li
                 key={entry.request_id}

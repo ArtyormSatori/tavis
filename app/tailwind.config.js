@@ -268,8 +268,16 @@ module.exports = {
 
       // Premium animations for polished interactions
       animation: {
-        'fade-in': 'fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        // Was ALSO hand-written in index.css as `.animate-fade-in`, which shadowed
+        // this one in the shipped bundle (verified in dist: `.2s ease-out forwards`).
+        // The CSS copy is gone; these are its values, so the 8 call sites are unchanged.
+        'fade-in': 'fadeIn 0.2s ease-out forwards',
         'fade-up': 'fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        // Entrance for a transform-CENTERED dialog. See `dialogIn` below for
+        // why it cannot just use `fade-up`. 0.2s, not fade-up's 0.5s: the
+        // dialog is now positioned correctly for the whole animation, so its
+        // full duration is visible rather than something to sit through.
+        'dialog-in': 'dialogIn 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         'slide-in': 'slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         'slide-right': 'slideRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'scale-in': 'scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -288,6 +296,30 @@ module.exports = {
         fadeUp: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        /*
+         * THE CENTERING OFFSET IS PART OF THE KEYFRAME, DELIBERATELY.
+         *
+         * `DialogContent` and `AlertDialogContent` center themselves with
+         * `fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2`: the
+         * inset puts their top-left corner at the viewport centre and the
+         * transform pulls them back by half their own size.
+         *
+         * They used `fade-up`, whose keyframes set `transform: translateY(…)`.
+         * An animated property REPLACES the same property from a normal
+         * declaration for the animation's whole duration, so the utility
+         * `-translate-x-1/2 -translate-y-1/2` was dropped the moment the
+         * animation started: the dialog painted with its corner at the centre
+         * (down and to the right), then snapped back when the animation
+         * released it 0.5s later.
+         *
+         * So a dialog's entrance keyframe has to carry the centering itself.
+         * The 100% frame is exactly the utility transform, so nothing moves
+         * when the animation ends and hands the element back.
+         */
+        dialogIn: {
+          '0%': { opacity: '0', transform: 'translate(-50%, calc(-50% + 10px))' },
+          '100%': { opacity: '1', transform: 'translate(-50%, -50%)' },
         },
         slideIn: {
           '0%': { transform: 'translateX(-100%)' },

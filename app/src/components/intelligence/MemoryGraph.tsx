@@ -634,7 +634,7 @@ export function MemoryGraph({
           <span>
             {nodes.length} {t('graph.nodes')}
           </span>
-          <span className="text-content-faint dark:text-neutral-600">·</span>
+          <span className="text-content-faint">·</span>
           <span>
             {sim.edges.length}{' '}
             {mode === 'tree' ? t('graph.parentChild') : t('graph.documentContact')}{' '}
