@@ -272,7 +272,14 @@ const AIPanel = ({
 
                   {effectiveRoutingMode === 'custom' ? (
                     <>
-                      <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
+                      <section className="space-y-1">
+                        <h2 className="text-lg font-semibold tracking-tight text-content">
+                          {t('settings.ai.routing.advanced')}
+                        </h2>
+                        <p className="text-sm text-content-muted">
+                          {t('settings.ai.routing.customDesc')}
+                        </p>
+                      </section>
 
                       <Card className="w-full">
                         <WorkloadTable

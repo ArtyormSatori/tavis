@@ -22,6 +22,8 @@ import {
   type Workload,
   WORKLOAD_MODEL_HINT_KEYS,
 } from './aiPanelTypes';
+import { slugTone } from './aiPanelTypes';
+import { ProviderSwatch } from './ProviderListRow';
 
 export type WorkloadRowProps = {
   workload: Workload;
@@ -40,16 +42,20 @@ function resolveTarget(
   ref_: ProviderRef,
   cloudProviders: CloudProvider[],
   t: (key: string) => string
-): { provider: string | null; model: string | null } {
+): { provider: string | null; providerSlug: string | null; model: string | null } {
   if (ref_.kind === 'cloud') {
     const cloud = cloudProviders.find(c => c.slug === ref_.providerSlug);
-    return { provider: cloud?.label ?? ref_.providerSlug, model: ref_.model };
+    return { provider: cloud?.label ?? ref_.providerSlug, providerSlug: ref_.providerSlug, model: ref_.model };
   }
   if (ref_.kind === 'local') {
-    return { provider: t('settings.ai.localOllama'), model: ref_.model };
+    return { provider: t('settings.ai.localOllama'), providerSlug: 'ollama', model: ref_.model };
   }
   if (ref_.kind === 'claude-code') {
-    return { provider: t('settings.ai.claudeCode.modalTitle'), model: ref_.model };
+    return {
+      provider: t('settings.ai.claudeCode.modalTitle'),
+      providerSlug: 'claude-code',
+      model: ref_.model,
+    };
   }
   // `openhuman` and `default` are the SAME state to the user: this workload
   // has no explicit pin and inherits whatever Managed decides. `inferRoutingMode`
@@ -62,9 +68,9 @@ function resolveTarget(
   // selected" for a workload that does route somewhere. A stacked list of
   // sub-labels hid it; a Provider column full of "No model selected" does not.
   if (ref_.kind === 'openhuman' || ref_.kind === 'default') {
-    return { provider: t('settings.ai.openhumanDefault'), model: null };
+    return { provider: t('settings.ai.openhumanDefault'), providerSlug: 'openhuman', model: null };
   }
-  return { provider: null, model: null };
+  return { provider: null, providerSlug: null, model: null };
 }
 
 export const WorkloadRow = ({
@@ -76,8 +82,8 @@ export const WorkloadRow = ({
   const { t } = useT();
   // "Pinned" means the user chose this route explicitly, rather than inheriting
   // whatever Managed decides. It drives the badge tone and the button copy.
-  const isPinned = ref_.kind === 'cloud' || ref_.kind === 'local';
-  const { provider, model } = resolveTarget(ref_, cloudProviders, t);
+  const isPinned = ref_.kind === 'cloud' || ref_.kind === 'local' || ref_.kind === 'claude-code';
+  const { provider, providerSlug, model } = resolveTarget(ref_, cloudProviders, t);
 
   return (
     <TableRow data-slot="workload-row" data-pinned={isPinned} className="align-top">
@@ -92,10 +98,16 @@ export const WorkloadRow = ({
       </TableCell>
 
       <TableCell className="py-3">
-        {provider ? (
-          <Badge variant={isPinned ? 'primary' : 'neutral'} className="max-w-full truncate">
-            {provider}
-          </Badge>
+        {provider && providerSlug ? (
+          <div className="flex min-w-[9rem] items-center gap-2">
+            <ProviderSwatch slug={providerSlug} label={provider} tone={slugTone(providerSlug)} />
+            <div className="min-w-0">
+              <span className="block truncate text-sm font-medium text-content">{provider}</span>
+              <Badge variant={isPinned ? 'primary' : 'neutral'} className="mt-1">
+                {isPinned ? 'Pinned' : 'Managed'}
+              </Badge>
+            </div>
+          </div>
         ) : (
           <span className="text-[11px] text-content-faint">
             {t('settings.ai.workload.noModel')}
@@ -115,7 +127,7 @@ export const WorkloadRow = ({
 
       <TableCell className="py-3 text-right">
         <Button type="button" variant="secondary" size="xs" onClick={onCustomClick}>
-          {isPinned ? t('settings.ai.workload.changeModel') : t('settings.ai.workload.chooseModel')}
+          {isPinned ? 'Change provider and model' : 'Select provider and model'}
         </Button>
       </TableCell>
     </TableRow>
