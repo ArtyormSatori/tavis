@@ -112,12 +112,15 @@ pub async fn activate(
     desktop: &crate::core_process::CoreProcessHandle,
 ) -> Result<ActiveGateway, String> {
     let _activation_guard = ACTIVATION_LOCK.lock().await;
-    {
+    let generation = {
         let mut state = STATE.lock().await;
+        state.generation += 1;
+        let generation = state.generation;
         state.status = Some(GatewayStatus::Activating {
             step: "starting".to_owned(),
         });
-    }
+        generation
+    };
 
     let progress = {
         let id = gateway.id.clone();
@@ -128,7 +131,15 @@ pub async fn activate(
             // provisioning, which holds no lock and must not start waiting on
             // one to say what it is doing.
             tokio::spawn(async move {
-                STATE.lock().await.status = Some(GatewayStatus::Activating { step });
+                let mut state = STATE.lock().await;
+                // A progress update must never overwrite a terminal state
+                // (Connected/Failed) written by this or a later activation, or
+                // resurrect `Activating` for one that has been superseded.
+                if state.generation == generation
+                    && !matches!(state.status, Some(GatewayStatus::Connected { .. } | GatewayStatus::Failed { .. }))
+                {
+                    state.status = Some(GatewayStatus::Activating { step });
+                }
             });
         }
     };
