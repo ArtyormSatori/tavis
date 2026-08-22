@@ -117,7 +117,7 @@ export const providerIcon = (slug: string, className: string): ReactElement | nu
       src={asset}
       alt=""
       aria-hidden
-      className={cn(className, 'object-contain brightness-0 invert')}
+      className={cn(className, 'object-contain')}
     />
   ) : null;
 };
