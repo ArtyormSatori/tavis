@@ -24,18 +24,6 @@ vi.mock('../../hooks/useIntelligenceSocket', () => ({
   useIntelligenceSocket: () => ({ isConnected: true }),
   useIntelligenceSocketManager: () => ({ connect: vi.fn() }),
 }));
-vi.mock('../../hooks/useSubconscious', () => ({
-  useSubconscious: () => ({
-    status: 'idle',
-    mode: 'manual',
-    intervalMinutes: 30,
-    triggering: false,
-    settingMode: false,
-    triggerTick: vi.fn(),
-    setMode: vi.fn(),
-    setIntervalMinutes: vi.fn(),
-  }),
-}));
 
 // Dynamic import AFTER all mocks are in place (same pattern as original test).
 const Activity = (await import('../Activity')).default;
