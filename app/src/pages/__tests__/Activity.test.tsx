@@ -8,9 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (key: string) => key }) }));
 
-vi.mock('../../components/intelligence/IntelligenceSubconsciousTab', () => ({
-  default: () => <div data-testid="tab-backgroundActivity" />,
-}));
 vi.mock('../../components/intelligence/WorkflowsTab', () => ({
   default: () => <div data-testid="tab-automations" />,
 }));
@@ -70,10 +67,6 @@ describe('Activity URL-backed tab', () => {
     await waitFor(() => expect(screen.getByTestId('tab-automations')).toBeInTheDocument());
   });
 
-  it('honours ?tab=backgroundActivity from the URL', async () => {
-    renderAt('/activity?tab=backgroundActivity');
-    await waitFor(() => expect(screen.getByTestId('tab-backgroundActivity')).toBeInTheDocument());
-  });
 
   it('honours ?tab=alerts from the URL', async () => {
     renderAt('/activity?tab=alerts');
@@ -124,12 +117,11 @@ describe('Activity tab — tab set', () => {
     vi.clearAllMocks();
   });
 
-  it('renders exactly three tab pills: automations, backgroundActivity, alerts', async () => {
+  it('renders exactly two tab pills: automations, alerts', async () => {
     renderAt('/activity');
     await waitFor(() => screen.getByTestId('tab-automations'));
     // Each label key is returned as-is by the stub t() function.
     expect(screen.getAllByText('activity.tabs.automations').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('activity.tabs.backgroundActivity').length).toBeGreaterThan(0);
     expect(screen.getAllByText('activity.tabs.alerts').length).toBeGreaterThan(0);
   });
 
@@ -142,12 +134,6 @@ describe('Activity tab — tab set', () => {
     expect(screen.queryByText('memory.tab.council')).not.toBeInTheDocument();
   });
 
-  it('clicking the backgroundActivity pill switches to the backgroundActivity tab', async () => {
-    renderAt('/activity');
-    await waitFor(() => screen.getAllByText('activity.tabs.backgroundActivity'));
-    fireEvent.click(screen.getAllByText('activity.tabs.backgroundActivity')[0]);
-    await waitFor(() => expect(screen.getByTestId('tab-backgroundActivity')).toBeInTheDocument());
-  });
 
   it('clicking the alerts pill switches to the alerts tab', async () => {
     renderAt('/activity');
