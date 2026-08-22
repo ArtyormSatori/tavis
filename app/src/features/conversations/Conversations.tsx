@@ -1437,33 +1437,16 @@ const Conversations = ({
 
   handleStopGenerationRef.current = handleStopGeneration;
 
-  // Register this surface as the owner of the selected thread's write path, so
-  // assistant-ui's runtime (`useOpenHumanExternalStore`) forwards `onNew` /
-  // `onCancel` here instead of reimplementing ~200 lines of send orchestration.
+  // Claim the selected thread's write path for assistant-ui's runtime, so its
+  // `onNew`/`onCancel` forward here instead of reimplementing ~200 lines of
+  // send orchestration (see `providers/chatSurfaceHandlers`).
   //
-  // `send` deliberately routes through `handleComposerSend` — the SAME function
-  // the composer's Send button and plain Enter use — so the streaming-vs-idle
-  // decision (queued follow-up vs. a fresh turn) is made in exactly one place.
-  // Re-deriving it here would be the drift `chatSurfaceHandlers` exists to
-  // prevent, and `handleSendMessage` already runs `evaluateComposerSend`
-  // internally for the block/allow half of that decision.
-  //
-  // `reload` is intentionally left undefined: there is no regenerate-last-turn
-  // path in this surface (`ai_regenerate` re-runs a failed ARTIFACT, not a
-  // chat turn), and an `onReload` that silently does nothing is worse than an
-  // absent one — the runtime can then correctly report the capability as off.
-  useEffect(() => {
-    if (!selectedThreadId) return;
-    debug('[chat] registering assistant-ui chat surface thread=%s', selectedThreadId);
-    return registerChatSurface(selectedThreadId, {
-      send: async (text: string) => {
-        await handleComposerSendRef.current?.(text);
-      },
-      cancel: async () => {
-        handleStopGenerationRef.current?.();
-      },
-    });
-  }, [selectedThreadId]);
+  // `send` routes through `handleComposerSend` — the SAME function the Send
+  // button and plain Enter use — so the streaming-vs-idle decision (queued
+  // follow-up vs. fresh turn) is made in exactly one place, and
+  // `handleSendMessage`'s `evaluateComposerSend` block/allow half runs
+  // unchanged. Re-deriving either here is the drift this seam exists to stop.
+  useChatSurfaceRegistration(selectedThreadId, handleComposerSendRef, handleStopGenerationRef);
 
   const transcribeAndSendAudio = async (mimeType: string) => {
     setIsRecording(false);
