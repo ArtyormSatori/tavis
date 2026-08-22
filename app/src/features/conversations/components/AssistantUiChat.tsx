@@ -14,9 +14,7 @@ import {
  * inert model here gives the library's Thread and Composer primitives a real
  * runtime while making the boundary for the next integration step explicit.
  */
-const localChatModel = {
-  run: async () => ({ content: [] }),
-};
+const localChatModel = { run: async () => ({ content: [] }) };
 
 function UserMessage() {
   return (
@@ -57,9 +55,7 @@ export function AssistantUiChat() {
           <ThreadPrimitive.Empty>
             <div className="flex h-full min-h-[16rem] flex-col items-center justify-center px-6 text-center">
               <h1 className="text-lg font-semibold text-content">How can I help?</h1>
-              <p className="mt-1 text-sm text-content-muted">
-                Start a new conversation below.
-              </p>
+              <p className="mt-1 text-sm text-content-muted">Start a new conversation below.</p>
             </div>
           </ThreadPrimitive.Empty>
           <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />

@@ -23,12 +23,12 @@ import { SidebarContent } from '../../components/layout/shell/SidebarSlot';
 import { settingsNavState } from '../../components/settings/modal/settingsOverlay';
 import UpsellBanner from '../../components/upsell/UpsellBanner';
 import { dismissBanner, shouldShowBanner } from '../../components/upsell/upsellDismissState';
+import { AssistantUiChat } from '../../features/conversations/components/AssistantUiChat';
 import { selectBackgroundProcesses } from '../../features/conversations/components/BackgroundProcessesPanel';
 import {
   ChatThreadView,
   type ChatThreadViewHandle,
 } from '../../features/conversations/components/ChatThreadView';
-import { AssistantUiChat } from '../../features/conversations/components/AssistantUiChat';
 import { PlanReviewCard } from '../../features/conversations/components/PlanReviewCard';
 import {
   ThreadGoalEditorPanel,
