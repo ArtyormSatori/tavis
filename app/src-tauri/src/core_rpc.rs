@@ -99,6 +99,7 @@ pub(crate) async fn post_json_rpc(
     // The local core (loopback) and any `https` endpoint keep working; a
     // Remote gateway that slipped past persistence is still rejected here.
     let relay_token = relay_bearer_header(token);
+    #[cfg(feature = "gateways")]
     if relay_token.is_some() && crate::gateway::types::validate_remote_transport(url, token).is_err()
     {
         return Err(format!("refusing to send a bearer to {url} over an insecure transport"));
