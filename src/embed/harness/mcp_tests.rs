@@ -66,3 +66,23 @@ fn the_name_is_the_agent_facing_slug() {
     assert_eq!(server.name(), "github");
     assert_eq!(server.into_config().name, "github");
 }
+
+#[test]
+fn debug_redacts_credentials() {
+    // The derived Debug would print bearer tokens, passwords, header values and
+    // stdio env values. The manual implementation must redact all of them while
+    // keeping the identifying fields readable.
+    let server = McpServer::http("remote", "https://mcp.example/v1")
+        .auth(McpAuthConfig::BearerToken { token: "super-secret-token".into() })
+        .env([("AUTH_KEY", "env-secret"), ("TOKEN", "another-secret")]);
+    let debug = format!("{server:?}");
+
+    assert!(debug.contains("remote"), "name stays readable");
+    assert!(debug.contains("mcp.example"), "endpoint stays readable");
+    assert!(
+        !debug.contains("super-secret-token") && !debug.contains("env-secret")
+            && !debug.contains("another-secret"),
+        "credentials leaked into Debug: {debug}"
+    );
+    assert!(debug.contains("redacted"));
+}
