@@ -796,16 +796,12 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
       <div className="pb-3">
         <div className="flex items-center gap-2">
           <TabsRoot value={view} onValueChange={value => setView(value as ExplorerView)}>
-            <TabsList aria-label={t('skills.explorer.title')} className="border-b border-line">
-              <TabsTrigger
-                value="registry"
-                className="-mb-px rounded-none border-b-2 border-transparent px-3 py-1.5 data-[state=active]:border-primary-500 data-[state=active]:bg-transparent data-[state=active]:text-primary-600 dark:data-[state=active]:text-primary-300">
+            <TabsList aria-label={t('skills.explorer.title')}>
+              <TabsTrigger value="registry">
                 {t('skills.explorer.registryTab')}
                 {catalogTotal > 0 && <span className="text-[10px] opacity-70">{catalogTotal.toLocaleString()}</span>}
               </TabsTrigger>
-              <TabsTrigger
-                value="installed"
-                className="-mb-px rounded-none border-b-2 border-transparent px-3 py-1.5 data-[state=active]:border-primary-500 data-[state=active]:bg-transparent data-[state=active]:text-primary-600 dark:data-[state=active]:text-primary-300">
+              <TabsTrigger value="installed">
                 {t('skills.explorer.installedTab')}
                 {skills.length > 0 && <span className="text-[10px] opacity-70">{skills.length}</span>}
               </TabsTrigger>
@@ -911,7 +907,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
       </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-hidden p-3 pt-0">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 pt-0">
 
       {/* Loading */}
       {loading && (
@@ -1022,7 +1018,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             <>
               <Card className="w-full">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 z-10 bg-surface">
                   <TableRow>
                     <TableHead className="min-w-[12rem]">Skill</TableHead>
                     <TableHead className="min-w-[18rem]">Description</TableHead>
