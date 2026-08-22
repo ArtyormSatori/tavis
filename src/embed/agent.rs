@@ -292,6 +292,17 @@ impl Turn<'_> {
             self.request.cwd.is_some(),
         );
 
+        // Never transmit the bearer over a non-TLS channel. The route accepts
+        // an arbitrary base URL, so guard here — before any request is built —
+        // rather than trusting every embedder to only name https endpoints.
+        if let Some(endpoint) = self.request.inference_url.as_deref() {
+            if has_api_key && !is_https_endpoint(endpoint) {
+                return Err(crate::embed::error::CoreError::InsecureRoute {
+                    endpoint: sanitize_url_for_display(endpoint),
+                });
+            }
+        }
+
         let dispatch = call::<_, String>(self.rt, AGENT_CHAT, &self.request);
 
         let reply = match (self.origin, self.progress) {
