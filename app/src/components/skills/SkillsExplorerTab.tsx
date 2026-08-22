@@ -827,7 +827,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
                         return next;
                       });
                     }}>
-                    <Checkbox checked={active} className="pointer-events-none" />
+                    <Checkbox checked={active} onCheckedChange={() => {}} className="pointer-events-none" />
                     <span>{src}</span>
                   </DropdownMenuItem>
                 );
