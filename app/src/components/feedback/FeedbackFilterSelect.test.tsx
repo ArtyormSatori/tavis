@@ -82,15 +82,53 @@ describe('<FeedbackFilterSelect />', () => {
     expect(screen.getByRole('option', { name: 'Bug' })).toHaveAttribute('data-state', 'unchecked');
   });
 
-  // COVERAGE GAP, deliberate. When this moved off a hand-rolled
-  // `aria-activedescendant` listbox onto Radix Select, one old test went with
-  // it: highlight movement across Up/Down/Home/End. It cannot be restored here
-  // — Radix drives the highlight with real roving DOM focus, which jsdom's
-  // layout-less focus handling does not traverse (verified: ArrowDown inside
-  // the listbox then Enter fires no change). Entering the keyboard path
-  // (ArrowDown), committing from it (Enter) and dismissing (Escape) ARE covered
-  // above. Traversal belongs in an E2E spec, not a jsdom test that would only
-  // pass by asserting something other than what it claims.
+  // Highlight traversal, restored. An earlier revision recorded this as a
+  // permanent coverage gap on the grounds that "Radix drives the highlight with
+  // real roving DOM focus, which jsdom's layout-less focus handling does not
+  // traverse". That conclusion was wrong, and the reason is worth keeping: it
+  // was reached with `fireEvent.keyDown` plus a manual `.focus()`. `userEvent`
+  // dispatches the full focus/keydown/keyup sequence Radix's collection
+  // internals actually listen for, so traversal works in jsdom today. Reach for
+  // `userEvent` before concluding a Radix keyboard behaviour is untestable.
+  it('moves the highlight with ArrowDown and commits with Enter', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <FeedbackFilterSelect value="all" options={OPTIONS} onChange={onChange} ariaLabel="Type" />
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'Type' }));
+    await user.keyboard('{ArrowDown}');
+    await user.keyboard('{Enter}');
+
+    expect(onChange).toHaveBeenCalledWith('feature');
+  });
+
+  it('jumps to the last option with End and to the first with Home', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <FeedbackFilterSelect value="all" options={OPTIONS} onChange={onChange} ariaLabel="Type" />
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'Type' }));
+    await user.keyboard('{End}');
+    await user.keyboard('{Enter}');
+
+    expect(onChange).toHaveBeenCalledWith('bug');
+
+    onChange.mockClear();
+    await user.click(screen.getByRole('combobox', { name: 'Type' }));
+    await user.keyboard('{Home}');
+    await user.keyboard('{Enter}');
+
+    expect(onChange).toHaveBeenCalledWith('all');
+  });
+
+  // Still genuinely untestable: the PRE-interaction roving `tabIndex`. Radix's
+  // roving tab stop is entry behaviour, so the active item is -1 until focus
+  // enters the group — there is no environment in which that assertion is
+  // meaningful, jsdom or otherwise.
   it('commits the highlighted option with Enter', () => {
     const onChange = vi.fn();
     render(
