@@ -28,11 +28,13 @@ function UserMessage() {
 
 function AssistantMessage() {
   return (
-    <MessagePrimitive.Root className="px-4 py-2 sm:px-6">
-      <div className="max-w-[80%] rounded-2xl bg-surface-muted px-3.5 py-2.5 text-sm leading-6 text-content">
-        <MessagePrimitive.Parts />
-      </div>
-    </MessagePrimitive.Root>
+    <MessagePrimitive.If hasContent>
+      <MessagePrimitive.Root className="px-4 py-2 sm:px-6">
+        <div className="max-w-[80%] rounded-2xl bg-surface-muted px-3.5 py-2.5 text-sm leading-6 text-content">
+          <MessagePrimitive.Parts />
+        </div>
+      </MessagePrimitive.Root>
+    </MessagePrimitive.If>
   );
 }
 
