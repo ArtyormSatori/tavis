@@ -27,6 +27,7 @@ import {
   providerRefSignature,
 } from './aiPanelTypes';
 import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
+import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
 import { ProviderSourceSelect } from './ProviderSourceSelect';
 
 export const GlobalOwnModelSelector = ({
@@ -105,6 +106,7 @@ export const GlobalOwnModelSelector = ({
   const [cloudModelsLoading, setCloudModelsLoading] = useState(false);
   const [cloudModelsError, setCloudModelsError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const selectedSlug = source?.kind === 'cloud' ? source.providerSlug : null;
   const selectedCloud = customCloud.find(c => c.slug === selectedSlug);
@@ -210,9 +212,14 @@ export const GlobalOwnModelSelector = ({
         <>
           <div className="flex w-full flex-col gap-4 md:flex-row md:items-start">
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-              <Label className="text-xs text-content-secondary">
-                {t('settings.ai.globalModel.provider')}
-              </Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs text-content-secondary">
+                  {t('settings.ai.globalModel.provider')}
+                </Label>
+                <Button type="button" variant="tertiary" size="xs" onClick={() => setPickerOpen(true)}>
+                  Browse providers and models
+                </Button>
+              </div>
               <ProviderSourceSelect
                 source={source}
                 cloudProviders={customCloud}
@@ -307,6 +314,26 @@ export const GlobalOwnModelSelector = ({
         </>
       )}
       </div>
+      {pickerOpen && (
+        <ProviderModelPickerDialog
+          cloudProviders={customCloud}
+          localModels={localModels}
+          ollamaRunning={ollamaRunning}
+          claudeCodeEnabled={claudeCodeEnabled}
+          initial={source && model ? { source, model } : null}
+          onClose={() => setPickerOpen(false)}
+          onSelect={({ source: nextSource, model: nextModel }) => {
+            setSource(nextSource);
+            setModel(nextModel);
+            modelEntry.syncToEndpoint(
+              nextSource.kind === 'cloud'
+                ? customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
+                : undefined
+            );
+            setPickerOpen(false);
+          }}
+        />
+      )}
     </Card>
   );
 };
