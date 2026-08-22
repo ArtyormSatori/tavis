@@ -423,13 +423,18 @@ export const classifyAuthStoreFailure = (message: string): string => {
  */
 export const authStoreFailureUserMessage = (
   kind: string,
-  mode: 'local' | 'cloud' | null
+  mode: 'local' | 'cloud' | 'gateway' | null
 ): string => {
   // NOTE: `config_unreadable` never reaches here — its copy is translated and
   // is resolved from `CORE_CONFIG_UNREADABLE_I18N_KEY` at the rendering
   // component instead (see the catch block in `handleAuthDeepLink`). It is
   // mode-independent anyway: an unreadable config.toml is a property of
   // whichever core answered, embedded or remote, and retrying never clears it.
+  // `gateway` deliberately takes this branch rather than the cloud copy below.
+  // The cloud text tells the user to check an RPC token and URL in Settings,
+  // which a gateway user never entered — their core is provisioned by this app.
+  // Restarting is also genuinely the right advice for them: it re-activates the
+  // gateway, which clears a transient provisioning failure.
   if (mode !== 'cloud') {
     return (
       'Sign-in could not be completed right now. The session store did not respond in time ' +
