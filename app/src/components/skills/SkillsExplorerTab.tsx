@@ -1028,20 +1028,28 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
 
           {displayedCatalog.length > 0 && (
             <>
-              <div
-                className="grid gap-2 sm:gap-3"
-                style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(14rem, 1fr))' }}>
-                {displayedCatalog.map(entry => (
-                  <CatalogTile
-                    key={`${entry.source}-${entry.id}`}
-                    entry={entry}
-                    installed={entryInstalled(entry)}
-                    installing={installingId === entry.id}
-                    onClick={() => setDetailEntry(entry)}
-                    onInstall={() => void handleRegistryInstall(entry)}
-                  />
-                ))}
-              </div>
+              <Table className="border border-line">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Skill</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead className="text-right">Install</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayedCatalog.map(entry => (
+                    <CatalogRow
+                      key={`${entry.source}-${entry.id}`}
+                      entry={entry}
+                      installed={entryInstalled(entry)}
+                      installing={installingId === entry.id}
+                      onClick={() => setDetailEntry(entry)}
+                      onInstall={() => void handleRegistryInstall(entry)}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
               {filteredCatalog.length > displayedCatalog.length && (
                 <div className="mt-3 flex flex-col items-center gap-1">
                   <Button
