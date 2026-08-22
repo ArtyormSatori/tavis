@@ -260,7 +260,7 @@ async function renderWithSelectedThread() {
     </Provider>
   );
 
-  const textarea = await screen.findByPlaceholderText('How can I help you today?');
+  const textarea = await screen.findByPlaceholderText('Send a message...');
   return { store, textarea, thread };
 }
 

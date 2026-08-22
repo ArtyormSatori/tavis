@@ -364,7 +364,7 @@ async function renderSelectedConversation(
     });
   });
 
-  const textarea = await screen.findByPlaceholderText('How can I help you today?');
+  const textarea = await screen.findByPlaceholderText('Send a message...');
   return { store: renderedStore, textarea, thread };
 }
 
@@ -1024,7 +1024,7 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     await act(async () => {
       await renderConversations({ thread: emptyThreadState, socket: socketState('connected') });
     });
-    const textarea = await screen.findByPlaceholderText('How can I help you today?');
+    const textarea = await screen.findByPlaceholderText('Send a message...');
     vi.mocked(threadApi.createNewThread).mockClear();
     vi.mocked(chatSend).mockClear();
 
@@ -2502,7 +2502,7 @@ describe('Conversations — open-session resume (View work)', () => {
     // Let the mount-resume effect settle, then seed the selected thread's task
     // board with a card that has a live session (seeding before mount gets
     // clobbered by turn-state hydration).
-    await screen.findByPlaceholderText('How can I help you today?');
+    await screen.findByPlaceholderText('Send a message...');
     const selectedId = store.getState().thread.selectedThreadId ?? 'board-thread';
     await act(async () => {
       store.dispatch(
