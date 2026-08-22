@@ -7,6 +7,7 @@
 /* Canonical theme tokens (colour + font-role CSS variables). Must precede the
    Tailwind layers so the var-backed utility colours resolve. */
 @import './styles/tokens.css';
+@import "tw-shimmer";
 
 /* Tailwind CSS imports */
 @tailwind base;
@@ -312,4 +313,27 @@
   --cmd-border: rgb(var(--line-strong));
   --cmd-overlay: rgb(var(--surface-overlay) / 0.7);
   --cmd-shadow-palette: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.25);
+}
+
+@custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
+
+@custom-variant data-closed (&:where([data-state="closed"], [data-closed]:not([data-closed="false"])));
+
+@theme inline {
+  @keyframes collapsible-down {
+  from {
+    height: 0;
+    }
+  to {
+    height: var(--radix-collapsible-content-height, var(--collapsible-panel-height, auto));
+    }
+  }
+  @keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height, var(--collapsible-panel-height, auto));
+    }
+  to {
+    height: 0;
+    }
+  }
 }
