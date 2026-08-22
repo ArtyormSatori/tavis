@@ -23,7 +23,11 @@ import { useChatSurfaceRegistration } from './useChatSurfaceRegistration';
 afterEach(() => __resetChatSurfaces());
 
 /** Drives the hook with refs the test can point at spies. */
-function useHarness(threadId: string | null, send: (text?: string) => Promise<void>, stop: () => void) {
+function useHarness(
+  threadId: string | null,
+  send: (text?: string) => Promise<void>,
+  stop: () => void
+) {
   const sendRef = useRef<((text?: string) => Promise<void>) | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
   // Assigned during render, exactly as `Conversations.tsx` does it.
@@ -41,7 +45,13 @@ describe('useChatSurfaceRegistration', () => {
   });
 
   it('unregisters on unmount', () => {
-    const { unmount } = renderHook(() => useHarness('t-1', async () => {}, () => {}));
+    const { unmount } = renderHook(() =>
+      useHarness(
+        't-1',
+        async () => {},
+        () => {}
+      )
+    );
     expect(getChatSurface('t-1')).not.toBeNull();
 
     unmount();
@@ -51,7 +61,12 @@ describe('useChatSurfaceRegistration', () => {
 
   it('moves the registration when the thread changes', () => {
     const { rerender } = renderHook(
-      ({ id }: { id: string }) => useHarness(id, async () => {}, () => {}),
+      ({ id }: { id: string }) =>
+        useHarness(
+          id,
+          async () => {},
+          () => {}
+        ),
       { initialProps: { id: 't-1' } }
     );
     expect(getChatSurface('t-1')).not.toBeNull();
@@ -63,7 +78,13 @@ describe('useChatSurfaceRegistration', () => {
   });
 
   it('registers nothing when no thread is selected', () => {
-    renderHook(() => useHarness(null, async () => {}, () => {}));
+    renderHook(() =>
+      useHarness(
+        null,
+        async () => {},
+        () => {}
+      )
+    );
 
     expect(getChatSurface(null)).toBeNull();
   });
@@ -112,7 +133,13 @@ describe('useChatSurfaceRegistration', () => {
   });
 
   it('exposes no reload — this surface has no regenerate-last-turn path', () => {
-    renderHook(() => useHarness('t-1', async () => {}, () => {}));
+    renderHook(() =>
+      useHarness(
+        't-1',
+        async () => {},
+        () => {}
+      )
+    );
 
     expect(getChatSurface('t-1')?.reload).toBeUndefined();
   });
