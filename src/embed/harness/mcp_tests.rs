@@ -73,14 +73,17 @@ fn debug_redacts_credentials() {
     // stdio env values. The manual implementation must redact all of them while
     // keeping the identifying fields readable.
     let server = McpServer::http("remote", "https://mcp.example/v1")
-        .auth(McpAuthConfig::BearerToken { token: "super-secret-token".into() })
+        .auth(McpAuthConfig::BearerToken {
+            token: "super-secret-token".into(),
+        })
         .env([("AUTH_KEY", "env-secret"), ("TOKEN", "another-secret")]);
     let debug = format!("{server:?}");
 
     assert!(debug.contains("remote"), "name stays readable");
     assert!(debug.contains("mcp.example"), "endpoint stays readable");
     assert!(
-        !debug.contains("super-secret-token") && !debug.contains("env-secret")
+        !debug.contains("super-secret-token")
+            && !debug.contains("env-secret")
             && !debug.contains("another-secret"),
         "credentials leaked into Debug: {debug}"
     );
