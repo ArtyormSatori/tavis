@@ -1,7 +1,6 @@
 import { Thread, type ThreadComponents } from '@/components/assistant-ui/thread';
 import { type AssistantState, useAui, useAuiState } from '@assistant-ui/react';
-import { type ReactNode, useCallback, useMemo } from 'react';
-import { useEffect, useRef } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useRegisterAction } from '../../../lib/commands/useRegisterAction';
 import { useSlashCommands } from '../../../lib/commands/useSlashCommands';
