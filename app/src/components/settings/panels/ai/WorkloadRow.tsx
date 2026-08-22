@@ -83,7 +83,7 @@ export const WorkloadRow = ({
 }: WorkloadRowProps & { onCustomClick: () => void }) => {
   const { t } = useT();
   // "Pinned" means the user chose this route explicitly, rather than inheriting
-  // whatever Managed decides. It drives the badge tone and the button copy.
+  // whatever Managed decides. Keep it as row state for styling and tests.
   const isPinned = ref_.kind === 'cloud' || ref_.kind === 'local' || ref_.kind === 'claude-code';
   const { provider, providerSlug, model } = resolveTarget(ref_, cloudProviders, t);
 
