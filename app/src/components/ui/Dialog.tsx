@@ -51,6 +51,12 @@ export const DialogContent = ({
     <DialogOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       data-slot="dialog-content"
+      // `animate-dialog-in`, NOT `animate-fade-up`. This element is centered by
+      // the `-translate-*-1/2` pair below, and an entrance whose keyframes set
+      // `transform` would replace that pair for the animation's duration --
+      // the dialog would open offset toward the bottom-right and snap into
+      // place when the animation ended. `dialogIn` carries the centering in
+      // its own frames; see the keyframe comment in tailwind.config.js.
       className={cn(
         'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
         'overflow-hidden rounded-2xl bg-surface shadow-large animate-dialog-in focus:outline-none',
