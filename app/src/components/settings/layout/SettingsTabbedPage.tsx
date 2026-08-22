@@ -52,7 +52,7 @@ export default function SettingsTabbedPage<T extends string>({
       </div>
       <div aria-hidden className="-mx-4 border-t border-line" />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="min-h-full pt-4">{children}</div>
+        <div className="min-h-full pb-4 pt-4">{children}</div>
       </div>
     </div>
   );
