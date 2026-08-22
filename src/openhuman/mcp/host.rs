@@ -138,13 +138,13 @@ impl McpHost {
 ///
 /// Returns an error when the stores cannot be opened or an HTTP client cannot
 /// be built.
-/// Opens the service for `config`, without holding the process-wide lock.
 ///
-/// Building a host runs the store's migrations and constructs an HTTP client,
-/// which no request path should pay for and no lock should be held across.
-/// So the host is opened first, and only then is the map locked to see whether
-/// another initializer won the race; if one did, its service is returned and
-/// the freshly-built one is dropped.
+/// Opening is not done under the process-wide lock: building a host runs the
+/// store's migrations and constructs an HTTP client, which no request path
+/// should pay for and no lock should be held across. The host is built first,
+/// and only then is the map locked to see whether another initializer won the
+/// race; if one did, its service is returned and the freshly-built one is
+/// dropped.
 pub fn for_config(config: &Config) -> anyhow::Result<Arc<McpHost>> {
     let workspace = config.workspace_dir.clone();
 
