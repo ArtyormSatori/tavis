@@ -30,10 +30,11 @@ const debug = debugFactory('openhuman:chat-surface');
 export function useChatSurfaceRegistration(
   threadId: string | null,
   sendRef: RefObject<((text?: string) => Promise<void>) | null>,
-  stopRef: RefObject<(() => void) | null>
+  stopRef: RefObject<(() => void) | null>,
+  registerWithoutThread = false
 ): void {
   useEffect(() => {
-    if (!threadId) return;
+    if (!threadId && !registerWithoutThread) return;
     debug('[chat] registering assistant-ui chat surface thread=%s', threadId);
     const dispose = registerChatSurface(threadId, {
       send: async (text: string) => {
@@ -51,5 +52,5 @@ export function useChatSurfaceRegistration(
       debug('[chat] unregistering assistant-ui chat surface thread=%s', threadId);
       dispose();
     };
-  }, [threadId, sendRef, stopRef]);
+  }, [registerWithoutThread, threadId, sendRef, stopRef]);
 }

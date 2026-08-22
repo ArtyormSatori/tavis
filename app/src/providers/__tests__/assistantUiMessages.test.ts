@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { ToolTimelineEntry } from '../../store/chatRuntimeSlice';
 import type { ThreadMessage } from '../../types/thread';
 import {
   buildRuntimeMessages,
@@ -18,6 +19,10 @@ function msg(over: Partial<ThreadMessage> = {}): ThreadMessage {
     createdAt: '2026-01-01T00:00:00.000Z',
     ...over,
   };
+}
+
+function tool(over: Partial<ToolTimelineEntry> = {}): ToolTimelineEntry {
+  return { id: 'call-1', name: 'web_search', round: 1, seq: 0, status: 'running', ...over };
 }
 
 describe('toThreadMessageLike', () => {
@@ -74,6 +79,42 @@ describe('streamingTailMessage', () => {
       content: [{ type: 'text', text: 'partial' }],
     });
   });
+
+  it('projects streamed thinking as a reasoning part before visible text', () => {
+    const tail = streamingTailMessage({ requestId: 'r', content: 'answer', thinking: 'reasoning' });
+    expect(tail?.content).toEqual([
+      { type: 'reasoning', text: 'reasoning' },
+      { type: 'text', text: 'answer' },
+    ]);
+  });
+
+  it('keeps a running delegation on args and adds result only when complete', () => {
+    const subagent = {
+      taskId: 'sub-1',
+      agentId: 'researcher',
+      toolCalls: [],
+      transcript: [{ kind: 'thinking' as const, text: 'checking sources' }],
+    };
+    const running = streamingTailMessage(null, [
+      tool({ id: 'sub-1', name: 'subagent:researcher', subagent }),
+    ]);
+    const runningPart = running?.content[0];
+    expect(runningPart).toMatchObject({
+      type: 'tool-call',
+      toolName: 'task',
+      args: { progress: subagent },
+    });
+    expect(runningPart).not.toHaveProperty('result');
+
+    const complete = streamingTailMessage(null, [
+      tool({ id: 'sub-1', name: 'subagent:researcher', status: 'success', subagent }),
+    ]);
+    expect(complete?.content[0]).toMatchObject({
+      type: 'tool-call',
+      toolName: 'task',
+      result: subagent,
+    });
+  });
 });
 
 describe('buildRuntimeMessages', () => {
@@ -90,6 +131,36 @@ describe('buildRuntimeMessages', () => {
       thinking: '',
     }).map(m => m.id);
     expect(ids).toEqual(['a', STREAMING_TAIL_ID]);
+  });
+
+  it('replays a settled turn reasoning and tool calls from its request id', () => {
+    const answer = msg({
+      id: 'answer',
+      sender: 'agent',
+      content: 'finished',
+      extraMetadata: { requestId: 'req-1' },
+    });
+    const timeline = [tool({ id: 'call-1', status: 'success', result: 'found it' })];
+    const transcript = [
+      { kind: 'thinking' as const, round: 1, seq: 0, text: 'need to search' },
+      { kind: 'toolCall' as const, round: 1, seq: 1, callId: 'call-1' },
+    ];
+
+    expect(
+      buildRuntimeMessages([answer], null, {
+        turnTimelines: { 'req-1': timeline },
+        turnTranscripts: { 'req-1': transcript },
+      })[0]?.content
+    ).toEqual([
+      { type: 'reasoning', text: 'need to search' },
+      expect.objectContaining({
+        type: 'tool-call',
+        toolCallId: 'call-1',
+        toolName: 'web_search',
+        result: 'found it',
+      }),
+      { type: 'text', text: 'finished' },
+    ]);
   });
 
   it('re-converts only the tail as tokens land, never the settled transcript', () => {

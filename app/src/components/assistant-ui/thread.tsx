@@ -45,6 +45,7 @@ import {
   type ToolCallMessagePartComponent,
   type Unstable_SlashCommand,
   unstable_useSlashCommandAdapter,
+  useAui,
   useAuiState,
 } from '@assistant-ui/react';
 import { LexicalComposerInput } from '@assistant-ui/react-lexical';
@@ -69,7 +70,8 @@ import {
   type FC,
   type PropsWithChildren,
   useContext,
-  useState,
+  useEffect,
+  useRef,
 } from 'react';
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -95,10 +97,20 @@ export type ThreadComponents = {
    * anything else.
    */
   ComposerExtras?: ComponentType | undefined;
+  /** Full-width host content immediately above the composer shell. */
+  ComposerHeader?: ComponentType | undefined;
 };
 
 export type ThreadProps = {
   components?: ThreadComponents | undefined;
+  /** Host-owned model route used for real sends. */
+  model?: string | null | undefined;
+  /** Updates the host's composer route and selected model metadata. */
+  onModelChange?: ((value: string, contextWindow?: number | null) => void) | undefined;
+  /** Host transport error shown in place of an empty welcome state. */
+  loadError?: string | null | undefined;
+  /** Host-specific Escape behavior (for example cancel + restore prompt). */
+  onEscape?: (() => void) | undefined;
   /**
    * Commands offered when the composer input starts with `/`. Supplied by the
    * host because a command's `execute` is host behaviour (`/clear` has to
@@ -148,6 +160,10 @@ const ThreadHistorySkeleton: FC = () => (
 
 export const Thread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
+  model = 'hint:chat',
+  onModelChange,
+  loadError = null,
+  onEscape,
   slashCommands = NO_SLASH_COMMANDS,
 }) => {
   const isEmpty = useAuiState(isNewChatView);
@@ -155,13 +171,25 @@ export const Thread: FC<ThreadProps> = ({
   return (
     <ThreadComponentsContext.Provider value={components}>
       <SlashCommandsContext.Provider value={slashCommands}>
-        <ThreadRoot isEmpty={isEmpty} />
+        <ThreadRoot
+          isEmpty={isEmpty}
+          model={model}
+          onModelChange={onModelChange}
+          loadError={loadError}
+          onEscape={onEscape}
+        />
       </SlashCommandsContext.Provider>
     </ThreadComponentsContext.Provider>
   );
 };
 
-const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
+const ThreadRoot: FC<{
+  isEmpty: boolean;
+  model: string | null;
+  onModelChange?: (value: string, contextWindow?: number | null) => void;
+  loadError: string | null;
+  onEscape?: () => void;
+}> = ({ isEmpty, model, onModelChange, loadError, onEscape }) => {
   const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
 
   return (
@@ -182,12 +210,21 @@ const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
             'mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4',
             isEmpty && 'justify-center'
           )}>
-          <AuiIf condition={isNewChatView}>
-            <Welcome />
-          </AuiIf>
-          <AuiIf condition={isHistoryLoadingView}>
-            <ThreadHistorySkeleton />
-          </AuiIf>
+          {loadError ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+              <p className="text-sm font-medium text-destructive">Failed to load messages</p>
+              <p className="text-muted-foreground max-w-md text-xs">{loadError}</p>
+            </div>
+          ) : (
+            <>
+              <AuiIf condition={isNewChatView}>
+                <Welcome />
+              </AuiIf>
+              <AuiIf condition={isHistoryLoadingView}>
+                <ThreadHistorySkeleton />
+              </AuiIf>
+            </>
+          )}
 
           <div data-slot="aui_message-group" className="mb-14 flex flex-col gap-y-6 empty:hidden">
             <ThreadPrimitive.Messages>{() => <ThreadMessage />}</ThreadPrimitive.Messages>
@@ -200,7 +237,7 @@ const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
             )}>
             <ThreadScrollToBottom />
             <ThreadFollowupSuggestions />
-            <Composer />
+            <Composer model={model} onModelChange={onModelChange} onEscape={onEscape} />
             <AuiIf condition={s => isNewChatView(s) && s.composer.isEmpty}>
               <ThreadSuggestions />
             </AuiIf>
@@ -268,14 +305,26 @@ const ThreadSuggestionItem: FC = () => {
   );
 };
 
-const Composer: FC = () => {
-  const [model, setModel] = useState<string | null>('hint:chat');
+const Composer: FC<{
+  model: string | null;
+  onModelChange?: (value: string, contextWindow?: number | null) => void;
+  onEscape?: () => void;
+}> = ({ model, onModelChange, onEscape }) => {
+  const aui = useAui();
   const commands = useContext(SlashCommandsContext);
   const slash = unstable_useSlashCommandAdapter({ commands, fallbackIcon: SlashIcon });
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
+  const { ComposerHeader } = useContext(ThreadComponentsContext);
+  useEffect(() => {
+    const textbox = inputWrapperRef.current?.querySelector<HTMLElement>('[contenteditable="true"]');
+    textbox?.setAttribute('aria-label', 'Message input');
+    return () => textbox?.removeAttribute('aria-label');
+  }, []);
 
   return (
     <ComposerPrimitive.Unstable_TriggerPopoverRoot>
       <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
+        {ComposerHeader ? <ComposerHeader /> : null}
         <ComposerPrimitive.AttachmentDropzone asChild>
           <div
             data-slot="aui_composer-shell"
@@ -290,11 +339,36 @@ const Composer: FC = () => {
              * opens, so a host that wants a plain box still gets one.
              */}
             <LexicalComposerInput
+              ref={inputWrapperRef}
               placeholder="Send a message..."
+              onInputCapture={event => {
+                const target = event.target;
+                if (target instanceof HTMLElement) {
+                  const text = target.textContent ?? '';
+                  globalThis.queueMicrotask(() => aui.composer.setText(text));
+                }
+              }}
+              onKeyDownCapture={event => {
+                if (event.key === 'Escape' && onEscape) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onEscape();
+                  return;
+                }
+                const native = event.nativeEvent;
+                if (
+                  native.isComposing ||
+                  native.keyCode === 229 ||
+                  ('which' in native && native.which === 229)
+                ) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }
+              }}
               className="aui-composer-input caret-primary [&_.aui-lexical-placeholder]:text-muted-foreground/60 relative max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none [&_.aui-lexical-input]:min-h-lh [&_.aui-lexical-input]:outline-none [&_.aui-lexical-placeholder]:pointer-events-none [&_.aui-lexical-placeholder]:absolute [&_.aui-lexical-placeholder]:top-0 [&_.aui-lexical-placeholder]:right-0 [&_.aui-lexical-placeholder]:left-0 [&_.aui-lexical-placeholder]:truncate [&_.aui-lexical-placeholder]:px-2.5 [&_.aui-lexical-placeholder]:py-1"
               aria-label="Message input"
             />
-            <ComposerAction model={model} onModelChange={setModel} />
+            <ComposerAction model={model} onModelChange={onModelChange} />
           </div>
         </ComposerPrimitive.AttachmentDropzone>
 
@@ -311,10 +385,10 @@ const ComposerExtrasSlot: FC = () => {
   return ComposerExtras ? <ComposerExtras /> : null;
 };
 
-const ComposerAction: FC<{ model: string | null; onModelChange: (value: string) => void }> = ({
-  model,
-  onModelChange,
-}) => {
+const ComposerAction: FC<{
+  model: string | null;
+  onModelChange?: (value: string, contextWindow?: number | null) => void;
+}> = ({ model, onModelChange }) => {
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
       <div className="flex min-w-0 items-center gap-1">
@@ -505,6 +579,14 @@ const AssistantMessage: FC = () => {
       <div
         data-slot="aui_assistant-message-footer"
         className={cn('ms-2 flex items-center', ACTION_BAR_HEIGHT)}>
+        <AuiIf
+          condition={s =>
+            s.message.status?.type === 'incomplete' && s.message.status.reason === 'cancelled'
+          }>
+          <span data-testid="stopped-marker" className="text-muted-foreground text-xs">
+            Stopped
+          </span>
+        </AuiIf>
         <BranchPicker />
         <AssistantActionBar />
       </div>

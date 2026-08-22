@@ -128,6 +128,21 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = function () {};
 }
 
+// assistant-ui's thread viewport scrolls after a send. jsdom exposes scroll
+// metrics but not the imperative `scrollTo` method used by that primitive.
+if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollTo) {
+  HTMLElement.prototype.scrollTo = function () {};
+}
+
+// Lexical measures the DOM selection after controlled composer updates. jsdom
+// implements Range but omits its layout methods.
+if (typeof Range !== 'undefined' && !Range.prototype.getBoundingClientRect) {
+  Range.prototype.getBoundingClientRect = () => new DOMRect();
+}
+if (typeof Range !== 'undefined' && !Range.prototype.getClientRects) {
+  Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+}
+
 // Polyfill the Pointer Capture API for Radix primitives in jsdom.
 // Radix's Select, Slider, Toggle and DropdownMenu call these unconditionally
 // on pointerdown; jsdom implements none of them, so without this the very

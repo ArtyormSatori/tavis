@@ -107,7 +107,7 @@ export interface ChatComposerProps {
   mascotDock?: React.ReactNode;
   /** Per-composer model route selected from the assistant-ui-style control. */
   modelOverride?: string | null;
-  onModelOverrideChange?: (value: string) => void;
+  onModelOverrideChange?: (value: string, contextWindow?: number | null) => void;
 }
 
 /**

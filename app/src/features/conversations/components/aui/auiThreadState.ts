@@ -52,7 +52,7 @@ export function useAuiThreadRunning(): boolean | undefined {
 /**
  * The two capabilities the external-store adapter does NOT implement.
  *
- * `useOpenHumanExternalStore` supplies `onNew` / `onCancel` / `onReload` only;
+ * `useOpenHumanExternalStore` supplies `onNew` / `onCancel` only;
  * it implements neither `onEdit` nor `setMessages`, which is what assistant-ui
  * requires for message editing and for the branch picker. The runtime reports
  * that faithfully, so this hook is the honest gate for those affordances rather

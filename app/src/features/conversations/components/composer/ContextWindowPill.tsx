@@ -7,6 +7,7 @@ import {
 import { GaugeIcon } from 'lucide-react';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
+import type { SessionTokenUsage } from '../../../../store/chatRuntimeSlice';
 
 /**
  * Token accounting for the current thread.
@@ -27,6 +28,27 @@ export type ContextUsage = {
   /** Accumulated spend for the thread, in USD. */
   costUsd: number;
 };
+
+/** Map the authoritative Redux token bucket onto the compact meter shape. */
+export function contextUsageFromTokenUsage(
+  usage: SessionTokenUsage,
+  selectedModelContextWindow?: number | null
+): ContextUsage {
+  const cachedInput = Math.max(0, usage.cachedTokens || 0);
+  return {
+    used: Math.max(0, usage.lastTurnContextUsed || 0),
+    limit:
+      selectedModelContextWindow === undefined
+        ? Math.max(0, usage.contextWindow || 0)
+        : Math.max(0, selectedModelContextWindow ?? 0),
+    // `inputTokens` includes provider-reported cache reads. Keep fresh input
+    // and cached input in distinct rows instead of counting cache hits twice.
+    input: Math.max(0, (usage.inputTokens || 0) - cachedInput),
+    cachedInput,
+    output: Math.max(0, usage.outputTokens || 0),
+    costUsd: Math.max(0, usage.costUsd || 0),
+  };
+}
 
 const compact = (n: number): string =>
   n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);
@@ -49,7 +71,8 @@ const Row = ({ label, value }: { label: string; value: string }) => (
  */
 export function ContextWindowPill({ usage }: { usage: ContextUsage }) {
   const { t } = useT();
-  const ratio = usage.limit > 0 ? Math.min(1, usage.used / usage.limit) : 0;
+  const limitKnown = usage.limit > 0;
+  const ratio = limitKnown ? Math.min(1, usage.used / usage.limit) : 0;
   // Amber past three quarters, red past nine tenths: the points where the next
   // long turn starts being at risk of truncation.
   const tone = ratio > 0.9 ? 'bg-coral-500' : ratio > 0.75 ? 'bg-amber-500' : 'bg-primary-500';
@@ -65,12 +88,12 @@ export function ContextWindowPill({ usage }: { usage: ContextUsage }) {
               className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs transition-colors">
               <GaugeIcon className="size-3.5" />
               <span className="tabular-nums">
-                {compact(usage.used)}/{compact(usage.limit)}
+                {compact(usage.used)}/{limitKnown ? compact(usage.limit) : '—'}
               </span>
               <span className="bg-muted h-1 w-8 overflow-hidden rounded-full">
                 <span
                   className={`block h-full rounded-full ${tone}`}
-                  style={{ width: `${Math.max(2, ratio * 100)}%` }}
+                  style={{ width: limitKnown ? `${Math.max(2, ratio * 100)}%` : '0%' }}
                 />
               </span>
             </button>

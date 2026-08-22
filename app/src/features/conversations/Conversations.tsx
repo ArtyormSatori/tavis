@@ -452,6 +452,12 @@ const Conversations = ({
   // A picker choice belongs to this composer session. It overrides the active
   // profile route for subsequent sends without mutating the shared profile.
   const [composerModelOverride, setComposerModelOverride] = useState<string | null>(null);
+  // `undefined` means no explicit picker selection, so usage-reported context
+  // remains authoritative. `null` means the selected model did not report a
+  // window, and the meter deliberately shows an unknown limit.
+  const [composerModelContextWindow, setComposerModelContextWindow] = useState<
+    number | null | undefined
+  >(undefined);
   // Whether the resolved model for the active profile accepts image input.
   // Managed tiers do; custom/BYOK models only when the user flagged them. Gates
   // the composer's image-attachment affordance (docs flow regardless). Resolved
@@ -1276,6 +1282,7 @@ const Conversations = ({
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setSendError(chatSendError('cloud_send_failed', msg));
+      setInputValue(normalized);
     }
   };
 
@@ -1360,6 +1367,10 @@ const Conversations = ({
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setSendError(chatSendError('cloud_send_failed', msg));
+      // assistant-ui clears its composer after `onNew` resolves. This path
+      // handles the transport error locally, so restore the rejected follow-up
+      // explicitly instead of letting the user's draft disappear.
+      setInputValue(normalized);
     }
   };
 
@@ -1455,7 +1466,12 @@ const Conversations = ({
   // follow-up vs. fresh turn) is made in exactly one place, and
   // `handleSendMessage`'s `evaluateComposerSend` block/allow half runs
   // unchanged. Re-deriving either here is the drift this seam exists to stop.
-  useChatSurfaceRegistration(selectedThreadId, handleComposerSendRef, handleStopGenerationRef);
+  useChatSurfaceRegistration(
+    selectedThreadId,
+    handleComposerSendRef,
+    handleStopGenerationRef,
+    true
+  );
 
   const transcribeAndSendAudio = async (mimeType: string) => {
     setIsRecording(false);
@@ -1627,6 +1643,37 @@ const Conversations = ({
     };
   }, [messages, replyMode, rustChat]);
 
+  const handleComposerEscape = useCallback(() => {
+    if (!selectedThreadActive) return;
+    const composerEmpty = inputValue.trim().length === 0;
+    debug(
+      '[chat] esc interrupt: thread=%s composerEmpty=%s',
+      selectedThreadId ?? 'none',
+      composerEmpty
+    );
+    handleStopGeneration();
+    if (composerEmpty) {
+      // Restore the last *visible* user prompt (hidden system/injected
+      // messages are excluded here to match how the transcript is rendered).
+      const lastUserMessage = [...messages]
+        .reverse()
+        .find(m => m.sender === 'user' && !m.extraMetadata?.hidden);
+      const restored = lastUserMessage
+        ? parseMessageImages(lastUserMessage.content ?? '').text
+        : '';
+      if (restored.length > 0) {
+        debug('[chat] esc interrupt: restored prompt len=%d', restored.length);
+        setInputValue(restored);
+        window.requestAnimationFrame(() => {
+          const ta = textInputRef.current;
+          if (!ta) return;
+          ta.focus();
+          ta.setSelectionRange(restored.length, restored.length);
+        });
+      }
+    }
+  }, [handleStopGeneration, inputValue, messages, selectedThreadActive, selectedThreadId]);
+
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (isComposingTextRef.current || isImeCompositionKeyEvent(e)) return;
 
@@ -1638,33 +1685,7 @@ const Conversations = ({
     // default behaviour (blur / no-op).
     if (e.key === 'Escape' && selectedThreadActive) {
       e.preventDefault();
-      const composerEmpty = inputValue.trim().length === 0;
-      debug(
-        '[chat] esc interrupt: thread=%s composerEmpty=%s',
-        selectedThreadId ?? 'none',
-        composerEmpty
-      );
-      handleStopGeneration();
-      if (composerEmpty) {
-        // Restore the last *visible* user prompt (hidden system/injected
-        // messages are excluded here to match how the transcript is rendered).
-        const lastUserMessage = [...messages]
-          .reverse()
-          .find(m => m.sender === 'user' && !m.extraMetadata?.hidden);
-        const restored = lastUserMessage
-          ? parseMessageImages(lastUserMessage.content ?? '').text
-          : '';
-        if (restored.length > 0) {
-          debug('[chat] esc interrupt: restored prompt len=%d', restored.length);
-          setInputValue(restored);
-          window.requestAnimationFrame(() => {
-            const ta = textInputRef.current;
-            if (!ta) return;
-            ta.focus();
-            ta.setSelectionRange(restored.length, restored.length);
-          });
-        }
-      }
+      handleComposerEscape();
       return;
     }
 
@@ -2397,7 +2418,10 @@ const Conversations = ({
               ]}
               mascotDock={mascotDock}
               modelOverride={composerModelOverride ?? resolvedModel}
-              onModelOverrideChange={setComposerModelOverride}
+              onModelOverrideChange={(value, contextWindow) => {
+                setComposerModelOverride(value);
+                setComposerModelContextWindow(contextWindow ?? null);
+              }}
             />
           </>
         ) : (
@@ -2564,9 +2588,65 @@ const Conversations = ({
     </div>
   );
 
-  // The first assistant-ui migration is intentionally a fresh, local surface.
-  // Keep the established pane available while follow-up work reconnects its
-  // OpenHuman-specific features one seam at a time.
+  const assistantComposerHeader = (
+    <>
+      {isNearLimit &&
+        !isAtLimit &&
+        isFreeTier &&
+        shouldShowBanner('conversations-warning', 24 * 60 * 60 * 1000) && (
+          <UpsellBanner
+            variant="warning"
+            title={t('chat.approachingLimit')}
+            message={t('chat.approachingLimitMsg').replace(
+              '{pct}',
+              String(Math.round(usagePct * 100))
+            )}
+            ctaLabel={t('chat.upgrade')}
+            onCtaClick={() => void openUrl(PRICING_URL)}
+            dismissible
+            onDismiss={() => dismissBanner('conversations-warning')}
+          />
+        )}
+      {teamUsage && shouldShowBudgetCompletedMessage && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-coral-200 bg-coral-50 p-3">
+          <p className="min-w-0 text-xs text-coral-600">
+            {teamUsage.cycleBudgetUsd > 0
+              ? `${t('chat.weeklyLimitHit')}${teamUsage.cycleEndsAt ? ` ${t('chat.resets')} ${formatResetTime(teamUsage.cycleEndsAt)}.` : ''} ${t('chat.topUpToContinue')}`
+              : t('chat.budgetComplete')}
+          </p>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              data-analytics-id="chat-budget-openrouter-free"
+              disabled={openRouterStatus === 'saving'}
+              onClick={() => void handleUseOpenRouterFree()}
+              className="rounded-lg border border-coral-300 bg-surface px-3 py-1.5 text-xs font-medium text-coral-700 transition-colors hover:bg-coral-100 disabled:cursor-wait disabled:opacity-70">
+              {openRouterStatus === 'saving' ? t('openrouterFree.saving') : t('openrouterFree.cta')}
+            </button>
+            <button
+              type="button"
+              data-analytics-id="chat-budget-top-up"
+              onClick={() => void openUrl(PRICING_URL)}
+              className="rounded-lg bg-coral-500 px-3 py-1.5 text-xs font-medium text-content-inverted transition-colors hover:bg-coral-400">
+              {t('chat.topUp')}
+            </button>
+          </div>
+        </div>
+      )}
+      {openRouterStatus === 'error' && (
+        <div className="rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700">
+          {t('openrouterFree.error')}
+        </div>
+      )}
+      {selectedThreadId && (queuedFollowupsByThread[selectedThreadId]?.length ?? 0) > 0 ? (
+        <QueuedFollowups
+          items={queuedFollowupsByThread[selectedThreadId] ?? []}
+          onClear={() => void handleClearQueuedFollowups()}
+        />
+      ) : null}
+    </>
+  );
+
   const assistantUiMainPanel = (
     <div
       className={
@@ -2574,11 +2654,25 @@ const Conversations = ({
           ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-line bg-surface'
           : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'
       }>
-      <AssistantUiChat />
+      <AssistantUiChat
+        threadGoal={threadGoal}
+        model={composerModelOverride ?? resolvedModel ?? CHAT_MODEL_HINT}
+        modelContextWindow={composerModelContextWindow}
+        composerHeader={assistantComposerHeader}
+        inputValue={inputValue}
+        onInputValueChange={setInputValue}
+        onEscape={handleComposerEscape}
+        onModelChange={(value, contextWindow) => {
+          setComposerModelOverride(value);
+          setComposerModelContextWindow(contextWindow ?? null);
+        }}
+      />
     </div>
   );
-  const renderAssistantUiOnly = true;
-  const mainPanel = renderAssistantUiOnly ? assistantUiMainPanel : legacyMainPanel;
+  // The realtime/mic-only embed still owns a voice-specific footer. The normal
+  // text chat is fully assistant-ui; voice keeps its established surface until
+  // assistant-ui exposes the equivalent recording controls.
+  const mainPanel = composer === 'mic-cloud' ? legacyMainPanel : assistantUiMainPanel;
 
   return (
     <div

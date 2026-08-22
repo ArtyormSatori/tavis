@@ -1,7 +1,27 @@
 # Wiring the assistant-ui chat surface to real OpenHuman data
 
-**Status:** plan. Nothing below is implemented.
+**Status:** implementation in progress on `assistant-ui-real-data`.
 **Prerequisite:** the mock surface landed on `fix/ui-shdcdn` (see "What exists today").
+
+Current checkpoint:
+
+- The product chat uses `AssistantUiRuntimeProvider`; the scripted runtime is now
+  isolated to the dev-only assistant-ui demo.
+- Real reasoning, tool timelines and subagent activity are projected into
+  assistant-ui parts, including the running-args/final-result invariant.
+- Context usage reads the selected thread's Redux token bucket, and cached input
+  remains separate from fresh input. A provider catalog selection now carries
+  its real context window into both the meter and the model override used by
+  `chatSend`; unknown windows render as unknown.
+- The composer reuses the persisted thread-goal controller, and `/` commands are
+  projected from the shared command registry. `/clear` executes `chat.new`.
+- Focused tests, typecheck, lint and both i18n gates pass. The full `pnpm test`
+  run reaches the previously-unexercised assistant-ui pane, but the legacy
+  `Conversations.render.test.tsx` suite still asserts the hidden legacy pane and
+  must be migrated before this plan is complete.
+- `renderAssistantUiOnly` is removed. The voice-only `mic-cloud` embed still
+  uses the legacy pane while the remaining non-plan affordances are ported;
+  follow-up: [#5685](https://github.com/tinyhumansai/openhuman/issues/5685).
 
 ## What this is
 
@@ -9,7 +29,7 @@
 (`renderAssistantUiOnly = true` in
 [`app/src/features/conversations/Conversations.tsx`](../../app/src/features/conversations/Conversations.tsx)),
 and everything under it is currently fed by a scripted offline adapter. That was
-deliberate: it let the *shape* of the surface be built and reviewed — streamed
+deliberate: it let the _shape_ of the surface be built and reviewed — streamed
 reasoning, tool calls, dispatched subagents, slash commands, a context meter, a
 thread goal — before any of it was load-bearing.
 
@@ -19,21 +39,21 @@ and the RPC method rather than describing them.
 
 **The through-line: none of these are new features.** OpenHuman already has a
 goal domain, a cost domain, a token-usage RPC, a command palette and a
-Redux-backed transcript projection. Four of the five tasks are *deletions* —
+Redux-backed transcript projection. Four of the five tasks are _deletions_ —
 removing a mock and pointing the component at machinery that already exists. Do
 not build a second implementation of any of them.
 
-## What exists today
+## Starting point
 
-| Piece | File | Backed by |
-| --- | --- | --- |
-| Scripted turn | `app/src/lib/assistantUiMock/mockScript.ts` | fiction |
-| Streaming adapter | `app/src/lib/assistantUiMock/mockChatModel.ts` | fiction |
-| Subagent renderer | `app/src/lib/assistantUiMock/SubagentCall.tsx` | reads the mock's payload |
-| Chat surface | `app/src/features/conversations/components/AssistantUiChat.tsx` | `useLocalRuntime` + the mock |
-| Context meter | `app/src/features/conversations/components/composer/ContextWindowPill.tsx` | `MOCK_USAGE` constant |
-| Goal control | `app/src/features/conversations/components/composer/GoalSelector.tsx` | React `useState` |
-| Slash commands | `slashCommands` prop on `Thread` | two local closures |
+| Piece             | File                                                                       | Backed by                    |
+| ----------------- | -------------------------------------------------------------------------- | ---------------------------- |
+| Scripted turn     | `app/src/lib/assistantUiMock/mockScript.ts`                                | fiction                      |
+| Streaming adapter | `app/src/lib/assistantUiMock/mockChatModel.ts`                             | fiction                      |
+| Subagent renderer | `app/src/lib/assistantUiMock/SubagentCall.tsx`                             | reads the mock's payload     |
+| Chat surface      | `app/src/features/conversations/components/AssistantUiChat.tsx`            | `useLocalRuntime` + the mock |
+| Context meter     | `app/src/features/conversations/components/composer/ContextWindowPill.tsx` | `MOCK_USAGE` constant        |
+| Goal control      | `app/src/features/conversations/components/composer/GoalSelector.tsx`      | React `useState`             |
+| Slash commands    | `slashCommands` prop on `Thread`                                           | two local closures           |
 
 Two seams were added to the vendored `Thread`
 ([`app/src/components/assistant-ui/thread.tsx`](../../app/src/components/assistant-ui/thread.tsx))
@@ -75,8 +95,11 @@ and is tested:
    Getting this wrong is a real bug with a real precedent — see the provider's
    header comment about the Workflow Copilot painting the home chat's messages.
 3. Sending: the composer must reach the same path the legacy composer used.
-   `useOpenHumanExternalStore`'s `onNew`/`onEdit` are the seam; verify they are
-   wired before removing the legacy pane, not after.
+   `useOpenHumanExternalStore.onNew` is the seam; verify it is wired before
+   removing the legacy pane, not after. The adapter deliberately exposes no
+   `onEdit`: `openhuman.threads_message_update` updates metadata only, not
+   message content, so advertising assistant-ui's edit capability would create
+   a button the core cannot honour.
 
 ### Watch for
 
@@ -113,7 +136,7 @@ Relevant wire types already defined there: `ChatSegmentEvent`,
 3. Rework `SubagentCall` to read `SubagentProgressDetail` instead of the mock's
    payload. **Preserve the running/complete split exactly as it is**, and read
    the note in `mockChatModel.ts` before changing it: assistant-ui derives a tool
-   call's status from *whether a result is present*, so live progress must ride
+   call's status from _whether a result is present_, so live progress must ride
    on the streaming `args` and `result` must be set once, at the end. Writing
    progress into `result` marks the call complete the instant it starts, the tool
    group collapses, and a running delegation renders as finished. This was found
@@ -140,10 +163,10 @@ does not change; only its source does.
 
 Two candidate sources, both real:
 
-| Source | File | Shape |
-| --- | --- | --- |
-| Live, per-session | `chatRuntimeSlice` — `emptySessionTokenUsage`, `SubAgentUsage` | already consumed by `app/src/components/chat/ComposerTokenStats.tsx` |
-| Persisted, per-thread | `openhuman.threads_token_usage` via `app/src/services/api/threadUsageApi.ts` (`fetchThreadTokenUsage`) | `ThreadTokenUsage` |
+| Source                | File                                                                                                   | Shape                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Live, per-session     | `chatRuntimeSlice` — `emptySessionTokenUsage`, `SubAgentUsage`                                         | already consumed by `app/src/components/chat/ComposerTokenStats.tsx` |
+| Persisted, per-thread | `openhuman.threads_token_usage` via `app/src/services/api/threadUsageApi.ts` (`fetchThreadTokenUsage`) | `ThreadTokenUsage`                                                   |
 
 ### Steps
 
@@ -160,7 +183,7 @@ Two candidate sources, both real:
    follow the model picker; `context_window` on `TurnUsageWire` is `0` in some
    cases (see the comment there) — decide what the meter shows then, rather than
    dividing by zero.
-4. Cost for a *thread* may want `openhuman.cost_get_summary` from
+4. Cost for a _thread_ may want `openhuman.cost_get_summary` from
    `src/openhuman/platform/cost/` instead of a per-turn sum. Check `README.md` in
    that directory before choosing.
 
@@ -217,7 +240,7 @@ OpenHuman already has a command surface:
 2. Reimplement `/clear` against the real transcript. It must go through whatever
    `threadSlice` / core RPC owns clearing a thread — **not** a runtime reset,
    which after Task 1 would desynchronise the projection from Redux.
-3. Decide what `/clear` means before implementing: clear the *view*, archive the
+3. Decide what `/clear` means before implementing: clear the _view_, archive the
    thread, or start a new one. The mock's behaviour (empty the transcript in
    place) is the least likely to be right for real data, because the messages are
    persisted.
@@ -283,4 +306,5 @@ a PR. Diff coverage on changed lines must be ≥ 80%.
 - `AssistantUiChat` mounts no `useLocalRuntime` and imports nothing from a mock.
 - The context meter, the goal control and every slash command read live data.
 - `renderAssistantUiOnly` can be removed along with the legacy pane, or a
-  follow-up issue explains what still blocks it.
+  follow-up issue explains what still blocks it. The constant is gone; [#5685](https://github.com/tinyhumansai/openhuman/issues/5685)
+  tracks the remaining voice-only fallback and legacy affordances.

@@ -33,7 +33,6 @@ import {
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
 import { Button } from '@/components/assistant-ui/ui/button';
 import { Skeleton } from '@/components/assistant-ui/ui/skeleton';
-import { SubagentCall } from '@/lib/assistantUiMock';
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -82,6 +81,7 @@ import {
 } from 'lucide-react';
 import { type FC, type ReactNode, useState } from 'react';
 
+import { SubagentCall } from './assistantUiMock';
 import { CloneThreadShell } from './CloneThreadShell';
 import { DEFAULT_MODEL_ID, demoModelOptions } from './demoModels';
 

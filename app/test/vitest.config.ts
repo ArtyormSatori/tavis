@@ -20,6 +20,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      "@": path.resolve(projectRoot, "src"),
       buffer: "buffer",
       process: "process/browser",
       util: "util",
