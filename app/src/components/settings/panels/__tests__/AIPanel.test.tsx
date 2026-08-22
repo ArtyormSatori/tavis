@@ -233,7 +233,7 @@ describe('AIPanel', () => {
   });
 
   it('renders the LLM Providers + Routing top-level section headers', async () => {
-    renderWithProviders(<AIPanel />);
+    renderRoutingPanel();
     await waitFor(() => expect(screen.getAllByText(/^LLM Providers$/).length).toBeGreaterThan(0));
     // The Local provider sub-section was removed entirely.
     expect(screen.queryByText(/Local provider/i)).not.toBeInTheDocument();
