@@ -356,3 +356,63 @@ fn a_default_naming_a_workspace_nothing_opened_falls_through_to_the_rule() {
 
     assert!(Arc::ptr_eq(&resolved, &expected));
 }
+
+#[test]
+fn a_credentialed_plaintext_non_loopback_endpoint_is_refused() {
+    use crate::openhuman::config::McpAuthConfig as Auth;
+    let mut config = config_without_docs();
+    config.mcp_client.servers.push(HostServer {
+        name: "insecure".into(),
+        endpoint: "http://example.test/mcp".into(),
+        auth: Auth::BearerToken { token: "t".into() },
+        ..HostServer::default()
+    });
+
+    let converted = client_config(&config);
+    assert!(
+        converted.servers.iter().all(|s| s.name != "insecure"),
+        "credentialed plaintext-HTTP endpoint must not be converted"
+    );
+}
+
+#[test]
+fn a_credentialed_loopback_http_endpoint_is_allowed() {
+    use crate::openhuman::config::McpAuthConfig as Auth;
+    let mut config = config_without_docs();
+    config.mcp_client.servers.push(HostServer {
+        name: "local".into(),
+        endpoint: "http://127.0.0.1:9000/mcp".into(),
+        auth: Auth::Header {
+            name: "X-Key".into(),
+            value: "v".into(),
+        },
+        ..HostServer::default()
+    });
+
+    let converted = client_config(&config);
+    assert!(
+        converted.servers.iter().any(|s| s.name == "local"),
+        "credentialed loopback HTTP endpoint must be preserved"
+    );
+}
+
+#[test]
+fn a_credentialed_https_endpoint_is_allowed() {
+    use crate::openhuman::config::McpAuthConfig as Auth;
+    let mut config = config_without_docs();
+    config.mcp_client.servers.push(HostServer {
+        name: "remote".into(),
+        endpoint: "https://example.test/mcp".into(),
+        auth: Auth::Basic {
+            username: "u".into(),
+            password: "p".into(),
+        },
+        ..HostServer::default()
+    });
+
+    let converted = client_config(&config);
+    assert!(
+        converted.servers.iter().any(|s| s.name == "remote"),
+        "credentialed HTTPS endpoint must be preserved"
+    );
+}
