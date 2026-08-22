@@ -22,9 +22,6 @@ interface ProviderSourceSelectProps {
 const encodeSource = (source: CustomDialogSource) =>
   source.kind === 'cloud' ? `cloud:${source.providerSlug}` : source.kind;
 
-const sourceSlug = (source: CustomDialogSource) =>
-  source.kind === 'cloud' ? source.providerSlug : source.kind === 'local' ? 'ollama' : 'claude-code';
-
 /**
  * Short, shared provider-source picker for routing forms. Cloud, local, and
  * Claude Code sources carry different routing shapes, but expose one Select
