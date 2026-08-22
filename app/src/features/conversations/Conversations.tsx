@@ -42,6 +42,7 @@ import {
   handleComposerSlashCommand,
 } from '../../features/conversations/composerSendDecision';
 import { useMemorySyncActive } from '../../features/conversations/hooks/useBackgroundActivity';
+import { useChatSurfaceRegistration } from '../../features/conversations/hooks/useChatSurfaceRegistration';
 import { formatResetTime } from '../../features/conversations/utils/format';
 import {
   GENERAL_TAB_VALUE,
@@ -65,7 +66,6 @@ import {
   validateAndReadFile,
 } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
-import { registerChatSurface } from '../../providers/chatSurfaceHandlers';
 import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
 import { threadApi } from '../../services/api/threadApi';
 import { fetchThreadTokenUsage } from '../../services/api/threadUsageApi';
