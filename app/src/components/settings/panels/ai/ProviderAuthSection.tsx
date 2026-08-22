@@ -3,10 +3,11 @@
  * cloud providers, custom providers, local runtimes), the Codex/Claude Code
  * connect controls, and the rejected-key / non-fatal-advisory banners.
  */
-import { LuCircleAlert, LuKeyRound, LuPencil } from 'react-icons/lu';
+import { LuKeyRound, LuPencil } from 'react-icons/lu';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ProviderAuthError } from '../../../../services/api/aiSettingsApi';
+import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
 import StatusLine from '../../../ui/StatusLine';
 import Switch from '../../../ui/Switch';
@@ -23,6 +24,7 @@ import {
   providerToggleAriaLabel,
 } from './aiPanelTypes';
 import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
+import { PanelSection } from './PanelSection';
 import { ProviderToggleChip } from './ProviderConnectControls';
 import type { ConnectCredentialMode } from './useProviderConnect';
 
@@ -67,18 +69,16 @@ export const ProviderAuthSection = ({
 }) => {
   const { t } = useT();
   return (
-    <div className="space-y-5">
-      <div className="border-b border-line pb-2">
-        <h2 className="text-base font-semibold text-content">{t('settings.ai.llmProviders')}</h2>
-        <p className="text-xs text-content-muted mt-0.5">{t('settings.ai.llmProvidersDesc')}</p>
-      </div>
+    <PanelSection
+      title={t('settings.ai.llmProviders')}
+      description={t('settings.ai.llmProvidersDesc')}>
 
       {/* ─── Rejected-key notices ─────────────────────────────────────────
           A BYO key the provider rejected at runtime (401/403). Surfaced
           here, next to the key editor, because the failing path is often a
           silent background loop and the raw error is demoted from Sentry. */}
       {providerAuthErrors.length > 0 && (
-        <div className="space-y-2">
+        <div className="flex w-full flex-col gap-2">
           {providerAuthErrors.map(err => (
             <ProviderSetupErrorNotice key={err.provider} error={err.message} />
           ))}
@@ -89,10 +89,7 @@ export const ProviderAuthSection = ({
           Amber (not coral): the save succeeded, only reachability is in
           question. */}
       {providerSaveNotice && (
-        <div
-          role="status"
-          className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-          <LuCircleAlert className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+        <Alert variant="warning" role="status" className="items-start gap-2 px-3 py-2 text-xs">
           <span className="flex-1">{providerSaveNotice.message}</span>
           <Button
             type="button"
@@ -102,11 +99,11 @@ export const ProviderAuthSection = ({
             onClick={onDismissProviderSaveNotice}>
             {t('common.dismiss')}
           </Button>
-        </div>
+        </Alert>
       )}
 
       {/* ─── Provider chip-toggle list ────────────────────────────────── */}
-      <section className="space-y-3">
+      <div className="flex w-full flex-col gap-3">
         {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
         {error && (
           <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />
@@ -279,13 +276,13 @@ export const ProviderAuthSection = ({
           />
         </div>
 
-        <div className="pt-1">
+        <div className="flex pt-1">
           <Button type="button" variant="primary" size="xs" onClick={onAddCustomProvider}>
             {t('settings.ai.routing.addCustomProvider')}
           </Button>
         </div>
-      </section>
-    </div>
+      </div>
+    </PanelSection>
   );
 };
 
