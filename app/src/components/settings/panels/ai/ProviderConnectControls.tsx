@@ -8,8 +8,10 @@ import { LuCheck } from 'react-icons/lu';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import { openUrl } from '../../../../utils/openUrl';
+import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
 import { DialogContent, DialogRoot } from '../../../ui/Dialog';
+import Label from '../../../ui/Label';
 import Switch from '../../../ui/Switch';
 import TextField from '../../../ui/TextField';
 import { builtinCloudProvider } from '../builtinCloudProviders';
@@ -49,10 +51,10 @@ export const ProviderToggleChip = ({
       className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition-colors ${tone}`}>
       <span>{label}</span>
       {alwaysOn ? (
-        <span className="inline-flex items-center gap-1 opacity-80">
+        <Badge variant="success" className="gap-1 border-transparent bg-transparent">
           <LuCheck className="h-3 w-3" />
           {t('settings.ai.routing.managedAlwaysOn')}
-        </span>
+        </Badge>
       ) : (
         <Switch
           id={`provider-toggle-${slug}`}
@@ -257,11 +259,9 @@ export const ProviderKeyDialog = ({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="provider-key-input"
-            className="text-xs font-medium text-content-secondary">
+          <Label htmlFor="provider-key-input" className="text-xs text-content-secondary">
             {fieldLabel}
-          </label>
+          </Label>
           <TextField
             id="provider-key-input"
             type={isLocalRuntime ? 'url' : 'text'}
@@ -286,11 +286,11 @@ export const ProviderKeyDialog = ({
               gated behind a Bearer key. */}
           {endpointKeyMode ? (
             <>
-              <label
+              <Label
                 htmlFor="provider-key-input-key"
-                className="mt-3 text-xs font-medium text-content-secondary">
+                className="mt-3 text-xs text-content-secondary">
                 {t('settings.ai.apiKeyFieldLabel')}
-              </label>
+              </Label>
               <TextField
                 id="provider-key-input-key"
                 type="text"
