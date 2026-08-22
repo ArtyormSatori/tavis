@@ -493,8 +493,8 @@ export async function getCoreRpcToken(): Promise<string | null> {
 
   resolvingCoreRpcToken = (async () => {
     try {
-      const token = await invoke<string>('core_rpc_token');
-      resolvedCoreRpcToken = token?.trim() || null;
+      const endpoint = await resolveShellEndpoint();
+      resolvedCoreRpcToken = endpoint?.token?.trim() || null;
       didResolveCoreRpcToken = true;
       coreRpcLog('core RPC token loaded');
       return resolvedCoreRpcToken;
