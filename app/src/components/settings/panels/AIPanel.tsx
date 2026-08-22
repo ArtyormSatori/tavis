@@ -171,6 +171,7 @@ const AIPanel = ({
         value={tab}
         onChange={handleTabChange}
         hideTabChrome={hideTabChrome}
+        scrollable={!hideTabChrome}
         tabs={[
           {
             id: 'providers',

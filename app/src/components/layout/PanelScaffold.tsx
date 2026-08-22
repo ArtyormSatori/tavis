@@ -20,6 +20,8 @@ interface PanelScaffoldProps {
   headerExtra?: ReactNode;
   /** Scrollable body content. */
   children: ReactNode;
+  /** When false, let an ancestor own scrolling instead of constraining the body. */
+  scrollable?: boolean;
   /** Extra classes on the scaffold root. */
   className?: string;
   /**
@@ -82,6 +84,7 @@ export default function PanelScaffold({
   headerTone,
   width = 'full',
   bodyBorder,
+  scrollable = true,
   testId,
 }: PanelScaffoldProps) {
   const hasHeader =
@@ -105,7 +108,13 @@ export default function PanelScaffold({
     );
 
   return (
-    <div className={cn('relative flex h-full min-h-0 flex-col', className)} data-testid={testId}>
+    <div
+      className={cn(
+        'relative flex flex-col',
+        scrollable && 'h-full min-h-0',
+        className
+      )}
+      data-testid={testId}>
       {hasHeader && (
         <PanelHeader
           title={title}
@@ -120,7 +129,7 @@ export default function PanelScaffold({
 
       <div
         className={cn(
-          'min-h-0 flex-1 overflow-y-auto',
+          scrollable && 'min-h-0 flex-1 overflow-y-auto',
           showBorder && BODY_BORDER_CLASS,
           contentClassName
         )}>
