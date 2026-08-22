@@ -310,66 +310,66 @@ export default function Brain() {
             than a bordered card floating in the content column. */
             <div className="h-full p-4">
               <SettingsTabbedPage
-              title={t(
-                BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>].titleKey
-              )}
-              description={t(
-                BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>]
-                  .descKey
-              )}>
-              <div className="w-full space-y-5">
-                {activeTab === 'graph' && (
-                  <div className="space-y-5 animate-fade-up">
-                    <MemoryControls
-                      mode={mode}
-                      onModeChange={setMode}
-                      onRefresh={refresh}
-                      onToast={addToast}
-                      contentRootAbs={graph?.content_root_abs}
-                    />
-
-                    {graph ? (
-                      <MemoryGraph
-                        nodes={graph.nodes}
-                        edges={graph.edges}
+                title={t(
+                  BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>]
+                    .titleKey
+                )}
+                description={t(
+                  BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>].descKey
+                )}>
+                <div className="w-full space-y-5">
+                  {activeTab === 'graph' && (
+                    <div className="space-y-5 animate-fade-up">
+                      <MemoryControls
                         mode={mode}
-                        emptyHint={t('brain.empty')}
+                        onModeChange={setMode}
+                        onRefresh={refresh}
+                        onToast={addToast}
+                        contentRootAbs={graph?.content_root_abs}
                       />
-                    ) : error ? (
-                      <div
-                        className={`${cardClass} text-sm text-coral-600 dark:text-coral-400`}
-                        role="alert">
-                        {t('brain.error')}
+
+                      {graph ? (
+                        <MemoryGraph
+                          nodes={graph.nodes}
+                          edges={graph.edges}
+                          mode={mode}
+                          emptyHint={t('brain.empty')}
+                        />
+                      ) : error ? (
+                        <div
+                          className={`${cardClass} text-sm text-coral-600 dark:text-coral-400`}
+                          role="alert">
+                          {t('brain.error')}
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+
+                  {activeTab === 'goals' && <GoalsPanel />}
+
+                  {activeTab === 'sources' && (
+                    <div className="space-y-5 animate-fade-up">
+                      <CodingSessionsCard onToast={addToast} />
+                      <MemorySourcesRegistry onToast={addToast} />
+                    </div>
+                  )}
+
+                  {activeTab === 'sync' && (
+                    <div className="space-y-5 animate-fade-up">
+                      <div className={cardClass}>
+                        <MemoryTreeStatusPanel onToast={addToast} />
                       </div>
-                    ) : null}
-                  </div>
-                )}
-
-                {activeTab === 'goals' && <GoalsPanel />}
-
-                {activeTab === 'sources' && (
-                  <div className="space-y-5 animate-fade-up">
-                    <CodingSessionsCard onToast={addToast} />
-                    <MemorySourcesRegistry onToast={addToast} />
-                  </div>
-                )}
-
-                {activeTab === 'sync' && (
-                  <div className="space-y-5 animate-fade-up">
-                    <div className={cardClass}>
-                      <MemoryTreeStatusPanel onToast={addToast} />
-                    </div>
-                    {/* Sync history relocated from the Memory Inspection panel so
+                      {/* Sync history relocated from the Memory Inspection panel so
                       the Sync tab is the single sync surface. */}
-                    <div className={cardClass} data-testid="brain-sync-history">
-                      <h3 className="mb-2 text-sm font-medium text-content-secondary">
-                        {t('sync.auditTitle', 'Sync History')}
-                      </h3>
-                      <SyncAuditPanel />
+                      <div className={cardClass} data-testid="brain-sync-history">
+                        <h3 className="mb-2 text-sm font-medium text-content-secondary">
+                          {t('sync.auditTitle', 'Sync History')}
+                        </h3>
+                        <SyncAuditPanel />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
               </SettingsTabbedPage>
             </div>
           )}
