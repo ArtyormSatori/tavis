@@ -24,6 +24,7 @@ import type { ProviderAuthError } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
 import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
+import Card from '../../../ui/Card';
 import StatusLine from '../../../ui/StatusLine';
 import Switch from '../../../ui/Switch';
 import { routingWithProviderRemoved } from '../aiRouting';
@@ -237,20 +238,19 @@ export const ProviderAuthSection = ({
           {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
           {error && <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
 
-          <div className="flex items-center justify-between gap-3">
-            <p className="min-w-0 text-xs text-content-muted">
-              {t('settings.ai.llmProvidersDesc')}
-            </p>
-            <Button
-              type="button"
-              variant="primary"
-              size="xs"
-              leadingIcon={<LuPlus className="h-3.5 w-3.5" />}
-              onClick={() => setAddOpen(true)}
-              data-testid="add-provider-open">
-              {t('settings.ai.providers.addProvider')}
-            </Button>
-          </div>
+          <Card title={t('settings.ai.llmProviders')} description={t('settings.ai.llmProvidersDesc')}>
+            <div className="flex justify-end px-4 py-3">
+              <Button
+                type="button"
+                variant="primary"
+                size="xs"
+                leadingIcon={<LuPlus className="h-3.5 w-3.5" />}
+                onClick={() => setAddOpen(true)}
+                data-testid="add-provider-open">
+                {t('settings.ai.providers.addProvider')}
+              </Button>
+            </div>
+          </Card>
         </div>
 
         {/* ─── Connected ────────────────────────────────────────────────────
@@ -259,6 +259,7 @@ export const ProviderAuthSection = ({
           invites a fight the user cannot win. */}
         <ProviderGroup
           title={t('settings.ai.providers.groupConnected')}
+          card
           data-testid="provider-group-connected">
           <ProviderListRow
             slug="openhuman"
@@ -384,6 +385,7 @@ export const ProviderAuthSection = ({
         {claudeCodeConnected && (
           <ProviderGroup
             title={t('settings.ai.providers.groupCli')}
+            card
             data-testid="provider-group-cli">
             <ProviderListRow
               slug="claude-code"

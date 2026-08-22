@@ -26,6 +26,7 @@ import { LuEllipsisVertical } from 'react-icons/lu';
 import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
+import Card from '../../../ui/Card';
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -39,21 +40,30 @@ import { providerIcon } from './providerIcons';
 export const ProviderGroup = ({
   title,
   children,
+  card = false,
   'data-testid': testId,
 }: {
   title: string;
   children: ReactNode;
+  /** Use the shared Card primitive when this group is a top-level section. */
+  card?: boolean;
   'data-testid'?: string;
-}) => (
-  <section className="flex w-full flex-col" data-testid={testId}>
-    <h4 className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-content-faint">
-      {title}
-    </h4>
-    <ul className="flex w-full flex-col divide-y divide-line-subtle border-y border-line-subtle">
-      {children}
-    </ul>
-  </section>
-);
+}) => {
+  const list = <ul className="flex w-full flex-col divide-y divide-line-subtle">{children}</ul>;
+
+  return card ? (
+    <Card title={title} data-testid={testId} className="w-full">
+      {list}
+    </Card>
+  ) : (
+    <section className="flex w-full flex-col" data-testid={testId}>
+      <h4 className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-content-faint">
+        {title}
+      </h4>
+      <div className="border-y border-line-subtle">{list}</div>
+    </section>
+  );
+};
 
 export interface ProviderRowAction {
   label: string;
