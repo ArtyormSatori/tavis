@@ -76,7 +76,7 @@ export const AlertDialogContent = forwardRef<
       className={cn(
         'fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2',
         'overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-large',
-        'animate-fade-up focus:outline-none',
+        'animate-dialog-in focus:outline-none',
         className
       )}
       {...rest}>
