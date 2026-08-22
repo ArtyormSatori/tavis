@@ -72,7 +72,7 @@ export interface ProviderRowAction {
  * announcing "O, OpenAI" helps nobody.
  */
 const ProviderSwatch = ({ slug, label, tone }: { slug: string; label: string; tone: string }) => {
-  const Icon = providerIcon(slug);
+  const icon = providerIcon(slug, 'h-4 w-4');
   return (
     <span
       aria-hidden
@@ -81,7 +81,7 @@ const ProviderSwatch = ({ slug, label, tone }: { slug: string; label: string; to
         'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-semibold ring-1',
         tone
       )}>
-      {Icon ? <Icon className="h-4 w-4" /> : label.trim().charAt(0).toUpperCase() || '?'}
+      {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
     </span>
   );
 };

@@ -63,7 +63,7 @@ export interface ProviderCategory {
 /** Brand mark where Simple Icons has one, the initial where it does not. See
  *  `providerIcons.tsx` for why coverage is partial by design. */
 const OptionSwatch = ({ slug, label, tone }: { slug: string; label: string; tone: string }) => {
-  const Icon = providerIcon(slug);
+  const icon = providerIcon(slug, 'h-3.5 w-3.5');
   return (
     <span
       aria-hidden
@@ -71,7 +71,7 @@ const OptionSwatch = ({ slug, label, tone }: { slug: string; label: string; tone
         'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-semibold ring-1',
         tone
       )}>
-      {Icon ? <Icon className="h-3.5 w-3.5" /> : label.trim().charAt(0).toUpperCase() || '?'}
+      {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
     </span>
   );
 };
