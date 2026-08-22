@@ -265,6 +265,7 @@ pub fn client_config(config: &Config) -> McpClientConfig {
             .mcp_client
             .servers
             .iter()
+            .filter(|server| credentialed_endpoint_transport_allowed(server))
             .map(server_config)
             .collect(),
         proxy: proxy_for_mcp(),
@@ -310,6 +311,54 @@ pub fn client_config(config: &Config) -> McpClientConfig {
 
 /// The name the documentation server is registered under.
 pub const GITBOOKS_SERVER_NAME: &str = "gitbooks";
+
+/// Whether a declared server's transport may be dialed with its configured
+/// credentials attached.
+///
+/// Attaching a credential to an outbound request only makes sense when the
+/// request cannot be read by a third party in transit — i.e. when the endpoint
+/// is HTTPS, or is on the loopback interface where the bytes never leave the
+/// machine. A credentialed plaintext-HTTP endpoint on any other host would put
+/// the credential on the wire in the clear, so it is refused: the server is
+/// dropped from the configured set with a warning rather than silently sent.
+///
+/// stdio servers (no `endpoint`) and credential-less servers are always fine.
+fn credentialed_endpoint_transport_allowed(server: &crate::openhuman::config::McpServerConfig) -> bool {
+    use crate::openhuman::config::McpAuthConfig;
+
+    if matches!(server.auth, McpAuthConfig::None) {
+        return true;
+    }
+    let endpoint = server.endpoint.trim();
+    if endpoint.is_empty() {
+        // stdio subprocess — credentials are passed via env, not the wire.
+        return true;
+    }
+    let Ok(url) = reqwest::Url::parse(endpoint) else {
+        // Unparsable endpoints fail later with a clearer "could not build the
+        // static server set" message; nothing is attached on this path.
+        return true;
+    };
+    if url.scheme() == "https" {
+        return true;
+    }
+    if url.scheme() != "http" {
+        // Unknown scheme — let the transport decide rather than guessing.
+        return true;
+    }
+    let loopback = url
+        .host_str()
+        .map(|host| host == "localhost" || host == "127.0.0.1" || host == "::1")
+        .unwrap_or(false);
+    if loopback {
+        return true;
+    }
+    tracing::warn!(
+        "[mcp] refusing credentialed server `{}`: plaintext HTTP endpoint {endpoint}          is not loopback; use https:// instead",
+        server.name
+    );
+    false
+}
 
 /// Converts one declared server.
 fn server_config(server: &crate::openhuman::config::McpServerConfig) -> McpServerConfig {
