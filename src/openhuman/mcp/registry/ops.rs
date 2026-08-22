@@ -32,30 +32,8 @@ use crate::openhuman::config::Config;
 use crate::openhuman::mcp::host;
 use crate::rpc::RpcOutcome;
 
+use super::helpers::{encode, inject_required_env_keys, require, resolve};
 use super::types::ChatTurn;
-
-/// Renders a value into the `RpcOutcome` payload the frontend expects.
-fn encode<T: serde::Serialize>(value: &T) -> Result<Value, String> {
-    serde_json::to_value(value).map_err(|error| format!("serialization error: {error}"))
-}
-
-/// Trims an identifier and refuses a blank one, naming the field.
-fn require(value: &str, field: &str) -> Result<String, String> {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        return Err(format!("{field} must not be empty"));
-    }
-    Ok(trimmed.to_string())
-}
-
-/// The service for `config`'s workspace, as a string error.
-///
-/// Every handler here is addressed by configuration, so every handler resolves
-/// through this rather than through a process-wide default: two workspaces get
-/// two stores, and a handler must act on the one its caller named.
-fn resolve(config: &Config) -> Result<std::sync::Arc<host::McpHost>, String> {
-    host::for_config(config).map_err(|error| error.to_string())
-}
 
 // ── registry_search ──────────────────────────────────────────────────────────
 
