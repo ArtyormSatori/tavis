@@ -52,8 +52,7 @@ export function ContextWindowPill({ usage }: { usage: ContextUsage }) {
   const ratio = usage.limit > 0 ? Math.min(1, usage.used / usage.limit) : 0;
   // Amber past three quarters, red past nine tenths: the points where the next
   // long turn starts being at risk of truncation.
-  const tone =
-    ratio > 0.9 ? 'bg-coral-500' : ratio > 0.75 ? 'bg-amber-500' : 'bg-primary-500';
+  const tone = ratio > 0.9 ? 'bg-coral-500' : ratio > 0.75 ? 'bg-amber-500' : 'bg-primary-500';
 
   return (
     <TooltipProvider>
@@ -77,7 +76,9 @@ export function ContextWindowPill({ usage }: { usage: ContextUsage }) {
             </button>
           }
         />
-        <TooltipContent side="top" className="min-w-52 p-2.5 text-xs">
+        {/* The vendored `TooltipContent` is an `inline-flex` row with `items-center`,
+            which would sit the heading beside the rows instead of above them. */}
+        <TooltipContent side="top" className="min-w-52 flex-col items-stretch gap-0 p-2.5 text-xs">
           <p className="mb-1.5 font-medium">{t('conversations.composer.context.title')}</p>
           <div className="flex flex-col gap-1">
             <Row label={t('conversations.composer.context.input')} value={compact(usage.input)} />

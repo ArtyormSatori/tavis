@@ -9,8 +9,8 @@ import {
 import { TargetIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { useT } from '../../../../lib/i18n/I18nContext';
 import { Button } from '../../../../components/ui';
+import { useT } from '../../../../lib/i18n/I18nContext';
 
 export type GoalSelectorProps = {
   goal: string | null;
@@ -52,18 +52,14 @@ export function GoalSelector({ goal, onGoalChange, open, onOpenChange }: GoalSel
         aria-label={t('conversations.composer.goal.title')}
         className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 min-w-0 shrink items-center gap-1.5 rounded-full px-2.5 text-xs transition-colors">
         <TargetIcon className="size-3.5 shrink-0" />
-        <span className="max-w-40 truncate">
-          {goal ?? t('conversations.composer.goal.set')}
-        </span>
+        <span className="max-w-40 truncate">{goal ?? t('conversations.composer.goal.set')}</span>
       </button>
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('conversations.composer.goal.title')}</DialogTitle>
-            <DialogDescription>
-              {t('conversations.composer.goal.description')}
-            </DialogDescription>
+            <DialogDescription>{t('conversations.composer.goal.description')}</DialogDescription>
           </DialogHeader>
 
           <textarea
