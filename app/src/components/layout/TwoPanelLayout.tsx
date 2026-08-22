@@ -116,6 +116,41 @@ const DEFAULT_KEYBOARD_STEP = 16;
  * Resize: drag the divider between the panes (pointer) or focus it and use the
  * arrow keys. Width is clamped to [minSidebarWidth, maxSidebarWidth] and only
  * committed to the store on drag end to avoid thrashing redux-persist.
+ *
+ * ---
+ *
+ * CONVERGENCE DECISION (kept deliberately separate from `ui/Sidebar.tsx`):
+ * this stays its own panel system rather than being rebuilt on
+ * `SidebarProvider`/`Sidebar`/`SidebarRail`. Both are defensible in the
+ * abstract — the shell sidebar is app-level chrome, this is an in-page
+ * splitter — but the concrete reason is a real behavioral mismatch, not just
+ * "different enough to leave alone":
+ *
+ * 1. **Persistence cadence is opposite by contract.** `SidebarRail`'s
+ *    `onWidthChange` fires on every pointermove frame (its own doc comment
+ *    says so — the shell mirrors width into a live `--sidebar-width` CSS var
+ *    for chrome reflow). This component commits to Redux **once**, on
+ *    pointer-up or a keyboard step, specifically to avoid thrashing
+ *    redux-persist. Building this on `SidebarRail` as-is would mean
+ *    dispatching on every drag frame; keeping the current commit-on-release
+ *    contract would mean not using `SidebarRail`'s own callback at all —
+ *    either way the primitive isn't actually doing the persistence work.
+ * 2. **Visual grammar differs.** `Sidebar` assumes a single always-left
+ *    column composed with `SidebarInset` (a `m-3 rounded-2xl` inset card).
+ *    This component's default `seamless` mode joins BOTH panes into one
+ *    bordered card with a flush 1px hairline seam — there's no `Sidebar`
+ *    equivalent of that, and forcing it would mean reintroducing bespoke
+ *    layout around the primitive anyway.
+ * 3. **Extra affordances with no `Sidebar` counterpart**: `showCollapsedRail`
+ *    (a reopen button occupying the seam when collapsed) and `seamless`
+ *    itself aren't expressible through `Sidebar`'s `collapsible` variants.
+ *
+ * What IS shared: the clamp + pointer-drag + keyboard-step *mechanics* now
+ * live in `useResizableDivider` (this directory) rather than inline in this
+ * component, specifically so they're one named, independently readable unit
+ * instead of hand-rolled logic duplicated alongside `SidebarRail`'s own
+ * (different-contract) version. See that hook's doc comment for the full
+ * reasoning on why it isn't literally the same code as `SidebarRail`.
  */
 export default function TwoPanelLayout({
   id,
