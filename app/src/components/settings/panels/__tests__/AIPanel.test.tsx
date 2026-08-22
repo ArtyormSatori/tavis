@@ -201,12 +201,6 @@ const baseConnections = [
   { id: 'pending-cal', toolkit: 'googlecalendar', status: 'PENDING' },
 ];
 
-function renderRoutingPanel() {
-  const result = renderWithProviders(<AIPanel />);
-  fireEvent.click(screen.getByTestId('ai-tab-routing'));
-  return result;
-}
-
 describe('AIPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -283,7 +277,7 @@ describe('AIPanel', () => {
   });
 
   it('renders Managed, Use Your Own Models, and Advanced routing controls', async () => {
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Managed/i })).toBeInTheDocument()
     );
@@ -292,7 +286,7 @@ describe('AIPanel', () => {
   });
 
   it('renders all visible advanced workload labels', async () => {
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Advanced/i })).toBeInTheDocument()
     );
@@ -345,7 +339,7 @@ describe('AIPanel', () => {
       { id: 'gpt-4o' },
     ]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -373,7 +367,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(azureSettings);
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-5.6-terra-2026-07-09' }]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -402,7 +396,7 @@ describe('AIPanel', () => {
     });
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -441,7 +435,7 @@ describe('AIPanel', () => {
       { id: 'gpt-4o' },
     ]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -464,7 +458,7 @@ describe('AIPanel', () => {
     });
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-5.6-terra-2026-07-09' }]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -485,7 +479,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(azureSettings);
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -708,7 +702,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(azureSettings);
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-5.6-terra-2026-07-09' }]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     // Per-workload rows live behind the advanced routing mode.
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
@@ -771,7 +765,7 @@ describe('AIPanel', () => {
     });
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
       name: /Choose Model|Change Model/i,
@@ -816,7 +810,7 @@ describe('AIPanel', () => {
         },
       ],
     });
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -881,7 +875,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(settingsWithAnthropic);
     vi.mocked(saveAISettings).mockResolvedValue(undefined);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
 
     // Wait for load.
     await waitFor(() => expect(screen.getAllByText(/Anthropic/i).length).toBeGreaterThan(0));
@@ -1913,7 +1907,7 @@ describe('AIPanel', () => {
     };
     vi.mocked(loadAISettings).mockResolvedValue(settingsWithOpenAI);
     vi.mocked(saveAISettings).mockResolvedValue(undefined);
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
 
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
@@ -1972,7 +1966,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }, { id: 'gpt-4o-mini' }]);
     vi.mocked(testProviderModel).mockResolvedValue({ reply: 'Hello from gpt-4o.' });
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
 
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
@@ -2020,7 +2014,7 @@ describe('AIPanel', () => {
     });
     vi.mocked(testProviderModel).mockReturnValue(pendingTest);
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
 
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
@@ -2061,7 +2055,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
     vi.mocked(testProviderModel).mockRejectedValue(new Error('401 invalid api key'));
 
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
 
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
