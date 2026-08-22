@@ -12,8 +12,8 @@
  */
 import { cn } from '@/components/assistant-ui/lib/utils';
 import {
+  Collapsible,
   CollapsibleContent,
-  CollapsibleRoot,
   CollapsibleTrigger,
 } from '@/components/assistant-ui/ui/collapsible';
 import type { ToolCallMessagePartComponent } from '@assistant-ui/react';
@@ -37,7 +37,7 @@ export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => 
     parsed?.subagent ?? (args as { subagent_type?: string } | undefined)?.subagent_type ?? 'subagent';
 
   return (
-    <CollapsibleRoot
+    <Collapsible
       data-slot="aui_subagent-call"
       defaultOpen
       className="aui-subagent-call border-border/60 dark:border-muted-foreground/15 my-2 rounded-xl border">
@@ -51,7 +51,7 @@ export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => 
         ) : (
           <CheckIcon className="text-muted-foreground size-3.5 shrink-0" />
         )}
-        <ChevronDownIcon className="ml-auto size-4 shrink-0 -rotate-90 transition-transform group-data-open/subagent:rotate-0 group-data-panel-open/subagent:rotate-0" />
+        <ChevronDownIcon className="ml-auto size-4 shrink-0 -rotate-90 transition-transform group-data-[state=open]/subagent:rotate-0" />
       </CollapsibleTrigger>
 
       <CollapsibleContent className="px-3 pb-3">
@@ -79,7 +79,7 @@ export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => 
           </p>
         )}
       </CollapsibleContent>
-    </CollapsibleRoot>
+    </Collapsible>
   );
 };
 
