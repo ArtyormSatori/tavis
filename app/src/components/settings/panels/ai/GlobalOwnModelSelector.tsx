@@ -18,8 +18,10 @@ import {
   type OllamaModel,
   type ProviderRef,
   providerRefSignature,
+  slugTone,
 } from './aiPanelTypes';
 import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
+import { ProviderSwatch } from './ProviderListRow';
 
 export const GlobalOwnModelSelector = ({
   current,
@@ -117,6 +119,14 @@ export const GlobalOwnModelSelector = ({
         : source?.kind === 'claude-code'
           ? t('settings.ai.claudeCode.modalTitle')
           : t('settings.ai.globalModel.provider');
+  const selectedProviderSlug =
+    source?.kind === 'cloud'
+      ? source.providerSlug
+      : source?.kind === 'local'
+        ? 'ollama'
+        : source?.kind === 'claude-code'
+          ? 'claude-code'
+          : null;
 
   const applySelection = async (nextSource: CustomDialogSource | null, nextModel: string) => {
     if (!nextSource || !nextModel.trim()) return;
@@ -143,20 +153,26 @@ export const GlobalOwnModelSelector = ({
       description={t('settings.ai.globalModel.desc')}
       className="w-full">
       <div className="flex flex-col gap-4 p-4">
-
-      {customCloud.length === 0 && !localAvailable && !claudeCodeEnabled ? (
-        <Alert variant="warning" className="p-3 text-xs">
-          {t('settings.ai.globalModel.noProviders')}
-        </Alert>
-      ) : (
-        <>
+        {customCloud.length === 0 && !localAvailable && !claudeCodeEnabled ? (
+          <Alert variant="warning" className="p-3 text-xs">
+            {t('settings.ai.globalModel.noProviders')}
+          </Alert>
+        ) : (
+          <>
           <Button
             type="button"
             variant="secondary"
             size="md"
             onClick={() => setPickerOpen(true)}
-            className="h-auto w-full justify-between px-3 py-2.5 text-left">
-            <span className="flex min-w-0 flex-col gap-0.5">
+            className="h-auto w-full justify-start gap-3 px-3 py-2.5 text-left">
+            {selectedProviderSlug ? (
+              <ProviderSwatch
+                slug={selectedProviderSlug}
+                label={selectedProviderLabel}
+                tone={slugTone(selectedProviderSlug)}
+              />
+            ) : null}
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="text-xs font-medium text-content-secondary">Provider and model</span>
               <span className="truncate text-sm font-medium text-content">
                 {model ? `${selectedProviderLabel} · ${model}` : 'Select provider and model'}
@@ -198,8 +214,8 @@ export const GlobalOwnModelSelector = ({
                   : t('common.save')}
             </Button>
           </div>
-        </>
-      )}
+          </>
+        )}
       </div>
       {pickerOpen && (
         <ProviderModelPickerDialog
