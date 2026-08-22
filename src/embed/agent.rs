@@ -263,10 +263,10 @@ impl Turn<'_> {
         self.request.thread_id = Some(session_id.clone());
 
         log::debug!(
-            "[embed][agent] turn session={session_id} model={:?} routed={} cwd={:?}",
+            "[embed][agent] turn session={session_id} model={:?} routed={} cwd_set={}",
             self.request.model_override,
             self.request.inference_url.is_some(),
-            self.request.cwd,
+            self.request.cwd.is_some(),
         );
 
         let dispatch = call::<_, String>(self.rt, AGENT_CHAT, &self.request);

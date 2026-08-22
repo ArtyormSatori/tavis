@@ -205,8 +205,7 @@ impl CoreContext {
             // and no `Err` arm to reach, because there was nothing to fail.
             Some(cfg) => {
                 log::debug!(
-                    "[core-context] init: using caller-supplied config workspace={}",
-                    cfg.workspace_dir.display()
+                    "[core-context] init: using caller-supplied config (scoped workspace)"
                 );
                 Ok(cfg)
             }
