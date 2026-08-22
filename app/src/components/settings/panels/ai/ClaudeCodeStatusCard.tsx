@@ -273,10 +273,7 @@ function ClaudeCodeModal({
         <div className="flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2">
           <div className="text-xs">
             <div className="font-medium text-content">{t('settings.ai.claudeCode.connection')}</div>
-            <div
-              className={
-                connected ? 'text-sage-600 dark:text-sage-400' : 'text-content-muted'
-              }>
+            <div className={connected ? 'text-sage-600 dark:text-sage-400' : 'text-content-muted'}>
               {connected
                 ? t('settings.ai.claudeCode.enabled')
                 : t('settings.ai.claudeCode.notEnabled')}

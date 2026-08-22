@@ -21,8 +21,8 @@
  *    with it — `items-stretch` already equalises flex siblings, and a hard
  *    pixel floor only clipped or over-padded once the copy was translated.
  */
-import { useT } from '../../../../lib/i18n/I18nContext';
 import { cn } from '../../../../lib/cn';
+import { useT } from '../../../../lib/i18n/I18nContext';
 import Alert from '../../../ui/Alert';
 import { RadioGroupItem, RadioGroupRoot } from '../../../ui/RadioGroup';
 import type { RoutingMode } from './aiPanelTypes';

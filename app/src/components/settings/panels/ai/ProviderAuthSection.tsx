@@ -72,7 +72,6 @@ export const ProviderAuthSection = ({
     <PanelSection
       title={t('settings.ai.llmProviders')}
       description={t('settings.ai.llmProvidersDesc')}>
-
       {/* ─── Rejected-key notices ─────────────────────────────────────────
           A BYO key the provider rejected at runtime (401/403). Surfaced
           here, next to the key editor, because the failing path is often a
@@ -105,9 +104,7 @@ export const ProviderAuthSection = ({
       {/* ─── Provider chip-toggle list ────────────────────────────────── */}
       <div className="flex w-full flex-col gap-3">
         {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
-        {error && (
-          <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />
-        )}
+        {error && <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
 
         <div className="flex flex-wrap gap-1.5">
           <ProviderToggleChip

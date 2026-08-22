@@ -194,9 +194,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
             Own = one provider/model for everything. Custom = fine-grained
             per-workload routing.
             ═══════════════════════════════════════════════════════════════ */}
-        <PanelSection
-          title={t('settings.ai.routing')}
-          description={t('settings.ai.routingDesc')}>
+        <PanelSection title={t('settings.ai.routing')} description={t('settings.ai.routingDesc')}>
           <div className="flex w-full flex-col gap-3">
             <RoutingModeCards
               effectiveRoutingMode={effectiveRoutingMode}

@@ -21,7 +21,6 @@
 import { useCallback, useState } from 'react';
 
 import { cn } from '../../../../lib/cn';
-
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ModelInfo } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
