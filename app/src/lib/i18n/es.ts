@@ -7444,7 +7444,7 @@ const messages: TranslationMap = {
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Ejecutar el núcleo en otro lugar',
   'settings.gateway.description':
-    'El núcleo puede ejecutarse en un contenedor, en otra máquina mediante SSH o en un contenedor de otra máquina. OpenHuman lo inicia, se conecta a él y lo detiene cuando cambias a otro sitio.',
+    'El núcleo puede ejecutarse localmente, en un contenedor o en otra máquina mediante SSH. También puedes conectarte a un núcleo remoto mediante una URL. OpenHuman gestiona el ciclo de vida de las ubicaciones que aprovisiona; para una URL remota, solo establece la conexión.',
   'settings.gateway.add': 'Añadir una ubicación',
   'settings.gateway.save': 'Guardar ubicación',
   'settings.gateway.remove': 'Quitar',
@@ -7471,7 +7471,7 @@ const messages: TranslationMap = {
   'settings.gateway.binaryLabel': 'Ruta a openhuman-core',
   'settings.gateway.kind.desktop': 'Dentro de esta aplicación',
   'settings.gateway.kind.remote': 'Un núcleo en una URL',
-  'settings.gateway.kind.docker': 'En un contenedor aquí',
+  'settings.gateway.kind.docker': 'En un contenedor en este ordenador',
   'settings.gateway.kind.ssh': 'En otra máquina',
   'settings.gateway.kind.ssh+docker': 'En un contenedor de otra máquina',
   'settings.gateway.kind.local-process': 'En este ordenador',
@@ -7485,7 +7485,7 @@ const messages: TranslationMap = {
 
   'devOptions.gateway': 'Ubicación',
   'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicación',
-  'devOptions.gatewayId': 'Ubicación',
+  'devOptions.gatewayId': 'ID de la ubicación',
 };
 
 export default messages;

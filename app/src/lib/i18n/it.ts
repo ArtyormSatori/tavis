@@ -7469,7 +7469,7 @@ const messages: TranslationMap = {
 
   'devOptions.gateway': 'Posizione',
   'devOptions.provisionedCore': 'Core avviato da questa app',
-  'devOptions.gatewayId': 'Posizione',
+  'devOptions.gatewayId': 'ID della posizione',
 };
 
 export default messages;

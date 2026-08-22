@@ -7451,7 +7451,7 @@ const messages: TranslationMap = {
 
   'devOptions.gateway': 'Local',
   'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicação',
-  'devOptions.gatewayId': 'Local',
+  'devOptions.gatewayId': 'ID do local',
 };
 
 export default messages;
