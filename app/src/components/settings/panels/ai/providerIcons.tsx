@@ -16,6 +16,8 @@
  */
 import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
+
+import { cn } from '../../../../lib/cn';
 import {
   SiAlibabacloud,
   SiAnthropic,
@@ -54,6 +56,21 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   ollama: SiOllama,
 };
 
+/** Brand colour treatment for marks that appear inside neutral provider swatches. */
+const PROVIDER_ICON_COLORS: Record<string, string> = {
+  openai: 'text-white',
+  anthropic: 'text-[#D97757]',
+  'claude-code': 'text-[#D97757]',
+  google: 'text-[#4285F4]',
+  mistral: 'text-[#FF7000]',
+  huggingface: 'text-[#FFD21E]',
+  nvidia: 'text-[#76B900]',
+  'vercel-ai-gateway': 'text-black dark:text-white',
+  xai: 'text-black dark:text-white',
+  zai: 'text-[#FF6A00]',
+  ollama: 'text-black dark:text-white',
+};
+
 /**
  * The rendered brand mark for a provider slug, or `null` when we ship none.
  *
@@ -66,7 +83,7 @@ const PROVIDER_ICONS: Record<string, IconType> = {
  */
 export const providerIcon = (slug: string, className: string): ReactElement | null => {
   const icon = PROVIDER_ICONS[slug];
-  return icon ? createElement(icon, { className }) : null;
+  return icon ? createElement(icon, { className: cn(className, PROVIDER_ICON_COLORS[slug]) }) : null;
 };
 
 /** Slugs with a mark — exported for the coverage test, not for rendering. */
