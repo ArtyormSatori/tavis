@@ -28,6 +28,7 @@ import {
   BUILTIN_PROVIDER_META,
   BUILTIN_RESERVED_SLUGS,
   type CloudProvider,
+  formatI18n,
   LOCAL_CHIP_LABEL,
   LOCAL_CHIP_TONE,
   type LocalChipSlug,
@@ -201,7 +202,7 @@ export const ProviderAuthSection = ({
                   />
                 }
                 actions={actions}
-                actionsLabel={t('settings.ai.providers.rowActions', { provider: label })}
+                actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), { provider: label })}
                 data-testid={`provider-row-${slug}`}
               />
             );
@@ -232,7 +233,7 @@ export const ProviderAuthSection = ({
                   onSelect: () => void removeProvider(existing, false),
                 },
               ]}
-              actionsLabel={t('settings.ai.providers.rowActions', { provider: existing.label })}
+              actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), { provider: existing.label })}
               data-testid={`provider-row-${existing.slug}`}
             />
           ))}
@@ -282,7 +283,7 @@ export const ProviderAuthSection = ({
                       ]
                     : []
                 }
-                actionsLabel={t('settings.ai.providers.rowActions', { provider: label })}
+                actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), { provider: label })}
                 data-testid={`provider-row-${localKind}`}
               />
             );
