@@ -98,7 +98,7 @@ fn debug_redacts_credentials_embedded_in_the_endpoint() {
     let debug = format!("{server:?}");
 
     assert!(
-        !debug.contains("s3cret") && !debug.contains("leaky"),
+        !debug.contains("user") && !debug.contains("s3cret") && !debug.contains("leaky"),
         "endpoint credentials leaked into Debug: {debug}"
     );
     assert!(debug.contains("mcp.example"), "origin stays readable");
