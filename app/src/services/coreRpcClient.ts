@@ -421,8 +421,8 @@ export async function getCoreRpcUrl(): Promise<string> {
         return resolvedCoreRpcUrl;
       }
 
-      const url = await invoke<string>('core_rpc_url');
-      const trimmed = String(url || '').trim();
+      const endpoint = await resolveShellEndpoint();
+      const trimmed = String(endpoint?.url || '').trim();
       if (!trimmed) {
         coreRpcError('core_rpc_url returned empty; using build-time default', {
           fallback: CORE_RPC_URL,
