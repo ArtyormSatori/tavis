@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base",
+  "style": "new-york",
   "tsx": true,
   "tailwind": {
     "config": "../tailwind.config.js",
