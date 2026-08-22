@@ -14,9 +14,11 @@
  */
 import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
+import { LuNetwork } from 'react-icons/lu';
 import {
   SiAlibabacloud,
   SiAnthropic,
+  SiApple,
   SiGooglegemini,
   SiHuggingface,
   SiMistralai,
@@ -33,6 +35,7 @@ import deepseekLogo from '../../../../assets/provider-icons/deepseek.svg';
 import fireworksLogo from '../../../../assets/provider-icons/fireworks.svg';
 import groqLogo from '../../../../assets/provider-icons/groq.svg';
 import kilocodeLogo from '../../../../assets/provider-icons/kilocode.ico';
+import lmstudioLogo from '../../../../assets/provider-icons/lmstudio.svg';
 import minimaxLogo from '../../../../assets/provider-icons/minimax.svg';
 import modelscopeLogo from '../../../../assets/provider-icons/modelscope.svg';
 import moonshotLogo from '../../../../assets/provider-icons/moonshot.svg';
@@ -69,6 +72,8 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   // than guessed if that ever reads as wrong.
   zai: SiAlibabacloud,
   ollama: SiOllama,
+  omlx: SiApple,
+  gmi: LuNetwork,
 };
 
 /** Locally bundled marks for providers absent from the installed icon set. */
@@ -80,6 +85,7 @@ const PROVIDER_ASSETS: Record<string, string> = {
   fireworks: fireworksLogo,
   groq: groqLogo,
   kilocode: kilocodeLogo,
+  lmstudio: lmstudioLogo,
   minimax: minimaxLogo,
   modelscope: modelscopeLogo,
   moonshot: moonshotLogo,
