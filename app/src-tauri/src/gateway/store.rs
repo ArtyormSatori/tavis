@@ -126,14 +126,13 @@ fn read_checked() -> Result<StoredGateways, String> {
             // Loud, because a record the user configured has stopped being
             // visible and they are about to wonder why.
             format!(
-                "{} is not readable as gateway records ({error}); refusing to overwrite it",
-                path.display()
+                "{STORE_FILE} is not readable as gateway records ({error}); refusing to overwrite it"
             )
         }),
         Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(StoredGateways::default()),
         Err(error) => {
-            log::warn!("[gateway][store] read {} failed: {error}", path.display());
-            Err(format!("could not read {}: {error}", path.display()))
+            log::warn!("[gateway][store] read {STORE_FILE} failed: {error}");
+            Err(format!("could not read {STORE_FILE}: {error}"))
         }
     }
 }
@@ -142,7 +141,7 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
     let path = store_path();
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
-            .map_err(|error| format!("could not create {}: {error}", parent.display()))?;
+            .map_err(|error| format!("could not create {STORE_FILE} directory: {error}"))?;
     }
     let text = serde_json::to_string_pretty(stored)
         .map_err(|error| format!("could not serialize gateway records: {error}"))?;
@@ -169,7 +168,7 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
     if let Err(error) = write_result {
         // Don't leave a half-written temp file behind after a failure.
         let _ = std::fs::remove_file(&temp_path);
-        return Err(format!("could not write {}: {error}", path.display()));
+        return Err(format!("could not write {STORE_FILE}: {error}"));
     }
 
     #[cfg(unix)]
@@ -182,9 +181,8 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
     }
 
     log::debug!(
-        "[gateway][store] wrote {} record(s) to {}",
-        stored.gateways.len(),
-        path.display()
+        "[gateway][store] wrote {} record(s) to {STORE_FILE}",
+        stored.gateways.len()
     );
     Ok(())
 }
