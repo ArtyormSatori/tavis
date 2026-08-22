@@ -27,16 +27,10 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import resolveConfigModule from 'tailwindcss/resolveConfig.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(here, '..');
-
-/** Tailwind's built-in colour scales (v3), all of which resolve to real CSS. */
-const TAILWIND_DEFAULT_SCALES = [
-  'slate', 'gray', 'zinc', 'neutral', 'stone',
-  'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal',
-  'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose',
-];
 
 const SHADES = new Set([
   '50', '100', '150', '200', '300', '400', '500', '600', '700', '800', '900', '950',
@@ -66,36 +60,49 @@ function loadTailwindConfig() {
   return sandbox.module.exports;
 }
 
-function allowedScales() {
-  const config = loadTailwindConfig();
-  const extended = Object.keys(config?.theme?.extend?.colors ?? {});
-  if (extended.length === 0) {
+/**
+ * Resolve the FULL Tailwind theme, not just `theme.extend.colors`.
+ *
+ * Two things this gets right that a name allow-list cannot:
+ *
+ *  - **`extend` keeps the defaults.** `sky-500` / `rose-500` are valid here even
+ *    though `sky`/`rose` appear in the config only as single `accent.*` colours,
+ *    because `extend` preserves Tailwind's built-in scales. A hand-maintained
+ *    default list gets this right only until Tailwind changes, and gets it
+ *    exactly backwards if the config ever switches from `extend` to a replacing
+ *    `theme.colors` — it would keep allowing scales that no longer resolve.
+ *  - **Scale vs single colour.** `accent`, `surface` and `content` ARE keys in
+ *    the palette, but they hold named entries (`accent.lavender`,
+ *    `surface.canvas`), not numeric shades. So `accent-lavender` is real while
+ *    `accent-500` emits nothing. Checking the resolved shade key catches that;
+ *    checking the scale NAME does not, and three such dead utilities passed the
+ *    earlier version of this lint.
+ */
+function shadeResolver() {
+  const resolveConfig = resolveConfigModule.default ?? resolveConfigModule;
+  const colors = resolveConfig(loadTailwindConfig())?.theme?.colors;
+  if (!colors || Object.keys(colors).length === 0) {
     throw new Error(
-      'lint:ui-tokens: could not read theme.extend.colors from tailwind.config.js — ' +
-        'refusing to run with an empty allow-list (it would flag everything).'
+      'lint:ui-tokens: resolved theme.colors was empty — refusing to run, ' +
+        'since an empty palette would flag every colour utility in the app.'
     );
   }
-  return new Set([...extended, ...TAILWIND_DEFAULT_SCALES]);
-}
-
-const PATTERN = new RegExp(
-  `\\b(${UTILITY_PREFIXES.join('|')})-([a-z][a-z0-9]+)-(\\d{2,3})\\b`,
-  'g'
-);
-
-function* walk(dir) {
-  for (const entry of readdirSync(dir)) {
-    if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue;
-    const full = path.join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      yield* walk(full);
-    } else if (/\.(ts|tsx|js|jsx)$/.test(entry)) {
-      yield full;
-    }
+  // Sanity-check the resolver against a scale that must always exist, so a
+  // future Tailwind change that alters the resolved shape fails loudly here
+  // rather than silently passing every utility.
+  if (typeof colors.primary !== 'object' || !colors.primary['500']) {
+    throw new Error(
+      'lint:ui-tokens: resolved palette has no primary-500 — the config shape ' +
+        'changed and this lint can no longer be trusted.'
+    );
   }
+  return (scale, shade) => {
+    const entry = colors[scale];
+    return typeof entry === 'object' && entry !== null && Boolean(entry[shade]);
+  };
 }
 
-const allowed = allowedScales();
+const shadeExists = shadeResolver();
 const violations = [];
 
 for (const file of walk(path.join(appRoot, 'src'))) {
@@ -106,7 +113,7 @@ for (const file of walk(path.join(appRoot, 'src'))) {
     for (const m of line.matchAll(PATTERN)) {
       const [match, , scale, shade] = m;
       if (!SHADES.has(shade)) continue;
-      if (allowed.has(scale)) continue;
+      if (shadeExists(scale, shade)) continue;
       violations.push(`${path.relative(appRoot, file)}:${i + 1}: ${match}`);
     }
   });
