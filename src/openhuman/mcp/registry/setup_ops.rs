@@ -24,14 +24,7 @@ use crate::rpc::RpcOutcome;
 
 use tinymcp::SecretRef;
 
-/// Trims and refuses a blank value, naming the field.
-fn require(value: &str, field: &str) -> Result<String, String> {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        return Err(format!("{field} must not be empty"));
-    }
-    Ok(trimmed.to_string())
-}
+use super::helpers::{encode, inject_required_env_keys, require, resolve};
 
 /// Reads a map of credential names to handles.
 fn parse_handles(raw: HashMap<String, String>) -> Result<HashMap<String, SecretRef>, String> {
@@ -49,23 +42,12 @@ fn detail_payload(
     detail: &tinymcp_bus::RegistryServerDetail,
     required_env_keys: &[String],
 ) -> Result<Value, String> {
-    let mut value =
-        serde_json::to_value(detail).map_err(|error| format!("serialization error: {error}"))?;
-    if let Some(object) = value.as_object_mut() {
-        object.insert("required_env_keys".into(), json!(required_env_keys));
-    }
+    let mut value = encode(detail)?;
+    inject_required_env_keys(&mut value, required_env_keys);
     Ok(value)
 }
 
 // ── search ───────────────────────────────────────────────────────────────────
-
-/// The service for `config`'s workspace, as a string error.
-///
-/// See the note on the registry handlers' resolver: this domain is addressed by
-/// configuration, so a handler must act on the workspace its caller named.
-fn resolve(config: &Config) -> Result<std::sync::Arc<host::McpHost>, String> {
-    host::for_config(config).map_err(|error| error.to_string())
-}
 
 pub async fn mcp_setup_search(
     config: &Config,
