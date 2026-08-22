@@ -13,6 +13,8 @@ describe('LlmConnectionsPanel', () => {
     renderWithProviders(<LlmConnectionsPanel />, { initialEntries: ['/connections?tab=llm'] });
 
     expect(screen.getByTestId('api-keys-panel')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'pages.settings.ai.llm' })).toBeInTheDocument();
+    expect(screen.getByText('connections.header.llm')).toBeInTheDocument();
   });
 
   // The page used to be chip-backed, with `#local-model` / `#agent-chat`

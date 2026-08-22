@@ -1,5 +1,4 @@
 import { useT } from '../../../lib/i18n/I18nContext';
-import PageSectionHeader from '../../layout/PageSectionHeader';
 import AIPanel from './AIPanel';
 
 /**
@@ -21,10 +20,12 @@ const LlmConnectionsPanel = () => {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <PageSectionHeader
-        title={t('pages.settings.ai.llm')}
-        description={t('connections.header.llm')}
-      />
+      <div className="space-y-0.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-content">
+          {t('pages.settings.ai.llm')}
+        </h1>
+        <p className="text-sm text-content-muted">{t('connections.header.llm')}</p>
+      </div>
       <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-subtle">
         <AIPanel />
       </div>
