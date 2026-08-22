@@ -254,10 +254,9 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
       <div
         className="relative flex min-w-0 flex-1 flex-col overflow-hidden"
         data-testid="root-shell-content">
-        {/* macOS overlay-title-bar band, in flow ABOVE the content card so the
-            traffic lights land on bare chrome instead of on the card. No-op off
-            macOS / outside Tauri, where the native title bar already owns that
-            band and reserving one would just waste 28px. */}
+        {/* macOS overlay-title-bar drag region. It is absolutely positioned, so
+            the routed surface keeps its full height. No-op off macOS / outside
+            Tauri, where the native title bar already owns this area. */}
         <WindowDragBar />
         <ContentSurface unframed={unframed}>{children}</ContentSurface>
       </div>
