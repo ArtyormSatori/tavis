@@ -58,6 +58,13 @@ interface PanelPageProps<T extends string = string> {
   children?: ReactNode;
   /** Body spacing for the single-body case. Defaults to `p-4 space-y-5`. */
   contentClassName?: string;
+  /**
+   * Cap the body's width and center it. Defaults to `'full'` (today's
+   * unconstrained behavior) — opt in for a page whose body reads as a single
+   * centered column rather than a full-bleed list/table. Applies to whichever
+   * body is active (single-body `children`, or the active tab's `content`).
+   */
+  width?: ContentWidth;
 
   className?: string;
   testId?: string;
