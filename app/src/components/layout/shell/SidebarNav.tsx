@@ -5,7 +5,6 @@ import { NAV_TABS, type NavTab } from '../../../config/navConfig';
 import { useT } from '../../../lib/i18n/I18nContext';
 import { trackEvent } from '../../../services/analytics';
 import { setActiveAccount } from '../../../store/accountsSlice';
-import { selectCompanionSessionActive } from '../../../store/companionSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
 import { AGENT_ACCOUNT_ID } from '../../../utils/accountsFullscreen';
@@ -54,7 +53,6 @@ export default function SidebarNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const unreadCount = useAppSelector(state => selectUnreadCount(state.notifications.items));
-  const companionActive = useAppSelector(selectCompanionSessionActive);
 
   const tabs = useMemo(() => NAV_TABS.map(tab => ({ ...tab, label: t(tab.labelKey) })), [t]);
   const activeTab = tabs.find(tab => matchActive(tab.path, location.pathname));

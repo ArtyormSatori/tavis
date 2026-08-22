@@ -41,7 +41,6 @@ import {
   useContactSessions,
   useSessionTranscript,
 } from '../../lib/orchestration/useOrchestrationSessions';
-import { subconsciousTrigger } from '../../utils/tauriCommands/subconscious';
 import ChatComposer from '../chat/ChatComposer';
 import ChatNewWindowHero from '../chat/ChatNewWindowHero';
 import { DetachedComposerRuntime } from '../chat/composer/DetachedComposerRuntime';
@@ -438,7 +437,6 @@ export default function AgentChatPanel({
 
   const [composerBody, setComposerBody] = useState('');
   const [sending, setSending] = useState(false);
-  const [runningReview, setRunningReview] = useState(false);
   // Controlled by the parent when `onOpenSession` is wired (OrchestrationView
   // drives it from the URL + active sub-agents rail); local state otherwise.
   const [localOpenSessionId, setLocalOpenSessionId] = useState<string | null>(null);
@@ -466,20 +464,6 @@ export default function AgentChatPanel({
     },
     [composerBody, sending, sendMessage, selected]
   );
-
-  const runSteeringReview = useCallback(async () => {
-    debug('steering review: trigger');
-    setRunningReview(true);
-    try {
-      // Steering review runs on the hosted brain now; nudge the device
-      // subconscious (memory) so a manual tick still works locally.
-      await subconsciousTrigger('all');
-    } catch (err) {
-      debug('steering review trigger failed: %o', err);
-    } finally {
-      setRunningReview(false);
-    }
-  }, []);
 
   const steeringText = status?.steering?.text?.trim() || null;
   const isMasterSelected = selectedId === MASTER_CHAT_KEY;
@@ -577,15 +561,6 @@ export default function AgentChatPanel({
                     {steeringText}
                   </span>
                 ) : null}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void runSteeringReview()}
-                  disabled={runningReview}>
-                  {runningReview
-                    ? t('tinyplaceOrchestration.steeringHeader.running')
-                    : t('tinyplaceOrchestration.steeringHeader.runReview')}
-                </Button>
               </div>
             ) : null}
           </div>

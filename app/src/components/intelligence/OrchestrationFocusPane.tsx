@@ -23,8 +23,6 @@ export interface OrchestrationFocusPaneProps {
   masterError: ChatsApi['masterError'];
   refresh: ChatsApi['refresh'];
   steeringText: string | null;
-  runningReview: boolean;
-  onRunSteeringReview: () => void;
   canCompose: boolean;
   composerBody: string;
   onComposerChange: (value: string) => void;
@@ -40,8 +38,6 @@ export default function OrchestrationFocusPane({
   masterError,
   refresh,
   steeringText,
-  runningReview,
-  onRunSteeringReview,
   canCompose,
   composerBody,
   onComposerChange,
@@ -91,22 +87,8 @@ export default function OrchestrationFocusPane({
                     String(status.steering.expiresAfterCycles)
                   )
                 : ''}
-              {status?.lastTickAt
-                ? `${status?.steering ? ' · ' : ''}${t(
-                    'tinyplaceOrchestration.steeringHeader.lastReview'
-                  )}: ${new Date(status.lastTickAt * 1000).toLocaleTimeString()}`
-                : ''}
             </p>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => void onRunSteeringReview()}
-            disabled={runningReview}>
-            {runningReview
-              ? t('tinyplaceOrchestration.steeringHeader.running')
-              : t('tinyplaceOrchestration.steeringHeader.runReview')}
-          </Button>
         </div>
       ) : null}
 
