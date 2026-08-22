@@ -341,9 +341,10 @@ function ChannelTile({
         // Aligns under the name/status text (icon 2.5rem + gap 0.75rem).
         <div className="pl-[3.25rem]">
           {isDefault ? (
-            <span
+            <Badge
               data-testid={setDefaultTestId}
-              className="inline-flex items-center justify-center gap-1 rounded-lg border border-primary-400/60 bg-primary-100/70 px-2.5 py-1 text-[11px] font-semibold text-primary-700 dark:border-primary-500/40 dark:bg-primary-500/15 dark:text-primary-200">
+              variant="primary"
+              className="gap-1 border-primary-400/60 bg-primary-100/70 text-primary-700 dark:border-primary-500/40 dark:bg-primary-500/15 dark:text-primary-200">
               <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path
                   fillRule="evenodd"
@@ -352,7 +353,7 @@ function ChannelTile({
                 />
               </svg>
               {t('channels.defaultBadge')}
-            </span>
+            </Badge>
           ) : (
             <Button
               type="button"
