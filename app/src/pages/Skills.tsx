@@ -483,6 +483,9 @@ const INTELLIGENCE_HEADERS: Partial<Record<ConnectionsTab, { titleKey: string; d
 const SELF_HEADER_TABS: ReadonlySet<ConnectionsTab> = new Set<ConnectionsTab>([
   'llm',
   'voice',
+  'embeddings',
+  'search',
+  'composio-key',
   'wallet',
 ]);
 
@@ -1075,6 +1078,27 @@ export default function Skills() {
               <SettingsLayoutProvider value={{ inTwoPaneShell: true, headerless: true }}>
                 {activeTab === 'llm' && <LlmConnectionsPanel />}
                 {activeTab === 'voice' && <VoiceConnectionsPanel />}
+                {activeTab === 'embeddings' && (
+                  <SettingsTabbedPage
+                    title={t('pages.settings.ai.embeddings')}
+                    description={t('connections.header.embeddings')}>
+                    <EmbeddingsPanel embedded />
+                  </SettingsTabbedPage>
+                )}
+                {activeTab === 'search' && (
+                  <SettingsTabbedPage
+                    title={t('settings.search.title')}
+                    description={t('connections.header.search')}>
+                    <SearchPanel embedded />
+                  </SettingsTabbedPage>
+                )}
+                {activeTab === 'composio-key' && (
+                  <SettingsTabbedPage
+                    title={t('connections.tabs.composioKey')}
+                    description={t('connections.header.composioKey')}>
+                    <ComposioPanel embedded />
+                  </SettingsTabbedPage>
+                )}
                 {activeTab === 'wallet' && <WalletPanel />}
               </SettingsLayoutProvider>
             ) : (
@@ -1087,10 +1111,7 @@ export default function Skills() {
                 )}
                 <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
                   <SettingsLayoutProvider value={{ inTwoPaneShell: true, headerless: true }}>
-                    {activeTab === 'embeddings' && <EmbeddingsPanel />}
-                    {activeTab === 'search' && <SearchPanel />}
                     {activeTab === 'usage' && <UsagePanel />}
-                    {activeTab === 'composio-key' && <ComposioPanel />}
                   </SettingsLayoutProvider>
                 </div>
               </>
