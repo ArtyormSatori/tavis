@@ -88,8 +88,10 @@ interface RootShellLayoutProps {
  *
  * ## Redux stays the source of truth
  *
- * The column, the rail and the reopen affordance are the `Sidebar` primitive,
- * but the primitive is driven as a **controlled view**: `open` and `width` are
+ * The column and the rail are the `Sidebar` primitive (the collapsed-state
+ * reopen affordance lives inside {@link AppSidebar}, which reads the same
+ * primitive's `useSidebar()` context), driven as a **controlled view**:
+ * `open` and `width` are
  * read out of the `layout` slice on every render, and `onOpenChange` /
  * `onWidthChange` dispatch back into it. Letting `SidebarProvider` hold the
  * state uncontrolled would look identical in a unit test and silently stop
