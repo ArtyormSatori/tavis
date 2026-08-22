@@ -1,5 +1,8 @@
 import { useT } from '../../../../lib/i18n/I18nContext';
-import type { ProcessingTranscriptItem, ToolTimelineEntry } from '../../../../store/chatRuntimeSlice';
+import type {
+  ProcessingTranscriptItem,
+  ToolTimelineEntry,
+} from '../../../../store/chatRuntimeSlice';
 import { ToolTimelineBlock } from '../ToolTimelineBlock';
 
 export interface AgentInsightsSlotProps {

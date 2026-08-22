@@ -6,7 +6,7 @@ import {
 } from '../../../../store/chatRuntimeSlice';
 import { useAppDispatch } from '../../../../store/hooks';
 import { AgentProcessSourcePanel } from '../AgentProcessSourcePanel';
-import { BackgroundProcessesPanel, type BackgroundProcess } from '../BackgroundProcessesPanel';
+import { type BackgroundProcess, BackgroundProcessesPanel } from '../BackgroundProcessesPanel';
 import { SubagentDrawer } from '../SubagentDrawer';
 
 export interface TranscriptOverlaysProps {

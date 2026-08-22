@@ -43,9 +43,7 @@ describe('auiThreadState', () => {
   });
 
   it('reports a concrete running state once a runtime is mounted', () => {
-    const { result } = renderHook(() => useAuiThreadRunning(), {
-      wrapper: withRuntime('t-caps'),
-    });
+    const { result } = renderHook(() => useAuiThreadRunning(), { wrapper: withRuntime('t-caps') });
     expect(result.current).toBe(false);
   });
 
