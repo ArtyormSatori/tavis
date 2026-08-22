@@ -284,3 +284,31 @@ fn two_workspaces_get_two_services() {
     assert!(tinymcp::Store::path_for(first_dir.path()).exists());
     assert!(tinymcp::Store::path_for(second_dir.path()).exists());
 }
+
+#[test]
+fn the_only_open_service_answers_a_caller_with_no_configuration() {
+    // The agent's tool registry asks which MCP tools are live, and it asks by
+    // server id alone. A process that opened a service without booting — a
+    // test, or a host driving the library directly — would otherwise be told
+    // nothing is connected while a connection sits in the map.
+    //
+    // Shares the process map with the other cases here, so it asserts the
+    // resolution rather than a specific workspace: with several open and no
+    // default set, there is no honest answer and `None` is correct.
+    let temporary = tempfile::tempdir().expect("tempdir");
+    let mut config = config_without_docs();
+    config.workspace_dir = temporary.path().to_path_buf();
+
+    let opened = super::for_config(&config).expect("the service opens");
+
+    match super::try_service() {
+        Some(resolved) => assert!(
+            std::sync::Arc::ptr_eq(&resolved, &opened) || super::DEFAULT_WORKSPACE.get().is_some(),
+            "resolved a service that is neither the only one open nor the default"
+        ),
+        None => assert!(
+            super::DEFAULT_WORKSPACE.get().is_none(),
+            "answered None even though a default workspace is set"
+        ),
+    }
+}

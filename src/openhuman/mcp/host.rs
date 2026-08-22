@@ -181,21 +181,38 @@ pub fn init(config: &Config) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// The default workspace's service, or `None` before [`init`] has run.
+/// The service for the paths that have no `Config` to resolve by.
 ///
-/// Only for the paths that have no `Config` to resolve by. Anything holding one
-/// should call [`for_config`] instead, which cannot answer `None` and cannot
-/// answer from the wrong workspace.
+/// Anything holding one should call [`for_config`] instead, which cannot answer
+/// `None` and cannot answer from the wrong workspace.
+///
+/// Resolves in two steps. The workspace [`init`] opened wins, because that is
+/// the one this process booted against. Failing that — nothing has booted, but
+/// something opened a service anyway — a *single* open workspace is
+/// unambiguously the one meant, so it answers that. With several open and no
+/// default, there is no honest answer and it says so.
+///
+/// The second step is what makes the connection map readable from a caller that
+/// never booted: the agent's tool registry asks which MCP tools are live, and it
+/// asks by server id alone. Without it, a process that opened a service through
+/// [`for_config`] would still report nothing connected.
 #[must_use]
 pub fn try_service() -> Option<Arc<McpHost>> {
-    let workspace = DEFAULT_WORKSPACE.get()?;
-
     let hosts = HOSTS
         .get()?
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
 
-    hosts.get(workspace).map(Arc::clone)
+    if let Some(workspace) = DEFAULT_WORKSPACE.get() {
+        if let Some(service) = hosts.get(workspace) {
+            return Some(Arc::clone(service));
+        }
+    }
+
+    match hosts.len() {
+        1 => hosts.values().next().map(Arc::clone),
+        _ => None,
+    }
 }
 
 /// The default workspace's service, erroring when it is not up yet.
