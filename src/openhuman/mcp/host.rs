@@ -323,7 +323,9 @@ pub const GITBOOKS_SERVER_NAME: &str = "gitbooks";
 /// dropped from the configured set with a warning rather than silently sent.
 ///
 /// stdio servers (no `endpoint`) and credential-less servers are always fine.
-fn credentialed_endpoint_transport_allowed(server: &crate::openhuman::config::McpServerConfig) -> bool {
+fn credentialed_endpoint_transport_allowed(
+    server: &crate::openhuman::config::McpServerConfig,
+) -> bool {
     use crate::openhuman::config::McpAuthConfig;
 
     if matches!(server.auth, McpAuthConfig::None) {
