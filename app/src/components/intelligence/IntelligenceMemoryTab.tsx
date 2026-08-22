@@ -1,9 +1,53 @@
+import type { ReactNode } from 'react';
+import { LuLightbulb } from 'react-icons/lu';
+
+import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import type { ActionableItem, ActionableItemSource, TimeGroup } from '../../types/intelligence';
 import Button from '../ui/Button';
 import NativeSelect from '../ui/NativeSelect';
 import TextField from '../ui/TextField';
 import { ActionableCard } from './ActionableCard';
+
+/**
+ * Frosted state panel used for this tab's loading / analyzing / empty states.
+ *
+ * Replaces the former `.glass` CSS class, which was deleted along with the rest
+ * of the bespoke component layer in `index.css`. The values here are a faithful
+ * port of it — `blur(12px)` (`backdrop-blur-lg`), `rgb(var(--surface) / 0.8)`,
+ * a `rgb(var(--line) / 0.6)` hairline, and the light/dark shadow pair. The two
+ * shadow alphas were hardcoded in the original rule too; they are not a new
+ * themeability hole, but they are the one part of this that will not follow a
+ * custom theme.
+ *
+ * It exists as a component rather than a shared class string because all three
+ * call sites also share the medallion + heading + hint structure. `Card` and
+ * `EmptyState` from `components/ui` were both considered and neither fits:
+ * `Card` has no translucency and imposes its own heading/divider structure,
+ * `EmptyState` is bare text with no icon slot.
+ */
+function GlassStatePanel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        'backdrop-blur-lg bg-surface/80 border border-line/60',
+        'shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)]',
+        'rounded-2xl p-8 text-center animate-fade-up'
+      )}>
+      <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-primary-500/10">
+        {icon}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Indeterminate ring used by the loading and analyzing states. */
+function PanelSpinner() {
+  return (
+    <div className="w-8 h-8 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+  );
+}
 
 interface IntelligenceMemoryTabProps {
   handleAnalyzeNow: () => Promise<void>;
