@@ -16,9 +16,8 @@
  * internal dialog from the outside, so they keep a two-row band of their own
  * whether connected or not.
  */
-import { LuCircleAlert } from 'react-icons/lu';
-
 import { useState } from 'react';
+import { LuCircleAlert, LuPlus } from 'react-icons/lu';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ProviderAuthError } from '../../../../services/api/aiSettingsApi';
@@ -44,9 +43,10 @@ import {
   type LocalChipSlug,
   providerToggleAriaLabel,
 } from './aiPanelTypes';
+import { AddProviderDialog, type ProviderOptionGroup } from './AddProviderDialog';
 import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
 import { ProviderGroup, ProviderListRow, type ProviderRowAction } from './ProviderListRow';
-import { type ProviderOptionGroup, ProviderPicker } from './ProviderPicker';
+
 
 const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
 
