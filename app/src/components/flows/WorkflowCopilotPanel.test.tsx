@@ -28,13 +28,17 @@ vi.mock('../../features/conversations/components/ChatThreadView', () => ({
 // decide/connect flow those components own (covered by their own test files).
 // `useAppSelector` is stubbed too: the panel now nests its own
 // `AssistantUiRuntimeProvider` (scoped to the copilot's dedicated thread),
-// which reads the selected thread id from the store. These tests stub
-// `ChatThreadView`, so nothing under that runtime is asserted here — the
-// runtime's real behaviour is covered by
-// `WorkflowCopilotPanel.assistantUiRuntime.test.tsx`, which uses a real store.
+// which projects the thread's transcript out of the store. These tests stub
+// `ChatThreadView`, so nothing under that runtime is asserted here — it just
+// needs a store shape it can read. The runtime's real behaviour is covered by
+// `WorkflowCopilotPanel.assistantUiRuntime.test.tsx`, against a real store.
 vi.mock('../../store/hooks', () => ({
   useAppDispatch: () => vi.fn(),
-  useAppSelector: () => null,
+  useAppSelector: (selector: (state: unknown) => unknown) =>
+    selector({
+      thread: { selectedThreadId: null, messagesByThreadId: {} },
+      chatRuntime: { streamingAssistantByThread: {}, inferenceTurnLifecycleByThread: {} },
+    }),
 }));
 // Neither card calls this on mount (only on Approve/Deny/Connect click), but
 // stub it defensively so a real network call can never sneak into a render
