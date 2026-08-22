@@ -11,6 +11,7 @@
 //! The frontend therefore holds a gateway *id* and asks the shell for the rest.
 
 use std::io;
+use std::io::Write;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
@@ -159,7 +160,6 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
 
     #[cfg(unix)]
     {
-        use std::os::unix::fs::PermissionsExt as _;
         if let Ok(metadata) = std::fs::metadata(&path) {
             if metadata.permissions().mode() & 0o077 != 0 {
                 let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
