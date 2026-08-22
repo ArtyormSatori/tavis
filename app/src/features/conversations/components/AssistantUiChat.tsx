@@ -1,8 +1,13 @@
 import {
+  AttachmentPrimitive,
   AssistantRuntimeProvider,
   AuiIf,
+  ChatModelAdapter,
+  CompositeAttachmentAdapter,
   ComposerPrimitive,
   MessagePrimitive,
+  SimpleImageAttachmentAdapter,
+  SimpleTextAttachmentAdapter,
   ThreadPrimitive,
   useLocalRuntime,
 } from '@assistant-ui/react';
@@ -15,7 +20,21 @@ import {
  * inert model here gives the library's Thread and Composer primitives a real
  * runtime while making the boundary for the next integration step explicit.
  */
-const localChatModel = { run: async () => ({ content: [] }) };
+const localChatModel: ChatModelAdapter = {
+  run: async () => ({
+    content: [
+      {
+        type: 'text',
+        text: 'This is a local placeholder response. OpenHuman data and model connectors are not wired in yet.',
+      },
+    ],
+  }),
+};
+
+const localAttachmentAdapter = new CompositeAttachmentAdapter([
+  new SimpleImageAttachmentAdapter(),
+  new SimpleTextAttachmentAdapter(),
+]);
 
 function ArrowUpIcon() {
   return (
@@ -57,19 +76,53 @@ function AssistantMessage() {
   );
 }
 
+function ComposerAttachment() {
+  return (
+    <AttachmentPrimitive.Root className="flex max-w-52 items-center gap-2 rounded-lg border border-line bg-surface-subtle px-2 py-1.5 text-xs text-content">
+      <AttachmentPrimitive.Name />
+      <AttachmentPrimitive.Remove asChild>
+        <button
+          type="button"
+          className="ml-auto text-content-muted transition-colors hover:text-content"
+          aria-label="Remove attachment">
+          ×
+        </button>
+      </AttachmentPrimitive.Remove>
+    </AttachmentPrimitive.Root>
+  );
+}
+
 /** The Base example's composer structure, expressed with the app's tokens. */
 function BaseComposer() {
   return (
     <ComposerPrimitive.Root className="relative flex w-full flex-col">
       <ComposerPrimitive.AttachmentDropzone asChild>
         <div className="flex w-full cursor-text flex-col gap-2 rounded-3xl border border-line bg-surface p-2 transition-colors focus-within:border-line-strong data-[dragging=true]:border-dashed data-[dragging=true]:bg-surface-hover">
+          <ComposerPrimitive.Attachments components={{ Attachment: ComposerAttachment }} />
           <ComposerPrimitive.Input
             rows={1}
             placeholder="Send a message..."
             className="max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-sm leading-6 text-content outline-none placeholder:text-content-faint"
           />
           <div className="relative flex items-center justify-between">
-            <div />
+            <div className="flex items-center gap-1">
+              <ComposerPrimitive.AddAttachment asChild>
+                <button
+                  type="button"
+                  className="inline-flex size-7 items-center justify-center rounded-full text-content-muted transition-colors hover:bg-surface-hover hover:text-content"
+                  aria-label="Add attachment">
+                  <span className="text-lg leading-none">+</span>
+                </button>
+              </ComposerPrimitive.AddAttachment>
+              <select
+                aria-label="Dummy model selector"
+                defaultValue="openhuman-demo"
+                className="h-7 max-w-36 rounded-full bg-transparent px-2 text-xs font-medium text-content outline-none hover:bg-surface-hover">
+                <option value="openhuman-demo">OpenHuman Demo</option>
+                <option value="fast-demo">Fast Demo</option>
+                <option value="reasoning-demo">Reasoning Demo</option>
+              </select>
+            </div>
             <div className="flex items-center gap-1.5">
               <AuiIf condition={state => !state.thread.isRunning}>
                 <ComposerPrimitive.Send asChild>
@@ -107,7 +160,9 @@ function BaseComposer() {
  * while this component establishes the raw library structure and behaviour.
  */
 export function AssistantUiChat() {
-  const runtime = useLocalRuntime(localChatModel);
+  const runtime = useLocalRuntime(localChatModel, {
+    adapters: { attachments: localAttachmentAdapter },
+  });
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
