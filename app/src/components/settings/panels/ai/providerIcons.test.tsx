@@ -5,9 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  BUILTIN_CLOUD_PROVIDER_SLUGS,
-} from '../builtinCloudProviders';
+import { BUILTIN_CLOUD_PROVIDER_SLUGS } from '../builtinCloudProviders';
 import { PROVIDER_ICON_SLUGS, providerIcon } from './providerIcons';
 
 /** Slugs the panel renders that are not built-in cloud providers. */
