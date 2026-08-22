@@ -148,18 +148,27 @@ impl McpHost {
 pub fn for_config(config: &Config) -> anyhow::Result<Arc<McpHost>> {
     let workspace = config.workspace_dir.clone();
 
-    // Fast path: a host for this workspace already exists.
-    if let Some(existing) = try_get_host(&workspace) {
-        return Ok(existing);
+    // A host already under this workspace needs no re-opening: it would be
+    // wasteful (and, on the common path, a plain Mutex of the shared map held
+    // only for a lookup) to build a second one before noticing the first.
+    let hosts = HOSTS.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Some(existing) = hosts
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .get(&workspace)
+    {
+        return Ok(Arc::clone(existing));
     }
 
+    // Build outside the lock: opening runs the store's migrations and builds
+    // an HTTP client, neither of which should serialize or block a Tokio
+    // worker behind the process-wide map.
     let service = Arc::new(McpHost::open(config)?);
 
-    let mut hosts = HOSTS
-        .get_or_init(|| Mutex::new(HashMap::new()))
+    // Recheck before inserting — a concurrent initializer may have won the
+    // race while the service was being built. Its Arc wins; ours is dropped.
+    let mut hosts = hosts
         .lock()
-        // A panic while holding this lock leaves the map itself intact: the
-        // only mutation under it is one insert of an already-built service.
         .unwrap_or_else(|poisoned| poisoned.into_inner());
 
     if let Some(existing) = hosts.get(&workspace) {
@@ -169,14 +178,6 @@ pub fn for_config(config: &Config) -> anyhow::Result<Arc<McpHost>> {
     hosts.insert(workspace, Arc::clone(&service));
 
     Ok(service)
-}
-
-/// The registered host for `workspace`, if any. Lock-free read used to short-
-/// circuit [`for_config`] on the common path.
-fn try_get_host(workspace: &Path) -> Option<Arc<McpHost>> {
-    let hosts = HOSTS.get()?;
-    let hosts = hosts.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-    hosts.get(workspace).cloned()
 }
 
 /// Opens the service for `config` and marks its workspace the default.
