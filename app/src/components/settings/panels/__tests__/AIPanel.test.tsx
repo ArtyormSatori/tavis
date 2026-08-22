@@ -201,6 +201,12 @@ const baseConnections = [
   { id: 'pending-cal', toolkit: 'googlecalendar', status: 'PENDING' },
 ];
 
+function renderRoutingPanel() {
+  const result = renderWithProviders(<AIPanel />);
+  fireEvent.click(screen.getByTestId('ai-tab-routing'));
+  return result;
+}
+
 describe('AIPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
