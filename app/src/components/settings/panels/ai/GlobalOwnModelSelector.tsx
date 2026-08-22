@@ -287,7 +287,7 @@ export const GlobalOwnModelSelector = ({
             )}
           </div>
           {registrySlug && model.trim().length > 0 && (
-            <label className="flex items-start gap-2 text-xs font-medium text-content-secondary">
+            <Label className="flex items-start gap-2 text-xs text-content-secondary">
               <Checkbox
                 checked={vision}
                 onCheckedChange={setVision}
@@ -299,7 +299,7 @@ export const GlobalOwnModelSelector = ({
                   {t('settings.ai.modelVisionDesc')}
                 </span>
               </span>
-            </label>
+            </Label>
           )}
 
           <Alert className="px-3 py-2 text-xs text-content-muted">

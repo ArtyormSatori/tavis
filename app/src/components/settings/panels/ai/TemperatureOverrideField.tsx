@@ -4,6 +4,7 @@
  */
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Checkbox from '../../../ui/Checkbox';
+import Label from '../../../ui/Label';
 import NumberField from '../../../ui/NumberField';
 import Slider from '../../../ui/Slider';
 
@@ -17,7 +18,7 @@ export const TemperatureOverrideField = ({
   const { t } = useT();
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="flex items-center justify-between gap-2 text-xs font-medium text-content-secondary">
+      <Label className="flex items-center justify-between gap-2 text-xs text-content-secondary">
         <span className="inline-flex items-center gap-2">
           <Checkbox
             checked={temperature != null}
@@ -29,7 +30,7 @@ export const TemperatureOverrideField = ({
         {temperature != null && (
           <span className="font-mono text-[11px] text-content-muted">{temperature.toFixed(2)}</span>
         )}
-      </label>
+      </Label>
       {temperature != null && (
         <div className="flex items-center gap-2">
           <Slider
