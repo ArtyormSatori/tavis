@@ -279,6 +279,7 @@ export function FlowRunInspectorDrawer({ runId, onClose, onFixWithAgent }: Props
               {run && (
                 <span
                   data-testid="flow-run-status-dot"
+                  data-status={run.status}
                   className={`h-2 w-2 shrink-0 rounded-full ${flowRunStatusDotClass(run.status)}`}
                 />
               )}
@@ -287,6 +288,7 @@ export function FlowRunInspectorDrawer({ runId, onClose, onFixWithAgent }: Props
               {run && (
                 <span
                   data-testid="flow-run-status-pill"
+                  data-status={run.status}
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${flowRunStatusAccentClass(run.status)}`}>
                   {flowRunStatusLabel(run.status, t)}
                 </span>

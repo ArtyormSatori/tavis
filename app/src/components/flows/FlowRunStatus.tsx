@@ -89,6 +89,7 @@ export function FlowRunStatus({
     return (
       <span
         data-testid={testId}
+        data-status={status}
         className={`h-2 w-2 shrink-0 rounded-full ${flowRunStatusDotClass(status)} ${className}`.trim()}
         aria-hidden
       />
@@ -98,6 +99,7 @@ export function FlowRunStatus({
   return (
     <span
       data-testid={testId}
+      data-status={status}
       className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${flowRunStatusAccentClass(status)} ${className}`.trim()}>
       {label}
     </span>
