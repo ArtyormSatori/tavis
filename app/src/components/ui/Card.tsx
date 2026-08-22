@@ -10,38 +10,6 @@ export interface CardProps {
   'data-testid'?: string;
 }
 
-export const CardHeader = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => <div className={cn('px-4 pb-0 pt-4', className)}>{children}</div>;
-
-export const CardTitle = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <h3 className={cn('text-xs font-semibold tracking-wide text-content-muted', className)}>
-    {children}
-  </h3>
-);
-
-export const CardDescription = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => (
-  <p className={cn('mt-1 text-xs leading-relaxed text-content-muted', className)}>{children}</p>
-);
-
-export const CardContent = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => <div className={cn('p-4', className)}>{children}</div>;
-
 /**
  * A bordered surface with an optional heading and divided body — the shape
  * ~470 hand-rolled `rounded-* border bg-*` wrappers across the app are
