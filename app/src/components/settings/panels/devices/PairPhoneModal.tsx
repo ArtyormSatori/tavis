@@ -277,7 +277,7 @@ function QrBody({
       </p>
 
       {/* QR code */}
-      <div className="p-3 bg-surface rounded-xl border border-line shadow-sm">
+      <div className="p-3 bg-surface rounded-xl border border-line shadow-xs">
         <QRCodeSVG value={qrUrl} size={200} level="M" bgColor="#ffffff" fgColor="#1c1917" />
       </div>
 

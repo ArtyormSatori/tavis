@@ -99,7 +99,7 @@ const RecoveryPhraseImportMode = ({
                 invalid={importValid === false && word.trim().length > 0}
                 className={
                   importValid === true
-                    ? '!border-sage-400 focus:!border-sage-300 dark:!border-sage-500/40'
+                    ? 'border-sage-400! focus:border-sage-300! dark:border-sage-500/40!'
                     : undefined
                 }
               />

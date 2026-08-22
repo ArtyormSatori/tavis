@@ -255,7 +255,7 @@ export function MemoryInsights({ relations, loading }: MemoryInsightsProps) {
                 showChevron={false}
                 className="h-auto gap-2 p-0 font-normal mb-2 hover:bg-transparent">
                 <div
-                  className={`w-7 h-7 rounded-md ${group.bgColor} flex items-center justify-center flex-shrink-0`}>
+                  className={`w-7 h-7 rounded-md ${group.bgColor} flex items-center justify-center shrink-0`}>
                   <svg
                     className={`w-4 h-4 ${group.color}`}
                     fill="none"

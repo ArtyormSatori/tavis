@@ -202,7 +202,7 @@ function ToolFallbackContent({
     <CollapsibleContent
       data-slot="tool-fallback-content"
       className={cn(
-        "aui-tool-fallback-content relative overflow-hidden text-sm outline-none",
+        "aui-tool-fallback-content relative overflow-hidden text-sm outline-hidden",
         "group/collapsible-content ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:animate-none",
         "data-closed:animate-collapsible-up",
         "data-open:animate-collapsible-down",
@@ -493,7 +493,7 @@ function ToolFallbackApproval({
           <Button
             key={option.id}
             size="sm"
-            variant={option === allowOptions[0] ? "default" : "outline"}
+            variant={option === allowOptions[0] ? "default" : "outline-solid"}
             className={pressable}
             onClick={() => handleOption(option)}
             disabled={submitted}

@@ -103,7 +103,7 @@ function Toast({ notification, onRemove }: ToastProps) {
           ${styles}
         `}>
         {/* Icon */}
-        <div className={`flex-shrink-0 ${iconStyle}`}>{icon}</div>
+        <div className={`shrink-0 ${iconStyle}`}>{icon}</div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -119,7 +119,7 @@ function Toast({ notification, onRemove }: ToastProps) {
             variant="tertiary"
             size="xs"
             onClick={notification.action.handler}
-            className="underline hover:no-underline flex-shrink-0 px-0 h-auto">
+            className="underline hover:no-underline shrink-0 px-0 h-auto">
             {notification.action.label}
           </Button>
         )}
@@ -131,7 +131,7 @@ function Toast({ notification, onRemove }: ToastProps) {
           iconOnly
           aria-label="Dismiss notification"
           onClick={handleRemove}
-          className="flex-shrink-0 text-content-faint hover:text-content-secondary">
+          className="shrink-0 text-content-faint hover:text-content-secondary">
           <CloseIcon className="w-4 h-4" />
         </Button>
       </div>

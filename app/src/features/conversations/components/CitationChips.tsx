@@ -29,7 +29,7 @@ export function CitationChips({ citations }: { citations: MessageCitation[] }) {
               {citation.namespace ?? citation.key}
               {scoreLabel}
             </summary>
-            <div className="mt-1 max-w-md rounded-md border border-line bg-surface px-2 py-1 text-[11px] text-content-secondary shadow-sm">
+            <div className="mt-1 max-w-md rounded-md border border-line bg-surface px-2 py-1 text-[11px] text-content-secondary shadow-xs">
               {citation.snippet}
             </div>
           </details>

@@ -42,7 +42,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-5 h-5 flex-shrink-0"
+          className="w-5 h-5 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -56,7 +56,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-5 h-5 flex-shrink-0"
+          className="w-5 h-5 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -73,7 +73,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-5 h-5 flex-shrink-0"
+          className="w-5 h-5 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -87,7 +87,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-5 h-5 flex-shrink-0"
+          className="w-5 h-5 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -102,7 +102,7 @@ function Spinner() {
   return (
     <svg
       aria-hidden="true"
-      className="w-5 h-5 flex-shrink-0 animate-spin"
+      className="w-5 h-5 shrink-0 animate-spin"
       fill="none"
       viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
@@ -115,7 +115,7 @@ function FailedIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="w-5 h-5 flex-shrink-0 text-coral-500"
+      className="w-5 h-5 shrink-0 text-coral-500"
       fill="none"
       stroke="currentColor"
       strokeWidth={1.8}
@@ -217,7 +217,7 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
       {artifact.status === 'failed' && artifact.error && (
         <div className="text-xs text-coral-600 dark:text-coral-400 mt-1">
           <p
-            className={`font-mono break-words whitespace-pre-wrap ${
+            className={`font-mono wrap-break-word whitespace-pre-wrap ${
               errorExpanded ? 'max-h-48 overflow-y-auto' : ''
             }`}>
             {errorExpanded || artifact.error.length <= ERROR_REASON_PREVIEW_CHARS
@@ -230,7 +230,7 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
               size="xs"
               analyticsId="chat-artifact-error-toggle"
               onClick={() => setErrorExpanded(prev => !prev)}
-              className="mt-1 !h-auto !p-0 underline text-coral-700 hover:bg-transparent hover:text-coral-900">
+              className="mt-1 h-auto! p-0! underline text-coral-700 hover:bg-transparent hover:text-coral-900">
               {errorExpanded ? t('chat.artifact.show_less') : t('chat.artifact.show_more')}
             </Button>
           )}
@@ -246,13 +246,13 @@ export default function ArtifactCard({ artifact, onRetry }: ArtifactCardProps) {
             size="xs"
             analyticsId={`chat-artifact-reveal-${artifact.kind}`}
             onClick={handleReveal}
-            className="ml-auto !h-auto !p-0 underline text-sage-600 hover:bg-transparent hover:text-sage-800 flex-shrink-0">
+            className="ml-auto h-auto! p-0! underline text-sage-600 hover:bg-transparent hover:text-sage-800 shrink-0">
             {t('chat.artifact.reveal')}
           </Button>
         </div>
       )}
       {download.state === 'error' && download.error && (
-        <p className="text-xs text-coral-600 mt-1 break-words">
+        <p className="text-xs text-coral-600 mt-1 wrap-break-word">
           {t('chat.artifact.download_failed').replace('{reason}', download.error)}
         </p>
       )}

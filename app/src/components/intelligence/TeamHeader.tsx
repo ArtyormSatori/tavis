@@ -60,7 +60,7 @@ export function TeamHeader({
     <div className="rounded-lg border border-line bg-surface px-3 py-2.5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="break-words text-sm font-semibold text-content">{title}</div>
+          <div className="wrap-break-word text-sm font-semibold text-content">{title}</div>
           <div className="mt-0.5 text-[11px] text-content-muted">
             {t('intelligence.teams.header.lead')}{' '}
             <span className="font-mono text-primary-600 dark:text-primary-300">
@@ -86,7 +86,7 @@ export function TeamHeader({
                   {member.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </AvatarRoot>
-              <span className="max-w-[7rem] truncate">{member.name}</span>
+              <span className="max-w-28 truncate">{member.name}</span>
               <span
                 className={`h-1.5 w-1.5 flex-none rounded-full ${MEMBER_STATUS_DOT[member.memberStatus]}`}
               />

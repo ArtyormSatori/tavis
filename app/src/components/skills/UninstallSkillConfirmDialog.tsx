@@ -114,7 +114,7 @@ export default function UninstallSkillConfirmDialog({ skill, onClose, onUninstal
       {error && (
         <div className="mt-3 rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700">
           <div className="font-medium">{t('workflows.deleteError')}</div>
-          <div className="mt-1 break-words font-mono text-[11px] text-coral-700/90">{error}</div>
+          <div className="mt-1 wrap-break-word font-mono text-[11px] text-coral-700/90">{error}</div>
         </div>
       )}
     </ModalShell>

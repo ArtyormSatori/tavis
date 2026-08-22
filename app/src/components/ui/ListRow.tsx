@@ -41,7 +41,7 @@ const ListRow = ({
     data-testid={testId}>
     <div className="flex min-w-0 flex-1 items-center gap-2">
       <span className={cn('truncate text-xs text-content', mono && 'font-mono')}>{label}</span>
-      {badge && <span className="flex-shrink-0">{badge}</span>}
+      {badge && <span className="shrink-0">{badge}</span>}
     </div>
     {onRemove && (
       <Button
@@ -53,7 +53,7 @@ const ListRow = ({
         aria-label={removeLabel}
         title={removeIcon != null ? removeLabel : undefined}
         data-testid={removeTestId}
-        className="flex-shrink-0 text-coral-500 hover:text-coral-600 dark:text-coral-400 dark:hover:text-coral-300">
+        className="shrink-0 text-coral-500 hover:text-coral-600 dark:text-coral-400 dark:hover:text-coral-300">
         {removeIcon ?? removeLabel}
       </Button>
     )}

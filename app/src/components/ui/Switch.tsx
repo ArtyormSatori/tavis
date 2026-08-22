@@ -41,16 +41,16 @@ const Switch = ({
     disabled={disabled}
     aria-label={ariaLabel}
     className={cn(
-      'relative inline-flex h-[22px] w-[38px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
+      'relative inline-flex h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full border-2 border-transparent',
       'transition-colors duration-200 ease-in-out motion-reduce:transition-none',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+      'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-surface-strong',
       className
     )}>
     <SwitchPrimitive.Thumb
       className={cn(
-        'pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-surface shadow-sm ring-0',
+        'pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-surface shadow-xs ring-0',
         'transition-transform duration-200 ease-in-out motion-reduce:transition-none',
         'data-[state=checked]:translate-x-[16px] data-[state=unchecked]:translate-x-0'
       )}

@@ -160,7 +160,7 @@ const TeamMembersPanel = () => {
                   className="flex items-center justify-between px-4 py-3 border-b border-line-subtle last:border-b-0">
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Avatar */}
-                    <AvatarRoot className="h-8 w-8 flex-shrink-0 bg-surface-strong">
+                    <AvatarRoot className="h-8 w-8 shrink-0 bg-surface-strong">
                       <AvatarFallback className="bg-surface-strong text-xs font-semibold text-content-secondary">
                         {displayName(member).charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -182,7 +182,7 @@ const TeamMembersPanel = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {/* Role badge / dropdown */}
                     {isAdmin && !isCurrentUser(member) ? (
                       <SettingsSelect

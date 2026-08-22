@@ -59,7 +59,7 @@ export const DialogContent = ({
       // its own frames; see the keyframe comment in tailwind.config.js.
       className={cn(
         'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
-        'overflow-hidden rounded-2xl bg-surface shadow-large animate-dialog-in focus:outline-none',
+        'overflow-hidden rounded-2xl bg-surface shadow-large animate-dialog-in focus:outline-hidden',
         className
       )}
       {...rest}>

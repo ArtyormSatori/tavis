@@ -175,7 +175,7 @@ export function MemorySourceRow({
                     className="inline-flex items-start gap-1 rounded-md bg-coral-50 px-2 py-0.5 text-xs font-medium text-coral-700 dark:bg-coral-500/10 dark:text-coral-300"
                     title={result.reason ?? undefined}>
                     <WarnIcon />
-                    <span className="break-words">
+                    <span className="wrap-break-word">
                       {t('memorySources.sync.failedLabel')}
                       {result.reason ? `: ${result.reason}` : ''}
                     </span>
@@ -211,7 +211,7 @@ export function MemorySourceRow({
                 {health.issues.map(issue => (
                   <div key={issue} className="flex items-start gap-1.5">
                     <WarnIcon />
-                    <span className="break-words">{t(pipelineIssueMessageKey(issue))}</span>
+                    <span className="wrap-break-word">{t(pipelineIssueMessageKey(issue))}</span>
                   </div>
                 ))}
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-[18px]">

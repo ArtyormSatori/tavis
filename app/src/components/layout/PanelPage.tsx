@@ -177,7 +177,7 @@ export default function PanelPage<T extends string = string>({
           description={description}
           leading={leading}
           action={action}
-          className="flex-shrink-0">
+          className="shrink-0">
           {headerExtra}
           <ChipTabs
             className="flex flex-wrap gap-1.5 pt-2"

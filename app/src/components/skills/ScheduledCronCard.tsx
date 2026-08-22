@@ -107,8 +107,8 @@ export default function ScheduledCronCard({
   // dashboard's grouped-skill card.
   const containerClass = `rounded-2xl border shadow-soft transition-colors ${
     isActive
-      ? 'border-sage-200 dark:border-sage-500/30 bg-gradient-to-br from-sage-50 via-surface to-sage-100 dark:from-sage-500/10 dark:via-surface dark:to-sage-500/5'
-      : 'border-line bg-gradient-to-br from-surface via-surface-subtle to-surface-muted dark:from-surface dark:via-surface dark:to-surface-strong'
+      ? 'border-sage-200 dark:border-sage-500/30 bg-linear-to-br from-sage-50 via-surface to-sage-100 dark:from-sage-500/10 dark:via-surface dark:to-sage-500/5'
+      : 'border-line bg-linear-to-br from-surface via-surface-subtle to-surface-muted dark:from-surface dark:via-surface dark:to-surface-strong'
   }`;
 
   const headingRow = (
@@ -217,7 +217,7 @@ export default function ScheduledCronCard({
           onClick();
         }
       }}
-      className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 cursor-pointer rounded-2xl transition-colors hover:bg-surface-subtle/80 dark:hover:bg-surface-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+      className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 cursor-pointer rounded-2xl transition-colors hover:bg-surface-subtle/80 dark:hover:bg-surface-muted/70 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/40">
       {headingRow}
       {rightCluster}
     </div>

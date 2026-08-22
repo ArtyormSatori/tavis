@@ -140,7 +140,7 @@ const AutoRechargeSection = ({
       {/* Error banner */}
       {arError && (
         <Alert variant="destructive" className="mx-3 mb-2 items-start rounded-lg py-2">
-          <WarningIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          <WarningIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <AlertDescription className="text-[12px] leading-relaxed opacity-100">
             {arError}
           </AlertDescription>
@@ -195,7 +195,7 @@ const AutoRechargeSection = ({
           {/* Last error from recharge attempt */}
           {arSettings.lastError && (
             <Alert variant="destructive" className="items-start rounded-lg py-2 gap-1.5">
-              <WarningIcon className="w-3 h-3 flex-shrink-0 mt-0.5" />
+              <WarningIcon className="w-3 h-3 shrink-0 mt-0.5" />
               <AlertDescription className="text-[10px] opacity-100">
                 {t('settings.billing.autoRecharge.lastRechargeFailed')}: {arSettings.lastError}
               </AlertDescription>
@@ -271,7 +271,7 @@ const AutoRechargeSection = ({
         ) : cards.length === 0 ? (
           <div className="flex items-center gap-2 rounded-lg bg-surface-muted border border-line p-2.5">
             <svg
-              className="w-4 h-4 text-content-muted flex-shrink-0"
+              className="w-4 h-4 text-content-muted shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -299,7 +299,7 @@ const AutoRechargeSection = ({
                   className="flex items-center gap-2 rounded-lg bg-surface-muted border border-line px-2.5 py-2">
                   {/* Card icon */}
                   <svg
-                    className="w-4 h-4 text-content-faint flex-shrink-0"
+                    className="w-4 h-4 text-content-faint shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24">
@@ -332,7 +332,7 @@ const AutoRechargeSection = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     {!card.isDefault && (
                       <Button
                         type="button"

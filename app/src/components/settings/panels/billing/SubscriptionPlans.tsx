@@ -61,7 +61,7 @@ const SubscriptionPlans = ({
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="mx-auto inline-flex w-fit rounded-full bg-surface p-1 shadow-sm ring-1 ring-line lg:mx-0">
+          <div className="mx-auto inline-flex w-fit rounded-full bg-surface p-1 shadow-xs ring-1 ring-line lg:mx-0">
             <Button
               variant={billingInterval === 'monthly' ? 'primary' : 'tertiary'}
               size="sm"
@@ -84,7 +84,7 @@ const SubscriptionPlans = ({
 
         {paymentConfirmed && (
           <Alert variant="success">
-            <CheckIcon className="h-4 w-4 flex-shrink-0" />
+            <CheckIcon className="h-4 w-4 shrink-0" />
             <p className="text-sm font-medium">
               {t('settings.billing.subscription.paymentConfirmed')}
             </p>
@@ -111,14 +111,14 @@ const SubscriptionPlans = ({
                 key={plan.tier}
                 className={`relative flex flex-col gap-5 rounded-[24px] px-5 py-5 transition-all sm:flex-row sm:items-center sm:justify-between ${
                   isPopular
-                    ? 'bg-primary-50 dark:bg-primary-500/10 ring-2 ring-primary-500 shadow-sm'
+                    ? 'bg-primary-50 dark:bg-primary-500/10 ring-2 ring-primary-500 shadow-xs'
                     : isCurrent
-                      ? 'bg-surface ring-1 ring-primary-200 shadow-sm'
-                      : 'bg-surface ring-1 ring-line shadow-sm'
+                      ? 'bg-surface ring-1 ring-primary-200 shadow-xs'
+                      : 'bg-surface ring-1 ring-line shadow-xs'
                 }`}>
                 <div className="flex items-start gap-4">
                   <div
-                    className={`flex h-12 w-12 min-h-12 min-w-12 flex-shrink-0 items-center justify-center rounded-full ${
+                    className={`flex h-12 w-12 min-h-12 min-w-12 shrink-0 items-center justify-center rounded-full ${
                       plan.recommended
                         ? 'bg-primary-600 text-content-inverted'
                         : isCurrent

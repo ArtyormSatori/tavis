@@ -501,7 +501,7 @@ const ConnectAuthModal = ({ server, onClose, onConnected }: ConnectAuthModalProp
       }>
       <>
         {error && (
-          <div className="rounded-lg border border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 px-3 py-2 text-xs text-coral-700 dark:text-coral-300 break-words">
+          <div className="rounded-lg border border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 px-3 py-2 text-xs text-coral-700 dark:text-coral-300 wrap-break-word">
             {error}
           </div>
         )}

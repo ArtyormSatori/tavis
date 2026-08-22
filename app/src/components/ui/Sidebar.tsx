@@ -280,7 +280,7 @@ export const SidebarRail = forwardRef<HTMLDivElement, SidebarRailProps>(
           window.removeEventListener('pointermove', handleMove);
           window.removeEventListener('pointerup', detach);
           window.removeEventListener('pointercancel', detach);
-          window.removeEventListener('blur', detach);
+          window.removeEventListener('blur-sm', detach);
           detachRef.current = null;
         };
 
@@ -323,7 +323,7 @@ export const SidebarRail = forwardRef<HTMLDivElement, SidebarRailProps>(
         onKeyDown={handleKeyDown}
         className={cn(
           'group relative w-px flex-none cursor-col-resize select-none self-stretch',
-          'bg-transparent focus:outline-none',
+          'bg-transparent focus:outline-hidden',
           className
         )}
         {...rest}>
@@ -365,7 +365,7 @@ export const SidebarTrigger = forwardRef<HTMLButtonElement, SidebarTriggerProps>
         className={cn(
           'inline-flex h-7 w-7 flex-none items-center justify-center rounded-md',
           'text-content-muted transition-colors hover:bg-surface-hover hover:text-content-secondary',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
+          'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/25',
           className
         )}
         {...rest}>
@@ -568,7 +568,7 @@ export const SidebarMenuButton = forwardRef<HTMLButtonElement, SidebarMenuButton
         aria-current={ariaCurrent ?? (isActive ? 'page' : undefined)}
         className={cn(
           'group/menu-button flex w-full min-w-0 cursor-pointer items-center rounded-md',
-          'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
+          'transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/25',
           'disabled:pointer-events-none disabled:opacity-50',
           MENU_BUTTON_SIZES[size],
           isActive

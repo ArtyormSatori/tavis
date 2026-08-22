@@ -101,11 +101,11 @@ export function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: U
               key={i}
               className="relative flex items-center gap-2 rounded-lg border border-line bg-surface-muted px-2.5 py-1.5 text-xs text-content-secondary max-w-[220px]">
               {video.poster ? (
-                <div className="relative w-10 h-10 flex-shrink-0">
+                <div className="relative w-10 h-10 shrink-0">
                   <img src={video.poster} alt="" className="w-10 h-10 rounded object-cover" />
                   <span className="absolute inset-0 flex items-center justify-center">
                     <svg
-                      className="w-4 h-4 text-content-inverted drop-shadow"
+                      className="w-4 h-4 text-content-inverted drop-shadow-sm"
                       fill="currentColor"
                       viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
@@ -114,7 +114,7 @@ export function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: U
                 </div>
               ) : (
                 <svg
-                  className="w-4 h-4 flex-shrink-0 text-content-muted"
+                  className="w-4 h-4 shrink-0 text-content-muted"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -138,7 +138,7 @@ export function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: U
               key={i}
               className="flex items-center gap-2 rounded-lg border border-line bg-surface-muted px-2.5 py-1.5 text-xs text-content-secondary max-w-[220px]">
               <svg
-                className="w-4 h-4 flex-shrink-0 text-content-muted"
+                className="w-4 h-4 shrink-0 text-content-muted"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -161,7 +161,7 @@ export function UserTurnBody({ msg, displayText, fallbackDataUris, showTime }: U
         </div>
       )}
       {(displayText || showTime) && (
-        <div className="rounded-2xl px-4 py-2.5 bg-primary-500 text-content-inverted rounded-br-md break-words [overflow-wrap:anywhere] overflow-hidden">
+        <div className="rounded-2xl px-4 py-2.5 bg-primary-500 text-content-inverted rounded-br-md wrap-break-word wrap-anywhere overflow-hidden">
           {displayText && <BubbleMarkdown content={displayText} tone="user" />}
           {showTime && (
             <p className={`${displayText ? 'mt-1' : ''} text-[10px] text-content-inverted/60`}>

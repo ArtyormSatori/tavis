@@ -67,7 +67,7 @@ export const ModelTestResultPanel = ({
           {t('settings.ai.waitingForModelResponse')}
         </div>
       ) : testError ? (
-        <div className="mt-2 rounded-md border border-current/15 bg-surface/70 px-3 py-2 font-mono text-[11px] whitespace-pre-wrap break-words">
+        <div className="mt-2 rounded-md border border-current/15 bg-surface/70 px-3 py-2 font-mono text-[11px] whitespace-pre-wrap wrap-break-word">
           {testError}
         </div>
       ) : (
@@ -75,7 +75,7 @@ export const ModelTestResultPanel = ({
           <div className="text-[11px] font-semibold uppercase tracking-wide text-current/80">
             {t('settings.ai.response')}
           </div>
-          <div className="rounded-md border border-current/15 bg-surface/70 px-3 py-3 text-[13px] leading-relaxed text-content whitespace-pre-wrap break-words">
+          <div className="rounded-md border border-current/15 bg-surface/70 px-3 py-3 text-[13px] leading-relaxed text-content whitespace-pre-wrap wrap-break-word">
             {testReply}
           </div>
         </div>

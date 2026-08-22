@@ -25,7 +25,7 @@ const StatusLine = ({ saving, savedNote, error, savingLabel, className }: Status
   } else if (savedNote) {
     content = (
       <span className="flex items-center gap-1 text-sage-700 dark:text-sage-300">
-        <CheckIcon className="inline-block h-3 w-3 flex-shrink-0" />
+        <CheckIcon className="inline-block h-3 w-3 shrink-0" />
         {savedNote}
       </span>
     );
@@ -34,7 +34,7 @@ const StatusLine = ({ saving, savedNote, error, savingLabel, className }: Status
   return (
     <div
       data-slot="status-line"
-      className={cn('min-h-[1.25rem] text-xs', className)}
+      className={cn('min-h-5 text-xs', className)}
       aria-live="polite"
       aria-atomic="true">
       {content}

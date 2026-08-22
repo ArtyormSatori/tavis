@@ -329,11 +329,11 @@ const WorkflowProposalCard: React.FC<Props> = ({ threadId, proposal, onSaved }) 
               <p className="font-semibold text-primary-900 dark:text-primary-100">
                 {proposal.name || t('chat.flowProposal.title')}
               </p>
-              <p className="mt-1 break-words text-primary-800/90 dark:text-primary-200/90">
+              <p className="mt-1 wrap-break-word text-primary-800/90 dark:text-primary-200/90">
                 {t('chat.flowProposal.subtitle')}
               </p>
 
-              <p className="mt-2 text-xs break-words text-content-secondary">
+              <p className="mt-2 text-xs wrap-break-word text-content-secondary">
                 <span className="font-medium text-content-muted">
                   {t('chat.flowProposal.triggerLabel')}:
                 </span>{' '}
@@ -352,7 +352,7 @@ const WorkflowProposalCard: React.FC<Props> = ({ threadId, proposal, onSaved }) 
                         ? t(kindI18nKey)
                         : humanizeUnknownStepKind(step.kind);
                       return (
-                        <li key={i} className="break-words">
+                        <li key={i} className="wrap-break-word">
                           <span
                             data-testid="workflow-proposal-step-kind"
                             className="mr-1.5 inline-block rounded-full bg-primary-100 px-1.5 py-0.5 text-[10px] font-medium text-primary-700 dark:bg-primary-500/15 dark:text-primary-300">

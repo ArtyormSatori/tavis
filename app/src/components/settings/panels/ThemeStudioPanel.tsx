@@ -193,7 +193,7 @@ const ThemeStudioPanel = () => {
               if (next) dispatch(setThemeVariant(next as ThemeVariant));
             }}
             aria-label={t('settings.theme.variantAria', 'Theme variant')}
-            className="overflow-hidden rounded-lg border border-line gap-0 [&>*]:rounded-none [&>*]:border-0">
+            className="overflow-hidden rounded-lg border border-line gap-0 *:rounded-none *:border-0">
             {VARIANT_OPTIONS.map(opt => (
               <ToggleGroupItem
                 key={opt.id}

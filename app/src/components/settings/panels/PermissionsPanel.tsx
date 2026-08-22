@@ -215,7 +215,7 @@ const PermissionsPanel = () => {
                     variant="tertiary"
                     onClick={() => selectTier(p.id)}
                     data-testid={`permissions-preset-${p.id}`}
-                    className={`!inline-block h-auto w-full !justify-start text-left rounded-lg border p-3 transition ${
+                    className={`inline-block! h-auto w-full justify-start! text-left rounded-lg border p-3 transition ${
                       level === p.id
                         ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10'
                         : 'border-line hover:border-primary-300 dark:hover:border-primary-500'

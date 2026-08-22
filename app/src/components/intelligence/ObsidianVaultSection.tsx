@@ -267,7 +267,7 @@ export function ObsidianVaultSection({ contentRootAbs, onToast }: ObsidianVaultS
             }
             console.debug('[ui-flow][obsidian-vault] dismiss: outside click');
           }}
-          className="absolute right-0 top-full z-20 mt-2 w-[36rem] max-w-[calc(100vw-2rem)]
+          className="absolute right-0 top-full z-20 mt-2 w-xl max-w-[calc(100vw-2rem)]
                      rounded-lg border border-violet-200 bg-violet-50 p-4 pr-10 text-sm shadow-xl
                      dark:border-violet-500/30 dark:bg-violet-950">
           <PopoverClose asChild>

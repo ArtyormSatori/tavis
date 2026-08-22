@@ -213,7 +213,7 @@ function ToolsPickerModal({
           </Toggle>
         </div>
 
-        <div className="min-h-[8rem] flex-1 overflow-y-auto px-2 py-2">
+        <div className="min-h-32 flex-1 overflow-y-auto px-2 py-2">
           {loading ? (
             <CenteredLoadingState
               label={t('settings.agents.editor.toolsLoading')}
@@ -245,7 +245,7 @@ function ToolsPickerModal({
                         <span className="block font-mono text-xs font-medium text-content">
                           {tool.name}
                         </span>
-                        <span className="block break-words text-[11px] leading-snug text-content-muted">
+                        <span className="block wrap-break-word text-[11px] leading-snug text-content-muted">
                           {tool.description}
                         </span>
                       </span>

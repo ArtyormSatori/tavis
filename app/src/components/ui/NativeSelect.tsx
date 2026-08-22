@@ -31,7 +31,7 @@ const NativeSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
       className={cn(
         'block cursor-pointer appearance-none rounded-lg border border-line-strong bg-surface bg-no-repeat pr-7 text-sm text-content',
         'transition-colors duration-150',
-        'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
+        'focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20',
         'disabled:cursor-not-allowed disabled:opacity-50',
         inputSize === 'sm' ? 'h-8 pl-2.5' : 'h-9 pl-3',
         className

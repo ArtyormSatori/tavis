@@ -140,7 +140,7 @@ const ApprovalHistoryPanel = () => {
                   <span className="font-mono text-xs text-content truncate">{entry.tool_name}</span>
                   <span
                     data-testid={`approval-history-decision-${entry.decision}`}
-                    className="flex-shrink-0">
+                    className="shrink-0">
                     <SettingsBadge variant={DECISION_BADGE_VARIANT[entry.decision]}>
                       {t(DECISION_LABEL_KEY[entry.decision])}
                     </SettingsBadge>

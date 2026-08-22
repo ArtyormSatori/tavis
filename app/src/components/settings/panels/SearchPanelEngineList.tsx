@@ -74,7 +74,7 @@ const SearchPanelEngineList = ({
           </span>
           {selected && (
             <CheckIcon
-              className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5"
+              className="w-5 h-5 text-primary-500 shrink-0 mt-0.5"
               aria-hidden="true"
             />
           )}

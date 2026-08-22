@@ -82,11 +82,11 @@ export function TaskBoardCardArticle({
     <article
       draggable={isDraggable}
       onDragStart={isDraggable ? handleDragStart : undefined}
-      className={`rounded-lg border border-line bg-surface px-2.5 py-2 shadow-sm transition-opacity ${
+      className={`rounded-lg border border-line bg-surface px-2.5 py-2 shadow-xs transition-opacity ${
         mutating ? 'opacity-50' : 'opacity-100'
       } ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}`}>
       <div className="flex items-start gap-2">
-        <p className="min-w-0 flex-1 break-words text-xs font-medium leading-snug text-content">
+        <p className="min-w-0 flex-1 wrap-break-word text-xs font-medium leading-snug text-content">
           {card.title}
         </p>
         {card.sessionThreadId && onViewSession ? (
@@ -95,12 +95,12 @@ export function TaskBoardCardArticle({
             size="xs"
             title={t('conversations.taskKanban.viewWork')}
             onClick={() => onViewSession(card)}
-            className="flex-shrink-0 gap-1 px-1.5 text-[10px] text-primary-700 dark:text-primary-200">
+            className="shrink-0 gap-1 px-1.5 text-[10px] text-primary-700 dark:text-primary-200">
             <LuExternalLink className="h-3 w-3 flex-none" />
             {t('conversations.taskKanban.viewWork')}
           </Button>
         ) : card.status === 'awaiting_approval' && onDecidePlan ? (
-          <div className="flex flex-shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             <Button
               variant="primary"
               size="xs"
@@ -127,14 +127,14 @@ export function TaskBoardCardArticle({
             title={t('conversations.taskKanban.workTask')}
             disabled={disabled || working}
             onClick={() => onWorkTask(card)}
-            className="flex-shrink-0 gap-1 px-1.5 text-[10px]">
+            className="shrink-0 gap-1 px-1.5 text-[10px]">
             <LuPlay className="h-3 w-3" />
             {working
               ? t('conversations.taskKanban.startingTask')
               : t('conversations.taskKanban.workTask')}
           </Button>
         ) : onMove && isColumnStatus(columnFor(card.status)) ? (
-          <div className="flex flex-shrink-0 items-center gap-0.5">
+          <div className="flex shrink-0 items-center gap-0.5">
             <Button
               iconOnly
               variant="tertiary"
@@ -226,16 +226,16 @@ export function TaskBoardCardArticle({
         )}
       </div>
       {card.objective && (
-        <p className="mt-1 break-words text-[11px] leading-snug text-content-muted">
+        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-content-muted">
           {card.objective}
         </p>
       )}
       {card.notes && (
-        <p className="mt-1 break-words text-[11px] leading-snug text-content-muted">{card.notes}</p>
+        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-content-muted">{card.notes}</p>
       )}
       {/* Blocker text: always shown for blocked cards (column or status) */}
       {card.blocker && (card.status === 'blocked' || columnStatus === 'blocked') && (
-        <p className="mt-1 break-words text-[11px] leading-snug text-coral-600">{card.blocker}</p>
+        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-coral-600">{card.blocker}</p>
       )}
       {(hasBriefActions ||
         card.plan?.length ||

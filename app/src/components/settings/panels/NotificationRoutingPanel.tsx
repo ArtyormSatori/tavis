@@ -132,7 +132,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
       {/* Info card */}
       <Alert variant="info" className="items-start">
         <svg
-          className="w-5 h-5 flex-shrink-0 mt-0.5"
+          className="w-5 h-5 shrink-0 mt-0.5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -179,7 +179,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
           ] as { label: string; desc: string; variant: BadgeVariant }[]
         ).map(row => (
           <div key={row.label} className="flex items-center gap-3 px-4 py-3">
-            <Badge variant={row.variant} className="flex-shrink-0">
+            <Badge variant={row.variant} className="shrink-0">
               {row.label}
             </Badge>
             <span className="text-xs text-content-secondary">{row.desc}</span>
@@ -219,7 +219,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
                 </div>
               </div>
               <div className="flex items-center gap-2 text-xs text-content-secondary">
-                <span className="flex-shrink-0">{t('notifications.routing.threshold')}</span>
+                <span className="shrink-0">{t('notifications.routing.threshold')}</span>
                 <Slider
                   className="flex-1"
                   min={0}

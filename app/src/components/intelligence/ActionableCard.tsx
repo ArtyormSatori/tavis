@@ -89,7 +89,7 @@ function SnoozeDropdownPortal({ isOpen, buttonRef, onClose, onSnooze }: SnoozeDr
     <div
       ref={dropdownRef}
       data-snooze-dropdown
-      className="fixed py-1 bg-surface border border-line rounded-lg shadow-xl min-w-[120px] z-[9999] animate-fade-in"
+      className="fixed py-1 bg-surface border border-line rounded-lg shadow-xl min-w-[120px] z-9999 animate-fade-in"
       style={{ top: position.top, left: position.left }}>
       {SNOOZE_OPTIONS.map(option => (
         <Button
@@ -268,7 +268,7 @@ export function ActionableCard({
         {/* Main content row */}
         <div className="flex items-start gap-3">
           {/* Icon */}
-          <div className="w-8 h-8 flex items-center justify-center text-content-secondary flex-shrink-0 mt-0.5">
+          <div className="w-8 h-8 flex items-center justify-center text-content-secondary shrink-0 mt-0.5">
             {sourceIcon}
           </div>
 
@@ -285,7 +285,7 @@ export function ActionableCard({
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 {/* Complete button */}
                 <Button
                   variant="tertiary"

@@ -160,7 +160,7 @@ export default function ComposerTokenStats({ model, threadId }: ComposerTokenSta
             <Button
               variant="tertiary"
               aria-label={t('token.sessionUsageTitle')}
-              className="!h-auto min-w-0 flex-wrap gap-1.5 !p-0 text-[10px] font-mono text-content-faint hover:bg-transparent select-none">
+              className="h-auto! min-w-0 flex-wrap gap-1.5 p-0! text-[10px] font-mono text-content-faint hover:bg-transparent select-none">
               {parts.map((part, i) => (
                 <span key={i} className="contents">
                   {part}

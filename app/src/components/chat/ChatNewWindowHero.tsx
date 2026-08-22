@@ -155,7 +155,7 @@ export default function ChatNewWindowHero() {
         // message bubbles use.
         className="animate-fade-up rounded-2xl border border-line/80 bg-surface-muted p-6 shadow-soft dark:border-line/80">
         {/* Animated greeting */}
-        <h1 className="min-h-[3.5rem] text-2xl text-center font-bold text-content">
+        <h1 className="min-h-14 text-2xl text-center font-bold text-content">
           {typedWelcome}
           <span aria-hidden="true" className="ml-0.5 inline-block animate-pulse text-primary-500">
             |

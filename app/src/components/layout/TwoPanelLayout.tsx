@@ -234,7 +234,7 @@ export default function TwoPanelLayout({
       {isOpen && (
         <>
           <div
-            className={`flex-shrink-0 min-w-0 overflow-hidden ${paneCard} ${sidebarClassName}`}
+            className={`shrink-0 min-w-0 overflow-hidden ${paneCard} ${sidebarClassName}`}
             style={{ width }}
             data-testid={`two-panel-sidebar-${id}`}>
             {sidebar}
@@ -257,8 +257,8 @@ export default function TwoPanelLayout({
               seamless
                 ? // Flush hairline seam: 1px visible line, wider invisible hit
                   // area, highlights on hover/focus.
-                  'group relative w-px flex-shrink-0 cursor-col-resize select-none self-stretch bg-surface-strong focus:outline-none'
-                : `group relative flex flex-shrink-0 cursor-col-resize select-none items-center justify-center self-stretch focus:outline-none ${
+                  'group relative w-px shrink-0 cursor-col-resize select-none self-stretch bg-surface-strong focus:outline-hidden'
+                : `group relative flex shrink-0 cursor-col-resize select-none items-center justify-center self-stretch focus:outline-hidden ${
                     // Tighter gutter between panes when there's no visible handle.
                     showDividerHandle ? 'mx-1 w-3' : 'mx-0 w-1.5'
                   }`
@@ -301,7 +301,7 @@ export default function TwoPanelLayout({
           // A full-height 24px seam grip rather than a button footprint: the
           // height, width and square corners are overridden, the focus ring and
           // hover fill come from Button.
-          className="h-auto w-6 flex-shrink-0 self-stretch rounded-none text-content-faint hover:text-primary-500">
+          className="h-auto w-6 shrink-0 self-stretch rounded-none text-content-faint hover:text-primary-500">
           <LuChevronRight className="w-4 h-4" aria-hidden />
         </Button>
       )}

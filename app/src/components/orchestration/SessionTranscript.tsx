@@ -106,7 +106,7 @@ function UserBubble({ message }: { message: ChatMessage }): ReactElement {
   return (
     <div className="flex justify-end" data-event-kind="user_prompt">
       <div className="flex max-w-[75%] flex-col items-end gap-1">
-        <div className="overflow-hidden break-words rounded-2xl rounded-br-md bg-primary-500 px-4 py-2.5 text-content-inverted">
+        <div className="overflow-hidden wrap-break-word rounded-2xl rounded-br-md bg-primary-500 px-4 py-2.5 text-content-inverted">
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.body}</p>
         </div>
         <span className="px-1 text-[10px] text-white/60">{formatTime(message.timestamp)}</span>
@@ -227,7 +227,7 @@ function ApprovalRow({
             </span>
           ) : null}
         </div>
-        <code className="mt-1.5 block overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] text-content-secondary">
+        <code className="mt-1.5 block overflow-x-auto whitespace-pre-wrap wrap-break-word font-mono text-[11px] text-content-secondary">
           {message.body}
         </code>
         {decided ? (

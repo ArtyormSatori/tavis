@@ -190,7 +190,7 @@ const ApiKeysStep = ({ onNext, onSkip }: ApiKeysStepProps) => {
                   setOauthCallbackUrl(e.target.value);
                   setError(null);
                 }}
-                className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-xs text-content placeholder-content-faint focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-xs text-content placeholder-content-faint focus:border-primary-500 focus:outline-hidden focus:ring-1 focus:ring-primary-500"
               />
               <button
                 type="button"
@@ -221,7 +221,7 @@ const ApiKeysStep = ({ onNext, onSkip }: ApiKeysStepProps) => {
               setOpenai(e.target.value);
               setError(null);
             }}
-            className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder-content-faint focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder-content-faint focus:border-primary-500 focus:outline-hidden focus:ring-1 focus:ring-primary-500"
           />
         </div>
 
@@ -243,7 +243,7 @@ const ApiKeysStep = ({ onNext, onSkip }: ApiKeysStepProps) => {
               setAnthropic(e.target.value);
               setError(null);
             }}
-            className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder-content-faint focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-content placeholder-content-faint focus:border-primary-500 focus:outline-hidden focus:ring-1 focus:ring-primary-500"
           />
         </div>
 

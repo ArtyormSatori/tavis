@@ -84,7 +84,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-4 h-4 flex-shrink-0"
+          className="w-4 h-4 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -98,7 +98,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-4 h-4 flex-shrink-0"
+          className="w-4 h-4 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -115,7 +115,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-4 h-4 flex-shrink-0"
+          className="w-4 h-4 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -129,7 +129,7 @@ function KindIcon({ kind }: { kind: ArtifactSnapshot['kind'] }) {
       return (
         <svg
           aria-hidden="true"
-          className="w-4 h-4 flex-shrink-0"
+          className="w-4 h-4 shrink-0"
           fill="none"
           stroke={stroke}
           strokeWidth={1.8}
@@ -348,7 +348,7 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
                       analyticsId={`chat-files-delete-${artifact.kind}`}
                       data-testid={`chat-files-delete-${artifact.artifactId}`}
                       aria-label={t('chat.files.delete.aria').replace('{title}', artifact.title)}
-                      className="ml-auto !w-auto px-2">
+                      className="ml-auto w-auto! px-2">
                       <svg
                         className="w-3.5 h-3.5"
                         fill="none"
@@ -365,7 +365,7 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
                   </div>
                 )}
                 {row.state === 'error' && row.error && (
-                  <p className="text-[11px] text-coral-600 dark:text-coral-400 mt-0.5 break-words">
+                  <p className="text-[11px] text-coral-600 dark:text-coral-400 mt-0.5 wrap-break-word">
                     {t('chat.artifact.download_failed').replace('{reason}', row.error)}
                   </p>
                 )}
@@ -375,7 +375,7 @@ export default function ChatFilesPanel({ threadId, artifacts, onClose }: ChatFil
         </ul>
       )}
       {deleteError && (
-        <div className="px-3 py-2 border-t border-line-subtle text-[11px] text-coral-600 dark:text-coral-400 break-words">
+        <div className="px-3 py-2 border-t border-line-subtle text-[11px] text-coral-600 dark:text-coral-400 wrap-break-word">
           {deleteError}
         </div>
       )}

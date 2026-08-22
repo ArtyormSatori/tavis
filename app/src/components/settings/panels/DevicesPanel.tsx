@@ -86,7 +86,7 @@ function PeerDot({ online }: { online: boolean | null }) {
     <span
       title={isOnline ? t('devices.online') : t('devices.offline')}
       data-testid={isOnline ? 'peer-status-online' : 'peer-status-offline'}
-      className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${isOnline ? 'bg-sage-500' : 'bg-content-faint'}`}
+      className={`inline-block w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-sage-500' : 'bg-content-faint'}`}
     />
   );
 }

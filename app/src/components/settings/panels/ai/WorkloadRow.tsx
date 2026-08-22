@@ -104,7 +104,7 @@ export const WorkloadRow = ({
         variant="secondary"
         size="xs"
         onClick={onCustomClick}
-        className="h-auto min-w-[13rem] max-w-[15rem] justify-start gap-2 px-3 py-2 text-left">
+        className="h-auto min-w-52 max-w-60 justify-start gap-2 px-3 py-2 text-left">
         {provider && providerSlug ? (
           <ProviderSwatch slug={providerSlug} label={provider} tone={slugTone(providerSlug)} />
         ) : null}

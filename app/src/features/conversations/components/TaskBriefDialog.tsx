@@ -121,7 +121,7 @@ export function TaskBriefDialog({
             {/* `asChild` keeps the historical h3 so `getByRole('heading')` still
                 resolves the card title. */}
             <DialogTitle asChild>
-              <h3 className="break-words text-base font-semibold text-content">{card.title}</h3>
+              <h3 className="wrap-break-word text-base font-semibold text-content">{card.title}</h3>
             </DialogTitle>
           </div>
           <Button
@@ -351,7 +351,7 @@ function SourceBriefField({
   return (
     <div className="min-w-0">
       <dt className="text-[11px] font-semibold text-primary-700 dark:text-primary-200">{label}</dt>
-      <dd className={`mt-0.5 break-words text-xs text-content ${mono ? 'font-mono' : ''}`}>
+      <dd className={`mt-0.5 wrap-break-word text-xs text-content ${mono ? 'font-mono' : ''}`}>
         {value}
       </dd>
     </div>
@@ -413,7 +413,7 @@ function BriefText({
     <div>
       <h4 className="mb-1 text-xs font-semibold text-content-muted">{label}</h4>
       <p
-        className={`break-words text-sm ${
+        className={`wrap-break-word text-sm ${
           mono ? 'font-mono' : ''
         } ${tone === 'danger' ? 'text-coral-600' : 'text-content'}`}>
         {value}
@@ -443,7 +443,7 @@ function BriefList({
           ordered ? 'list-decimal' : 'list-disc'
         } list-inside text-sm text-content ${mono ? 'font-mono' : ''}`}>
         {values.map((value, index) => (
-          <li key={index} className="break-words">
+          <li key={index} className="wrap-break-word">
             {value}
           </li>
         ))}

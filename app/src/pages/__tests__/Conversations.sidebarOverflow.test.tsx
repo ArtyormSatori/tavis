@@ -6,12 +6,12 @@
  * Conversations. Its composer footer stacks the upsell/error banners, the
  * actionable error CTAs (e.g. the voice-transcription "Setup" link), and the
  * composer itself in a single block inside the `overflow-hidden` mainPanel.
- * The footer used to be a plain `flex-shrink-0` block, so on a short window its
+ * The footer used to be a plain `shrink-0` block, so on a short window its
  * natural height exceeded the panel and its bottom was clipped with no scroll
  * affordance — the composer and the fix button became unreachable.
  *
  * The fix lets the footer SHRINK and scroll instead of staying rigid: dropping
- * `flex-shrink-0` and adding `min-h-0 overflow-y-auto` makes the flex algorithm
+ * `shrink-0` and adding `min-h-0 overflow-y-auto` makes the flex algorithm
  * cap it to the available height and scroll it internally. jsdom does not lay
  * out, so we assert the footer is class-wise scroll-capable + shrinkable, which
  * is what prevents the silent clipping from coming back.
@@ -260,7 +260,7 @@ describe('Conversations — sidebar composer footer overflow (#3785)', () => {
     expect(footer).toHaveClass('overflow-y-auto');
     expect(footer).toHaveClass('min-h-0');
     // It must be allowed to shrink (no flex-shrink-0) so it can give way + scroll.
-    expect(footer).not.toHaveClass('flex-shrink-0');
+    expect(footer).not.toHaveClass('shrink-0');
   });
 
   it('keeps the floating page-variant composer absolutely positioned (no regression)', async () => {

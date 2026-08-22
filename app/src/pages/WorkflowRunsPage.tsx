@@ -110,12 +110,12 @@ export default function WorkflowRunsPage() {
                       <FlowRunStatus
                         status={displayStatus}
                         label={statusLabel(displayStatus)}
-                        className="flex-shrink-0 text-[11px]"
+                        className="shrink-0 text-[11px]"
                       />
                       <span className="min-w-0 flex-1 truncate text-sm font-medium text-content">
                         {flowNames[run.flow_id] ?? t('flows.allRuns.unknownWorkflow')}
                       </span>
-                      <span className="flex-shrink-0 text-[11px] text-content-faint">
+                      <span className="shrink-0 text-[11px] text-content-faint">
                         {new Date(run.started_at).toLocaleString()}
                       </span>
                     </button>

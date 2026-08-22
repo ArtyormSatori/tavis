@@ -49,7 +49,7 @@ const McpToolList = ({ tools, onTryTool }: McpToolListProps) => {
           {safeTools.map(tool => (
             <li key={tool.name} className="space-y-0.5">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-xs font-mono font-medium text-content break-words min-w-0">
+                <p className="text-xs font-mono font-medium text-content wrap-break-word min-w-0">
                   {tool.name}
                 </p>
                 {onTryTool && (

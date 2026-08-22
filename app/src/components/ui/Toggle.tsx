@@ -22,7 +22,7 @@ import { cn } from '../../lib/cn';
  */
 export const toggleVariants = cva(
   'inline-flex items-center justify-center gap-2 font-medium transition-colors duration-150 ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ' +
+    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 ' +
     'focus-visible:ring-offset-surface focus-visible:ring-primary-500/25 ' +
     'disabled:opacity-40 disabled:pointer-events-none',
   {

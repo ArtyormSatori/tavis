@@ -76,7 +76,7 @@ export const AlertDialogContent = forwardRef<
       className={cn(
         'fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2',
         'overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-large',
-        'animate-dialog-in focus:outline-none',
+        'animate-dialog-in focus:outline-hidden',
         className
       )}
       {...rest}>
@@ -132,7 +132,7 @@ AlertDialogFooter.displayName = 'AlertDialogFooter';
  */
 const alertDialogActionVariants = cva(
   'inline-flex items-center justify-center gap-2 h-[30px] px-3 rounded-md text-sm font-medium ' +
-    'transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 ' +
+    'transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2 ' +
     'focus-visible:ring-offset-2 focus-visible:ring-offset-surface ' +
     'disabled:opacity-40 disabled:pointer-events-none',
   {
@@ -182,7 +182,7 @@ export const AlertDialogCancel = forwardRef<
     className={cn(
       'inline-flex items-center justify-center gap-2 h-[30px] px-3 rounded-md text-sm font-medium',
       'border border-line-strong bg-surface text-content hover:bg-surface-hover',
-      'transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2',
+      'transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2',
       'focus-visible:ring-primary-500/25 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
       'disabled:opacity-40 disabled:pointer-events-none',
       className

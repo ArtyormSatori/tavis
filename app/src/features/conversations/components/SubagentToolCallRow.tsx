@@ -78,7 +78,7 @@ export function formatArgs(args: unknown): string | null {
 }
 
 const DETAIL_PRE =
-  'max-h-60 overflow-auto whitespace-pre-wrap break-words rounded bg-surface px-2 py-1.5 ' +
+  'max-h-60 overflow-auto whitespace-pre-wrap wrap-break-word rounded bg-surface px-2 py-1.5 ' +
   'font-mono text-[11px] leading-relaxed text-content-secondary';
 const DETAIL_LABEL = 'mb-1 text-[10px] font-semibold uppercase tracking-wide text-content-faint';
 

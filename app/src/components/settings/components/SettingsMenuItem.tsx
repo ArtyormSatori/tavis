@@ -36,12 +36,12 @@ const SettingsMenuItem = ({
 
   const content = (
     <>
-      <div className={cn('w-5 h-5 opacity-60 flex-shrink-0 mr-3', iconColor)}>{icon}</div>
+      <div className={cn('w-5 h-5 opacity-60 shrink-0 mr-3', iconColor)}>{icon}</div>
       <div className="flex-1">
         <div className={cn('font-medium text-sm mb-1', titleColor)}>{title}</div>
         {description && <p className="opacity-70 text-xs">{description}</p>}
       </div>
-      {rightElement && <div className="flex-shrink-0 ml-3">{rightElement}</div>}
+      {rightElement && <div className="shrink-0 ml-3">{rightElement}</div>}
     </>
   );
 

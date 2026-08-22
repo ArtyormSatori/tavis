@@ -395,7 +395,7 @@ const MascotPanel = ({ embedded = false }: MascotPanelProps) => {
                     aria-label={label}
                     onClick={() => handleSelect(opt.id)}
                     data-testid={`mascot-color-${opt.id}`}
-                    className={`flex flex-col items-center gap-2 rounded-lg p-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                    className={`flex flex-col items-center gap-2 rounded-lg p-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 ${
                       selected ? 'bg-surface-subtle' : 'hover:bg-surface-hover'
                     }`}>
                     <span

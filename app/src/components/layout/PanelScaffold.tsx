@@ -122,7 +122,7 @@ export default function PanelScaffold({
           leading={leading}
           action={action}
           tone={headerTone}
-          className={cn('flex-shrink-0', headerClassName)}>
+          className={cn('shrink-0', headerClassName)}>
           {headerExtra}
         </PanelHeader>
       )}

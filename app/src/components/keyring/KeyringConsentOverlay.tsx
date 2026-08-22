@@ -58,7 +58,7 @@ const KeyringConsentOverlay = () => {
   const failureReason = keyringStatus.failureReason;
 
   return (
-    <div className="fixed inset-0 z-[10000] bg-stone-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-10000 bg-stone-950/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div
         role="dialog"
         aria-modal="true"

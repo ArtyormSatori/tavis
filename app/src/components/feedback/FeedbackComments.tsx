@@ -104,7 +104,7 @@ export default function FeedbackComments({ feedbackId, onCommentAdded }: Feedbac
                   <span>·</span>
                   <span>{formatDate(comment.createdAt)}</span>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap break-words text-sm text-content-secondary">
+                <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm text-content-secondary">
                   {comment.body}
                 </p>
               </li>

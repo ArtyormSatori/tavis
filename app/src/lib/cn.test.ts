@@ -56,7 +56,7 @@ describe('cn', () => {
     expect(out).toContain('text-content');
   });
 
-  it('treats the custom shadows as shadows, so a later shadow replaces them', () => {
+  it('treats the custom shadows as shadows, so a later shadow-sm replaces them', () => {
     expect(cn('shadow-content-edge', 'shadow-xl')).toBe('shadow-xl');
     expect(cn('shadow-cmd-palette', 'shadow-soft')).toBe('shadow-soft');
   });
@@ -71,7 +71,7 @@ describe('cn', () => {
     expect(cn('rounded-xs', 'rounded-5xl')).toBe('rounded-5xl');
   });
 
-  it('resolves the custom backdrop blur scale', () => {
+  it('resolves the custom backdrop blur-sm scale', () => {
     expect(cn('backdrop-blur-xs', 'backdrop-blur-3xl')).toBe('backdrop-blur-3xl');
   });
 });

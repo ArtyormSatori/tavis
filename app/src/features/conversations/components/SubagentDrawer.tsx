@@ -294,7 +294,7 @@ export function SubagentDrawer({
                 <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-content-inverted/70">
                   {t('conversations.subagent.parent')}
                 </div>
-                <div className="whitespace-pre-wrap break-words">{promptText}</div>
+                <div className="whitespace-pre-wrap wrap-break-word">{promptText}</div>
               </div>
             </div>
           ) : null}
@@ -341,7 +341,7 @@ export function SubagentDrawer({
                           />
                           {t('conversations.subagent.thinking')}
                         </div>
-                        <pre className="whitespace-pre-wrap break-words font-sans text-[12px] leading-relaxed text-content-secondary">
+                        <pre className="whitespace-pre-wrap wrap-break-word font-sans text-[12px] leading-relaxed text-content-secondary">
                           {stripToolCallEnvelopes(item.text).trim()}
                         </pre>
                       </div>

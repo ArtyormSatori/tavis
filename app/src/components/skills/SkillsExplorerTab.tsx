@@ -187,7 +187,7 @@ export function SkillTile({ skill, onUninstall, onClick }: SkillTileProps) {
       className="group flex flex-col justify-between rounded-2xl border border-line bg-surface p-3 transition-colors cursor-pointer hover:bg-surface-hover">
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-surface-subtle">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-subtle">
             <svg
               className="h-5 w-5 text-content-muted"
               fill="none"
@@ -270,7 +270,7 @@ function InstalledSkillRow({ skill, onUninstall, onClick }: SkillTileProps) {
   const { t } = useT();
   return (
     <TableRow>
-      <TableCell className="min-w-[12rem]">
+      <TableCell className="min-w-48">
         <Button type="button" variant="tertiary" size="xs" onClick={onClick} className="h-auto max-w-full p-0 text-left font-medium hover:bg-transparent">
           <span className="truncate">{skill.name}</span>
         </Button>
@@ -320,7 +320,7 @@ export function CatalogTile({ entry, installed, installing, onInstall, onClick }
       }`}>
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-surface-subtle">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-subtle">
             <svg
               className="h-5 w-5 text-primary-500"
               fill="none"
@@ -405,7 +405,7 @@ function CatalogRow({ entry, installed, installing, onInstall, onClick }: Catalo
   const { t } = useT();
   return (
     <TableRow className="group">
-      <TableCell className="min-w-[12rem]">
+      <TableCell className="min-w-48">
         <Button
           type="button"
           variant="tertiary"
@@ -468,7 +468,7 @@ function SkillDetailDialog({
         <span className="flex items-center gap-2">
           <span className="truncate">{name}</span>
           {installed && (
-            <span className="flex-shrink-0 rounded-full border border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 px-2 py-0.5 text-[10px] font-medium text-sage-700 dark:text-sage-300">
+            <span className="shrink-0 rounded-full border border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 px-2 py-0.5 text-[10px] font-medium text-sage-700 dark:text-sage-300">
               {t('skills.explorer.installed')}
             </span>
           )}
@@ -836,7 +836,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             size="sm"
             data-testid="skill-install-from-url-btn"
             onClick={() => setInstallDialogOpen(true)}
-            className="flex-shrink-0">
+            className="shrink-0">
             {t('skills.explorer.installFromUrl')}
           </Button>
       {/* Source filter */}
@@ -899,7 +899,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder={t('skills.explorer.searchPlaceholder')}
-            className="pl-9 pr-3 text-xs shadow-sm"
+            className="pl-9 pr-3 text-xs shadow-xs"
           />
         </div>
         {view === 'registry' && (
@@ -911,7 +911,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             disabled={catalogLoading}
             title={t('skills.explorer.refreshRegistry')}
             aria-label={t('skills.explorer.refreshRegistry')}
-            className="flex-shrink-0 text-content-muted shadow-sm">
+            className="shrink-0 text-content-muted shadow-xs">
             <svg
               className={`h-4 w-4 ${catalogLoading ? 'animate-spin' : ''}`}
               fill="none"
@@ -997,7 +997,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="sticky top-0 z-10 min-w-[12rem] bg-surface">Skill</TableHead>
+                    <TableHead className="sticky top-0 z-10 min-w-48 bg-surface">Skill</TableHead>
                     <TableHead className="sticky top-0 z-10 min-w-[18rem] bg-surface">Description</TableHead>
                     <TableHead className="sticky top-0 z-10 bg-surface">Provider</TableHead>
                     <TableHead className="sticky top-0 z-10 bg-surface text-right">Action</TableHead>
@@ -1049,7 +1049,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                    <TableHead className="sticky top-0 z-10 min-w-[12rem] bg-surface">Skill</TableHead>
+                    <TableHead className="sticky top-0 z-10 min-w-48 bg-surface">Skill</TableHead>
                     <TableHead className="sticky top-0 z-10 min-w-[18rem] bg-surface">Description</TableHead>
                     <TableHead className="sticky top-0 z-10 bg-surface">Provider</TableHead>
                     <TableHead className="sticky top-0 z-10 bg-surface text-right">Action</TableHead>

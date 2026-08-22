@@ -101,7 +101,7 @@ export function ModalShell({
         <div className="flex items-center justify-between border-b border-line-subtle px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             {icon ? (
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
                 {icon}
               </div>
             ) : null}

@@ -3,7 +3,7 @@ import { useT } from '../../../../lib/i18n/I18nContext';
 /** Placeholder bubbles shown while a thread's messages are being fetched. */
 export function TranscriptSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[48.75rem] space-y-4 px-5 py-4">
+    <div className="mx-auto w-full max-w-195 space-y-4 px-5 py-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
           <div

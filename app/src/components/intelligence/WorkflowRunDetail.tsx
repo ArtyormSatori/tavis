@@ -229,7 +229,7 @@ const WorkflowRunDetail: React.FC<Props> = ({
                               </span>
                             </div>
                             {out.output && (
-                              <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-snug text-content-secondary">
+                              <p className="mt-1 whitespace-pre-wrap wrap-break-word text-xs leading-snug text-content-secondary">
                                 {out.output}
                               </p>
                             )}
@@ -260,7 +260,7 @@ const WorkflowRunDetail: React.FC<Props> = ({
           <p className="mb-1 text-xs font-semibold text-sage-800 dark:text-sage-200">
             {t('orchestration.detail.synthesis')}
           </p>
-          <p className="whitespace-pre-wrap break-words text-sm leading-snug text-content-secondary">
+          <p className="whitespace-pre-wrap wrap-break-word text-sm leading-snug text-content-secondary">
             {run.summary}
           </p>
         </div>

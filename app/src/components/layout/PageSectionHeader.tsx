@@ -59,7 +59,7 @@ export default function PageSectionHeader({
             <p className="mt-0.5 text-sm text-content-muted">{description}</p>
           )}
         </div>
-        {action != null && <div className="flex-shrink-0">{action}</div>}
+        {action != null && <div className="shrink-0">{action}</div>}
       </div>
       {tabs != null && <div className="mt-3">{tabs}</div>}
     </header>

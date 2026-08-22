@@ -45,7 +45,7 @@ export function SetupNotice({ children, tone = 'sage', icon, className }: SetupN
       className={`rounded-xl border p-3 text-xs ${NOTICE_CLASSES[tone]} ${
         icon ? 'flex items-start gap-2' : ''
       } ${className ?? ''}`}>
-      {icon ? <span className="mt-0.5 flex-shrink-0">{icon}</span> : null}
+      {icon ? <span className="mt-0.5 shrink-0">{icon}</span> : null}
       <div className="min-w-0">{children}</div>
     </div>
   );

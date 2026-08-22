@@ -127,7 +127,7 @@ const FlowListRow = ({
           the switch alone communicates state), then Run, and an overflow menu
           with the secondary/destructive actions (view runs / export /
           duplicate / delete). */}
-      <div className="flex flex-shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1.5">
         <SettingsSwitch
           id={`flow-switch-${flow.id}`}
           checked={flow.enabled}

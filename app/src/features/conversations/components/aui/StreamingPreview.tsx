@@ -20,7 +20,7 @@ function PreviewBubble({ content, bordered }: { content: string; bordered?: bool
       className={`rounded-2xl rounded-bl-md px-3 py-1.5 bg-surface-strong/80 dark:bg-surface-muted text-content ${
         bordered ? 'border-l-2 border-primary-400/60' : ''
       }`}>
-      <p className="text-xs text-content-secondary font-mono whitespace-pre-wrap break-words leading-snug">
+      <p className="text-xs text-content-secondary font-mono whitespace-pre-wrap wrap-break-word leading-snug">
         {content.length > STREAMING_PREVIEW_CHARS && <span className="text-content-faint">…</span>}
         <AuiPlainText
           text={content.slice(-STREAMING_PREVIEW_CHARS)}

@@ -78,7 +78,7 @@ function LiveResponseBlock({ text }: { text: string }) {
         </span>
       </CollapsibleTrigger>
       <CollapsibleContent size="sm" className="px-0 pb-0">
-        <p className="mt-0.5 text-[12px] leading-snug break-words whitespace-pre-wrap text-content-secondary">
+        <p className="mt-0.5 text-[12px] leading-snug wrap-break-word whitespace-pre-wrap text-content-secondary">
           {clean.length > RESPONSE_PREVIEW_CHARS ? (
             <span className="text-content-faint">…</span>
           ) : null}
@@ -506,7 +506,7 @@ export function ToolTimelineBlock({
                       count={count}>
                       {workerRef ? (
                         <div
-                          className={`mt-1 rounded-xl rounded-tl-md px-2.5 py-2 text-[13px] whitespace-pre-wrap break-words text-content-secondary ${BODY_SURFACE}`}>
+                          className={`mt-1 rounded-xl rounded-tl-md px-2.5 py-2 text-[13px] whitespace-pre-wrap wrap-break-word text-content-secondary ${BODY_SURFACE}`}>
                           {workerRef.before}
                           <WorkerThreadRefCard
                             ref={workerRef.ref}
@@ -516,7 +516,7 @@ export function ToolTimelineBlock({
                         </div>
                       ) : formatted.detail ? (
                         <div
-                          className={`mt-1 rounded-xl rounded-tl-md px-2.5 py-2 text-[13px] whitespace-pre-wrap break-words text-content-secondary ${BODY_SURFACE}`}>
+                          className={`mt-1 rounded-xl rounded-tl-md px-2.5 py-2 text-[13px] whitespace-pre-wrap wrap-break-word text-content-secondary ${BODY_SURFACE}`}>
                           {formatted.detail}
                         </div>
                       ) : detailContent ? (

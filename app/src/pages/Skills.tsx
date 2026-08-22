@@ -221,7 +221,7 @@ function ComposioConnectorTile({
       {isPreview && (
         <span
           data-testid={`composio-preview-badge-${meta.slug}`}
-          className="absolute right-1.5 top-1.5 max-w-[4.5rem] truncate rounded-full border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase leading-none text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200"
+          className="absolute right-1.5 top-1.5 max-w-18 truncate rounded-full border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase leading-none text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200"
           title={t('composio.previewTooltip')}>
           {t('composio.previewBadge')}
         </span>
@@ -233,7 +233,7 @@ function ComposioConnectorTile({
           {activeConnectionCount}
         </span>
       )}
-      <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center text-content-secondary [&_img]:max-h-10 [&_img]:max-w-10 [&_svg]:h-8 [&_svg]:w-8">
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center text-content-secondary [&_img]:max-h-10 [&_img]:max-w-10 [&_svg]:h-8 [&_svg]:w-8">
         {meta.icon}
       </div>
       <div className="flex w-full min-w-0 flex-col items-center justify-start gap-0.5">
@@ -325,7 +325,7 @@ function ChannelTile({
         title={`${def.display_name} — ${def.description}`}
         aria-label={`${def.display_name}, ${statusLabel}. ${ctaLabel}.`}
         className="h-auto w-full justify-start gap-3 rounded-xl p-0 text-left">
-        <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center text-content-secondary [&>span]:h-10 [&>span]:w-10 [&>span]:rounded-2xl [&_svg]:h-6 [&_svg]:w-6">
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center text-content-secondary [&>span]:h-10 [&>span]:w-10 [&>span]:rounded-2xl [&_svg]:h-6 [&_svg]:w-6">
           {icon}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -339,7 +339,7 @@ function ChannelTile({
       </Button>
       {showDefaultControl && (
         // Aligns under the name/status text (icon 2.5rem + gap 0.75rem).
-        <div className="pl-[3.25rem]">
+        <div className="pl-13">
           {isDefault ? (
             <Badge
               data-testid={setDefaultTestId}
@@ -1136,17 +1136,17 @@ export default function Skills() {
                   package.
                 </p>
               </div>
-              <div className="flex flex-shrink-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setInstallDialogOpen(true)}
-                  className="rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-content-secondary shadow-soft transition-colors hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1">
+                  className="rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-content-secondary shadow-soft transition-colors hover:bg-surface-hover focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-1">
                   Install from URL
                 </button>
                 <button
                   type="button"
                   onClick={() => setCreateModalOpen(true)}
-                  className="rounded-lg bg-primary-500 px-3 py-2 text-xs font-semibold text-content-inverted shadow-soft transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1">
+                  className="rounded-lg bg-primary-500 px-3 py-2 text-xs font-semibold text-content-inverted shadow-soft transition-colors hover:bg-primary-600 focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-1">
                   New skill
                 </button>
               </div>

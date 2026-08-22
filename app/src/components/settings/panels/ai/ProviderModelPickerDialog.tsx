@@ -137,7 +137,7 @@ export function ProviderModelPickerDialog({
           autoFocus
         />
       </div>
-      <div className="grid min-h-[20rem] grid-cols-1 divide-y divide-line-subtle md:grid-cols-[13rem_1fr] md:divide-x md:divide-y-0">
+      <div className="grid min-h-80 grid-cols-1 divide-y divide-line-subtle md:grid-cols-[13rem_1fr] md:divide-x md:divide-y-0">
         <div className="p-2">
           <p className="px-2 pb-2 text-xs font-medium text-content-muted">Providers</p>
           <div className="space-y-1">

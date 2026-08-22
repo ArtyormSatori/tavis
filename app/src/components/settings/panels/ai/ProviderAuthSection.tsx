@@ -222,7 +222,7 @@ export const ProviderAuthSection = ({
             question. */}
           {providerSaveNotice && (
             <Alert variant="warning" role="status" className="items-start gap-2 px-3 py-2 text-xs">
-              <LuCircleAlert className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+              <LuCircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span className="flex-1">{providerSaveNotice.message}</span>
               <Button
                 type="button"

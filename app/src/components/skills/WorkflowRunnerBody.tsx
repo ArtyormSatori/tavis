@@ -1109,7 +1109,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                     save a recurring schedule that snapshots them. */}
               <div
                 id="workflow-schedule"
-                className="space-y-4 rounded-2xl border border-line/90 bg-gradient-to-br from-surface-muted via-surface to-surface-subtle px-4 py-4 shadow-soft">
+                className="space-y-4 rounded-2xl border border-line/90 bg-linear-to-br from-surface-muted via-surface to-surface-subtle px-4 py-4 shadow-soft">
                 <div className="rounded border border-line bg-surface/70 p-3">
                   <p className="text-sm text-content-secondary whitespace-pre-wrap">
                     {description.when_to_use}
@@ -1257,7 +1257,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                         id="skills-runner-schedule"
                         value={schedule}
                         onChange={e => setSchedule(e.target.value)}
-                        className="w-full rounded-xl shadow-sm">
+                        className="w-full rounded-xl shadow-xs">
                         {SCHEDULE_PRESETS.map(p => (
                           <option key={p.value} value={p.value}>
                             {t(p.labelKey)}
@@ -1433,7 +1433,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                                           </div>
                                         </Button>
                                         {open && r.output && (
-                                          <pre className="mx-2 mb-2 px-3 py-2 rounded-md bg-surface-subtle border border-line text-[11px] text-content-secondary font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                                          <pre className="mx-2 mb-2 px-3 py-2 rounded-md bg-surface-subtle border border-line text-[11px] text-content-secondary font-mono whitespace-pre-wrap wrap-break-word max-h-64 overflow-y-auto">
                                             {r.output}
                                           </pre>
                                         )}
@@ -1561,7 +1561,7 @@ const WorkflowRunnerBody = ({ headerText, className }: SkillsRunnerBodyProps) =>
                           {t('settings.skillsRunner.viewer.error')} {v.error}
                         </div>
                       )}
-                      <pre className="px-3 py-2 m-0 max-h-96 overflow-auto font-mono text-[11px] leading-snug whitespace-pre-wrap break-words text-content">
+                      <pre className="px-3 py-2 m-0 max-h-96 overflow-auto font-mono text-[11px] leading-snug whitespace-pre-wrap wrap-break-word text-content">
                         {v?.content ??
                           (v?.loading ? t('settings.skillsRunner.viewer.loading') : '')}
                       </pre>

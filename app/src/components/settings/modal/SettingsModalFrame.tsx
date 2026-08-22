@@ -74,7 +74,7 @@ export function SettingsModalFrame({ onClose, children, labelledBy }: SettingsMo
               // than the shell's `shadow-content-edge` hairline: this card floats on
               // a dimmed scrim with no adjacent chrome to seam against, and the two
               // utilities would collide on `box-shadow` anyway.
-              className="flex h-full w-full overflow-hidden rounded-2xl bg-surface shadow-xl animate-fade-up focus:outline-none">
+              className="flex h-full w-full overflow-hidden rounded-2xl bg-surface shadow-xl animate-fade-up focus:outline-hidden">
               {/* Radix requires a Title in the tree for the dialog to be
                   accessible. When the caller supplies its own visible heading
                   via `labelledBy`, that id still wins as the accessible name

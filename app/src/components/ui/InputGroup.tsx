@@ -56,7 +56,7 @@ export const InputGroupRoot = forwardRef<HTMLDivElement, InputGroupProps>((props
         data-slot="input-group"
         data-size={size}
         className={cn(
-          'flex w-full items-stretch [&>*]:relative [&>*]:focus-within:z-10',
+          'flex w-full items-stretch *:relative focus-within:*:z-10',
           '[&>*:not(:first-child)]:rounded-l-none [&>*:not(:last-child)]:rounded-r-none',
           '[&>*:not(:first-child)]:-ml-px',
           className

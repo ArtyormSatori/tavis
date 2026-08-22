@@ -62,7 +62,7 @@ export type SourcesContentProps = ComponentProps<typeof CollapsibleContent>;
 export const SourcesContent = ({ className, ...props }: SourcesContentProps) => (
   <CollapsibleContent
     data-slot="sources-content"
-    className={cn('mt-3 flex w-fit flex-col gap-2 px-0 pb-0 text-xs outline-none', className)}
+    className={cn('mt-3 flex w-fit flex-col gap-2 px-0 pb-0 text-xs outline-hidden', className)}
     {...props}
   />
 );

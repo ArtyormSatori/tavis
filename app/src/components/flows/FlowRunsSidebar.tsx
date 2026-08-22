@@ -105,7 +105,7 @@ export default function FlowRunsSidebar({ flowId }: FlowRunsSidebarProps) {
 
   return (
     <div className="flex h-full flex-col" data-testid="flow-runs-sidebar">
-      <div className="flex flex-shrink-0 items-center justify-between gap-2 px-3 py-2">
+      <div className="flex shrink-0 items-center justify-between gap-2 px-3 py-2">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-content-faint">
           {t('flows.runs.sidebarTitle')}
         </span>
@@ -174,7 +174,7 @@ export default function FlowRunsSidebar({ flowId }: FlowRunsSidebarProps) {
                     <FlowRunStatus
                       status={displayStatus}
                       label={flowRunStatusLabel(displayStatus, t)}
-                      className="!px-1.5 text-[10px]"
+                      className="px-1.5! text-[10px]"
                     />
                     <span className="mt-0.5 block truncate text-[11px] text-content-faint">
                       {relativeTime(run.started_at, t)}

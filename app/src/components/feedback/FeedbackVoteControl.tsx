@@ -75,7 +75,7 @@ export default function FeedbackVoteControl({ item, onVoted }: FeedbackVoteContr
 
   return (
     <div
-      className={`flex w-9 flex-shrink-0 flex-col items-center gap-0.5 rounded-full py-1 transition-colors ${pillTint}`}>
+      className={`flex w-9 shrink-0 flex-col items-center gap-0.5 rounded-full py-1 transition-colors ${pillTint}`}>
       <Button
         iconOnly
         variant="tertiary"

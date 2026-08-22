@@ -325,12 +325,12 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
             required
             readOnly={isEdit}
             maxLength={128}
-            className={cn('mt-1 shadow-sm', isEdit && 'cursor-not-allowed bg-surface-muted')}
+            className={cn('mt-1 shadow-xs', isEdit && 'cursor-not-allowed bg-surface-muted')}
             placeholder={t('skills.create.namePlaceholder')}
           />
           <p className="mt-1 text-[11px] text-content-muted">
             {t('skills.create.slugLabel')}{' '}
-            <code className="rounded bg-surface-subtle px-1 py-[1px] font-mono text-content-secondary">
+            <code className="rounded bg-surface-subtle px-1 py-px font-mono text-content-secondary">
               {slug || '—'}
             </code>
           </p>
@@ -351,7 +351,7 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
             required
             rows={3}
             maxLength={500}
-            className="mt-1 shadow-sm"
+            className="mt-1 shadow-xs"
             placeholder={t('skills.create.descriptionPlaceholder')}
           />
         </div>
@@ -374,7 +374,7 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
             onChange={e => setWhenToUse(e.target.value)}
             rows={2}
             maxLength={500}
-            className="mt-1 shadow-sm"
+            className="mt-1 shadow-xs"
             placeholder={t('skills.create.whenToUsePlaceholder')}
           />
           <p className="mt-1 text-[11px] text-content-muted">
@@ -434,7 +434,7 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
                           invalid={showNameErr}
                           placeholder={t('skills.create.inputs.row.namePlaceholder')}
                           aria-label={t('skills.create.inputs.row.name')}
-                          className="text-xs shadow-sm"
+                          className="text-xs shadow-xs"
                         />
                         {showNameErr && (
                           <p className="mt-0.5 text-[10px] text-coral-600">
@@ -452,7 +452,7 @@ const CreateWorkflowForm = forwardRef<CreateSkillFormHandle, CreateSkillFormProp
                           invalid={showDescErr}
                           placeholder={t('skills.create.inputs.row.descriptionPlaceholder')}
                           aria-label={t('skills.create.inputs.row.description')}
-                          className="text-xs shadow-sm"
+                          className="text-xs shadow-xs"
                         />
                         {showDescErr && (
                           <p className="mt-0.5 text-[10px] text-coral-600">

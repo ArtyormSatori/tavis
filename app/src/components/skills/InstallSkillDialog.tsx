@@ -266,7 +266,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 disabled={submitting || result !== null}
                 required
                 maxLength={2048}
-                className="mt-1 shadow-sm disabled:text-content-muted"
+                className="mt-1 shadow-xs disabled:text-content-muted"
                 placeholder={t('skills.install.urlPlaceholder')}
               />
               {url.trim() && !urlValid ? (
@@ -304,7 +304,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 value={timeoutSecs}
                 onChange={e => setTimeoutSecs(e.target.value)}
                 disabled={submitting || result !== null}
-                className="mt-1 shadow-sm disabled:text-content-muted"
+                className="mt-1 shadow-xs disabled:text-content-muted"
                 placeholder={t('skills.install.timeoutPlaceholder')}
               />
               {!timeoutValid ? (
@@ -326,7 +326,7 @@ export default function InstallSkillDialog({ onClose, onInstalled }: Props) {
                 className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 p-3 text-xs text-primary-900">
                 <span
                   aria-hidden="true"
-                  className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-primary-300 border-t-primary-600"
+                  className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-primary-300 border-t-primary-600"
                 />
                 <span>
                   {t('skills.install.fetchingPrefix')} <code className="font-mono">SKILL.md</code>…{' '}

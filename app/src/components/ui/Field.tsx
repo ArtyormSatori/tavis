@@ -59,7 +59,7 @@ const Field = ({
           )}
         </div>
       )}
-      <div className={stacked ? 'w-full' : 'flex-shrink-0'}>{control}</div>
+      <div className={stacked ? 'w-full' : 'shrink-0'}>{control}</div>
     </div>
   );
 };

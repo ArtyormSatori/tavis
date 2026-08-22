@@ -497,7 +497,7 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
           ) : hasContent ? (
             <ConversationContent
               data-testid="chat-message-list"
-              className={`mx-auto max-w-[48.75rem] space-y-3 px-5 pt-4 ${isSidebar ? 'pb-4' : ''}`}
+              className={`mx-auto max-w-195 space-y-3 px-5 pt-4 ${isSidebar ? 'pb-4' : ''}`}
               // Page variant: reserve room for the absolutely-positioned floating
               // composer footer so its tail stays visible. Tracks the footer's
               // measured height (+16px gap) instead of a static `pb-32`, so the

@@ -7,7 +7,7 @@ import { cn } from '../../lib/cn';
  * Fixed padding for the band — kept as a named export (rather than inlined
  * into {@link panelHeaderVariants}) because callers historically imported it
  * directly to restate the default when they also needed to add a class like
- * `flex-shrink-0`. `className` now merges through {@link cn} instead of
+ * `shrink-0`. `className` now merges through {@link cn} instead of
  * replacing the band's own classes (see the fix below), so restating this is
  * no longer necessary, but the export stays for anyone still doing it.
  */
@@ -44,7 +44,7 @@ export interface PanelHeaderProps extends VariantProps<typeof panelHeaderVariant
   children?: ReactNode;
   /**
    * Merged (via `cn`, last-wins) onto the band's own padding + background —
-   * NOT a replacement. Pass `flex-shrink-0` to opt into a flex-column parent
+   * NOT a replacement. Pass `shrink-0` to opt into a flex-column parent
    * without needing to restate the padding.
    */
   className?: string;
@@ -86,7 +86,7 @@ export default function PanelHeader({
               <h2 className="truncate text-base font-semibold text-content">{title}</h2>
             )}
           </div>
-          {action != null && <div className="flex-shrink-0">{action}</div>}
+          {action != null && <div className="shrink-0">{action}</div>}
         </div>
       )}
 

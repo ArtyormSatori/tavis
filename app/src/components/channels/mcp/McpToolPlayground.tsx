@@ -232,7 +232,7 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
       onClose={onClose}
       titleId="mcp-playground-title"
       title={
-        <span className="font-mono break-words">
+        <span className="font-mono wrap-break-word">
           {t('mcp.playground.title').replace('{name}', tool.name)}
         </span>
       }
@@ -258,7 +258,7 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
           {showSchema && (
             <pre
               data-testid="mcp-playground-schema"
-              className="mt-1.5 max-h-40 overflow-auto rounded-lg border border-line bg-surface-muted p-2 text-[11px] font-mono text-content-secondary whitespace-pre-wrap break-words">
+              className="mt-1.5 max-h-40 overflow-auto rounded-lg border border-line bg-surface-muted p-2 text-[11px] font-mono text-content-secondary whitespace-pre-wrap wrap-break-word">
               {schemaJson}
             </pre>
           )}
@@ -337,7 +337,7 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
               data-testid="mcp-playground-result"
               role={resultIsError ? 'alert' : 'status'}
               aria-live={resultIsError ? 'assertive' : 'polite'}
-              className={`max-h-60 overflow-auto rounded-lg border p-2 text-[11px] font-mono whitespace-pre-wrap break-words ${
+              className={`max-h-60 overflow-auto rounded-lg border p-2 text-[11px] font-mono whitespace-pre-wrap wrap-break-word ${
                 resultIsError
                   ? 'border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 text-coral-700 dark:text-coral-300'
                   : 'border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 text-content'

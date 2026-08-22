@@ -63,7 +63,7 @@ const Checkbox = ({
       className={cn(
         'h-4 w-4 cursor-pointer rounded-sm border border-line-strong bg-surface accent-primary-500',
         'transition-colors duration-150',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
         // Offsets against the themed surface. The original used
         // `ring-offset-white` plus a hardcoded dark companion, which stayed
         // white under any custom theme.

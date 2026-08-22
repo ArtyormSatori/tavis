@@ -1170,7 +1170,7 @@ function FlowEditor({
             only). The app sidebar is hidden on this route (chromeless), so this
             can't use the shell `SidebarContent` slot — render it in-page. */}
         {!isDraft && flowId && (
-          <div className="hidden h-full w-60 flex-shrink-0 border-r border-line lg:flex">
+          <div className="hidden h-full w-60 shrink-0 border-r border-line lg:flex">
             <FlowRunsSidebar flowId={flowId} />
           </div>
         )}
@@ -1224,7 +1224,7 @@ function FlowEditor({
                   aria-label={t('common.dismiss')}
                   title={t('common.dismiss')}
                   data-testid="flow-canvas-run-error-dismiss"
-                  className="flex-shrink-0 text-coral-500 hover:bg-transparent hover:text-coral-700 dark:text-coral-300 dark:hover:text-coral-100">
+                  className="shrink-0 text-coral-500 hover:bg-transparent hover:text-coral-700 dark:text-coral-300 dark:hover:text-coral-100">
                   <svg
                     className="h-3.5 w-3.5"
                     fill="none"

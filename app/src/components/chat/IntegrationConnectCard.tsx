@@ -276,7 +276,7 @@ const IntegrationConnectCard: React.FC<Props> = ({ threadId, approval }) => {
     <div
       role="group"
       aria-label={approval.message || t('composio.connect.connect')}
-      className="rounded-xl border border-primary-200 bg-primary-50 p-3.5 text-sm shadow-sm dark:border-primary-800 dark:bg-primary-950">
+      className="rounded-xl border border-primary-200 bg-primary-50 p-3.5 text-sm shadow-xs dark:border-primary-800 dark:bg-primary-950">
       <div className="flex items-start gap-3">
         <span
           aria-hidden
@@ -284,7 +284,7 @@ const IntegrationConnectCard: React.FC<Props> = ({ threadId, approval }) => {
           🔗
         </span>
         <div className="min-w-0 flex-1">
-          <p className="break-words font-semibold text-content">
+          <p className="wrap-break-word font-semibold text-content">
             {approval.message || t('chat.approval.fallback')}
           </p>
 

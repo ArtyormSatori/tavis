@@ -131,7 +131,7 @@ function ChatPageScaffold({
       {footer ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-surface via-surface/90 to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-linear-to-t from-surface via-surface/90 to-transparent"
         />
       ) : null}
 
@@ -140,7 +140,7 @@ function ChatPageScaffold({
         <div
           ref={footerRef}
           data-testid="orch-chat-footer"
-          className="absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-[48.75rem] px-4 pb-4 pt-6">
+          className="absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-195 px-4 pb-4 pt-6">
           {footer}
         </div>
       ) : null}
@@ -316,7 +316,7 @@ function SessionChatView({ session }: { session: SessionSummary }) {
         // Agent metadata, centered to the same width-capped column as the chat.
         <div className="border-b border-line bg-surface/60 dark:bg-black/30">
           <div
-            className="mx-auto w-full max-w-[48.75rem] px-5 py-3"
+            className="mx-auto w-full max-w-195 px-5 py-3"
             data-testid="orch-session-header">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-content">{sessionLabel(session)}</p>
@@ -373,7 +373,7 @@ function SessionChatView({ session }: { session: SessionSummary }) {
           />
         </>
       }>
-      <div className="mx-auto w-full max-w-[48.75rem] space-y-3 px-5 pt-4">
+      <div className="mx-auto w-full max-w-195 space-y-3 px-5 pt-4">
         {state.status === 'loading' ? (
           <p className="py-10 text-center text-sm text-content-muted">
             {t('tinyplaceOrchestration.loading')}
@@ -511,7 +511,7 @@ export default function AgentChatPanel({
             onClick={() => selectChat(chat.id)}
             className={`h-auto gap-1.5 rounded-full px-3 py-0.5 text-xs font-medium ${
               active
-                ? 'bg-surface text-content shadow-sm hover:bg-surface'
+                ? 'bg-surface text-content shadow-xs hover:bg-surface'
                 : 'text-content-muted hover:bg-transparent hover:text-content-secondary'
             }`}>
             {label}
@@ -586,11 +586,11 @@ export default function AgentChatPanel({
         </div>
       ) : showHero && pinged.length === 0 ? (
         // Empty conscious thread: reuse the generic chat's welcome hero.
-        <div className="mx-auto flex h-full w-full max-w-[48.75rem] px-5">
+        <div className="mx-auto flex h-full w-full max-w-195 px-5">
           <ChatNewWindowHero />
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-[48.75rem] space-y-3 px-5 pt-4">
+        <div className="mx-auto w-full max-w-195 space-y-3 px-5 pt-4">
           {selected?.messages.length ? (
             <SessionTranscript messages={selected.messages} />
           ) : showHero ? null : (

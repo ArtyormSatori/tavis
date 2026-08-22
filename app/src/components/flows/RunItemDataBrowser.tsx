@@ -139,7 +139,7 @@ export function RunItemDataBrowser({ items, inputItems, testIdPrefix }: Props) {
             if (next) setView(next as ViewMode);
           }}
           aria-label={t('flowRuns.inspector.dataViewLabel')}
-          className="overflow-hidden rounded-md border border-line gap-0 [&>*]:rounded-none">
+          className="overflow-hidden rounded-md border border-line gap-0 *:rounded-none">
           <ToggleGroupItem
             value="table"
             data-testid={`${testIdPrefix}-view-table`}
@@ -161,7 +161,7 @@ export function RunItemDataBrowser({ items, inputItems, testIdPrefix }: Props) {
       {view === 'json' ? (
         <pre
           data-testid={`${testIdPrefix}-json`}
-          className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-surface px-2 py-1.5 font-mono text-[11px] leading-relaxed text-content-secondary">
+          className="max-h-72 overflow-auto whitespace-pre-wrap wrap-break-word rounded bg-surface px-2 py-1.5 font-mono text-[11px] leading-relaxed text-content-secondary">
           {jsonText}
         </pre>
       ) : (
@@ -304,7 +304,7 @@ function FragmentRow({
             <div className="text-[10px] font-semibold uppercase tracking-wide text-content-faint">
               {t('flowRuns.inspector.sourceInputTitle')}
             </div>
-            <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-surface px-2 py-1.5 font-mono text-[11px] leading-relaxed text-content-secondary">
+            <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word rounded bg-surface px-2 py-1.5 font-mono text-[11px] leading-relaxed text-content-secondary">
               {sourceItem ? formatJson(sourceItem.json) : t('flowRuns.inspector.emptyValue')}
             </pre>
           </TableCell>

@@ -199,7 +199,7 @@ export default function Tooltip({
             // Semantic tokens, not `bg-stone-800`/`text-white`/`dark:bg-neutral-700`:
             // those are raw palette scales, so the pill kept a fixed grey under
             // every user theme instead of following it.
-            className={`pointer-events-none fixed z-[9999] rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in ${
+            className={`pointer-events-none fixed z-9999 rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in ${
               multiline ? 'max-w-xs whitespace-normal' : 'whitespace-nowrap'
             }`}
             style={{

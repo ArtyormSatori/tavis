@@ -294,13 +294,13 @@ function ReactionRail({
           type="button"
           data-analytics-id="chat-message-reaction-remove"
           onClick={() => onReact(messageId, emoji)}
-          className="flex items-center rounded-full border border-primary-200 bg-primary-100 px-1.5 text-xs leading-[1.5] shadow-sm transition-colors hover:bg-primary-200 dark:border-primary-400/40 dark:bg-primary-500/25"
+          className="flex items-center rounded-full border border-primary-200 bg-primary-100 px-1.5 text-xs leading-normal shadow-xs transition-colors hover:bg-primary-200 dark:border-primary-400/40 dark:bg-primary-500/25"
           title={t('chat.removeReaction').replace('{emoji}', emoji)}>
           {emoji}
         </button>
       ))}
       {pickerOpen ? (
-        <div className="flex items-center gap-0.5 rounded-full bg-surface px-1 py-0.5 shadow-sm ring-1 ring-line dark:ring-line-strong">
+        <div className="flex items-center gap-0.5 rounded-full bg-surface px-1 py-0.5 shadow-xs ring-1 ring-line dark:ring-line-strong">
           {REACTION_EMOJI.map(emoji => (
             <button
               key={emoji}
@@ -329,7 +329,7 @@ function ReactionRail({
           type="button"
           data-analytics-id="chat-message-reaction-open"
           onClick={() => onOpenReactionPicker(messageId)}
-          className="flex h-[18px] items-center rounded-full bg-surface px-1.5 text-xs leading-none text-content-muted opacity-0 shadow-sm ring-1 ring-line transition-opacity hover:bg-surface-hover hover:text-content-secondary group-hover/msg:opacity-100 dark:ring-line-strong"
+          className="flex h-[18px] items-center rounded-full bg-surface px-1.5 text-xs leading-none text-content-muted opacity-0 shadow-xs ring-1 ring-line transition-opacity hover:bg-surface-hover hover:text-content-secondary group-hover/msg:opacity-100 dark:ring-line-strong"
           title={t('chat.addReaction')}
           aria-label={t('chat.addReaction')}>
           +

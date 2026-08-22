@@ -22,7 +22,7 @@
  * into whatever height is left below its trigger. The dialog and the popup are
  * both `z-50` from their own primitives and both portal to the body, which
  * leaves paint order to DOM order — true today, but only incidentally. The
- * explicit `z-[60]` makes the popup win by intent rather than by luck.
+ * explicit `z-60` makes the popup win by intent rather than by luck.
  */
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
@@ -96,7 +96,7 @@ const CategorySelect = ({
             }
           />
         </SelectTrigger>
-        <SelectContent className="z-[60] w-[min(24rem,calc(100vw-2rem))]">
+        <SelectContent className="z-60 w-[min(24rem,calc(100vw-2rem))]">
           {category.options.map(option => (
             <SelectItem
               key={option.slug}

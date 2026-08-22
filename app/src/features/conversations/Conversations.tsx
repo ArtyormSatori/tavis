@@ -2004,7 +2004,7 @@ const Conversations = ({
       {!isSidebar && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-surface via-surface/90 to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-linear-to-t from-surface via-surface/90 to-transparent"
         />
       )}
 
@@ -2021,15 +2021,15 @@ const Conversations = ({
         // (e.g. the voice "Setup" link) + the composer (#3785). Rather than a
         // percentage `max-height` (which does not reliably resolve inside a
         // stretched flex item in Chromium), let the footer SHRINK: dropping
-        // `flex-shrink-0` and adding `min-h-0 overflow-y-auto` makes the flex
+        // `shrink-0` and adding `min-h-0 overflow-y-auto` makes the flex
         // algorithm cap it to the available height (the basis-0 message list
         // gives up its space first) and scroll internally instead of being
         // clipped by the `overflow-hidden` mainPanel. On a tall window there is
         // free space, so the footer keeps its natural height (composer pinned).
         className={
           isSidebar
-            ? 'mx-auto w-full max-w-[48.75rem] min-h-0 overflow-y-auto px-4 py-3'
-            : 'absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-[48.75rem] px-4 pb-4 pt-6'
+            ? 'mx-auto w-full max-w-195 min-h-0 overflow-y-auto px-4 py-3'
+            : 'absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-195 px-4 pb-4 pt-6'
         }>
         <>
           {isNearLimit &&
@@ -2057,7 +2057,7 @@ const Conversations = ({
             <div className="mb-3 p-3 rounded-xl bg-coral-50 border border-coral-200 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <svg
-                  className="w-4 h-4 text-coral-400 flex-shrink-0"
+                  className="w-4 h-4 text-coral-400 shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -2074,7 +2074,7 @@ const Conversations = ({
                     : t('chat.budgetComplete')}
                 </p>
               </div>
-              <div className="flex flex-shrink-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   type="button"
                   data-analytics-id="chat-budget-openrouter-free"
@@ -2145,7 +2145,7 @@ const Conversations = ({
               data-chat-send-error-code={displayedSendError.code}>
               {displayedSendError.message}
             </p>
-            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+            <div className="flex items-center gap-2 shrink-0 ml-2">
               {(displayedSendError.code === 'stt_not_ready' ||
                 displayedSendError.code === 'voice_transcription' ||
                 displayedSendError.code === 'tts_not_ready' ||
@@ -2456,7 +2456,7 @@ const Conversations = ({
               void dispatch(loadThreadMessages(selectedThreadParent.id));
               navigate(chatThreadPath(selectedThreadParent.id));
             }}
-            className="mt-2 flex items-center gap-1 rounded px-1 text-[11px] font-medium text-primary-600 hover:text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
+            className="mt-2 flex items-center gap-1 rounded px-1 text-[11px] font-medium text-primary-600 hover:text-primary-700 hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-300"
             data-testid="worker-thread-back-to-parent">
             <span aria-hidden="true">←</span>
             <span className="max-w-[16rem] truncate">
@@ -2478,7 +2478,7 @@ const Conversations = ({
             <ThreadGoalFooterTrigger ctl={threadGoal} />
           </div>
           {!isSidebar && (
-            <div className="flex flex-shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <div
                 className="flex h-7 items-center rounded-full border border-line bg-surface-subtle p-0.5"
                 role="radiogroup"
@@ -2491,7 +2491,7 @@ const Conversations = ({
                   onClick={() => void handleSelectAgentProfile('default')}
                   className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-all ${
                     selectedAgentProfileId === 'default'
-                      ? 'bg-surface text-content shadow-sm'
+                      ? 'bg-surface text-content shadow-xs'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}>
                   {t('chat.agentProfile.quick')}
@@ -2504,7 +2504,7 @@ const Conversations = ({
                   onClick={() => void handleSelectAgentProfile('reasoning')}
                   className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-all ${
                     selectedAgentProfileId === 'reasoning'
-                      ? 'bg-surface text-content shadow-sm'
+                      ? 'bg-surface text-content shadow-xs'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}>
                   {t('chat.agentProfile.reasoning')}

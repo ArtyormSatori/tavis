@@ -70,12 +70,12 @@ export default function FeedbackItemRow({
           <FeedbackStatusBadge status={item.status} />
         </div>
 
-        <h3 className="mt-2 break-words font-title text-[15px] font-semibold leading-snug text-content">
+        <h3 className="mt-2 wrap-break-word font-title text-[15px] font-semibold leading-snug text-content">
           {item.title}
         </h3>
 
         <p
-          className={`mt-1 whitespace-pre-wrap break-words text-sm text-content-muted ${
+          className={`mt-1 whitespace-pre-wrap wrap-break-word text-sm text-content-muted ${
             expanded ? '' : 'line-clamp-2'
           }`}>
           {item.body}

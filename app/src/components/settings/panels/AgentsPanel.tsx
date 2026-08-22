@@ -177,7 +177,7 @@ function AgentRow({
         />
       </div>
 
-      <p className="mt-1 break-words text-xs leading-snug text-content-muted">
+      <p className="mt-1 wrap-break-word text-xs leading-snug text-content-muted">
         {agent.description}
       </p>
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-content-faint">

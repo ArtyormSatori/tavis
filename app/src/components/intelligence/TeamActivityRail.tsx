@@ -98,7 +98,7 @@ export function TeamActivityRail({ messages, members, onSend, sending }: TeamAct
                     {' → '}
                     {nameFor(message.payload.to)}
                   </div>
-                  <p className="break-words text-[11px] leading-snug text-content-secondary">
+                  <p className="wrap-break-word text-[11px] leading-snug text-content-secondary">
                     {message.payload.content}
                   </p>
                 </div>

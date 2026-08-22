@@ -166,7 +166,7 @@ export function MessageBubble({ message }: { message: ChatMessage }): ReactEleme
           <span className="text-[10px] text-content-faint">{formatTime(message.timestamp)}</span>
         </div>
         <p
-          className={`mt-1 max-h-64 overflow-y-auto whitespace-pre-wrap break-words ${
+          className={`mt-1 max-h-64 overflow-y-auto whitespace-pre-wrap wrap-break-word ${
             style.mono ? 'font-mono text-xs' : 'text-sm'
           } ${message.encrypted ? 'text-content-muted' : style.tone}`}>
           {message.body}

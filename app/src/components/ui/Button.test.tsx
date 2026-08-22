@@ -40,7 +40,7 @@ describe('Button', () => {
     expect(btn.className).toMatch(/text-content-inverted/);
   });
 
-  it('renders a coral outline for secondary + tone="danger"', () => {
+  it('renders a coral outline-solid for secondary + tone="danger"', () => {
     render(
       <Button variant="secondary" tone="danger">
         Remove

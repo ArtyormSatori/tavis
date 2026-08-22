@@ -17,7 +17,7 @@ import { cn } from '../../lib/cn';
  * publishes `--radix-collapsible-content-height` (and
  * `--radix-collapsible-content-width`) on the content element for callers that
  * `forceMount` and want a measured height collapse
- * (`h-[var(--radix-collapsible-content-height)] transition-[height]`); the
+ * (`h-(--radix-collapsible-content-height) transition-[height]`); the
  * default does not set a height so the region can reflow freely.
  */
 export const collapsibleVariants = cva('', {
@@ -36,7 +36,7 @@ export const collapsibleTriggerVariants = cva(
   [
     'group flex w-full items-center justify-between gap-2 text-left font-medium',
     'text-content transition-colors hover:bg-surface-hover',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
+    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/25',
     'disabled:cursor-not-allowed disabled:opacity-50',
   ],
   {

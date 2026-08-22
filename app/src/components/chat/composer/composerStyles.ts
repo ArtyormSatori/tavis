@@ -41,7 +41,7 @@ export const COMPOSER_ROOT = 'relative flex w-full flex-col pb-2.5';
 /**
  * `.aui-composer-attachment-dropzone` —
  * `flex w-full flex-col rounded-2xl border border-input bg-background px-1 pt-2
- *  outline-none transition-shadow has-[textarea:focus-visible]:border-ring
+ *  outline-hidden transition-shadow has-[textarea:focus-visible]:border-ring
  *  has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring/20
  *  data-[dragging=true]:border-ring data-[dragging=true]:border-dashed
  *  data-[dragging=true]:bg-accent/50`
@@ -60,7 +60,7 @@ export const COMPOSER_DROPZONE =
 /**
  * `.aui-composer-input` —
  * `mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3
- *  text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-0`
+ *  text-sm outline-hidden placeholder:text-muted-foreground focus-visible:ring-0`
  *
  * Only the placeholder colour is remapped. `disabled:` handling is appended:
  * upstream has no disabled state because its composer is never locked, while
@@ -68,7 +68,7 @@ export const COMPOSER_DROPZONE =
  */
 export const COMPOSER_INPUT =
   'max-h-32 min-h-14 w-full resize-none bg-transparent px-3.5 pt-3 pb-2 text-sm leading-5 ' +
-  'text-content outline-none placeholder:text-content-muted focus-visible:ring-0 ' +
+  'text-content outline-hidden placeholder:text-content-muted focus-visible:ring-0 ' +
   'disabled:cursor-not-allowed disabled:opacity-50';
 
 /**
@@ -77,7 +77,7 @@ export const COMPOSER_INPUT =
  * textarea. Not an upstream class — assistant-ui has no inline completion.
  */
 export const COMPOSER_GHOST_OVERLAY =
-  'pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words ' +
+  'pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap wrap-break-word ' +
   'px-3.5 pt-3 pb-2 text-sm leading-5 font-sans';
 
 /** assistant-ui's compact footer action row. */

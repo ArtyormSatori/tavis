@@ -61,7 +61,7 @@ export const FlowPreauthorizationCard: React.FC<Props> = ({
           <p className="font-semibold text-primary-900 dark:text-primary-100">
             {t('flows.enableApproval.title')}
           </p>
-          <p className="mt-1 break-words text-primary-800/90 dark:text-primary-200/90">
+          <p className="mt-1 wrap-break-word text-primary-800/90 dark:text-primary-200/90">
             {t('flows.enableApproval.intro')}
           </p>
 
@@ -82,7 +82,7 @@ export const FlowPreauthorizationCard: React.FC<Props> = ({
                     {entry.kind === 'approvable' ? '✅' : entry.kind === 'blocked' ? '⛔' : '⚠️'}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words text-ink dark:text-content">
+                    <span className="block wrap-break-word text-ink dark:text-content">
                       {entry.label}
                     </span>
                     {hint && <span className="block text-xs text-content-secondary">{hint}</span>}

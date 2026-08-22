@@ -20,7 +20,7 @@ import { cn } from '../../lib/cn';
  * `--radix-accordion-content-height` (and `--radix-accordion-content-width`) on
  * the content element, measured before paint. A caller that wants a true
  * height collapse can `forceMount` and pass
- * `className="h-[var(--radix-accordion-content-height)] transition-[height]"`;
+ * `className="h-(--radix-accordion-content-height) transition-[height]"`;
  * we do not do that by default because a fixed height clips the padding of the
  * section during the frame the browser is still measuring it.
  */
@@ -53,7 +53,7 @@ export const accordionTriggerVariants = cva(
   [
     'group flex w-full items-center justify-between gap-2 text-left font-medium',
     'text-content transition-colors hover:bg-surface-hover',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
+    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/25',
     'disabled:cursor-not-allowed disabled:opacity-50',
   ],
   {
@@ -154,7 +154,7 @@ export const AccordionTrigger = ({
           strokeLinecap="round"
           strokeLinejoin="round"
           className={cn(
-            'h-4 w-4 flex-shrink-0 text-content-muted transition-transform duration-200',
+            'h-4 w-4 shrink-0 text-content-muted transition-transform duration-200',
             'motion-reduce:transition-none group-data-[state=open]:rotate-180'
           )}>
           <path d="m6 9 6 6 6-6" />

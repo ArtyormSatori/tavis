@@ -30,9 +30,9 @@ export const sliderTrackVariants = cva(
 );
 
 export const sliderThumbVariants = cva(
-  'block rounded-full border-2 border-primary-500 bg-surface shadow-sm transition-colors ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25 ' +
-    'disabled:pointer-events-none data-[disabled]:opacity-50',
+  'block rounded-full border-2 border-primary-500 bg-surface shadow-xs transition-colors ' +
+    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/25 ' +
+    'disabled:pointer-events-none data-disabled:opacity-50',
   { variants: { size: { sm: 'h-3 w-3', md: 'h-4 w-4' } }, defaultVariants: { size: 'md' } }
 );
 
@@ -65,7 +65,7 @@ const Slider = forwardRef<HTMLSpanElement, SliderProps>(
         className={cn(
           'relative flex w-full touch-none select-none items-center',
           'data-[orientation=vertical]:h-full data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col',
-          'data-[disabled]:opacity-50',
+          'data-disabled:opacity-50',
           className
         )}
         {...rest}>

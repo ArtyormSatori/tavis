@@ -263,7 +263,7 @@ export default function RewardsCommunityTab({
 
   return (
     <>
-      <section className="relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-[#004ad0] to-[#2b64f1] p-6 text-content-inverted shadow-[0_20px_40px_rgba(25,28,30,0.08)]">
+      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#004ad0] to-[#2b64f1] p-6 text-content-inverted shadow-[0_20px_40px_rgba(25,28,30,0.08)]">
         <div className="relative z-10 space-y-4">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-content-inverted">
@@ -384,7 +384,7 @@ export default function RewardsCommunityTab({
               disabled={isLoading}
               variant="secondary"
               size="xs"
-              className="rounded-full border-amber-300 bg-surface text-amber-800 shadow-sm hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/20 dark:text-amber-200">
+              className="rounded-full border-amber-300 bg-surface text-amber-800 shadow-xs hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/20 dark:text-amber-200">
               {isLoading ? t('rewards.community.retrying') : t('rewards.community.tryAgain')}
             </Button>
           ) : null}
@@ -392,7 +392,7 @@ export default function RewardsCommunityTab({
       ) : null}
 
       <div className="space-y-4">
-        <section className="rounded-[1.25rem] bg-surface p-6 shadow-[0_4px_20px_rgba(25,28,30,0.04)]">
+        <section className="rounded-3xl bg-surface p-6 shadow-[0_4px_20px_rgba(25,28,30,0.04)]">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-content">
@@ -440,7 +440,7 @@ export default function RewardsCommunityTab({
                 title={role?.title ?? undefined}
                 aria-label={role?.title ?? undefined}
                 data-testid={role ? `rewards-achievement-badge-${role.id}` : undefined}
-                className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 ${
                   role?.unlocked
                     ? 'border-primary-200 dark:border-primary-500/30 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-300'
                     : 'border-dashed border-line-strong bg-surface-subtle text-content-faint'
@@ -479,7 +479,7 @@ export default function RewardsCommunityTab({
                 onClick={() => {
                   void openUrl(inviteUrl);
                 }}
-                className="flex-shrink-0">
+                className="shrink-0">
                 {t('rewards.community.joinDiscord')}
               </Button>
             </div>
@@ -528,15 +528,15 @@ export default function RewardsCommunityTab({
               return (
                 <div
                   key={role.id}
-                  className={`rounded-[1.25rem] bg-surface p-5 shadow-sm transition-shadow hover:shadow-md ${
+                  className={`rounded-3xl bg-surface p-5 shadow-xs transition-shadow hover:shadow-md ${
                     role.unlocked
                       ? 'ring-1 ring-primary-100 dark:ring-primary-500/20'
-                      : 'ring-1 ring-line/[0.04] dark:ring-line-strong/[0.06]'
+                      : 'ring-1 ring-line/4 dark:ring-line-strong/6'
                   }`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-4">
                       <div
-                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border ${tone.iconBg} ${tone.iconText} ${tone.iconBorder}`}>
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${tone.iconBg} ${tone.iconText} ${tone.iconBorder}`}>
                         <svg className="h-6 w-6" viewBox="0 0 24 24" aria-hidden="true">
                           {roleGlyph(index)}
                         </svg>
@@ -666,7 +666,7 @@ export default function RewardsCommunityTab({
             so the two are no longer conflated in a single list. */}
         <section
           data-testid="rewards-discord-stats"
-          className="rounded-[1.25rem] bg-[#f2f4f6] dark:bg-surface-muted/60 p-4 text-sm text-content-secondary">
+          className="rounded-3xl bg-[#f2f4f6] dark:bg-surface-muted/60 p-4 text-sm text-content-secondary">
           <h2 className="mb-3 text-sm font-bold text-content">
             {t('rewards.community.discordDetails')}
           </h2>
@@ -708,7 +708,7 @@ export default function RewardsCommunityTab({
             user actually used OpenHuman (token-processing days), not a check-in. */}
         <section
           data-testid="rewards-activity-stats"
-          className="rounded-[1.25rem] bg-[#f2f4f6] dark:bg-surface-muted/60 p-4 text-sm text-content-secondary">
+          className="rounded-3xl bg-[#f2f4f6] dark:bg-surface-muted/60 p-4 text-sm text-content-secondary">
           <h2 className="text-sm font-bold text-content">{t('rewards.community.activityTitle')}</h2>
           <p className="mb-3 mt-0.5 text-xs leading-relaxed text-content-muted">
             {t('rewards.community.activityStreakHint')}

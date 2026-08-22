@@ -90,7 +90,7 @@ const SuperContextToggle = () => {
   );
 
   return (
-    <div className="flex h-7 flex-shrink-0 items-center gap-1.5 text-xs text-content-muted">
+    <div className="flex h-7 shrink-0 items-center gap-1.5 text-xs text-content-muted">
       <SettingsSwitch
         id="super-context-toggle"
         checked={enabled}
@@ -112,7 +112,7 @@ const SuperContextToggle = () => {
           aria-describedby="super-context-tooltip"
           aria-label={t('chat.superContext.label')}
           data-testid="super-context-info"
-          className="!h-4 !w-4 rounded-full text-content-faint hover:bg-transparent hover:text-content-secondary">
+          className="h-4! w-4! rounded-full text-content-faint hover:bg-transparent hover:text-content-secondary">
           <svg
             className="h-3.5 w-3.5"
             fill="none"
@@ -130,7 +130,7 @@ const SuperContextToggle = () => {
         <span
           id="super-context-tooltip"
           role="tooltip"
-          className="pointer-events-none absolute bottom-full right-0 z-[9999] mb-2 w-72 rounded-lg bg-content px-3 py-2 text-xs font-normal leading-snug text-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+          className="pointer-events-none absolute bottom-full right-0 z-9999 mb-2 w-72 rounded-lg bg-content px-3 py-2 text-xs font-normal leading-snug text-surface opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
           {t('chat.superContext.hint')}
         </span>
       </span>

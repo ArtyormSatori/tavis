@@ -18,12 +18,12 @@ export const TabsList = ({
       'flex items-center gap-1',
       variant === 'line' && [
         'gap-0 border-b border-line',
-        '[&_[data-slot=tabs-trigger]]:-mb-px [&_[data-slot=tabs-trigger]]:rounded-none',
-        '[&_[data-slot=tabs-trigger]]:border-b-2 [&_[data-slot=tabs-trigger]]:border-transparent',
-        '[&_[data-slot=tabs-trigger]]:data-[state=active]:border-primary-500',
-        '[&_[data-slot=tabs-trigger]]:data-[state=active]:bg-transparent',
-        '[&_[data-slot=tabs-trigger]]:data-[state=active]:text-primary-600',
-        'dark:[&_[data-slot=tabs-trigger]]:data-[state=active]:text-primary-300',
+        '**:data-[slot=tabs-trigger]:-mb-px **:data-[slot=tabs-trigger]:rounded-none',
+        '**:data-[slot=tabs-trigger]:border-b-2 **:data-[slot=tabs-trigger]:border-transparent',
+        'data-[state=active]:**:data-[slot=tabs-trigger]:border-primary-500',
+        'data-[state=active]:**:data-[slot=tabs-trigger]:bg-transparent',
+        'data-[state=active]:**:data-[slot=tabs-trigger]:text-primary-600',
+        'dark:data-[state=active]:**:data-[slot=tabs-trigger]:text-primary-300',
       ],
       className
     )}
@@ -40,7 +40,7 @@ export const TabsTrigger = ({
     className={cn(
       'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
       'text-content-muted hover:bg-surface-hover hover:text-content-secondary',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/25',
+      'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500/25',
       'data-[state=active]:bg-surface-strong data-[state=active]:text-content',
       className
     )}
@@ -54,7 +54,7 @@ export const TabsContent = ({
 }: ComponentPropsWithoutRef<typeof TabsPrimitive.Content>) => (
   <TabsPrimitive.Content
     data-slot="tabs-content"
-    className={cn('focus:outline-none', className)}
+    className={cn('focus:outline-hidden', className)}
     {...rest}
   />
 );

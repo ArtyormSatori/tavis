@@ -76,7 +76,7 @@ function MarkdownAnchor({ href, children }: { href?: string; children?: ReactNod
           // Ignore launcher errors from OS URL handler failures.
         });
       }}
-      className="cursor-pointer underline break-words [overflow-wrap:anywhere]">
+      className="cursor-pointer underline wrap-break-word wrap-anywhere">
       {children}
     </a>
   );
@@ -209,7 +209,7 @@ export function AgentMessageBubble({
     return (
       <AgentMarkdownTable
         table={table}
-        className={`w-full max-w-full overflow-hidden border border-line bg-surface/90 shadow-sm ${bubbleChrome}`}
+        className={`w-full max-w-full overflow-hidden border border-line bg-surface/90 shadow-xs ${bubbleChrome}`}
       />
     );
   }

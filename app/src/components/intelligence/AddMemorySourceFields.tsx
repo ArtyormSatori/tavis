@@ -476,7 +476,7 @@ function ComposioPicker({
           onKeyDown={onButtonKeyDown}
           className="flex w-full items-center justify-between rounded-md border border-line-strong
                      bg-surface px-3 py-2 text-left text-sm text-content
-                     focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400
+                     focus:border-primary-400 focus:outline-hidden focus:ring-1 focus:ring-primary-400
                      dark:bg-surface-muted dark:text-content
                      dark:focus:border-primary-500">
           <span className={selected ? '' : 'text-content-faint'}>
@@ -498,7 +498,7 @@ function ComposioPicker({
             onKeyDown={onListKeyDown}
             data-testid="composio-connection-listbox"
             className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border
-                       border-line bg-surface py-1 shadow-lg focus:outline-none
+                       border-line bg-surface py-1 shadow-lg focus:outline-hidden
                        dark:border-line-strong dark:bg-surface-muted">
             {entries.map((entry, index) => {
               const isSelected = entry.conn.id === connectionId;

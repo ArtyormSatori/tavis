@@ -135,7 +135,7 @@ export default function ActiveSubagentsRail({
                     <span className="flex h-6 w-6 items-center justify-center rounded-md border border-line bg-surface-strong text-[10px] font-semibold text-content-secondary">
                       {address.slice(0, 2).toUpperCase()}
                     </span>
-                    <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-surface-muted p-[1px]">
+                    <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-surface-muted p-px">
                       <StatusDot state={instanceState(sessions)} />
                     </span>
                   </span>

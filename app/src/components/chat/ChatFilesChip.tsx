@@ -87,7 +87,7 @@ export default function ChatFilesChip({ threadId }: ChatFilesChipProps) {
           count === 1 ? 'chat.files.chip.aria.one' : 'chat.files.chip.aria.other'
         ).replace('{count}', String(count))}
         data-testid="chat-files-chip"
-        className="!h-7 gap-1.5 text-xs font-medium text-content-secondary">
+        className="h-7! gap-1.5 text-xs font-medium text-content-secondary">
         <svg
           aria-hidden="true"
           className="w-3.5 h-3.5"

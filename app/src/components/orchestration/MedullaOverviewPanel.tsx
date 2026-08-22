@@ -27,7 +27,7 @@ export default function MedullaOverviewPanel() {
         </span>
 
         {/* Wordmark */}
-        <h1 className="bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-5xl font-bold tracking-tight text-transparent dark:from-primary-300 dark:to-primary-500">
+        <h1 className="bg-linear-to-r from-primary-500 to-primary-700 bg-clip-text text-5xl font-bold tracking-tight text-transparent dark:from-primary-300 dark:to-primary-500">
           {t('orchPage.medulla.title')}
         </h1>
         <p className="mt-2 text-base font-medium text-content-secondary">

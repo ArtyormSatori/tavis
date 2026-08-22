@@ -19,10 +19,10 @@ import { cn } from '../../lib/cn';
  * that ignores the user's theme reads wrong on any tinted surface.
  */
 export const radioGroupItemVariants = cva(
-  'relative inline-flex flex-shrink-0 items-center justify-center rounded-full border bg-surface ' +
+  'relative inline-flex shrink-0 items-center justify-center rounded-full border bg-surface ' +
     'border-line-strong transition-colors duration-150 ' +
     'hover:border-primary-500 ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ' +
+    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 ' +
     'focus-visible:ring-offset-2 focus-visible:ring-offset-surface ' +
     'data-[state=checked]:border-primary-500 ' +
     'disabled:cursor-not-allowed disabled:opacity-50',

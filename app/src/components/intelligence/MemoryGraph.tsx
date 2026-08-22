@@ -658,7 +658,7 @@ export function MemoryGraph({
             size="xs"
             onClick={resetView}
             data-testid="memory-graph-reset-view"
-            className="text-[11px] shadow-sm">
+            className="text-[11px] shadow-xs">
             {t('graph.resetView')}
           </Button>
         </div>
@@ -823,7 +823,7 @@ export function MemoryGraph({
                     data-testid={`memory-graph-preview-${hovered.id}`}
                     disabled={previewingPath === hoveredSummaryPath}
                     onClick={() => void previewSummary(hovered)}
-                    className="ml-3 text-[11px] shadow-sm">
+                    className="ml-3 text-[11px] shadow-xs">
                     {previewingPath === hoveredSummaryPath
                       ? t('migration.previewRunning')
                       : t('migration.previewAction')}

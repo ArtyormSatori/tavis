@@ -22,7 +22,7 @@ export const SheetDescription = DialogPrimitive.Description;
  * desktop app with essentially no touch surface.
  */
 export const sheetVariants = cva(
-  'fixed z-50 flex flex-col bg-surface shadow-large focus:outline-none',
+  'fixed z-50 flex flex-col bg-surface shadow-large focus:outline-hidden',
   {
     variants: {
       side: {

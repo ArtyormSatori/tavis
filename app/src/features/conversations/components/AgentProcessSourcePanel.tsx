@@ -178,7 +178,7 @@ export function AgentProcessSourcePanel({
               scopedEntry.subagent ? (
                 <SubagentActivityBlock subagent={scopedEntry.subagent} />
               ) : scopedDetail ? (
-                <pre className="max-h-[60vh] overflow-y-auto rounded-lg bg-surface-muted px-3 py-2 text-[12px] whitespace-pre-wrap break-words text-content-secondary">
+                <pre className="max-h-[60vh] overflow-y-auto rounded-lg bg-surface-muted px-3 py-2 text-[12px] whitespace-pre-wrap wrap-break-word text-content-secondary">
                   {scopedDetail}
                 </pre>
               ) : (

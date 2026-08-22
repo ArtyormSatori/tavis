@@ -159,7 +159,7 @@ const TeamPanel = () => {
             : 'border-line bg-surface hover:bg-surface-hover'
         }`}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <AvatarRoot className="h-9 w-9 rounded-lg bg-surface-subtle flex-shrink-0">
+          <AvatarRoot className="h-9 w-9 rounded-lg bg-surface-subtle shrink-0">
             <AvatarFallback className="rounded-lg bg-surface-subtle text-sm font-semibold text-content-secondary">
               {team.name.charAt(0).toUpperCase()}
             </AvatarFallback>
@@ -177,7 +177,7 @@ const TeamPanel = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {canManage && (
             <Button
               type="button"

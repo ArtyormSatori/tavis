@@ -33,7 +33,7 @@ export const PopoverContent = ({
       sideOffset={sideOffset}
       className={cn(
         'z-50 rounded-xl border border-line bg-surface p-3 text-sm text-content shadow-large',
-        'animate-fade-in focus:outline-none',
+        'animate-fade-in focus:outline-hidden',
         className
       )}
       {...rest}

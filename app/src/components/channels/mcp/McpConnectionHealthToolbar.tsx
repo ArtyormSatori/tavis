@@ -205,7 +205,7 @@ const McpConnectionHealthToolbar = ({
       {opError && (
         <p
           role="alert"
-          className="mt-1.5 text-[10px] text-coral-700 dark:text-coral-300 break-words">
+          className="mt-1.5 text-[10px] text-coral-700 dark:text-coral-300 wrap-break-word">
           {opError}
         </p>
       )}

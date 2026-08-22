@@ -47,9 +47,9 @@ export const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       className={cn(
         'inline-flex w-full items-center justify-between gap-2 rounded-lg border border-line-strong bg-surface text-sm text-content',
         'transition-colors duration-150',
-        'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
-        'data-[placeholder]:text-content-muted',
-        'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
+        'focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20',
+        'data-placeholder:text-content-muted',
+        'data-disabled:cursor-not-allowed data-disabled:opacity-50',
         inputSize === 'sm' ? 'h-8 px-2.5' : 'h-9 px-3',
         className
       )}
@@ -96,14 +96,14 @@ export const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         sideOffset={position === 'popper' ? sideOffset : undefined}
         className={cn(
           'z-50 overflow-hidden rounded-xl border border-line bg-surface p-1 shadow-large',
-          'animate-fade-in focus:outline-none',
-          position === 'popper' && 'w-[var(--radix-select-trigger-width)]',
+          'animate-fade-in focus:outline-hidden',
+          position === 'popper' && 'w-(--radix-select-trigger-width)',
           className
         )}
         {...rest}>
         <SelectPrimitive.Viewport
           data-slot="select-viewport"
-          className="max-h-[18rem] overflow-y-auto">
+          className="max-h-72 overflow-y-auto">
           {children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
@@ -120,9 +120,9 @@ export const SelectItem = forwardRef<
     ref={ref}
     data-slot="select-item"
     className={cn(
-      'relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-1.5 pl-2.5 pr-7 text-sm text-content outline-none',
-      'data-[highlighted]:bg-surface-hover',
-      'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-1.5 pl-2.5 pr-7 text-sm text-content outline-hidden',
+      'data-highlighted:bg-surface-hover',
+      'data-disabled:pointer-events-none data-disabled:opacity-50',
       className
     )}
     {...rest}>

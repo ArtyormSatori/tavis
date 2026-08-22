@@ -121,7 +121,7 @@ export const ProviderSwatch = ({
       aria-hidden
       data-slot="provider-swatch"
       className={cn(
-        'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-xs font-semibold ring-1',
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-semibold ring-1',
         PROVIDER_SWATCH_TONES[slug] ?? 'bg-[#27272A] text-white ring-white/30'
       )}>
       {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
@@ -184,7 +184,7 @@ export const ProviderListRow = ({
         </span>
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         {control}
         {actions.length > 0 && (
           <DropdownMenuRoot>

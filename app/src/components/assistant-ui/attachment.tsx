@@ -181,14 +181,14 @@ const AttachmentUI: FC = () => {
               "animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none",
             isImage &&
               !isComposer &&
-              "aui-attachment-root-message only:*:first:size-24",
+              "aui-attachment-root-message first:*:only:size-24",
           )}
         >
           <AttachmentPreviewDialog>
             <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "aui-attachment-tile bg-muted hover:after:bg-foreground/10 focus-visible:ring-ring/50 relative size-14 cursor-pointer overflow-hidden rounded-[calc(var(--composer-radius,1.5rem)-var(--composer-padding,8px))] transition-transform outline-none after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-black/10 after:transition-colors after:ring-inset focus-visible:ring-1 active:scale-[0.96] motion-reduce:transition-none dark:after:ring-white/10",
+                  "aui-attachment-tile bg-muted hover:after:bg-foreground/10 focus-visible:ring-ring/50 relative size-14 cursor-pointer overflow-hidden rounded-[calc(var(--composer-radius,1.5rem)-var(--composer-padding,8px))] transition-transform outline-hidden after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-black/10 after:transition-colors after:ring-inset focus-visible:ring-1 active:scale-[0.96] motion-reduce:transition-none dark:after:ring-white/10",
                   isError &&
                     "after:ring-destructive/60 dark:after:ring-destructive/60",
                 )}
@@ -213,7 +213,7 @@ const AttachmentUI: FC = () => {
                 {isUploading && (
                   <div
                     aria-hidden="true"
-                    className="aui-attachment-tile-uploading bg-background/60 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-[2px] motion-reduce:animate-none"
+                    className="aui-attachment-tile-uploading bg-background/60 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-xs motion-reduce:animate-none"
                   >
                     <Loader2Icon className="text-muted-foreground size-4 animate-spin" />
                   </div>
@@ -221,7 +221,7 @@ const AttachmentUI: FC = () => {
                 {isError && (
                   <div
                     aria-hidden="true"
-                    className="aui-attachment-tile-error bg-background/70 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-[2px] motion-reduce:animate-none"
+                    className="aui-attachment-tile-error bg-background/70 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-xs motion-reduce:animate-none"
                   >
                     <AlertCircleIcon className="text-destructive size-4" />
                   </div>
@@ -247,7 +247,7 @@ const AttachmentRemove: FC = () => {
     <AttachmentPrimitive.Remove asChild>
       <TooltipIconButton
         tooltip="Remove file"
-        className="aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-black/50! text-white after:absolute after:-inset-1.5 hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none"
+        className="aui-attachment-tile-remove absolute inset-e-1 top-1 size-5 rounded-full bg-black/50! text-white after:absolute after:-inset-1.5 hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none"
         side="top"
       >
         <XIcon className="aui-attachment-remove-icon size-3 stroke-[2.5]" />
