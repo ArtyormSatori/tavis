@@ -1,4 +1,5 @@
 import {
+  type AppendMessage,
   AssistantRuntimeProvider,
   type ThreadMessageLike,
   useExternalStoreRuntime,
@@ -22,12 +23,18 @@ vi.mock('../../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) 
  */
 const EMPTY_RUNTIME_MESSAGES: ThreadMessageLike[] = [];
 
-function Runtime({ children }: { children: ReactNode }) {
+function Runtime({
+  children,
+  onNew = async () => {},
+}: {
+  children: ReactNode;
+  onNew?: (message: AppendMessage) => Promise<void>;
+}) {
   const runtime = useExternalStoreRuntime<ThreadMessageLike>({
     messages: EMPTY_RUNTIME_MESSAGES,
     isRunning: false,
     convertMessage: m => m,
-    onNew: async () => {},
+    onNew,
   });
   return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
 }
@@ -75,6 +82,36 @@ function renderComposer(overrides: Partial<ChatComposerProps> = {}) {
   };
 
   return render(<ChatComposer {...props} />, { wrapper: Runtime });
+}
+
+/** A composer with real local text state, for cases a stubbed setter can't cover. */
+function Harness({ onSend }: { onSend: (text?: string) => Promise<void> }) {
+  const [value, setValue] = useState('hello');
+  const textInputRef = createRef<HTMLTextAreaElement | null>();
+  const fileInputRef = createRef<HTMLInputElement | null>();
+  const isComposingTextRef = { current: false };
+  return (
+    <ChatComposer
+      inputValue={value}
+      setInputValue={v => setValue(typeof v === 'function' ? v(value) : v)}
+      onSend={onSend}
+      textInputRef={textInputRef}
+      fileInputRef={fileInputRef}
+      composerInteractionBlocked={false}
+      isSending={false}
+      attachments={[]}
+      onAttachFiles={vi.fn().mockResolvedValue(undefined)}
+      onRemoveAttachment={vi.fn()}
+      attachError={null}
+      onSwitchToMicCloud={vi.fn()}
+      handleInputKeyDown={vi.fn()}
+      inlineCompletionSuffix=""
+      isComposingTextRef={isComposingTextRef}
+      maxAttachments={0}
+      allowedMimeTypes={[]}
+      attachmentsEnabled={false}
+    />
+  );
 }
 
 describe('ChatComposer', () => {
@@ -199,6 +236,52 @@ describe('ChatComposer', () => {
     renderComposer({ onSwitchToMicCloud });
     fireEvent.click(screen.getByRole('button', { name: 'composer.voiceMode' }));
     expect(onSwitchToMicCloud).toHaveBeenCalledTimes(1);
+  });
+
+  describe('assistant-ui composer text bridge', () => {
+    it('renders the inputValue prop through the primitive input', () => {
+      // The primitive is not a controlled React input — it renders the
+      // runtime's composer text. The bridge is what makes the prop visible.
+      renderComposer({ inputValue: 'from the host surface' });
+      expect(screen.getByRole('textbox')).toHaveValue('from the host surface');
+    });
+
+    it('reports typing back to the host through setInputValue', () => {
+      const setInputValue = vi.fn();
+      renderComposer({ setInputValue });
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'typed' } });
+      expect(setInputValue).toHaveBeenCalledWith('typed');
+    });
+
+    it('keeps the host authoritative when it ignores the change', () => {
+      // A surface that does not adopt the change must not end up with a
+      // composer showing text its own state never accepted.
+      renderComposer({ inputValue: 'host value', setInputValue: vi.fn() });
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'ignored' } });
+      expect(screen.getByRole('textbox')).toHaveValue('host value');
+    });
+  });
+
+  describe('submit interception', () => {
+    it('sends through onSend, not the runtime, when the form submits', () => {
+      const onSend = vi.fn().mockResolvedValue(undefined);
+      const onNew = vi.fn().mockResolvedValue(undefined);
+      const { container } = render(<Harness onSend={onSend} />, {
+        wrapper: ({ children }) => <Runtime onNew={onNew}>{children}</Runtime>,
+      });
+      fireEvent.submit(container.querySelector('form')!);
+      expect(onSend).toHaveBeenCalledTimes(1);
+      // The primitive's own submit handler would have called the runtime's
+      // `onNew`, which cannot carry attachments or the parallel-send modifiers.
+      expect(onNew).not.toHaveBeenCalled();
+    });
+
+    it('does not send on submit while the composer is locked', () => {
+      const onSend = vi.fn().mockResolvedValue(undefined);
+      const { container } = renderComposer({ onSend, composerInteractionBlocked: true });
+      fireEvent.submit(container.querySelector('form')!);
+      expect(onSend).not.toHaveBeenCalled();
+    });
   });
 
   describe('mascotDock', () => {
