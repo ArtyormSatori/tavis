@@ -147,7 +147,7 @@ export function TeamActivityRail({ messages, members, onSend, sending }: TeamAct
               onClick={submit}
               aria-label={t('intelligence.teams.composer.send')}
               title={t('intelligence.teams.composer.send')}
-              className="h-6 w-6 min-w-0 flex-none bg-ocean-500 hover:bg-ocean-600">
+              className="h-6 w-6 min-w-0 flex-none bg-primary-500 hover:bg-primary-600">
               <LuSend className="h-3 w-3" />
             </Button>
           </div>

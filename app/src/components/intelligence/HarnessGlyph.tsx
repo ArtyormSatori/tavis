@@ -19,7 +19,7 @@ interface HarnessGlyphProps {
 const GLYPH: Record<GlyphKind, { label: string; tone: string }> = {
   claude: { label: 'C', tone: 'bg-[#c96442] text-content-inverted' },
   codex: { label: 'Cx', tone: 'bg-content text-surface' },
-  gemini: { label: 'G', tone: 'bg-ocean-500 text-content-inverted' },
+  gemini: { label: 'G', tone: 'bg-primary-500 text-content-inverted' },
   // Literal hex (Tailwind's slate-800) rather than the `bg-slate-*` utility —
   // this is cursor's brand identity color, not a themed neutral surface.
   cursor: { label: 'Cu', tone: 'bg-[#1e293b] text-content-inverted' },

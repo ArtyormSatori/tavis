@@ -18,7 +18,7 @@ interface InstanceStatusDotProps {
 }
 
 const TONE: Record<InstanceStatus, string> = {
-  running: 'bg-ocean-500 animate-pulse',
+  running: 'bg-primary-500 animate-pulse',
   idle: 'bg-sage-500',
   'waiting-approval': 'bg-amber-500',
   errored: 'bg-coral-500',

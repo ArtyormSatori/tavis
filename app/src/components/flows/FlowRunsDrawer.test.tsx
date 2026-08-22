@@ -217,7 +217,7 @@ describe('FlowRunsDrawer', () => {
     const row = await screen.findByTestId('flow-run-row-run-1');
     await waitFor(() => expect(row).toHaveTextContent('Running'));
     expect(screen.getByTestId('flow-run-row-dot-run-1')).toHaveClass(
-      'bg-ocean-500',
+      'bg-primary-500',
       'animate-pulse'
     );
   });

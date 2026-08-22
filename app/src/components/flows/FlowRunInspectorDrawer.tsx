@@ -75,7 +75,7 @@ function formatTimestamp(value: string | null | undefined): string | null {
  * of truth for the durable step list).
  */
 const FLOW_STEP_LIVE_DOT: Record<string, string> = {
-  running: 'bg-ocean-500 animate-pulse',
+  running: 'bg-primary-500 animate-pulse',
   success: 'bg-sage-500',
   error: 'bg-coral-500',
   failed: 'bg-coral-500',
@@ -324,7 +324,7 @@ export function FlowRunInspectorDrawer({ runId, onClose, onFixWithAgent }: Props
             <div
               className="flex items-center gap-2 py-8 text-content-faint"
               data-testid="flow-run-inspector-loading">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-ocean-500 border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
               <span className="text-sm">{t('flowRuns.inspector.loading')}</span>
             </div>
           )}

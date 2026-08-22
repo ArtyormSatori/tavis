@@ -49,7 +49,7 @@ export default function InstanceCard({
       data-selected={selected ? 'true' : 'false'}
       onClick={onSelect}
       className={`h-auto w-full items-center justify-start gap-3 rounded-none border-l-2 px-3 py-2 text-left ${
-        selected ? 'border-ocean-500 bg-surface-muted' : 'border-transparent'
+        selected ? 'border-primary-500 bg-surface-muted' : 'border-transparent'
       }`}>
       <HarnessGlyph harness={glyph} />
       <span className="min-w-0 flex-1">
@@ -66,7 +66,7 @@ export default function InstanceCard({
       {session.unread > 0 ? (
         <span
           data-testid="instance-card-unread"
-          className="flex-none rounded-full bg-ocean-500 px-1.5 py-0.5 text-[10px] font-semibold text-content-inverted">
+          className="flex-none rounded-full bg-primary-500 px-1.5 py-0.5 text-[10px] font-semibold text-content-inverted">
           {session.unread}
         </span>
       ) : null}

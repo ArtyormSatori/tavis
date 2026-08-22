@@ -51,7 +51,7 @@ export function ChatListButton({
         <span className="mt-1 flex items-center gap-2">
           <span className="min-w-0 flex-1 truncate text-xs text-content-faint">{chat.preview}</span>
           {chat.unread > 0 ? (
-            <span className="flex-none rounded-full bg-ocean-500 px-1.5 py-0.5 text-[10px] font-semibold text-content-inverted">
+            <span className="flex-none rounded-full bg-primary-500 px-1.5 py-0.5 text-[10px] font-semibold text-content-inverted">
               {chat.unread}
             </span>
           ) : null}
@@ -101,11 +101,11 @@ function bubbleStyle(kind: ChatMessage['eventKind']): BubbleStyle {
   switch (kind) {
     case 'tool_call':
       return {
-        dot: 'text-ocean-500',
+        dot: 'text-primary-500',
         glyph: '▶',
         mono: true,
         tone: 'text-content',
-        accent: 'border-l-2 border-l-ocean-400',
+        accent: 'border-l-2 border-l-primary-400',
       };
     case 'tool_result':
       return {
@@ -139,7 +139,7 @@ function bubbleStyle(kind: ChatMessage['eventKind']): BubbleStyle {
     case 'user_prompt':
       return { dot: 'text-sage-500', tone: 'text-content', accent: '' };
     default:
-      return { dot: 'text-ocean-500', tone: 'text-content', accent: '' };
+      return { dot: 'text-primary-500', tone: 'text-content', accent: '' };
   }
 }
 

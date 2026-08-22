@@ -34,7 +34,7 @@ const log = debug('intelligence:workflow-detail');
 const RUN_STATUS_ACCENT: Record<WorkflowRunStatus, string> = {
   pending: 'border-line bg-surface-muted text-content-secondary',
   running:
-    'border-ocean-200 bg-ocean-50 text-ocean-700 dark:border-ocean-500/30 dark:bg-ocean-500/10 dark:text-ocean-300',
+    'border-primary-200 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300',
   completed:
     'border-sage-200 bg-sage-50 text-sage-700 dark:border-sage-500/30 dark:bg-sage-500/10 dark:text-sage-300',
   failed:
@@ -63,7 +63,7 @@ const PHASE_STATUS_KEY: Record<WorkflowPhaseStatus, string> = {
 /** Glyph per phase status — color comes from the surrounding classes. */
 const PHASE_STATUS_DOT: Record<WorkflowPhaseStatus, string> = {
   pending: 'bg-surface-strong',
-  running: 'bg-ocean-500 animate-pulse',
+  running: 'bg-primary-500 animate-pulse',
   completed: 'bg-sage-500',
   failed: 'bg-coral-500',
 };
@@ -112,7 +112,7 @@ const WorkflowRunDetail: React.FC<Props> = ({
             data-testid="workflow-run-status"
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${RUN_STATUS_ACCENT[run.status]}`}>
             {run.status === 'running' && (
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-ocean-500" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-500" />
             )}
             {t(RUN_STATUS_KEY[run.status])}
           </span>
@@ -144,7 +144,7 @@ const WorkflowRunDetail: React.FC<Props> = ({
                 log('resume id=%s', run.id);
                 onResume(run.id);
               }}
-              className="border-ocean-300 text-ocean-700 hover:bg-ocean-50 dark:border-ocean-700 dark:text-ocean-300 dark:hover:bg-ocean-900/40">
+              className="border-primary-300 text-primary-700 hover:bg-primary-50 dark:border-primary-700 dark:text-primary-300 dark:hover:bg-primary-900/40">
               {t('orchestration.detail.resume')}
             </Button>
           )}

@@ -63,7 +63,7 @@ export function TeamHeader({
           <div className="break-words text-sm font-semibold text-content">{title}</div>
           <div className="mt-0.5 text-[11px] text-content-muted">
             {t('intelligence.teams.header.lead')}{' '}
-            <span className="font-mono text-ocean-600 dark:text-ocean-300">{team.leadAgentId}</span>
+            <span className="font-mono text-primary-600 dark:text-primary-300">{team.leadAgentId}</span>
             {' · '}
             {t('intelligence.teams.header.taskCount').replace('{count}', String(taskCount))}
             {' · '}
@@ -97,7 +97,7 @@ export function TeamHeader({
                   onClick={() => onStartMember(member.id)}
                   title={t('intelligence.teams.member.start')}
                   aria-label={`${t('intelligence.teams.member.start')} ${member.name}`}
-                  className="ml-0.5 h-3.5 w-3.5 min-w-0 flex-none text-ocean-600 hover:text-ocean-700 dark:text-ocean-300">
+                  className="ml-0.5 h-3.5 w-3.5 min-w-0 flex-none text-primary-600 hover:text-primary-700 dark:text-primary-300">
                   {startingMemberId === member.id ? (
                     <LuLoaderCircle className="h-3 w-3 animate-spin" />
                   ) : (

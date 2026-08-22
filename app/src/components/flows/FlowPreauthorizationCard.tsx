@@ -52,16 +52,16 @@ export const FlowPreauthorizationCard: React.FC<Props> = ({
       role="alertdialog"
       aria-label={t('flows.enableApproval.title')}
       data-testid="flow-preauthorization-card"
-      className="rounded-xl border border-ocean-300 bg-surface p-3 text-sm shadow-md dark:border-ocean-700">
+      className="rounded-xl border border-primary-300 bg-surface p-3 text-sm shadow-md dark:border-primary-700">
       <div className="flex items-start gap-2">
-        <span aria-hidden className="text-base leading-none text-ocean-700 dark:text-ocean-200">
+        <span aria-hidden className="text-base leading-none text-primary-700 dark:text-primary-200">
           🔐
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-ocean-900 dark:text-ocean-100">
+          <p className="font-semibold text-primary-900 dark:text-primary-100">
             {t('flows.enableApproval.title')}
           </p>
-          <p className="mt-1 break-words text-ocean-800/90 dark:text-ocean-200/90">
+          <p className="mt-1 break-words text-primary-800/90 dark:text-primary-200/90">
             {t('flows.enableApproval.intro')}
           </p>
 
@@ -76,7 +76,7 @@ export const FlowPreauthorizationCard: React.FC<Props> = ({
                   className={`flex items-start gap-2 rounded-lg border px-2.5 py-1.5 ${
                     informational
                       ? 'border-amber-300/60 bg-amber-50/50 dark:border-amber-700/50 dark:bg-amber-900/10'
-                      : 'border-ocean-200 dark:border-ocean-800'
+                      : 'border-primary-200 dark:border-primary-800'
                   }`}>
                   <span aria-hidden className="mt-0.5 text-xs leading-none">
                     {entry.kind === 'approvable' ? '✅' : entry.kind === 'blocked' ? '⛔' : '⚠️'}

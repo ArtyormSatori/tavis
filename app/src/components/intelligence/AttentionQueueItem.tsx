@@ -41,8 +41,8 @@ const KIND_TONE: Record<AttentionKind, { accent: string; chip: string }> = {
     chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   },
   unread: {
-    accent: 'border-l-ocean-500',
-    chip: 'bg-ocean-100 text-ocean-700 dark:bg-ocean-500/15 dark:text-ocean-300',
+    accent: 'border-l-primary-500',
+    chip: 'bg-primary-100 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300',
   },
 };
 
@@ -82,7 +82,7 @@ export default function AttentionQueueItem({
       {item.kind === 'unread' && item.count !== undefined ? (
         <span
           data-testid="attention-item-count"
-          className="flex-none rounded-full bg-ocean-500 px-1.5 py-0.5 text-[10px] font-semibold text-content-inverted">
+          className="flex-none rounded-full bg-primary-500 px-1.5 py-0.5 text-[10px] font-semibold text-content-inverted">
           {item.count}
         </span>
       ) : null}
