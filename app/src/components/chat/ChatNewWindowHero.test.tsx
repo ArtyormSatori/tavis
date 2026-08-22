@@ -10,9 +10,7 @@ const mockUseUsageState = vi.hoisted(() =>
 );
 vi.mock('../../hooks/useUsageState', () => ({ useUsageState: mockUseUsageState }));
 
-vi.mock('../../services/api/openrouterFreeModels', () => ({
-  applyOpenRouterFreeModels: vi.fn(),
-}));
+vi.mock('../../services/api/openrouterFreeModels', () => ({ applyOpenRouterFreeModels: vi.fn() }));
 
 const blockingStateMock = vi.hoisted(() => ({ current: 'ok' as string }));
 vi.mock('../../store/connectivitySelectors', () => ({
@@ -42,14 +40,13 @@ describe('ChatNewWindowHero', () => {
     fireEvent.click(restart);
     await waitFor(() => expect(restartCoreProcessMock).toHaveBeenCalled());
   });
+
   it('renders the prompt heading that used to live in the composer placeholder', () => {
     blockingStateMock.current = 'ok';
     render(<ChatNewWindowHero />);
     // Real heading now, not hint text inside the textarea. The e2e
     // `textExists('How can I help you today?')` check in
     // conversations-web-channel-flow depends on it being on-screen text.
-    expect(
-      screen.getByRole('heading', { name: 'How can I help you today?' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'How can I help you today?' })).toBeInTheDocument();
   });
 });
