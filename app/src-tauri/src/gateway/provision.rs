@@ -86,6 +86,7 @@ pub(super) async fn provision(
     let forwarded = match forwarded {
         Ok(forwarded) => forwarded,
         Err(error) => {
+            stop_quietly(sandbox.as_ref(), &info.id, &process).await;
             destroy_quietly(sandbox.as_ref(), &info.id).await;
             return Err(error);
         }
@@ -94,6 +95,7 @@ pub(super) async fn provision(
     let rpc_base = format!("http://{}", forwarded.local_addr());
     progress("waiting for the core");
     if let Err(error) = wait_until_healthy(&rpc_base).await {
+        stop_quietly(sandbox.as_ref(), &info.id, &process).await;
         destroy_quietly(sandbox.as_ref(), &info.id).await;
         return Err(error);
     }
@@ -393,5 +395,18 @@ async fn wait_until_healthy(base_url: &str) -> Result<(), String> {
 async fn destroy_quietly(sandbox: &dyn Sandbox, box_id: &BoxId) {
     if let Err(error) = sandbox.destroy(box_id).await {
         log::warn!("[gateway][provision] could not clean up box {box_id}: {error}");
+    }
+}
+
+/// Stop a started core process, logging rather than propagating a failure.
+///
+/// `Sandbox::destroy` on a passthrough box only removes the box record — it
+/// does not stop the detached `ProcessId` — so on the forward and health-error
+/// paths the core must be stopped explicitly or it keeps running headless.
+async fn stop_quietly(sandbox: &dyn Sandbox, box_id: &BoxId, process: &ProcessId) {
+    if let Err(error) = sandbox.stop(box_id, process).await {
+        log::warn!(
+            "[gateway][provision] could not stop core {process} in box {box_id}: {error}"
+        );
     }
 }
