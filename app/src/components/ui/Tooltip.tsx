@@ -44,8 +44,10 @@ interface Anchor {
 }
 
 function anchorFor(rect: DOMRect, side: TooltipSide, align: TooltipAlign): Anchor {
-  const horizontal = align === 'start' ? rect.left : align === 'end' ? rect.right : rect.left + rect.width / 2;
-  const vertical = align === 'start' ? rect.top : align === 'end' ? rect.bottom : rect.top + rect.height / 2;
+  const horizontal =
+    align === 'start' ? rect.left : align === 'end' ? rect.right : rect.left + rect.width / 2;
+  const vertical =
+    align === 'start' ? rect.top : align === 'end' ? rect.bottom : rect.top + rect.height / 2;
   switch (side) {
     case 'top':
       return { top: rect.top - GAP, left: horizontal, side, align };
@@ -76,7 +78,11 @@ function transformFor(side: TooltipSide, align: TooltipAlign): string {
         : TRANSFORM[side];
   }
   if (side === 'bottom') {
-    return align === 'start' ? 'translate(0, 0)' : align === 'end' ? 'translate(-100%, 0)' : TRANSFORM[side];
+    return align === 'start'
+      ? 'translate(0, 0)'
+      : align === 'end'
+        ? 'translate(-100%, 0)'
+        : TRANSFORM[side];
   }
   if (side === 'left') {
     return align === 'start'
@@ -85,7 +91,11 @@ function transformFor(side: TooltipSide, align: TooltipAlign): string {
         ? 'translate(-100%, -100%)'
         : TRANSFORM[side];
   }
-  return align === 'start' ? 'translate(0, 0)' : align === 'end' ? 'translate(0, -100%)' : TRANSFORM[side];
+  return align === 'start'
+    ? 'translate(0, 0)'
+    : align === 'end'
+      ? 'translate(0, -100%)'
+      : TRANSFORM[side];
 }
 
 /**
@@ -192,7 +202,11 @@ export default function Tooltip({
             className={`pointer-events-none fixed z-[9999] rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in ${
               multiline ? 'max-w-xs whitespace-normal' : 'whitespace-nowrap'
             }`}
-            style={{ top: anchor.top, left: anchor.left, transform: transformFor(anchor.side, anchor.align) }}>
+            style={{
+              top: anchor.top,
+              left: anchor.left,
+              transform: transformFor(anchor.side, anchor.align),
+            }}>
             {label}
           </div>,
           document.body
