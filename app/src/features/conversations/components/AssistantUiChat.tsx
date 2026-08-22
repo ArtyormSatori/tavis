@@ -28,10 +28,7 @@ const localAttachmentAdapter = new CompositeAttachmentAdapter([
  * so the vendored component set stays unmodified and can still be re-pulled
  * from the registry.
  */
-const components: ThreadComponents = {
-  ToolFallback: MockToolFallback,
-  ToolGroup: MockToolGroup,
-};
+const components: ThreadComponents = { ToolFallback: MockToolFallback, ToolGroup: MockToolGroup };
 
 /**
  * The assistant-ui `Thread`, running against an isolated offline runtime.

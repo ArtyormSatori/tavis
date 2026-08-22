@@ -128,7 +128,9 @@ export const mockChatModelAdapter: ChatModelAdapter = {
 
       const write = (done: boolean) => {
         const snapshot = { ...state, steps: [...state.steps] };
-        const args = done ? step.args : { ...step.args, progress: snapshot as unknown as JsonObject };
+        const args = done
+          ? step.args
+          : { ...step.args, progress: snapshot as unknown as JsonObject };
         parts[at] = {
           type: 'tool-call',
           toolCallId,

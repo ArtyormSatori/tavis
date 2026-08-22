@@ -618,7 +618,10 @@ const AssistantMessage: FC = () => {
                 return <div data-slot="aui_chain-of-thought">{children}</div>;
               case 'group-tool':
                 return (
-                  <ToolGroupRoot variant="ghost">
+                  // Local addition: a group holding work still in flight opens
+                  // itself, so a dispatched delegation is visible while the
+                  // answer below it streams. Upstream is collapsed-by-default.
+                  <ToolGroupRoot variant="ghost" defaultOpen={part.status.type === 'running'}>
                     <ToolGroupTrigger
                       count={part.indices.length}
                       active={part.status.type === 'running'}

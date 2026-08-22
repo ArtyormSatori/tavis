@@ -16,8 +16,8 @@
  * uses, so this follows the app theme in both modes.
  */
 import { cn } from '@/components/assistant-ui/lib/utils';
-import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import type { ThreadGroupPart } from '@/components/assistant-ui/thread';
+import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import {
   ToolGroupContent,
   ToolGroupRoot,
