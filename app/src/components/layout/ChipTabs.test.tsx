@@ -1,4 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import ChipTabs, { type ChipTabItem } from './ChipTabs';
@@ -55,6 +57,53 @@ describe('ChipTabs', () => {
   // never re-renders with the intermediate value silently no-ops on the
   // second step (verified) — not a Radix or jsdom quirk, just what "controlled"
   // means.
+
+  it.each([
+    ['{ArrowRight}', 'three'],
+    ['{ArrowLeft}', 'one'],
+    ['{Home}', 'one'],
+    ['{End}', 'three'],
+  ] as const)('moves focus and selects with %s', async (key, expectedId) => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<ChipTabs items={items} value="two" onChange={onChange} testIdPrefix="t" />);
+
+    screen.getByTestId('t-two').focus();
+    await user.keyboard(key);
+
+    expect(onChange).toHaveBeenCalledWith(expectedId);
+    expect(screen.getByTestId(`t-${expectedId}`)).toHaveFocus();
+  });
+
+  it('wraps arrow-key navigation at either end', async () => {
+    // A real controlled harness — see the coverage-gap comment above for why
+    // a static `value` prop can't exercise a second wrap in the same test.
+    function Controlled({ onSelect }: { onSelect: (id: TabId) => void }) {
+      const [value, setValue] = useState<TabId>('one');
+      return (
+        <ChipTabs
+          items={items}
+          value={value}
+          onChange={id => {
+            setValue(id);
+            onSelect(id);
+          }}
+          testIdPrefix="t"
+        />
+      );
+    }
+
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Controlled onSelect={onChange} />);
+
+    screen.getByTestId('t-one').focus();
+    await user.keyboard('{ArrowLeft}');
+    expect(onChange).toHaveBeenLastCalledWith('three');
+
+    await user.keyboard('{ArrowRight}');
+    expect(onChange).toHaveBeenLastCalledWith('one');
+  });
 
   it('connects a tab to its panel through stable IDs', () => {
     render(
