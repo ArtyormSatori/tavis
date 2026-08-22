@@ -164,6 +164,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
             setPendingLocalLabel(localLabel);
           }}
           onAddCustomProvider={() => setEditing('new')}
+          onEditCustomProvider={provider => setEditing(provider)}
         />
 
         {/* ═══════════════════════════════════════════════════════════════
