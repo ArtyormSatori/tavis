@@ -39,7 +39,6 @@ mod routes;
 pub(crate) mod run_cancellation_context;
 mod steering_forwarder;
 pub(crate) mod stop_hooks;
-pub(crate) mod subagent_graph;
 mod summarize;
 pub mod thread_context;
 pub mod todos;
@@ -82,9 +81,7 @@ use crate::openhuman::agent::progress::AgentProgress;
 
 #[allow(unused_imports)] // Wired into the recall/retrieval facade in workstream 09.2.
 pub(crate) use embeddings::ProviderEmbeddingModel;
-pub(crate) use middleware::{
-    HandoffConfig, SuperContextConfig, TranscriptSnapshotSink, TurnContextMiddleware,
-};
+pub(crate) use middleware::{HandoffConfig, TranscriptSnapshotSink, TurnContextMiddleware};
 use model::{
     BuiltTurnModels, ProfileOverrideModel, RouteRecordingModel, TierRoutes, TurnChatModel,
 };

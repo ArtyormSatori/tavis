@@ -2571,9 +2571,6 @@ const messages: TranslationMap = {
   'chat.left': 'pozostało',
   'chat.setup': 'Skonfiguruj',
   'chat.switchToText': 'Przełącz na tekst',
-  'chat.superContext.label': 'Superkontekst',
-  'chat.superContext.hint':
-    'Superkontekst pozwala OpenHuman zebrać i przygotować kontekst ze wszystkich dostępnych danych, aby udzielić wysoce trafnej odpowiedzi. Superkontekst jest we wczesnej wersji beta.',
   'chat.transcribing': 'Transkrypcja...',
   'chat.stopAndSend': 'Zatrzymaj i wyślij',
   'chat.startTalking': 'Zacznij mówić',
@@ -3052,6 +3049,8 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'Środowisko uruchomieniowe nie mogło odczytać swojego pliku konfiguracyjnego. Plik config.toml może należeć do innego konta użytkownika lub być niedostępny dla procesu z innego powodu. Uruchom ponownie środowisko, a jeśli to nie pomoże, napraw właściciela katalogu roboczego lub utwórz jego wolumin od nowa.',
   'welcome.localSessionErrorFallback': 'Nie udało się rozpocząć sesji lokalnej.',
+  'welcome.gatewaySessionErrorFallback':
+    'Nie udało się teraz ukończyć logowania. Magazyn sesji nie odpowiedział na czas (nawet po ponownej próbie). Uruchom ponownie OpenHuman i spróbuj ponownie.',
   'welcome.localSessionDesc':
     'Używa lokalnego profilu offline i pomija logowanie OAuth TinyHumans.',
   'channels.activeRouteValue': '{channel} przez {authMode}',
@@ -6902,6 +6901,52 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Odzyskano plik ustawień',
   'notifications.configRecovered.body':
     'Nie można było odczytać pliku ustawień, więc został przywrócony z kopii zapasowej lub zresetowany do wartości domyślnych. Nieczytelny plik zachowano z sufiksem ".corrupted" na wypadek, gdybyś go potrzebował.',
+  // Gateways: cores this app provisions and runs elsewhere.
+  'settings.gateway.title': 'Uruchom rdzeń gdzie indziej',
+  'settings.gateway.description':
+    'Rdzeń może działać w kontenerze, na innej maszynie przez SSH albo w kontenerze na innej maszynie. OpenHuman go uruchamia, łączy się z nim i zatrzymuje go, gdy przełączysz się gdzie indziej.',
+  'settings.gateway.add': 'Dodaj lokalizację',
+  'settings.gateway.save': 'Zapisz lokalizację',
+  'settings.gateway.remove': 'Usuń',
+  'settings.gateway.use': 'Użyj tej lokalizacji',
+  'settings.gateway.inUse': 'W użyciu',
+  'settings.gateway.activating': 'Łączenie…',
+  'settings.gateway.activatingStep': 'Łączenie: {step}',
+  'settings.gateway.connected': 'Połączono pod adresem {endpoint}',
+  'settings.gateway.failed': 'Nie udało się połączyć: {reason}',
+  'settings.gateway.nameLabel': 'Nazwa',
+  'settings.gateway.namePlaceholder': 'Serwer kompilacji',
+  'settings.gateway.whereLegend': 'Gdzie ma działać?',
+  'settings.gateway.where.here': 'Na tym komputerze',
+  'settings.gateway.where.ssh': 'Na innej maszynie, przez SSH',
+  'settings.gateway.destinationLabel': 'Cel SSH',
+  'settings.gateway.destinationPlaceholder': 'builder@example.com',
+  'settings.gateway.destinationHelp':
+    'Host z Twojej konfiguracji SSH albo użytkownik@host. Porty, klucze i hosty pośredniczące już tam ustawione są używane bez zmian.',
+  'settings.gateway.identityLabel': 'Klucz prywatny (opcjonalnie)',
+  'settings.gateway.identityPlaceholder': '~/.ssh/id_ed25519',
+  'settings.gateway.acceptNewHostKey': 'Zaufaj tej maszynie przy pierwszym połączeniu',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Akceptuje klucz hosta, którego nigdy wcześniej nie widziano. Zmieniony klucz nadal jest odrzucany, bo to właśnie ten przypadek oznacza, że coś jest nie tak.',
+  'settings.gateway.containedLabel': 'Uruchom go w kontenerze',
+  'settings.gateway.imageLabel': 'Obraz kontenera',
+  'settings.gateway.binaryLabel': 'Ścieżka do openhuman-core',
+  'settings.gateway.kind.desktop': 'Wewnątrz tej aplikacji',
+  'settings.gateway.kind.remote': 'Rdzeń pod adresem URL',
+  'settings.gateway.kind.docker': 'W kontenerze tutaj',
+  'settings.gateway.kind.ssh': 'Na innej maszynie',
+  'settings.gateway.kind.ssh+docker': 'W kontenerze na innej maszynie',
+  'settings.gateway.kind.local-process': 'Na tym komputerze',
+  'settings.gateway.idRequired': 'Nadaj tej lokalizacji nazwę.',
+  'settings.gateway.idReserved': 'Ta nazwa jest zarezerwowana dla własnego rdzenia aplikacji.',
+  'settings.gateway.destinationRequired': 'Podaj maszynę, z którą chcesz się połączyć.',
+  'settings.gateway.imageRequired': 'Podaj obraz kontenera do uruchomienia.',
+  'settings.gateway.binaryRequired': 'Podaj ścieżkę do openhuman-core na tej maszynie.',
+  'settings.gateway.portInvalid': 'Port SSH musi być liczbą.',
+
+  'devOptions.gateway': 'Lokalizacja',
+  'devOptions.provisionedCore': 'Rdzeń uruchomiony przez tę aplikację',
+  'devOptions.gatewayId': 'Identyfikator lokalizacji',
   'chat.sources.usedCount': 'Użyto {n} źródeł',
 };
 

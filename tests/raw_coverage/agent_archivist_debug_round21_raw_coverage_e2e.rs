@@ -437,7 +437,10 @@ fn debug_dump_writer_sanitizes_names_and_writes_summary_sidecars() -> Result<()>
         text: "SYSTEM PROMPT\n".to_string(),
         tool_names: vec!["echo".to_string(), "search".to_string()],
         skill_tool_count: 1,
-        tool_specs: Vec::new(),
+        tool_specs: vec![
+            json!({"name": "echo", "description": "echo", "parameters": {}}),
+            json!({"name": "search", "description": "search", "parameters": {}}),
+        ],
     }];
 
     let summary = write_prompt_dumps(tmp.path(), &dumps)?;

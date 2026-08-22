@@ -1620,12 +1620,19 @@ async fn orchestrator_tool_synthesis_covers_agent_and_integration_delegation_edg
     assert_eq!(names, vec!["research", "delegate_to_integrations_agent"]);
 
     let research = &tools[0];
-    assert!(research
-        .description()
-        .contains("direct tools are insufficient"));
+    // Delegate-tool descriptions carry the target agent's `when_to_use`
+    // verbatim. The repeated "direct response/direct tools are insufficient"
+    // prefix was intentionally removed (the orchestrator's own prompt already
+    // carries that rule once), so assert it is gone rather than still required.
     assert!(research
         .description()
         .contains("careful public-source research"));
+    assert!(research
+        .description()
+        .contains("Use for careful public-source research."));
+    assert!(!research
+        .description()
+        .contains("direct tools are insufficient"));
     assert_eq!(research.permission_level(), PermissionLevel::Execute);
     assert_eq!(research.category(), ToolCategory::System);
     assert_eq!(
@@ -3535,11 +3542,7 @@ async fn node_and_npm_exec_tools_cover_validation_policy_and_disabled_runtime_pa
         &config.workspace_dir,
     ));
     let runtime = Arc::new(NativeRuntime::new());
-    let bootstrap = Arc::new(NodeBootstrap::new(
-        config.node.clone(),
-        workspace,
-        reqwest::Client::new(),
-    ));
+    let bootstrap = Arc::new(NodeBootstrap::new(Arc::new(config.clone())));
 
     let node = NodeExecTool::new(
         full_security.clone(),
@@ -3740,7 +3743,9 @@ async fn web_fetch_and_gitbooks_tools_use_local_http_backends() {
     assert!(bad_scheme.output().contains("URL rejected"));
 
     let endpoint = format!("{base}/mcp");
-    let search = GitbooksSearchTool::new(endpoint.clone(), 5);
+    // Fallible since the extraction: building the tool builds an HTTP client,
+    // and an unusable proxy configuration is reported rather than aborting.
+    let search = GitbooksSearchTool::new(endpoint.clone(), 5).expect("the search tool builds");
     assert_eq!(search.name(), "gitbooks_search");
     assert_eq!(search.permission_level(), PermissionLevel::ReadOnly);
     let blank_query = search
@@ -3758,7 +3763,7 @@ async fn web_fetch_and_gitbooks_tools_use_local_http_backends() {
         .output()
         .contains("gitbooks mocked searchDocumentation"));
 
-    let get_page = GitbooksGetPageTool::new(endpoint, 5);
+    let get_page = GitbooksGetPageTool::new(endpoint, 5).expect("the page tool builds");
     assert_eq!(get_page.name(), "gitbooks_get_page");
     let blank_url = get_page
         .execute(json!({ "url": "" }))
