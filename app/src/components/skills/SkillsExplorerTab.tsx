@@ -13,6 +13,7 @@ import EmptyStateCard from '../EmptyStateCard';
 import ChipTabs from '../layout/ChipTabs';
 import { Checkbox, ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import {
   DropdownMenuContent,
   DropdownMenuItem,
