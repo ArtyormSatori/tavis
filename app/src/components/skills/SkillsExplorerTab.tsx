@@ -1018,12 +1018,12 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             <>
               <Card className="w-full">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-surface">
-                  <TableRow>
-                    <TableHead className="min-w-[12rem]">Skill</TableHead>
-                    <TableHead className="min-w-[18rem]">Description</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                  <TableHeader>
+                    <TableRow>
+                    <TableHead className="sticky top-0 z-10 min-w-[12rem] bg-surface">Skill</TableHead>
+                    <TableHead className="sticky top-0 z-10 min-w-[18rem] bg-surface">Description</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-surface">Provider</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-surface text-right">Action</TableHead>
                   </TableRow>
                   </TableHeader>
                   <TableBody>
