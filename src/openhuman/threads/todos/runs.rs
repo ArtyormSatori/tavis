@@ -232,12 +232,22 @@ fn legacy_thread_id(path: &Path) -> Option<String> {
         .as_bytes()
         .chunks_exact(2)
         .map(|pair| {
-            let hi = (pair[0] as char).to_digit(16)?;
-            let lo = (pair[1] as char).to_digit(16)?;
-            u8::try_from(hi * 16 + lo).ok()
+            let hi = lowercase_hex_nibble(pair[0])?;
+            let lo = lowercase_hex_nibble(pair[1])?;
+            Some(hi * 16 + lo)
         })
-        .collect();
-    String::from_utf8(bytes?).ok()
+        .collect::<Option<Vec<u8>>>()?;
+    String::from_utf8(bytes).ok()
+}
+
+/// Decode one ASCII byte as a lowercase hexadecimal nibble (`0-9a-f`), or
+/// `None` for any other byte (including uppercase `A-F`).
+fn lowercase_hex_nibble(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        _ => None,
+    }
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────
@@ -587,6 +597,9 @@ mod tests {
         assert!(legacy_thread_id(Path::new("/w/+f+f.runs.json")).is_none());
         assert!(legacy_thread_id(Path::new("/w/gg.runs.json")).is_none());
         assert!(legacy_thread_id(Path::new("/w/GG.runs.json")).is_none());
+        // Uppercase hex is rejected even though to_digit(16) would accept it.
+        assert!(legacy_thread_id(Path::new("/w/4A.runs.json")).is_none());
+        assert!(legacy_thread_id(Path::new("/w/4a.runs.json")).is_some());
         // A mixed pair with a valid second nibble but invalid first is rejected.
         assert!(legacy_thread_id(Path::new("/w/0g.runs.json")).is_none());
         // Non-hex ASCII letters are rejected.
