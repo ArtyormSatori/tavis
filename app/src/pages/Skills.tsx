@@ -316,13 +316,15 @@ function ChannelTile({
           ? 'ring-2 ring-primary-400 ring-offset-1 ring-offset-white dark:ring-offset-neutral-900'
           : ''
       }`}>
-      <button
+      <Button
         type="button"
+        variant="tertiary"
+        size="md"
         data-testid={testId}
         onClick={onOpen}
         title={`${def.display_name} — ${def.description}`}
         aria-label={`${def.display_name}, ${statusLabel}. ${ctaLabel}.`}
-        className="flex w-full items-center gap-3 rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+        className="h-auto w-full justify-start gap-3 rounded-xl p-0 text-left">
         <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center text-content-secondary [&>span]:h-10 [&>span]:w-10 [&>span]:rounded-2xl [&_svg]:h-6 [&_svg]:w-6">
           {icon}
         </div>
@@ -334,7 +336,7 @@ function ChannelTile({
             {statusLabel}
           </span>
         </div>
-      </button>
+      </Button>
       {showDefaultControl && (
         // Aligns under the name/status text (icon 2.5rem + gap 0.75rem).
         <div className="pl-[3.25rem]">
@@ -352,14 +354,16 @@ function ChannelTile({
               {t('channels.defaultBadge')}
             </span>
           ) : (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="xs"
               data-testid={setDefaultTestId}
               onClick={onSetDefault}
               disabled={setDefaultBusy}
-              className="inline-flex items-center justify-center rounded-lg border border-line bg-surface/70 px-2.5 py-1 text-[11px] font-medium text-content-muted transition-colors hover:border-primary-300 hover:text-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-surface/60 dark:hover:border-primary-500/40 dark:hover:text-primary-300">
+              className="text-content-muted hover:border-primary-300 hover:text-primary-600 dark:hover:border-primary-500/40 dark:hover:text-primary-300">
               {t('channels.setAsDefault')}
-            </button>
+            </Button>
           )}
         </div>
       )}
