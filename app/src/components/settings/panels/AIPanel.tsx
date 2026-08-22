@@ -19,6 +19,7 @@ import {
 } from '../../../services/api/aiSettingsApi';
 import { connectOpenRouterViaOAuth } from '../../../utils/openrouterOAuth';
 import PanelPage from '../../layout/PanelPage';
+import Alert from '../../ui/Alert';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import { ModalShell } from '../../ui/ModalShell';
@@ -236,6 +237,12 @@ const AIPanel = ({
                     onSelectCustom={() => setRoutingEditorMode('custom')}
                   />
 
+                  {effectiveRoutingMode === 'managed' ? (
+                    <Card className="w-full">
+                      <Alert variant="success">{t('settings.ai.routing.managedMsg')}</Alert>
+                    </Card>
+                  ) : null}
+
                   {effectiveRoutingMode === 'own' ? (
                     <GlobalOwnModelSelector
                       current={sharedModelRef}
@@ -270,17 +277,10 @@ const AIPanel = ({
                   ) : null}
 
                   {effectiveRoutingMode === 'custom' ? (
-                    <>
-                      <section className="space-y-1">
-                        <h2 className="text-lg font-semibold tracking-tight text-content">
-                          {t('settings.ai.routing.advanced')}
-                        </h2>
-                        <p className="text-sm text-content-muted">
-                          {t('settings.ai.routing.customDesc')}
-                        </p>
-                      </section>
-
-                      <Card className="w-full">
+                    <Card
+                      title={t('settings.ai.routing.advanced')}
+                      description={t('settings.ai.routing.customDesc')}
+                      className="w-full">
                         <WorkloadTable
                           title={t('settings.ai.routing.chatAndConversations')}
                           description={t('settings.ai.routing.chatDesc')}>
@@ -308,8 +308,7 @@ const AIPanel = ({
                             />
                           ))}
                         </WorkloadTable>
-                      </Card>
-                    </>
+                    </Card>
                   ) : null}
                 </div>
                 {isDirty && (

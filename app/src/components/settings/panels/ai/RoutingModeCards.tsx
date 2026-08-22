@@ -5,7 +5,6 @@
  */
 import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
-import Alert from '../../../ui/Alert';
 import Card from '../../../ui/Card';
 import Label from '../../../ui/Label';
 import { RadioGroupItem, RadioGroupRoot } from '../../../ui/RadioGroup';
@@ -83,9 +82,6 @@ export const RoutingModeCards = ({
         />
       </RadioGroupRoot>
 
-      {effectiveRoutingMode === 'managed' ? (
-        <Alert variant="success">{t('settings.ai.routing.managedMsg')}</Alert>
-      ) : null}
       </div>
     </Card>
   );
