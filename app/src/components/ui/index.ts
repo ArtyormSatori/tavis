@@ -5,17 +5,39 @@
  * reason 491 raw `<button>` elements grew alongside 591 `<Button>` ones: the
  * barrel did not offer one. Everything is exported here now; if a primitive
  * exists, import it from `components/ui` rather than reaching into the file.
+ *
+ * WHAT IS NOT HERE, AND WHY. `ButtonGroup` and `HoverCard` were built, tested,
+ * exported and then imported by nothing. That state is worse than absence: a
+ * primitive with no consumers reads as "already migrated" in every audit while
+ * the hand-rolled markup it was meant to replace stays in place, and its
+ * passing tests give false confidence about code no user reaches. Both were
+ * checked against this app's real surfaces and deleted rather than
+ * force-fitted:
+ *
+ * - `ButtonGroup` — a segmented row of joined buttons. An app-wide search for
+ *   the markup it replaces (`rounded-l-none`, `rounded-r-none`,
+ *   `first:rounded-l`, `last:rounded-r`, `-ml-px`) returns ZERO hits outside
+ *   this directory. The one near-miss, `settings/panels/NotificationRoutingPanel`,
+ *   is a `grid grid-cols-3 divide-x` stat readout — three text pairs, no
+ *   buttons. The segmented-SELECTION case it might otherwise serve already
+ *   belongs to `ToggleGroup`, which has real consumers.
+ *
+ * - `HoverCard` — a rich preview surface opening on hover and focus. The three
+ *   `group-hover:` panels it was meant to replace are not hover cards:
+ *   `chat/SuperContextToggle` is `role="tooltip"`, a label for a control, which
+ *   is `Tooltip`'s job (HoverCard's own doc comment said "NOT a tooltip");
+ *   `skills/SkillsExplorerTab` is a reveal-on-hover Disconnect BUTTON, not a
+ *   preview; and `intelligence/MemoryGraph` hovers an SVG `<circle>` inside a
+ *   pan/zoom transform and renders a DOCKED status bar at the panel's foot, not
+ *   an anchored floating panel — Radix HoverCard anchors to a trigger element,
+ *   so adopting it there would change the layout, not just the implementation.
+ *
+ * Do not re-port either without a concrete consumer to adopt it in the same
+ * change.
  */
 
 // Actions
 export { default as Button, buttonVariants, type ButtonProps } from './Button';
-export {
-  ButtonGroupItem,
-  ButtonGroupRoot,
-  type ButtonGroupItemProps,
-  type ButtonGroupOrientation,
-  type ButtonGroupProps,
-} from './ButtonGroup';
 
 // Form controls
 export { default as Input, type InputProps } from './Input';
@@ -163,13 +185,6 @@ export {
   PopoverTrigger,
   type PopoverContentProps,
 } from './Popover';
-export {
-  HoverCardArrow,
-  HoverCardContent,
-  HoverCardRoot,
-  HoverCardTrigger,
-  type HoverCardContentProps,
-} from './HoverCard';
 export {
   DropdownMenuContent,
   DropdownMenuGroup,
