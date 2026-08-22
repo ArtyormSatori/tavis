@@ -163,7 +163,10 @@ fn elide_oversized_block(block: &tinymcp_bus::McpToolContent) -> serde_json::Val
         return value;
     }
 
-    let kind = value.get("type").cloned().unwrap_or(serde_json::Value::Null);
+    let kind = value
+        .get("type")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
     serde_json::json!({
         "type": kind,
         "data": format!("[{} bytes elided]", serialized.len()),
