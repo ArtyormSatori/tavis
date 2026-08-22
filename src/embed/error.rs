@@ -85,6 +85,17 @@ pub enum CoreError {
         #[source]
         source: serde_json::Error,
     },
+
+    /// The route would transmit a bearer credential over a non-TLS channel.
+    ///
+    /// A [`super::agent::Route`] that names an `http://` (or other non-HTTPS)
+    /// endpoint while carrying an `api_key` is refused before any request is
+    /// sent, so the credential can never ride cleartext on the wire.
+    #[error("{endpoint}: refusing to send a bearer credential over a non-HTTPS route")]
+    InsecureRoute {
+        /// The sanitized endpoint (credentials stripped) that was refused.
+        endpoint: String,
+    },
 }
 
 impl CoreError {
