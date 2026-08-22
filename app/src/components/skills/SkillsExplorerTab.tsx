@@ -377,6 +377,35 @@ interface SkillDetailDialogProps {
   installing?: boolean;
 }
 
+function CatalogRow({ entry, installed, installing, onInstall, onClick }: CatalogTileProps) {
+  const { t } = useT();
+  return (
+    <TableRow className="cursor-pointer" onClick={onClick}>
+      <TableCell className="min-w-[12rem] font-medium">{entry.name}</TableCell>
+      <TableCell className="min-w-[18rem] max-w-xl text-xs text-content-muted">
+        <span className="line-clamp-1">{entry.description}</span>
+      </TableCell>
+      <TableCell className="whitespace-nowrap"><SourceBadge source={entry.source} /></TableCell>
+      <TableCell className="w-px whitespace-nowrap text-right">
+        {installed ? (
+          <span className="text-xs text-sage-700 dark:text-sage-300">{t('skills.explorer.installed')}</span>
+        ) : (
+          <Button
+            variant="secondary"
+            size="xs"
+            disabled={installing}
+            onClick={event => {
+              event.stopPropagation();
+              onInstall();
+            }}>
+            {installing ? t('skills.explorer.installing') : t('skills.explorer.install')}
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function SkillDetailDialog({
   entry,
   skill,
