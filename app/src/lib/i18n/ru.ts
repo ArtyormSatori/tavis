@@ -4497,7 +4497,8 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'Заменить ключ API',
   'settings.ai.providers.custom': 'Пользовательский',
   'settings.ai.providers.addProvider': 'Добавить провайдера',
-  'settings.ai.providers.addProviderSubtitle': 'Выберите провайдера для подключения. Добавить другие можно в любой момент.',
+  'settings.ai.providers.addProviderSubtitle':
+    'Выберите провайдера для подключения. Добавить другие можно в любой момент.',
   'settings.ai.providers.allConnected': 'Все доступные провайдеры уже подключены.',
   'settings.ai.providers.customDetail': 'Ваша собственная конечная точка, совместимая с OpenAI',
   'settings.ai.providers.groupConnected': 'Подключено',
