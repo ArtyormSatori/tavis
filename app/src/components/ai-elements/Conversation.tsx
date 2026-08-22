@@ -5,8 +5,8 @@
  * not mount an assistant-ui runtime.
  *
  */
-import { forwardRef, type HTMLAttributes } from 'react';
 import { type AssistantState, ThreadPrimitive, useAuiState } from '@assistant-ui/react';
+import { forwardRef, type HTMLAttributes } from 'react';
 
 import { cn } from '../../lib/cn';
 

@@ -1,4 +1,10 @@
 import {
+  type AssistantState,
+  MessagePrimitive,
+  ThreadPrimitive,
+  useAuiState,
+} from '@assistant-ui/react';
+import {
   forwardRef,
   Fragment,
   type ReactNode,
@@ -8,12 +14,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  type AssistantState,
-  MessagePrimitive,
-  ThreadPrimitive,
-  useAuiState,
-} from '@assistant-ui/react';
 
 import { Conversation, ConversationContent } from '../../../components/ai-elements';
 import { useStickToBottom } from '../../../hooks/useStickToBottom';
@@ -62,7 +62,13 @@ const EMPTY_TRANSCRIPT_ENTRIES: ToolTimelineEntry[] = [];
 const EMPTY_TOOL_TIMELINE: ToolTimelineEntry[] = [];
 const EMPTY_PROCESSING: ProcessingTranscriptItem[] = [];
 
-function AssistantMessageScope({ messageId, children }: { messageId: string; children: ReactNode }) {
+function AssistantMessageScope({
+  messageId,
+  children,
+}: {
+  messageId: string;
+  children: ReactNode;
+}) {
   const hasRuntimeMessage = useAuiState(
     useCallback(
       (state: AssistantState) =>
