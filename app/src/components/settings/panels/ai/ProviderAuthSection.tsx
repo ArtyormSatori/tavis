@@ -176,7 +176,7 @@ export const ProviderAuthSection = ({
   const claudeCodeConnected = Boolean(bySlug('claude-code'));
 
   return (
-    <Card title={t('settings.ai.llmProviders')} description={t('settings.ai.llmProvidersDesc')}>
+    <>
       <div className="flex w-full flex-col gap-4 py-4">
         <div className="flex w-full flex-col gap-4 px-4">
           {/* ─── Rejected-key notices ───────────────────────────────────────
@@ -212,7 +212,20 @@ export const ProviderAuthSection = ({
           {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
           {error && <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
 
-          <ProviderPicker groups={pickerGroups} onPick={handlePick} />
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-w-0 text-xs text-content-muted">
+              {t('settings.ai.llmProvidersDesc')}
+            </p>
+            <Button
+              type="button"
+              variant="primary"
+              size="xs"
+              leadingIcon={<LuPlus className="h-3.5 w-3.5" />}
+              onClick={() => setAddOpen(true)}
+              data-testid="add-provider-open">
+              {t('settings.ai.providers.addProvider')}
+            </Button>
+          </div>
         </div>
 
         {/* ─── Connected ────────────────────────────────────────────────────
@@ -389,7 +402,15 @@ export const ProviderAuthSection = ({
           <p className="text-xs text-content-muted">{t('settings.ai.routing.managedHint')}</p>
         </div>
       </div>
-    </Card>
+
+      {addOpen && (
+        <AddProviderDialog
+          groups={pickerGroups}
+          onPick={handlePick}
+          onClose={() => setAddOpen(false)}
+        />
+      )}
+    </>
   );
 };
 
