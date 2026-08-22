@@ -8,7 +8,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { renderWithProviders } from '../../../../test/test-utils';
+import { renderWithProviders } from '../../../../../test/test-utils';
 
 const hoisted = vi.hoisted(() => ({
   listGateways: vi.fn(),
@@ -21,8 +21,8 @@ const hoisted = vi.hoisted(() => ({
   clearCoreRpcTokenCache: vi.fn(),
 }));
 
-vi.mock('../../../../services/gatewayService', async importOriginal => {
-  const actual = await importOriginal<typeof import('../../../../services/gatewayService')>();
+vi.mock('../../../../../services/gatewayService', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../../../services/gatewayService')>();
   return {
     ...actual,
     listGateways: hoisted.listGateways,
@@ -34,7 +34,7 @@ vi.mock('../../../../services/gatewayService', async importOriginal => {
   };
 });
 
-vi.mock('../../../../services/coreRpcClient', () => ({
+vi.mock('../../../../../services/coreRpcClient', () => ({
   clearCoreRpcUrlCache: hoisted.clearCoreRpcUrlCache,
   clearCoreRpcTokenCache: hoisted.clearCoreRpcTokenCache,
 }));
