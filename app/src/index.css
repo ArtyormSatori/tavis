@@ -667,6 +667,34 @@
     outline: none !important;
   }
 
+  /* Default border colour.
+     
+     Tailwind v4's preflight leaves `border-color` at `currentColor`, so a bare
+     `border` utility paints in the element's *text* colour. shadcn's own init
+     overrides that with the `--border` token, and every component pulled from
+     the registry is written on that assumption — 18 places in
+     `components/assistant-ui/` use a bare `border`, `border-t` or `border-b`
+     with no colour: the reasoning bubble, the tool group, popovers, dialogs,
+     markdown tables, the thread-list rail. Without this rule each of them drew
+     a border in the foreground colour, which is near-white in dark mode and
+     near-black in light — bright, and unrelated to the theme.
+
+     We ran `shadcn add` but never `shadcn init`, so the token block in
+     `styles/shadcn-tokens.css` and this rule both had to be written by hand;
+     they are two halves of the same missing setup.
+
+     Specificity (0,0,0) means any component naming its own border colour still
+     wins — `ui/Alert`, `ui/Badge`, `ui/RadioGroup` and `ui/Table` all do, via
+     their variants. What changes is only the elements that named none, where
+     `currentColor` was never a deliberate choice. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+  }
+
   /* `@plugin '@tailwindcss/forms'` styles bare `input` / `textarea` / `select`
      directly, and two halves of that reset fight the rest of this app.
 
