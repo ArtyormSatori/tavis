@@ -403,8 +403,11 @@ function ChatComposerBody({
           />
         </div>
 
-        {/* `.aui-composer-action-wrapper` — add-attachment (and this app's mic)
-            on the left, the send/cancel action on the right. */}
+        {/* `.aui-composer-action-wrapper` — add-attachment and the model chip
+            on the left; the mic and the send/cancel action on the right. The
+            left group is `min-w-0` so the model chip (the only element with a
+            text label, and therefore the only one that can grow) truncates
+            instead of pushing the right group off the edge at narrow widths. */}
         <div className={COMPOSER_ACTION_WRAPPER}>
           <div className="flex min-w-0 items-center gap-1">
             {attachmentsEnabled && (
