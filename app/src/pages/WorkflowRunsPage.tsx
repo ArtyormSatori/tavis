@@ -84,51 +84,51 @@ export default function WorkflowRunsPage() {
         title={t('flows.allRuns.title')}
         description={t('flows.allRuns.description')}>
         <div className="pt-4">
-        {pageLoading ? (
-          <CenteredLoadingState label={t('flows.allRuns.loading')} />
-        ) : pageError ? (
-          <ErrorBanner message={pageError} />
-        ) : runs.length === 0 ? (
-          <p
-            className="py-8 text-center text-sm text-content-muted"
-            data-testid="workflow-runs-empty">
-            {t('flows.allRuns.empty')}
-          </p>
-        ) : (
-          <ul
-            className="divide-y divide-line rounded-xl border border-line"
-            data-testid="workflow-runs-list">
-            {runs.map(run => {
-              const displayStatus = resolveDisplayStatus(run, pendingRunIds);
-              return (
-                <li key={run.id}>
-                  <button
-                    type="button"
-                    data-testid={`workflow-run-${run.id}`}
-                    onClick={() => navigate(`/flows/${run.flow_id}`)}
-                    className="flex w-full items-center gap-3 p-3 text-left hover:bg-surface-hover">
-                    <FlowRunStatus
-                      status={displayStatus}
-                      label={statusLabel(displayStatus)}
-                      className="flex-shrink-0 text-[11px]"
-                    />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-content">
-                      {flowNames[run.flow_id] ?? t('flows.allRuns.unknownWorkflow')}
-                    </span>
-                    <span className="flex-shrink-0 text-[11px] text-content-faint">
-                      {new Date(run.started_at).toLocaleString()}
-                    </span>
-                  </button>
-                  {run.error && (
-                    <p className="px-3 pb-2 text-[11px] text-coral-600 dark:text-coral-300">
-                      {run.error}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+          {pageLoading ? (
+            <CenteredLoadingState label={t('flows.allRuns.loading')} />
+          ) : pageError ? (
+            <ErrorBanner message={pageError} />
+          ) : runs.length === 0 ? (
+            <p
+              className="py-8 text-center text-sm text-content-muted"
+              data-testid="workflow-runs-empty">
+              {t('flows.allRuns.empty')}
+            </p>
+          ) : (
+            <ul
+              className="divide-y divide-line rounded-xl border border-line"
+              data-testid="workflow-runs-list">
+              {runs.map(run => {
+                const displayStatus = resolveDisplayStatus(run, pendingRunIds);
+                return (
+                  <li key={run.id}>
+                    <button
+                      type="button"
+                      data-testid={`workflow-run-${run.id}`}
+                      onClick={() => navigate(`/flows/${run.flow_id}`)}
+                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-surface-hover">
+                      <FlowRunStatus
+                        status={displayStatus}
+                        label={statusLabel(displayStatus)}
+                        className="flex-shrink-0 text-[11px]"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-content">
+                        {flowNames[run.flow_id] ?? t('flows.allRuns.unknownWorkflow')}
+                      </span>
+                      <span className="flex-shrink-0 text-[11px] text-content-faint">
+                        {new Date(run.started_at).toLocaleString()}
+                      </span>
+                    </button>
+                    {run.error && (
+                      <p className="px-3 pb-2 text-[11px] text-coral-600 dark:text-coral-300">
+                        {run.error}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </SettingsTabbedPage>
     </div>

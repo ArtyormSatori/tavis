@@ -16,7 +16,7 @@ export default function WorkflowDiscoveriesPage() {
         title={t('flows.discoveries.title')}
         description={t('flows.discoveries.description')}>
         <div className="pt-4">
-        <SuggestedWorkflows />
+          <SuggestedWorkflows />
         </div>
       </SettingsTabbedPage>
     </div>
