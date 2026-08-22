@@ -7,6 +7,7 @@ import type { Attachment } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
 import { Button } from '../ui';
 import AttachmentPreview from './AttachmentPreview';
+import ModelQualityPill from './ModelQualityPill';
 import {
   AddAttachmentIcon,
   MicIcon,
@@ -28,7 +29,6 @@ import {
   COMPOSER_SEND,
 } from './composer/composerStyles';
 import { useComposerTextBridge } from './composer/useComposerTextBridge';
-import ModelQualityPill from './ModelQualityPill';
 
 const debug = debugFactory('openhuman:chat-composer');
 
