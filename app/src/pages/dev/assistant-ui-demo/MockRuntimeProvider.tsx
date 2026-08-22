@@ -18,17 +18,30 @@ import {
   useRemoteThreadListRuntime,
 } from '@assistant-ui/react';
 import debugFactory from 'debug';
-import { type ReactNode, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useContext, useId, useMemo, useRef, useState } from 'react';
 
 import { mockChatModelAdapter } from './mockChatModel';
+import { buildSeedMessages } from './mockScript';
 
 const debug = debugFactory('openhuman:assistant-ui-demo');
 
 /**
- * The per-thread runtime. `useRemoteThreadListRuntime` calls this once per live
- * thread, so each thread in the list gets its own message history.
+ * Which thread gets the seeded transcript.
+ *
+ * `runtimeHook` is called once per live thread and takes no arguments, so the
+ * "is this the first thread?" answer has to arrive through context. It is
+ * keyed on `useId()` rather than a counter because `useId` is stable per hook
+ * instance — a counter would be consumed twice under StrictMode's double
+ * render and seed the wrong thread.
  */
+const FirstThreadContext = createContext<{ id: string | null }>({ id: null });
+
 function useDemoThreadRuntime() {
+  const box = useContext(FirstThreadContext);
+  const id = useId();
+  if (box.id === null) box.id = id;
+  const isFirstThread = box.id === id;
+
   const adapters = useMemo(
     () => ({
       attachments: new CompositeAttachmentAdapter([
@@ -44,16 +57,32 @@ function useDemoThreadRuntime() {
     []
   );
 
-  return useLocalRuntime(mockChatModelAdapter, { adapters });
+  // Only the thread the page opens on is seeded. A thread the user creates from
+  // the rail should start empty, the way a new chat does.
+  const initialMessages = useMemo(
+    () => (isFirstThread ? buildSeedMessages() : undefined),
+    [isFirstThread]
+  );
+
+  debug('[assistant-ui-demo] thread runtime seeded=%s', isFirstThread);
+  return useLocalRuntime(mockChatModelAdapter, { adapters, initialMessages });
 }
 
 export function MockRuntimeProvider({ children }: { children: ReactNode }) {
   // One adapter instance for the page's lifetime — the options doc requires a
   // stable reference, since replacing it reloads the list and drops threads.
   const [adapter] = useState(() => new InMemoryThreadListAdapter());
-  const runtime = useRemoteThreadListRuntime({ runtimeHook: useDemoThreadRuntime, adapter });
+  const firstThread = useRef<{ id: string | null }>({ id: null });
+  const runtime = useRemoteThreadListRuntime({
+    runtimeHook: useDemoThreadRuntime,
+    adapter,
+  });
 
-  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
+  return (
+    <FirstThreadContext.Provider value={firstThread.current}>
+      <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>
+    </FirstThreadContext.Provider>
+  );
 }
 
 export default MockRuntimeProvider;
