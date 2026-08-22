@@ -53,20 +53,6 @@ interface PanelPageBaseProps<T extends string = string> {
   /** Prefix for each chip's `data-testid` (`${prefix}-${id}`). */
   tabsTestIdPrefix?: string;
 
-  /**
-   * Single-body content, for the no-`tabs` case ONLY.
-   *
-   * A tabbed page renders the active tab and nothing else, so anything passed
-   * here alongside `tabs` is silently dropped. That is not theoretical: tabbing
-   * this page moved a save bar and four dialogs into a `children` that stopped
-   * rendering, and the only symptom was that clicking a provider appeared to do
-   * nothing. `PanelPageProps` is a union on exactly that axis, so passing both
-   * is now a type error rather than a disappearing overlay.
-   *
-   * Overlays that belong to a tabbed page go beside the `PanelPage`, not inside
-   * it. Anything anchored to the scroll (a sticky bar) goes in the tab body.
-   */
-  children?: ReactNode;
   /** Body spacing for the single-body case. Defaults to `p-4 space-y-5`. */
   contentClassName?: string;
   /**
@@ -88,6 +74,7 @@ interface PanelPageBaseProps<T extends string = string> {
 type PanelPageProps<T extends string = string> = PanelPageBaseProps<T> &
   (
     | { tabs: PanelPageTab<T>[]; children?: never }
+    /** Single-body content, for the no-`tabs` case. */
     | { tabs?: undefined; children?: ReactNode }
   );
 
