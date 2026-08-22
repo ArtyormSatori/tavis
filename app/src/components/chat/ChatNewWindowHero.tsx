@@ -183,6 +183,15 @@ export default function ChatNewWindowHero() {
         )}
       </div>
 
+      {/* Prompt heading — sits directly above the composer, which is the call
+          to action. This is the string the composer placeholder used to carry
+          (`chat.typeMessage`); the placeholder is now the plain
+          "Send a message" affordance, so the question moved here where it can
+          be a real heading rather than hint text inside an input. */}
+      <h2 className="mt-6 text-center text-lg font-semibold text-content">
+        {t('chat.newWindowPrompt')}
+      </h2>
+
       <DiscordBanner />
     </div>
   );
