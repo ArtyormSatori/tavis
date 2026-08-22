@@ -1102,7 +1102,8 @@ export default function Skills() {
               title={t(CONNECTIONS_HEADERS[activeTab]!.titleKey)}
               description={t(CONNECTIONS_HEADERS[activeTab]!.descKey)}
               scrollable={activeTab !== 'skills'}>
-              <div className={activeTab === 'skills' ? 'h-full min-h-0 w-full' : 'w-full space-y-4'}>
+              <div
+                className={activeTab === 'skills' ? 'h-full min-h-0 w-full' : 'w-full space-y-4'}>
                 {/* <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <h1 className="text-base font-semibold text-content">
