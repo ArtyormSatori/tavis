@@ -169,7 +169,6 @@ openhuman_core = { path = "../..", package = "openhuman", default-features = fal
     "documents",
     "modules",
     "flows",
-    "meet",
     "skills",
     "mcp",
     "crash-reporting",
