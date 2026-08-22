@@ -4,7 +4,14 @@ import { listProviderModels, type ModelInfo } from '../../../../services/api/aiS
 import Button from '../../../ui/Button';
 import { ModalShell } from '../../../ui/ModalShell';
 import TextField from '../../../ui/TextField';
-import { CLAUDE_CODE_DEFAULT_MODEL, type CloudProvider, type CustomDialogSource, type OllamaModel } from './aiPanelTypes';
+import {
+  CLAUDE_CODE_DEFAULT_MODEL,
+  type CloudProvider,
+  type CustomDialogSource,
+  type OllamaModel,
+  slugTone,
+} from './aiPanelTypes';
+import { ProviderSwatch } from './ProviderListRow';
 
 export interface ProviderModelSelection {
   source: CustomDialogSource;
@@ -30,6 +37,12 @@ const sourceLabel = (source: CustomDialogSource, providers: CloudProvider[]) =>
     : source.kind === 'local'
       ? 'Ollama'
       : 'Claude Code';
+
+const sourceSlug = (source: CustomDialogSource) =>
+  source.kind === 'cloud' ? source.providerSlug : source.kind === 'local' ? 'ollama' : 'claude-code';
+
+const sourceDetail = (source: CustomDialogSource) =>
+  source.kind === 'cloud' ? 'Cloud provider' : source.kind === 'local' ? 'Local runtime' : 'CLI provider';
 
 /**
  * Shared, searchable provider and model chooser. It owns discovery and
@@ -137,8 +150,20 @@ export function ProviderModelPickerDialog({
                   variant="tertiary"
                   size="sm"
                   onClick={() => selectSource(candidate)}
-                  className={`w-full justify-start ${selected ? 'bg-surface-muted' : ''}`}>
-                  {sourceLabel(candidate, cloudProviders)}
+                  className={`h-auto w-full justify-start gap-3 px-2.5 py-2 ${selected ? 'bg-surface-muted' : ''}`}>
+                  <ProviderSwatch
+                    slug={sourceSlug(candidate)}
+                    label={sourceLabel(candidate, cloudProviders)}
+                    tone={slugTone(sourceSlug(candidate))}
+                  />
+                  <span className="flex min-w-0 flex-col items-start gap-0.5">
+                    <span className="truncate text-sm font-medium">
+                      {sourceLabel(candidate, cloudProviders)}
+                    </span>
+                    <span className="text-xs font-normal text-content-muted">
+                      {sourceDetail(candidate)}
+                    </span>
+                  </span>
                 </Button>
               );
             })}

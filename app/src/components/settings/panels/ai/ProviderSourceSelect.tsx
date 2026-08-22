@@ -5,7 +5,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../ui';
-import type { CloudProvider, CustomDialogSource } from './aiPanelTypes';
+import { slugTone, type CloudProvider, type CustomDialogSource } from './aiPanelTypes';
+import { ProviderSwatch } from './ProviderListRow';
 
 interface ProviderSourceSelectProps {
   source: CustomDialogSource | null;
@@ -20,6 +21,9 @@ interface ProviderSourceSelectProps {
 
 const encodeSource = (source: CustomDialogSource) =>
   source.kind === 'cloud' ? `cloud:${source.providerSlug}` : source.kind;
+
+const sourceSlug = (source: CustomDialogSource) =>
+  source.kind === 'cloud' ? source.providerSlug : source.kind === 'local' ? 'ollama' : 'claude-code';
 
 /**
  * Short, shared provider-source picker for routing forms. Cloud, local, and
@@ -53,12 +57,27 @@ export function ProviderSourceSelect({
       </SelectTrigger>
       <SelectContent>
         {cloudProviders.map(provider => (
-          <SelectItem key={provider.slug} value={`cloud:${provider.slug}`}>
-            {provider.label}
+          <SelectItem key={provider.slug} value={`cloud:${provider.slug}`} className="py-2">
+            <ProviderSwatch slug={provider.slug} label={provider.label} tone={slugTone(provider.slug)} />
+            <span>{provider.label}</span>
           </SelectItem>
         ))}
-        {localAvailable && <SelectItem value="local">{localLabel}</SelectItem>}
-        {claudeCodeVisible && <SelectItem value="claude-code">{claudeCodeLabel}</SelectItem>}
+        {localAvailable && (
+          <SelectItem value="local" className="py-2">
+            <ProviderSwatch slug="ollama" label={localLabel} tone={slugTone('ollama')} />
+            <span>{localLabel}</span>
+          </SelectItem>
+        )}
+        {claudeCodeVisible && (
+          <SelectItem value="claude-code" className="py-2">
+            <ProviderSwatch
+              slug="claude-code"
+              label={claudeCodeLabel}
+              tone={slugTone('claude-code')}
+            />
+            <span>{claudeCodeLabel}</span>
+          </SelectItem>
+        )}
       </SelectContent>
     </SelectRoot>
   );

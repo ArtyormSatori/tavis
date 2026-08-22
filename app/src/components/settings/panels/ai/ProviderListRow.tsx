@@ -71,7 +71,15 @@ export interface ProviderRowAction {
  * unambiguous. `aria-hidden` either way, because the name is right beside it —
  * announcing "O, OpenAI" helps nobody.
  */
-const ProviderSwatch = ({ slug, label, tone }: { slug: string; label: string; tone: string }) => {
+export const ProviderSwatch = ({
+  slug,
+  label,
+  tone,
+}: {
+  slug: string;
+  label: string;
+  tone: string;
+}) => {
   const icon = providerIcon(slug, 'h-4 w-4');
   return (
     <span
