@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 
+import { cn } from '../../lib/cn';
 import ChipTabs, { type ChipTabItem } from './ChipTabs';
-import PanelHeader, { DEFAULT_PANEL_HEADER_BG } from './PanelHeader';
+import { type ContentWidth } from './contentWidth';
+import PanelHeader from './PanelHeader';
 import PanelScaffold from './PanelScaffold';
 
 export interface PanelPageTab<T extends string = string> {
