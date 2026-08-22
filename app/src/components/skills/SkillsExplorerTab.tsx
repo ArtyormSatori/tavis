@@ -266,6 +266,30 @@ function SkillTile({ skill, onUninstall, onClick }: SkillTileProps) {
   );
 }
 
+function InstalledSkillRow({ skill, onUninstall, onClick }: SkillTileProps) {
+  const { t } = useT();
+  return (
+    <TableRow>
+      <TableCell className="min-w-[12rem]">
+        <Button type="button" variant="tertiary" size="xs" onClick={onClick} className="h-auto max-w-full p-0 text-left font-medium hover:bg-transparent">
+          <span className="truncate">{skill.name}</span>
+        </Button>
+      </TableCell>
+      <TableCell className="min-w-[18rem] max-w-xl text-xs text-content-muted">
+        <span className="line-clamp-1">{skill.description || t('skills.explorer.noDescription')}</span>
+      </TableCell>
+      <TableCell className="whitespace-nowrap"><SkillFormatBadge format={skill.sourceFormat} /></TableCell>
+      <TableCell className="w-px whitespace-nowrap text-right">
+        {skill.scope === 'user' ? (
+          <Button variant="secondary" tone="danger" size="xs" data-testid={`skill-uninstall-${skill.id}`} onClick={event => { event.stopPropagation(); onUninstall(); }}>
+            {t('skills.disconnect')}
+          </Button>
+        ) : <Badge variant="neutral">{t('skills.explorer.installed')}</Badge>}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 interface CatalogTileProps {
   entry: CatalogEntry;
   installed: boolean;
