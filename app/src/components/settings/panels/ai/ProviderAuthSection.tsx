@@ -53,10 +53,18 @@ const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
  *  provider, so it cannot collide with a real slug. */
 const CUSTOM_OPTION = '__custom__';
 
-/** CLI logins, in dialog order. `openai` is Codex's stored slug: the Codex
- *  CLI login IS an OpenAI credential, which is why connecting it busies the
- *  `toggle-openai` action. */
-const CLI_LOGIN_SLUGS = ['claude-code', 'codex'] as const;
+/**
+ * CLI logins, in dialog order, each with the slug its credential is STORED
+ * under. Codex is the trap: the Codex CLI login is an OpenAI credential, so it
+ * lands in `cloudProviders` as `openai` and shows up as the OpenAI row. Keying
+ * its "already connected" check on the literal `codex` would never match, and
+ * the dialog would keep offering Codex forever. It is also why connecting it
+ * busies the `toggle-openai` action.
+ */
+const CLI_LOGINS = [
+  { option: 'claude-code', storedAs: 'claude-code' },
+  { option: 'codex', storedAs: 'openai' },
+] as const;
 
 /** An endpoint URL reads better in a one-line menu item as just its host. */
 const hostOf = (endpoint: string): string => {
@@ -175,13 +183,13 @@ export const ProviderAuthSection = ({
       // own to open.
       id: 'cli',
       title: t('settings.ai.providers.groupCli'),
-      options: CLI_LOGIN_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
-        slug,
+      options: CLI_LOGINS.filter(cli => !bySlug(cli.storedAs)).map(cli => ({
+        slug: cli.option,
         label:
-          slug === 'claude-code'
+          cli.option === 'claude-code'
             ? t('settings.ai.claudeCode.button')
             : t('settings.ai.codexAuthButton'),
-        tone: BUILTIN_PROVIDER_META.custom?.tone ?? '',
+        tone: BUILTIN_PROVIDER_META[cli.storedAs]?.tone ?? '',
         detail: t('settings.ai.providers.cliDetail'),
       })),
     },
