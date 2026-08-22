@@ -16,7 +16,7 @@ const FollowupSuggestionsRow: FC = () => {
     // scrollLeft runs 0..-max in RTL; normalize to hidden width per physical edge.
     const fromStart = Math.abs(el.scrollLeft);
     // getComputedStyle forces a style recalc per scroll event; direction is stable, read it once.
-    const rtl = (rtlRef.current ??= getComputedStyle(el).direction === 'rtl');
+    const rtl = (rtlRef.current ??= window.getComputedStyle(el).direction === 'rtl');
     const [left, right] = rtl
       ? [maxScroll - fromStart, fromStart]
       : [fromStart, maxScroll - fromStart];
