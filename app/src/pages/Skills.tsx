@@ -1118,8 +1118,8 @@ export default function Skills() {
                   />
                 )}
                 <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
-                  <SettingsLayoutProvider value={{ inTwoPaneShell: true, headerless: true }}>
-                  </SettingsLayoutProvider>
+                  <SettingsLayoutProvider
+                    value={{ inTwoPaneShell: true, headerless: true }}></SettingsLayoutProvider>
                 </div>
               </>
             )}
