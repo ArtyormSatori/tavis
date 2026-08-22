@@ -279,18 +279,18 @@ describe('AIPanel', () => {
   it('renders Managed, Use Your Own Models, and Advanced routing controls', async () => {
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Managed/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Managed/i })).toBeInTheDocument()
     );
-    expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Advanced/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Advanced/i })).toBeInTheDocument();
   });
 
   it('renders all visible advanced workload labels', async () => {
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Advanced/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Advanced/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Advanced/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Advanced/i }));
     await waitFor(() => expect(screen.getByText('Chat')).toBeInTheDocument());
     for (const label of [
       'Chat',
@@ -341,9 +341,9 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     // The field is a free-text "Deployment name" box, not a catalog dropdown.
     const deploymentInput = await screen.findByRole('textbox', { name: /Deployment name/i });
@@ -369,9 +369,9 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     // Seeding the field with a base model id is what produced the bug, so the
     // deployment field must come up empty and wait for the user.
@@ -398,9 +398,9 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     // Existing behaviour is unchanged: a populated catalog still renders a
     // dropdown and there is no Azure-specific labelling.
@@ -437,9 +437,9 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     expect(
       await screen.findByText(/confirm this is the name you gave your deployment/i)
@@ -460,9 +460,9 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     expect(await screen.findByText(/This is not the model ID/i)).toBeInTheDocument();
     await waitFor(() =>
@@ -481,9 +481,9 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     await screen.findByRole('textbox', { name: /Deployment name/i });
     fireEvent.click(await screen.findByRole('button', { name: /Choose from list/i }));
@@ -704,7 +704,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     // Per-workload rows live behind the advanced routing mode.
-    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
       name: /Choose Model|Change Model/i,
     });
@@ -766,7 +766,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
       name: /Choose Model|Change Model/i,
     });
@@ -812,9 +812,9 @@ describe('AIPanel', () => {
     });
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Use Your Own Models/i })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Use Your Own Models/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     // Enter a model id → the per-model "Supports vision" checkbox appears.
     const modelInput = await screen.findByPlaceholderText('Enter model id');
@@ -880,7 +880,7 @@ describe('AIPanel', () => {
     // Wait for load.
     await waitFor(() => expect(screen.getAllByText(/Anthropic/i).length).toBeGreaterThan(0));
 
-    fireEvent.click(screen.getByRole('button', { name: /Managed/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Managed/i }));
 
     await waitFor(() => expect(vi.mocked(saveAISettings)).toHaveBeenCalled());
 
@@ -1878,7 +1878,7 @@ describe('AIPanel', () => {
     vi.mocked(saveAISettings).mockResolvedValue(undefined);
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('div.flex.items-center.justify-between');
     expect(rowEl).not.toBeNull();
@@ -1937,7 +1937,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('div.flex.items-center.justify-between');
     expect(rowEl).not.toBeNull();
@@ -1985,7 +1985,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('div.flex.items-center.justify-between');
     expect(rowEl).not.toBeNull();
@@ -2026,7 +2026,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('div.flex.items-center.justify-between');
     expect(rowEl).not.toBeNull();
