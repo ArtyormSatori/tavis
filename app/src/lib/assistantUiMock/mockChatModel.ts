@@ -144,8 +144,10 @@ export const mockChatModelAdapter: ChatModelAdapter = {
       write(false);
 
       pending += 1;
-      const startedAt = performance.now();
-      const elapsed = () => Math.round((performance.now() - startedAt) / 100) / 10;
+      // `Date.now`, not `performance.now`: the latter is not in this project's
+      // ESLint globals, and tenth-of-a-second resolution is all this displays.
+      const startedAt = Date.now();
+      const elapsed = () => Math.round((Date.now() - startedAt) / 100) / 10;
 
       void (async () => {
         try {
