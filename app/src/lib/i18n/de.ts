@@ -4025,12 +4025,6 @@ const messages: TranslationMap = {
   'notifications.center.filterAll': 'Alles filtern',
   'notifications.center.markAllRead': 'Alles als gelesen markieren',
   'notifications.center.title': 'Benachrichtigungen',
-  'notifications.meeting.joinListen': 'Beitreten (nur zuhören)',
-  'notifications.meeting.joinActive': 'Beitreten und antworten',
-  'notifications.meeting.skip': 'Nicht dieses',
-  'notifications.meeting.alwaysJoin': 'Immer beitreten',
-  'notifications.meeting.actionError':
-    'Diese Aktion konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
   'notifications.flow.approveTitle': 'Workflow benötigt Genehmigung',
   'notifications.flow.approve': 'Genehmigen',
   'notifications.flow.approving': 'Wird genehmigt…',
