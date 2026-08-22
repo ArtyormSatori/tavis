@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
+import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
 import TextField from '../../../ui/TextField';
 import { isAzureFoundryEndpoint, isAzureV1BaseUrl } from '../azureDeployment';
@@ -157,11 +158,9 @@ export const CloudProviderEditor = ({
         </div>
       }>
       <div>
-        <label
-          htmlFor="cloud-provider-name"
-          className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
+        <Label htmlFor="cloud-provider-name" className="text-xs text-content-secondary">
           {t('common.name')}
-        </label>
+        </Label>
         <TextField
           id="cloud-provider-name"
           value={label}
@@ -180,11 +179,9 @@ export const CloudProviderEditor = ({
         ) : null}
       </div>
       <div>
-        <label
-          htmlFor="cloud-provider-openai-url"
-          className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
+        <Label htmlFor="cloud-provider-openai-url" className="text-xs text-content-secondary">
           {t('settings.ai.openAiUrlLabel')}
-        </label>
+        </Label>
         <TextField
           id="cloud-provider-openai-url"
           mono
@@ -213,20 +210,22 @@ export const CloudProviderEditor = ({
         )}
       </div>
       <div>
-        <label className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-content-muted">
-          <span>{t('settings.ai.apiKeyFieldLabel')}</span>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="cloud-provider-api-key" className="text-xs text-content-secondary">
+            {t('settings.ai.apiKeyFieldLabel')}
+          </Label>
           {hasExistingKey && (
             <Button
               variant="tertiary"
               tone="danger"
               size="xs"
-              className="text-[10px] font-medium normal-case"
               onClick={() => void onClearKey(slug)}>
               {t('settings.ai.clearStoredKey')}
             </Button>
           )}
-        </label>
+        </div>
         <TextField
+          id="cloud-provider-api-key"
           aria-label={t('settings.ai.apiKeyFieldLabel')}
           type="text"
           mono
