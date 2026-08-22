@@ -139,6 +139,29 @@ async fn core_rpc_token(
     Ok(active_rpc_endpoint(state.inner()).await.1)
 }
 
+/// The `(url, token)` pair, answered atomically so the two halves can never
+/// describe different cores.
+///
+/// `core_rpc_url` and `core_rpc_token` each take their own snapshot when called
+/// separately; if a gateway activation lands between two calls the renderer can
+/// end up pairing A's URL with B's bearer. Fans of the two independent commands
+/// therefore get this one call instead, which resolves once and returns both
+/// halves from that single snapshot.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CoreRpcEndpoint {
+    url: String,
+    token: String,
+}
+
+#[tauri::command]
+async fn core_rpc_endpoint(
+    state: tauri::State<'_, core_process::CoreProcessHandle>,
+) -> Result<CoreRpcEndpoint, String> {
+    let (url, token) = active_rpc_endpoint(state.inner()).await;
+    Ok(CoreRpcEndpoint { url, token })
+}
+
 /// The `(url, token)` the renderer should use, from the active gateway.
 ///
 /// Returned as a pair from one function rather than resolved twice, so the two
