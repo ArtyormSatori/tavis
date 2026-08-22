@@ -31,10 +31,12 @@ import createDebug from 'debug';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ChatThreadView } from '../../features/conversations/components/ChatThreadView';
+import { useChatSurfaceRegistration } from '../../features/conversations/hooks/useChatSurfaceRegistration';
 import { useWorkflowBuilderChat } from '../../hooks/useWorkflowBuilderChat';
 import { diffGraphs } from '../../lib/flows/graphDiff';
 import type { WorkflowGraph } from '../../lib/flows/types';
 import { useT } from '../../lib/i18n/I18nContext';
+import { AssistantUiRuntimeProvider } from '../../providers/AssistantUiRuntimeProvider';
 import type { WorkflowProposal } from '../../store/chatRuntimeSlice';
 import ApprovalRequestCard from '../chat/ApprovalRequestCard';
 import ChatComposer from '../chat/ChatComposer';
@@ -358,6 +360,35 @@ export default function WorkflowCopilotPanel({
     [text, sending, send, graph, flowId, updatePendingAsk]
   );
 
+  // Claim this thread's write path for assistant-ui's runtime.
+  //
+  // Step-4 decision (how the copilot's richer transport is bridged): NO
+  // widening of `ChatSurfaceHandlers` was needed, and no signal is discarded.
+  // The seam's `send` is not "the transport" — it is "whatever the surface's
+  // composer does", which for this panel is `submit` above. `submit` already
+  // has the exact `(text?: string) => Promise<void>` shape, and it is the ONLY
+  // place that may legitimately construct a `WorkflowBuilderSendParams`: the
+  // build mode is derived there from live panel state (a one-shot prefill
+  // `build`/`create`, else `revise`) together with the current `graph` +
+  // `flowId`, and the returned `WorkflowBuilderSendResult` is consumed there by
+  // `updatePendingAsk`, which is what keeps an unanswered clarifying question
+  // alive across turns. Handing the runtime a narrower `send` that rebuilt
+  // those params itself would be the fork this registry exists to prevent, and
+  // a widened seam that returned the raw result to the runtime would leave
+  // `pendingAskRef` unset — the copilot's actual carry-forward logic — so
+  // routing through `submit` is both the smaller and the correct change.
+  //
+  // The auto-send retry paths (`buildSeed` / `repairSeed`, which branch on
+  // `outcome === 'skipped'` vs `'failed'`) are deliberately NOT reachable from
+  // the runtime: they are seeded, once-per-mount effects rather than composer
+  // sends, and they keep calling `send` directly with their full structured
+  // request and their own outcome handling.
+  const submitRef = useRef<((text?: string) => Promise<void>) | null>(null);
+  submitRef.current = submit;
+  const stopRef = useRef<(() => void) | null>(null);
+  stopRef.current = stop;
+  useChatSurfaceRegistration(threadId, submitRef, stopRef);
+
   // (B34) One-click resume for a turn that hit the agent's tool-call budget
   // (`capped`, see `useWorkflowBuilderChat`'s doc) with no proposal yet.
   // Routes through the SAME `submit` path a typed follow-up would — the
@@ -489,19 +520,27 @@ export default function WorkflowCopilotPanel({
           copilot now reads like the real chat instead of a bespoke transcript.
           The empty hint, proposal preview, and capped card are the copilot's
           own authoring affordances, kept in the footer below. */}
-      <ChatThreadView
-        threadId={threadId}
-        variant="sidebar"
-        scrollResetKey="workflow-copilot"
-        shareAgentName={t('flows.copilot.title')}
-        emptyContent={
-          <div className="flex h-full items-center justify-center px-3">
-            <p className="text-xs text-content-muted" data-testid="workflow-copilot-empty">
-              {t('flows.copilot.emptyState')}
-            </p>
-          </div>
-        }
-      />
+      {/* A SECOND assistant-ui runtime, scoped to this copilot's dedicated
+          builder thread. The app-wide instance in `ChatRuntimeProvider`
+          follows `selectedThreadId`, which is the home chat's thread and never
+          this one; leaving the transcript under it would make every
+          assistant-ui primitive inside `ChatThreadView` render the home chat's
+          messages here. Nesting overrides the context for this subtree only. */}
+      <AssistantUiRuntimeProvider threadId={threadId}>
+        <ChatThreadView
+          threadId={threadId}
+          variant="sidebar"
+          scrollResetKey="workflow-copilot"
+          shareAgentName={t('flows.copilot.title')}
+          emptyContent={
+            <div className="flex h-full items-center justify-center px-3">
+              <p className="text-xs text-content-muted" data-testid="workflow-copilot-empty">
+                {t('flows.copilot.emptyState')}
+              </p>
+            </div>
+          }
+        />
+      </AssistantUiRuntimeProvider>
 
       <div className="space-y-3 border-t border-line px-3 py-2.5">
         {error && (
