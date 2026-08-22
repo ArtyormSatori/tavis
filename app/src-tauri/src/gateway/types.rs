@@ -158,6 +158,46 @@ impl GatewaySpec {
     }
 }
 
+/// Whether a host is the loopback on this machine.
+///
+/// Reused by [`validate_remote_transport`] and by the transport layer to allow
+/// plain HTTP only to the local core, never to a remote one carrying a bearer.
+fn is_loopback_host(host: &str) -> bool {
+    let h = host.trim_start_matches('[').trim_end_matches(']').to_ascii_lowercase();
+    h == "127.0.0.1" || h == "::1" || h == "localhost" || h.ends_with(".localhost")
+}
+
+/// Reject a remote gateway URL that would ship its bearer in cleartext.
+///
+/// A `Remote` gateway carries an optional bearer that the shell attaches to
+/// every RPC request. Sending that over plain HTTP to an arbitrary host would
+/// expose the credential on the wire, so a URL backed by a bearer must be
+/// `https` — with the single exception of loopback addresses, where the bytes
+/// never leave this machine and cleartext is already the norm for a local core.
+///
+/// # Errors
+///
+/// Returns a user-facing message when `url` is not parseable, when it is not
+/// `http(s)`, or when it would transmit a bearer over an unauthenticated
+/// non-loopback transport.
+#[must_use]
+pub fn validate_remote_transport(url: &str, token: Option<&str>) -> Result<(), String> {
+    let parsed = url
+        .parse::<url::Url>()
+        .map_err(|_| format!("{url} is not a valid URL"))?;
+    let scheme = parsed.scheme();
+    if scheme != "http" && scheme != "https" {
+        return Err(format!("{url} is not an http(s) endpoint"));
+    }
+    let has_bearer = token.map(str::trim).map_or(false, |t| !t.is_empty());
+    if has_bearer && scheme == "http" && !is_loopback_host(parsed.host_str().unwrap_or_default()) {
+        return Err(
+            "a remote core with a bearer token must be reached over https, not plain http".to_owned(),
+        );
+    }
+    Ok(())
+}
+
 /// A gateway record as it is stored and shown.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
