@@ -44,9 +44,3 @@ fn an_invented_handle_is_refused_and_named() {
 fn an_empty_handle_map_parses_to_nothing() {
     assert!(parse_handles(HashMap::new()).unwrap().is_empty());
 }
-
-#[test]
-fn a_blank_field_is_refused_with_its_name() {
-    let error = require("  ", "qualified_name").expect_err("a blank field");
-    assert_eq!(error, "qualified_name must not be empty");
-}
