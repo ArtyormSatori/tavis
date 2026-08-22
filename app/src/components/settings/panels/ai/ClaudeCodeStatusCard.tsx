@@ -269,10 +269,10 @@ function ClaudeCodeModal({
       subtitle={t('settings.ai.claudeCode.modalDescription')}
       onClose={onClose}
       contentClassName="p-4 space-y-4">
-        {/* Connection */}
-        <Card title={t('settings.ai.claudeCode.connection')}>
-          <div className="flex items-center justify-between gap-3 p-4">
-            <div className="text-xs">
+      {/* Connection */}
+      <Card title={t('settings.ai.claudeCode.connection')}>
+        <div className="flex items-center justify-between gap-3 p-4">
+          <div className="text-xs">
             <div className="font-medium text-content">{t('settings.ai.claudeCode.connection')}</div>
             <div className={connected ? 'text-sage-600 dark:text-sage-400' : 'text-content-muted'}>
               {connected
@@ -296,12 +296,12 @@ function ClaudeCodeModal({
               {busy ? t('settings.ai.claudeCode.enabling') : t('settings.ai.claudeCode.enable')}
             </Button>
           )}
-          </div>
-        </Card>
+        </div>
+      </Card>
 
-        {/* Authentication */}
-        <Card title={t('settings.ai.claudeCode.authentication')}>
-          <div className="space-y-3 p-4">
+      {/* Authentication */}
+      <Card title={t('settings.ai.claudeCode.authentication')}>
+        <div className="space-y-3 p-4">
           <div className="flex items-center justify-end">
             <Button
               variant="tertiary"
@@ -335,12 +335,12 @@ function ClaudeCodeModal({
               </p>
             )}
           </div>
-          </div>
-        </Card>
+        </div>
+      </Card>
 
-        {/* Permissions — full access vs. the default acceptEdits posture. */}
-        <Card title={t('settings.ai.claudeCode.fullAccess')}>
-          <div className="p-4">
+      {/* Permissions — full access vs. the default acceptEdits posture. */}
+      <Card title={t('settings.ai.claudeCode.fullAccess')}>
+        <div className="p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-xs font-medium text-content">
@@ -365,8 +365,8 @@ function ClaudeCodeModal({
               ? t('settings.ai.claudeCode.sandboxNoteMac')
               : t('settings.ai.claudeCode.sandboxNoteOther')}
           </p>
-          </div>
-        </Card>
+        </div>
+      </Card>
     </ModalShell>
   );
 }

@@ -16,10 +16,6 @@
  */
 import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
-
-import { cn } from '../../../../lib/cn';
-import deepseekLogo from '../../../../assets/provider-icons/deepseek.svg';
-import openrouterLogo from '../../../../assets/provider-icons/openrouter.svg';
 import {
   SiAlibabacloud,
   SiAnthropic,
@@ -32,6 +28,10 @@ import {
   SiVercel,
   SiX,
 } from 'react-icons/si';
+
+import deepseekLogo from '../../../../assets/provider-icons/deepseek.svg';
+import openrouterLogo from '../../../../assets/provider-icons/openrouter.svg';
+import { cn } from '../../../../lib/cn';
 
 /**
  * Provider slug to brand mark. Keys are the slugs in `builtinCloudProviders.ts`
@@ -93,10 +93,15 @@ export const providerIcon = (slug: string, className: string): ReactElement | nu
   const icon = PROVIDER_ICONS[slug];
   if (icon) return createElement(icon, { className: cn(className, PROVIDER_ICON_COLORS[slug]) });
   const asset = PROVIDER_ASSETS[slug];
-  return asset ? <img src={asset} alt="" aria-hidden className={cn(className, 'object-contain')} /> : null;
+  return asset ? (
+    <img src={asset} alt="" aria-hidden className={cn(className, 'object-contain')} />
+  ) : null;
 };
 
 /** Slugs with a mark — exported for the coverage test, not for rendering. */
-export const PROVIDER_ICON_SLUGS = [...Object.keys(PROVIDER_ICONS), ...Object.keys(PROVIDER_ASSETS)];
+export const PROVIDER_ICON_SLUGS = [
+  ...Object.keys(PROVIDER_ICONS),
+  ...Object.keys(PROVIDER_ASSETS),
+];
 
 export default providerIcon;
