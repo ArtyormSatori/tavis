@@ -34,6 +34,7 @@ import {
 } from './aiPanelTypes';
 import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import { ModelTestResultPanel } from './ModelTestResultPanel';
+import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
 import { ProviderSourceSelect } from './ProviderSourceSelect';
 import { TemperatureOverrideField } from './TemperatureOverrideField';
 
@@ -103,6 +104,7 @@ export const CustomRoutingDialog = ({
   const [testReply, setTestReply] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testStartedAt, setTestStartedAt] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const testRequestIdRef = useRef(0);
   // Optional temperature override for this workload. `null` = use provider/global default;
   // a finite number means "send `temperature: X` upstream for this workload only".
@@ -327,9 +329,14 @@ export const CustomRoutingDialog = ({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-content-secondary">
-              {t('settings.ai.providerLabel')}
-            </Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs text-content-secondary">
+                {t('settings.ai.providerLabel')}
+              </Label>
+              <Button type="button" variant="tertiary" size="xs" onClick={() => setPickerOpen(true)}>
+                Browse providers and models
+              </Button>
+            </div>
             <ProviderSourceSelect
               source={source}
               cloudProviders={customCloud}
@@ -446,6 +453,28 @@ export const CustomRoutingDialog = ({
             testStartedAt={testStartedAt}
             currentProviderString={currentProviderString}
           />
+
+          {pickerOpen && (
+            <ProviderModelPickerDialog
+              cloudProviders={customCloud}
+              localModels={localModels}
+              ollamaRunning={ollamaRunning}
+              claudeCodeEnabled={claudeCodeEnabled}
+              initial={source && model ? { source, model } : null}
+              onClose={() => setPickerOpen(false)}
+              onSelect={({ source: nextSource, model: nextModel }) => {
+                resetTestState();
+                setSource(nextSource);
+                setModel(nextModel);
+                modelEntry.syncToEndpoint(
+                  nextSource.kind === 'cloud'
+                    ? customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
+                    : undefined
+                );
+                setPickerOpen(false);
+              }}
+            />
+          )}
         </div>
       )}
     </ModalShell>
