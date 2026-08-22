@@ -1,11 +1,29 @@
+import { AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { createRef, useEffect, useState } from 'react';
+import { createRef, type ReactNode, useEffect, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Attachment } from '../../../lib/attachments';
 import ChatComposer, { type ChatComposerProps } from '../ChatComposer';
 
 vi.mock('../../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) => k }) }));
+
+/**
+ * `ChatComposer` is built on the headless `ComposerPrimitive`, which reads its
+ * runtime from React context, so every render here needs one. The adapter is
+ * deliberately inert — this suite asserts the composer's own behaviour, and the
+ * composer never routes a send through the runtime (see the component's doc
+ * comment for why). What the runtime supplies is the composer *text store* the
+ * `inputValue` prop is bridged into.
+ */
+function Runtime({ children }: { children: ReactNode }) {
+  const runtime = useExternalStoreRuntime({
+    messages: [],
+    isRunning: false,
+    onNew: async () => {},
+  });
+  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
+}
 
 function makeAttachment(overrides: Partial<Attachment> = {}): Attachment {
   const blob = new Blob([new Uint8Array(256)], { type: 'image/png' });
@@ -49,7 +67,7 @@ function renderComposer(overrides: Partial<ChatComposerProps> = {}) {
     ...overrides,
   };
 
-  return render(<ChatComposer {...props} />);
+  return render(<ChatComposer {...props} />, { wrapper: Runtime });
 }
 
 describe('ChatComposer', () => {
@@ -317,7 +335,7 @@ describe('ChatComposer', () => {
         );
       }
 
-      render(<LoopHarness />);
+      render(<LoopHarness />, { wrapper: Runtime });
 
       const loopCalls = warnSpy.mock.calls.filter(
         args => typeof args[0] === 'string' && args[0].includes('Render-loop detected')
@@ -337,6 +355,7 @@ describe('ChatComposer', () => {
 
       // First, render normally.
       const { rerender } = render(
+        <Runtime>
         <ChatComposer
           inputValue=""
           setInputValue={vi.fn()}
@@ -357,6 +376,7 @@ describe('ChatComposer', () => {
           allowedMimeTypes={[]}
           attachmentsEnabled={false}
         />
+        </Runtime>
       );
 
       // Wait for the setTimeout(0) reset to fire.
@@ -364,6 +384,7 @@ describe('ChatComposer', () => {
 
       // Then render again — should not warn because the counter was reset.
       rerender(
+        <Runtime>
         <ChatComposer
           inputValue="hello"
           setInputValue={vi.fn()}
@@ -384,6 +405,7 @@ describe('ChatComposer', () => {
           allowedMimeTypes={[]}
           attachmentsEnabled={false}
         />
+        </Runtime>
       );
 
       const loopCalls = warnSpy.mock.calls.filter(
