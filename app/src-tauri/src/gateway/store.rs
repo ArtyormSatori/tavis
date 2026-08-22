@@ -78,7 +78,7 @@ pub fn save(gateway: Gateway) -> Result<(), String> {
         validate_remote_transport(url, token.as_deref())?;
     }
 
-    let mut stored = read();
+    let mut stored = read_checked()?;
     match stored
         .gateways
         .iter_mut()
@@ -101,28 +101,39 @@ pub fn delete(id: &str) -> Result<(), String> {
     if id == DESKTOP_ID {
         return Err("the desktop gateway is built in and cannot be removed".to_owned());
     }
-    let mut stored = read();
+    let mut stored = read_checked()?;
     stored.gateways.retain(|gateway| gateway.id != id);
     write(&stored)
 }
 
 fn read() -> StoredGateways {
+    read_checked().unwrap_or_default()
+}
+
+/// Read the stored gateways, failing loudly instead of silently discarding the
+/// user's records.
+///
+/// Returns the stored set when the file parses, `Ok(default)` when no file has
+/// been written yet, and a distinct error when an existing file is unreadable
+/// or malformed. `save`/`delete` use this so a transient read failure or a
+/// corrupt file aborts before `write` can clobber every prior record with an
+/// empty state; the tolerant `read`/`list` fallback is reserved for display
+/// paths where the core in this process is still the correct answer.
+fn read_checked() -> Result<StoredGateways, String> {
     let path = store_path();
     match std::fs::read_to_string(&path) {
-        Ok(text) => serde_json::from_str(&text).unwrap_or_else(|error| {
+        Ok(text) => serde_json::from_str(&text).map_err(|error| {
             // Loud, because a record the user configured has stopped being
             // visible and they are about to wonder why.
-            log::warn!(
-                "[gateway][store] {} is not readable as gateway records ({error}); \
-                 continuing with the desktop gateway only",
+            format!(
+                "{} is not readable as gateway records ({error}); refusing to overwrite it",
                 path.display()
-            );
-            StoredGateways::default()
+            )
         }),
-        Err(error) if error.kind() == io::ErrorKind::NotFound => StoredGateways::default(),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(StoredGateways::default()),
         Err(error) => {
             log::warn!("[gateway][store] read {} failed: {error}", path.display());
-            StoredGateways::default()
+            Err(format!("could not read {}: {error}", path.display()))
         }
     }
 }
