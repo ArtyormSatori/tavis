@@ -36,6 +36,9 @@ import SkillSearchBar from '../components/skills/SkillSearchBar';
 import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
 import BetaBanner from '../components/ui/BetaBanner';
+import Alert from '../components/ui/Alert';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
 import { useVoiceSkillStatus } from '../features/voice/useVoiceSkillStatus';
 import { useChannelDefinitions } from '../hooks/useChannelDefinitions';
 import { useAgentReadyComposioToolkits, useComposioIntegrations } from '../lib/composio/hooks';
@@ -1117,9 +1120,9 @@ export default function Skills() {
               </div>
             </div> */}
 
-                {composioError && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 shadow-soft">
-                    <div className="flex items-start justify-between gap-3">
+              {composioError && (
+                <Alert variant="warning" className="p-3">
+                  <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h2 className="text-sm font-semibold text-amber-900">
                           {t('skills.composio.staleStatusTitle')}
@@ -1128,20 +1131,23 @@ export default function Skills() {
                           {composioError}
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void refreshComposio()}
-                        className="flex-shrink-0 rounded-lg border border-amber-300 dark:border-amber-500/40 bg-surface px-3 py-1.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 transition-colors hover:bg-amber-100 dark:hover:bg-amber-500/10">
-                        {t('common.retry')}
-                      </button>
-                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="xs"
+                      onClick={() => void refreshComposio()}
+                      className="shrink-0">
+                      {t('common.retry')}
+                    </Button>
                   </div>
+                </Alert>
                 )}
 
                 {
                   <>
-                    {activeTab === 'channels' && channelsGroup && (
-                      <div className="rounded-2xl border border-line bg-surface p-3 shadow-soft animate-fade-up">
+                  {activeTab === 'channels' && channelsGroup && (
+                    <Card className="animate-fade-up">
+                      <div className="p-3">
                         <div className="px-1 pb-3 pt-1">
                           <h2
                             className="flex items-center gap-2 text-sm font-semibold text-content"
@@ -1206,8 +1212,9 @@ export default function Skills() {
                               {connected.length > 0 && (
                                 <div className="grid gap-2 sm:gap-3" style={gridStyle}>
                                   {connected.map(renderTile)}
-                                </div>
-                              )}
+                      </div>
+                    </Card>
+                  )}
                               {notConnected.length > 0 && (
                                 <div className="grid gap-2 sm:gap-3" style={gridStyle}>
                                   {notConnected.map(renderTile)}
@@ -1220,10 +1227,11 @@ export default function Skills() {
                     )}
 
                     {activeTab === 'composio' && (
-                      <div
-                        className="rounded-2xl border border-line bg-surface p-3 shadow-soft animate-fade-up"
-                        data-walkthrough="skills-grid"
-                        data-testid="composio-integrations-card">
+                    <Card
+                      className="animate-fade-up"
+                      data-walkthrough="skills-grid"
+                      data-testid="composio-integrations-card">
+                      <div className="p-3">
                         <p className="px-1 pb-3 text-xs leading-relaxed text-content-muted">
                           {t('skills.integrationsSubtitle')}
                         </p>
@@ -1240,7 +1248,8 @@ export default function Skills() {
                               selected={selectedCategory}
                               onChange={setSelectedCategory}
                             />
-                          </div>
+                      </div>
+                    </Card>
                         )}
                         {!showLocalComposioApiKeyBanner &&
                           // While the dynamic catalog is still being fetched and we
@@ -1324,9 +1333,11 @@ export default function Skills() {
                     {activeTab === 'mcp' && (
                       <div className="space-y-3 animate-fade-up">
                         <BetaBanner />
-                        <div className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
-                          <McpServersTab />
+                      <Card>
+                        <div className="p-4">
+                        <McpServersTab />
                         </div>
+                      </Card>
                       </div>
                     )}
                   </>
