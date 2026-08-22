@@ -274,7 +274,7 @@ interface CatalogTileProps {
   onClick: () => void;
 }
 
-function CatalogTile({ entry, installed, installing, onInstall, onClick }: CatalogTileProps) {
+export function CatalogTile({ entry, installed, installing, onInstall, onClick }: CatalogTileProps) {
   const { t } = useT();
   return (
     <div
