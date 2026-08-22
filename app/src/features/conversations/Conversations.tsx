@@ -1374,6 +1374,8 @@ const Conversations = ({
   const handleComposerSend = (text?: string): Promise<void> =>
     selectedThreadActive ? handleSendFollowup(text) : handleSendMessage(text);
 
+  handleComposerSendRef.current = handleComposerSend;
+
   // Cancel the in-flight turn for the selected thread. Shared by the in-composer
   // Stop button (text mode), the ESC-to-interrupt shortcut, and the footer
   // Cancel control (mic-cloud / voice modes) so the cancel path lives in one
