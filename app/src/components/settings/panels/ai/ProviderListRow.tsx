@@ -26,13 +26,13 @@ import { LuEllipsisVertical } from 'react-icons/lu';
 import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
-import { providerIcon } from './providerIcons';
 import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuRoot,
   DropdownMenuTrigger,
 } from '../../../ui/DropdownMenu';
+import { providerIcon } from './providerIcons';
 
 /** One labelled band of the list. The heading names what the rows have in
  *  common, which is the thing a wrapped pill row could not express. */

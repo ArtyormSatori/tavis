@@ -261,6 +261,7 @@ export const ProviderAuthSection = ({
           title={t('settings.ai.providers.groupConnected')}
           data-testid="provider-group-connected">
           <ProviderListRow
+            slug="openhuman"
             label={t('settings.ai.routing.managed')}
             tone={BUILTIN_PROVIDER_META.openhuman?.tone ?? ''}
             detail={t('settings.ai.providers.managedDetail')}
@@ -281,6 +282,7 @@ export const ProviderAuthSection = ({
             return (
               <ProviderListRow
                 key={slug}
+                slug={slug}
                 label={label}
                 tone={meta?.tone ?? ''}
                 detail={existing.maskedKey || hostOf(existing.endpoint)}
@@ -306,6 +308,7 @@ export const ProviderAuthSection = ({
           {customProviders.map(existing => (
             <ProviderListRow
               key={existing.id}
+              slug={existing.slug}
               label={existing.label}
               tone={BUILTIN_PROVIDER_META.custom?.tone ?? ''}
               detail={hostOf(existing.endpoint) || existing.maskedKey}
@@ -341,6 +344,7 @@ export const ProviderAuthSection = ({
             return (
               <ProviderListRow
                 key={slug}
+                slug={slug}
                 label={label}
                 tone={LOCAL_CHIP_TONE[slug as LocalChipSlug]}
                 // The endpoint is the thing that breaks on a local runtime, so
@@ -382,6 +386,7 @@ export const ProviderAuthSection = ({
             title={t('settings.ai.providers.groupCli')}
             data-testid="provider-group-cli">
             <ProviderListRow
+              slug="claude-code"
               label={t('settings.ai.claudeCode.button')}
               tone={
                 BUILTIN_PROVIDER_META['claude-code']?.tone ??

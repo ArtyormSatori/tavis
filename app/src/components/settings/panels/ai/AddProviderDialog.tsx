@@ -29,7 +29,6 @@ import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
 import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
-import { providerIcon } from './providerIcons';
 import {
   SelectContent,
   SelectItem,
@@ -37,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../ui/Select';
+import { providerIcon } from './providerIcons';
 
 export interface ProviderOption {
   slug: string;
