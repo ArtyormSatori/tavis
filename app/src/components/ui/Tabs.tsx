@@ -14,7 +14,19 @@ export const TabsList = ({
   <TabsPrimitive.List
     data-slot="tabs-list"
     data-variant={variant}
-    className={cn('flex items-center gap-1', className)}
+    className={cn(
+      'flex items-center gap-1',
+      variant === 'line' && [
+        'gap-0 border-b border-line',
+        '[&_[data-slot=tabs-trigger]]:-mb-px [&_[data-slot=tabs-trigger]]:rounded-none',
+        '[&_[data-slot=tabs-trigger]]:border-b-2 [&_[data-slot=tabs-trigger]]:border-transparent',
+        '[&_[data-slot=tabs-trigger]]:data-[state=active]:border-primary-500',
+        '[&_[data-slot=tabs-trigger]]:data-[state=active]:bg-transparent',
+        '[&_[data-slot=tabs-trigger]]:data-[state=active]:text-primary-600',
+        'dark:[&_[data-slot=tabs-trigger]]:data-[state=active]:text-primary-300',
+      ],
+      className
+    )}
     {...rest}
   />
 );
