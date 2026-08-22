@@ -222,7 +222,7 @@ const AIPanel = ({
               Own = one provider/model for everything. Custom = fine-grained
               per-workload routing.
               ═══════════════════════════════════════════════════════════════ */}
-                <div className="contents">
+                <>
                   <RoutingModeCards
                     effectiveRoutingMode={effectiveRoutingMode}
                     onSelectManaged={() => {
@@ -309,7 +309,7 @@ const AIPanel = ({
                         </WorkloadTable>
                     </Card>
                   ) : null}
-                </div>
+                </>
                 {isDirty && (
                   <SaveBar
                     diffSummary={diffSummary}
