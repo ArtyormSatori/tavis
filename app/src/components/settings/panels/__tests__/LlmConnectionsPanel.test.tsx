@@ -31,9 +31,11 @@ describe('LlmConnectionsPanel', () => {
     }
   );
 
-  it('renders no chip tablist, since there is only one surface', () => {
+  it('renders provider and routing chips below the page description', () => {
     renderWithProviders(<LlmConnectionsPanel />, { initialEntries: ['/connections?tab=llm'] });
 
-    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: 'pages.settings.ai.llm' })).toBeInTheDocument();
+    expect(screen.getByTestId('ai-tab-providers')).toBeInTheDocument();
+    expect(screen.getByTestId('ai-tab-routing')).toBeInTheDocument();
   });
 });
