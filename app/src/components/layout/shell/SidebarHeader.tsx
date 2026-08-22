@@ -1,3 +1,4 @@
+import { LuKeyboard, LuPanelLeftClose, LuSettings } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { registry } from '../../../lib/commands/registry';
