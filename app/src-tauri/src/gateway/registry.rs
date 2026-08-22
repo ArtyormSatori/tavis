@@ -26,6 +26,10 @@ struct State {
     provisioned: Option<Provisioned>,
     /// What to show while activation is in flight, and after it fails.
     status: Option<GatewayStatus>,
+    /// Monotonic counter bumping on every activation start. Progress updates
+    /// capture the value they belong to so a delayed update from a superseded
+    /// activation cannot resurrect `Activating` over a terminal state.
+    generation: u64,
 }
 
 static STATE: std::sync::LazyLock<Arc<Mutex<State>>> =
