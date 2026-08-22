@@ -1,14 +1,20 @@
 /*
- * Provider authentication section — the grouped provider list (Default, Cloud,
- * Local runtimes, CLI logins) plus the rejected-key / non-fatal-advisory
- * banners.
+ * Provider authentication section.
  *
- * The list shape and why it replaced the chip row are documented on
- * `ProviderListRow`. What matters here is that the four groups are the real
- * taxonomy of this surface: a cloud provider is a stored API key, a local
- * runtime is an endpoint on this machine, and a CLI login is a credential
- * another tool already owns. They fail differently and are fixed differently,
- * so they are no longer interleaved by wrap order.
+ * THE SHAPE IS INVERTED FROM WHAT IT WAS. Every provider used to render, all
+ * ~15 of them, as pills in one flex-wrap row: the section spent its whole area
+ * on the providers nobody chose and gave the one or two actually configured no
+ * more prominence than the rest. Now the section answers "what am I using"
+ * first — a short list of connected rows, each with room for the state that
+ * matters (a masked key, an endpoint) — and demotes "what could I use" into a
+ * rich select that only opens when the user asks for it.
+ *
+ * CLI LOGINS STAY AS FIXED ROWS. Claude Code and Codex do not store a key
+ * here; they import a credential another tool already owns, and each brings
+ * its own connect control (Claude Code owns a status probe and a modal).
+ * Feeding them through the picker would mean driving another component's
+ * internal dialog from the outside, so they keep a two-row band of their own
+ * whether connected or not.
  */
 import { LuCircleAlert } from 'react-icons/lu';
 
@@ -21,7 +27,10 @@ import Card from '../../../ui/Card';
 import StatusLine from '../../../ui/StatusLine';
 import Switch from '../../../ui/Switch';
 import { routingWithProviderRemoved } from '../aiRouting';
-import { BUILTIN_CLOUD_PROVIDER_SLUGS } from '../builtinCloudProviders';
+import {
+  BUILTIN_CLOUD_PROVIDER_SLUGS,
+  defaultEndpointForBuiltinCloudProvider,
+} from '../builtinCloudProviders';
 import { ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
 import {
   type AISettings,
@@ -36,8 +45,22 @@ import {
 } from './aiPanelTypes';
 import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
 import { ProviderGroup, ProviderListRow, type ProviderRowAction } from './ProviderListRow';
+import { ProviderPicker, type ProviderOptionGroup } from './ProviderPicker';
 
 const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
+
+/** Sentinel option: "define your own endpoint" is an entry point, not a
+ *  provider, so it cannot collide with a real slug. */
+const CUSTOM_OPTION = '__custom__';
+
+/** An endpoint URL reads better in a one-line menu item as just its host. */
+const hostOf = (endpoint: string): string => {
+  try {
+    return new URL(endpoint).host;
+  } catch {
+    return endpoint;
+  }
+};
 
 export const ProviderAuthSection = ({
   draft,
@@ -96,11 +119,58 @@ export const ProviderAuthSection = ({
     await persist({ ...draft, cloudProviders: remaining, routing: nextRouting });
   };
 
-  const codexBusy = busyAction === 'codex-auth' || busyAction === 'toggle-openai';
-  const claudeCodeConnected = draft.cloudProviders.some(cp => cp.slug === 'claude-code');
+  const bySlug = (slug: string) => draft.cloudProviders.find(cp => cp.slug === slug);
+  const connectedCloud = BUILTIN_CLOUD_PROVIDER_SLUGS.filter(slug => bySlug(slug));
+  const connectedLocal = LOCAL_RUNTIME_SLUGS.filter(slug => bySlug(slug));
   const customProviders = draft.cloudProviders.filter(
     cp => !BUILTIN_RESERVED_SLUGS.includes(cp.slug)
   );
+
+  const pickerGroups: ProviderOptionGroup[] = [
+    {
+      title: t('settings.ai.providers.groupCloud'),
+      options: BUILTIN_CLOUD_PROVIDER_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
+        slug,
+        label: BUILTIN_PROVIDER_META[slug]?.label ?? slug,
+        tone: BUILTIN_PROVIDER_META[slug]?.tone ?? '',
+        detail: hostOf(defaultEndpointForBuiltinCloudProvider(slug)),
+      })),
+    },
+    {
+      title: t('settings.ai.providers.groupLocal'),
+      options: LOCAL_RUNTIME_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
+        slug,
+        label: LOCAL_CHIP_LABEL[slug as LocalChipSlug],
+        tone: LOCAL_CHIP_TONE[slug as LocalChipSlug],
+        detail: t('settings.ai.providers.localDetail'),
+      })),
+    },
+    {
+      title: t('settings.ai.providers.groupOther'),
+      options: [
+        {
+          slug: CUSTOM_OPTION,
+          label: t('settings.ai.providers.custom'),
+          tone: BUILTIN_PROVIDER_META.custom?.tone ?? '',
+          detail: t('settings.ai.providers.customDetail'),
+        },
+      ],
+    },
+  ];
+
+  const handlePick = (slug: string) => {
+    if (slug === CUSTOM_OPTION) {
+      onAddCustomProvider();
+      return;
+    }
+    const localLabel = LOCAL_RUNTIME_SLUGS.includes(slug as (typeof LOCAL_RUNTIME_SLUGS)[number])
+      ? LOCAL_CHIP_LABEL[slug as LocalChipSlug]
+      : null;
+    onOpenKeyDialog(slug, localLabel);
+  };
+
+  const codexBusy = busyAction === 'codex-auth' || busyAction === 'toggle-openai';
+  const claudeCodeConnected = Boolean(bySlug('claude-code'));
 
   return (
     <Card title={t('settings.ai.llmProviders')} description={t('settings.ai.llmProvidersDesc')}>
@@ -138,71 +208,55 @@ export const ProviderAuthSection = ({
 
           {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
           {error && <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
+
+          <ProviderPicker groups={pickerGroups} onPick={handlePick} />
         </div>
 
-        {/* ─── Default ──────────────────────────────────────────────────────
-          #3760: Managed is always-on and can't be turned off. It renders a
-          badge, not a disabled toggle — a locked switch reads as
-          switchable-but-broken and invites a fight the user cannot win. */}
+        {/* ─── Connected ────────────────────────────────────────────────────
+          Managed leads and is always present. #3760: it renders a badge, not a
+          disabled toggle — a locked switch reads as switchable-but-broken and
+          invites a fight the user cannot win. */}
         <ProviderGroup
-          title={t('settings.ai.providers.groupDefault')}
-          data-testid="provider-group-default">
+          title={t('settings.ai.providers.groupConnected')}
+          data-testid="provider-group-connected">
           <ProviderListRow
             label={t('settings.ai.routing.managed')}
             tone={BUILTIN_PROVIDER_META.openhuman?.tone ?? ''}
             detail={t('settings.ai.providers.managedDetail')}
-            control={
-              <Badge variant="success">{t('settings.ai.routing.managedAlwaysOn')}</Badge>
-            }
+            control={<Badge variant="success">{t('settings.ai.routing.managedAlwaysOn')}</Badge>}
             data-testid="provider-row-openhuman"
           />
-        </ProviderGroup>
 
-        {/* ─── Cloud ─────────────────────────────────────────────────────── */}
-        <ProviderGroup
-          title={t('settings.ai.providers.groupCloud')}
-          data-testid="provider-group-cloud">
-          {BUILTIN_CLOUD_PROVIDER_SLUGS.map(slug => {
+          {connectedCloud.map(slug => {
+            const existing = bySlug(slug)!;
             const meta = BUILTIN_PROVIDER_META[slug];
             const label = meta?.label ?? slug;
-            const existing = draft.cloudProviders.find(cp => cp.slug === slug);
-            const enabled = !!existing;
-            const actions: ProviderRowAction[] = enabled
-              ? [
-                  {
-                    label: t('settings.ai.providers.replaceKey'),
-                    onSelect: () => onOpenKeyDialog(slug, null),
-                  },
-                ]
-              : [];
+            const actions: ProviderRowAction[] = [
+              {
+                label: t('settings.ai.providers.replaceKey'),
+                onSelect: () => onOpenKeyDialog(slug, null),
+              },
+            ];
             return (
               <ProviderListRow
                 key={slug}
                 label={label}
                 tone={meta?.tone ?? ''}
-                detail={
-                  enabled
-                    ? existing.maskedKey || t('settings.ai.providers.connected')
-                    : t('settings.ai.providers.notConnected')
-                }
-                detailMono={enabled}
+                detail={existing.maskedKey || hostOf(existing.endpoint)}
+                detailMono
                 control={
                   <Switch
                     id={`provider-toggle-${slug}`}
-                    checked={enabled}
-                    onCheckedChange={async () => {
-                      // OFF removes the provider outright; ON only opens the
-                      // key dialog — the row flips once the dialog saves, so
-                      // a cancelled dialog leaves nothing half-connected.
-                      if (enabled && existing) await removeProvider(existing, false);
-                      else onOpenKeyDialog(slug, null);
-                    }}
+                    checked
+                    onCheckedChange={async () => await removeProvider(existing, false)}
                     disabled={busyAction === `toggle-${slug}`}
-                    aria-label={providerToggleAriaLabel(t, enabled, label)}
+                    aria-label={providerToggleAriaLabel(t, true, label)}
                   />
                 }
                 actions={actions}
-                actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), { provider: label })}
+                actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), {
+                  provider: label,
+                })}
                 data-testid={`provider-row-${slug}`}
               />
             );
@@ -213,7 +267,7 @@ export const ProviderAuthSection = ({
               key={existing.id}
               label={existing.label}
               tone={BUILTIN_PROVIDER_META.custom?.tone ?? ''}
-              detail={existing.endpoint || existing.maskedKey}
+              detail={hostOf(existing.endpoint) || existing.maskedKey}
               detailMono
               badge={<Badge variant="primary">{t('settings.ai.providers.custom')}</Badge>}
               control={
@@ -233,73 +287,54 @@ export const ProviderAuthSection = ({
                   onSelect: () => void removeProvider(existing, false),
                 },
               ]}
-              actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), { provider: existing.label })}
+              actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), {
+                provider: existing.label,
+              })}
               data-testid={`provider-row-${existing.slug}`}
             />
           ))}
-        </ProviderGroup>
 
-        {/* ─── Local runtimes ────────────────────────────────────────────────
-          LM Studio / Ollama / OMLX are stored as providers with a reserved
-          slug so they stay distinct from a generic custom endpoint. What the
-          user needs to see is the endpoint, which is the thing that breaks. */}
-        <ProviderGroup
-          title={t('settings.ai.providers.groupLocal')}
-          data-testid="provider-group-local">
-          {LOCAL_RUNTIME_SLUGS.map(localKind => {
-            const label = LOCAL_CHIP_LABEL[localKind as LocalChipSlug];
-            const existing = draft.cloudProviders.find(cp => cp.slug === localKind);
-            const enabled = !!existing;
+          {connectedLocal.map(slug => {
+            const existing = bySlug(slug)!;
+            const label = LOCAL_CHIP_LABEL[slug as LocalChipSlug];
             return (
               <ProviderListRow
-                key={localKind}
+                key={slug}
                 label={label}
-                tone={LOCAL_CHIP_TONE[localKind as LocalChipSlug]}
-                detail={
-                  enabled
-                    ? existing.endpoint || t('settings.ai.providers.connected')
-                    : t('settings.ai.providers.notConnected')
-                }
-                detailMono={enabled}
+                tone={LOCAL_CHIP_TONE[slug as LocalChipSlug]}
+                // The endpoint is the thing that breaks on a local runtime, so
+                // it is shown in full rather than reduced to a host.
+                detail={existing.endpoint || t('settings.ai.providers.connected')}
+                detailMono
                 control={
                   <Switch
-                    id={`local-runtime-toggle-${localKind}`}
-                    checked={enabled}
-                    onCheckedChange={async () => {
-                      if (enabled && existing) await removeProvider(existing, true);
-                      else onOpenKeyDialog(localKind, label);
-                    }}
-                    disabled={busyAction === `toggle-${localKind}`}
-                    aria-label={providerToggleAriaLabel(t, enabled, label)}
+                    id={`local-runtime-toggle-${slug}`}
+                    checked
+                    onCheckedChange={async () => await removeProvider(existing, true)}
+                    disabled={busyAction === `toggle-${slug}`}
+                    aria-label={providerToggleAriaLabel(t, true, label)}
                   />
                 }
-                actions={
-                  enabled
-                    ? [
-                        {
-                          label: t('settings.ai.editEndpoint'),
-                          onSelect: () => onOpenKeyDialog(localKind, label),
-                        },
-                      ]
-                    : []
-                }
-                actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), { provider: label })}
-                data-testid={`provider-row-${localKind}`}
+                actions={[
+                  {
+                    label: t('settings.ai.editEndpoint'),
+                    onSelect: () => onOpenKeyDialog(slug, label),
+                  },
+                ]}
+                actionsLabel={formatI18n(t('settings.ai.providers.rowActions'), {
+                  provider: label,
+                })}
+                data-testid={`provider-row-${slug}`}
               />
             );
           })}
         </ProviderGroup>
 
-        {/* ─── CLI logins ────────────────────────────────────────────────────
-          Neither of these stores a key here: they import a credential another
-          tool already holds. Both keep their existing controls as the row's
-          action — Claude Code owns its own status probe and modal, and
-          rebuilding that to fit a Switch would trade working, tested behaviour
-          for visual symmetry. */}
+        {/* ─── CLI logins ───────────────────────────────────────────────── */}
         <ProviderGroup title={t('settings.ai.providers.groupCli')} data-testid="provider-group-cli">
           <ProviderListRow
             label={t('settings.ai.claudeCode.button')}
-            tone={BUILTIN_PROVIDER_META['claude-code']?.tone ?? BUILTIN_PROVIDER_META.custom?.tone ?? ''}
+            tone={BUILTIN_PROVIDER_META.custom?.tone ?? ''}
             detail={
               claudeCodeConnected
                 ? t('settings.ai.providers.connected')
@@ -317,7 +352,7 @@ export const ProviderAuthSection = ({
                   })
                 }
                 onDisconnect={async () => {
-                  const existing = draft.cloudProviders.find(cp => cp.slug === 'claude-code');
+                  const existing = bySlug('claude-code');
                   if (existing) await removeProvider(existing, false);
                 }}
               />
@@ -349,12 +384,6 @@ export const ProviderAuthSection = ({
           {/* #3760: point users who want a local model at the Routing card
             below, rather than letting them hunt for a Managed off switch. */}
           <p className="text-xs text-content-muted">{t('settings.ai.routing.managedHint')}</p>
-
-          <div className="flex">
-            <Button type="button" variant="primary" size="xs" onClick={onAddCustomProvider}>
-              {t('settings.ai.routing.addCustomProvider')}
-            </Button>
-          </div>
         </div>
       </div>
     </Card>
