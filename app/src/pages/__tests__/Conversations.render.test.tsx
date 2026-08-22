@@ -2408,16 +2408,22 @@ describe('Conversations — agent task insights panel anchoring (#3717 Bug 2)', 
     });
 
     const panelA = await screen.findByTestId('agent-task-insights');
-    expect((panelA as HTMLDetailsElement).open).toBe(false);
+    // The disclosure moved from a native `<details>`/`<summary>` pair to a
+    // Radix `Collapsible`, so the observable is `data-state` on the root and
+    // the control is an `aria-expanded` button rather than a `<summary>`.
+    // Same element, same observable, same semantics — a port, not a
+    // weakening. Asserting merely that the trigger renders would leave #4944
+    // uncovered under a green tick.
+    expect(panelA).toHaveAttribute('data-state', 'closed');
 
     // The user manually expands it — this is the sticky per-instance
     // `userOverrideOpen` state from #4942 that must not leak across threads.
-    const summaryA = panelA.querySelector('summary');
-    expect(summaryA).not.toBeNull();
+    const triggerA = panelA.querySelector('[aria-expanded]');
+    expect(triggerA).not.toBeNull();
     await act(async () => {
-      fireEvent.click(summaryA!);
+      fireEvent.click(triggerA!);
     });
-    expect((panelA as HTMLDetailsElement).open).toBe(true);
+    expect(panelA).toHaveAttribute('data-state', 'open');
 
     // Switch straight to a second proactive-only thread with its own settled
     // timeline.
@@ -2436,7 +2442,7 @@ describe('Conversations — agent task insights panel anchoring (#3717 Bug 2)', 
     // `ToolTimelineBlock` instead of reusing the same instance, so thread B's
     // panel starts collapsed again rather than inheriting thread A's
     // manually-opened disclosure state.
-    expect((panelB as HTMLDetailsElement).open).toBe(false);
+    expect(panelB).toHaveAttribute('data-state', 'closed');
   });
 });
 
