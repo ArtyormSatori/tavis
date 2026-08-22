@@ -124,9 +124,9 @@ function useInsightCategoryLabels() {
     opinions: {
       label: t('insights.opinions'),
       icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-      color: 'text-lavender-600 dark:text-lavender-300',
-      bgColor: 'bg-lavender-50 dark:bg-lavender-500/10 ',
-      borderColor: 'border-lavender-200 dark:border-lavender-500/30',
+      color: 'text-violet-600 dark:text-violet-300',
+      bgColor: 'bg-violet-50 dark:bg-violet-500/10 ',
+      borderColor: 'border-violet-200 dark:border-violet-500/30',
     },
     other: {
       label: t('insights.other'),
