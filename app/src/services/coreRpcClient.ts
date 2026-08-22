@@ -295,6 +295,7 @@ function dispatchAuthExpired(method: string, reason: AuthExpiredReason): void {
 export function clearCoreRpcUrlCache(): void {
   resolvedCoreRpcUrl = null;
   resolvingCoreRpcUrl = null;
+  shellEndpoint = null;
 }
 
 /**
@@ -338,6 +339,7 @@ export function clearCoreRpcTokenCache(): void {
   resolvedCoreRpcToken = null;
   didResolveCoreRpcToken = false;
   resolvingCoreRpcToken = null;
+  shellEndpoint = null;
   coreRpcTokenInvalidationBus.dispatchEvent(new Event(CORE_RPC_TOKEN_INVALIDATED_EVENT));
 }
 const coreRpcLog = debug('core-rpc');
