@@ -23,6 +23,7 @@ import LlmConnectionsPanel from '../components/settings/panels/LlmConnectionsPan
 import SearchPanel from '../components/settings/panels/SearchPanel';
 import UsagePanel from '../components/settings/panels/UsagePanel';
 import VoicePanel from '../components/settings/panels/VoicePanel';
+import VoiceConnectionsPanel from '../components/settings/panels/VoiceConnectionsPanel';
 import WalletPanel from '../components/settings/panels/WalletPanel';
 import UnifiedSkillCard from '../components/skills/SkillCard';
 import { SKILL_CATEGORY_ORDER, type SkillCategory } from '../components/skills/skillCategories';
@@ -459,7 +460,6 @@ const INTELLIGENCE_HEADERS: Partial<Record<ConnectionsTab, { titleKey: string; d
       titleKey: 'connections.tabs.composioKey',
       descKey: 'connections.header.composioKey',
     },
-    voice: { titleKey: 'pages.settings.ai.voice', descKey: 'voice.providers.desc' },
     embeddings: {
       titleKey: 'pages.settings.ai.embeddings',
       descKey: 'connections.header.embeddings',
@@ -470,7 +470,11 @@ const INTELLIGENCE_HEADERS: Partial<Record<ConnectionsTab, { titleKey: string; d
 
 /** Intelligence tabs whose panel renders its own header card (with chip tabs in
  *  it), so the Connections pane skips the shared header + card wrapper. */
-const SELF_HEADER_TABS: ReadonlySet<ConnectionsTab> = new Set<ConnectionsTab>(['llm', 'wallet']);
+const SELF_HEADER_TABS: ReadonlySet<ConnectionsTab> = new Set<ConnectionsTab>([
+  'llm',
+  'voice',
+  'wallet',
+]);
 
 const INTELLIGENCE_TABS: ReadonlySet<ConnectionsTab> = new Set<ConnectionsTab>([
   'llm',
@@ -1060,6 +1064,7 @@ export default function Skills() {
             {SELF_HEADER_TABS.has(activeTab) ? (
               <SettingsLayoutProvider value={{ inTwoPaneShell: true, headerless: true }}>
                 {activeTab === 'llm' && <LlmConnectionsPanel />}
+                {activeTab === 'voice' && <VoiceConnectionsPanel />}
                 {activeTab === 'wallet' && <WalletPanel />}
               </SettingsLayoutProvider>
             ) : (
@@ -1072,7 +1077,6 @@ export default function Skills() {
                 )}
                 <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
                   <SettingsLayoutProvider value={{ inTwoPaneShell: true, headerless: true }}>
-                    {activeTab === 'voice' && <VoicePanel />}
                     {activeTab === 'embeddings' && <EmbeddingsPanel />}
                     {activeTab === 'search' && <SearchPanel />}
                     {activeTab === 'usage' && <UsagePanel />}

@@ -5,10 +5,10 @@ import ChipTabs, { type ChipTabItem } from '../../layout/ChipTabs';
 export interface SettingsTabbedPageProps<T extends string> {
   title: ReactNode;
   description?: ReactNode;
-  tabs: ChipTabItem<T>[];
-  value: T;
-  onChange: (value: T) => void;
-  tabsAriaLabel: string;
+  tabs?: ChipTabItem<T>[];
+  value?: T;
+  onChange?: (value: T) => void;
+  tabsAriaLabel?: string;
   tabsTestIdPrefix?: string;
   children: ReactNode;
 }
@@ -36,14 +36,16 @@ export default function SettingsTabbedPage<T extends string>({
         <h1 className="text-2xl font-semibold tracking-tight text-content">{title}</h1>
         {description != null && <p className="text-sm text-content-muted">{description}</p>}
       </header>
-      <ChipTabs
-        className="flex flex-wrap gap-1.5"
-        ariaLabel={tabsAriaLabel}
-        testIdPrefix={tabsTestIdPrefix}
-        items={tabs}
-        value={value}
-        onChange={onChange}
-      />
+      {tabs && tabs.length > 0 && value != null && onChange && tabsAriaLabel ? (
+        <ChipTabs
+          className="flex flex-wrap gap-1.5"
+          ariaLabel={tabsAriaLabel}
+          testIdPrefix={tabsTestIdPrefix}
+          items={tabs}
+          value={value}
+          onChange={onChange}
+        />
+      ) : null}
       <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
     </div>
   );
