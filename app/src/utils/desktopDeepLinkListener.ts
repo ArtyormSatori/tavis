@@ -12,7 +12,11 @@ import {
   failDeepLinkAuthProcessing,
 } from '../store/deepLinkAuthState';
 import { getStoredCoreMode } from './configPersistence';
-import { CORE_CONFIG_UNREADABLE_I18N_KEY, isCoreConfigUnreadableError } from './coreConfigFailure';
+import {
+  CORE_CONFIG_UNREADABLE_I18N_KEY,
+  GATEWAY_SESSION_FAILURE_I18N_KEY,
+  isCoreConfigUnreadableError,
+} from './coreConfigFailure';
 import { BILLING_DASHBOARD_URL } from './links';
 import {
   evaluateOAuthAppVersionGate,
@@ -361,9 +365,15 @@ const handleAuthDeepLink = async (parsed: URL, requireStateNonce = true) => {
       console.warn('[DeepLink][auth] session store failed — staying on signin (kind=%s)', kind);
       // `config_unreadable` copy is translated, and this module cannot call
       // `useT()`. Hand the key to the store and let the rendering component
-      // resolve it in the user's locale; every other kind keeps its literal.
+      // resolve it in the user's locale. The gateway copy is translated for
+      // the same reason: a gateway user's core is provisioned by this app, so
+      // the literal cloud text (which points at an RPC token / URL in Settings)
+      // would send them chasing a configuration they never entered. Every
+      // other kind keeps its literal.
       if (kind === 'config_unreadable') {
         failDeepLinkAuthProcessing('', { messageKey: CORE_CONFIG_UNREADABLE_I18N_KEY });
+      } else if (getStoredCoreMode() === 'gateway') {
+        failDeepLinkAuthProcessing('', { messageKey: GATEWAY_SESSION_FAILURE_I18N_KEY });
       } else {
         failDeepLinkAuthProcessing(authStoreFailureUserMessage(kind, getStoredCoreMode()));
       }
