@@ -51,7 +51,10 @@ use crate::openhuman::agent::turn_origin::AgentTurnOrigin;
 /// configured inference. An embedder that cannot say where a turn runs is
 /// strictly less capable, so the facade uses the wider surface and lets
 /// [`Route`] be `None` when the account's own route is what is wanted.
-const AGENT_CHAT: &str = "openhuman.inference_agent_chat";
+///
+/// The operation constant is owned by the inference domain; this facade must
+/// not spell the wire name out so a rename upstream cannot drift the dispatch.
+use crate::openhuman::inference::INFERENCE_AGENT_CHAT as AGENT_CHAT;
 
 /// Where one turn's inference should go.
 ///
