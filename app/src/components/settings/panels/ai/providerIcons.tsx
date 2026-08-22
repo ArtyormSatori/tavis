@@ -18,6 +18,8 @@ import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
 
 import { cn } from '../../../../lib/cn';
+import deepseekLogo from '../../../../assets/provider-icons/deepseek.svg';
+import openrouterLogo from '../../../../assets/provider-icons/openrouter.svg';
 import {
   SiAlibabacloud,
   SiAnthropic,
@@ -56,6 +58,12 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   ollama: SiOllama,
 };
 
+/** Locally bundled marks for providers absent from the installed icon set. */
+const PROVIDER_ASSETS: Record<string, string> = {
+  openrouter: openrouterLogo,
+  deepseek: deepseekLogo,
+};
+
 /** Brand colour treatment for marks that appear inside neutral provider swatches. */
 const PROVIDER_ICON_COLORS: Record<string, string> = {
   openai: 'text-white',
@@ -83,10 +91,12 @@ const PROVIDER_ICON_COLORS: Record<string, string> = {
  */
 export const providerIcon = (slug: string, className: string): ReactElement | null => {
   const icon = PROVIDER_ICONS[slug];
-  return icon ? createElement(icon, { className: cn(className, PROVIDER_ICON_COLORS[slug]) }) : null;
+  if (icon) return createElement(icon, { className: cn(className, PROVIDER_ICON_COLORS[slug]) });
+  const asset = PROVIDER_ASSETS[slug];
+  return asset ? <img src={asset} alt="" aria-hidden className={cn(className, 'object-contain')} /> : null;
 };
 
 /** Slugs with a mark — exported for the coverage test, not for rendering. */
-export const PROVIDER_ICON_SLUGS = Object.keys(PROVIDER_ICONS);
+export const PROVIDER_ICON_SLUGS = [...Object.keys(PROVIDER_ICONS), ...Object.keys(PROVIDER_ASSETS)];
 
 export default providerIcon;

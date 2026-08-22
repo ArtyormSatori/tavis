@@ -84,6 +84,8 @@ const PROVIDER_SWATCH_TONES: Record<string, string> = {
   xai: 'bg-black text-white ring-white/30',
   zai: 'bg-[#FF6A00]/10 text-[#FF6A00] ring-[#FF6A00]/35',
   ollama: 'bg-black text-white ring-white/30',
+  openrouter: 'bg-[#7624F4]/10 text-[#7624F4] ring-[#7624F4]/35',
+  deepseek: 'bg-[#4D6BFE]/10 text-[#4D6BFE] ring-[#4D6BFE]/35',
 };
 
 /**
