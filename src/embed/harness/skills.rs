@@ -89,9 +89,16 @@ pub(super) fn install(source: &Path, workspace_dir: &Path) -> Result<usize, Harn
 
 /// Whether `dir` declares itself a skill bundle.
 fn is_bundle(dir: &Path) -> bool {
-    MANIFESTS
-        .iter()
-        .any(|manifest| dir.join(manifest).is_file())
+    MANIFESTS.iter().any(|manifest| {
+        // `is_file()` follows symlinks; discovery requires a real regular
+        // file, so a symlinked manifest must not make this a bundle. `copy_tree`
+        // skips symlinks, so counting a symlinked manifest as a bundle would
+        // install a directory with no manifest — a bundle that never reaches a
+        // turn, the exact silent-absence this module guards against.
+        std::fs::symlink_metadata(dir.join(manifest))
+            .map(|meta| meta.file_type().is_file())
+            .unwrap_or(false)
+    })
 }
 
 fn collect_bundles(root: &Path) -> Result<Vec<PathBuf>, HarnessError> {
