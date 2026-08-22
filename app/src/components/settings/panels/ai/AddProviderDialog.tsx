@@ -116,11 +116,7 @@ const CategorySelect = ({
               value={option.slug}
               data-testid={`add-provider-option-${option.slug}`}>
               <span className="flex min-w-0 items-center gap-2">
-                <OptionSwatch
-                  label={option.label}
-                  tone={option.tone}
-                  className="h-6 w-6 text-[10px]"
-                />
+                <OptionSwatch slug={option.slug} label={option.label} tone={option.tone} />
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-sm text-content">{option.label}</span>
                   <span className="truncate font-mono text-[10px] leading-3 text-content-muted">
