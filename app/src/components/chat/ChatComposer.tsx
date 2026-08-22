@@ -377,10 +377,18 @@ function ChatComposerBody({
               placeholder ?? (allowParallelSend ? t('chat.followupHint') : t('chat.typeMessage'))
             }
             disabled={composerLocked}
-            // Enter/modifier semantics stay OpenHuman's: this runs first and
-            // `preventDefault`s, which suppresses the primitive's Enter →
-            // requestSubmit path. Shift+Enter falls through to the primitive
-            // and inserts a newline, as before.
+            // Enter/modifier semantics are entirely OpenHuman's. `submitMode`
+            // is NOT cosmetic here: assistant-ui's own Enter handler runs after
+            // ours (Radix composes them) and fires whenever ours merely
+            // *declines* to act rather than calling `preventDefault` — which is
+            // exactly what `handleInputKeyDown` does mid-IME-composition, where
+            // the keydown carries no `isComposing` flag for the primitive to
+            // notice either (legacy keyCode 229, and Korean/Japanese IMEs that
+            // omit the flag). Leaving it on made the composer send a
+            // half-composed word. `"none"` disables the primitive's keyboard
+            // submission outright, so Enter reaches only `handleInputKeyDown`
+            // and an unhandled Enter inserts a newline, as it did before.
+            submitMode="none"
             onKeyDown={handleInputKeyDown}
             onChange={e => setInputValue(e.target.value)}
             onCompositionStart={() => {
