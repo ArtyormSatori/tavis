@@ -10,6 +10,8 @@ export interface SettingsTabbedPageProps<T extends string> {
   onChange?: (value: T) => void;
   tabsAriaLabel?: string;
   tabsTestIdPrefix?: string;
+  /** Let the active child own scrolling (for a fixed controls + results layout). */
+  scrollable?: boolean;
   children: ReactNode;
 }
 
@@ -28,6 +30,7 @@ export default function SettingsTabbedPage<T extends string>({
   onChange,
   tabsAriaLabel,
   tabsTestIdPrefix,
+  scrollable = true,
   children,
 }: SettingsTabbedPageProps<T>) {
   return (
@@ -51,8 +54,15 @@ export default function SettingsTabbedPage<T extends string>({
         ) : null}
       </div>
       <div aria-hidden className="-mx-4 border-t border-line" />
-      <div className="-mr-4 min-h-0 flex-1 overflow-y-auto pr-4">
-        <div className="min-h-full pb-4 pt-4">{children}</div>
+      <div
+        className={
+          scrollable
+            ? '-mr-4 min-h-0 flex-1 overflow-y-auto pr-4'
+            : 'min-h-0 flex-1 overflow-hidden'
+        }>
+        <div className={scrollable ? 'min-h-full pb-4 pt-4' : 'h-full min-h-0 pt-4'}>
+          {children}
+        </div>
       </div>
     </div>
   );
