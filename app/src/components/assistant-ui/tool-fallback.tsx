@@ -493,7 +493,7 @@ function ToolFallbackApproval({
           <Button
             key={option.id}
             size="sm"
-            variant={option === allowOptions[0] ? "default" : "outline-solid"}
+            variant={option === allowOptions[0] ? "default" : "outline"}
             className={pressable}
             onClick={() => handleOption(option)}
             disabled={submitted}
