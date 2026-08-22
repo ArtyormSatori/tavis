@@ -82,9 +82,25 @@ export type ThreadComponents = {
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ToolGroup?: ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>> | undefined;
   ReasoningGroup?: ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>> | undefined;
+  /**
+   * Extra controls in the composer's action row, to the right of the model
+   * selector. A seam rather than a fixed set because what belongs there is
+   * host-specific — OpenHuman puts the context-window meter and the thread
+   * goal here — and hard-coding either would make this component unusable by
+   * anything else.
+   */
+  ComposerExtras?: ComponentType | undefined;
 };
 
-export type ThreadProps = { components?: ThreadComponents | undefined };
+export type ThreadProps = {
+  components?: ThreadComponents | undefined;
+  /**
+   * Commands offered when the composer input starts with `/`. Supplied by the
+   * host because a command's `execute` is host behaviour (`/clear` has to
+   * reach a runtime this component does not own).
+   */
+  slashCommands?: readonly Unstable_SlashCommand[] | undefined;
+};
 
 const EMPTY_COMPONENTS: ThreadComponents = {};
 
