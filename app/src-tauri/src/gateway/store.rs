@@ -11,6 +11,8 @@
 //! The frontend therefore holds a gateway *id* and asks the shell for the rest.
 
 use std::io;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
@@ -129,8 +131,42 @@ fn write(stored: &StoredGateways) -> Result<(), String> {
     }
     let text = serde_json::to_string_pretty(stored)
         .map_err(|error| format!("could not serialize gateway records: {error}"))?;
-    std::fs::write(&path, text)
-        .map_err(|error| format!("could not write {}: {error}", path.display()))?;
+
+    // The file can hold an SSH identity path and a remote bearer token, so it
+    // must not be world-readable. Write to a temp file in the same directory
+    // so a crash mid-write cannot leave a truncated `gateways.json` (the reader
+    // would then discard every saved gateway), then rename it over the real
+    // path once the bytes are on disk. On Unix, create the temp file
+    // owner-only and repair an existing file's permissions too.
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    options.mode(0o600);
+    let temp_path = path.with_extension("json.tmp");
+    let write_result = (|| -> io::Result<()> {
+        let mut file = options.open(&temp_path)?;
+        file.write_all(text.as_bytes())?;
+        file.sync_all()?;
+        drop(file);
+        std::fs::rename(&temp_path, &path)?;
+        Ok(())
+    })();
+    if let Err(error) = write_result {
+        // Don't leave a half-written temp file behind after a failure.
+        let _ = std::fs::remove_file(&temp_path);
+        return Err(format!("could not write {}: {error}", path.display()));
+    }
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt as _;
+        if let Ok(metadata) = std::fs::metadata(&path) {
+            if metadata.permissions().mode() & 0o077 != 0 {
+                let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+            }
+        }
+    }
+
     log::debug!(
         "[gateway][store] wrote {} record(s) to {}",
         stored.gateways.len(),
