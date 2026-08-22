@@ -42,21 +42,37 @@ const RecoveryPhraseImportMode = ({
         </p>
       </div>
 
-      <div className="flex items-center gap-2 mb-3" role="group" aria-label={t('mnemonic.words')}>
+      {/*
+        Mutually-exclusive choice, so this is a ToggleGroup `type="single"`
+        (Radix `role="radiogroup"` / `role="radio"`) rather than the previous
+        `role="group"` of `aria-pressed` buttons. `aria-pressed` describes an
+        independent on/off toggle; picking one of five word counts is a radio
+        set, and a screen reader now announces "3 of 5" instead of five
+        unrelated pressed-states. `onValueChange` guards the empty string —
+        Radix emits it when the active item is re-selected, and deselecting is
+        not a legal state here.
+      */}
+      <div className="flex items-center gap-2 mb-3">
         <span className="text-xs text-content-muted">{t('mnemonic.words')}:</span>
-        {BIP39_IMPORT_LENGTHS.map(len => (
-          <Button
-            key={len}
-            type="button"
-            variant="secondary"
-            size="xs"
-            aria-pressed={selectedWordCount === len}
-            data-selected={selectedWordCount === len}
-            onClick={() => onWordCountChange(len)}
-            className="rounded-lg data-[selected=true]:bg-primary-500/20 data-[selected=true]:border-primary-500/40 data-[selected=true]:text-primary-600 dark:data-[selected=true]:text-primary-300">
-            {len}
-          </Button>
-        ))}
+        <ToggleGroupRoot
+          type="single"
+          value={String(selectedWordCount)}
+          aria-label={t('mnemonic.words')}
+          onValueChange={(next: string) => {
+            if (!next) return;
+            onWordCountChange(Number(next) as (typeof BIP39_IMPORT_LENGTHS)[number]);
+          }}
+          className="flex items-center gap-2">
+          {BIP39_IMPORT_LENGTHS.map(len => (
+            <ToggleGroupItem
+              key={len}
+              value={String(len)}
+              size="xs"
+              className="rounded-lg data-[state=on]:bg-primary-500/20 data-[state=on]:border-primary-500/40 data-[state=on]:text-primary-600 dark:data-[state=on]:text-primary-300">
+              {len}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroupRoot>
       </div>
 
       <div className="bg-surface-muted rounded-2xl p-4 mb-4 border border-line">
