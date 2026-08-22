@@ -127,8 +127,8 @@ const McpToolPlayground = ({ serverId, tool, onClose }: McpToolPlaygroundProps) 
   // `useEffect` here would be overridden immediately after. Defer to the
   // next animation frame so this one wins.
   useEffect(() => {
-    const raf = requestAnimationFrame(() => argsTextareaRef.current?.focus());
-    return () => cancelAnimationFrame(raf);
+    const raf = window.requestAnimationFrame(() => argsTextareaRef.current?.focus());
+    return () => window.cancelAnimationFrame(raf);
   }, []);
 
   const schemaJson = useMemo(() => stringifyResult(tool.input_schema), [tool.input_schema]);

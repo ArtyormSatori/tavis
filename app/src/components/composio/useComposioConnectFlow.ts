@@ -248,7 +248,11 @@ export function useComposioConnectFlow({
     }
     // intentionally run once on mount — startPolling has stable deps and
     // re-running this on every identity change would restart the poller.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    //
+    // No `eslint-disable` for `react-hooks/exhaustive-deps` here: the plugin is
+    // registered only for `**/*.jsx` / `**/*.tsx` (eslint.config.js), so in this
+    // `.ts` file the directive named an undefined rule, which is an error in its
+    // own right. Hook rules simply do not run on this file today.
   }, []);
 
   /**
