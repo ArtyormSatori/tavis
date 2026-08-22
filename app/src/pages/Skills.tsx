@@ -1212,9 +1212,8 @@ export default function Skills() {
                               {connected.length > 0 && (
                                 <div className="grid gap-2 sm:gap-3" style={gridStyle}>
                                   {connected.map(renderTile)}
-                      </div>
-                    </Card>
-                  )}
+                                </div>
+                              )}
                               {notConnected.length > 0 && (
                                 <div className="grid gap-2 sm:gap-3" style={gridStyle}>
                                   {notConnected.map(renderTile)}
@@ -1224,14 +1223,14 @@ export default function Skills() {
                           );
                         })()}
                       </div>
-                    )}
+                    </Card>
+                  )}
 
                     {activeTab === 'composio' && (
                     <Card
                       className="animate-fade-up"
-                      data-walkthrough="skills-grid"
                       data-testid="composio-integrations-card">
-                      <div className="p-3">
+                      <div className="p-3" data-walkthrough="skills-grid">
                         <p className="px-1 pb-3 text-xs leading-relaxed text-content-muted">
                           {t('skills.integrationsSubtitle')}
                         </p>
@@ -1248,8 +1247,7 @@ export default function Skills() {
                               selected={selectedCategory}
                               onChange={setSelectedCategory}
                             />
-                      </div>
-                    </Card>
+                          </div>
                         )}
                         {!showLocalComposioApiKeyBanner &&
                           // While the dynamic catalog is still being fetched and we
@@ -1319,7 +1317,8 @@ export default function Skills() {
                             </p>
                           ))}
                       </div>
-                    )}
+                    </Card>
+                  )}
 
                     {activeTab === 'composio' && otherGroups.map(group => renderGroup(group))}
 
@@ -1333,11 +1332,11 @@ export default function Skills() {
                     {activeTab === 'mcp' && (
                       <div className="space-y-3 animate-fade-up">
                         <BetaBanner />
-                      <Card>
-                        <div className="p-4">
-                        <McpServersTab />
-                        </div>
-                      </Card>
+                        <Card>
+                          <div className="p-4">
+                            <McpServersTab />
+                          </div>
+                        </Card>
                       </div>
                     )}
                   </>
