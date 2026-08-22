@@ -679,13 +679,18 @@
      Keeping the ring and re-pointing it at the theme is the fix; deleting it
      would take a real focus affordance with it. `!important` is needed because
      the plugin's selectors are attribute-qualified (`[type='text']:focus`) and
-     outrank any element selector written here. */
+     outrank any element selector written here.
+
+     Only the two ring variables are touched. The plugin's blue `border-color`
+     is deliberately left alone: a control that cares already sets its own focus
+     border as a utility, which outranks the plugin on layer order — and an
+     `!important` here would override those, painting an invalid field's coral
+     border primary-blue. */
   input:focus,
   textarea:focus,
   select:focus {
     --tw-ring-color: var(--color-ring) !important;
     --tw-ring-offset-color: var(--color-background) !important;
-    border-color: var(--color-ring) !important;
   }
 
   /* Smooth scrolling */
