@@ -67,16 +67,29 @@ interface PanelPageBaseProps<T extends string = string> {
   testId?: string;
 }
 
-/**
- * `tabs` and `children` are mutually exclusive: the tabbed branch renders
- * `active.content` and never reads `children`.
- */
-type PanelPageProps<T extends string = string> = PanelPageBaseProps<T> &
-  (
-    | { tabs: PanelPageTab<T>[]; children?: never }
-    /** Single-body content, for the no-`tabs` case. */
-    | { tabs?: undefined; children?: ReactNode }
-  );
+type PanelPageProps<T extends string = string> = PanelPageBaseProps<T> & {
+  /**
+   * Chip tabs. When provided, the page renders a chip row and swaps the body to
+   * the active tab's content. Omit for a single-body panel (use `children`).
+   */
+  tabs?: PanelPageTab<T>[];
+  /**
+   * Single-body content when there are no `tabs`. WITH `tabs`, this renders
+   * after the active tab's body and is meant for page-level overlays that
+   * belong to every tab (dialogs, toasts).
+   *
+   * It used to be dropped on the floor in the tabbed branch, which is a silent
+   * failure with no type error and no warning: tabbing a page moved a save bar
+   * and four dialogs in here, and the only symptom was that picking a provider
+   * appeared to do nothing. A `children?: never` union was tried first and does
+   * NOT hold, because TypeScript will not enforce it against JSX children. So
+   * the fix is to render them rather than to forbid them.
+   *
+   * Anything that must anchor to the scroll (a sticky bar) still belongs in the
+   * tab body, not here: this sits outside the scrolling scaffold.
+   */
+  children?: ReactNode;
+};
 
 const DEFAULT_CONTENT_CLASS = 'p-4 space-y-5';
 
@@ -170,6 +183,10 @@ export default function PanelPage<T extends string = string>({
           {active.content}
         </PanelScaffold>
       </div>
+
+      {/* Page-level overlays shared by every tab. Outside the scaffold so they
+          do not scroll with, or get clipped by, the active tab's body. */}
+      {children}
     </div>
   );
 }
