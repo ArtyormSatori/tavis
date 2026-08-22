@@ -41,10 +41,10 @@ import {
   useContactSessions,
   useSessionTranscript,
 } from '../../lib/orchestration/useOrchestrationSessions';
-import { AssistantUiRuntimeProvider } from '../../providers/AssistantUiRuntimeProvider';
 import { subconsciousTrigger } from '../../utils/tauriCommands/subconscious';
 import ChatComposer from '../chat/ChatComposer';
 import ChatNewWindowHero from '../chat/ChatNewWindowHero';
+import { DetachedComposerRuntime } from '../chat/composer/DetachedComposerRuntime';
 import Button from '../ui/Button';
 import SessionTranscript from './SessionTranscript';
 
@@ -183,19 +183,15 @@ function AgentComposer({
 
   return (
     /* This panel's chats are orchestration sessions, not chat threads — there is
-       no thread id to scope a runtime to. `ChatComposer` is built on
-       `ComposerPrimitive`, which resolves its runtime from React context, and
-       this panel renders inside the app shell: without a provider of its own it
-       would silently inherit the app-wide runtime from `ChatRuntimeProvider`,
-       which is bound to `selectedThreadId` — the HOME chat's thread. That is a
-       data-loss-shaped mistake, not a cosmetic one, so the surface mounts its
-       own runtime with an explicit `threadId={null}`: "this surface owns no
-       thread". `null` is not a fallback request — `AssistantUiRuntimeProvider`
-       treats an omitted prop as "follow the selection" and an explicit `null`
-       as "no thread", which is precisely the distinction needed here. The
-       resulting runtime has no messages and is never running; sending stays on
-       this panel's own `onSend`, which goes through `orchestrationClient`. */
-    <AssistantUiRuntimeProvider threadId={null}>
+       no thread id to scope a runtime to, and no Redux projection to build. But
+       `ChatComposer` is built on `ComposerPrimitive`, which resolves its runtime
+       from React context, and this panel renders inside the app shell: without a
+       runtime of its own the composer would silently inherit the app-wide one
+       from `ChatRuntimeProvider`, which is bound to `selectedThreadId` — the
+       HOME chat's thread. Sending stays on this panel's own `onSend`, which goes
+       through `orchestrationClient`. See `DetachedComposerRuntime` for why that
+       rather than `AssistantUiRuntimeProvider threadId={null}`. */
+    <DetachedComposerRuntime>
       <ChatComposer
         inputValue={value}
         setInputValue={setValue}
@@ -220,7 +216,7 @@ function AgentComposer({
         micEnabled={false}
         placeholder={placeholder}
       />
-    </AssistantUiRuntimeProvider>
+    </DetachedComposerRuntime>
   );
 }
 
