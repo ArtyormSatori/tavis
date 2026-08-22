@@ -77,7 +77,8 @@ function shadeResolver() {
   //    NAME does not — `bg-accent-500`, `bg-surface-500` and `text-content-500`
   //    all passed the previous version of this lint while emitting no CSS.
   const resolveConfig = resolveConfigModule.default ?? resolveConfigModule;
-  const colors = resolveConfig(loadTailwindConfig())?.theme?.colors;
+  const resolved = resolveConfig(loadTailwindConfig());
+  const colors = resolved?.theme?.colors;
   if (!colors || Object.keys(colors).length === 0) {
     throw new Error(
       'lint:ui-tokens: resolved theme.colors is empty — refusing to run, since ' +
@@ -120,7 +121,7 @@ function shadeResolver() {
     return false;
   };
 
-  return { shadeExists, bareExists };
+  return { shadeExists, bareExists, resolved };
 }
 
 
@@ -173,7 +174,8 @@ function* walk(dir) {
   }
 }
 
-const { shadeExists, bareExists } = shadeResolver();
+const { shadeExists, bareExists, resolved } = shadeResolver();
+const nonColour = nonColourValues(resolved);
 const violations = [];
 
 for (const file of walk(path.join(appRoot, 'src'))) {
