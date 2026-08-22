@@ -19,7 +19,6 @@ use serde_json::{json, Value};
 use crate::core::bus::BUS;
 use crate::core::events::DomainEvent;
 use crate::openhuman::config::Config;
-use crate::openhuman::mcp::host;
 use crate::rpc::RpcOutcome;
 
 use tinymcp::SecretRef;
