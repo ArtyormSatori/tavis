@@ -50,7 +50,6 @@ import {
   type AuthStyle,
   openhumanUpdateLocalAiSettings,
 } from '../../../utils/tauriCommands/config';
-import {
 import { ConfirmationModal } from '../../intelligence/ConfirmationModal';
 import PanelPage from '../../layout/PanelPage';
 import Button from '../../ui/Button';
