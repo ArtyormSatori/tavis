@@ -1330,9 +1330,11 @@ export default function Skills() {
                     {activeTab === 'composio' && otherGroups.map(group => renderGroup(group))}
 
                     {activeTab === 'skills' && (
-                      <div className="space-y-3 animate-fade-up">
+                      <div className="flex h-full min-h-0 flex-col gap-3 animate-fade-up">
                         <BetaBanner />
-                        <SkillsExplorerTab onToast={addToast} />
+                        <div className="min-h-0 flex-1">
+                          <SkillsExplorerTab onToast={addToast} />
+                        </div>
                       </div>
                     )}
 
