@@ -200,10 +200,15 @@ describe('SubagentActivityBlock', () => {
       />
     );
     const thought = screen.getByTestId('subagent-thought');
-    // No collapsible <details>/<summary> and no "Thoughts" heading — the text
-    // is shown directly.
-    expect(thought.tagName).not.toBe('DETAILS');
-    expect(thought.querySelector('summary')).toBeNull();
+    // Not a disclosure at all — the text is shown directly. Asserted against
+    // the RADIX observables, because the disclosures in this file moved off
+    // `<details>`/`<summary>`: after that move, `tagName !== 'DETAILS'` and
+    // `querySelector('summary') === null` became true of every node in the
+    // tree, so both passed without being able to fail. `data-state` and an
+    // `aria-expanded` trigger are what a collapsed Collapsible would
+    // actually emit here.
+    expect(thought).not.toHaveAttribute('data-state');
+    expect(thought.querySelector('[aria-expanded]')).toBeNull();
     expect(thought.textContent).toContain('weighing the options');
     expect(thought.textContent).not.toContain('Thoughts');
     expect(thought.textContent).not.toContain('💭');
