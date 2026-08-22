@@ -61,7 +61,7 @@ export const WorkloadRow = ({
         {resolved ? (
           <Badge
             variant={isCustom ? 'primary' : 'neutral'}
-            className="max-w-full truncate font-mono">
+            className="max-w-full self-start truncate font-mono">
             {resolved}
           </Badge>
         ) : (
