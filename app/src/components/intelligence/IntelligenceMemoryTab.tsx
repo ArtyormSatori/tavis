@@ -150,7 +150,7 @@ export default function IntelligenceMemoryTab({
               </Button>
             </>
           )}
-        </div>
+        </GlassStatePanel>
       ) : (
         <div className="space-y-6">
           {isRunning && (
