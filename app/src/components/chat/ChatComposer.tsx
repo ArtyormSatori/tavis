@@ -28,6 +28,7 @@ import {
   COMPOSER_SEND,
 } from './composer/composerStyles';
 import { useComposerTextBridge } from './composer/useComposerTextBridge';
+import ModelQualityPill from './ModelQualityPill';
 
 const debug = debugFactory('openhuman:chat-composer');
 
