@@ -10,10 +10,15 @@ import {
   CompositeAttachmentAdapter,
   SimpleImageAttachmentAdapter,
   SimpleTextAttachmentAdapter,
+  type Unstable_SlashCommand,
   useLocalRuntime,
 } from '@assistant-ui/react';
 import debugFactory from 'debug';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
+import { useT } from '../../../lib/i18n/I18nContext';
+import { ContextWindowPill, type ContextUsage } from './composer/ContextWindowPill';
+import { GoalSelector } from './composer/GoalSelector';
 
 const debug = debugFactory('openhuman:assistant-ui');
 
@@ -23,12 +28,21 @@ const localAttachmentAdapter = new CompositeAttachmentAdapter([
 ]);
 
 /**
- * Routes a `task` tool call to the subagent renderer, and opens a tool group
- * that still has work in flight. Both go through `Thread`'s `components` seam
- * so the vendored component set stays unmodified and can still be re-pulled
- * from the registry.
+ * Placeholder accounting, alongside the placeholder transcript.
+ *
+ * Shaped as the real thing would be — separate cached and fresh input, because
+ * a cache read is billed at a fraction of a fresh one and the cost cannot be
+ * derived from a single token count — so wiring this to live usage is a change
+ * of source, not of shape.
  */
-const components: ThreadComponents = { ToolFallback: MockToolFallback, ToolGroup: MockToolGroup };
+const MOCK_USAGE: ContextUsage = {
+  used: 24_180,
+  limit: 200_000,
+  input: 19_400,
+  cachedInput: 12_650,
+  output: 4_780,
+  costUsd: 0.0412,
+};
 
 /**
  * The assistant-ui `Thread`, running against an isolated offline runtime.
@@ -37,27 +51,72 @@ const components: ThreadComponents = { ToolFallback: MockToolFallback, ToolGroup
  * legacy pane (`renderAssistantUiOnly`) while the OpenHuman-specific seams are
  * reconnected one at a time. Nothing here reaches the core or the backend.
  *
- * What changed is what the stand-in *shows*. It used to answer every turn with
- * a single non-streamed sentence ("This is a local placeholder response…"),
- * which exercised almost nothing: no streaming, no reasoning, no tool calls, so
- * the parts of `Thread` that matter most for the migration were never on
- * screen. It now replays the shared mock turn — thinking tokens, tool calls
- * with streaming arguments, subagent delegations with nested steps, and
- * markdown prose — and seeds that turn on mount so the surface is populated
- * before you type.
+ * What it shows, though, is the real shape of the surface: the mock turn
+ * (thinking tokens, tool calls, dispatched subagents, streamed prose), slash
+ * commands in the composer, the context-window meter and the thread goal. Each
+ * of those is wired to placeholder state that a later change swaps for a live
+ * source without touching the components.
  */
 export function AssistantUiChat() {
-  const initialMessages = useMemo(() => buildSeedMessages(), []);
-  debug('[assistant-ui] mounting mock chat surface seeded=%d', initialMessages.length);
+  const { t } = useT();
+  const [goal, setGoal] = useState<string | null>(null);
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
 
+  const initialMessages = useMemo(() => buildSeedMessages(), []);
   const runtime = useLocalRuntime(mockChatModelAdapter, {
     adapters: { attachments: localAttachmentAdapter },
     initialMessages,
   });
 
+  const slashCommands: readonly Unstable_SlashCommand[] = useMemo(
+    () => [
+      {
+        id: 'clear',
+        description: t('conversations.composer.command.clear'),
+        // A real reset, not a cosmetic one: `reset()` with no argument drops
+        // the seeded transcript too, so `/clear` leaves an actually empty
+        // thread rather than restoring the sample conversation.
+        execute: () => {
+          debug('[assistant-ui] /clear');
+          runtime.thread.reset();
+        },
+      },
+      {
+        id: 'goal',
+        description: t('conversations.composer.command.goal'),
+        execute: () => setGoalDialogOpen(true),
+      },
+    ],
+    [runtime, t]
+  );
+
+  const ComposerExtras = useCallback(
+    () => (
+      <>
+        <ContextWindowPill usage={MOCK_USAGE} />
+        <GoalSelector
+          goal={goal}
+          onGoalChange={setGoal}
+          open={goalDialogOpen}
+          onOpenChange={setGoalDialogOpen}
+        />
+      </>
+    ),
+    [goal, goalDialogOpen]
+  );
+
+  const components: ThreadComponents = useMemo(
+    () => ({
+      ToolFallback: MockToolFallback,
+      ToolGroup: MockToolGroup,
+      ComposerExtras,
+    }),
+    [ComposerExtras]
+  );
+
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <Thread components={components} />
+      <Thread components={components} slashCommands={slashCommands} />
     </AssistantRuntimeProvider>
   );
 }
