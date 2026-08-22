@@ -81,38 +81,42 @@ export default function SidebarNav() {
       <SidebarGroup>
         <SidebarMenu>
           {tabs.map(tab => {
-          const active = matchActive(tab.path, location.pathname);
-          const showBadge = tab.id === 'notifications' && unreadCount > 0;
-          const showCompanionDot = tab.id === 'settings' && companionActive;
-          return (
-            <SidebarMenuItem key={tab.id}>
-              <SidebarMenuButton
-                isActive={active}
-                data-walkthrough={tab.walkthroughAttr}
-                onClick={() => handleClick(tab, active)}
-                title={tab.label}
-                // A nav row, not a control: auto height and 14px type, so the
-                // row breathes the way the shell's own spacing scale expects.
-                className="h-auto py-2 text-[14px]">
-                <SidebarMenuIcon>
-                  <NavIcon id={tab.id} className="h-4 w-4" />
-                  {showBadge && (
-                    // Overlaid on the icon rather than trailing the row, so the
-                    // count survives the collapsed rail's icon-only footprint.
-                    <SidebarMenuBadge tone="attention" className="absolute -right-1 -top-1 ml-0">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </SidebarMenuBadge>
-                  )}
-                  {showCompanionDot && (
-                    <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-                  )}
-                </SidebarMenuIcon>
-                <SidebarMenuLabel>{tab.label}</SidebarMenuLabel>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
+            const active = matchActive(tab.path, location.pathname);
+            const showBadge = tab.id === 'notifications' && unreadCount > 0;
+            const showCompanionDot = tab.id === 'settings' && companionActive;
+            return (
+              <SidebarMenuItem key={tab.id}>
+                <SidebarMenuButton
+                  isActive={active}
+                  data-walkthrough={tab.walkthroughAttr}
+                  onClick={() => handleClick(tab, active)}
+                  title={tab.label}
+                  // A nav row, not a control: auto height and 14px type, so
+                  // the row breathes the way the shell's spacing scale expects.
+                  className="h-auto py-2 text-[14px]">
+                  <SidebarMenuIcon>
+                    <NavIcon id={tab.id} className="h-4 w-4" />
+                    {showBadge && (
+                      // Overlaid on the icon rather than trailing the row, so
+                      // the count survives the collapsed rail's icon-only
+                      // footprint.
+                      <SidebarMenuBadge
+                        tone="attention"
+                        className="absolute -right-1 -top-1 ml-0">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </SidebarMenuBadge>
+                    )}
+                    {showCompanionDot && (
+                      <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                    )}
+                  </SidebarMenuIcon>
+                  <SidebarMenuLabel>{tab.label}</SidebarMenuLabel>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroup>
     </nav>
   );
 }

@@ -132,15 +132,14 @@ export default function PanelPage<T extends string = string>({
   }));
 
   return (
-    <div className={`relative flex h-full min-h-0 flex-col ${className}`} data-testid={testId}>
+    <div className={cn('relative flex h-full min-h-0 flex-col', className)} data-testid={testId}>
       {/* Fixed page chrome: optional title + description, then the chip row. */}
       <PanelHeader
         title={title}
         description={description}
         leading={leading}
         action={action}
-        className="flex-shrink-0 px-4 pt-4 pb-3"
-        bgClassName={DEFAULT_PANEL_HEADER_BG}>
+        className="flex-shrink-0">
         {headerExtra}
         <ChipTabs
           className="flex flex-wrap gap-1.5 pt-2"
@@ -158,6 +157,7 @@ export default function PanelPage<T extends string = string>({
         <PanelScaffold
           description={active.description}
           contentClassName={active.contentClassName ?? ''}
+          width={width}
           bodyBorder>
           {active.content}
         </PanelScaffold>
