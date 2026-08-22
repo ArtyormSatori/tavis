@@ -53,6 +53,7 @@ import {
   useChatMascotSendBinding,
 } from '../../features/human/chatMascot';
 import MicComposer from '../../features/human/MicComposer';
+import { registerChatSurface } from '../../providers/chatSurfaceHandlers';
 import { useFlowApprovalRequests } from '../../hooks/useFlowApprovalRequests';
 import { useUsageState } from '../../hooks/useUsageState';
 import {
