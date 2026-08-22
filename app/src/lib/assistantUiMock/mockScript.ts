@@ -69,7 +69,7 @@ export type MockText = { kind: 'text'; text: string };
 
 export type MockStep = MockReasoning | MockToolStep | MockSubagentCall | MockText;
 
-const INTRO = `Looking at this now — I'll search the codebase first, then hand the deeper reads to a couple of subagents.`;
+const INTRO = `Looking at this now — I'll hand the deeper reads to a couple of subagents and keep working while they run.`;
 
 const ANSWER = `Here is what this demo is showing you.
 
@@ -79,7 +79,7 @@ What the transcript exercised, in order:
 
 1. **thinking tokens** — two reasoning blocks, streamed a word at a time and grouped into the chain-of-thought
 2. **tool calls** — \`web_search\` and \`read_file\`, each showing streaming arguments before their result lands
-3. **subagent calls** — two \`task\` delegations, each with its own nested tool steps and a final report
+3. **subagent calls** — two \`task\` delegations. They are dispatched and *not* awaited: their nested steps and reports landed above while this answer was already streaming, which is what delegation actually looks like
 4. **streamed prose** — this answer, including a list and a code block
 
 \`\`\`ts
