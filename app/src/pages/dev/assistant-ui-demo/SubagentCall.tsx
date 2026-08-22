@@ -34,7 +34,9 @@ export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => 
   const running = parsed?.status !== 'complete';
   const description = (args as { description?: string } | undefined)?.description;
   const name =
-    parsed?.subagent ?? (args as { subagent_type?: string } | undefined)?.subagent_type ?? 'subagent';
+    parsed?.subagent ??
+    (args as { subagent_type?: string } | undefined)?.subagent_type ??
+    'subagent';
 
   return (
     <Collapsible

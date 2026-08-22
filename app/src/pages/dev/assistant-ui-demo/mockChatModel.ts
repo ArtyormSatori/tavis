@@ -136,7 +136,11 @@ export const mockChatModelAdapter: ChatModelAdapter = {
           await sleep(step.stepMs, abortSignal);
           parts[at] = {
             ...base,
-            result: { ...running, status: 'complete', report: step.report } satisfies MockSubagentResult,
+            result: {
+              ...running,
+              status: 'complete',
+              report: step.report,
+            } satisfies MockSubagentResult,
           };
           yield emit();
           break;
