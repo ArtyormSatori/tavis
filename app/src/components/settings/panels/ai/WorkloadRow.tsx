@@ -1,8 +1,15 @@
 /*
- * Workload row (stacked, narrow-friendly) — one row per chat/background
- * workload in the "Advanced" routing table.
+ * Workload row — one row per chat/background workload in the "Advanced"
+ * routing table.
+ *
+ * The resolved provider+model is a `Badge` rather than a bare mono string: it
+ * is a status about the row, and the badge's `primary` variant is what marks a
+ * row the user has explicitly pinned versus one still inheriting the default.
+ * The row carries `data-slot="workload-row"` so a test can reach it without
+ * matching on a class string that layout work is free to change.
  */
 import { useT } from '../../../../lib/i18n/I18nContext';
+import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
 import {
   type CloudProvider,
@@ -41,20 +48,22 @@ export const WorkloadRow = ({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 py-3 transition-colors">
-      <div className="min-w-0 flex-1 space-y-1">
+    <div
+      data-slot="workload-row"
+      data-pinned={isCustom}
+      className="flex items-center justify-between gap-3 py-3 transition-colors">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="text-sm font-medium text-content">{t(workload.labelKey)}</div>
         <div className="text-xs leading-5 text-content-muted">{t(workload.descriptionKey)}</div>
         <div className="text-[11px] leading-5 text-content-muted">
           {t(WORKLOAD_MODEL_HINT_KEYS[workload.id])}
         </div>
         {resolved ? (
-          <div
-            className={`font-mono text-[11px] truncate ${
-              isCustom ? 'text-primary-700 dark:text-primary-200' : 'text-content-muted'
-            }`}>
+          <Badge
+            variant={isCustom ? 'primary' : 'neutral'}
+            className="max-w-full truncate font-mono">
             {resolved}
-          </div>
+          </Badge>
         ) : (
           <div className="text-[11px] text-content-faint">{t('settings.ai.workload.noModel')}</div>
         )}
