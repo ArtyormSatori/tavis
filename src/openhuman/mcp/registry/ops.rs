@@ -490,7 +490,10 @@ pub async fn mcp_clients_list_tools(
         .dynamic()
         .list_tools(&server_id)
         .await
-        .map_err(|_| connect_first(&server_id))?;
+        .map_err(|error| {
+            tracing::debug!("[mcp-client] list_tools ({server_id}) failed: {error}");
+            connect_first(&server_id)
+        })?;
 
     let tools = super::tools_safe_for_agent(&server_id, tools);
     let count = tools.len();
@@ -552,9 +555,7 @@ pub async fn mcp_clients_config_assist(
     user_message: String,
     history: Option<Vec<ChatTurn>>,
 ) -> Result<RpcOutcome<Value>, String> {
-    if qualified_name.trim().is_empty() {
-        return Err("qualified_name must not be empty".to_string());
-    }
+    let qualified_name = require(&qualified_name, "qualified_name")?;
 
     tracing::debug!(
         "[mcp-client] config_assist qualified_name={} message_len={}",
@@ -567,13 +568,13 @@ pub async fn mcp_clients_config_assist(
     // surface and the approval gate.
     let (detail, required_env_keys) = resolve(config)?
         .dynamic()
-        .config_assist(qualified_name.trim())
+        .config_assist(&qualified_name)
         .await
         .map_err(|error| format!("Failed to fetch registry detail: {error}"))?;
 
     let system_prompt = build_config_assist_system_prompt(
         &detail.display_name,
-        qualified_name.trim(),
+        &qualified_name,
         &required_env_keys,
     );
 
