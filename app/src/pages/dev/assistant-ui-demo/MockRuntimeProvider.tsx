@@ -51,10 +51,7 @@ export function MockRuntimeProvider({ children }: { children: ReactNode }) {
   // One adapter instance for the page's lifetime — the options doc requires a
   // stable reference, since replacing it reloads the list and drops threads.
   const [adapter] = useState(() => new InMemoryThreadListAdapter());
-  const runtime = useRemoteThreadListRuntime({
-    runtimeHook: useDemoThreadRuntime,
-    adapter,
-  });
+  const runtime = useRemoteThreadListRuntime({ runtimeHook: useDemoThreadRuntime, adapter });
 
   return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
 }

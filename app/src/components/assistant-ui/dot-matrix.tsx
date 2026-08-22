@@ -1,5 +1,5 @@
-import type { ComponentProps, CSSProperties } from "react";
-import { cn } from "@/components/assistant-ui/lib/utils";
+import { cn } from '@/components/assistant-ui/lib/utils';
+import type { ComponentProps, CSSProperties } from 'react';
 
 const GRID = 5;
 const CENTER = (GRID - 1) / 2;
@@ -12,8 +12,7 @@ const hash = (n: number, salt: number, range: number) => {
   return ((h ^ (h >>> 16)) % range) / 1000;
 };
 
-const glyph = (dots: [number, number][]) =>
-  new Set(dots.map(([row, col]) => row * GRID + col));
+const glyph = (dots: [number, number][]) => new Set(dots.map(([row, col]) => row * GRID + col));
 
 const CHECK = glyph([
   [1, 4],
@@ -93,21 +92,11 @@ type StateConfig = {
 };
 
 const STATES = {
-  idle: { color: "text-muted-foreground", base: 0.3 },
+  idle: { color: 'text-muted-foreground', base: 0.3 },
   loading: {
-    blink: (i) => ({
-      duration: 0.9 + hash(i, 2, 700),
-      delay: -hash(i, 1, 1200),
-      lo: 0.15,
-    }),
+    blink: i => ({ duration: 0.9 + hash(i, 2, 700), delay: -hash(i, 1, 1200), lo: 0.15 }),
   },
-  thinking: {
-    blink: (_i, row, col) => ({
-      duration: 1.2,
-      delay: -(row + col) * 0.09,
-      lo: 0.2,
-    }),
-  },
+  thinking: { blink: (_i, row, col) => ({ duration: 1.2, delay: -(row + col) * 0.09, lo: 0.2 }) },
   streaming: {
     blink: (_i, row, col) => ({
       duration: 0.9,
@@ -115,13 +104,10 @@ const STATES = {
       lo: 0.15,
     }),
   },
-  searching: {
-    blink: (_i, _row, col) => ({ duration: 1.1, delay: -col * 0.12, lo: 0.2 }),
-  },
+  searching: { blink: (_i, _row, col) => ({ duration: 1.1, delay: -col * 0.12, lo: 0.2 }) },
   syncing: {
     blink: (_i, row, col) => {
-      const turn =
-        (Math.atan2(row - CENTER, col - CENTER) + Math.PI) / (2 * Math.PI);
+      const turn = (Math.atan2(row - CENTER, col - CENTER) + Math.PI) / (2 * Math.PI);
       return { duration: 1.3, delay: -turn * 1.3, lo: 0.2 };
     },
   },
@@ -134,22 +120,10 @@ const STATES = {
   },
   waiting: {
     glyph: ELLIPSIS,
-    blink: (_i, _row, col) => ({
-      duration: 1.2,
-      delay: -col * 0.09,
-      lo: 0.2,
-    }),
+    blink: (_i, _row, col) => ({ duration: 1.2, delay: -col * 0.09, lo: 0.2 }),
   },
-  uploading: {
-    blink: (_i, row) => ({
-      duration: 1,
-      delay: -(GRID - 1 - row) * 0.12,
-      lo: 0.2,
-    }),
-  },
-  downloading: {
-    blink: (_i, row) => ({ duration: 1, delay: -row * 0.12, lo: 0.2 }),
-  },
+  uploading: { blink: (_i, row) => ({ duration: 1, delay: -(GRID - 1 - row) * 0.12, lo: 0.2 }) },
+  downloading: { blink: (_i, row) => ({ duration: 1, delay: -row * 0.12, lo: 0.2 }) },
   listening: {
     blink: (_i, _row, col) => ({
       duration: 0.7 + hash(col, 4, 500),
@@ -165,33 +139,33 @@ const STATES = {
     }),
   },
   recording: {
-    color: "text-red-500",
+    color: 'text-red-500',
     glyph: RECORD,
     dim: 0.12,
     blink: () => ({ duration: 1.4, delay: 0, lo: 0.3 }),
   },
-  success: { color: "text-emerald-500", glyph: CHECK },
+  success: { color: 'text-emerald-500', glyph: CHECK },
   error: {
-    color: "text-red-500",
+    color: 'text-red-500',
     glyph: CROSS,
     blink: () => ({ duration: 1.1, delay: 0, lo: 0.4 }),
   },
   warning: {
-    color: "text-amber-500",
+    color: 'text-amber-500',
     glyph: BANG,
     blink: () => ({ duration: 1.6, delay: 0, lo: 0.45 }),
   },
-  info: { color: "text-blue-500", glyph: INFO },
-  paused: { color: "text-muted-foreground", glyph: PAUSE },
-  stopped: { color: "text-muted-foreground", glyph: STOP },
-  offline: { color: "text-muted-foreground", base: 0.15 },
+  info: { color: 'text-blue-500', glyph: INFO },
+  paused: { color: 'text-muted-foreground', glyph: PAUSE },
+  stopped: { color: 'text-muted-foreground', glyph: STOP },
+  offline: { color: 'text-muted-foreground', base: 0.15 },
 } satisfies Record<string, StateConfig>;
 
 export type DotMatrixState = keyof typeof STATES;
 
 const dotMatrixStates = Object.keys(STATES) as readonly DotMatrixState[];
 
-export type DotMatrixProps = Omit<ComponentProps<"span">, "children"> & {
+export type DotMatrixProps = Omit<ComponentProps<'span'>, 'children'> & {
   state?: DotMatrixState;
   label?: string;
 };
@@ -207,33 +181,22 @@ const DOT_MATRIX_CSS =
  * <DotMatrix state={isRunning ? "loading" : "success"} />
  * ```
  */
-function DotMatrix({
-  className,
-  state = "loading",
-  label,
-  ...props
-}: DotMatrixProps) {
+function DotMatrix({ className, state = 'loading', label, ...props }: DotMatrixProps) {
   const config: StateConfig = STATES[state];
   return (
     <span
       data-slot="dot-matrix"
       data-state={state}
       role="status"
-      className={cn("inline-block size-4 shrink-0", config.color, className)}
-      {...props}
-    >
+      className={cn('inline-block size-4 shrink-0', config.color, className)}
+      {...props}>
       <span className="sr-only">{label ?? state}</span>
       {/* Hoisted and deduplicated across instances by React; must live in HTML scope, inside the SVG it would be an SVG-namespace element React does not hoist. */}
       <style href="aui-dot-matrix" precedence="low">
         {DOT_MATRIX_CSS}
       </style>
-      <svg
-        aria-hidden
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        className="size-full"
-      >
-        {DOT_INDEXES.map((i) => {
+      <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className="size-full">
+        {DOT_INDEXES.map(i => {
           const row = Math.floor(i / GRID);
           const col = i % GRID;
           const on = !config.glyph || config.glyph.has(i);
@@ -252,8 +215,8 @@ function DotMatrix({
                   opacity: hi,
                   animationDuration: `${blink?.duration ?? 1}s`,
                   animationDelay: `${blink?.delay ?? 0}s`,
-                  "--aui-dot-matrix-hi": hi,
-                  "--aui-dot-matrix-lo": blink?.lo ?? hi,
+                  '--aui-dot-matrix-hi': hi,
+                  '--aui-dot-matrix-lo': blink?.lo ?? hi,
                 } as CSSProperties
               }
             />

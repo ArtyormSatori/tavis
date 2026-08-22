@@ -12,22 +12,13 @@ export const DEFAULT_MODEL_ID = 'demo-sonnet';
 
 export function demoModelOptions(): readonly ModelOption[] {
   return [
-    {
-      id: 'demo-sonnet',
-      name: 'Demo Sonnet',
-      description: 'Balanced mock model',
-      efforts: true,
-    },
+    { id: 'demo-sonnet', name: 'Demo Sonnet', description: 'Balanced mock model', efforts: true },
     {
       id: 'demo-opus',
       name: 'Demo Opus',
       description: 'Highest quality mock model',
       efforts: true,
     },
-    {
-      id: 'demo-haiku',
-      name: 'Demo Haiku',
-      description: 'Fastest mock model',
-    },
+    { id: 'demo-haiku', name: 'Demo Haiku', description: 'Fastest mock model' },
   ];
 }

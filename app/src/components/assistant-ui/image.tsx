@@ -1,14 +1,8 @@
-"use client";
+'use client';
 
-import {
-  memo,
-  useState,
-  useEffect,
-  useRef,
-  type PropsWithChildren,
-} from "react";
-import { createPortal } from "react-dom";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from '@/components/assistant-ui/lib/utils';
+import type { ImageMessagePart, ImageMessagePartComponent } from '@assistant-ui/react';
+import { cva, type VariantProps } from 'class-variance-authority';
 import {
   CopyIcon,
   DownloadIcon,
@@ -17,40 +11,35 @@ import {
   Loader2Icon,
   RefreshCwIcon,
   ShieldAlertIcon,
-} from "lucide-react";
-import type {
-  ImageMessagePart,
-  ImageMessagePartComponent,
-} from "@assistant-ui/react";
-import { cn } from "@/components/assistant-ui/lib/utils";
+} from 'lucide-react';
+import { memo, type PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const extensionForMimeType = (mimeType?: string): string => {
   switch (mimeType) {
-    case "image/png":
-      return "png";
-    case "image/jpeg":
-    case "image/jpg":
-      return "jpg";
-    case "image/webp":
-      return "webp";
-    case "image/gif":
-      return "gif";
-    case "image/svg+xml":
-      return "svg";
+    case 'image/png':
+      return 'png';
+    case 'image/jpeg':
+    case 'image/jpg':
+      return 'jpg';
+    case 'image/webp':
+      return 'webp';
+    case 'image/gif':
+      return 'gif';
+    case 'image/svg+xml':
+      return 'svg';
     default:
-      return "png";
+      return 'png';
   }
 };
 
 const dataUriToBlob = (dataUri: string): Blob => {
-  const commaIndex = dataUri.indexOf(",");
+  const commaIndex = dataUri.indexOf(',');
   const meta = commaIndex >= 0 ? dataUri.slice(0, commaIndex) : dataUri;
-  const data = commaIndex >= 0 ? dataUri.slice(commaIndex + 1) : "";
-  const mime =
-    meta.match(/data:([^;]+)/i)?.[1]?.toLowerCase() ??
-    "application/octet-stream";
+  const data = commaIndex >= 0 ? dataUri.slice(commaIndex + 1) : '';
+  const mime = meta.match(/data:([^;]+)/i)?.[1]?.toLowerCase() ?? 'application/octet-stream';
   if (!/;base64/i.test(meta)) {
-    const text = data.replace(/(?:%[0-9A-Fa-f]{2})+/g, (seq) => {
+    const text = data.replace(/(?:%[0-9A-Fa-f]{2})+/g, seq => {
       try {
         return decodeURIComponent(seq);
       } catch {
@@ -68,91 +57,62 @@ const dataUriToBlob = (dataUri: string): Blob => {
 const mimeFromImage = (image: string): string | undefined =>
   image.match(/^data:([^;,]+)/i)?.[1]?.toLowerCase();
 
-const downloadImagePart = (
-  part: Pick<ImageMessagePart, "image" | "filename">,
-): void => {
-  if (typeof document === "undefined") return;
+const downloadImagePart = (part: Pick<ImageMessagePart, 'image' | 'filename'>): void => {
+  if (typeof document === 'undefined') return;
   const ext = extensionForMimeType(mimeFromImage(part.image));
   const filename = part.filename ?? `image.${ext}`;
   const isDataUri = /^data:/i.test(part.image);
-  const objectUrl = isDataUri
-    ? URL.createObjectURL(dataUriToBlob(part.image))
-    : null;
+  const objectUrl = isDataUri ? URL.createObjectURL(dataUriToBlob(part.image)) : null;
   const href = objectUrl ?? part.image;
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = href;
   a.download = filename;
-  a.rel = "noopener";
+  a.rel = 'noopener';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 40_000);
 };
 
-const copyImagePart = async (
-  part: Pick<ImageMessagePart, "image">,
-): Promise<void> => {
+const copyImagePart = async (part: Pick<ImageMessagePart, 'image'>): Promise<void> => {
   if (
-    typeof navigator === "undefined" ||
+    typeof navigator === 'undefined' ||
     !navigator.clipboard ||
-    typeof ClipboardItem === "undefined"
+    typeof ClipboardItem === 'undefined'
   ) {
-    throw new Error("Clipboard API is not available in this environment.");
+    throw new Error('Clipboard API is not available in this environment.');
   }
   const blob = /^data:/i.test(part.image)
     ? dataUriToBlob(part.image)
-    : await fetch(part.image).then((r) => r.blob());
-  const mime = mimeFromImage(part.image) ?? blob.type ?? "image/png";
+    : await fetch(part.image).then(r => r.blob());
+  const mime = mimeFromImage(part.image) ?? blob.type ?? 'image/png';
   await navigator.clipboard.write([new ClipboardItem({ [mime]: blob })]);
 };
 
-const imageVariants = cva(
-  "aui-image-root relative overflow-hidden rounded-lg",
-  {
-    variants: {
-      variant: {
-        outline: "border-border border",
-        ghost: "",
-        muted: "bg-muted/50",
-      },
-      size: {
-        sm: "max-w-64",
-        default: "max-w-96",
-        lg: "max-w-[512px]",
-        full: "w-full",
-      },
-    },
-    defaultVariants: {
-      variant: "outline",
-      size: "default",
-    },
+const imageVariants = cva('aui-image-root relative overflow-hidden rounded-lg', {
+  variants: {
+    variant: { outline: 'border-border border', ghost: '', muted: 'bg-muted/50' },
+    size: { sm: 'max-w-64', default: 'max-w-96', lg: 'max-w-[512px]', full: 'w-full' },
   },
-);
+  defaultVariants: { variant: 'outline', size: 'default' },
+});
 
-export type ImageRootProps = React.ComponentProps<"div"> &
-  VariantProps<typeof imageVariants>;
+export type ImageRootProps = React.ComponentProps<'div'> & VariantProps<typeof imageVariants>;
 
-function ImageRoot({
-  className,
-  variant,
-  size,
-  children,
-  ...props
-}: ImageRootProps) {
+function ImageRoot({ className, variant, size, children, ...props }: ImageRootProps) {
   return (
     <div
       data-slot="image-root"
       data-variant={variant}
       data-size={size}
       className={cn(imageVariants({ variant, size, className }))}
-      {...props}
-    >
+      {...props}>
       {children}
     </div>
   );
 }
 
-type ImagePreviewProps = Omit<React.ComponentProps<"img">, "children"> & {
+type ImagePreviewProps = Omit<React.ComponentProps<'img'>, 'children'> & {
   containerClassName?: string;
 };
 
@@ -161,7 +121,7 @@ function ImagePreview({
   containerClassName,
   onLoad,
   onError,
-  alt = "Image content",
+  alt = 'Image content',
   src,
   ...props
 }: ImagePreviewProps) {
@@ -173,33 +133,24 @@ function ImagePreview({
   const error = errorSrc === src;
 
   useEffect(() => {
-    if (
-      typeof src === "string" &&
-      imgRef.current?.complete &&
-      imgRef.current.naturalWidth > 0
-    ) {
+    if (typeof src === 'string' && imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
       setLoadedSrc(src);
     }
   }, [src]);
 
   return (
-    <div
-      data-slot="image-preview"
-      className={cn("relative min-h-32", containerClassName)}
-    >
+    <div data-slot="image-preview" className={cn('relative min-h-32', containerClassName)}>
       {!loaded && !error && (
         <div
           data-slot="image-preview-loading"
-          className="bg-muted/50 absolute inset-0 flex items-center justify-center"
-        >
+          className="bg-muted/50 absolute inset-0 flex items-center justify-center">
           <ImageIcon className="text-muted-foreground size-8 animate-pulse" />
         </div>
       )}
       {error ? (
         <div
           data-slot="image-preview-error"
-          className="bg-muted/50 flex min-h-32 items-center justify-center p-4"
-        >
+          className="bg-muted/50 flex min-h-32 items-center justify-center p-4">
           <ImageOffIcon className="text-muted-foreground size-8" />
         </div>
       ) : (
@@ -207,17 +158,13 @@ function ImagePreview({
           ref={imgRef}
           src={src}
           alt={alt}
-          className={cn(
-            "block h-auto w-full object-contain",
-            !loaded && "invisible",
-            className,
-          )}
-          onLoad={(e) => {
-            if (typeof src === "string") setLoadedSrc(src);
+          className={cn('block h-auto w-full object-contain', !loaded && 'invisible', className)}
+          onLoad={e => {
+            if (typeof src === 'string') setLoadedSrc(src);
             onLoad?.(e);
           }}
-          onError={(e) => {
-            if (typeof src === "string") setErrorSrc(src);
+          onError={e => {
+            if (typeof src === 'string') setErrorSrc(src);
             onError?.(e);
           }}
           {...props}
@@ -227,33 +174,22 @@ function ImagePreview({
   );
 }
 
-function ImageFilename({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"span">) {
+function ImageFilename({ className, children, ...props }: React.ComponentProps<'span'>) {
   if (!children) return null;
 
   return (
     <span
       data-slot="image-filename"
-      className={cn(
-        "text-muted-foreground block truncate px-2 py-1.5 text-xs",
-        className,
-      )}
-      {...props}
-    >
+      className={cn('text-muted-foreground block truncate px-2 py-1.5 text-xs', className)}
+      {...props}>
       {children}
     </span>
   );
 }
 
-type ImageZoomProps = PropsWithChildren<{
-  src: string;
-  alt?: string;
-}>;
+type ImageZoomProps = PropsWithChildren<{ src: string; alt?: string }>;
 
-function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
+function ImageZoom({ src, alt = 'Image preview', children }: ImageZoomProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -267,16 +203,16 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false);
+      if (e.key === 'Escape') setIsOpen(false);
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = originalOverflow;
     };
@@ -286,12 +222,11 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
     <>
       <div
         onClick={handleOpen}
-        onKeyDown={(e) => e.key === "Enter" && handleOpen()}
+        onKeyDown={e => e.key === 'Enter' && handleOpen()}
         role="button"
         tabIndex={0}
         className="aui-image-zoom-trigger cursor-zoom-in"
-        aria-label="Click to zoom image"
-      >
+        aria-label="Click to zoom image">
         {children}
       </div>
       {isMounted &&
@@ -303,21 +238,20 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
             tabIndex={0}
             className="aui-image-zoom-overlay fade-in animate-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 duration-200"
             onClick={handleClose}
-            onKeyDown={(e) => e.key === "Enter" && handleClose()}
-            aria-label="Close zoomed image"
-          >
+            onKeyDown={e => e.key === 'Enter' && handleClose()}
+            aria-label="Close zoomed image">
             <img
               data-slot="image-zoom-content"
               src={src}
               alt={alt}
               className="aui-image-zoom-content fade-in zoom-in-95 animate-in max-h-[90vh] max-w-[90vw] cursor-zoom-out object-contain duration-200"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handleClose();
               }}
             />
           </div>,
-          document.body,
+          document.body
         )}
     </>
   );
@@ -327,32 +261,21 @@ function ImageGenerating({ className }: { className?: string }) {
   return (
     <div
       data-slot="image-generating"
-      className={cn(
-        "bg-muted/50 flex min-h-32 items-center justify-center p-4",
-        className,
-      )}
-    >
+      className={cn('bg-muted/50 flex min-h-32 items-center justify-center p-4', className)}>
       <Loader2Icon className="text-muted-foreground size-8 animate-spin" />
       <span className="sr-only">Generating image…</span>
     </div>
   );
 }
 
-function ImageContentFilterError({
-  className,
-  reason,
-}: {
-  className?: string;
-  reason?: string;
-}) {
+function ImageContentFilterError({ className, reason }: { className?: string; reason?: string }) {
   return (
     <div
       data-slot="image-content-filter-error"
       className={cn(
-        "bg-muted/50 flex min-h-32 flex-col items-center justify-center gap-2 p-4 text-center",
-        className,
-      )}
-    >
+        'bg-muted/50 flex min-h-32 flex-col items-center justify-center gap-2 p-4 text-center',
+        className
+      )}>
       <ShieldAlertIcon className="text-muted-foreground size-8" />
       <p className="text-sm font-medium">Image could not be generated</p>
       {reason && <p className="text-muted-foreground text-xs">{reason}</p>}
@@ -370,11 +293,7 @@ export type ImageActionsProps = {
   className?: string;
 };
 
-function RegenerateButton({
-  onRegenerate,
-}: {
-  onRegenerate: () => void | Promise<void>;
-}) {
+function RegenerateButton({ onRegenerate }: { onRegenerate: () => void | Promise<void> }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   return (
     <button
@@ -390,28 +309,21 @@ function RegenerateButton({
       disabled={isRegenerating}
       data-slot="image-regenerate"
       aria-label="Regenerate image"
-      className="hover:bg-muted inline-flex size-7 items-center justify-center rounded disabled:opacity-50"
-    >
-      <RefreshCwIcon
-        className={cn("size-4", isRegenerating && "animate-spin")}
-      />
+      className="hover:bg-muted inline-flex size-7 items-center justify-center rounded disabled:opacity-50">
+      <RefreshCwIcon className={cn('size-4', isRegenerating && 'animate-spin')} />
     </button>
   );
 }
 
 function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
   return (
-    <div
-      data-slot="image-actions"
-      className={cn("flex items-center gap-1 p-1", className)}
-    >
+    <div data-slot="image-actions" className={cn('flex items-center gap-1 p-1', className)}>
       <button
         type="button"
         onClick={() => downloadImagePart(part)}
         data-slot="image-download"
         aria-label="Download image"
-        className="hover:bg-muted inline-flex size-7 items-center justify-center rounded"
-      >
+        className="hover:bg-muted inline-flex size-7 items-center justify-center rounded">
         <DownloadIcon className="size-4" />
       </button>
       <button
@@ -421,8 +333,7 @@ function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
         }}
         data-slot="image-copy"
         aria-label="Copy image"
-        className="hover:bg-muted inline-flex size-7 items-center justify-center rounded"
-      >
+        className="hover:bg-muted inline-flex size-7 items-center justify-center rounded">
         <CopyIcon className="size-4" />
       </button>
       {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} />}
@@ -430,10 +341,10 @@ function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
   );
 }
 
-const ImageImpl: ImageMessagePartComponent = (props) => {
+const ImageImpl: ImageMessagePartComponent = props => {
   const { image, filename, status } = props;
 
-  if (status?.type === "running") {
+  if (status?.type === 'running') {
     return (
       <ImageRoot>
         <ImageGenerating />
@@ -442,7 +353,7 @@ const ImageImpl: ImageMessagePartComponent = (props) => {
     );
   }
 
-  if (status?.type === "incomplete" && status.reason === "content-filter") {
+  if (status?.type === 'incomplete' && status.reason === 'content-filter') {
     return (
       <ImageRoot>
         <ImageContentFilterError reason="The provider blocked this image." />
@@ -452,8 +363,8 @@ const ImageImpl: ImageMessagePartComponent = (props) => {
 
   return (
     <ImageRoot>
-      <ImageZoom src={image} alt={filename || "Image content"}>
-        <ImagePreview src={image} alt={filename || "Image content"} />
+      <ImageZoom src={image} alt={filename || 'Image content'}>
+        <ImagePreview src={image} alt={filename || 'Image content'} />
       </ImageZoom>
       <ImageFilename>{filename}</ImageFilename>
     </ImageRoot>
@@ -470,7 +381,7 @@ const Image = memo(ImageImpl) as unknown as ImageMessagePartComponent & {
   ContentFilterError: typeof ImageContentFilterError;
 };
 
-Image.displayName = "Image";
+Image.displayName = 'Image';
 Image.Root = ImageRoot;
 Image.Preview = ImagePreview;
 Image.Filename = ImageFilename;

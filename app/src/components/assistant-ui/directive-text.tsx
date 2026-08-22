@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
-import { memo, type FC } from "react";
 import {
   type TextMessagePartComponent,
-  type Unstable_DirectiveFormatter,
   unstable_defaultDirectiveFormatter,
-} from "@assistant-ui/react";
-import { Badge } from "./badge";
+  type Unstable_DirectiveFormatter,
+} from '@assistant-ui/react';
+import { type FC, memo } from 'react';
+
+import { Badge } from './badge';
 
 type IconComponent = FC<{ className?: string }>;
 
@@ -20,7 +21,7 @@ export type CreateDirectiveTextOptions = {
 /** Creates a `Text` message part component that parses directive syntax and renders inline chips. */
 export function createDirectiveText(
   formatter: Unstable_DirectiveFormatter,
-  options?: CreateDirectiveTextOptions,
+  options?: CreateDirectiveTextOptions
 ): TextMessagePartComponent {
   const iconMap = options?.iconMap;
   const fallbackIcon = options?.fallbackIcon;
@@ -28,14 +29,14 @@ export function createDirectiveText(
   const Component: TextMessagePartComponent = ({ text }) => {
     const segments = formatter.parse(text);
 
-    if (segments.length === 1 && segments[0]!.kind === "text") {
+    if (segments.length === 1 && segments[0]!.kind === 'text') {
       return <>{text}</>;
     }
 
     return (
       <>
         {segments.map((seg, i) => {
-          if (seg.kind === "text") {
+          if (seg.kind === 'text') {
             return (
               <span key={i} className="whitespace-pre-wrap">
                 {seg.text}
@@ -53,8 +54,7 @@ export function createDirectiveText(
               data-directive-type={seg.type}
               data-directive-id={seg.id}
               aria-label={`${seg.type}: ${seg.label}`}
-              className="aui-directive-chip items-baseline text-[13px] leading-none [&_svg]:self-center"
-            >
+              className="aui-directive-chip items-baseline text-[13px] leading-none [&_svg]:self-center">
               {Icon && <Icon />}
               {seg.label}
             </Badge>
@@ -63,13 +63,11 @@ export function createDirectiveText(
       </>
     );
   };
-  Component.displayName = "DirectiveText";
+  Component.displayName = 'DirectiveText';
   return Component;
 }
 
-const DirectiveTextImpl = createDirectiveText(
-  unstable_defaultDirectiveFormatter,
-);
+const DirectiveTextImpl = createDirectiveText(unstable_defaultDirectiveFormatter);
 
 /** `Text` message part component that renders directive syntax as inline chips. */
 export const DirectiveText: TextMessagePartComponent = memo(DirectiveTextImpl);
