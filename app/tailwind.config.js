@@ -268,7 +268,10 @@ module.exports = {
 
       // Premium animations for polished interactions
       animation: {
-        'fade-in': 'fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        // Was ALSO hand-written in index.css as `.animate-fade-in`, which shadowed
+        // this one in the shipped bundle (verified in dist: `.2s ease-out forwards`).
+        // The CSS copy is gone; these are its values, so the 8 call sites are unchanged.
+        'fade-in': 'fadeIn 0.2s ease-out forwards',
         'fade-up': 'fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
         'slide-in': 'slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         'slide-right': 'slideRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
