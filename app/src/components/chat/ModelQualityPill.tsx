@@ -21,9 +21,13 @@ export default function ModelQualityPill({ className }: ModelQualityPillProps) {
       title={t('composer.modelSelector')}
       disabled
       className={`rounded-full text-content-faint disabled:cursor-default disabled:opacity-100 select-none hover:bg-transparent ${className ?? ''}`}>
-      <span>OpenHuman</span>
-      <span className="text-content-faint">·</span>
-      <span>{t('composer.qualityHigh')}</span>
+      {/* The model name is the only elastic part of the pill: in a narrow
+          action row it truncates so the trailing separator, tier and chevron
+          — and the send button beside them — stay on screen. `min-w-0` is
+          required for `truncate` to take effect inside the button's flex box. */}
+      <span className="min-w-0 truncate">OpenHuman</span>
+      <span className="shrink-0 text-content-faint">·</span>
+      <span className="shrink-0">{t('composer.qualityHigh')}</span>
       {/* `shrink-0` keeps the chevron from being squeezed, and the button's
           `px-2` gives it trailing padding so the glyph is never clipped against
           the rounded pill edge (#3292). */}
