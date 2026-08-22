@@ -11,18 +11,12 @@ import {
 
 import { Conversation, ConversationContent } from '../../../components/ai-elements';
 import { useStickToBottom } from '../../../hooks/useStickToBottom';
-import { subagentApi } from '../../../services/api/subagentApi';
-import {
-  markSubagentCancelled,
-  type ProcessingTranscriptItem,
-  type ToolTimelineEntry,
-} from '../../../store/chatRuntimeSlice';
+import type { ProcessingTranscriptItem, ToolTimelineEntry } from '../../../store/chatRuntimeSlice';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { persistReaction } from '../../../store/threadSlice';
 import type { ThreadMessage } from '../../../types/thread';
 import { buildThreadTimeline } from '../timeline/selectors';
 import { supersededInterimIndexes } from '../utils/interimNarration';
-import { AgentProcessSourcePanel } from './AgentProcessSourcePanel';
 import { AgentInsightsSlot } from './aui/AgentInsightsSlot';
 import { useAuiThreadRunning } from './aui/auiThreadState';
 import { InferenceStatusLine } from './aui/InferenceStatusLine';
@@ -31,10 +25,10 @@ import {
   StreamingAssistantPreview,
   TypingIndicator,
 } from './aui/StreamingPreview';
+import { TranscriptOverlays } from './aui/TranscriptOverlays';
 import { TranscriptLoadError, TranscriptSkeleton } from './aui/TranscriptStates';
-import { BackgroundProcessesPanel, selectBackgroundProcesses } from './BackgroundProcessesPanel';
+import { selectBackgroundProcesses } from './BackgroundProcessesPanel';
 import { InterruptedAnswer } from './InterruptedAnswer';
-import { SubagentDrawer } from './SubagentDrawer';
 import { type PastTurnAnchor, TranscriptRow } from './TranscriptRow';
 
 // Stable empty reference for a thread with no persisted messages yet, so the
@@ -268,12 +262,6 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
       () => selectBackgroundProcesses(selectedThreadToolTimeline),
       [selectedThreadToolTimeline]
     );
-    // Re-derive the open subagent's live activity (and its row status) from the
-    // timeline on every render so the drawer streams token-by-token as
-    // subagent_text_delta / subagent_thinking_delta events land in Redux.
-    const openSubagentEntry = openSubagentTaskId
-      ? selectedThreadToolTimeline.find(entry => entry.subagent?.taskId === openSubagentTaskId)
-      : undefined;
     // Interim narration bubbles ("Let me get the data for both.", "The HTML is
     // hard to parse. Let me search for a clean table.") are live progress, not
     // content: once the turn delivers its real answer they are superseded, and
@@ -554,44 +542,18 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
             emptyContent
           )}
         </Conversation>
-        <BackgroundProcessesPanel
-          open={showBackgroundProcesses}
-          processes={backgroundProcesses}
-          onClose={() => setShowBackgroundProcesses(false)}
-          onOpenProcess={taskId => {
-            setShowBackgroundProcesses(false);
-            setOpenSubagentTaskId(taskId);
-          }}
-        />
-        <SubagentDrawer
-          key={openSubagentTaskId ?? 'none'}
-          subagent={openSubagentEntry?.subagent ?? null}
-          status={openSubagentEntry?.status}
-          onCancel={
-            openSubagentEntry?.subagent && threadId
-              ? async () => {
-                  const taskId = openSubagentEntry.subagent!.taskId;
-                  const result = await subagentApi.cancel(taskId);
-                  // Only flip the row when something was actually aborted — a
-                  // cancelled=false result means the run already finished/unknown,
-                  // and overwriting its real terminal state would hide it. No
-                  // terminal socket event arrives for an aborted run, so the
-                  // optimistic mark is what surfaces the cancellation (the notice
-                  // itself reaches chat via the idle-gated delivery path).
-                  if (result.cancelled) {
-                    dispatch(markSubagentCancelled({ threadId, taskId: result.taskId }));
-                  }
-                }
-              : undefined
-          }
-          onClose={() => setOpenSubagentTaskId(null)}
-        />
-        <AgentProcessSourcePanel
-          open={showProcessSource}
+        <TranscriptOverlays
+          threadId={threadId}
           entries={selectedThreadToolTimeline}
           transcript={selectedThreadProcessing}
+          backgroundProcesses={backgroundProcesses}
+          showBackgroundProcesses={showBackgroundProcesses}
+          onCloseBackgroundProcesses={() => setShowBackgroundProcesses(false)}
+          openSubagentTaskId={openSubagentTaskId}
+          onOpenSubagent={setOpenSubagentTaskId}
+          showProcessSource={showProcessSource}
           scopedEntry={scopedDetailEntry}
-          onClose={() => {
+          onCloseProcessSource={() => {
             setShowProcessSource(false);
             setScopedDetailEntryId(null);
           }}
