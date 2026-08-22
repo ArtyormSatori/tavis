@@ -141,7 +141,10 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
   );
 
   const handleOpenChange = useCallback(
-    (next: boolean) => dispatch(setSidebarVisible({ id: LAYOUT_ID, visible: next })),
+    (next: boolean) => {
+      log('sidebar open change: %s', next ? 'expanded' : 'collapsed');
+      dispatch(setSidebarVisible({ id: LAYOUT_ID, visible: next }));
+    },
     [dispatch]
   );
 
