@@ -844,7 +844,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
               <Button
                 type="button"
                 variant="secondary"
-                size="xs"
+                size="sm"
                 leadingIcon={<LuFilter className="h-3.5 w-3.5" />}
                 aria-label={t('skills.explorer.sourceFilterAria', 'Filter by source')}>
                 Filter{activeSources.size < sources.length ? ` (${activeSources.size})` : ''}
