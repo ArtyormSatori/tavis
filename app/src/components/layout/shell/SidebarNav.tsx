@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { selectUnreadCount } from '../../../store/notificationSlice';
 import { AGENT_ACCOUNT_ID } from '../../../utils/accountsFullscreen';
 import {
+  SidebarGroup,
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
