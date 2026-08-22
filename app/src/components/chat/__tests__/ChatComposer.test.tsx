@@ -316,6 +316,28 @@ describe('ChatComposer', () => {
     });
   });
 
+  describe('Enter key ownership', () => {
+    it('does not send when the host key handler declines to act', () => {
+      // The regression this pins: assistant-ui's own Enter handler runs after
+      // the host's (Radix composes them) and fires whenever the host merely
+      // returns instead of calling preventDefault. Mid-IME-composition the host
+      // declines and the keydown carries no `isComposing` flag, so the
+      // primitive would submit a half-composed word. `submitMode="none"` is
+      // what stops it.
+      const onSend = vi.fn().mockResolvedValue(undefined);
+      renderComposer({ inputValue: 'かな', onSend, handleInputKeyDown: vi.fn() });
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', keyCode: 229 });
+      expect(onSend).not.toHaveBeenCalled();
+    });
+
+    it('still routes Enter to the host key handler', () => {
+      const handleInputKeyDown = vi.fn();
+      renderComposer({ inputValue: 'hello', handleInputKeyDown });
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+      expect(handleInputKeyDown).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('mascotDock', () => {
     it('renders the node inside the input box, not the header stack', () => {
       // Anchoring matters: the dock is absolutely positioned against the input
