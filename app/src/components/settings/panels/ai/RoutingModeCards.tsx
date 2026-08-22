@@ -27,10 +27,10 @@ const ModeOption = ({
     data-slot="routing-mode-option"
     data-selected={selected}
     className={cn(
-      'flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 transition-colors',
+      'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
       selected ? 'bg-surface-muted' : 'hover:bg-surface-hover'
     )}>
-    <RadioGroupItem value={value} size="md" className="mt-0.5" />
+    <RadioGroupItem value={value} size="md" className="flex-none" />
     <span className="flex min-w-0 flex-col gap-0.5">
       <span className="text-sm font-medium text-content">{title}</span>
       <span className="text-[11px] leading-4 text-content-muted">{description}</span>
