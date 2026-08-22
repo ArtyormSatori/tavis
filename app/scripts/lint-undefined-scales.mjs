@@ -92,10 +92,35 @@ function shadeResolver() {
         'changed and this lint can no longer be trusted.'
     );
   }
-  return (scale, shade) => {
+  const shadeExists = (scale, shade) => {
     const entry = colors[scale];
     return typeof entry === 'object' && entry !== null && Boolean(entry[shade]);
   };
+
+  // Shade-LESS colour utilities (`bg-ocean`, `text-ocean/90`, `bg-surface`).
+  // These have no shade to look up, so the shade check above cannot see them —
+  // which is how `bg-ocean` on an action button survived the sweep AND the
+  // first version of this lint, rendering `text-content-inverted` on a
+  // transparent background. Valid iff the name resolves to a colour STRING, or
+  // to an object carrying a DEFAULT. `bg-surface` is valid (DEFAULT);
+  // `bg-primary` is not (a scale with no DEFAULT); `bg-ocean` is not (absent).
+  // Names may be nested (`accent-lavender` -> colors.accent.lavender), so walk
+  // every split point rather than assuming one segment.
+  const bareExists = name => {
+    const parts = name.split('-');
+    for (let i = 1; i <= parts.length; i += 1) {
+      let node = colors;
+      for (const seg of [parts.slice(0, i).join('-'), ...parts.slice(i)]) {
+        if (node === null || typeof node !== 'object') { node = undefined; break; }
+        node = node[seg];
+      }
+      if (typeof node === 'string') return true;
+      if (node && typeof node === 'object' && node.DEFAULT) return true;
+    }
+    return false;
+  };
+
+  return { shadeExists, bareExists };
 }
 
 
@@ -116,7 +141,7 @@ function* walk(dir) {
   }
 }
 
-const shadeExists = shadeResolver();
+const { shadeExists, bareExists } = shadeResolver();
 const violations = [];
 
 for (const file of walk(path.join(appRoot, 'src'))) {
