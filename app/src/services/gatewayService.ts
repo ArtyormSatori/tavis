@@ -142,6 +142,9 @@ export async function deleteGateway(id: string): Promise<void> {
  * old one down only after the new one answers.
  */
 export async function activateGateway(id: string): Promise<void> {
+  if (!gatewaysAvailable()) {
+    throw new Error('gateways are unavailable in this build');
+  }
   log('activating gateway %s', id);
   // The shell answers `core_rpc_url` / `core_rpc_token` from the active
   // gateway and never hands the bearer to the renderer — this call is an
