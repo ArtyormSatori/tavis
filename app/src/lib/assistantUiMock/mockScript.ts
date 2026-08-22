@@ -207,6 +207,10 @@ export function buildSeedMessages() {
             status: 'complete',
             steps: step.steps,
             report: step.report,
+            // What a live run of this same step would have taken, so the seeded
+            // turn and a replayed one read the same rather than one of them
+            // silently dropping the clock.
+            elapsedSeconds: Math.round(((step.steps.length + 1) * step.stepMs) / 100) / 10,
           } satisfies MockSubagentResult,
         };
     }
