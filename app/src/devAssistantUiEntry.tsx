@@ -1,12 +1,4 @@
 import { createRoot } from 'react-dom/client';
-
-import { COMPOSER_DROPZONE, COMPOSER_INPUT } from './components/chat/composer/composerStyles';
 import './index.css';
-
-createRoot(document.getElementById('root')!).render(
-  <div className="p-10">
-    <div className={COMPOSER_DROPZONE} id="dropzone">
-      <textarea id="probe" className={COMPOSER_INPUT} placeholder="probe composer" />
-    </div>
-  </div>
-);
+import AssistantUiDemoPage from './pages/dev/assistant-ui-demo';
+createRoot(document.getElementById('root')!).render(<AssistantUiDemoPage />);
