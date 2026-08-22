@@ -25,7 +25,7 @@ export interface PanelPageTab<T extends string = string> {
   chipTestId?: string;
 }
 
-interface PanelPageProps<T extends string = string> {
+interface PanelPageBaseProps<T extends string = string> {
   /** Page title, shown in the header above the description (optional). */
   title?: ReactNode;
   /** Page description, shown below the title and above any chips. */
@@ -44,7 +44,6 @@ interface PanelPageProps<T extends string = string> {
    * Chip tabs. When provided, the page renders a chip row and swaps the body to
    * the active tab's content. Omit for a single-body panel (use `children`).
    */
-  tabs?: PanelPageTab<T>[];
   /** Active tab id (controlled). */
   value?: T;
   /** Called with the chip id when a tab is selected. */
@@ -54,7 +53,19 @@ interface PanelPageProps<T extends string = string> {
   /** Prefix for each chip's `data-testid` (`${prefix}-${id}`). */
   tabsTestIdPrefix?: string;
 
-  /** Single-body content (when there are no `tabs`). */
+  /**
+   * Single-body content, for the no-`tabs` case ONLY.
+   *
+   * A tabbed page renders the active tab and nothing else, so anything passed
+   * here alongside `tabs` is silently dropped. That is not theoretical: tabbing
+   * this page moved a save bar and four dialogs into a `children` that stopped
+   * rendering, and the only symptom was that clicking a provider appeared to do
+   * nothing. `PanelPageProps` is a union on exactly that axis, so passing both
+   * is now a type error rather than a disappearing overlay.
+   *
+   * Overlays that belong to a tabbed page go beside the `PanelPage`, not inside
+   * it. Anything anchored to the scroll (a sticky bar) goes in the tab body.
+   */
   children?: ReactNode;
   /** Body spacing for the single-body case. Defaults to `p-4 space-y-5`. */
   contentClassName?: string;
@@ -69,6 +80,16 @@ interface PanelPageProps<T extends string = string> {
   className?: string;
   testId?: string;
 }
+
+/**
+ * `tabs` and `children` are mutually exclusive: the tabbed branch renders
+ * `active.content` and never reads `children`.
+ */
+type PanelPageProps<T extends string = string> = PanelPageBaseProps<T> &
+  (
+    | { tabs: PanelPageTab<T>[]; children?: never }
+    | { tabs?: undefined; children?: ReactNode }
+  );
 
 const DEFAULT_CONTENT_CLASS = 'p-4 space-y-5';
 
