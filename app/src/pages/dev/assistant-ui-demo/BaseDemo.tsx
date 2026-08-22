@@ -82,6 +82,7 @@ import {
 import { type FC, type ReactNode, useState } from 'react';
 
 import { CloneThreadShell } from './CloneThreadShell';
+import { SubagentCall } from './SubagentCall';
 import { DEFAULT_MODEL_ID, demoModelOptions } from './demoModels';
 
 const Logo: FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
@@ -641,6 +642,12 @@ const AssistantMessage: FC = () => {
               case 'reasoning':
                 return <Reasoning {...part} />;
               case 'tool-call':
+                // Local addition: a `task` call is a subagent delegation, which
+                // has an identity, a nested trace and a report. The generic
+                // fallback would flatten all three into an args/result JSON
+                // pair, so it gets its own renderer. Everything else is
+                // upstream's behaviour.
+                if (part.toolName === 'task') return <SubagentCall {...part} />;
                 return part.toolUI ?? <ToolFallback {...part} />;
               case 'indicator':
                 return <AssistantWorkingIndicator />;
