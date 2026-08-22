@@ -166,3 +166,21 @@ fn a_gateway_without_an_id_is_refused() {
 
     assert!(store::save(gateway("   ")).is_err());
 }
+
+#[test]
+fn a_corrupt_file_blocks_save_instead_of_being_overwritten() {
+    // A malformed `gateways.json` must not be silently replaced by an empty
+    // state plus the new record, which would erase every previously saved
+    // gateway after a transient read failure.
+    let _workspace = workspace();
+    let path = crate::file_logging::resolve_data_dir().join("gateways.json");
+    std::fs::create_dir_all(path.parent().expect("a parent")).expect("mkdir");
+    std::fs::write(&path, "{ this is not json").expect("write");
+
+    let result = store::save(gateway("build"));
+
+    assert!(result.is_err());
+    // The corrupt bytes are untouched — nothing was written over them.
+    let raw = std::fs::read_to_string(&path).expect("read raw");
+    assert_eq!(raw, "{ this is not json");
+}
