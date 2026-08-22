@@ -4631,25 +4631,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Loop in background',
   'settings.ai.backgroundLoopsDesc':
     'Vedi cosa funziona senza un messaggio di chat, metti in pausa il lavoro del battito cardiaco e ispeziona le righe recenti del libro mastro dei crediti.',
-  'settings.ai.connectionsPerTick': '{count} conn/tick',
-  'settings.ai.meetingLookahead': 'Previsione riunione',
-  'settings.ai.minutesShort': '{count} min',
-  'settings.ai.reminderLookahead': 'Previsione promemoria',
-  'settings.ai.cronReminderChecks': 'Controlli del promemoria cron',
-  'settings.ai.cronReminderChecksDesc':
-    'Scansiona i cron job abilitati per elementi imminenti simili a promemoria.',
-  'settings.ai.relevantNotificationChecks': 'Controlli delle notifiche pertinenti',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Promuove le notifiche locali urgenti in avvisi proattivi.',
-  'settings.ai.externalDelivery': 'Consegna esterna',
-  'settings.ai.externalDeliveryDesc':
-    'Lasciamo che gli avvisi del battito cardiaco inviino messaggi proattivi a canali esterni.',
-  'settings.ai.interval': 'Intervallo',
-  'settings.ai.running': 'In esecuzione...',
-  'settings.ai.plannerTickNow': 'Pianificatore seleziona ora',
   'settings.ai.loopMap': 'Mappa del ciclo',
-  'settings.ai.plannerSummary':
-    'Pianificatore: {sourceEvents} eventi origine, {sent} inviati, {deduped} deduplicato.',
   'settings.ai.routeLabel': 'percorso: {route}',
   'settings.ai.on': 'acceso',
   'settings.ai.off': 'disattivato',

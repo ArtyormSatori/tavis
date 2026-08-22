@@ -4578,25 +4578,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Perulangan latar belakang',
   'settings.ai.backgroundLoopsDesc':
     'Lihat apa yang berjalan tanpa pesan obrolan, jeda kerja detak jantung, dan memeriksa buku kas kredit baru-baru ini.',
-  'settings.ai.connectionsPerTick': '{count} samb/centang',
-  'settings.ai.meetingLookahead': 'Pertemuan ke depan',
-  'settings.ai.minutesShort': '{count} mnt',
-  'settings.ai.reminderLookahead': 'Pengingat ke depan',
-  'settings.ai.cronReminderChecks': 'Pemeriksaan pengingat cron',
-  'settings.ai.cronReminderChecksDesc':
-    'Pemindaian memungkinkan pekerjaan cron untuk pengingat-seperti item mendatang.',
-  'settings.ai.relevantNotificationChecks': 'Pemeriksaan notifikasi yang relevan',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Promoses mendesak pemberitahuan lokal ke peringatan proaktif.',
-  'settings.ai.externalDelivery': 'Pengiriman eksternal',
-  'settings.ai.externalDeliveryDesc':
-    'Biarkan detak jantung memperingatkan mengirim pesan proaktif ke saluran eksternal.',
-  'settings.ai.interval': 'Interval',
-  'settings.ai.running': 'Berjalan...',
-  'settings.ai.plannerTickNow': 'Perencana centang sekarang',
   'settings.ai.loopMap': 'Peta loop',
-  'settings.ai.plannerSummary':
-    'Perencana: {sourceEvents} peristiwa sumber, {sent} terkirim, {deduped} dihapuskan.',
   'settings.ai.routeLabel': 'rute: {route}',
   'settings.ai.on': 'aktif',
   'settings.ai.off': 'nonaktif',

@@ -4667,25 +4667,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Boucles de fond',
   'settings.ai.backgroundLoopsDesc':
     "Voyez ce qui s'exécute sans message de discussion, interrompez le travail du battement de cœur et inspectez les lignes récentes du grand livre de crédit.",
-  'settings.ai.connectionsPerTick': '{count} conn/tick',
-  'settings.ai.meetingLookahead': 'Anticipation de la réunion',
-  'settings.ai.minutesShort': '{count} min',
-  'settings.ai.reminderLookahead': 'Anticipation de rappel',
-  'settings.ai.cronReminderChecks': 'Vérifications de rappel Cron',
-  'settings.ai.cronReminderChecksDesc':
-    'Analyse les tâches cron activées pour les éléments à venir de type rappel.',
-  'settings.ai.relevantNotificationChecks': 'Vérifications de notifications pertinentes',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Transforme les notifications locales urgentes en alertes proactives.',
-  'settings.ai.externalDelivery': 'Diffusion externe',
-  'settings.ai.externalDeliveryDesc':
-    'Laissons les alertes de battement de cœur envoyer des messages proactifs vers des canaux externes.',
-  'settings.ai.interval': 'Intervalle',
-  'settings.ai.running': "En cours d'exécution...",
-  'settings.ai.plannerTickNow': 'Planificateur tick maintenant',
   'settings.ai.loopMap': 'Carte de boucle',
-  'settings.ai.plannerSummary':
-    'Planificateur : événements sources {sourceEvents}, {sent} envoyés, {deduped} dédupliqués.',
   'settings.ai.routeLabel': 'itinéraire : {route}',
   'settings.ai.on': 'activée',
   'settings.ai.off': 'désactivée',

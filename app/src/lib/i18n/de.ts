@@ -4686,25 +4686,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Hintergrundschleifen',
   'settings.ai.backgroundLoopsDesc':
     'Sehen Sie, was ohne Chat-Nachricht läuft, pausieren Sie die Herzschlagarbeit und überprüfen Sie die letzten Kreditbuchzeilen.',
-  'settings.ai.connectionsPerTick': '{count} Verb./Takt',
-  'settings.ai.meetingLookahead': 'Besprechungsvorausschau',
-  'settings.ai.minutesShort': '{count} Min.',
-  'settings.ai.reminderLookahead': 'Erinnerungsvorschau',
-  'settings.ai.cronReminderChecks': 'Cron-Erinnerungsprüfungen',
-  'settings.ai.cronReminderChecksDesc':
-    'Scans aktivierten Cron-Jobs für Erinnerungen - wie anstehende Elemente.',
-  'settings.ai.relevantNotificationChecks': 'Relevante Benachrichtigungsprüfungen',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Fördert dringende lokale Benachrichtigungen in proaktive Warnungen.',
-  'settings.ai.externalDelivery': 'Externe Zustellung',
-  'settings.ai.externalDeliveryDesc':
-    'Ermöglicht Heartbeat-Warnungen, proaktive Nachrichten an externe Kanäle zu senden.',
-  'settings.ai.interval': 'Intervall',
-  'settings.ai.running': 'Läuft...',
-  'settings.ai.plannerTickNow': 'Planer tickt jetzt',
   'settings.ai.loopMap': 'Schleifenzuordnung',
-  'settings.ai.plannerSummary':
-    'Planer: {sourceEvents} Quellereignisse, {sent} gesendet, {deduped} dedupliziert.',
   'settings.ai.routeLabel': 'Route: {route}',
   'settings.ai.on': 'ein',
   'settings.ai.off': 'aus',

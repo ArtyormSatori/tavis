@@ -5126,24 +5126,7 @@ const en: TranslationMap = {
   'settings.ai.backgroundLoops': 'Background loops',
   'settings.ai.backgroundLoopsDesc':
     'See what runs without a chat message, pause heartbeat work, and inspect recent credit ledger rows.',
-  'settings.ai.connectionsPerTick': '{count} conn/tick',
-  'settings.ai.meetingLookahead': 'Meeting lookahead',
-  'settings.ai.minutesShort': '{count} min',
-  'settings.ai.reminderLookahead': 'Reminder lookahead',
-  'settings.ai.cronReminderChecks': 'Cron reminder checks',
-  'settings.ai.cronReminderChecksDesc': 'Scans enabled cron jobs for reminder-like upcoming items.',
-  'settings.ai.relevantNotificationChecks': 'Relevant notification checks',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Promotes urgent local notifications into proactive alerts.',
-  'settings.ai.externalDelivery': 'External delivery',
-  'settings.ai.externalDeliveryDesc':
-    'Lets heartbeat alerts send proactive messages to external channels.',
-  'settings.ai.interval': 'Interval',
-  'settings.ai.running': 'Running...',
-  'settings.ai.plannerTickNow': 'Planner tick now',
   'settings.ai.loopMap': 'Loop map',
-  'settings.ai.plannerSummary':
-    'Planner: {sourceEvents} source events, {sent} sent, {deduped} deduped.',
   'settings.ai.routeLabel': 'route: {route}',
   'settings.ai.on': 'on',
   'settings.ai.off': 'off',

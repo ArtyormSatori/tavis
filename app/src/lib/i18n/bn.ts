@@ -4563,25 +4563,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'ব্যাকগ্রাউন্ড লুপস',
   'settings.ai.backgroundLoopsDesc':
     'লক্ষ্য করুন যে, কোন আড্ডা ছাড়াই কি করা হয়, হার্টবিটের কাজ বিরতি দিন এবং সম্প্রতি ক্রেডিট কার্ড পরীক্ষা করুন ।',
-  'settings.ai.connectionsPerTick': 'এক্স.x% 1x xx%x+1x',
-  'settings.ai.meetingLookahead': 'মিটিং এর আগে',
-  'settings.ai.minutesShort': '{count} মিনিট',
-  'settings.ai.reminderLookahead': '__PH0__ Re__2 মিনিট] লুকআহেড',
-  'settings.ai.cronReminderChecks': 'ক্রোন রিমাইন্ডার চেক করে',
-  'settings.ai.cronReminderChecksDesc':
-    'বিভিন্ন স্ক্যানের সময় বিশেষ কিছু বস্তু চিহ্নিত করার উদ্দেশ্যে স্বয়ংক্রিয়ভাবে কর্মের কর্ম সক্রিয় করা হয়।',
-  'settings.ai.relevantNotificationChecks': 'প্রাসঙ্গিক বিজ্ঞপ্তি চেক',
-  'settings.ai.relevantNotificationChecksDesc':
-    'সক্রিয় সতর্কতার সাথে স্থানীয় গুরুত্বপূর্ণ বার্তা প্রচার করা।',
-  'settings.ai.externalDelivery': 'বাহ্যিক ডেলিভারি',
-  'settings.ai.externalDeliveryDesc':
-    'হার্টবিট সতর্ক সংকেত দেয় বহিস্থিত চ্যানেলগুলোর কাছে সক্রিয় বার্তা পাঠাতে।',
-  'settings.ai.interval': 'ব্যবধান',
-  'settings.ai.running': 'চলছে...',
-  'settings.ai.plannerTickNow': 'প্ল্যানার এখন টিক দিন',
   'settings.ai.loopMap': 'লুপ ম্যাপ',
-  'settings.ai.plannerSummary':
-    'পরিকল্পনাকারী: {sourceEvents} উৎস ইভেন্ট, {sent} পাঠানো হয়েছে, {deduped} ডিডুড করা হয়েছে।',
   'settings.ai.routeLabel': 'রুট: {route}',
   'settings.ai.on': 'উপর',
   'settings.ai.off': 'বন্ধ',

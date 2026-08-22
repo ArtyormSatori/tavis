@@ -4510,24 +4510,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': '백그라운드 루프',
   'settings.ai.backgroundLoopsDesc':
     '채팅 메시지 없이 실행되는 항목을 확인하고, 하트비트 작업을 일시 중지하며, 최근 크레딧 원장 행을 검사합니다.',
-  'settings.ai.connectionsPerTick': '틱당 {count}개 연결',
-  'settings.ai.meetingLookahead': '회의 미리보기',
-  'settings.ai.minutesShort': '{count}분',
-  'settings.ai.reminderLookahead': '알림 미리보기',
-  'settings.ai.cronReminderChecks': '크론 알림 확인',
-  'settings.ai.cronReminderChecksDesc':
-    '활성화된 크론 작업에서 알림에 가까운 예정 항목을 스캔합니다.',
-  'settings.ai.relevantNotificationChecks': '관련 알림 확인',
-  'settings.ai.relevantNotificationChecksDesc': '긴급한 로컬 알림을 선제적 알림으로 승격합니다.',
-  'settings.ai.externalDelivery': '외부 전달',
-  'settings.ai.externalDeliveryDesc':
-    '하트비트 알림이 외부 채널로 선제적 메시지를 보낼 수 있게 합니다.',
-  'settings.ai.interval': '간격',
-  'settings.ai.running': '실행 중...',
-  'settings.ai.plannerTickNow': '지금 플래너 체크',
   'settings.ai.loopMap': '루프 맵',
-  'settings.ai.plannerSummary':
-    '플래너: {sourceEvents} 소스 이벤트, {sent} 전송, {deduped} 중복 제거.',
   'settings.ai.routeLabel': '경로: {route}',
   'settings.ai.on': '켜짐',
   'settings.ai.off': '꺼짐',

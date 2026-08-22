@@ -4561,25 +4561,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'पृष्ठभूमि लूप',
   'settings.ai.backgroundLoopsDesc':
     'क्या एक चैट संदेश के बिना चलाता है, दिल की धड़कन काम को रोकें, और हाल ही में क्रेडिट लेजर पंक्तियों का निरीक्षण करें।',
-  'settings.ai.connectionsPerTick': '{count} कॉन/टिक',
-  'settings.ai.meetingLookahead': 'बैठक आगे की ओर देख रही है',
-  'settings.ai.minutesShort': '{count} मि',
-  'settings.ai.reminderLookahead': 'आगे देखने का अनुस्मारक',
-  'settings.ai.cronReminderChecks': 'क्रॉन अनुस्मारक जाँच करता है',
-  'settings.ai.cronReminderChecksDesc':
-    'स्कैन ने रिमाइंडर जैसी आगामी वस्तुओं के लिए क्रोन नौकरियों को सक्षम किया।',
-  'settings.ai.relevantNotificationChecks': 'प्रासंगिक अधिसूचना जाँच',
-  'settings.ai.relevantNotificationChecksDesc':
-    'तत्काल स्थानीय सूचनाएं सक्रिय अलर्ट में बढ़ावा देता है।',
-  'settings.ai.externalDelivery': 'बाह्य वितरण',
-  'settings.ai.externalDeliveryDesc':
-    'दिल की धड़कन अलर्ट बाहरी चैनलों को सक्रिय संदेश भेज देता है।',
-  'settings.ai.interval': 'अंतराल',
-  'settings.ai.running': 'चल रहा है...',
-  'settings.ai.plannerTickNow': 'प्लानर अभी टिक करें',
   'settings.ai.loopMap': 'लूप मानचित्र',
-  'settings.ai.plannerSummary':
-    'योजनाकार: {sourceEvents} स्रोत घटनाएँ, {sent} भेजा गया, {deduped} काटा गया।',
   'settings.ai.routeLabel': 'मार्ग: {route}',
   'settings.ai.on': 'पर',
   'settings.ai.off': 'बंद',

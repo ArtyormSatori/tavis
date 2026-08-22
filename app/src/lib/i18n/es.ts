@@ -4639,25 +4639,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Bucles de fondo',
   'settings.ai.backgroundLoopsDesc':
     'Vea qué se ejecuta sin un mensaje de chat, pause el trabajo de latido y examine las filas recientes del libro mayor de créditos.',
-  'settings.ai.connectionsPerTick': '{count} conexión/tick',
-  'settings.ai.meetingLookahead': 'Reunión anticipada',
-  'settings.ai.minutesShort': '{count} min',
-  'settings.ai.reminderLookahead': 'Recordatorio anticipado',
-  'settings.ai.cronReminderChecks': 'Comprobaciones de recordatorio cron',
-  'settings.ai.cronReminderChecksDesc':
-    'Analiza los trabajos cron habilitados para elementos próximos similares a recordatorios.',
-  'settings.ai.relevantNotificationChecks': 'Comprobaciones de notificaciones relevantes',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Promueve las notificaciones locales urgentes en alertas proactivas.',
-  'settings.ai.externalDelivery': 'Entrega externa',
-  'settings.ai.externalDeliveryDesc':
-    'Permite que las alertas de latido envíen mensajes proactivos a canales externos.',
-  'settings.ai.interval': 'Intervalo',
-  'settings.ai.running': 'Corriendo...',
-  'settings.ai.plannerTickNow': 'Planificador marca ahora',
   'settings.ai.loopMap': 'Mapa de bucle',
-  'settings.ai.plannerSummary':
-    'Planificador: {sourceEvents} eventos de origen, {sent} enviados, {deduped} deduplicados.',
   'settings.ai.routeLabel': 'ruta: {route}',
   'settings.ai.on': 'en',
   'settings.ai.off': 'apagado',

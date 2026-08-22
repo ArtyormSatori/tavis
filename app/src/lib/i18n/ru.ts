@@ -4602,25 +4602,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Фоновые циклы',
   'settings.ai.backgroundLoopsDesc':
     'Посмотрите, что выполняется без сообщения чата, приостановите работу Heartbeat и проверьте последние строки кредитной книги.',
-  'settings.ai.connectionsPerTick': '{count} подкл./тик',
-  'settings.ai.meetingLookahead': 'Предварительный просмотр собрания',
-  'settings.ai.minutesShort': '{count} мин',
-  'settings.ai.reminderLookahead': 'Предварительный просмотр напоминания',
-  'settings.ai.cronReminderChecks': 'Проверка напоминаний Cron.',
-  'settings.ai.cronReminderChecksDesc':
-    'Сканирование включает задания cron для предстоящих элементов, похожих на напоминания.',
-  'settings.ai.relevantNotificationChecks': 'Соответствующие проверки уведомлений.',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Превращает срочные локальные уведомления в упреждающие оповещения.',
-  'settings.ai.externalDelivery': 'Внешняя доставка.',
-  'settings.ai.externalDeliveryDesc':
-    'Позволяет оповещениям о пульсе отправлять упреждающие сообщения во внешние каналы.',
-  'settings.ai.interval': 'Интервал',
-  'settings.ai.running': 'Выполняется...',
-  'settings.ai.plannerTickNow': 'Планировщик отметьте сейчас',
   'settings.ai.loopMap': 'Карта цикла',
-  'settings.ai.plannerSummary':
-    'Планировщик: исходные события {sourceEvents}, отправлено {sent}, дедуплицировано {deduped}.',
   'settings.ai.routeLabel': 'маршрут: {route}',
   'settings.ai.on': 'на',
   'settings.ai.off': 'выкл.',

@@ -4452,24 +4452,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'حلقات الخلفية',
   'settings.ai.backgroundLoopsDesc':
     'شاهدْ ما يَعْملُ بدون رسالةِ دردشةِ، يَتوقّفُ عملَ نبضات القلب، ويَتفحصُ مؤخراً دفترِ دفاترِ الإئتمانِ.',
-  'settings.ai.connectionsPerTick': 'xxxxxxxxxxxxx',
-  'settings.ai.meetingLookahead': 'نظرة أمامية للاجتماع',
-  'settings.ai.minutesShort': '{count} دقيقة',
-  'settings.ai.reminderLookahead': 'نظرة أمامية للتذكير',
-  'settings.ai.cronReminderChecks': 'التحقق من تذكير Cron',
-  'settings.ai.cronReminderChecksDesc':
-    'وقد مكّنت الفحوصات من توفير فرص عمل للتذكير بالبنود المقبلة.',
-  'settings.ai.relevantNotificationChecks': 'عمليات التحقق من الإشعارات ذات الصلة',
-  'settings.ai.relevantNotificationChecksDesc':
-    ':: تشجيع الإخطارات المحلية العاجلة إلى تنبيهات استباقية.',
-  'settings.ai.externalDelivery': 'التسليم الخارجي',
-  'settings.ai.externalDeliveryDesc': 'دعونا نرسل رسائل استباقية إلى القنوات الخارجية.',
-  'settings.ai.interval': 'الفاصل الزمني',
-  'settings.ai.running': 'قيد التشغيل...',
-  'settings.ai.plannerTickNow': 'علامة المخطط الآن',
   'settings.ai.loopMap': 'خريطة حلقة',
-  'settings.ai.plannerSummary':
-    'المخطط: {sourceEvents} أحداث المصدر، {sent} تم إرسالها، {deduped} تم حذفها.',
   'settings.ai.routeLabel': 'المسار: {route}',
   'settings.ai.on': 'على',
   'settings.ai.off': 'إيقاف',

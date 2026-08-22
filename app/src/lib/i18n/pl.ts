@@ -4626,25 +4626,7 @@ const messages: TranslationMap = {
   'settings.ai.backgroundLoops': 'Pętle w tle',
   'settings.ai.backgroundLoopsDesc':
     'Zobacz, co działa bez wiadomości na czacie, wstrzymaj pracę heartbeat i sprawdź ostatnie wiersze księgi kredytów.',
-  'settings.ai.connectionsPerTick': '{count} poł./takt',
-  'settings.ai.meetingLookahead': 'Wyprzedzenie spotkań',
-  'settings.ai.minutesShort': '{count} min',
-  'settings.ai.reminderLookahead': 'Wyprzedzenie przypomnień',
-  'settings.ai.cronReminderChecks': 'Sprawdzanie przypomnień cron',
-  'settings.ai.cronReminderChecksDesc':
-    'Skanuje włączone zadania cron pod kątem zbliżających się elementów podobnych do przypomnień.',
-  'settings.ai.relevantNotificationChecks': 'Sprawdzanie istotnych powiadomień',
-  'settings.ai.relevantNotificationChecksDesc':
-    'Promuje pilne powiadomienia lokalne do proaktywnych alertów.',
-  'settings.ai.externalDelivery': 'Dostarczanie zewnętrzne',
-  'settings.ai.externalDeliveryDesc':
-    'Pozwala alertom heartbeat wysyłać proaktywne wiadomości do kanałów zewnętrznych.',
-  'settings.ai.interval': 'Interwał',
-  'settings.ai.running': 'Działa...',
-  'settings.ai.plannerTickNow': 'Takt planera teraz',
   'settings.ai.loopMap': 'Mapa pętli',
-  'settings.ai.plannerSummary':
-    'Planner: {sourceEvents} zdarzeń źródłowych, {sent} wysłanych, {deduped} zdeduplikowanych.',
   'settings.ai.routeLabel': 'trasa: {route}',
   'settings.ai.on': 'wł.',
   'settings.ai.off': 'wył.',
