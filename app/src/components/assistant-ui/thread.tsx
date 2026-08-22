@@ -364,7 +364,7 @@ const AssistantMessage: FC = () => {
       className="fade-in slide-in-from-bottom-1 animate-in relative -mb-7.5 pb-7.5 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto]">
       <div
         data-slot="aui_assistant-message-content"
-        className="text-foreground px-2 leading-relaxed wrap-break-word">
+        className="text-foreground [&>*+*]:mt-3 [&_[data-slot=reasoning-root]]:mb-0 px-2 leading-relaxed wrap-break-word">
         <MessagePrimitive.GroupedParts
           groupBy={groupPartByType({
             reasoning: ['group-chainOfThought', 'group-reasoning'],
@@ -374,7 +374,11 @@ const AssistantMessage: FC = () => {
           {({ part, children }) => {
             switch (part.type) {
               case 'group-chainOfThought':
-                return <div data-slot="aui_chain-of-thought">{children}</div>;
+                return (
+                  <div data-slot="aui_chain-of-thought" className="[&>*+*]:mt-3">
+                    {children}
+                  </div>
+                );
               case 'group-tool':
                 if (ToolGroup) {
                   return <ToolGroup group={part}>{children}</ToolGroup>;
