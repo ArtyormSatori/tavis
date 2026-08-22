@@ -1,9 +1,11 @@
 "use client";
 
 import { memo, type FC } from "react";
-import type { TextMessagePartComponent } from "@assistant-ui/react";
-import type { Unstable_DirectiveFormatter } from "@assistant-ui/react";
-import { unstable_defaultDirectiveFormatter } from "@assistant-ui/react";
+import {
+  type TextMessagePartComponent,
+  type Unstable_DirectiveFormatter,
+  unstable_defaultDirectiveFormatter,
+} from "@assistant-ui/react";
 import { Badge } from "./badge";
 
 type IconComponent = FC<{ className?: string }>;

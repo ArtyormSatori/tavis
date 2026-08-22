@@ -1,9 +1,9 @@
 "use client";
 
 import { memo, type ComponentProps, type FC } from "react";
-import type { QuoteMessagePartComponent } from "@assistant-ui/react";
 import {
   ComposerPrimitive,
+  type QuoteMessagePartComponent,
   SelectionToolbarPrimitive,
 } from "@assistant-ui/react";
 import { QuoteIcon, XIcon } from "lucide-react";
