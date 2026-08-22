@@ -53,7 +53,6 @@ import {
   useChatMascotSendBinding,
 } from '../../features/human/chatMascot';
 import MicComposer from '../../features/human/MicComposer';
-import { registerChatSurface } from '../../providers/chatSurfaceHandlers';
 import { useFlowApprovalRequests } from '../../hooks/useFlowApprovalRequests';
 import { useUsageState } from '../../hooks/useUsageState';
 import {
@@ -66,6 +65,7 @@ import {
   validateAndReadFile,
 } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
+import { registerChatSurface } from '../../providers/chatSurfaceHandlers';
 import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
 import { threadApi } from '../../services/api/threadApi';
 import { fetchThreadTokenUsage } from '../../services/api/threadUsageApi';
