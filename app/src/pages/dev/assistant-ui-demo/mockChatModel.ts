@@ -3,9 +3,14 @@
  *
  * Upstream the demo runs against the docs site's live inference route. This
  * repo's copy is explicitly mock-only: nothing here reaches the OpenHuman core,
- * the backend, or any provider. The adapter replays a canned script so every
- * surface the demo renders — reasoning, tool calls, markdown, timing, the
- * running/cancel states — has something to show without a data source.
+ * the backend, or any provider. It replays `MOCK_SCRIPT` so every surface the
+ * transcript can render has something to show without a data source — thinking
+ * tokens, tool calls with streaming arguments, subagent delegations with nested
+ * steps, and streamed markdown prose.
+ *
+ * The adapter yields **cumulative** content on every tick, which is what the
+ * runtime expects: each yield replaces the assistant message's parts, so a part
+ * that is still growing is re-emitted with more text rather than appended to.
  */
 import type {
   ChatModelAdapter,
@@ -15,41 +20,18 @@ import type {
 } from '@assistant-ui/react';
 import debugFactory from 'debug';
 
+import { MOCK_SCRIPT, type MockSubagentResult } from './mockScript';
+
 const debug = debugFactory('openhuman:assistant-ui-demo');
 
-/** Delay between streamed chunks. Slow enough to see, fast enough not to annoy. */
-const CHUNK_MS = 18;
+/** Delay between streamed text chunks. Slow enough to see, fast enough not to annoy. */
+const CHUNK_MS = 16;
 /** Pause before the first chunk, so the "working" indicator actually appears. */
 const FIRST_CHUNK_MS = 350;
+/** Pause while a tool call's arguments stream in before it starts running. */
+const ARGS_MS = 260;
 
-const REASONING = [
-  'The user is exercising the demo, so there is no real question to answer.',
-  'I will show what the transcript can render: a reasoning block, a tool call with a',
-  'result, and a markdown answer with a list and a code block.',
-].join(' ');
-
-const ANSWER = `Here is what this demo is showing you.
-
-This is the upstream [assistant-ui \`base\` example](https://www.assistant-ui.com/demos/base), vendored into the app and wired to a **mock** adapter. Nothing you type leaves the browser.
-
-- the composer supports \`@\` mentions and \`/\` commands
-- attachments, branch switching and message editing all work against the in-memory store
-- the thread list on the left is an \`InMemoryThreadListAdapter\`
-
-\`\`\`ts
-// this reply is a canned script, not a model
-const runtime = useLocalRuntime(mockChatModelAdapter);
-\`\`\`
-
-Send another message to replay it.`;
-
-const WEATHER_ARGS = { location: 'San Francisco, CA', unit: 'celsius' } as const;
-const WEATHER_RESULT = {
-  location: 'San Francisco, CA',
-  temperature: 17,
-  unit: 'celsius',
-  conditions: 'Foggy, clearing by afternoon',
-} as const;
+type ToolCallPart = ThreadAssistantMessagePart & { type: 'tool-call' };
 
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -71,69 +53,99 @@ const sleep = (ms: number, signal: AbortSignal) =>
 /** Split into word-ish chunks so the stream looks like a model, not a typewriter. */
 const chunk = (text: string): string[] => text.match(/\s*\S+/g) ?? [];
 
-/**
- * Whether this turn should include a tool call. Keyed off the message text so
- * the demo is steerable — ask about the weather and you get the tool timeline.
- */
-const wantsTool = (options: ChatModelRunOptions): boolean => {
-  const last = options.messages[options.messages.length - 1];
-  const text = last?.content
-    .map(part => (part.type === 'text' ? part.text : ''))
-    .join(' ')
-    .toLowerCase();
-  return text?.includes('weather') ?? false;
-};
-
 export const mockChatModelAdapter: ChatModelAdapter = {
   async *run(options: ChatModelRunOptions): AsyncGenerator<ChatModelRunResult, void> {
     const { abortSignal } = options;
-    const withTool = wantsTool(options);
-    debug('[assistant-ui-demo] run start messages=%d tool=%s', options.messages.length, withTool);
+    const runId = options.unstable_assistantMessageId ?? 'run';
+    debug('[assistant-ui-demo] run start messages=%d', options.messages.length);
+
+    /** Everything emitted so far. Re-yielded in full on every tick. */
+    const parts: ThreadAssistantMessagePart[] = [];
+    const emit = (): ChatModelRunResult => ({ content: [...parts] });
 
     await sleep(FIRST_CHUNK_MS, abortSignal);
 
-    // 1. Reasoning, streamed.
-    let reasoning = '';
-    for (const piece of chunk(REASONING)) {
-      reasoning += piece;
-      yield { content: [{ type: 'reasoning', text: reasoning }] };
-      await sleep(CHUNK_MS, abortSignal);
-    }
-    const reasoningPart: ThreadAssistantMessagePart = { type: 'reasoning', text: reasoning };
+    for (const [index, step] of MOCK_SCRIPT.entries()) {
+      switch (step.kind) {
+        case 'reasoning':
+        case 'text': {
+          // Stream the block in, replacing the tail part each tick.
+          const at = parts.length;
+          let text = '';
+          for (const piece of chunk(step.text)) {
+            text += piece;
+            parts[at] = { type: step.kind, text };
+            yield emit();
+            await sleep(CHUNK_MS, abortSignal);
+          }
+          break;
+        }
 
-    // 2. Optionally a tool call: args first (running), then the result.
-    const parts: ThreadAssistantMessagePart[] = [reasoningPart];
-    if (withTool) {
-      parts.push({
-        type: 'tool-call',
-        toolCallId: `demo-${options.unstable_assistantMessageId ?? 'call'}`,
-        toolName: 'get_weather',
-        args: WEATHER_ARGS,
-        argsText: JSON.stringify(WEATHER_ARGS, null, 2),
-      });
-      yield { content: parts };
-      await sleep(700, abortSignal);
-      parts[parts.length - 1] = {
-        ...(parts[parts.length - 1] as ThreadAssistantMessagePart & { type: 'tool-call' }),
-        result: WEATHER_RESULT,
-      };
-      yield { content: parts };
-      await sleep(CHUNK_MS, abortSignal);
+        case 'tool': {
+          const at = parts.length;
+          const toolCallId = `${runId}-tool-${index}`;
+          const argsText = JSON.stringify(step.args, null, 2);
+
+          // Arguments first, with no result — this is the "running" state the
+          // tool group renders a spinner for.
+          parts[at] = {
+            type: 'tool-call',
+            toolCallId,
+            toolName: step.toolName,
+            args: step.args,
+            argsText,
+          };
+          yield emit();
+          await sleep(ARGS_MS, abortSignal);
+          await sleep(step.runMs, abortSignal);
+
+          parts[at] = { ...(parts[at] as ToolCallPart), result: step.result };
+          yield emit();
+          break;
+        }
+
+        case 'subagent': {
+          const at = parts.length;
+          const toolCallId = `${runId}-task-${index}`;
+          const argsText = JSON.stringify(step.args, null, 2);
+          const base = {
+            type: 'tool-call' as const,
+            toolCallId,
+            toolName: 'task',
+            args: step.args,
+            argsText,
+          };
+
+          // A delegation reports progress while it runs, so its result grows a
+          // nested step at a time rather than appearing whole at the end.
+          const running: MockSubagentResult = {
+            subagent: step.subagent,
+            status: 'running',
+            steps: [],
+          };
+          parts[at] = { ...base, result: { ...running } };
+          yield emit();
+
+          for (const nested of step.steps) {
+            await sleep(step.stepMs, abortSignal);
+            running.steps = [...running.steps, nested];
+            parts[at] = { ...base, result: { ...running } };
+            yield emit();
+          }
+
+          await sleep(step.stepMs, abortSignal);
+          parts[at] = {
+            ...base,
+            result: { ...running, status: 'complete', report: step.report } satisfies MockSubagentResult,
+          };
+          yield emit();
+          break;
+        }
+      }
     }
 
-    // 3. The answer, streamed.
-    let answer = '';
-    for (const piece of chunk(ANSWER)) {
-      answer += piece;
-      yield { content: [...parts, { type: 'text', text: answer }] };
-      await sleep(CHUNK_MS, abortSignal);
-    }
-
-    debug('[assistant-ui-demo] run complete chars=%d', answer.length);
-    yield {
-      content: [...parts, { type: 'text', text: answer }],
-      status: { type: 'complete', reason: 'stop' },
-    };
+    debug('[assistant-ui-demo] run complete parts=%d', parts.length);
+    yield { content: [...parts], status: { type: 'complete', reason: 'stop' } };
   },
 };
 
