@@ -1,3 +1,5 @@
+import { MessageByIndexProvider } from '@assistant-ui/core/react';
+import { type AssistantState, MessagePrimitive, useAuiState } from '@assistant-ui/react';
 import {
   forwardRef,
   Fragment,
@@ -55,6 +57,38 @@ const EMPTY_TRANSCRIPT_ENTRIES: ToolTimelineEntry[] = [];
 // added avoidable re-render churn to the chat's hot path (#5162).
 const EMPTY_TOOL_TIMELINE: ToolTimelineEntry[] = [];
 const EMPTY_PROCESSING: ProcessingTranscriptItem[] = [];
+
+/**
+ * Establishes assistant-ui's message context around an OpenHuman transcript
+ * row. The row itself remains responsible for the richer interleaved tool and
+ * agent-process content, while the core primitive supplies native message
+ * state for action bars and future editing/branching affordances.
+ */
+function AssistantMessageScope({
+  messageId,
+  children,
+}: {
+  messageId: string;
+  children: ReactNode;
+}) {
+  const runtimeIndex = useAuiState(
+    useCallback(
+      (state: AssistantState) =>
+        state.optional.thread?.messages.findIndex(message => message.id === messageId) ?? -1,
+      [messageId]
+    )
+  );
+
+  // ChatThreadView is also rendered in isolated tests and in non-chat previews
+  // without an assistant-ui runtime. Preserve that legitimate fallback.
+  if (runtimeIndex < 0) return <>{children}</>;
+
+  return (
+    <MessageByIndexProvider index={runtimeIndex}>
+      <MessagePrimitive.Root className="contents">{children}</MessagePrimitive.Root>
+    </MessageByIndexProvider>
+  );
+}
 
 export interface ChatThreadViewHandle {
   /** Opens the detached background sub-agents panel — called from the host
@@ -483,19 +517,21 @@ export const ChatThreadView = forwardRef<ChatThreadViewHandle, ChatThreadViewPro
                       `BranchPickerPrimitive` would attach INSIDE the row when
                       the adapter grows `onEdit` / `setMessages` — see
                       `EDIT_AND_BRANCH_SEAM` in `./aui/auiThreadState`. */}
-                  <TranscriptRow
-                    msg={msg}
-                    threadId={threadId}
-                    agentMessageViewMode={agentMessageViewMode}
-                    isLatestVisible={latestVisibleMessage?.id === msg.id}
-                    isCopied={copiedMessageId === msg.id}
-                    isReactionPickerOpen={reactionPickerMsgId === msg.id}
-                    pastTurn={pastTurnAnchors[msg.id]}
-                    shareAgentName={shareAgentName}
-                    onCopy={handleCopyMessage}
-                    onReact={handleReact}
-                    onOpenReactionPicker={setReactionPickerMsgId}
-                  />
+                  <AssistantMessageScope messageId={msg.id}>
+                    <TranscriptRow
+                      msg={msg}
+                      threadId={threadId}
+                      agentMessageViewMode={agentMessageViewMode}
+                      isLatestVisible={latestVisibleMessage?.id === msg.id}
+                      isCopied={copiedMessageId === msg.id}
+                      isReactionPickerOpen={reactionPickerMsgId === msg.id}
+                      pastTurn={pastTurnAnchors[msg.id]}
+                      shareAgentName={shareAgentName}
+                      onCopy={handleCopyMessage}
+                      onReact={handleReact}
+                      onOpenReactionPicker={setReactionPickerMsgId}
+                    />
+                  </AssistantMessageScope>
                   {msg.id === lastUserMessageId ? agentInsights : null}
                 </Fragment>
               ))}
