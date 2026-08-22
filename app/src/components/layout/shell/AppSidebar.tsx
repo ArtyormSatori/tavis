@@ -156,6 +156,47 @@ export default function AppSidebar() {
     navigate(path);
   };
 
+  if (collapsed) {
+    return (
+      // Occupies the same {@link SIDEBAR_ICON_WIDTH} column as the expanded
+      // body below — no fill of its own, chrome shows through (see the
+      // expanded-branch comment for why). `items-center` centers the
+      // fixed-size trigger/rail buttons in the narrow column.
+      <div className="flex h-full min-h-0 flex-col items-center gap-0.5">
+        {/* macOS overlay title bar (titleBarStyle: Overlay) floats the traffic
+            lights over the top-left. The expanded SidebarHeader dodges them by
+            right-aligning, but this narrow rail can't — so reserve a draggable
+            strip the height of the window controls and start the rail below
+            it, clear of the lights. */}
+        <div className="h-7 w-full flex-none" data-tauri-drag-region />
+        <Tooltip label={t('layout.showSidebar')}>
+          {/* The primitive's own trigger, so reopening goes through the same
+              controlled `onOpenChange` `RootShellLayout` drives every other
+              visibility change through. 32px square: no primitive size maps
+              to that, so the footprint is overridden while the focus
+              ring/transition come from the trigger. */}
+          <SidebarTrigger
+            data-testid="root-shell-reopen"
+            data-analytics-id="root-shell-reopen-sidebar"
+            aria-label={t('layout.showSidebar')}
+            className="h-8 w-8 rounded-lg">
+            <LuPanelLeftOpen className="h-4 w-4" />
+          </SidebarTrigger>
+        </Tooltip>
+        {/* Keep the primary nav reachable while collapsed: an icon-only rail.
+            Kept as its own component rather than folded into `SidebarNav` —
+            it covers more ground than that file's `NAV_TABS` loop (it also
+            stands in for `SidebarHeader`'s Home/shortcuts/settings actions,
+            none of which are nav tabs), so a shared render path would mean
+            `SidebarNav` growing a second, unrelated responsibility instead of
+            just adapting its own rows to icon width. */}
+        <div className="mt-1 w-full pt-1">
+          <CollapsedNavRail />
+        </div>
+      </div>
+    );
+  }
+
   return (
     // Sits directly on the window chrome with no fill of its own, so the
     // sidebar and the frame around the content card are one continuous surface.
@@ -166,12 +207,8 @@ export default function AppSidebar() {
     // alone; the hairline seams the old opaque panel needed would draw lines
     // across the chrome.
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0" data-tauri-drag-region>
-        <SidebarHeader />
-      </div>
-      <div className="flex-shrink-0">
-        <SidebarNav />
-      </div>
+      <SidebarHeader />
+      <SidebarNav />
       <SidebarScrollRegion className="gap-0">
         {/* Flex column so routes that project more than one region can order
             them via Tailwind `order-*`. */}
