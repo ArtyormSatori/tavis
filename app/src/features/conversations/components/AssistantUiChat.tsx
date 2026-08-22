@@ -1,10 +1,10 @@
 import {
-  AttachmentPrimitive,
   AssistantRuntimeProvider,
+  AttachmentPrimitive,
   AuiIf,
   ChatModelAdapter,
-  CompositeAttachmentAdapter,
   ComposerPrimitive,
+  CompositeAttachmentAdapter,
   MessagePrimitive,
   SimpleImageAttachmentAdapter,
   SimpleTextAttachmentAdapter,
