@@ -222,7 +222,8 @@ export const CustomRoutingDialog = ({
   const noProviders = customCloud.length === 0 && !localAvailable && !claudeCodeEnabled;
   const selectedProviderLabel =
     source?.kind === 'cloud'
-      ? (customCloud.find(provider => provider.slug === source.providerSlug)?.label ?? source.providerSlug)
+      ? (customCloud.find(provider => provider.slug === source.providerSlug)?.label ??
+        source.providerSlug)
       : source?.kind === 'local'
         ? t('settings.ai.localOllama')
         : source?.kind === 'claude-code'

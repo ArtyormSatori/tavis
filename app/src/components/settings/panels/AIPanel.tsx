@@ -41,9 +41,9 @@ import {
 import { BackgroundLoopControls } from './ai/BackgroundLoopControls';
 import { CloudProviderEditor } from './ai/CloudProviderEditor';
 import { GlobalOwnModelSelector } from './ai/GlobalOwnModelSelector';
-import { ProviderModelPickerDialog } from './ai/ProviderModelPickerDialog';
 import { ProviderAuthSection } from './ai/ProviderAuthSection';
 import { ProviderKeyDialog } from './ai/ProviderConnectControls';
+import { ProviderModelPickerDialog } from './ai/ProviderModelPickerDialog';
 import { RoutingModeCards } from './ai/RoutingModeCards';
 import { SaveBar } from './ai/SaveBar';
 import { useAISettings, useInstalledModels, useOllamaStatus } from './ai/useAISettingsState';
@@ -384,7 +384,10 @@ const AIPanel = ({
           const current = draft.routing[pickerFor];
           const initial =
             current.kind === 'cloud'
-              ? { source: { kind: 'cloud' as const, providerSlug: current.providerSlug }, model: current.model }
+              ? {
+                  source: { kind: 'cloud' as const, providerSlug: current.providerSlug },
+                  model: current.model,
+                }
               : current.kind === 'local'
                 ? { source: { kind: 'local' as const }, model: current.model }
                 : current.kind === 'claude-code'
@@ -395,7 +398,9 @@ const AIPanel = ({
               cloudProviders={draft.cloudProviders}
               localModels={installed}
               ollamaRunning={ollama.state === 'running'}
-              claudeCodeEnabled={draft.cloudProviders.some(provider => provider.slug === 'claude-code')}
+              claudeCodeEnabled={draft.cloudProviders.some(
+                provider => provider.slug === 'claude-code'
+              )}
               initial={initial}
               onClose={() => setPickerFor(null)}
               onSelect={async ({ source, model }) => {

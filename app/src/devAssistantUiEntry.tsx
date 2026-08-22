@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
-import './index.css';
+
 import { COMPOSER_DROPZONE, COMPOSER_INPUT } from './components/chat/composer/composerStyles';
+import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <div className="p-10">

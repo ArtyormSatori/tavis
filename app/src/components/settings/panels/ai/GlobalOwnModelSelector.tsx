@@ -5,7 +5,10 @@
 import { useEffect, useState } from 'react';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
-import { type ModelRegistryEntry, modelRegistryVision } from '../../../../services/api/aiSettingsApi';
+import {
+  type ModelRegistryEntry,
+  modelRegistryVision,
+} from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
 import Card from '../../../ui/Card';
@@ -20,8 +23,8 @@ import {
   providerRefSignature,
   slugTone,
 } from './aiPanelTypes';
-import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
 import { ProviderSwatch } from './ProviderListRow';
+import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
 
 export const GlobalOwnModelSelector = ({
   current,
@@ -113,7 +116,8 @@ export const GlobalOwnModelSelector = ({
     providerRefSignature(selectedRef) === providerRefSignature(saved);
   const selectedProviderLabel =
     source?.kind === 'cloud'
-      ? (customCloud.find(provider => provider.slug === source.providerSlug)?.label ?? source.providerSlug)
+      ? (customCloud.find(provider => provider.slug === source.providerSlug)?.label ??
+        source.providerSlug)
       : source?.kind === 'local'
         ? t('settings.ai.provider.ollama')
         : source?.kind === 'claude-code'
@@ -159,61 +163,63 @@ export const GlobalOwnModelSelector = ({
           </Alert>
         ) : (
           <>
-          <Button
-            type="button"
-            variant="secondary"
-            size="md"
-            onClick={() => setPickerOpen(true)}
-            className="h-auto w-full justify-start gap-3 px-3 py-2.5 text-left">
-            {selectedProviderSlug ? (
-              <ProviderSwatch
-                slug={selectedProviderSlug}
-                label={selectedProviderLabel}
-                tone={slugTone(selectedProviderSlug)}
-              />
-            ) : null}
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-xs font-medium text-content-secondary">Provider and model</span>
-              <span className="truncate text-sm font-medium text-content">
-                {model ? `${selectedProviderLabel} · ${model}` : 'Select provider and model'}
-              </span>
-            </span>
-            <span className="text-xs text-content-muted">Change</span>
-          </Button>
-          {registrySlug && model.trim().length > 0 && (
-            <Label className="flex items-start gap-2 text-xs text-content-secondary">
-              <Checkbox
-                checked={vision}
-                onCheckedChange={setVision}
-                className="mt-0.5 h-3.5 w-3.5"
-              />
-              <span>
-                {t('settings.ai.modelVision')}
-                <span className="block font-normal text-[11px] text-content-faint">
-                  {t('settings.ai.modelVisionDesc')}
-                </span>
-              </span>
-            </Label>
-          )}
-
-          <Alert className="px-3 py-2 text-xs text-content-muted">
-            {t('settings.ai.globalModel.appliesToAll')}
-          </Alert>
-
-          <div className="flex justify-end">
             <Button
               type="button"
-              variant="primary"
-              size="xs"
-              disabled={!canApply || saving || isSaved}
-              onClick={() => void applySelection(source, model)}>
-              {saving
-                ? t('settings.ai.globalModel.saving')
-                : isSaved
-                  ? t('settings.ai.globalModel.saved')
-                  : t('common.save')}
+              variant="secondary"
+              size="md"
+              onClick={() => setPickerOpen(true)}
+              className="h-auto w-full justify-start gap-3 px-3 py-2.5 text-left">
+              {selectedProviderSlug ? (
+                <ProviderSwatch
+                  slug={selectedProviderSlug}
+                  label={selectedProviderLabel}
+                  tone={slugTone(selectedProviderSlug)}
+                />
+              ) : null}
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="text-xs font-medium text-content-secondary">
+                  Provider and model
+                </span>
+                <span className="truncate text-sm font-medium text-content">
+                  {model ? `${selectedProviderLabel} · ${model}` : 'Select provider and model'}
+                </span>
+              </span>
+              <span className="text-xs text-content-muted">Change</span>
             </Button>
-          </div>
+            {registrySlug && model.trim().length > 0 && (
+              <Label className="flex items-start gap-2 text-xs text-content-secondary">
+                <Checkbox
+                  checked={vision}
+                  onCheckedChange={setVision}
+                  className="mt-0.5 h-3.5 w-3.5"
+                />
+                <span>
+                  {t('settings.ai.modelVision')}
+                  <span className="block font-normal text-[11px] text-content-faint">
+                    {t('settings.ai.modelVisionDesc')}
+                  </span>
+                </span>
+              </Label>
+            )}
+
+            <Alert className="px-3 py-2 text-xs text-content-muted">
+              {t('settings.ai.globalModel.appliesToAll')}
+            </Alert>
+
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="primary"
+                size="xs"
+                disabled={!canApply || saving || isSaved}
+                onClick={() => void applySelection(source, model)}>
+                {saving
+                  ? t('settings.ai.globalModel.saving')
+                  : isSaved
+                    ? t('settings.ai.globalModel.saved')
+                    : t('common.save')}
+              </Button>
+            </div>
           </>
         )}
       </div>

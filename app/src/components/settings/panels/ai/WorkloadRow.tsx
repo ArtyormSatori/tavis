@@ -15,9 +15,9 @@
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
 import {
-  slugTone,
   type CloudProvider,
   type ProviderRef,
+  slugTone,
   type Workload,
   WORKLOAD_MODEL_HINT_KEYS,
 } from './aiPanelTypes';
@@ -88,7 +88,10 @@ export const WorkloadRow = ({
   const { provider, providerSlug, model } = resolveTarget(ref_, cloudProviders, t);
 
   return (
-    <li data-slot="workload-row" data-pinned={isPinned} className="flex flex-wrap items-center gap-3 px-4 py-3">
+    <li
+      data-slot="workload-row"
+      data-pinned={isPinned}
+      className="flex flex-wrap items-center gap-3 px-4 py-3">
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-content">{t(workload.labelKey)}</span>

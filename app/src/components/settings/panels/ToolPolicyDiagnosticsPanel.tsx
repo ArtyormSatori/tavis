@@ -235,7 +235,9 @@ const ToolPolicyDiagnosticsPanel = () => {
                       {entry.policy}:{entry.action}
                     </span>
                   </div>
-                  <div className="text-sage-700 dark:text-sage-300 wrap-break-word">{entry.reason}</div>
+                  <div className="text-sage-700 dark:text-sage-300 wrap-break-word">
+                    {entry.reason}
+                  </div>
                 </li>
               ))}
             </ul>

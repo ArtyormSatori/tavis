@@ -109,11 +109,7 @@ export default function PanelScaffold({
 
   return (
     <div
-      className={cn(
-        'relative flex flex-col',
-        scrollable && 'h-full min-h-0',
-        className
-      )}
+      className={cn('relative flex flex-col', scrollable && 'h-full min-h-0', className)}
       data-testid={testId}>
       {hasHeader && (
         <PanelHeader

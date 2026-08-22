@@ -170,7 +170,9 @@ const FlowApprovalCard = ({ notification: n }: Props) => {
             {t('notifications.flow.approveTitle')}
           </p>
           {n.body && (
-            <p className="mt-1 wrap-break-word text-amber-800/90 dark:text-amber-200/90">{n.body}</p>
+            <p className="mt-1 wrap-break-word text-amber-800/90 dark:text-amber-200/90">
+              {n.body}
+            </p>
           )}
           {gateCount > 0 && (
             <p className="mt-1 text-xs text-amber-800/80 dark:text-amber-200/80">

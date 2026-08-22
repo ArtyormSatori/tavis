@@ -242,7 +242,9 @@ const ReleaseNotes = ({ body }: { body: string }) => {
   const display = expanded || !isLong ? trimmed : `${trimmed.slice(0, 160).trimEnd()}…`;
   return (
     <div className="mt-2 rounded-lg bg-stone-800/60 border border-stone-700/40 px-3 py-2">
-      <p className="text-[11px] text-content-faint whitespace-pre-line wrap-break-word">{display}</p>
+      <p className="text-[11px] text-content-faint whitespace-pre-line wrap-break-word">
+        {display}
+      </p>
       {isLong && (
         <ReleaseNotesToggle expanded={expanded} onToggle={() => setExpanded(prev => !prev)} />
       )}

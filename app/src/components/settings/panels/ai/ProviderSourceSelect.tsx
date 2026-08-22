@@ -1,11 +1,5 @@
-import {
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValue,
-} from '../../../ui';
-import { slugTone, type CloudProvider, type CustomDialogSource } from './aiPanelTypes';
+import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValue } from '../../../ui';
+import { type CloudProvider, type CustomDialogSource, slugTone } from './aiPanelTypes';
 import { ProviderSwatch } from './ProviderListRow';
 
 interface ProviderSourceSelectProps {
@@ -55,7 +49,11 @@ export function ProviderSourceSelect({
       <SelectContent>
         {cloudProviders.map(provider => (
           <SelectItem key={provider.slug} value={`cloud:${provider.slug}`} className="py-2">
-            <ProviderSwatch slug={provider.slug} label={provider.label} tone={slugTone(provider.slug)} />
+            <ProviderSwatch
+              slug={provider.slug}
+              label={provider.label}
+              tone={slugTone(provider.slug)}
+            />
             <span>{provider.label}</span>
           </SelectItem>
         ))}

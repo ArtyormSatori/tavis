@@ -33,16 +33,25 @@ const sourceKey = (source: CustomDialogSource) =>
 
 const sourceLabel = (source: CustomDialogSource, providers: CloudProvider[]) =>
   source.kind === 'cloud'
-    ? (providers.find(provider => provider.slug === source.providerSlug)?.label ?? source.providerSlug)
+    ? (providers.find(provider => provider.slug === source.providerSlug)?.label ??
+      source.providerSlug)
     : source.kind === 'local'
       ? 'Ollama'
       : 'Claude Code';
 
 const sourceSlug = (source: CustomDialogSource) =>
-  source.kind === 'cloud' ? source.providerSlug : source.kind === 'local' ? 'ollama' : 'claude-code';
+  source.kind === 'cloud'
+    ? source.providerSlug
+    : source.kind === 'local'
+      ? 'ollama'
+      : 'claude-code';
 
 const sourceDetail = (source: CustomDialogSource) =>
-  source.kind === 'cloud' ? 'Cloud provider' : source.kind === 'local' ? 'Local runtime' : 'CLI provider';
+  source.kind === 'cloud'
+    ? 'Cloud provider'
+    : source.kind === 'local'
+      ? 'Local runtime'
+      : 'CLI provider';
 
 /**
  * Shared, searchable provider and model chooser. It owns discovery and
@@ -67,7 +76,9 @@ export function ProviderModelPickerDialog({
     [claudeCodeEnabled, cloudProviders, localModels.length, ollamaRunning]
   );
   const [query, setQuery] = useState('');
-  const [source, setSource] = useState<CustomDialogSource | null>(initial?.source ?? sources[0] ?? null);
+  const [source, setSource] = useState<CustomDialogSource | null>(
+    initial?.source ?? sources[0] ?? null
+  );
   const [model, setModel] = useState(initial?.model ?? '');
   const [catalog, setCatalog] = useState<ModelInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -181,7 +192,9 @@ export function ProviderModelPickerDialog({
           <div className="mt-3 max-h-56 space-y-1 overflow-y-auto">
             {loading ? <p className="text-sm text-content-muted">Loading models…</p> : null}
             {source?.kind === 'claude-code' ? (
-              <p className="text-sm text-content-muted">Use a Claude Code model alias or model ID.</p>
+              <p className="text-sm text-content-muted">
+                Use a Claude Code model alias or model ID.
+              </p>
             ) : (
               filteredModels.map(candidate => (
                 <Button

@@ -101,9 +101,7 @@ export const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
           className
         )}
         {...rest}>
-        <SelectPrimitive.Viewport
-          data-slot="select-viewport"
-          className="max-h-72 overflow-y-auto">
+        <SelectPrimitive.Viewport data-slot="select-viewport" className="max-h-72 overflow-y-auto">
           {children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>

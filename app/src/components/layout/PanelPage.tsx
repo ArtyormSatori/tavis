@@ -164,11 +164,7 @@ export default function PanelPage<T extends string = string>({
 
   return (
     <div
-      className={cn(
-        'relative flex flex-col',
-        scrollable && 'h-full min-h-0',
-        className
-      )}
+      className={cn('relative flex flex-col', scrollable && 'h-full min-h-0', className)}
       data-testid={testId}>
       {/* Fixed page chrome: optional title + description, then the chip row. */}
       {!hideTabChrome && (

@@ -231,11 +231,15 @@ export function TaskBoardCardArticle({
         </p>
       )}
       {card.notes && (
-        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-content-muted">{card.notes}</p>
+        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-content-muted">
+          {card.notes}
+        </p>
       )}
       {/* Blocker text: always shown for blocked cards (column or status) */}
       {card.blocker && (card.status === 'blocked' || columnStatus === 'blocked') && (
-        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-coral-600">{card.blocker}</p>
+        <p className="mt-1 wrap-break-word text-[11px] leading-snug text-coral-600">
+          {card.blocker}
+        </p>
       )}
       {(hasBriefActions ||
         card.plan?.length ||
