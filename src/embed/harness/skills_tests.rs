@@ -117,7 +117,10 @@ fn a_symlinked_manifest_does_not_make_a_directory_a_bundle() {
     std::os::unix::fs::symlink(outside.path().join("SKILL.md"), dir.join("SKILL.md"))
         .expect("symlink manifest");
 
-    assert!(!is_bundle(&dir), "a symlinked manifest must not be treated as a bundle");
+    assert!(
+        !is_bundle(&dir),
+        "a symlinked manifest must not be treated as a bundle"
+    );
 }
 
 #[test]

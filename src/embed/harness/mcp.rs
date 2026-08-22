@@ -64,18 +64,21 @@ impl std::fmt::Debug for McpAuthDebug<'_> {
             McpAuthConfig::None => f.write_str("None"),
             McpAuthConfig::BearerToken { .. } => f.write_str("BearerToken(<redacted>)"),
             McpAuthConfig::Basic { .. } => f.write_str("Basic(<redacted>)"),
-            McpAuthConfig::Header { name, .. } => {
-                f.debug_tuple("Header").field(name).field(&"<redacted>").finish()
-            }
-            McpAuthConfig::Headers { headers } => {
-                f.debug_tuple("Headers")
-                    .field(&headers.len())
-                    .field(&"<redacted>")
-                    .finish()
-            }
-            McpAuthConfig::QueryParam { name, .. } => {
-                f.debug_tuple("QueryParam").field(name).field(&"<redacted>").finish()
-            }
+            McpAuthConfig::Header { name, .. } => f
+                .debug_tuple("Header")
+                .field(name)
+                .field(&"<redacted>")
+                .finish(),
+            McpAuthConfig::Headers { headers } => f
+                .debug_tuple("Headers")
+                .field(&headers.len())
+                .field(&"<redacted>")
+                .finish(),
+            McpAuthConfig::QueryParam { name, .. } => f
+                .debug_tuple("QueryParam")
+                .field(name)
+                .field(&"<redacted>")
+                .finish(),
         }
     }
 }

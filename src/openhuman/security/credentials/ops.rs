@@ -492,7 +492,10 @@ async fn store_session_inner(
     // stored below; only the global activation is skipped.
     let operator_user_activation = !is_embedder_host();
 
-    if let Some(ref uid) = resolved_user_id.as_ref().filter(|_| operator_user_activation) {
+    if let Some(ref uid) = resolved_user_id
+        .as_ref()
+        .filter(|_| operator_user_activation)
+    {
         if let Ok(root_dir) = default_root_openhuman_dir() {
             // Snapshot before we overwrite `active_user.toml` so we can tell
             // first activation from signed-out vs an in-place account switch.

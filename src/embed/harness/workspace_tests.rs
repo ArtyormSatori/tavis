@@ -136,8 +136,7 @@ fn a_relative_dir_workspace_does_not_resolve_siblings_against_cwd() {
     let temp = tempfile::tempdir().expect("tempdir");
     std::env::set_current_dir(temp.path()).expect("chdir to temp");
     let result = std::panic::catch_unwind(|| {
-        let resolved =
-            ResolvedWorkspace::resolve(&Workspace::dir("ws"), None).expect("resolve");
+        let resolved = ResolvedWorkspace::resolve(&Workspace::dir("ws"), None).expect("resolve");
         assert_eq!(resolved.workspace_dir, std::path::PathBuf::from("ws"));
         assert_eq!(
             resolved.action_dir,

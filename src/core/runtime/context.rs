@@ -180,12 +180,13 @@ impl CoreContext {
                             .unwrap_or_else(|| cfg.config_path.clone())
                     })
                     .unwrap_or_else(|| {
-                        crate::openhuman::config::default_root_openhuman_dir()
-                            .unwrap_or_else(|_| {
+                        crate::openhuman::config::default_root_openhuman_dir().unwrap_or_else(
+                            |_| {
                                 dirs::home_dir()
                                     .unwrap_or_else(|| std::path::PathBuf::from("."))
                                     .join(".openhuman")
-                            })
+                            },
+                        )
                     });
                 crate::core::auth::init_rpc_token(&token_dir)?;
                 std::env::var(crate::core::auth::CORE_TOKEN_ENV_VAR)
@@ -204,9 +205,7 @@ impl CoreContext {
             // A supplied config is authoritative: no disk read, no env overlay,
             // and no `Err` arm to reach, because there was nothing to fail.
             Some(cfg) => {
-                log::debug!(
-                    "[core-context] init: using caller-supplied config (scoped workspace)"
-                );
+                log::debug!("[core-context] init: using caller-supplied config (scoped workspace)");
                 Ok(cfg)
             }
             None => crate::openhuman::config::Config::load_or_init().await,

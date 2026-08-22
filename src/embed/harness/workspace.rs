@@ -125,9 +125,7 @@ impl ResolvedWorkspace {
                 // sibling `action/` and `config.toml` resolve against the
                 // process working directory instead of beside the workspace,
                 // which breaks the credential-isolation invariant below.
-                let parent = dir
-                    .parent()
-                    .filter(|parent| !parent.as_os_str().is_empty());
+                let parent = dir.parent().filter(|parent| !parent.as_os_str().is_empty());
                 let action_dir = action_dir_override
                     .map(Path::to_path_buf)
                     // A sibling, for the `is_workspace_internal_path` reason
