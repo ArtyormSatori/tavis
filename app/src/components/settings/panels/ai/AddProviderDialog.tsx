@@ -24,7 +24,6 @@
  * leaves paint order to DOM order — true today, but only incidentally. The
  * explicit `z-[60]` makes the popup win by intent rather than by luck.
  */
-import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
 import Label from '../../../ui/Label';
@@ -36,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../ui/Select';
-import { providerIcon } from './providerIcons';
+import { ProviderSwatch } from './ProviderListRow';
 
 export interface ProviderOption {
   slug: string;
@@ -60,20 +59,8 @@ export interface ProviderCategory {
   options: ProviderOption[];
 }
 
-/** Brand mark where Simple Icons has one, the initial where it does not. See
- *  `providerIcons.tsx` for why coverage is partial by design. */
 const OptionSwatch = ({ slug, label, tone }: { slug: string; label: string; tone: string }) => {
-  const icon = providerIcon(slug, 'h-3.5 w-3.5');
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-semibold ring-1',
-        tone
-      )}>
-      {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
-    </span>
-  );
+  return <ProviderSwatch slug={slug} label={label} tone={tone} />;
 };
 
 const CategorySelect = ({
