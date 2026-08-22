@@ -43,6 +43,7 @@ use super::error::CoreError;
 use crate::core::runtime::CoreRuntime;
 use crate::openhuman::agent::progress::AgentProgress;
 use crate::openhuman::agent::turn_origin::AgentTurnOrigin;
+use crate::openhuman::inference::INFERENCE_AGENT_CHAT as AGENT_CHAT;
 
 /// The routed chat entry point.
 ///
@@ -52,10 +53,6 @@ use crate::openhuman::agent::turn_origin::AgentTurnOrigin;
 /// strictly less capable, so the facade uses the wider surface and lets
 /// [`Route`] be `None` when the account's own route is what is wanted.
 ///
-/// The operation constant is owned by the inference domain; this facade must
-/// not spell the wire name out so a rename upstream cannot drift the dispatch.
-use crate::openhuman::inference::INFERENCE_AGENT_CHAT as AGENT_CHAT;
-
 /// Where one turn's inference should go.
 ///
 /// Both halves are required together: an endpoint with no credential and a
