@@ -1,3 +1,4 @@
+import { Thread } from '@/components/assistant-ui/thread';
 import {
   AssistantRuntimeProvider,
   type ChatModelAdapter,
@@ -6,8 +7,6 @@ import {
   SimpleTextAttachmentAdapter,
   useLocalRuntime,
 } from '@assistant-ui/react';
-
-import { Thread } from '@/components/assistant-ui/thread';
 
 const localChatModel: ChatModelAdapter = {
   run: async () => ({
