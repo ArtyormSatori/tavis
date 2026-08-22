@@ -21,7 +21,6 @@ import PanelPage from '../components/layout/PanelPage';
 import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import OrchestrationView from '../components/orchestration/OrchestrationView';
-import TinyPlaceSunsetNotice from '../components/upsell/TinyPlaceSunsetNotice';
 import { useTinyPlaceIdentity } from '../hooks/useTinyPlaceIdentity';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';
@@ -249,7 +248,6 @@ export default function Brain() {
         // (chat, graph, task board), which need the full content width — so it
         // sits outside the shared max-w scaffold the other tabs use.
         <div className="flex h-full flex-col">
-          <TinyPlaceSunsetNotice />
           <div className="min-h-0 flex-1">
             <OrchestrationView />
           </div>
