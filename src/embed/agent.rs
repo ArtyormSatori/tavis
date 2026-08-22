@@ -309,7 +309,18 @@ impl Turn<'_> {
                 crate::openhuman::agent::progress_sink::with_progress_sink(sink, dispatch).await
             }
             (None, None) => dispatch.await,
-        }?;
+        }
+        .map_err(|err| {
+            // Log a redacted failure event so dispatch errors are visible in
+            // host logs without spilling the request, credentials, or working
+            // directory. [`CoreError`]'s Debug is already sanitized by the core
+            // (it never carries the route credentials), so naming the session
+            // alongside it is safe.
+            log::debug!(
+                "[embed][agent] turn_failed session={session_id} error={err:?}"
+            );
+            err
+        })?;
 
         log::debug!(
             "[embed][agent] turn_completed session={session_id} reply_len={}",
