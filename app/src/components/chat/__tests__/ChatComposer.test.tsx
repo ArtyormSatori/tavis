@@ -349,7 +349,7 @@ describe('ChatComposer', () => {
       });
 
       const dock = screen.getByTestId('mascot-dock');
-      const inputBox = container.querySelector('.rounded-2xl.border');
+      const inputBox = container.querySelector('.rounded-3xl.border');
       expect(inputBox).not.toBeNull();
       expect(inputBox!.contains(dock)).toBe(true);
       expect(inputBox!.contains(screen.getByTestId('header-slot'))).toBe(false);
@@ -369,7 +369,7 @@ describe('ChatComposer', () => {
     it('shows the drop overlay while a file drag is over the composer', () => {
       renderComposer();
       const textarea = screen.getByRole('textbox');
-      const box = textarea.closest('div.rounded-2xl') as HTMLElement;
+      const box = textarea.closest('div.rounded-3xl') as HTMLElement;
       fireEvent.dragOver(box, { dataTransfer: { types: ['Files'] } });
       expect(screen.getByText('chat.attachment.dropToAttach')).toBeInTheDocument();
     });
@@ -378,7 +378,7 @@ describe('ChatComposer', () => {
       const onAttachFiles = vi.fn().mockResolvedValue(undefined);
       renderComposer({ onAttachFiles });
       const textarea = screen.getByRole('textbox');
-      const box = textarea.closest('div.rounded-2xl') as HTMLElement;
+      const box = textarea.closest('div.rounded-3xl') as HTMLElement;
       const file = makeVideoFile();
       fireEvent.drop(box, { dataTransfer: { files: [file], types: ['Files'] } });
       expect(onAttachFiles).toHaveBeenCalledTimes(1);
@@ -388,7 +388,7 @@ describe('ChatComposer', () => {
       const onAttachFiles = vi.fn().mockResolvedValue(undefined);
       renderComposer({ onAttachFiles, attachmentsEnabled: false });
       const textarea = screen.getByRole('textbox');
-      const box = textarea.closest('div.rounded-2xl') as HTMLElement;
+      const box = textarea.closest('div.rounded-3xl') as HTMLElement;
       fireEvent.drop(box, { dataTransfer: { files: [makeVideoFile()], types: ['Files'] } });
       expect(onAttachFiles).not.toHaveBeenCalled();
     });
@@ -397,7 +397,7 @@ describe('ChatComposer', () => {
       // fireEvent returns false when the event default was prevented.
       renderComposer({ attachmentsEnabled: false });
       const textarea = screen.getByRole('textbox');
-      const box = textarea.closest('div.rounded-2xl') as HTMLElement;
+      const box = textarea.closest('div.rounded-3xl') as HTMLElement;
       const notPrevented = fireEvent.drop(box, {
         dataTransfer: { files: [makeVideoFile()], types: ['Files'] },
       });

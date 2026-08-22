@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { useT } from '../../lib/i18n/I18nContext';
 import { loadAISettings } from '../../services/api/aiSettingsApi';
 import { type CloudProvider } from '../settings/panels/ai/aiPanelTypes';
 import {
@@ -52,6 +53,7 @@ export default function ModelQualityPill({
   value,
   onValueChange,
 }: ModelQualityPillProps) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [providers, setProviders] = useState<CloudProvider[]>([]);
   const [loading, setLoading] = useState(false);
@@ -91,8 +93,8 @@ export default function ModelQualityPill({
         variant="tertiary"
         size="xs"
         analyticsId="chat-model-selector"
-        aria-label="Select model"
-        title="Select model"
+        aria-label={t('composer.modelSelector')}
+        title={t('composer.modelSelector')}
         disabled={!onValueChange || loading}
         onClick={() => setOpen(true)}
         className={`h-7 min-w-0 rounded-md px-2 text-xs text-content-muted hover:bg-surface-hover hover:text-content ${className ?? ''}`}>
