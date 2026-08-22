@@ -4521,7 +4521,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'Zamień klucz API',
   'settings.ai.providers.custom': 'Niestandardowy',
   'settings.ai.providers.addProvider': 'Dodaj dostawcę',
-  'settings.ai.providers.addProviderPlaceholder': 'Wybierz dostawcę…',
+  'settings.ai.providers.addProviderSubtitle': 'Wybierz dostawcę do połączenia. Kolejnych możesz dodać w dowolnej chwili.',
   'settings.ai.providers.allConnected': 'Wszyscy dostępni dostawcy są już połączeni.',
   'settings.ai.providers.customDetail': 'Twój własny punkt końcowy zgodny z OpenAI',
   'settings.ai.providers.groupConnected': 'Połączono',

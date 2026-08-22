@@ -4459,7 +4459,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'API কী বদলান',
   'settings.ai.providers.custom': 'কাস্টম',
   'settings.ai.providers.addProvider': 'প্রদানকারী যোগ করুন',
-  'settings.ai.providers.addProviderPlaceholder': 'প্রদানকারী বেছে নিন…',
+  'settings.ai.providers.addProviderSubtitle': 'যুক্ত করতে একটি প্রদানকারী বেছে নিন। যেকোনো সময় আরও যোগ করা যাবে।',
   'settings.ai.providers.allConnected': 'সব উপলব্ধ প্রদানকারী ইতিমধ্যে যুক্ত আছে।',
   'settings.ai.providers.customDetail': 'আপনার নিজের OpenAI-সঙ্গত এন্ডপয়েন্ট',
   'settings.ai.providers.groupConnected': 'সংযুক্ত',

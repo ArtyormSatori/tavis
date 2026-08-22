@@ -4456,7 +4456,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'API कुंजी बदलें',
   'settings.ai.providers.custom': 'कस्टम',
   'settings.ai.providers.addProvider': 'प्रदाता जोड़ें',
-  'settings.ai.providers.addProviderPlaceholder': 'प्रदाता चुनें…',
+  'settings.ai.providers.addProviderSubtitle': 'जोड़ने के लिए प्रदाता चुनें। आप कभी भी और जोड़ सकते हैं।',
   'settings.ai.providers.allConnected': 'सभी उपलब्ध प्रदाता पहले से जुड़े हैं।',
   'settings.ai.providers.customDetail': 'आपका अपना OpenAI-संगत एंडपॉइंट',
   'settings.ai.providers.groupConnected': 'कनेक्टेड',

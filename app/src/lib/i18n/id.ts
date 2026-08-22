@@ -4474,7 +4474,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'Ganti kunci API',
   'settings.ai.providers.custom': 'Kustom',
   'settings.ai.providers.addProvider': 'Tambahkan penyedia',
-  'settings.ai.providers.addProviderPlaceholder': 'Pilih penyedia…',
+  'settings.ai.providers.addProviderSubtitle': 'Pilih penyedia untuk dihubungkan. Anda bisa menambah lagi kapan saja.',
   'settings.ai.providers.allConnected': 'Semua penyedia yang tersedia sudah terhubung.',
   'settings.ai.providers.customDetail': 'Endpoint milik Anda yang kompatibel dengan OpenAI',
   'settings.ai.providers.groupConnected': 'Terhubung',

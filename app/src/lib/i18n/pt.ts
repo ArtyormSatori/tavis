@@ -4521,7 +4521,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'Substituir chave de API',
   'settings.ai.providers.custom': 'Personalizado',
   'settings.ai.providers.addProvider': 'Adicionar um provedor',
-  'settings.ai.providers.addProviderPlaceholder': 'Escolha um provedor…',
+  'settings.ai.providers.addProviderSubtitle': 'Escolha um provedor para conectar. Você pode adicionar mais quando quiser.',
   'settings.ai.providers.allConnected': 'Todos os provedores disponíveis já estão conectados.',
   'settings.ai.providers.customDetail': 'Seu próprio endpoint compatível com OpenAI',
   'settings.ai.providers.groupConnected': 'Conectado',

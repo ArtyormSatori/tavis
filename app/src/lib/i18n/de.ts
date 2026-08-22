@@ -4580,7 +4580,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'API-Schlüssel ersetzen',
   'settings.ai.providers.custom': 'Benutzerdefiniert',
   'settings.ai.providers.addProvider': 'Anbieter hinzufügen',
-  'settings.ai.providers.addProviderPlaceholder': 'Anbieter auswählen…',
+  'settings.ai.providers.addProviderSubtitle': 'Wählen Sie einen Anbieter zum Verbinden. Sie können jederzeit weitere hinzufügen.',
   'settings.ai.providers.allConnected': 'Alle verfügbaren Anbieter sind bereits verbunden.',
   'settings.ai.providers.customDetail': 'Ihr eigener OpenAI-kompatibler Endpunkt',
   'settings.ai.providers.groupConnected': 'Verbunden',

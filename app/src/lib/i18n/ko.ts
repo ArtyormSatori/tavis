@@ -4407,7 +4407,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'API 키 교체',
   'settings.ai.providers.custom': '사용자 지정',
   'settings.ai.providers.addProvider': '제공자 추가',
-  'settings.ai.providers.addProviderPlaceholder': '제공자 선택…',
+  'settings.ai.providers.addProviderSubtitle': '연결할 제공자를 고르세요. 언제든지 더 추가할 수 있습니다.',
   'settings.ai.providers.allConnected': '사용할 수 있는 제공자가 모두 연결되어 있습니다.',
   'settings.ai.providers.customDetail': 'OpenAI 호환 자체 엔드포인트',
   'settings.ai.providers.groupConnected': '연결됨',

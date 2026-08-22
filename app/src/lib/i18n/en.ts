@@ -5021,7 +5021,7 @@ const en: TranslationMap = {
   'settings.ai.providers.replaceKey': 'Replace API key',
   'settings.ai.providers.custom': 'Custom',
   'settings.ai.providers.addProvider': 'Add a provider',
-  'settings.ai.providers.addProviderPlaceholder': 'Choose a provider…',
+  'settings.ai.providers.addProviderSubtitle': 'Pick a provider to connect. You can add more at any time.',
   'settings.ai.providers.allConnected': 'Every available provider is already connected.',
   'settings.ai.providers.customDetail': 'Your own OpenAI-compatible endpoint',
   'settings.ai.providers.groupConnected': 'Connected',

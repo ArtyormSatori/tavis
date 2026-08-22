@@ -4216,7 +4216,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': '替换 API 密钥',
   'settings.ai.providers.custom': '自定义',
   'settings.ai.providers.addProvider': '添加提供方',
-  'settings.ai.providers.addProviderPlaceholder': '选择提供方…',
+  'settings.ai.providers.addProviderSubtitle': '选择要连接的提供方。你随时可以添加更多。',
   'settings.ai.providers.allConnected': '所有可用的提供方都已连接。',
   'settings.ai.providers.customDetail': '你自己的 OpenAI 兼容端点',
   'settings.ai.providers.groupConnected': '已连接',

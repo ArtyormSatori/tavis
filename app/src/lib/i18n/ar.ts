@@ -4348,7 +4348,7 @@ const messages: TranslationMap = {
   'settings.ai.providers.replaceKey': 'استبدال مفتاح API',
   'settings.ai.providers.custom': 'مخصص',
   'settings.ai.providers.addProvider': 'إضافة مزود',
-  'settings.ai.providers.addProviderPlaceholder': 'اختر مزودًا…',
+  'settings.ai.providers.addProviderSubtitle': 'اختر مزودًا للاتصال به. يمكنك إضافة المزيد في أي وقت.',
   'settings.ai.providers.allConnected': 'كل المزودين المتاحين متصلون بالفعل.',
   'settings.ai.providers.customDetail': 'نقطة نهاية خاصة بك متوافقة مع OpenAI',
   'settings.ai.providers.groupConnected': 'متصل',
