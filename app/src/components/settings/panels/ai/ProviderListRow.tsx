@@ -26,6 +26,7 @@ import { LuEllipsisVertical } from 'react-icons/lu';
 import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
+import { providerIcon } from './providerIcons';
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -62,26 +63,31 @@ export interface ProviderRowAction {
 }
 
 /**
- * A square tone swatch standing in for a provider mark.
+ * The provider's brand mark on its tone swatch, falling back to the initial.
  *
- * We have no provider logos to ship, and inventing an icon per provider would
- * be a licensing question rather than a design one. The existing per-provider
- * `tone` class already gives each one a stable, distinguishable colour, so the
- * swatch reuses it and carries the initial. `aria-hidden` because the name is
- * right next to it: announcing "O, OpenAI" helps nobody.
+ * The letter is not a placeholder to be embarrassed about: Simple Icons covers
+ * roughly a third of the providers here, and drawing approximations of the
+ * other companies' logos would be worse than a letter that is at least
+ * unambiguous. `aria-hidden` either way, because the name is right beside it —
+ * announcing "O, OpenAI" helps nobody.
  */
-const ProviderSwatch = ({ label, tone }: { label: string; tone: string }) => (
-  <span
-    aria-hidden
-    className={cn(
-      'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-semibold ring-1',
-      tone
-    )}>
-    {label.trim().charAt(0).toUpperCase() || '?'}
-  </span>
-);
+const ProviderSwatch = ({ slug, label, tone }: { slug: string; label: string; tone: string }) => {
+  const Icon = providerIcon(slug);
+  return (
+    <span
+      aria-hidden
+      data-slot="provider-swatch"
+      className={cn(
+        'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-semibold ring-1',
+        tone
+      )}>
+      {Icon ? <Icon className="h-4 w-4" /> : label.trim().charAt(0).toUpperCase() || '?'}
+    </span>
+  );
+};
 
 export const ProviderListRow = ({
+  slug,
   label,
   tone,
   detail,
@@ -92,6 +98,8 @@ export const ProviderListRow = ({
   actionsLabel,
   'data-testid': testId,
 }: {
+  /** Provider slug, used to look up the brand mark. */
+  slug: string;
   label: string;
   tone: string;
   /** Secondary line: a masked key, an endpoint, or a connection state. */
@@ -117,7 +125,7 @@ export const ProviderListRow = ({
       data-slot="provider-row"
       data-testid={testId}
       className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-hover">
-      <ProviderSwatch label={label} tone={tone} />
+      <ProviderSwatch slug={slug} label={label} tone={tone} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex min-w-0 items-center gap-2">
