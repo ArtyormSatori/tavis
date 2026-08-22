@@ -35,8 +35,8 @@
  * `ComposerPrimitive` in `@assistant-ui/react`; this file is only how it looks.
  */
 
-/** `.aui-composer-root` — `relative flex w-full flex-col` (unchanged). */
-export const COMPOSER_ROOT = 'relative flex w-full flex-col';
+/** assistant-ui's current composer root. */
+export const COMPOSER_ROOT = 'relative flex w-full flex-col pb-2.5';
 
 /**
  * `.aui-composer-attachment-dropzone` —
@@ -52,10 +52,8 @@ export const COMPOSER_ROOT = 'relative flex w-full flex-col';
  * `closest('div.rounded-2xl')`.
  */
 export const COMPOSER_DROPZONE =
-  'flex w-full flex-col rounded-2xl border border-line-strong bg-surface px-1 pt-2 ' +
-  'outline-none transition-shadow ' +
-  'has-[textarea:focus-visible]:border-primary-500 has-[textarea:focus-visible]:ring-2 ' +
-  'has-[textarea:focus-visible]:ring-primary-500/20 ' +
+  'flex w-full flex-col rounded-3xl border border-transparent bg-surface-muted/55 ' +
+  'transition-colors focus-within:bg-surface-muted/75 ' +
   'data-[dragging=true]:border-primary-500 data-[dragging=true]:border-dashed ' +
   'data-[dragging=true]:bg-surface-hover/50';
 
@@ -69,7 +67,7 @@ export const COMPOSER_DROPZONE =
  * this one is (see `composerInteractionBlocked` / `isSending`).
  */
 export const COMPOSER_INPUT =
-  'mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3 text-sm ' +
+  'max-h-32 min-h-14 w-full resize-none bg-transparent px-3.5 pt-3 pb-2 text-sm leading-5 ' +
   'text-content outline-none placeholder:text-content-muted focus-visible:ring-0 ' +
   'disabled:cursor-not-allowed disabled:opacity-50';
 
@@ -80,10 +78,10 @@ export const COMPOSER_INPUT =
  */
 export const COMPOSER_GHOST_OVERLAY =
   'pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words ' +
-  'px-4 pt-2 pb-3 text-sm font-sans';
+  'px-3.5 pt-3 pb-2 text-sm leading-5 font-sans';
 
-/** `.aui-composer-action-wrapper` — `relative mx-2 mb-2 flex items-center justify-between` (unchanged). */
-export const COMPOSER_ACTION_WRAPPER = 'relative mx-2 mb-2 flex items-center justify-between';
+/** assistant-ui's compact footer action row. */
+export const COMPOSER_ACTION_WRAPPER = 'relative flex items-center justify-between px-2 pb-2';
 
 /**
  * `.aui-composer-attachments` —
@@ -102,7 +100,7 @@ export const COMPOSER_ATTACHMENTS =
  * `bg-muted-foreground/15` → `bg-content-muted/15`.
  */
 export const COMPOSER_ADD_ATTACHMENT =
-  'size-[34px] shrink-0 rounded-full p-1 text-xs font-semibold text-content-muted ' +
+  'size-7 shrink-0 rounded-full p-1 text-xs font-semibold text-content-muted ' +
   'hover:bg-content-muted/15 hover:text-content-secondary';
 
 /**
@@ -112,8 +110,8 @@ export const COMPOSER_ADD_ATTACHMENT =
  */
 export const COMPOSER_MIC = COMPOSER_ADD_ATTACHMENT;
 
-/** `.aui-composer-send` / `.aui-composer-cancel` — both `size-8 rounded-full`. */
-export const COMPOSER_SEND = 'size-8 shrink-0 rounded-full';
+/** assistant-ui's compact circular send/cancel action. */
+export const COMPOSER_SEND = 'size-7 shrink-0 rounded-full';
 export const COMPOSER_CANCEL = COMPOSER_SEND;
 
 /** `.aui-composer-send-icon` — `size-4`. */
