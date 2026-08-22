@@ -74,9 +74,7 @@ export const WorkloadRow = ({
       <TableCell className="py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-content">{t(workload.labelKey)}</span>
-          <span className="text-xs leading-5 text-content-muted">
-            {t(workload.descriptionKey)}
-          </span>
+          <span className="text-xs leading-5 text-content-muted">{t(workload.descriptionKey)}</span>
           <span className="text-[11px] leading-5 text-content-faint">
             {t(WORKLOAD_MODEL_HINT_KEYS[workload.id])}
           </span>
