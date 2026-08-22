@@ -1,8 +1,20 @@
 /*
  * "Test model" result banner for the custom-routing dialog — shown while the
  * test is running, and after it succeeds or fails.
+ *
+ * Built on the `Alert` primitive so the three states reuse the app's semantic
+ * tones (destructive / warning / success) instead of three hand-written
+ * coral/amber/sage class strings that had to be kept in sync by hand.
+ *
+ * The explicit `role` is preserved rather than left to `Alert`'s default.
+ * `Alert` promotes `warning` to an assertive live region, which is right for a
+ * warning that arrives unbidden — but the warning tone here means "the test is
+ * still running", and interrupting a screen reader to say so is exactly what a
+ * polite `status` region is for. `...rest` wins over the primitive's default,
+ * so passing `role` is all that is needed.
  */
 import { useT } from '../../../../lib/i18n/I18nContext';
+import Alert from '../../../ui/Alert';
 import { formatI18n } from './aiPanelTypes';
 
 export const ModelTestResultPanel = ({
@@ -21,16 +33,13 @@ export const ModelTestResultPanel = ({
   const { t } = useT();
   if (!testBusy && !testReply && !testError && !testStartedAt) return null;
 
+  const variant = testError ? 'destructive' : testBusy ? 'warning' : 'success';
+
   return (
-    <div
+    <Alert
+      variant={variant}
       role={testError ? 'alert' : 'status'}
-      className={`rounded-lg border px-3 py-2 text-xs ${
-        testError
-          ? 'border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 text-coral-700 dark:text-coral-300'
-          : testBusy
-            ? 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200'
-            : 'border-sage-200 dark:border-sage-500/30 bg-sage-50 dark:bg-sage-500/10 text-sage-800 dark:text-sage-200'
-      }`}>
+      className="flex-col gap-0 px-3 py-2 text-xs">
       <div className="font-semibold">
         {testError
           ? t('settings.ai.testFailed')
@@ -38,7 +47,7 @@ export const ModelTestResultPanel = ({
             ? t('settings.ai.testingModel')
             : t('settings.ai.modelResponse')}
       </div>
-      <div className="mt-1 space-y-1">
+      <div className="mt-1 flex flex-col gap-1">
         <div className="font-mono text-[11px] text-current/80">
           {formatI18n(t('settings.ai.providerWithValue'), {
             value: currentProviderString ?? t('settings.ai.noneDash'),
@@ -62,7 +71,7 @@ export const ModelTestResultPanel = ({
           {testError}
         </div>
       ) : (
-        <div className="mt-3 space-y-1.5">
+        <div className="mt-3 flex flex-col gap-1.5">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-current/80">
             {t('settings.ai.response')}
           </div>
@@ -71,7 +80,7 @@ export const ModelTestResultPanel = ({
           </div>
         </div>
       )}
-    </div>
+    </Alert>
   );
 };
 
