@@ -1365,34 +1365,6 @@ export const BackgroundLoopControls = ({
               </div>
               <div className="mt-2 grid gap-2">
                 <FormulaRow
-                  label={t('settings.ai.heartbeatTicks')}
-                  value={`${formatCount(heartbeatTicksPerWeek)}/week`}
-                  detail={`10080 min/week / ${heartbeatIntervalMinutes} min interval`}
-                />
-                <FormulaRow
-                  label={t('settings.ai.calendarPlannerCalls')}
-                  value={`${formatCount(calendarPlannerCallsPerWeek)}/week`}
-                  detail={
-                    settings?.notify_meetings
-                      ? `ticks * (1 list_connections + ${calendarConnectionsPolled} GOOGLECALENDAR_EVENTS_LIST)`
-                      : 'Meeting collector disabled.'
-                  }
-                />
-                <FormulaRow
-                  label={t('settings.ai.calendarFanoutCap')}
-                  value={`${formatCount(calendarConnectionsPolled)}/${formatCount(activeCalendarConnections.length)} conn/tick`}
-                  detail={`max_calendar_connections_per_tick = ${maxCalendarConnectionsPerTick}; skipped now = ${calendarConnectionsSkipped}`}
-                />
-                <FormulaRow
-                  label={t('settings.ai.subconsciousModelCalls')}
-                  value={`${formatCount(subconsciousModelCallsPerWeek)}/week`}
-                  detail={
-                    settings?.enabled && settings.inference_enabled
-                      ? 'one kind=subconscious_tick model call per heartbeat tick'
-                      : 'Heartbeat inference disabled.'
-                  }
-                />
-                <FormulaRow
                   label={t('settings.ai.composioSyncScans')}
                   value={`${formatCount(composioConnectionScansPerWeek)}/week`}
                   detail={`${activeConnections.length} active integration connection(s) scanned every ${COMPOSIO_PERIODIC_TICK_MINUTES} min`}
