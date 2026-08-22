@@ -233,7 +233,7 @@ describe('AIPanel', () => {
   });
 
   it('renders the LLM Providers + Routing top-level section headers', async () => {
-    renderRoutingPanel();
+    renderWithProviders(<AIPanel />);
     await waitFor(() => expect(screen.getAllByText(/^LLM Providers$/).length).toBeGreaterThan(0));
     // The Local provider sub-section was removed entirely.
     expect(screen.queryByText(/Local provider/i)).not.toBeInTheDocument();
@@ -464,7 +464,7 @@ describe('AIPanel', () => {
     });
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-5.6-terra-2026-07-09' }]);
 
-    renderWithProviders(<AIPanel />);
+    renderRoutingPanel();
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
