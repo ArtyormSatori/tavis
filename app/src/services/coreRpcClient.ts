@@ -365,6 +365,29 @@ function coreRpcErrorMessage(err: unknown): string {
   return 'Unknown core RPC error';
 }
 
+/**
+ * Resolve the shell's active `{ url, token }` endpoint, cached as one unit.
+ *
+ * The shell exposes `core_rpc_url` and `core_rpc_token` as separate commands,
+ * but resolving them independently is racy: if a gateway activation lands
+ * between the two invokes, the renderer caches A's URL next to B's bearer. This
+ * instead asks for both halves once, via the atomic `core_rpc_endpoint`
+ * command, and shares the snapshot. A failure resolves to null so callers keep
+ * their existing fallback behaviour.
+ */
+async function resolveShellEndpoint(): Promise<{ url: string; token: string } | null> {
+  if (shellEndpoint) return shellEndpoint;
+  if (!isTauri()) return null;
+  try {
+    const endpoint = await invoke<{ url: string; token: string }>('core_rpc_endpoint');
+    shellEndpoint = { url: endpoint?.url ?? '', token: endpoint?.token ?? '' };
+    return shellEndpoint;
+  } catch (err) {
+    coreRpcError('failed to resolve core RPC endpoint', sanitizeError(err));
+    return null;
+  }
+}
+
 export async function getCoreRpcUrl(): Promise<string> {
   if (resolvedCoreRpcUrl) {
     return resolvedCoreRpcUrl;
