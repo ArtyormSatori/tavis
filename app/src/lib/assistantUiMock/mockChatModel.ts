@@ -33,6 +33,7 @@ import type {
 import debugFactory from 'debug';
 
 import {
+  buildClosing,
   type JsonObject,
   MOCK_SCRIPT,
   type MockSubagentCall,
@@ -87,6 +88,8 @@ export const mockChatModelAdapter: ChatModelAdapter = {
     let dirty = false;
     /** Delegations still in flight. The turn drains these before completing. */
     let pending = 0;
+    /** Reports, in the order they came back, for the closing paragraph. */
+    const reports: { subagent: string; report: string }[] = [];
 
     const emit = (): ChatModelRunResult => ({ content: [...parts] });
 
@@ -166,6 +169,7 @@ export const mockChatModelAdapter: ChatModelAdapter = {
           state.report = step.report;
           state.elapsedSeconds = elapsed();
           write(true);
+          reports.push({ subagent: step.subagent, report: step.report });
           debug('[assistant-ui-demo] subagent=%s done in %ss', step.subagent, state.elapsedSeconds);
         } catch {
           // Cancelling the turn aborts its delegations too; the parts they left
@@ -237,7 +241,22 @@ export const mockChatModelAdapter: ChatModelAdapter = {
       }
     }
 
-    debug('[assistant-ui-demo] run complete parts=%d', parts.length);
+    // Now that they have all reported, fold the results back into the answer.
+    // This is the half that dispatching would otherwise lose: the prose above
+    // streamed before the delegations finished, so it could not cite them.
+    const closing = buildClosing(reports);
+    if (closing) {
+      const at = parts.length;
+      let text = '';
+      for (const piece of chunk(closing)) {
+        text += piece;
+        parts[at] = { type: 'text', text };
+        yield emit();
+        await sleep(CHUNK_MS, abortSignal);
+      }
+    }
+
+    debug('[assistant-ui-demo] run complete parts=%d reports=%d', parts.length, reports.length);
     yield { content: [...parts], status: { type: 'complete', reason: 'stop' } };
   },
 };
