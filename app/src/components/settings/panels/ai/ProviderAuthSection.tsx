@@ -237,21 +237,21 @@ export const ProviderAuthSection = ({
 
           {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
           {error && <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
-
-          <Card title={t('settings.ai.llmProviders')} description={t('settings.ai.llmProvidersDesc')}>
-            <div className="flex justify-end px-4 py-3">
-              <Button
-                type="button"
-                variant="primary"
-                size="xs"
-                leadingIcon={<LuPlus className="h-3.5 w-3.5" />}
-                onClick={() => setAddOpen(true)}
-                data-testid="add-provider-open">
-                {t('settings.ai.providers.addProvider')}
-              </Button>
-            </div>
-          </Card>
         </div>
+
+        <Card title={t('settings.ai.llmProviders')} description={t('settings.ai.llmProvidersDesc')}>
+          <div className="flex justify-end px-4 py-3">
+            <Button
+              type="button"
+              variant="primary"
+              size="xs"
+              leadingIcon={<LuPlus className="h-3.5 w-3.5" />}
+              onClick={() => setAddOpen(true)}
+              data-testid="add-provider-open">
+              {t('settings.ai.providers.addProvider')}
+            </Button>
+          </div>
+        </Card>
 
         {/* ─── Connected ────────────────────────────────────────────────────
           Managed leads and is always present. #3760: it renders a badge, not a
