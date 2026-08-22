@@ -606,4 +606,50 @@ describe('ChatComposer', () => {
       expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'chat.followupHint');
     });
   });
+  /**
+   * Action-row layout. The reference design puts the attach button and the
+   * read-only model chip on the left, and the mic beside the send/stop action
+   * on the right. These assert the *grouping and order* of the controls (via
+   * DOM containment and document order) rather than any class string, so a
+   * restyle cannot break them but a re-ordering will.
+   */
+  describe('action row layout', () => {
+    it('renders the model chip immediately after the attach button', () => {
+      renderComposer();
+      const attach = screen.getByRole('button', { name: 'composer.attachFile' });
+      const chip = screen.getByRole('button', { name: 'composer.modelSelector' });
+      expect(chip).toBeInTheDocument();
+      // Same group, chip second.
+      expect(chip.parentElement).toBe(attach.parentElement);
+      expect(attach.compareDocumentPosition(chip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('groups the mic with the send action, not with the attach button', () => {
+      renderComposer();
+      const attach = screen.getByRole('button', { name: 'composer.attachFile' });
+      const mic = screen.getByRole('button', { name: 'composer.voiceMode' });
+      const send = screen.getByTestId('send-message-button');
+      expect(mic.parentElement).toBe(send.parentElement);
+      expect(mic.parentElement).not.toBe(attach.parentElement);
+      // Mic precedes send within that group.
+      expect(mic.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('keeps send reachable and usable with every control present', () => {
+      renderComposer({ inputValue: 'hi' });
+      expect(screen.getByRole('button', { name: 'composer.attachFile' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'composer.modelSelector' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'composer.voiceMode' })).toBeInTheDocument();
+      const send = screen.getByTestId('send-message-button');
+      expect(send).toBeInTheDocument();
+      expect(send).not.toBeDisabled();
+    });
+
+    it('still shows the model chip when the mic is hidden', () => {
+      renderComposer({ micEnabled: false });
+      expect(screen.queryByRole('button', { name: 'composer.voiceMode' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'composer.modelSelector' })).toBeInTheDocument();
+      expect(screen.getByTestId('send-message-button')).toBeInTheDocument();
+    });
+  });
 });
