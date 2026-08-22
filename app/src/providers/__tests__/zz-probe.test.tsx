@@ -1,6 +1,8 @@
 import { AssistantRuntimeProvider, useAui, useAuiState, useExternalStoreRuntime, type ThreadMessageLike } from '@assistant-ui/react';
 import { render } from '@testing-library/react';
 import { describe, it } from 'vitest';
+import * as nodeFs from 'node:fs';
+(globalThis as any).__probeFs = nodeFs;
 
 const messages: ThreadMessageLike[] = [
   { role: 'user', content: [{ type: 'text', text: 'hello' }] },
@@ -9,10 +11,14 @@ const messages: ThreadMessageLike[] = [
 function Probe() {
   const aui = useAui();
   const state = useAuiState(({ thread }) => thread);
-  console.log('AUI KEYS', Object.keys(aui));
-  console.log('THREAD KEYS', state ? Object.keys(state) : state);
-  console.log('MSG COUNT', (state as any)?.messages?.length);
-  console.log('THREAD CLIENT KEYS', (aui as any).thread ? Object.keys((aui as any).thread) : 'none');
+  const fs = (globalThis as any).__probeFs;
+  fs.writeFileSync('/tmp/probe-out.txt', JSON.stringify({
+    auiKeys: Object.keys(aui),
+    threadStateKeys: state ? Object.keys(state) : null,
+    msgCount: (state as any)?.messages?.length,
+    threadClientKeys: (aui as any).thread ? Object.keys((aui as any).thread) : 'none',
+    firstMsg: (state as any)?.messages?.[0],
+  }, null, 1));
   return <div />;
 }
 

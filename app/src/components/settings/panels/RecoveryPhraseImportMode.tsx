@@ -4,6 +4,7 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import Button from '../../ui/Button';
 import { CheckIcon } from '../../ui/icons';
 import TextField from '../../ui/TextField';
+import { ToggleGroupItem, ToggleGroupRoot } from '../../ui/ToggleGroup';
 
 const BIP39_IMPORT_LENGTHS = [12, 15, 18, 21, 24] as const;
 
