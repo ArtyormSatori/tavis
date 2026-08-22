@@ -34,6 +34,7 @@ import {
 } from './aiPanelTypes';
 import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import { ModelTestResultPanel } from './ModelTestResultPanel';
+import { ProviderSourceSelect } from './ProviderSourceSelect';
 import { TemperatureOverrideField } from './TemperatureOverrideField';
 
 export interface CustomRoutingDialogProps {
@@ -329,45 +330,33 @@ export const CustomRoutingDialog = ({
             <Label className="text-xs text-content-secondary">
               {t('settings.ai.providerLabel')}
             </Label>
-            <NativeSelect
-              value={
-                source ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}` : ''
-              }
-              onChange={e => {
-                const colonIdx = e.target.value.indexOf(':');
-                const kind = e.target.value.slice(0, colonIdx);
-                const slug = e.target.value.slice(colonIdx + 1);
+            <ProviderSourceSelect
+              source={source}
+              cloudProviders={customCloud}
+              localAvailable={localAvailable}
+              localLabel={t('settings.ai.localOllama')}
+              claudeCodeEnabled={claudeCodeEnabled}
+              claudeCodeLabel={t('settings.ai.claudeCode.modalTitle')}
+              ariaLabel={t('settings.ai.providerLabel')}
+              onChange={nextSource => {
                 resetTestState();
-                if (kind === 'local') {
-                  setSource({ kind: 'local' });
+                setSource(nextSource);
+                if (nextSource.kind === 'local') {
                   setModel(localModels[0]?.id ?? '');
                   modelEntry.syncToEndpoint(undefined);
-                } else if (kind === 'cloud') {
-                  setSource({ kind: 'cloud', providerSlug: slug });
+                } else if (nextSource.kind === 'cloud') {
                   setModel('');
                   // Azure connections need a deployment name, which the
                   // catalog never lists — start on free text (#5213).
-                  modelEntry.syncToEndpoint(customCloud.find(c => c.slug === slug)?.endpoint);
-                } else if (kind === 'claude-code') {
-                  setSource({ kind: 'claude-code' });
+                  modelEntry.syncToEndpoint(
+                    customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
+                  );
+                } else {
                   setModel(CLAUDE_CODE_DEFAULT_MODEL);
                   modelEntry.syncToEndpoint(undefined);
                 }
               }}
-              className="w-full">
-              {customCloud.map(p => (
-                <option key={p.slug} value={`cloud:${p.slug}`}>
-                  {p.label}
-                </option>
-              ))}
-              {localAvailable && <option value="local:">{t('settings.ai.localOllama')}</option>}
-              {/* Offered only when the peer chip is enabled — or when this
-                    workload is already pinned to it (keeps the select value
-                    valid). */}
-              {(claudeCodeEnabled || source?.kind === 'claude-code') && (
-                <option value="claude-code:">{t('settings.ai.claudeCode.modalTitle')}</option>
-              )}
-            </NativeSelect>
+            />
           </div>
 
           {source?.kind === 'local' ? (

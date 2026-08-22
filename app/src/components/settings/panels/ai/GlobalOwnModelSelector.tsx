@@ -27,6 +27,7 @@ import {
   providerRefSignature,
 } from './aiPanelTypes';
 import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
+import { ProviderSourceSelect } from './ProviderSourceSelect';
 
 export const GlobalOwnModelSelector = ({
   current,
@@ -212,46 +213,30 @@ export const GlobalOwnModelSelector = ({
               <Label className="text-xs text-content-secondary">
                 {t('settings.ai.globalModel.provider')}
               </Label>
-              <NativeSelect
-                value={
-                  source
-                    ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}`
-                    : ''
-                }
-                onChange={e => {
-                  const colonIdx = e.target.value.indexOf(':');
-                  const kind = e.target.value.slice(0, colonIdx);
-                  const slug = e.target.value.slice(colonIdx + 1);
-                  if (kind === 'local') {
-                    const nextSource = { kind: 'local' } as const;
-                    const nextModel = localModels[0]?.id ?? '';
-                    setSource(nextSource);
-                    setModel(nextModel);
+              <ProviderSourceSelect
+                source={source}
+                cloudProviders={customCloud}
+                localAvailable={localAvailable}
+                localLabel={t('settings.ai.provider.ollama')}
+                claudeCodeEnabled={claudeCodeEnabled}
+                claudeCodeLabel={t('settings.ai.claudeCode.modalTitle')}
+                ariaLabel={t('settings.ai.globalModel.provider')}
+                onChange={nextSource => {
+                  setSource(nextSource);
+                  if (nextSource.kind === 'local') {
+                    setModel(localModels[0]?.id ?? '');
                     modelEntry.syncToEndpoint(undefined);
-                  } else if (kind === 'claude-code') {
-                    setSource({ kind: 'claude-code' });
+                  } else if (nextSource.kind === 'claude-code') {
                     setModel(CLAUDE_CODE_DEFAULT_MODEL);
                     modelEntry.syncToEndpoint(undefined);
                   } else {
-                    const nextSource = { kind: 'cloud', providerSlug: slug } as const;
-                    setSource(nextSource);
                     setModel('');
-                    modelEntry.syncToEndpoint(customCloud.find(c => c.slug === slug)?.endpoint);
+                    modelEntry.syncToEndpoint(
+                      customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
+                    );
                   }
                 }}
-                className="w-full">
-                {customCloud.map(p => (
-                  <option key={p.slug} value={`cloud:${p.slug}`}>
-                    {p.label}
-                  </option>
-                ))}
-                {localAvailable ? (
-                  <option value="local:">{t('settings.ai.provider.ollama')}</option>
-                ) : null}
-                {(claudeCodeEnabled || source?.kind === 'claude-code') && (
-                  <option value="claude-code:">{t('settings.ai.claudeCode.modalTitle')}</option>
-                )}
-              </NativeSelect>
+              />
             </div>
 
             {source?.kind === 'local' ? (
