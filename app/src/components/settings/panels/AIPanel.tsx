@@ -39,8 +39,8 @@ import {
 } from './ai/aiPanelTypes';
 import { BackgroundLoopControls } from './ai/BackgroundLoopControls';
 import { CloudProviderEditor } from './ai/CloudProviderEditor';
-import { CustomRoutingDialog } from './ai/CustomRoutingDialog';
 import { GlobalOwnModelSelector } from './ai/GlobalOwnModelSelector';
+import { ProviderModelPickerDialog } from './ai/ProviderModelPickerDialog';
 import { ProviderAuthSection } from './ai/ProviderAuthSection';
 import { ProviderKeyDialog } from './ai/ProviderConnectControls';
 import { RoutingModeCards } from './ai/RoutingModeCards';
@@ -85,7 +85,7 @@ const AIPanel = ({
   const installed = useInstalledModels(ollama.snapshot);
   const [editing, setEditing] = useState<CloudProvider | 'new' | null>(null);
   // Which workload's "Custom" dialog is currently open (null = closed).
-  const [customDialogFor, setCustomDialogFor] = useState<WorkloadId | null>(null);
+  const [pickerFor, setPickerFor] = useState<WorkloadId | null>(null);
   const [routingEditorMode, setRoutingEditorMode] = useState<'own' | 'custom' | null>(null);
   // Which provider slug's API-key dialog is currently open (null = closed).
   const [keyDialogFor, setKeyDialogFor] = useState<string | null>(null);
@@ -290,7 +290,7 @@ const AIPanel = ({
                               workload={w}
                               ref_={draft.routing[w.id]}
                               cloudProviders={draft.cloudProviders}
-                              onCustomClick={() => setCustomDialogFor(w.id)}
+                              onCustomClick={() => setPickerFor(w.id)}
                             />
                           ))}
                         </WorkloadTable>
@@ -304,7 +304,7 @@ const AIPanel = ({
                               workload={w}
                               ref_={draft.routing[w.id]}
                               cloudProviders={draft.cloudProviders}
-                              onCustomClick={() => setCustomDialogFor(w.id)}
+                              onCustomClick={() => setPickerFor(w.id)}
                             />
                           ))}
                         </WorkloadTable>
@@ -379,38 +379,34 @@ const AIPanel = ({
         />
       )}
 
-      {customDialogFor &&
+      {pickerFor &&
         (() => {
-          const w = WORKLOADS.find(x => x.id === customDialogFor);
-          if (!w) return null;
+          const current = draft.routing[pickerFor];
+          const initial =
+            current.kind === 'cloud'
+              ? { source: { kind: 'cloud' as const, providerSlug: current.providerSlug }, model: current.model }
+              : current.kind === 'local'
+                ? { source: { kind: 'local' as const }, model: current.model }
+                : current.kind === 'claude-code'
+                  ? { source: { kind: 'claude-code' as const }, model: current.model }
+                  : null;
           return (
-            <CustomRoutingDialog
-              workload={w}
-              initial={draft.routing[customDialogFor]}
+            <ProviderModelPickerDialog
               cloudProviders={draft.cloudProviders}
               localModels={installed}
               ollamaRunning={ollama.state === 'running'}
-              modelRegistry={draft.modelRegistry}
-              onClose={() => setCustomDialogFor(null)}
-              onSubmit={async (next, vision) => {
-                // (provider slug, model id) the vision flag keys on.
-                const reg =
-                  next.kind === 'cloud'
-                    ? { slug: next.providerSlug, model: next.model }
-                    : next.kind === 'local'
-                      ? { slug: 'ollama', model: next.model }
-                      : next.kind === 'claude-code'
-                        ? { slug: 'claude-code', model: next.model }
-                        : null;
-                const nextDraft = {
-                  ...draft,
-                  routing: { ...draft.routing, [customDialogFor]: next },
-                  modelRegistry: reg
-                    ? upsertModelRegistryVision(draft.modelRegistry, reg.slug, reg.model, vision)
-                    : draft.modelRegistry,
-                };
-                await persist(nextDraft);
-                setCustomDialogFor(null);
+              claudeCodeEnabled={draft.cloudProviders.some(provider => provider.slug === 'claude-code')}
+              initial={initial}
+              onClose={() => setPickerFor(null)}
+              onSelect={async ({ source, model }) => {
+                const next =
+                  source.kind === 'cloud'
+                    ? { kind: 'cloud' as const, providerSlug: source.providerSlug, model }
+                    : source.kind === 'local'
+                      ? { kind: 'local' as const, model }
+                      : { kind: 'claude-code' as const, model };
+                await persist({ ...draft, routing: { ...draft.routing, [pickerFor]: next } });
+                setPickerFor(null);
               }}
             />
           );
