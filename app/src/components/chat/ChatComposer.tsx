@@ -489,8 +489,8 @@ function ChatComposerBody({
                 className={COMPOSER_SEND}>
                 {showSendingSpinner ? <SendingSpinnerIcon /> : <SendIcon />}
               </Button>
+            )}
           </div>
-          )}
         </div>
       </div>
     </ComposerPrimitive.Root>
