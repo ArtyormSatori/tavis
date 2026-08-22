@@ -161,89 +161,30 @@ export default function TwoPanelLayout({
 
   const isOpen = forceSidebarVisible || layout.sidebarVisible;
 
-  // Live width while dragging is kept local (and applied via inline style) so
-  // we don't dispatch — and re-persist — on every pointer move.
-  const [dragWidth, setDragWidth] = useState<number | null>(null);
-  const dragWidthRef = useRef<number | null>(null);
   const persistedWidth = clampWidth(layout.sidebarWidth, minSidebarWidth, maxSidebarWidth);
-  const width = dragWidth ?? persistedWidth;
 
   const commitWidth = useCallback(
-    (next: number) => {
-      const clamped = clampWidth(Math.round(next), minSidebarWidth, maxSidebarWidth);
+    (clamped: number) => {
       dispatch(setSidebarWidth({ id, width: clamped }));
       debug('commit width', { id, width: clamped });
     },
-    [dispatch, id, minSidebarWidth, maxSidebarWidth]
+    [dispatch, id]
   );
 
-  // Active-drag teardown, stashed so an unmount mid-drag can detach the global
-  // listeners. Each drag installs locally-scoped `pointermove`/`pointerup`
-  // handlers (hoisted function declarations so they can reference each other),
-  // keeping the resize self-contained without inter-callback dependencies.
-  const dragCleanupRef = useRef<(() => void) | null>(null);
+  // Drag/keyboard mechanics (clamp + commit-on-release) live in a shared hook
+  // — see `useResizableDivider` for why this isn't the same code as the shell
+  // sidebar's `SidebarRail`.
+  const { dragWidth, onPointerDown, onKeyDown: onDividerKeyDown } = useResizableDivider({
+    width: persistedWidth,
+    minWidth: minSidebarWidth,
+    maxWidth: maxSidebarWidth,
+    keyboardStep,
+    onCommit: commitWidth,
+  });
 
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.preventDefault();
-      const startX = e.clientX;
-      const startWidth = width;
-      dragWidthRef.current = startWidth;
-      setDragWidth(startWidth);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-
-      function handleMove(ev: PointerEvent) {
-        const next = clampWidth(
-          startWidth + (ev.clientX - startX),
-          minSidebarWidth,
-          maxSidebarWidth
-        );
-        dragWidthRef.current = next;
-        setDragWidth(next);
-      }
-      function detach() {
-        window.removeEventListener('pointermove', handleMove);
-        window.removeEventListener('pointerup', stop);
-        document.body.style.removeProperty('cursor');
-        document.body.style.removeProperty('user-select');
-        dragCleanupRef.current = null;
-      }
-      function stop() {
-        detach();
-        const finalWidth = dragWidthRef.current;
-        dragWidthRef.current = null;
-        setDragWidth(null);
-        if (finalWidth != null) commitWidth(finalWidth);
-      }
-
-      dragCleanupRef.current = detach;
-      window.addEventListener('pointermove', handleMove);
-      window.addEventListener('pointerup', stop);
-      debug('drag start', { id, startWidth });
-    },
-    [width, minSidebarWidth, maxSidebarWidth, commitWidth, id]
-  );
-
-  // Detach global listeners if we unmount mid-drag.
-  useLayoutEffect(() => {
-    return () => {
-      dragCleanupRef.current?.();
-    };
-  }, []);
-
-  const onDividerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        commitWidth(persistedWidth - keyboardStep);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        commitWidth(persistedWidth + keyboardStep);
-      }
-    },
-    [commitWidth, persistedWidth, keyboardStep]
-  );
+  // Live width while dragging is kept local (and applied via inline style) so
+  // we don't dispatch — and re-persist — on every pointer move.
+  const width = dragWidth ?? persistedWidth;
 
   // In seamless mode the card lives on the wrapper that holds both panes, so the
   // panes themselves carry no border/rounding and sit flush against the divider.
