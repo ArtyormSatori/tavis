@@ -138,7 +138,7 @@ impl From<tinymcp_bus::McpToolResult> for ToolResult {
                     // rather than dropped: a caller can still read it, and
                     // dropping it would lose content a server deliberately sent.
                     other => ToolContent::Json {
-                        data: serde_json::to_value(&other).unwrap_or(serde_json::Value::Null),
+                        data: elide_oversized_block(&other),
                     },
                 })
                 .collect(),
@@ -146,6 +146,28 @@ impl From<tinymcp_bus::McpToolResult> for ToolResult {
             markdown_formatted: result.markdown_formatted,
         }
     }
+}
+
+/// Serializes an unrecognized MCP content block, bounding what a model will
+/// see.
+///
+/// The block is kept whole when it is small, so a future payload a server
+/// deliberately sent still reaches the caller. Above [`MAX_LLM_BLOCK_BYTES`]
+/// — the base64 image or audio case — the payload is replaced with an elided
+/// marker while the block type is retained, so a prompt can still tell what
+/// kind of content was dropped.
+fn elide_oversized_block(block: &tinymcp_bus::McpToolContent) -> serde_json::Value {
+    let value = serde_json::to_value(block).unwrap_or(serde_json::Value::Null);
+    let serialized = serde_json::to_string(&value).unwrap_or_default();
+    if serialized.len() <= MAX_LLM_BLOCK_BYTES {
+        return value;
+    }
+
+    let kind = value.get("type").cloned().unwrap_or(serde_json::Value::Null);
+    serde_json::json!({
+        "type": kind,
+        "data": format!("[{} bytes elided]", serialized.len()),
+    })
 }
 
 /// A single content block within a `ToolResult`.
