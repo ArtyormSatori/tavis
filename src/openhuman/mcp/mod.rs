@@ -71,6 +71,41 @@ pub fn start(config: &crate::openhuman::config::Config) {
 #[cfg(not(feature = "mcp"))]
 pub fn start(_config: &crate::openhuman::config::Config) {}
 
+/// Boots the domain from the runtime's startup path.
+///
+/// This is MCP's one entry in `start_boot_once_jobs`, the way `harness_init`
+/// and the skill-catalog refresh each have theirs. The orchestration here —
+/// that the service must exist before installed servers can dial it, and that
+/// the reconnect supervisor must run until the process ends — is this domain's
+/// own, and the `Once` guard on the supervisor keeps a repeated boot from
+/// spawning a second one. `src/core` only knows it should call one function.
+#[cfg(feature = "mcp")]
+pub fn start_boot_jobs(config: &crate::openhuman::config::Config) {
+    start(config);
+
+    let cfg_for_mcp = config.clone();
+    tokio::spawn(async move {
+        registry::boot::spawn_installed_servers(&cfg_for_mcp).await;
+    });
+    spawn_reconnect_supervisor(config.clone());
+}
+
+/// Spawns the reconnect supervisor exactly once per process.
+#[cfg(feature = "mcp")]
+fn spawn_reconnect_supervisor(config: crate::openhuman::config::Config) {
+    static SUPERVISOR_SPAWNED: std::sync::Once = std::sync::Once::new();
+    SUPERVISOR_SPAWNED.call_once(|| {
+        tokio::spawn(async move {
+            registry::supervisor::run(config).await;
+        });
+    });
+}
+
+/// Boots the domain from the runtime's startup path — the build without it,
+/// where there is nothing to do.
+#[cfg(not(feature = "mcp"))]
+pub fn start_boot_jobs(_config: &crate::openhuman::config::Config) {}
+
 pub mod audit;
 // Ungated, like the transport below and for the same reason: `tinymcp` is an
 // ordinary dependency, and the startup path calls `host::init` without a `cfg`
