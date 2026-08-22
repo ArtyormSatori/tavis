@@ -14,6 +14,7 @@ import {
   SendingSpinnerIcon,
   StopIcon,
 } from './composer/ComposerIcons';
+import { ComposerRuntimeBoundary } from './composer/ComposerRuntimeBoundary';
 import {
   COMPOSER_ACTION_WRAPPER,
   COMPOSER_ADD_ATTACHMENT,
@@ -162,7 +163,7 @@ export interface ChatComposerProps {
  * the home chat's thread; both now mount their own. See the comments at those
  * mount sites in `WorkflowCopilotPanel` and `orchestration/AgentChatPanel`.
  */
-export default function ChatComposer({
+function ChatComposerBody({
   inputValue,
   setInputValue,
   onSend,
@@ -470,5 +471,18 @@ export default function ChatComposer({
         </div>
       </div>
     </ComposerPrimitive.Root>
+  );
+}
+
+/**
+ * Public entry point. The boundary guarantees a runtime is present before any
+ * `ComposerPrimitive` renders — see `ComposerRuntimeBoundary` for why that is a
+ * net under the per-surface scoping decision rather than a substitute for it.
+ */
+export default function ChatComposer(props: ChatComposerProps) {
+  return (
+    <ComposerRuntimeBoundary>
+      <ChatComposerBody {...props} />
+    </ComposerRuntimeBoundary>
   );
 }
