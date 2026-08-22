@@ -9,6 +9,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { renderWithProviders } from '../../../../../test/test-utils';
+import GatewaySection from '../GatewaySection';
 
 const hoisted = vi.hoisted(() => ({
   listGateways: vi.fn(),
@@ -39,8 +40,6 @@ vi.mock('../../../../../services/coreRpcClient', () => ({
   clearCoreRpcTokenCache: hoisted.clearCoreRpcTokenCache,
 }));
 
-import GatewaySection from '../GatewaySection';
-
 const DESKTOP = { id: 'desktop', label: 'This computer', spec: { kind: 'desktop' as const } };
 const BUILDER = {
   id: 'builder',
@@ -56,7 +55,10 @@ beforeEach(() => {
   Object.values(hoisted).forEach(fn => fn.mockReset());
   hoisted.listGateways.mockResolvedValue([DESKTOP, BUILDER]);
   hoisted.activeGatewayId.mockResolvedValue('desktop');
-  hoisted.gatewayStatus.mockResolvedValue({ state: 'connected', endpoint: 'http://127.0.0.1:7788' });
+  hoisted.gatewayStatus.mockResolvedValue({
+    state: 'connected',
+    endpoint: 'http://127.0.0.1:7788',
+  });
   hoisted.activateGateway.mockResolvedValue({ id: 'builder', rpcUrl: 'http://127.0.0.1:5/rpc' });
   hoisted.saveGateway.mockResolvedValue(undefined);
   hoisted.deleteGateway.mockResolvedValue(undefined);
@@ -119,9 +121,7 @@ describe('GatewaySection', () => {
 
     fireEvent.click(await screen.findByTestId('gateway-use-builder'));
 
-    expect(await screen.findByTestId('gateway-error')).toHaveTextContent(
-      'could not reach the box'
-    );
+    expect(await screen.findByTestId('gateway-error')).toHaveTextContent('could not reach the box');
   });
 
   test('the status line reports the step while a gateway is being provisioned', async () => {

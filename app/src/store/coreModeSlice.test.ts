@@ -196,7 +196,10 @@ describe('coreModeSlice — gateway mode', () => {
       openhuman_core_mode: 'gateway',
       openhuman_core_gateway_id: 'builder',
     });
-    const state = mod.default(undefined, mod.setCoreMode({ kind: 'gateway', gatewayId: 'builder' }));
+    const state = mod.default(
+      undefined,
+      mod.setCoreMode({ kind: 'gateway', gatewayId: 'builder' })
+    );
 
     expect(Object.keys(state.mode)).toEqual(['kind', 'gatewayId']);
   });

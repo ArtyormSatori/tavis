@@ -122,7 +122,11 @@ describe('mutating and activating', () => {
     const gateway = {
       id: 'builder',
       label: 'Build server',
-      spec: { kind: 'box' as const, reach: { kind: 'local' as const }, confinement: { kind: 'docker' as const, image: 'openhuman-core:local' } },
+      spec: {
+        kind: 'box' as const,
+        reach: { kind: 'local' as const },
+        confinement: { kind: 'docker' as const, image: 'openhuman-core:local' },
+      },
     };
 
     await saveGateway(gateway);
