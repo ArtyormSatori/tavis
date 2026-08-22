@@ -312,13 +312,20 @@ impl Turn<'_> {
         }
         .map_err(|err| {
             // Log a redacted failure event so dispatch errors are visible in
-            // host logs without spilling the request, credentials, or working
-            // directory. [`CoreError`]'s Debug is already sanitized by the core
-            // (it never carries the route credentials), so naming the session
-            // alongside it is safe.
-            log::debug!(
-                "[embed][agent] turn_failed session={session_id} error={err:?}"
-            );
+            // host logs without spilling the request, credentials, working
+            // directory, or the error's full payload (CoreError::Domain can
+            // carry arbitrary `data`). Only the session id and the coarse
+            // variant classification are logged; the error itself propagates
+            // to the caller untouched.
+            let tag = match &err {
+                crate::embed::error::CoreError::Domain { .. } => "domain",
+                crate::embed::error::CoreError::Unavailable { .. } => "unavailable",
+                crate::embed::error::CoreError::Rpc { .. } => "rpc",
+                crate::embed::error::CoreError::Encode { .. } => "encode",
+                crate::embed::error::CoreError::Decode { .. } => "decode",
+                _ => "other",
+            };
+            log::debug!("[embed][agent] turn_failed session={session_id} kind={tag}");
             err
         })?;
 
