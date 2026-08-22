@@ -10,6 +10,7 @@ import Accounts from './pages/Accounts';
 import Activity from './pages/Activity';
 import Brain from './pages/Brain';
 import AgentInsightsPreview from './pages/dev/AgentInsightsPreview';
+import AssistantUiDemoPage from './pages/dev/assistant-ui-demo';
 import UiGallery from './pages/dev/UiGallery';
 import Feedback from './pages/Feedback';
 import FlowCanvasPage, { FlowCanvasDraftPage } from './pages/FlowCanvasPage';
@@ -311,6 +312,9 @@ const AppRoutes = ({ location }: AppRoutesProps = {}) => {
 
       {/* Dev-only gallery of every shared UI primitive, in the active theme. */}
       <Route path="/dev/ui" element={<UiGallery />} />
+
+      {/* Dev-only: the upstream assistant-ui `base` demo on a mock runtime. */}
+      <Route path="/dev/assistant-ui" element={<AssistantUiDemoPage />} />
 
       {/* Default redirect based on auth status */}
       <Route path="*" element={<DefaultRedirect />} />
