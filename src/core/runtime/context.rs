@@ -165,11 +165,27 @@ impl CoreContext {
                 !token.trim().is_empty()
             }
             TokenSource::EnvOrFile => {
-                let token_dir = crate::openhuman::config::default_root_openhuman_dir()
-                    .unwrap_or_else(|_| {
-                        dirs::home_dir()
-                            .unwrap_or_else(|| std::path::PathBuf::from("."))
-                            .join(".openhuman")
+                // A caller-supplied config scopes the core's state, so a
+                // self-generated bearer must land beside it rather than under
+                // the operator's real `~/.openhuman` root — otherwise an
+                // "ephemeral" harness still writes a `core.token` into the
+                // operator's install. Fall back to the default root only when
+                // no config was supplied.
+                let token_dir = preloaded_config
+                    .as_ref()
+                    .map(|cfg| {
+                        cfg.config_path
+                            .parent()
+                            .map(|p| p.to_path_buf())
+                            .unwrap_or_else(|| cfg.config_path.clone())
+                    })
+                    .unwrap_or_else(|| {
+                        crate::openhuman::config::default_root_openhuman_dir()
+                            .unwrap_or_else(|_| {
+                                dirs::home_dir()
+                                    .unwrap_or_else(|| std::path::PathBuf::from("."))
+                                    .join(".openhuman")
+                            })
                     });
                 crate::core::auth::init_rpc_token(&token_dir)?;
                 std::env::var(crate::core::auth::CORE_TOKEN_ENV_VAR)
