@@ -102,10 +102,10 @@ describe('AgentProcessSourcePanel', () => {
       />
     );
     const panel = screen.getByTestId('agent-process-source-panel');
-    const allDetails = panel.querySelectorAll('details');
-    // Every <details> (the group + each expandable row) is open.
-    expect(allDetails.length).toBeGreaterThan(1);
-    allDetails.forEach(d => expect(d.hasAttribute('open')).toBe(true));
+    const disclosures = panel.querySelectorAll('[data-slot="collapsible"]');
+    // Every disclosure (the group + each expandable row) reports itself open.
+    expect(disclosures.length).toBeGreaterThan(1);
+    disclosures.forEach(d => expect(d.getAttribute('data-state')).toBe('open'));
   });
 
   it('never shows the "view full processing" affordance (the panel IS that view)', () => {
