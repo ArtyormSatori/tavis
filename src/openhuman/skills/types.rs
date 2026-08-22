@@ -309,4 +309,27 @@ mod tests {
         let back: ToolResult = serde_json::from_str(&s).unwrap();
         assert_eq!(back.markdown_formatted.as_deref(), Some("**a**: 1"));
     }
+
+    #[test]
+    fn an_oversized_pass_through_block_is_elided_but_keeps_its_type() {
+        // A base64 image or audio block can be megabytes; a model should see
+        // what kind of block it was, not the bytes.
+        let block = tinymcp_bus::McpToolContent::Json {
+            data: json!({"base64": "x".repeat(70 * 1024)}),
+        };
+        let value = elide_oversized_block(&block);
+        assert_eq!(value["type"], "json");
+        let marker = value["data"].as_str().expect("an elided marker");
+        assert!(marker.contains("bytes elided"), "{marker}");
+        assert!(!marker.contains("xxxxx"), "the payload must not survive");
+    }
+
+    #[test]
+    fn a_small_pass_through_block_is_carried_whole() {
+        let block = tinymcp_bus::McpToolContent::Json {
+            data: json!({"n": 42}),
+        };
+        let value = elide_oversized_block(&block);
+        assert_eq!(value, json!({"type": "json", "data": {"n": 42}}));
+    }
 }
