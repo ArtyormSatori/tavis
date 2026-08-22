@@ -149,7 +149,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
       className="z-10"
       contentClassName=""
       description={embedded ? undefined : t('pages.settings.ai.llmDesc')}
-      leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}>
+      leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}
       tabsAriaLabel={t('pages.settings.ai.llm')}
       tabsTestIdPrefix="ai-tab"
       value={tab}
@@ -160,28 +160,28 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
           label: t('settings.ai.llmProviders'),
           content: (
             <div className="flex w-full flex-col">
-        <ProviderAuthSection
-              draft={draft}
-              persist={persist}
-              loading={loading}
-              error={error}
-              busyAction={busyAction}
-              providerAuthErrors={providerAuthErrors}
-              providerSaveNotice={providerSaveNotice}
-              onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
-              onProviderRemoved={slug =>
-                setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
-              }
-              codexAuthError={codexAuthError}
-              onConnectCodex={() => void connectOpenAiViaCodexAuth()}
-              onConnectProvider={connectProvider}
-              onOpenKeyDialog={(slug, localLabel) => {
-                setKeyDialogFor(slug);
-                setPendingLocalLabel(localLabel);
-              }}
-              onAddCustomProvider={() => setEditing('new')}
-              onEditCustomProvider={provider => setEditing(provider)}
-            />
+              <ProviderAuthSection
+                draft={draft}
+                persist={persist}
+                loading={loading}
+                error={error}
+                busyAction={busyAction}
+                providerAuthErrors={providerAuthErrors}
+                providerSaveNotice={providerSaveNotice}
+                onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
+                onProviderRemoved={slug =>
+                  setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
+                }
+                codexAuthError={codexAuthError}
+                onConnectCodex={() => void connectOpenAiViaCodexAuth()}
+                onConnectProvider={connectProvider}
+                onOpenKeyDialog={(slug, localLabel) => {
+                  setKeyDialogFor(slug);
+                  setPendingLocalLabel(localLabel);
+                }}
+                onAddCustomProvider={() => setEditing('new')}
+                onEditCustomProvider={provider => setEditing(provider)}
+              />
             </div>
           ),
         },
@@ -191,7 +191,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
           description: t('settings.ai.routingDesc'),
           content: (
             <div className="flex w-full flex-col">
-      {/* ═══════════════════════════════════════════════════════════════
+              {/* ═══════════════════════════════════════════════════════════════
               ROUTING — top-level routing mode. Managed = OpenHuman decides.
               Own = one provider/model for everything. Custom = fine-grained
               per-workload routing.
@@ -209,7 +209,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                   onSelectOwn={() => setRoutingEditorMode('own')}
                   onSelectCustom={() => setRoutingEditorMode('custom')}
                 />
-    
+
                 {effectiveRoutingMode === 'own' ? (
                   <GlobalOwnModelSelector
                     current={sharedModelRef}
@@ -242,11 +242,11 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                     }}
                   />
                 ) : null}
-    
+
                 {effectiveRoutingMode === 'custom' ? (
                   <>
                     <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
-    
+
                     <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
                       <WorkloadTable
                         title={t('settings.ai.routing.chatAndConversations')}
@@ -261,7 +261,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                           />
                         ))}
                       </WorkloadTable>
-    
+
                       <WorkloadTable
                         title={t('settings.ai.routing.backgroundTasks')}
                         description={t('settings.ai.routing.bgTasksDesc')}>
@@ -283,7 +283,6 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
           ),
         },
       ]}>
-
       {isDirty && (
         <SaveBar
           diffSummary={diffSummary}

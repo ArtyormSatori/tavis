@@ -32,6 +32,7 @@ import {
   defaultEndpointForBuiltinCloudProvider,
 } from '../builtinCloudProviders';
 import { ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
+import { AddProviderDialog, type ProviderOptionGroup } from './AddProviderDialog';
 import {
   type AISettings,
   BUILTIN_PROVIDER_META,
@@ -43,10 +44,8 @@ import {
   type LocalChipSlug,
   providerToggleAriaLabel,
 } from './aiPanelTypes';
-import { AddProviderDialog, type ProviderOptionGroup } from './AddProviderDialog';
 import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
 import { ProviderGroup, ProviderListRow, type ProviderRowAction } from './ProviderListRow';
-
 
 const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
 
