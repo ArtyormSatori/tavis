@@ -1,7 +1,8 @@
 # Wiring the assistant-ui chat surface to real OpenHuman data
 
-**Status:** implementation in progress on `assistant-ui-real-data`.
-**Prerequisite:** the mock surface landed on `fix/ui-shdcdn` (see "What exists today").
+**Status:** implementation complete on `fix/ui-shdcdn`; branch-wide verification
+is pending unrelated stale AI-settings tests.
+**Prerequisite:** the mock surface landed on `fix/ui-shdcdn` (see "Starting point").
 
 Current checkpoint:
 
@@ -15,23 +16,26 @@ Current checkpoint:
   `chatSend`; unknown windows render as unknown.
 - The composer reuses the persisted thread-goal controller, and `/` commands are
   projected from the shared command registry. `/clear` executes `chat.new`.
-- Focused tests, typecheck, lint and both i18n gates pass. The full `pnpm test`
-  run reaches the previously-unexercised assistant-ui pane, but the legacy
-  `Conversations.render.test.tsx` suite still asserts the hidden legacy pane and
-  must be migrated before this plan is complete.
+- Focused tests, typecheck, lint and both i18n gates pass. The migrated
+  `Conversations.render.test.tsx` suite passes 59/59 and the combined
+  assistant-ui/conversation/workflow set passes 158/158. Full `pnpm test`
+  reaches unrelated stale `AIPanel.test.tsx` cases that still assert the former
+  monolithic/radio settings UI instead of the current Providers/Routing tabs.
 - `renderAssistantUiOnly` is removed. The voice-only `mic-cloud` embed still
   uses the legacy pane while the remaining non-plan affordances are ported;
   follow-up: [#5685](https://github.com/tinyhumansai/openhuman/issues/5685).
 
 ## What this is
 
-`Conversations` renders the assistant-ui `Thread` instead of the legacy pane
-(`renderAssistantUiOnly = true` in
-[`app/src/features/conversations/Conversations.tsx`](../../app/src/features/conversations/Conversations.tsx)),
-and everything under it is currently fed by a scripted offline adapter. That was
-deliberate: it let the _shape_ of the surface be built and reviewed — streamed
-reasoning, tool calls, dispatched subagents, slash commands, a context meter, a
-thread goal — before any of it was load-bearing.
+At the start of this work, `Conversations` rendered the assistant-ui `Thread`
+behind a temporary `renderAssistantUiOnly` switch and fed it from a scripted
+offline adapter. That was deliberate: it let the _shape_ of the surface be built
+and reviewed — streamed reasoning, tool calls, dispatched subagents, slash
+commands, a context meter, and a thread goal — before any of it was load-bearing.
+
+The normal text-chat path now renders that same `Thread` from OpenHuman's real
+Redux/core seams. The `mic-cloud` embed retains its voice-specific legacy footer
+until the controls tracked in #5685 have an assistant-ui equivalent.
 
 This document is the other half: replacing each mock with the real seam. It is
 written for an agent picking the work up cold, so every seam below names the file
