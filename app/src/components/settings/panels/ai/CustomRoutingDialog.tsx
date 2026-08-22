@@ -13,8 +13,10 @@ import {
   modelRegistryVision,
   testProviderModel,
 } from '../../../../services/api/aiSettingsApi';
+import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
+import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
 import NativeSelect from '../../../ui/NativeSelect';
 import TextField from '../../../ui/TextField';
@@ -314,19 +316,19 @@ export const CustomRoutingDialog = ({
           </Button>
         </div>
       }>
-      <p className="mt-2 max-w-md text-xs leading-5 text-content-muted">
+      <p className="mt-2 text-xs leading-5 text-content-muted">
         {t(WORKLOAD_MODEL_HINT_KEYS[workload.id])}
       </p>
       {noProviders ? (
-        <div className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+        <Alert variant="warning" className="p-3 text-xs">
           {t('settings.ai.noCustomProviders')}
-        </div>
+        </Alert>
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-content-secondary">
+            <Label className="text-xs text-content-secondary">
               {t('settings.ai.providerLabel')}
-            </label>
+            </Label>
             <NativeSelect
               value={
                 source ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}` : ''
@@ -370,9 +372,9 @@ export const CustomRoutingDialog = ({
 
           {source?.kind === 'local' ? (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-content-secondary">
+              <Label className="text-xs text-content-secondary">
                 {t('settings.ai.modelLabel')}
-              </label>
+              </Label>
               <NativeSelect
                 value={model}
                 onChange={e => {
@@ -389,9 +391,9 @@ export const CustomRoutingDialog = ({
             </div>
           ) : source?.kind === 'claude-code' ? (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-content-secondary">
+              <Label className="text-xs text-content-secondary">
                 {t('settings.ai.modelLabel')}
-              </label>
+              </Label>
               <TextField
                 type="text"
                 mono
@@ -435,7 +437,7 @@ export const CustomRoutingDialog = ({
                 attachments for it. Only shown once a concrete model is chosen. */}
           {registrySlug && model.trim().length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <label className="inline-flex items-center gap-2 text-xs font-medium text-content-secondary">
+              <Label className="inline-flex items-center gap-2 text-xs text-content-secondary">
                 <Checkbox
                   checked={visionLocked ? true : vision}
                   onCheckedChange={setVision}
@@ -443,7 +445,7 @@ export const CustomRoutingDialog = ({
                   className="h-3.5 w-3.5 disabled:opacity-60"
                 />
                 {t('settings.ai.modelVision')}
-              </label>
+              </Label>
               <p className="text-[11px] text-content-faint">{t('settings.ai.modelVisionDesc')}</p>
             </div>
           )}
