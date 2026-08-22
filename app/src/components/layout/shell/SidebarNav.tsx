@@ -73,9 +73,14 @@ export default function SidebarNav() {
   };
 
   return (
-    <nav className="px-2 py-1" aria-label={t('nav.home')}>
-      <SidebarMenu>
-        {tabs.map(tab => {
+    // `SidebarGroup` supplies the px-2/py-1 flex-column band that used to sit
+    // directly on `<nav>`; the semantic landmark element stays a plain `<nav>`
+    // (no primitive substitutes for that a11y role) and picks up
+    // `flex-shrink-0` so the caller no longer needs a wrapping div for it.
+    <nav className="flex-shrink-0" aria-label={t('nav.home')}>
+      <SidebarGroup>
+        <SidebarMenu>
+          {tabs.map(tab => {
           const active = matchActive(tab.path, location.pathname);
           const showBadge = tab.id === 'notifications' && unreadCount > 0;
           const showCompanionDot = tab.id === 'settings' && companionActive;
