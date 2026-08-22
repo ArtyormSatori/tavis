@@ -606,6 +606,7 @@ describe('ChatComposer', () => {
       expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'chat.followupHint');
     });
   });
+
   /**
    * Action-row layout. The reference design puts the attach button and the
    * read-only model chip on the left, and the mic beside the send/stop action
