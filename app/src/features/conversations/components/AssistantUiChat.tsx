@@ -1,6 +1,6 @@
 import {
-  AuiIf,
   AssistantRuntimeProvider,
+  AuiIf,
   ComposerPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
@@ -19,8 +19,18 @@ const localChatModel = { run: async () => ({ content: [] }) };
 
 function ArrowUpIcon() {
   return (
-    <svg aria-hidden="true" className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0-6 6m6-6 6 6" />
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 19V5m0 0-6 6m6-6 6 6"
+      />
     </svg>
   );
 }
@@ -114,7 +124,9 @@ export function AssistantUiChat() {
           className="relative flex min-h-0 flex-1 flex-col overflow-x-auto overflow-y-scroll px-4 pt-4">
           <ThreadPrimitive.Empty>
             <div className="mx-auto mb-6 flex w-full max-w-[var(--thread-max-width)] flex-col items-center px-4 text-center">
-              <h1 className="text-2xl font-medium tracking-tight text-content">How can I help you today?</h1>
+              <h1 className="text-2xl font-medium tracking-tight text-content">
+                How can I help you today?
+              </h1>
             </div>
           </ThreadPrimitive.Empty>
           <div className="mb-14 flex flex-col gap-y-6 empty:hidden">
