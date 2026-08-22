@@ -831,9 +831,8 @@ export default function Skills() {
   );
 
   const renderGroup = ({ category, items }: { category: SkillCategory; items: SkillItem[] }) => (
-    <div
-      key={category}
-      className="rounded-2xl border border-line bg-surface p-3 shadow-soft animate-fade-up">
+    <Card key={category} className="animate-fade-up">
+      <div className="p-3">
       <div className="px-1 pb-3 pt-1">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-content">
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-subtle">
@@ -894,7 +893,8 @@ export default function Skills() {
           }
         })}
       </div>
-    </div>
+      </div>
+    </Card>
   );
 
   return (
@@ -1101,7 +1101,7 @@ export default function Skills() {
             <SettingsTabbedPage
               title={t(CONNECTIONS_HEADERS[activeTab]!.titleKey)}
               description={t(CONNECTIONS_HEADERS[activeTab]!.descKey)}>
-              <div className={'mx-auto w-full max-w-3xl space-y-4'}>
+              <div className="w-full space-y-4">
                 {/* <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <h1 className="text-base font-semibold text-content">
