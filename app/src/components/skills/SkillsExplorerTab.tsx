@@ -11,7 +11,7 @@ import {
 } from '../../services/api/skillsApi';
 import EmptyStateCard from '../EmptyStateCard';
 import ChipTabs from '../layout/ChipTabs';
-import { ModalShell, TextField } from '../ui';
+import { BetaIndicator, ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
 import { ToggleGroupItem, ToggleGroupRoot } from '../ui/ToggleGroup';
 import InstallSkillDialog from './InstallSkillDialog';
@@ -750,7 +750,8 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface animate-fade-up">
       <div className="p-3 pb-0">
-        <div className="flex justify-end px-1 pb-3 pt-1">
+        <div className="flex items-center justify-end gap-1 px-1 pb-3 pt-1">
+          <BetaIndicator />
           <Button
             variant="secondary"
             size="sm"

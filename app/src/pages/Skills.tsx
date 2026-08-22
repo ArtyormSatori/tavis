@@ -37,7 +37,7 @@ import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
 import Alert from '../components/ui/Alert';
 import Badge from '../components/ui/Badge';
-import BetaBanner from '../components/ui/BetaBanner';
+import BetaIndicator from '../components/ui/BetaIndicator';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { useVoiceSkillStatus } from '../features/voice/useVoiceSkillStatus';
@@ -1332,7 +1332,6 @@ export default function Skills() {
 
                     {activeTab === 'skills' && (
                       <div className="flex h-full min-h-0 flex-col gap-3 animate-fade-up">
-                        <BetaBanner />
                         <div className="min-h-0 flex-1">
                           <SkillsExplorerTab onToast={addToast} />
                         </div>
@@ -1341,7 +1340,9 @@ export default function Skills() {
 
                     {activeTab === 'mcp' && (
                       <div className="space-y-3 animate-fade-up">
-                        <BetaBanner />
+                        <div className="flex justify-end">
+                          <BetaIndicator />
+                        </div>
                         <Card>
                           <div className="p-4">
                             <McpServersTab />
