@@ -166,6 +166,28 @@ export const MOCK_SCRIPT: readonly MockStep[] = [
   { kind: 'text', text: ANSWER },
 ];
 
+/**
+ * The turn's closing paragraph, written once the delegations have landed.
+ *
+ * A delegation that finishes into its own collapsed block is only half of what
+ * dispatching means: the point of handing work off is that the answer folds the
+ * result back in when it arrives. The main prose streams *before* these finish,
+ * so it cannot reference them — this is the part that can, and it is emitted
+ * only after the last one reports.
+ */
+export function buildClosing(reports: readonly { subagent: string; report: string }[]): string {
+  if (reports.length === 0) return '';
+  const lines = reports.map(r => `- **${r.subagent}** — ${r.report}`).join('\n');
+  return `Both delegations have since reported back:\n\n${lines}`;
+}
+
+/** Every delegation in the script, in dispatch order, with its report. */
+export function scriptedReports(): { subagent: string; report: string }[] {
+  return MOCK_SCRIPT.filter((step): step is MockSubagentCall => step.kind === 'subagent').map(
+    step => ({ subagent: step.subagent, report: step.report })
+  );
+}
+
 /** The prompt the seeded transcript is a reply to. */
 export const SEED_PROMPT = 'Show me everything this transcript can render.';
 
@@ -218,6 +240,9 @@ export function buildSeedMessages() {
 
   return [
     { role: 'user' as const, content: [{ type: 'text' as const, text: SEED_PROMPT }] },
-    { role: 'assistant' as const, content },
+    {
+      role: 'assistant' as const,
+      content: [...content, { type: 'text' as const, text: buildClosing(scriptedReports()) }],
+    },
   ];
 }
