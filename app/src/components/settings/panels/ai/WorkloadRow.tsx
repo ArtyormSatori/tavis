@@ -13,7 +13,6 @@
  * writes its own `data-slot` before spreading props, so ours wins.
  */
 import { useT } from '../../../../lib/i18n/I18nContext';
-import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
 import {
   slugTone,
@@ -100,35 +99,22 @@ export const WorkloadRow = ({
         </div>
       </div>
 
-      <div className="flex min-w-[13rem] flex-1 items-center gap-2">
-        {provider && providerSlug ? (
-          <>
-            <ProviderSwatch slug={providerSlug} label={provider} tone={slugTone(providerSlug)} />
-            <div className="min-w-0">
-              <span className="block truncate text-sm font-medium text-content">{provider}</span>
-              <div className="mt-1 flex items-center gap-2">
-                <Badge variant={isPinned ? 'primary' : 'neutral'}>
-                  {isPinned ? 'Pinned' : 'Managed'}
-                </Badge>
-              </div>
-            </div>
-          </>
-        ) : (
-          <span className="text-[11px] text-content-faint">{t('settings.ai.workload.noModel')}</span>
-        )}
-      </div>
-
       <Button
         type="button"
         variant="secondary"
         size="xs"
         onClick={onCustomClick}
-        className="h-auto max-w-[15rem] flex-col items-start gap-0.5 px-3 py-2 text-left">
-        <span className="text-[10px] font-medium text-content-muted">
-          {isPinned ? 'Provider and model' : 'Select provider and model'}
-        </span>
-        <span className="max-w-full truncate font-mono text-xs text-content">
-          {model || 'Choose a model'}
+        className="h-auto min-w-[13rem] max-w-[15rem] justify-start gap-2 px-3 py-2 text-left">
+        {provider && providerSlug ? (
+          <ProviderSwatch slug={providerSlug} label={provider} tone={slugTone(providerSlug)} />
+        ) : null}
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-[10px] font-medium text-content-muted">
+            {provider ?? 'Select provider and model'}
+          </span>
+          <span className="max-w-full truncate font-mono text-xs text-content">
+            {model || 'Choose a model'}
+          </span>
         </span>
       </Button>
     </li>
