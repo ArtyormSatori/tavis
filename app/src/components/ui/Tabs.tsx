@@ -8,10 +8,12 @@ export const TabsRoot = TabsPrimitive.Root;
 /** Roving-focus tab list: arrow keys move, Home/End jump, only one tab stop. */
 export const TabsList = ({
   className,
+  variant = 'default',
   ...rest
-}: ComponentPropsWithoutRef<typeof TabsPrimitive.List>) => (
+}: ComponentPropsWithoutRef<typeof TabsPrimitive.List> & { variant?: 'default' | 'line' }) => (
   <TabsPrimitive.List
     data-slot="tabs-list"
+    data-variant={variant}
     className={cn('flex items-center gap-1', className)}
     {...rest}
   />
