@@ -11,12 +11,12 @@
  * uses, so this follows the app theme in both modes.
  */
 import { cn } from '@/components/assistant-ui/lib/utils';
+import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/assistant-ui/ui/collapsible';
-import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
 import type { ToolCallMessagePartComponent } from '@assistant-ui/react';
 import { CheckIcon, ChevronDownIcon, Loader2Icon, WorkflowIcon } from 'lucide-react';
 

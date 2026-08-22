@@ -8,6 +8,7 @@
  * attachment/feedback adapters that never leave the browser. Mounting it cannot
  * touch a thread, a message, or the core.
  */
+import { buildSeedMessages, mockChatModelAdapter } from '@/lib/assistantUiMock';
 import {
   AssistantRuntimeProvider,
   CompositeAttachmentAdapter,
@@ -19,8 +20,6 @@ import {
 } from '@assistant-ui/react';
 import debugFactory from 'debug';
 import { createContext, type ReactNode, useContext, useId, useMemo, useRef, useState } from 'react';
-
-import { buildSeedMessages, mockChatModelAdapter } from '@/lib/assistantUiMock';
 
 const debug = debugFactory('openhuman:assistant-ui-demo');
 
