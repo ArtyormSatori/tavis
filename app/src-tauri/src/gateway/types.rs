@@ -180,7 +180,6 @@ fn is_loopback_host(host: &str) -> bool {
 /// Returns a user-facing message when `url` is not parseable, when it is not
 /// `http(s)`, or when it would transmit a bearer over an unauthenticated
 /// non-loopback transport.
-#[must_use]
 pub fn validate_remote_transport(url: &str, token: Option<&str>) -> Result<(), String> {
     let parsed = url
         .parse::<url::Url>()
