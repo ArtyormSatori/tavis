@@ -38,14 +38,16 @@ export default function SettingsTabbedPage<T extends string>({
           {description != null && <p className="text-sm text-content-muted">{description}</p>}
         </header>
         {tabs && tabs.length > 0 && value != null && onChange && tabsAriaLabel ? (
-          <ChipTabs
-            className="flex flex-wrap gap-1.5"
-            ariaLabel={tabsAriaLabel}
-            testIdPrefix={tabsTestIdPrefix}
-            items={tabs}
-            value={value}
-            onChange={onChange}
-          />
+          <div>
+            <ChipTabs
+              className="flex flex-wrap gap-1.5"
+              ariaLabel={tabsAriaLabel}
+              testIdPrefix={tabsTestIdPrefix}
+              items={tabs}
+              value={value}
+              onChange={onChange}
+            />
+          </div>
         ) : null}
       </div>
       <div aria-hidden className="-mx-4 border-t border-line" />
