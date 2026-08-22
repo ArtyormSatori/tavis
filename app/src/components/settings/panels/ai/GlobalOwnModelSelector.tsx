@@ -11,8 +11,10 @@ import {
   type ModelRegistryEntry,
   modelRegistryVision,
 } from '../../../../services/api/aiSettingsApi';
+import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
+import Label from '../../../ui/Label';
 import NativeSelect from '../../../ui/NativeSelect';
 import { isAzureFoundryEndpoint } from '../azureDeployment';
 import {
@@ -192,8 +194,8 @@ export const GlobalOwnModelSelector = ({
   };
 
   return (
-    <div className="space-y-4 rounded-xl border border-line bg-surface p-4">
-      <div className="space-y-1">
+    <div className="flex w-full flex-col gap-4 rounded-xl border border-line bg-surface p-4">
+      <div className="flex flex-col gap-1">
         <div className="text-sm font-medium text-content">{t('settings.ai.globalModel.title')}</div>
         <p className="text-xs text-amber-700 dark:text-amber-200">
           {t('settings.ai.globalModel.desc')}
@@ -201,16 +203,16 @@ export const GlobalOwnModelSelector = ({
       </div>
 
       {customCloud.length === 0 && !localAvailable && !claudeCodeEnabled ? (
-        <div className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+        <Alert variant="warning" className="p-3 text-xs">
           {t('settings.ai.globalModel.noProviders')}
-        </div>
+        </Alert>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-content-secondary">
+          <div className="flex w-full flex-col gap-4 md:flex-row md:items-start">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <Label className="text-xs text-content-secondary">
                 {t('settings.ai.globalModel.provider')}
-              </label>
+              </Label>
               <NativeSelect
                 value={
                   source
@@ -254,10 +256,10 @@ export const GlobalOwnModelSelector = ({
             </div>
 
             {source?.kind === 'local' ? (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-content-secondary">
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Label className="text-xs text-content-secondary">
                   {t('settings.ai.globalModel.model')}
-                </label>
+                </Label>
                 <NativeSelect
                   value={model}
                   onChange={e => setModel(e.target.value)}
@@ -271,6 +273,7 @@ export const GlobalOwnModelSelector = ({
               </div>
             ) : (
               <ModelEntryField
+                className="min-w-0 flex-1"
                 mode={modelEntry}
                 model={model}
                 onModelChange={setModel}
@@ -299,9 +302,9 @@ export const GlobalOwnModelSelector = ({
             </label>
           )}
 
-          <div className="rounded-lg bg-surface-muted px-3 py-2 text-xs text-content-muted">
+          <Alert className="px-3 py-2 text-xs text-content-muted">
             {t('settings.ai.globalModel.appliesToAll')}
-          </div>
+          </Alert>
 
           <div className="flex justify-end">
             <Button
