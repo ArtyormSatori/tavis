@@ -3,7 +3,7 @@
  * cloud providers, custom providers, local runtimes), the Codex/Claude Code
  * connect controls, and the rejected-key / non-fatal-advisory banners.
  */
-import { LuKeyRound, LuPencil } from 'react-icons/lu';
+import { LuCircleAlert, LuKeyRound, LuPencil } from 'react-icons/lu';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ProviderAuthError } from '../../../../services/api/aiSettingsApi';
@@ -89,6 +89,7 @@ export const ProviderAuthSection = ({
           question. */}
       {providerSaveNotice && (
         <Alert variant="warning" role="status" className="items-start gap-2 px-3 py-2 text-xs">
+          <LuCircleAlert className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span className="flex-1">{providerSaveNotice.message}</span>
           <Button
             type="button"
