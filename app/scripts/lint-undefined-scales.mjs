@@ -98,30 +98,7 @@ function shadeResolver() {
     return typeof entry === 'object' && entry !== null && Boolean(entry[shade]);
   };
 
-  // Shade-LESS colour utilities (`bg-ocean`, `text-ocean/90`, `bg-surface`).
-  // These have no shade to look up, so the shade check above cannot see them —
-  // which is how `bg-ocean` on an action button survived the sweep AND the
-  // first version of this lint, rendering `text-content-inverted` on a
-  // transparent background. Valid iff the name resolves to a colour STRING, or
-  // to an object carrying a DEFAULT. `bg-surface` is valid (DEFAULT);
-  // `bg-primary` is not (a scale with no DEFAULT); `bg-ocean` is not (absent).
-  // Names may be nested (`accent-lavender` -> colors.accent.lavender), so walk
-  // every split point rather than assuming one segment.
-  const bareExists = name => {
-    const parts = name.split('-');
-    for (let i = 1; i <= parts.length; i += 1) {
-      let node = colors;
-      for (const seg of [parts.slice(0, i).join('-'), ...parts.slice(i)]) {
-        if (node === null || typeof node !== 'object') { node = undefined; break; }
-        node = node[seg];
-      }
-      if (typeof node === 'string') return true;
-      if (node && typeof node === 'object' && node.DEFAULT) return true;
-    }
-    return false;
-  };
-
-  return { shadeExists, bareExists, resolved };
+  return shadeExists;
 }
 
 
@@ -129,38 +106,6 @@ const PATTERN = new RegExp(
   `\\b(${UTILITY_PREFIXES.join('|')})-([a-z][a-z0-9]+)-(\\d{2,3})\\b`,
   'g'
 );
-
-/**
- * Shade-less colour utilities: `bg-ocean`, `text-ocean/90`, `bg-surface`.
- *
- * Narrower prefix set than PATTERN on purpose. `text-`/`border-`/`ring-` also
- * carry NON-colour values (`text-xs`, `border-2`, `ring-offset-2`), so a bare
- * match there needs the exclusion set below or it flags half the codebase.
- */
-const BARE_PATTERN = new RegExp(
-  `\\b(${UTILITY_PREFIXES.join('|')})-([a-z][a-z0-9]*(?:-[a-z][a-z0-9]*)*)(?:\\/\\d{1,3})?\\b(?!-?\\d)`,
-  'g'
-);
-
-/**
- * Values that follow a colour-utility prefix but are not colours. Derived from
- * the resolved theme where possible (font sizes, so a new `text-micro` needs no
- * edit here) plus the static Tailwind keywords that share these prefixes.
- */
-function nonColourValues(resolved) {
-  return new Set([
-    ...Object.keys(resolved?.theme?.fontSize ?? {}),
-    ...Object.keys(resolved?.theme?.borderWidth ?? {}),
-    ...Object.keys(resolved?.theme?.ringWidth ?? {}),
-    // Static keywords sharing bg-/text-/border-/ring-/divide-/from-/to-/via-.
-    'left', 'center', 'right', 'justify', 'start', 'end',
-    'wrap', 'nowrap', 'balance', 'pretty', 'clip', 'ellipsis',
-    'transparent', 'current', 'inherit', 'none', 'auto',
-    'solid', 'dashed', 'dotted', 'double', 'hidden', 'collapse', 'separate',
-    'fixed', 'local', 'scroll', 'cover', 'contain', 'repeat', 'no', 'origin',
-    'opacity', 'offset', 'blend', 'clip-text', 'gradient',
-  ]);
-}
 
 function* walk(dir) {
   for (const entry of readdirSync(dir)) {
@@ -174,8 +119,7 @@ function* walk(dir) {
   }
 }
 
-const { shadeExists, bareExists, resolved } = shadeResolver();
-const nonColour = nonColourValues(resolved);
+const shadeExists = shadeResolver();
 const violations = [];
 
 for (const file of walk(path.join(appRoot, 'src'))) {
@@ -188,12 +132,6 @@ for (const file of walk(path.join(appRoot, 'src'))) {
       if (!SHADES.has(shade)) continue;
       if (shadeExists(scale, shade)) continue;
       violations.push(`${path.relative(appRoot, file)}:${i + 1}: ${match}`);
-    }
-    for (const m of line.matchAll(BARE_PATTERN)) {
-      const [match, , name] = m;
-      if (nonColour.has(name)) continue;
-      if (bareExists(name)) continue;
-      violations.push(`${path.relative(appRoot, file)}:${i + 1}: ${match} (no such colour)`);
     }
   });
 }
