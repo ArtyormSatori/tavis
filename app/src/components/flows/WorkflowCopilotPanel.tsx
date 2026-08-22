@@ -552,8 +552,8 @@ export default function WorkflowCopilotPanel({
         {proposal && diff && (
           <div
             data-testid="workflow-copilot-proposal"
-            className="rounded-xl border border-ocean-300 bg-surface p-3 dark:border-ocean-700">
-            <p className="text-xs font-semibold text-ocean-900 dark:text-ocean-100">
+            className="rounded-xl border border-primary-300 bg-surface p-3 dark:border-primary-700">
+            <p className="text-xs font-semibold text-primary-900 dark:text-primary-100">
               {proposal.name || t('flows.copilot.proposalTitle')}
             </p>
             <p className="mt-1 text-[11px] text-content-muted">{t('flows.copilot.previewHint')}</p>
