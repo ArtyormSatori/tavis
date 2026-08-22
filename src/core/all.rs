@@ -1151,7 +1151,6 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
         "migrate" => Some("Data migration utilities."),
         "javascript" => Some("First-class JavaScript runtime bridge for listing and dispatching tools."),
         "medulla" => Some("Medulla orchestration backend: integration readiness, durable sessions, and the connected worker roster."),
-        "monitor" => Some("Start, inspect, read, and stop bounded background command monitors."),
         "security" => Some("Security policy and autonomy guardrail metadata."),
         "service" => Some("Desktop service lifecycle management."),
         "session_import" => {
@@ -1218,10 +1217,6 @@ pub fn namespace_description(namespace: &str) -> Option<&'static str> {
             "Local-first assistive surfaces for provider events, respond queues, and drafts.",
         ),
         "voice" => Some("Speech-to-text and text-to-speech using local models."),
-        "subconscious" => Some("Periodic local-model background awareness loop."),
-        "subconscious_triggers" => {
-            Some("Event-driven trigger pipeline feeding the background orchestrator.")
-        }
         "webhooks" => {
             Some("Webhook tunnel registrations and captured request/response debug logs.")
         }
