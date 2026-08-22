@@ -21,6 +21,7 @@
 import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Alert from '../../../ui/Alert';
+import Label from '../../../ui/Label';
 import { RadioGroupItem, RadioGroupRoot } from '../../../ui/RadioGroup';
 import type { RoutingMode } from './aiPanelTypes';
 
@@ -40,7 +41,7 @@ const ModeOption = ({
   title: string;
   description: string;
 }) => (
-  <label
+  <Label
     data-slot="routing-mode-option"
     data-selected={selected}
     className={cn(
@@ -56,7 +57,7 @@ const ModeOption = ({
       <span className="text-sm font-medium text-content">{title}</span>
       <span className="text-[11px] leading-4 text-content-muted">{description}</span>
     </span>
-  </label>
+  </Label>
 );
 
 export const RoutingModeCards = ({
