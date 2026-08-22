@@ -1,13 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import { ComposerPrimitive } from '@assistant-ui/react';
+import debugFactory from 'debug';
+import { useRef, useState } from 'react';
 
 import type { ChatSendError } from '../../chat/chatSendError';
 import type { Attachment } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
-import { Button, TextArea } from '../ui';
+import { Button } from '../ui';
 import AttachmentPreview from './AttachmentPreview';
+import {
+  AddAttachmentIcon,
+  MicIcon,
+  SendIcon,
+  SendingSpinnerIcon,
+  StopIcon,
+} from './composer/ComposerIcons';
+import {
+  COMPOSER_ACTION_WRAPPER,
+  COMPOSER_ADD_ATTACHMENT,
+  COMPOSER_ATTACHMENTS,
+  COMPOSER_DRAG_OVERLAY,
+  COMPOSER_DROPZONE,
+  COMPOSER_GHOST_OVERLAY,
+  COMPOSER_INPUT,
+  COMPOSER_MIC,
+  COMPOSER_ROOT,
+  COMPOSER_SEND,
+} from './composer/composerStyles';
+import { useComposerTextBridge } from './composer/useComposerTextBridge';
 
-/** Max composer height ≈ 8 lines of text-sm + padding. */
-const COMPOSER_MAX_HEIGHT = 192;
+const debug = debugFactory('openhuman:chat-composer');
 
 /**
  * Render-loop guard threshold: if the component re-renders this many times
@@ -71,8 +92,8 @@ export interface ChatComposerProps {
    * Optional nodes stacked above the input box but *outside* its focus
    * highlight — e.g. the queued-follow-ups strip and the thread-goal editor.
    * They render within the overall composer component (so they move with it)
-   * yet are not wrapped by the blue focus-within ring/border of the input box.
-   * Entries that render `null` contribute nothing.
+   * yet are not wrapped by the focus ring/border of the input box. Entries that
+   * render `null` contribute nothing.
    */
   headerSlots?: React.ReactNode[];
   /**
@@ -85,9 +106,61 @@ export interface ChatComposerProps {
 }
 
 /**
- * Single-row chat composer: [+] textarea [mic] [send]
- * Buttons sit at the bottom-end of the row so they stay anchored when the
- * textarea grows with multiline input.
+ * The chat composer, rebuilt on assistant-ui's **headless** `ComposerPrimitive`
+ * and styled from its default composer's spec (ported in
+ * `composer/composerStyles.ts` — see that file for the class-by-class mapping).
+ *
+ * Upstream's structure is reproduced:
+ *
+ * ```
+ * <ComposerRoot>            // ComposerPrimitive.Root — a <form>
+ *   <ComposerAttachments/>  // attachment strip
+ *   <ComposerAddAttachment/>
+ *   <ComposerInput rows={1}/>
+ *   <ComposerAction/>       // send, or cancel while running
+ * </ComposerRoot>
+ * ```
+ *
+ * ## What comes from the primitive, and what deliberately does not
+ *
+ * From the primitive: the `<form>` wrapper (blank-space click focuses the
+ * input, Enter routes through `requestSubmit`), the auto-resizing textarea with
+ * its composition/IME tracking, Escape-to-cancel, and the composer text store
+ * that `useComposerTextBridge` mirrors this app's `inputValue` into.
+ *
+ * **Not** from the primitive: sending. `ComposerPrimitive.Send` and
+ * `ComposerPrimitive.Cancel` fire `aui.composer.send()` / `.cancel()`, which the
+ * external-store runtime forwards to `chatSurfaceHandlers` as
+ * `send(text: string)`. That signature cannot carry this composer's
+ * attachments, and it knows nothing about the OpenHuman-specific modifier
+ * semantics `allowParallelSend` implements (plain Enter queues a follow-up
+ * mid-stream; Cmd/Ctrl+Enter forks a parallel branch) — routing a send through
+ * it would silently drop attachments and collapse the two modifiers into one.
+ * So the action buttons stay this app's, and `Root`'s `onSubmit` is intercepted
+ * with `preventDefault()`, which (via Radix's `composeEventHandlers`) suppresses
+ * the primitive's own submit handler. Enter therefore still reaches
+ * `handleInputKeyDown`, which owns the modifier semantics.
+ *
+ * `ComposerPrimitive.AddAttachment` and `.Attachments` are likewise unused:
+ * both require an attachment adapter on the runtime, and this app's attachments
+ * are read, validated, compressed and budgeted by the host surface long before
+ * the composer sees them. The upstream *look* of both is still applied.
+ *
+ * Similarly, upstream's `ComposerAction` morphs send/cancel off
+ * `ThreadPrimitive.If running`. Here the same decision reads `isSending` — not
+ * a different source of truth: the runtime adapter's `isRunning` is itself
+ * derived from `chatRuntime.inferenceTurnLifecycleByThread`, the very state the
+ * host surface passes down as `isSending`. Reading it directly keeps the
+ * composer renderable by surfaces whose thread is not the runtime's.
+ *
+ * ## Runtime context is required
+ *
+ * `ComposerPrimitive.*` reads its runtime from React context, so every surface
+ * rendering this component must sit under an `AssistantUiRuntimeProvider`
+ * scoped to *its own* thread. Two surfaces did not, and inheriting the app-wide
+ * runtime (bound to `selectedThreadId`) would have pointed their composer at
+ * the home chat's thread; both now mount their own. See the comments at those
+ * mount sites in `WorkflowCopilotPanel` and `orchestration/AgentChatPanel`.
  */
 export default function ChatComposer({
   inputValue,
@@ -118,6 +191,8 @@ export default function ChatComposer({
   const { t } = useT();
   const [isDragging, setIsDragging] = useState(false);
 
+  useComposerTextBridge(inputValue);
+
   // Render-loop detection guard: tracks re-renders within a single microtick
   // and warns when the count exceeds a safe threshold, helping diagnose
   // "Maximum update depth exceeded" issues (TAURI-REACT-2G).
@@ -146,7 +221,6 @@ export default function ChatComposer({
   // user can queue a follow-up or fork a parallel branch; otherwise an in-flight
   // turn (`composerInteractionBlocked`/`isSending`) locks the composer.
   const composerLocked = !allowParallelSend && (composerInteractionBlocked || isSending);
-  const textareaDisabled = composerLocked;
   // Show the working spinner only for a normal in-flight send, not while the
   // composer is intentionally open for follow-up/parallel queueing.
   const showSendingSpinner = isSending && !allowParallelSend;
@@ -190,12 +264,15 @@ export default function ChatComposer({
     if (attachDisabled) return;
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
+    debug('[chat-composer] drop: ingesting %d file(s)', files.length);
     void onAttachFiles(files);
   };
 
   // Clipboard paste: pull image/video files out of the paste payload (e.g. a
   // screenshot copied to the clipboard) and attach them; leave plain-text paste
-  // untouched so normal typing still works.
+  // untouched so normal typing still works. `addAttachmentOnPaste={false}` on
+  // the primitive keeps assistant-ui's own paste-to-attach path out of the way —
+  // it would route files to a runtime attachment adapter this app does not use.
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (attachDisabled) return;
     const items = Array.from(e.clipboardData?.items ?? []);
@@ -205,28 +282,36 @@ export default function ChatComposer({
       .filter((file): file is File => file !== null);
     if (files.length === 0) return;
     e.preventDefault();
+    debug('[chat-composer] paste: ingesting %d media file(s)', files.length);
     void onAttachFiles(files);
   };
 
-  // Auto-resize textarea: grow with content, cap at COMPOSER_MAX_HEIGHT, then scroll.
-  useEffect(() => {
-    const ta = textInputRef.current;
-    if (!ta) return;
-    ta.style.height = 'auto';
-    ta.style.height = `${Math.min(ta.scrollHeight, COMPOSER_MAX_HEIGHT)}px`;
-    ta.style.overflowY = ta.scrollHeight > COMPOSER_MAX_HEIGHT ? 'auto' : 'hidden';
-  }, [inputValue, textInputRef]);
+  /**
+   * `preventDefault` is load-bearing, not ceremony: Radix's
+   * `composeEventHandlers` runs this handler first and skips the primitive's own
+   * submit handler when the default was prevented. Without it a form submit
+   * would ALSO fire `aui.composer.send()`, double-sending the turn through a
+   * path that drops attachments.
+   */
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!hasContent || composerLocked) return;
+    debug('[chat-composer] submit: parallel=%s sending=%s', allowParallelSend, isSending);
+    void onSend();
+  };
 
   return (
-    <div className="relative flex flex-col gap-1">
+    <ComposerPrimitive.Root className={COMPOSER_ROOT} onSubmit={handleSubmit}>
       {/* Header stack (e.g. queued follow-ups, thread-goal editor): rendered
-          above the input box and OUTSIDE its blue focus highlight, but still
-          within the overall composer component so they move as one unit. */}
+          above the input box and OUTSIDE its focus highlight, but still within
+          the overall composer so they move as one unit. */}
       {headerSlots}
 
-      {/* The input box — only this carries the focus-within highlight. */}
+      {/* `.aui-composer-attachment-dropzone` — the only element carrying the
+          focus-within highlight and the drag state. */}
       <div
-        className="relative flex flex-col rounded-2xl border border-line bg-surface transition-all focus-within:border-primary-500/50 focus-within:ring-1 focus-within:ring-primary-500/50"
+        className={COMPOSER_DROPZONE}
+        data-dragging={isDragging ? 'true' : undefined}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}>
@@ -234,12 +319,11 @@ export default function ChatComposer({
             box's top edge regardless of whether follow-ups / the goal editor
             are open above it. */}
         {mascotDock}
-        {/* Drag-and-drop overlay: shown while a file drag hovers the composer. */}
+
         {isDragging && (
-          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary-500 bg-surface/90 text-sm font-medium text-primary-600">
-            {t('chat.attachment.dropToAttach')}
-          </div>
+          <div className={COMPOSER_DRAG_OVERLAY}>{t('chat.attachment.dropToAttach')}</div>
         )}
+
         {/* Hidden file input for attachment (gated — see attachmentsEnabled). */}
         {attachmentsEnabled && (
           <input
@@ -260,9 +344,9 @@ export default function ChatComposer({
           />
         )}
 
-        {/* Attachment preview strip */}
+        {/* `.aui-composer-attachments` */}
         {attachmentsEnabled && attachments.length > 0 && (
-          <div className="px-3 pt-2.5">
+          <div className={COMPOSER_ATTACHMENTS}>
             <AttachmentPreview
               attachments={attachments}
               onRemove={onRemoveAttachment}
@@ -271,100 +355,88 @@ export default function ChatComposer({
           </div>
         )}
 
-        {/* Single row: [+] textarea [mic] [send] */}
-        <div className="flex items-center gap-2 p-3">
-          {/* Attach button */}
-          {attachmentsEnabled && (
-            <Button
-              iconOnly
-              variant="tertiary"
-              size="xs"
-              analyticsId="chat-composer-attach-file"
-              aria-label={t('composer.attachFile')}
-              title={t('composer.attachFile')}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={
-                composerInteractionBlocked || isSending || attachments.length >= maxAttachments
-              }
-              className="!h-6 !w-6 flex-shrink-0 text-content-faint hover:bg-transparent hover:text-content-secondary">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M12 5v14m-7-7h14"
-                />
-              </svg>
-            </Button>
-          )}
+        {/* `.aui-composer-input`, with the inline-completion ghost layer behind
+            it. The ghost is positioned against this wrapper and repeats the
+            input's own padding so the suffix lands where the caret is. */}
+        <div className="relative">
+          <div aria-hidden className={COMPOSER_GHOST_OVERLAY}>
+            <span className="invisible">{inputValue}</span>
+            <span className="text-content-muted dark:text-content-muted/50">
+              {inlineCompletionSuffix}
+            </span>
+          </div>
+          <ComposerPrimitive.Input
+            ref={textInputRef}
+            rows={1}
+            className={`relative z-10 ${COMPOSER_INPUT}`}
+            placeholder={
+              placeholder ?? (allowParallelSend ? t('chat.followupHint') : t('chat.typeMessage'))
+            }
+            disabled={composerLocked}
+            // Enter/modifier semantics stay OpenHuman's: this runs first and
+            // `preventDefault`s, which suppresses the primitive's Enter →
+            // requestSubmit path. Shift+Enter falls through to the primitive
+            // and inserts a newline, as before.
+            onKeyDown={handleInputKeyDown}
+            onChange={e => setInputValue(e.target.value)}
+            onCompositionStart={() => {
+              isComposingTextRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              isComposingTextRef.current = false;
+            }}
+            onPaste={attachmentsEnabled ? handlePaste : undefined}
+            addAttachmentOnPaste={false}
+          />
+        </div>
 
-          {/* Textarea with ghost completion */}
-          <div className="relative flex-1 align-middle flex min-w-0">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words py-0.5 text-sm leading-5 font-sans">
-              <span className="invisible">{inputValue}</span>
-              <span className="text-content-muted dark:text-content-muted/50">
-                {inlineCompletionSuffix}
-              </span>
-            </div>
-            <TextArea
-              ref={textInputRef}
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              onCompositionStart={() => {
-                isComposingTextRef.current = true;
-              }}
-              onCompositionEnd={() => {
-                isComposingTextRef.current = false;
-              }}
-              onKeyDown={handleInputKeyDown}
-              onPaste={attachmentsEnabled ? handlePaste : undefined}
-              placeholder={
-                placeholder ?? (allowParallelSend ? t('chat.followupHint') : t('chat.typeMessage'))
-              }
-              rows={1}
-              disabled={textareaDisabled}
-              className="relative z-10 w-full resize-none rounded-none border-0 bg-transparent py-0.5 px-0.5 text-sm leading-5 whitespace-pre-wrap break-words font-sans text-content placeholder-content-faint outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
-            />
+        {/* `.aui-composer-action-wrapper` — add-attachment (and this app's mic)
+            on the left, the send/cancel action on the right. */}
+        <div className={COMPOSER_ACTION_WRAPPER}>
+          <div className="flex min-w-0 items-center gap-1">
+            {attachmentsEnabled && (
+              <Button
+                type="button"
+                iconOnly
+                variant="tertiary"
+                size="xs"
+                analyticsId="chat-composer-attach-file"
+                aria-label={t('composer.attachFile')}
+                title={t('composer.attachFile')}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={
+                  composerInteractionBlocked || isSending || attachments.length >= maxAttachments
+                }
+                className={COMPOSER_ADD_ATTACHMENT}>
+                <AddAttachmentIcon />
+              </Button>
+            )}
+
+            {micEnabled && (
+              <Button
+                type="button"
+                iconOnly
+                variant="tertiary"
+                size="xs"
+                analyticsId="chat-composer-voice-mode"
+                aria-label={t('composer.voiceMode')}
+                title={t('composer.voiceMode')}
+                onClick={onSwitchToMicCloud}
+                disabled={composerInteractionBlocked || isSending}
+                className={COMPOSER_MIC}>
+                <MicIcon />
+              </Button>
+            )}
           </div>
 
-          {/* Voice mode */}
-          {micEnabled && (
-            <Button
-              iconOnly
-              variant="tertiary"
-              size="xs"
-              analyticsId="chat-composer-voice-mode"
-              aria-label={t('composer.voiceMode')}
-              title={t('composer.voiceMode')}
-              onClick={onSwitchToMicCloud}
-              disabled={composerInteractionBlocked || isSending}
-              className="!h-6 !w-6 flex-shrink-0 text-content-faint hover:bg-transparent hover:text-content-secondary">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"
-                />
-              </svg>
-            </Button>
-          )}
-
-          {/* Send / Stop button — while a turn is in flight and a cancel handler
-              is wired, the Send button becomes a Stop button so generation can
-              be halted from inside the composer. Once a follow-up is typed the
-              Send arrow returns so the follow-up can be queued (parallel send)
-              instead of cancelling the current turn. */}
+          {/* Send / Stop — upstream's `ComposerAction`. While a turn is in
+              flight and a cancel handler is wired, Send becomes Stop so
+              generation can be halted from inside the composer. Once a
+              follow-up is typed the Send arrow returns so the follow-up can be
+              queued (parallel send) instead of cancelling the current turn. */}
           {showStopButton ? (
             <Button
+              type="button"
               iconOnly
               variant="primary"
               size="xs"
@@ -373,13 +445,12 @@ export default function ChatComposer({
               aria-label={t('chat.stopGeneration')}
               title={t('chat.stopGeneration')}
               onClick={onStopGeneration}
-              className="!h-6 !w-6 flex-shrink-0 rounded-full">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="6" y="6" width="12" height="12" rx="1.5" />
-              </svg>
+              className={COMPOSER_SEND}>
+              <StopIcon />
             </Button>
           ) : (
             <Button
+              type="button"
               iconOnly
               variant="primary"
               size="xs"
@@ -388,40 +459,16 @@ export default function ChatComposer({
               aria-label={t('chat.send')}
               title={t('chat.send')}
               onClick={() => {
+                debug('[chat-composer] send click: parallel=%s', allowParallelSend);
                 void onSend();
               }}
               disabled={!hasContent || composerLocked}
-              className="!h-6 !w-6 flex-shrink-0 rounded-full">
-              {showSendingSpinner ? (
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              )}
+              className={COMPOSER_SEND}>
+              {showSendingSpinner ? <SendingSpinnerIcon /> : <SendIcon />}
             </Button>
           )}
         </div>
       </div>
-    </div>
+    </ComposerPrimitive.Root>
   );
 }
