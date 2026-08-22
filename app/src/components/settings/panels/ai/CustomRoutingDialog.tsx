@@ -18,7 +18,6 @@ import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
 import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
-import NativeSelect from '../../../ui/NativeSelect';
 import TextField from '../../../ui/TextField';
 import {
   appendTemperatureToProviderString,
@@ -32,10 +31,9 @@ import {
   type Workload,
   WORKLOAD_MODEL_HINT_KEYS,
 } from './aiPanelTypes';
-import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
+import { useModelEntryMode } from './ModelEntryField';
 import { ModelTestResultPanel } from './ModelTestResultPanel';
 import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
-import { ProviderSourceSelect } from './ProviderSourceSelect';
 import { TemperatureOverrideField } from './TemperatureOverrideField';
 
 export interface CustomRoutingDialogProps {
@@ -285,6 +283,14 @@ export const CustomRoutingDialog = ({
   // Empty state only when there's genuinely nothing to route to: no custom
   // cloud providers, no local Ollama, and the Claude Code peer chip is off.
   const noProviders = customCloud.length === 0 && !localAvailable && !claudeCodeEnabled;
+  const selectedProviderLabel =
+    source?.kind === 'cloud'
+      ? (customCloud.find(provider => provider.slug === source.providerSlug)?.label ?? source.providerSlug)
+      : source?.kind === 'local'
+        ? t('settings.ai.localOllama')
+        : source?.kind === 'claude-code'
+          ? t('settings.ai.claudeCode.modalTitle')
+          : t('settings.ai.providerLabel');
 
   return (
     <ModalShell
@@ -328,103 +334,20 @@ export const CustomRoutingDialog = ({
         </Alert>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs text-content-secondary">
-                {t('settings.ai.providerLabel')}
-              </Label>
-              <Button type="button" variant="tertiary" size="xs" onClick={() => setPickerOpen(true)}>
-                Browse providers and models
-              </Button>
-            </div>
-            <ProviderSourceSelect
-              source={source}
-              cloudProviders={customCloud}
-              localAvailable={localAvailable}
-              localLabel={t('settings.ai.localOllama')}
-              claudeCodeEnabled={claudeCodeEnabled}
-              claudeCodeLabel={t('settings.ai.claudeCode.modalTitle')}
-              ariaLabel={t('settings.ai.providerLabel')}
-              onChange={nextSource => {
-                resetTestState();
-                setSource(nextSource);
-                if (nextSource.kind === 'local') {
-                  setModel(localModels[0]?.id ?? '');
-                  modelEntry.syncToEndpoint(undefined);
-                } else if (nextSource.kind === 'cloud') {
-                  setModel('');
-                  // Azure connections need a deployment name, which the
-                  // catalog never lists — start on free text (#5213).
-                  modelEntry.syncToEndpoint(
-                    customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
-                  );
-                } else {
-                  setModel(CLAUDE_CODE_DEFAULT_MODEL);
-                  modelEntry.syncToEndpoint(undefined);
-                }
-              }}
-            />
-          </div>
-
-          {source?.kind === 'local' ? (
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs text-content-secondary">
-                {t('settings.ai.modelLabel')}
-              </Label>
-              <NativeSelect
-                value={model}
-                onChange={e => {
-                  resetTestState();
-                  setModel(e.target.value);
-                }}
-                className="w-full">
-                {localModels.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.id}
-                  </option>
-                ))}
-              </NativeSelect>
-            </div>
-          ) : source?.kind === 'claude-code' ? (
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs text-content-secondary">
-                {t('settings.ai.modelLabel')}
-              </Label>
-              <TextField
-                type="text"
-                mono
-                value={model}
-                onChange={e => setModel(e.target.value)}
-                placeholder="sonnet"
-              />
-              <p className="text-[11px] text-content-muted">
-                {t('settings.ai.claudeCode.modelHelp')}
-              </p>
-            </div>
-          ) : (
-            <ModelEntryField
-              mode={modelEntry}
-              model={model}
-              onModelChange={next => {
-                resetTestState();
-                setModel(next);
-              }}
-              catalog={cloudModels}
-              catalogLoading={cloudModelsLoading}
-              catalogError={cloudModelsError}
-              onRetry={() => setModelsKey(k => k + 1)}
-              label={t('settings.ai.modelLabel')}
-              placeholder={
-                selectedCloud
-                  ? formatI18n(t('settings.ai.modelIdPlaceholderForProvider'), {
-                      slug: selectedCloud.slug,
-                    })
-                  : t('settings.ai.modelIdPlaceholder')
-              }
-              analyticsId="ai-model-entry-mode-toggle"
-              optionLabel={m => `${humanizeModelId(m.id)} — ${m.id}`}
-            />
-          )}
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            onClick={() => setPickerOpen(true)}
+            className="h-auto w-full justify-between px-3 py-2.5 text-left">
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-xs font-medium text-content-secondary">Provider and model</span>
+              <span className="truncate text-sm font-medium text-content">
+                {model ? `${selectedProviderLabel} · ${model}` : 'Select provider and model'}
+              </span>
+            </span>
+            <span className="text-xs text-content-muted">Change</span>
+          </Button>
 
           <TemperatureOverrideField temperature={temperature} onChange={setTemperature} />
 

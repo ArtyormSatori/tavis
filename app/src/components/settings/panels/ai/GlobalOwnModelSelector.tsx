@@ -16,7 +16,6 @@ import Button from '../../../ui/Button';
 import Card from '../../../ui/Card';
 import Checkbox from '../../../ui/Checkbox';
 import Label from '../../../ui/Label';
-import NativeSelect from '../../../ui/NativeSelect';
 import { isAzureFoundryEndpoint } from '../azureDeployment';
 import {
   CLAUDE_CODE_DEFAULT_MODEL,
@@ -28,7 +27,6 @@ import {
 } from './aiPanelTypes';
 import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
-import { ProviderSourceSelect } from './ProviderSourceSelect';
 
 export const GlobalOwnModelSelector = ({
   current,
@@ -177,6 +175,14 @@ export const GlobalOwnModelSelector = ({
     selectedRef !== null &&
     saved !== null &&
     providerRefSignature(selectedRef) === providerRefSignature(saved);
+  const selectedProviderLabel =
+    source?.kind === 'cloud'
+      ? (customCloud.find(provider => provider.slug === source.providerSlug)?.label ?? source.providerSlug)
+      : source?.kind === 'local'
+        ? t('settings.ai.provider.ollama')
+        : source?.kind === 'claude-code'
+          ? t('settings.ai.claudeCode.modalTitle')
+          : t('settings.ai.globalModel.provider');
 
   const applySelection = async (nextSource: CustomDialogSource | null, nextModel: string) => {
     if (!nextSource || !nextModel.trim()) return;
@@ -210,73 +216,20 @@ export const GlobalOwnModelSelector = ({
         </Alert>
       ) : (
         <>
-          <div className="flex w-full flex-col gap-4 md:flex-row md:items-start">
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <Label className="text-xs text-content-secondary">
-                  {t('settings.ai.globalModel.provider')}
-                </Label>
-                <Button type="button" variant="tertiary" size="xs" onClick={() => setPickerOpen(true)}>
-                  Browse providers and models
-                </Button>
-              </div>
-              <ProviderSourceSelect
-                source={source}
-                cloudProviders={customCloud}
-                localAvailable={localAvailable}
-                localLabel={t('settings.ai.provider.ollama')}
-                claudeCodeEnabled={claudeCodeEnabled}
-                claudeCodeLabel={t('settings.ai.claudeCode.modalTitle')}
-                ariaLabel={t('settings.ai.globalModel.provider')}
-                onChange={nextSource => {
-                  setSource(nextSource);
-                  if (nextSource.kind === 'local') {
-                    setModel(localModels[0]?.id ?? '');
-                    modelEntry.syncToEndpoint(undefined);
-                  } else if (nextSource.kind === 'claude-code') {
-                    setModel(CLAUDE_CODE_DEFAULT_MODEL);
-                    modelEntry.syncToEndpoint(undefined);
-                  } else {
-                    setModel('');
-                    modelEntry.syncToEndpoint(
-                      customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
-                    );
-                  }
-                }}
-              />
-            </div>
-
-            {source?.kind === 'local' ? (
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <Label className="text-xs text-content-secondary">
-                  {t('settings.ai.globalModel.model')}
-                </Label>
-                <NativeSelect
-                  value={model}
-                  onChange={e => setModel(e.target.value)}
-                  className="w-full">
-                  {localModels.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.id}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </div>
-            ) : (
-              <ModelEntryField
-                className="min-w-0 flex-1"
-                mode={modelEntry}
-                model={model}
-                onModelChange={setModel}
-                catalog={cloudModels}
-                catalogLoading={cloudModelsLoading}
-                catalogError={cloudModelsError}
-                label={t('settings.ai.globalModel.model')}
-                placeholder={t('settings.ai.globalModel.enterModelId')}
-                analyticsId="ai-global-model-entry-mode-toggle"
-              />
-            )}
-          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            onClick={() => setPickerOpen(true)}
+            className="h-auto w-full justify-between px-3 py-2.5 text-left">
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-xs font-medium text-content-secondary">Provider and model</span>
+              <span className="truncate text-sm font-medium text-content">
+                {model ? `${selectedProviderLabel} · ${model}` : 'Select provider and model'}
+              </span>
+            </span>
+            <span className="text-xs text-content-muted">Change</span>
+          </Button>
           {registrySlug && model.trim().length > 0 && (
             <Label className="flex items-start gap-2 text-xs text-content-secondary">
               <Checkbox
