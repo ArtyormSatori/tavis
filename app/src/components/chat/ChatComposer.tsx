@@ -154,14 +154,17 @@ export interface ChatComposerProps {
  * host surface passes down as `isSending`. Reading it directly keeps the
  * composer renderable by surfaces whose thread is not the runtime's.
  *
- * ## Runtime context is required
+ * ## Runtime context
  *
  * `ComposerPrimitive.*` reads its runtime from React context, so every surface
- * rendering this component must sit under an `AssistantUiRuntimeProvider`
- * scoped to *its own* thread. Two surfaces did not, and inheriting the app-wide
- * runtime (bound to `selectedThreadId`) would have pointed their composer at
- * the home chat's thread; both now mount their own. See the comments at those
- * mount sites in `WorkflowCopilotPanel` and `orchestration/AgentChatPanel`.
+ * rendering this component should sit under a runtime scoped to *its own*
+ * thread. Two did not, and would have inherited the app-wide one bound to
+ * `selectedThreadId` — the home chat's thread; both now mount their own (see
+ * `WorkflowCopilotPanel` and `orchestration/AgentChatPanel`). The default
+ * export wraps this body in `ComposerRuntimeBoundary`, which supplies an inert
+ * runtime when there is none at all; read that file before assuming the
+ * boundary makes the per-surface decision unnecessary — it cannot, because an
+ * inherited runtime and a correct one are indistinguishable from in here.
  */
 function ChatComposerBody({
   inputValue,

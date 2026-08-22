@@ -238,6 +238,38 @@ describe('ChatComposer', () => {
     expect(onSwitchToMicCloud).toHaveBeenCalledTimes(1);
   });
 
+  describe('runtime boundary', () => {
+    it('renders with no assistant-ui runtime in context at all', () => {
+      // The primitives throw on a missing runtime; the boundary supplies an
+      // inert one so a host that mounts none still gets a working composer
+      // rather than a crash. Note the deliberate absence of `wrapper: Runtime`.
+      render(
+        <ChatComposer
+          inputValue="standalone"
+          setInputValue={vi.fn()}
+          onSend={vi.fn().mockResolvedValue(undefined)}
+          textInputRef={createRef<HTMLTextAreaElement | null>()}
+          fileInputRef={createRef<HTMLInputElement | null>()}
+          composerInteractionBlocked={false}
+          isSending={false}
+          attachments={[]}
+          onAttachFiles={vi.fn().mockResolvedValue(undefined)}
+          onRemoveAttachment={vi.fn()}
+          attachError={null}
+          onSwitchToMicCloud={vi.fn()}
+          handleInputKeyDown={vi.fn()}
+          inlineCompletionSuffix=""
+          isComposingTextRef={{ current: false }}
+          maxAttachments={0}
+          allowedMimeTypes={[]}
+          attachmentsEnabled={false}
+        />
+      );
+      expect(screen.getByRole('textbox')).toHaveValue('standalone');
+      expect(screen.getByTestId('send-message-button')).toBeInTheDocument();
+    });
+  });
+
   describe('assistant-ui composer text bridge', () => {
     it('renders the inputValue prop through the primitive input', () => {
       // The primitive is not a controlled React input — it renders the
