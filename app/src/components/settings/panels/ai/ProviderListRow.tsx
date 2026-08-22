@@ -74,24 +74,24 @@ export interface ProviderRowAction {
 
 const PROVIDER_SWATCH_TONES: Record<string, string> = {
   openai: 'bg-black text-white ring-white/30',
-  anthropic: 'bg-[#D97757]/15 text-[#D97757] ring-[#D97757]/40',
-  'claude-code': 'bg-[#D97757]/15 text-[#D97757] ring-[#D97757]/40',
-  google: 'bg-[#4285F4]/10 text-[#4285F4] ring-[#4285F4]/35',
-  mistral: 'bg-[#FF7000]/10 text-[#FF7000] ring-[#FF7000]/35',
-  huggingface: 'bg-[#FFD21E]/15 text-[#B88600] ring-[#FFD21E]/45',
-  nvidia: 'bg-[#76B900]/10 text-[#5A8F00] ring-[#76B900]/40',
+  anthropic: 'bg-[#D97757] text-white ring-white/30',
+  'claude-code': 'bg-[#D97757] text-white ring-white/30',
+  google: 'bg-[#4285F4] text-white ring-white/30',
+  mistral: 'bg-[#FF7000] text-white ring-white/30',
+  huggingface: 'bg-[#B88600] text-white ring-white/30',
+  nvidia: 'bg-[#5A8F00] text-white ring-white/30',
   'vercel-ai-gateway': 'bg-black text-white ring-white/30',
   xai: 'bg-black text-white ring-white/30',
-  zai: 'bg-[#FF6A00]/10 text-[#FF6A00] ring-[#FF6A00]/35',
+  zai: 'bg-[#FF6A00] text-white ring-white/30',
   ollama: 'bg-black text-white ring-white/30',
-  openrouter: 'bg-[#7624F4]/10 text-[#7624F4] ring-[#7624F4]/35',
-  deepseek: 'bg-[#4D6BFE]/10 text-[#4D6BFE] ring-[#4D6BFE]/35',
-  cerebras: 'bg-[#FF6A00]/10 text-[#FF6A00] ring-[#FF6A00]/35',
-  fireworks: 'bg-[#EF476F]/10 text-[#EF476F] ring-[#EF476F]/35',
-  groq: 'bg-[#F55036]/10 text-[#F55036] ring-[#F55036]/35',
-  minimax: 'bg-[#7048E8]/10 text-[#7048E8] ring-[#7048E8]/35',
-  moonshot: 'bg-[#5B5CE2]/10 text-[#5B5CE2] ring-[#5B5CE2]/35',
-  together: 'bg-[#9D36D5]/10 text-[#9D36D5] ring-[#9D36D5]/35',
+  openrouter: 'bg-[#7624F4] text-white ring-white/30',
+  deepseek: 'bg-[#4D6BFE] text-white ring-white/30',
+  cerebras: 'bg-[#FF6A00] text-white ring-white/30',
+  fireworks: 'bg-[#EF476F] text-white ring-white/30',
+  groq: 'bg-[#F55036] text-white ring-white/30',
+  minimax: 'bg-[#7048E8] text-white ring-white/30',
+  moonshot: 'bg-[#5B5CE2] text-white ring-white/30',
+  together: 'bg-[#9D36D5] text-white ring-white/30',
 };
 
 /**
@@ -119,7 +119,7 @@ export const ProviderSwatch = ({
       data-slot="provider-swatch"
       className={cn(
         'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-xs font-semibold ring-1',
-        PROVIDER_SWATCH_TONES[slug] ?? tone
+        PROVIDER_SWATCH_TONES[slug] ?? 'bg-content text-surface ring-white/30'
       )}>
       {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
     </span>
