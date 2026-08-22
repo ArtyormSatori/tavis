@@ -266,32 +266,20 @@
      `data-scrolling`. Deleted rather than kept as a trap; scrollbars are thin
      and theme-tinted app-wide now, so nothing needs to opt in. */
 
-  /* Hide scrollbar while keeping scroll behavior */
+  /* Hide scrollbar while keeping scroll behavior.
+     Kept as hand-written CSS deliberately: `scrollbar-width: none` has a
+     Tailwind utility (`scrollbar-none` isn't in core, but the property is
+     expressible), yet the matching `::-webkit-scrollbar { display: none }`
+     pseudo-element rule is not something a utility class can express — there
+     is no `webkit-scrollbar` variant in Tailwind. Both halves are required
+     together (Firefox honours the first, Chromium/CEF the second), so this
+     one rule stays as CSS rather than a partial migration. */
   .scrollbar-hide {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-  }
-
-  /* Text selection styling */
-  .select-primary::selection {
-    @apply bg-primary-600 text-white;
-  }
-
-  /* Glass effect for light theme */
-  .glass {
-    backdrop-filter: blur(12px);
-    /* Themeable: surface tint + line border follow the active theme. */
-    background: rgb(var(--surface) / 0.8);
-    border: 1px solid rgb(var(--line) / 0.6);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  :root.dark .glass {
-    /* Only the shadow needs a darker variant; colours come from the tokens. */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   }
 
   /* Animation utilities */
