@@ -53,6 +53,11 @@ const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
  *  provider, so it cannot collide with a real slug. */
 const CUSTOM_OPTION = '__custom__';
 
+/** CLI logins, in dialog order. `openai` is Codex's stored slug: the Codex
+ *  CLI login IS an OpenAI credential, which is why connecting it busies the
+ *  `toggle-openai` action. */
+const CLI_LOGIN_SLUGS = ['claude-code', 'codex'] as const;
+
 /** An endpoint URL reads better in a one-line menu item as just its host. */
 const hostOf = (endpoint: string): string => {
   try {
@@ -127,8 +132,13 @@ export const ProviderAuthSection = ({
     cp => !BUILTIN_RESERVED_SLUGS.includes(cp.slug)
   );
 
+  // Four categories, in the order a user is likely to want them. Each lists
+  // only what is NOT connected — the panel behind the dialog already shows the
+  // rest, and offering to add something twice is how you get two rows for one
+  // provider.
   const pickerGroups: ProviderOptionGroup[] = [
     {
+      id: 'cloud',
       title: t('settings.ai.providers.groupCloud'),
       options: BUILTIN_CLOUD_PROVIDER_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
         slug,
@@ -138,16 +148,8 @@ export const ProviderAuthSection = ({
       })),
     },
     {
-      title: t('settings.ai.providers.groupLocal'),
-      options: LOCAL_RUNTIME_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
-        slug,
-        label: LOCAL_CHIP_LABEL[slug as LocalChipSlug],
-        tone: LOCAL_CHIP_TONE[slug as LocalChipSlug],
-        detail: t('settings.ai.providers.localDetail'),
-      })),
-    },
-    {
-      title: t('settings.ai.providers.groupOther'),
+      id: 'custom',
+      title: t('settings.ai.providers.groupCustom'),
       options: [
         {
           slug: CUSTOM_OPTION,
@@ -157,12 +159,46 @@ export const ProviderAuthSection = ({
         },
       ],
     },
+    {
+      id: 'local',
+      title: t('settings.ai.providers.groupLocal'),
+      options: LOCAL_RUNTIME_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
+        slug,
+        label: LOCAL_CHIP_LABEL[slug as LocalChipSlug],
+        tone: LOCAL_CHIP_TONE[slug as LocalChipSlug],
+        detail: t('settings.ai.providers.localDetail'),
+      })),
+    },
+    {
+      // These do not store a key here; each imports a credential another tool
+      // already owns, so picking one connects directly with no dialog of its
+      // own to open.
+      id: 'cli',
+      title: t('settings.ai.providers.groupCli'),
+      options: CLI_LOGIN_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
+        slug,
+        label:
+          slug === 'claude-code'
+            ? t('settings.ai.claudeCode.button')
+            : t('settings.ai.codexAuthButton'),
+        tone: BUILTIN_PROVIDER_META.custom?.tone ?? '',
+        detail: t('settings.ai.providers.cliDetail'),
+      })),
+    },
   ];
 
   const handlePick = (slug: string) => {
     setAddOpen(false);
     if (slug === CUSTOM_OPTION) {
       onAddCustomProvider();
+      return;
+    }
+    if (slug === 'codex') {
+      onConnectCodex();
+      return;
+    }
+    if (slug === 'claude-code') {
+      void onConnectProvider({ slug, value: 'cli_login', credentialMode: 'cli_login' });
       return;
     }
     const localLabel = LOCAL_RUNTIME_SLUGS.includes(slug as (typeof LOCAL_RUNTIME_SLUGS)[number])
