@@ -240,7 +240,7 @@ export const ProviderAuthSection = ({
         </div>
 
         <Card title={t('settings.ai.llmProviders')} description={t('settings.ai.llmProvidersDesc')}>
-          <div className="flex justify-end px-4 py-3">
+          <div className="flex justify-end px-4 py-2">
             <Button
               type="button"
               variant="primary"

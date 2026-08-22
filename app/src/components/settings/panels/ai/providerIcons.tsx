@@ -94,21 +94,6 @@ const PROVIDER_ASSETS: Record<string, string> = {
   zai: zaiLogo,
 };
 
-/** Brand colour treatment for marks that appear inside neutral provider swatches. */
-const PROVIDER_ICON_COLORS: Record<string, string> = {
-  openai: 'text-white',
-  anthropic: 'text-[#D97757]',
-  'claude-code': 'text-[#D97757]',
-  google: 'text-[#4285F4]',
-  mistral: 'text-[#FF7000]',
-  huggingface: 'text-[#FFD21E]',
-  nvidia: 'text-[#76B900]',
-  'vercel-ai-gateway': 'text-black dark:text-white',
-  xai: 'text-black dark:text-white',
-  zai: 'text-[#FF6A00]',
-  ollama: 'text-black dark:text-white',
-};
-
 /**
  * The rendered brand mark for a provider slug, or `null` when we ship none.
  *
@@ -121,10 +106,15 @@ const PROVIDER_ICON_COLORS: Record<string, string> = {
  */
 export const providerIcon = (slug: string, className: string): ReactElement | null => {
   const icon = PROVIDER_ICONS[slug];
-  if (icon) return createElement(icon, { className: cn(className, PROVIDER_ICON_COLORS[slug]) });
+  if (icon) return createElement(icon, { className: cn(className, 'text-white') });
   const asset = PROVIDER_ASSETS[slug];
   return asset ? (
-    <img src={asset} alt="" aria-hidden className={cn(className, 'object-contain')} />
+    <img
+      src={asset}
+      alt=""
+      aria-hidden
+      className={cn(className, 'object-contain brightness-0 invert')}
+    />
   ) : null;
 };
 
