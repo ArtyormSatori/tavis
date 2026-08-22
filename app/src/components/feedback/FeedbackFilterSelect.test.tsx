@@ -104,7 +104,7 @@ describe('<FeedbackFilterSelect />', () => {
     expect(onChange).toHaveBeenCalledWith('feature');
   });
 
-  it('jumps to the last option with End and to the first with Home', async () => {
+  it('jumps to the last option with End', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
@@ -116,8 +116,18 @@ describe('<FeedbackFilterSelect />', () => {
     await user.keyboard('{Enter}');
 
     expect(onChange).toHaveBeenCalledWith('bug');
+  });
 
-    onChange.mockClear();
+  // Starts at the LAST option deliberately. Radix treats re-selecting the
+  // current value as a no-op and fires no `onValueChange`, so a Home test that
+  // started at `all` would assert nothing while appearing to pass.
+  it('jumps to the first option with Home', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <FeedbackFilterSelect value="bug" options={OPTIONS} onChange={onChange} ariaLabel="Type" />
+    );
+
     await user.click(screen.getByRole('combobox', { name: 'Type' }));
     await user.keyboard('{Home}');
     await user.keyboard('{Enter}');
