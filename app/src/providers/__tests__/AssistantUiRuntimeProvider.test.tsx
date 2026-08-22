@@ -7,7 +7,7 @@
  * `assistantUiMessages` prove the projection; this proves the runtime consumes
  * it, so the runtime's view of the conversation and the store cannot drift.
  */
-import { useThread } from '@assistant-ui/react';
+import { useAui, useAuiState } from '@assistant-ui/react';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { act, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
@@ -53,7 +53,7 @@ function buildStore(messages: ThreadMessage[]) {
 
 /** Renders what assistant-ui's runtime believes the thread contains. */
 function RuntimeProbe() {
-  const thread = useThread();
+  const thread = useAuiState(({ thread: t }) => t);
   return (
     <div>
       <div data-testid="count">{thread.messages.length}</div>
