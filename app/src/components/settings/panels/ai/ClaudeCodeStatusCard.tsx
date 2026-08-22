@@ -156,7 +156,7 @@ function InlineSummary({
       ? ` (${formatSubscriptionType(auth.subscription_type)})`
       : '';
     return (
-      <span className="text-emerald-600 dark:text-emerald-400">
+      <span className="text-sage-600 dark:text-sage-400">
         {t('settings.ai.claudeCode.signedInAs')} {who}
         {plan}
       </span>
@@ -164,7 +164,7 @@ function InlineSummary({
   }
   if (auth.source === 'api_key_env') {
     return (
-      <span className="text-emerald-600 dark:text-emerald-400">
+      <span className="text-sage-600 dark:text-sage-400">
         {t('settings.ai.claudeCode.usingApiKeyEnv')}
       </span>
     );
@@ -275,7 +275,7 @@ function ClaudeCodeModal({
             <div className="font-medium text-content">{t('settings.ai.claudeCode.connection')}</div>
             <div
               className={
-                connected ? 'text-emerald-600 dark:text-emerald-400' : 'text-content-muted'
+                connected ? 'text-sage-600 dark:text-sage-400' : 'text-content-muted'
               }>
               {connected
                 ? t('settings.ai.claudeCode.enabled')
@@ -333,7 +333,7 @@ function ClaudeCodeModal({
               {t('settings.ai.claudeCode.loginHint')}
             </p>
             {launchError && (
-              <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400" role="alert">
+              <p className="mt-1 text-[11px] text-coral-600 dark:text-coral-400" role="alert">
                 {launchError}
               </p>
             )}
@@ -396,7 +396,7 @@ function AuthDetail({ auth, loading }: { auth: ClaudeCodeAuthStatus | null; load
       ? ` (${formatSubscriptionType(auth.subscription_type)})`
       : '';
     return (
-      <p className="text-xs text-emerald-600 dark:text-emerald-400">
+      <p className="text-xs text-sage-600 dark:text-sage-400">
         {t('settings.ai.claudeCode.signedInAs')} {who}
         {plan}
       </p>
@@ -404,7 +404,7 @@ function AuthDetail({ auth, loading }: { auth: ClaudeCodeAuthStatus | null; load
   }
   if (auth.source === 'api_key_env') {
     return (
-      <p className="text-xs text-emerald-600 dark:text-emerald-400">
+      <p className="text-xs text-sage-600 dark:text-sage-400">
         {t('settings.ai.claudeCode.usingApiKeyEnvDetail')}
       </p>
     );
