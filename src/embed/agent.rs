@@ -294,12 +294,18 @@ impl Turn<'_> {
 
         // Never transmit the bearer over a non-TLS channel. The route accepts
         // an arbitrary base URL, so guard here — before any request is built —
-        // rather than trusting every embedder to only name https endpoints.
-        if let Some(endpoint) = self.request.inference_url.as_deref() {
-            if has_api_key && !is_https_endpoint(endpoint) {
-                return Err(crate::embed::error::CoreError::InsecureRoute {
-                    endpoint: sanitize_url_for_display(endpoint),
-                });
+        // rather than trusting every embedder to only name https endpoints. A
+        // `Route` is refused when it pairs a credential with a non-HTTPS
+        // endpoint; a route without a credential is allowed through (some
+        // embedders run a local, unauthenticated OpenAI-compatible server over
+        // plain http, and there is nothing sensitive on the wire for them).
+        if self.request.api_key.as_deref().is_some_and(|k| !k.is_empty()) {
+            if let Some(endpoint) = self.request.inference_url.as_deref() {
+                if !is_https_endpoint(endpoint) {
+                    return Err(crate::embed::error::CoreError::InsecureRoute {
+                        endpoint: sanitize_url_for_display(endpoint),
+                    });
+                }
             }
         }
 
