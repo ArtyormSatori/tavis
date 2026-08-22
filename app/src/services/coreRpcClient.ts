@@ -85,6 +85,9 @@ let resolvingCoreRpcToken: Promise<string | null> | null = null;
 // The one snapshot the shell answered with, resolved atomically so the URL
 // and bearer can never describe different cores (see `resolveShellEndpoint`).
 let shellEndpoint: { url: string; token: string } | null = null;
+// In-flight `core_rpc_endpoint` call, so concurrent URL+token resolution is
+// served by a single invoke (see `resolveShellEndpoint`).
+let resolvingShellEndpoint: Promise<{ url: string; token: string } | null> | null = null;
 
 // ---------------------------------------------------------------------------
 // Active transport override (used by iOS / remote profiles)
@@ -296,6 +299,7 @@ export function clearCoreRpcUrlCache(): void {
   resolvedCoreRpcUrl = null;
   resolvingCoreRpcUrl = null;
   shellEndpoint = null;
+  resolvingShellEndpoint = null;
 }
 
 /**
@@ -340,6 +344,7 @@ export function clearCoreRpcTokenCache(): void {
   didResolveCoreRpcToken = false;
   resolvingCoreRpcToken = null;
   shellEndpoint = null;
+  resolvingShellEndpoint = null;
   coreRpcTokenInvalidationBus.dispatchEvent(new Event(CORE_RPC_TOKEN_INVALIDATED_EVENT));
 }
 const coreRpcLog = debug('core-rpc');
@@ -378,14 +383,20 @@ function coreRpcErrorMessage(err: unknown): string {
 async function resolveShellEndpoint(): Promise<{ url: string; token: string } | null> {
   if (shellEndpoint) return shellEndpoint;
   if (!isTauri()) return null;
-  try {
-    const endpoint = await invoke<{ url: string; token: string }>('core_rpc_endpoint');
-    shellEndpoint = { url: endpoint?.url ?? '', token: endpoint?.token ?? '' };
-    return shellEndpoint;
-  } catch (err) {
-    coreRpcError('failed to resolve core RPC endpoint', sanitizeError(err));
-    return null;
-  }
+  if (resolvingShellEndpoint) return resolvingShellEndpoint;
+  resolvingShellEndpoint = (async () => {
+    try {
+      const endpoint = await invoke<{ url: string; token: string }>('core_rpc_endpoint');
+      shellEndpoint = { url: endpoint?.url ?? '', token: endpoint?.token ?? '' };
+      return shellEndpoint;
+    } catch (err) {
+      coreRpcError('failed to resolve core RPC endpoint', sanitizeError(err));
+      return null;
+    } finally {
+      resolvingShellEndpoint = null;
+    }
+  })();
+  return resolvingShellEndpoint;
 }
 
 export async function getCoreRpcUrl(): Promise<string> {
