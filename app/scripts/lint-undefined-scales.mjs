@@ -98,7 +98,12 @@ function shadeResolver() {
     return typeof entry === 'object' && entry !== null && Boolean(entry[shade]);
   };
 
-  return shadeExists;
+  // Names carrying at least one numeric shade — what a caller may legally write
+  // as `<utility>-<name>-<shade>`. Used only for the operator-facing message.
+  const scaleNames = Object.keys(colors).filter(
+    k => typeof colors[k] === 'object' && colors[k] !== null && Object.keys(colors[k]).some(x => /^\d+$/.test(x))
+  );
+  return { shadeExists, scaleNames };
 }
 
 
@@ -119,7 +124,7 @@ function* walk(dir) {
   }
 }
 
-const shadeExists = shadeResolver();
+const { shadeExists, scaleNames } = shadeResolver();
 const violations = [];
 
 for (const file of walk(path.join(appRoot, 'src'))) {
@@ -143,10 +148,12 @@ if (violations.length > 0) {
   );
   for (const v of violations) console.error(`  ${v}`);
   console.error(
-    `\nAllowed scales: ${[...allowed].sort().join(', ')}\n` +
+    `\nScales that define numeric shades: ${[...scaleNames].sort().join(', ')}\n` +
       `Fix by choosing a defined semantic token — do NOT add the missing scale to tailwind.config.js.`
   );
   process.exit(1);
 }
 
-console.log(`lint:ui-tokens: no undefined colour scales (${allowed.size} scales allowed).`);
+console.log(
+  `lint:ui-tokens: no undefined colour scales (${scaleNames.length} shade-bearing scales).`
+);
