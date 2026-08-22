@@ -12,7 +12,6 @@
  */
 import { useRef, useState } from 'react';
 
-import { cn } from '../../../lib/cn';
 import { useT } from '../../../lib/i18n/I18nContext';
 import {
   clearCloudProviderKey,
@@ -22,7 +21,6 @@ import { connectOpenRouterViaOAuth } from '../../../utils/openrouterOAuth';
 import PanelPage from '../../layout/PanelPage';
 import Alert from '../../ui/Alert';
 import Button from '../../ui/Button';
-import Card from '../../ui/Card';
 import { ModalShell } from '../../ui/ModalShell';
 import SettingsBackButton from '../components/SettingsBackButton';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
@@ -158,6 +156,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
         {
           id: 'providers',
           label: t('settings.ai.llmProviders'),
+          contentClassName: embedded ? '' : 'p-4',
           content: (
             <div className="flex w-full flex-col">
               <ProviderAuthSection
@@ -188,6 +187,7 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
         {
           id: 'routing',
           label: t('settings.ai.routing'),
+          contentClassName: embedded ? '' : 'p-4',
           description: t('settings.ai.routingDesc'),
           content: (
             <div className="flex w-full flex-col">
