@@ -7,8 +7,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import {
   describeProviderVerificationFailure,
-  listProviderModels,
-  type ModelInfo,
   type ModelRegistryEntry,
   modelRegistryVision,
   testProviderModel,
@@ -24,14 +22,11 @@ import {
   CLAUDE_CODE_DEFAULT_MODEL,
   type CloudProvider,
   type CustomDialogSource,
-  formatI18n,
-  humanizeModelId,
   type OllamaModel,
   type ProviderRef,
   type Workload,
   WORKLOAD_MODEL_HINT_KEYS,
 } from './aiPanelTypes';
-import { useModelEntryMode } from './ModelEntryField';
 import { ModelTestResultPanel } from './ModelTestResultPanel';
 import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
 import { TemperatureOverrideField } from './TemperatureOverrideField';
@@ -94,10 +89,6 @@ export const CustomRoutingDialog = ({
     if (initialSource?.kind === 'claude-code') return CLAUDE_CODE_DEFAULT_MODEL;
     return localModels[0]?.id ?? '';
   });
-  const [cloudModels, setCloudModels] = useState<ModelInfo[]>([]);
-  const [cloudModelsLoading, setCloudModelsLoading] = useState(false);
-  const [cloudModelsError, setCloudModelsError] = useState<string | null>(null);
-  const [modelsKey, setModelsKey] = useState(0);
   const [testBusy, setTestBusy] = useState(false);
   const [testReply, setTestReply] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
@@ -151,61 +142,8 @@ export const CustomRoutingDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registrySlug, model, visionLocked]);
 
-  const selectedCloud =
-    source?.kind === 'cloud' ? customCloud.find(c => c.slug === source.providerSlug) : undefined;
-  // Azure routes inference by deployment name, so the model field is relabelled
-  // and defaults to free text for these connections (#5213). Shared with the
-  // global "Use Your Own Models" card so the two pickers cannot drift.
-  const modelEntry = useModelEntryMode({
-    endpoint: selectedCloud?.endpoint,
-    model,
-    catalogIds: cloudModels.map(m => m.id),
-  });
-
-  // Fetch available models whenever the selected cloud provider changes.
-  const selectedSlug = source?.kind === 'cloud' ? source.providerSlug : null;
-  useEffect(() => {
-    if (!selectedSlug) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCloudModels([]);
-      setCloudModelsError(null);
-      return;
-    }
-    const provider = customCloud.find(c => c.slug === selectedSlug);
-    if (!provider) {
-      setCloudModels([]);
-      setCloudModelsError(null);
-      return;
-    }
-    let active = true;
-    setCloudModelsLoading(true);
-    setCloudModels([]);
-    setCloudModelsError(null);
-    console.debug('[ai-settings] fetching models for provider', provider.slug);
-    listProviderModels(provider.slug)
-      .then(ms => {
-        if (!active) return;
-        console.debug('[ai-settings] fetched', ms.length, 'models for', provider.slug);
-        setCloudModels(ms);
-        setCloudModelsLoading(false);
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error('[ai-settings] listProviderModels failed for', provider.slug, ':', msg);
-        setCloudModelsError(msg);
-        setCloudModelsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-    // customCloud is stable for the dialog's lifetime (prop doesn't change mid-open)
-    // modelsKey is the manual retry trigger
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSlug, modelsKey]);
-
   const canSave = source !== null && model.trim().length > 0;
-  const canTest = canSave && !cloudModelsLoading;
+  const canTest = canSave;
 
   const resetTestState = () => {
     testRequestIdRef.current += 1;
@@ -389,11 +327,6 @@ export const CustomRoutingDialog = ({
                 resetTestState();
                 setSource(nextSource);
                 setModel(nextModel);
-                modelEntry.syncToEndpoint(
-                  nextSource.kind === 'cloud'
-                    ? customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
-                    : undefined
-                );
                 setPickerOpen(false);
               }}
             />

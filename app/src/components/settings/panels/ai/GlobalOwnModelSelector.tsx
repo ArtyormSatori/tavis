@@ -5,18 +5,12 @@
 import { useEffect, useState } from 'react';
 
 import { useT } from '../../../../lib/i18n/I18nContext';
-import {
-  listProviderModels,
-  type ModelInfo,
-  type ModelRegistryEntry,
-  modelRegistryVision,
-} from '../../../../services/api/aiSettingsApi';
+import { type ModelRegistryEntry, modelRegistryVision } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
 import Card from '../../../ui/Card';
 import Checkbox from '../../../ui/Checkbox';
 import Label from '../../../ui/Label';
-import { isAzureFoundryEndpoint } from '../azureDeployment';
 import {
   CLAUDE_CODE_DEFAULT_MODEL,
   type CloudProvider,
@@ -25,7 +19,6 @@ import {
   type ProviderRef,
   providerRefSignature,
 } from './aiPanelTypes';
-import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import { ProviderModelPickerDialog } from './ProviderModelPickerDialog';
 
 export const GlobalOwnModelSelector = ({
@@ -100,67 +93,8 @@ export const GlobalOwnModelSelector = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registrySlug, model]);
-  const [cloudModels, setCloudModels] = useState<ModelInfo[]>([]);
-  const [cloudModelsLoading, setCloudModelsLoading] = useState(false);
-  const [cloudModelsError, setCloudModelsError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-
-  const selectedSlug = source?.kind === 'cloud' ? source.providerSlug : null;
-  const selectedCloud = customCloud.find(c => c.slug === selectedSlug);
-  // Azure deployment names are never in the probed catalog, so free text is the
-  // only way to reach them (#5213). Same hook as CustomRoutingDialog — the two
-  // pickers deliberately share one implementation.
-  const modelEntry = useModelEntryMode({
-    endpoint: selectedCloud?.endpoint,
-    model,
-    catalogIds: cloudModels.map(m => m.id),
-  });
-
-  useEffect(() => {
-    if (!selectedSlug) {
-      setCloudModels([]);
-      setCloudModelsError(null);
-      return;
-    }
-    const provider = customCloud.find(c => c.slug === selectedSlug);
-    if (!provider) {
-      setCloudModels([]);
-      setCloudModelsError(null);
-      return;
-    }
-    let active = true;
-    setCloudModelsLoading(true);
-    setCloudModels([]);
-    setCloudModelsError(null);
-    listProviderModels(provider.slug)
-      .then(ms => {
-        if (!active) return;
-        setCloudModels(ms);
-        setCloudModelsLoading(false);
-        // Never auto-pick for Azure: the catalog holds base model ids, and
-        // silently seeding one is exactly what produced "Model not found"
-        // (#5213). Leave the field empty so the user supplies the deployment.
-        if (!model.trim() && ms[0]?.id && !isAzureFoundryEndpoint(provider.endpoint)) {
-          setModel(ms[0].id);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        setCloudModelsError(err instanceof Error ? err.message : String(err));
-        setCloudModelsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSlug]);
-
-  useEffect(() => {
-    if (source?.kind === 'local' && !model.trim()) {
-      setModel(localModels[0]?.id ?? '');
-    }
-  }, [source, localModels, model]);
 
   const canApply = source !== null && model.trim().length > 0;
   const selectedRef =
@@ -278,11 +212,6 @@ export const GlobalOwnModelSelector = ({
           onSelect={({ source: nextSource, model: nextModel }) => {
             setSource(nextSource);
             setModel(nextModel);
-            modelEntry.syncToEndpoint(
-              nextSource.kind === 'cloud'
-                ? customCloud.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
-                : undefined
-            );
             setPickerOpen(false);
           }}
         />
