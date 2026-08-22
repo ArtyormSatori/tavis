@@ -207,9 +207,13 @@ describe('Sidebar', () => {
     // itself — assert on the actual child rather than the outer div, which is
     // exactly the seam a `className` override on the rail could never reach.
     const indicator = screen.getByTestId('rail').querySelector('span:last-child');
-    expect(indicator?.className).toContain('group-hover:bg-line-chrome');
-    expect(indicator?.className).toContain('group-focus:bg-line-chrome');
-    expect(indicator?.className).not.toMatch(/\bgroup-hover:bg-line\b/);
+    const classes = indicator?.className.split(/\s+/) ?? [];
+    expect(classes).toContain('group-hover:bg-line-chrome');
+    expect(classes).toContain('group-focus:bg-line-chrome');
+    // The plain (non-chrome) token, not just any string containing it — the
+    // chrome variant legitimately contains "bg-line" as a substring.
+    expect(classes).not.toContain('group-hover:bg-line');
+    expect(classes).not.toContain('group-focus:bg-line');
   });
 
   it('lets a caller override the seam indicator via indicatorClassName', () => {
