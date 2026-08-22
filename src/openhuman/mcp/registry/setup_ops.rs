@@ -246,12 +246,14 @@ pub async fn mcp_setup_install_and_connect(
         server_id: outcome.server_id.clone(),
         qualified_name: qualified_name.clone(),
     });
-    if tool_count > 0 {
-        BUS.publish(DomainEvent::McpServerConnected {
-            server_id: outcome.server_id.clone(),
-            tool_count,
-        });
-    }
+    // Unconditional, like the `connect` handler's. The call returning `Ok` is
+    // what says the connection succeeded; a server exposing only resources or
+    // prompts connects with zero tools, and gating on the count would leave
+    // anything tracking connection state believing it never came up.
+    BUS.publish(DomainEvent::McpServerConnected {
+        server_id: outcome.server_id.clone(),
+        tool_count,
+    });
 
     Ok(RpcOutcome::new(
         json!({

@@ -27,7 +27,7 @@
 //! here. [`proxy_for_mcp`] consults them and hands over the answer.
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 
 use tinymcp::{
@@ -203,7 +203,17 @@ pub fn try_service() -> Option<Arc<McpHost>> {
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
 
-    if let Some(workspace) = DEFAULT_WORKSPACE.get() {
+    resolve(DEFAULT_WORKSPACE.get().map(PathBuf::as_path), &hosts)
+}
+
+/// The rule [`try_service`] applies, as a function of its inputs.
+///
+/// Separated from the process state so it can be tested. The state it reads is
+/// two `OnceLock`s and a process-wide map that every case in this suite shares,
+/// so a test driving `try_service` directly could only assert whatever the rest
+/// of the suite happened to leave behind — which is to say, nothing.
+fn resolve(default: Option<&Path>, hosts: &HashMap<PathBuf, Arc<McpHost>>) -> Option<Arc<McpHost>> {
+    if let Some(workspace) = default {
         if let Some(service) = hosts.get(workspace) {
             return Some(Arc::clone(service));
         }

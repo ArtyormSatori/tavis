@@ -2354,20 +2354,15 @@ fn register_domain_subscribers(
     // bootstrap_core_runtime; this subscriber must be live before then so those
     // connect events are observed (issue #3039 gap A1).
     //
-    // The `tinymcp` service is opened here for the same reason: this is where
-    // the MCP domain is turned on, and every RPC handler in the domain reaches
-    // for the service. Opening it later — from the boot-connect job — would
-    // leave a window where a handler answers "still starting" to a caller whose
-    // domain is, as far as anything else can tell, already up.
+    // What bringing the domain up means is the domain's own; this only says
+    // when. The service it opens is wanted here rather than later for the same
+    // reason as the subscriber: every RPC handler in the domain reaches for it,
+    // and opening it from the boot-connect job would leave a window where a
+    // handler answers "still starting" to a caller whose domain is, as far as
+    // anything else can tell, already up.
     if plan.mcp {
         if group_first_time(DomainGroup::Mcp) {
-            crate::openhuman::mcp::registry::bus::init();
-
-            // Logged, never fatal: MCP being unavailable must not stop the core
-            // coming up, and every caller handles an absent service.
-            if let Err(error) = crate::openhuman::mcp::host::init(&config) {
-                log::warn!("[event_bus] the mcp service could not be opened: {error}");
-            }
+            crate::openhuman::mcp::start(&config);
         }
     } else {
         log::debug!("[event_bus] mcp_registry bus init SKIPPED — Mcp domain disabled");

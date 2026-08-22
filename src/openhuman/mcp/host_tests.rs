@@ -285,30 +285,74 @@ fn two_workspaces_get_two_services() {
     assert!(tinymcp::Store::path_for(second_dir.path()).exists());
 }
 
+/// A map holding one service per named workspace.
+fn hosts_for(workspaces: &[&std::path::Path]) -> HashMap<PathBuf, Arc<McpHost>> {
+    workspaces
+        .iter()
+        .map(|workspace| {
+            let mut config = config_without_docs();
+            config.workspace_dir = workspace.to_path_buf();
+            (
+                workspace.to_path_buf(),
+                Arc::new(McpHost::open(&config).expect("the service opens")),
+            )
+        })
+        .collect()
+}
+
 #[test]
-fn the_only_open_service_answers_a_caller_with_no_configuration() {
+fn the_default_workspace_wins_when_one_is_set() {
+    let first = tempfile::tempdir().expect("tempdir");
+    let second = tempfile::tempdir().expect("tempdir");
+    let hosts = hosts_for(&[first.path(), second.path()]);
+    let expected = Arc::clone(&hosts[second.path()]);
+
+    let resolved = super::resolve(Some(second.path()), &hosts).expect("a service");
+
+    assert!(Arc::ptr_eq(&resolved, &expected));
+}
+
+#[test]
+fn the_only_open_service_answers_when_no_default_is_set() {
     // The agent's tool registry asks which MCP tools are live, and it asks by
-    // server id alone. A process that opened a service without booting — a
-    // test, or a host driving the library directly — would otherwise be told
-    // nothing is connected while a connection sits in the map.
-    //
-    // Shares the process map with the other cases here, so it asserts the
-    // resolution rather than a specific workspace: with several open and no
-    // default set, there is no honest answer and `None` is correct.
-    let temporary = tempfile::tempdir().expect("tempdir");
-    let mut config = config_without_docs();
-    config.workspace_dir = temporary.path().to_path_buf();
+    // server id alone. A process that opened a service without booting — a test,
+    // or a host driving the library directly — would otherwise be told nothing
+    // is connected while a connection sits in the map.
+    let only = tempfile::tempdir().expect("tempdir");
+    let hosts = hosts_for(&[only.path()]);
+    let expected = Arc::clone(&hosts[only.path()]);
 
-    let opened = super::for_config(&config).expect("the service opens");
+    let resolved = super::resolve(None, &hosts).expect("the sole service");
 
-    match super::try_service() {
-        Some(resolved) => assert!(
-            std::sync::Arc::ptr_eq(&resolved, &opened) || super::DEFAULT_WORKSPACE.get().is_some(),
-            "resolved a service that is neither the only one open nor the default"
-        ),
-        None => assert!(
-            super::DEFAULT_WORKSPACE.get().is_none(),
-            "answered None even though a default workspace is set"
-        ),
-    }
+    assert!(Arc::ptr_eq(&resolved, &expected));
+}
+
+#[test]
+fn several_open_services_and_no_default_has_no_honest_answer() {
+    // Picking one would be picking arbitrarily, and the caller cannot tell it
+    // apart from the one it meant.
+    let first = tempfile::tempdir().expect("tempdir");
+    let second = tempfile::tempdir().expect("tempdir");
+
+    assert!(super::resolve(None, &hosts_for(&[first.path(), second.path()])).is_none());
+}
+
+#[test]
+fn nothing_open_answers_nothing() {
+    assert!(super::resolve(None, &HashMap::new()).is_none());
+}
+
+#[test]
+fn a_default_naming_a_workspace_nothing_opened_falls_through_to_the_rule() {
+    // The default is set from a workspace that was opened, so this should not
+    // happen — but if it ever did, answering the sole open service is better
+    // than answering nothing.
+    let only = tempfile::tempdir().expect("tempdir");
+    let absent = tempfile::tempdir().expect("tempdir");
+    let hosts = hosts_for(&[only.path()]);
+    let expected = Arc::clone(&hosts[only.path()]);
+
+    let resolved = super::resolve(Some(absent.path()), &hosts).expect("the sole service");
+
+    assert!(Arc::ptr_eq(&resolved, &expected));
 }

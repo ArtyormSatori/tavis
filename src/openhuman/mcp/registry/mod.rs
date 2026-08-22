@@ -308,7 +308,7 @@ pub mod oauth {
 /// hit means are this application's, and a module dropping tools by criteria of
 /// its own would be making a decision it cannot explain to anyone.
 ///
-/// A tool whose description or title trips a rule is dropped, and the drop is
+/// A tool whose description trips a rule is dropped, and the drop is
 /// logged and published with the *rule code* only — the offending text is never
 /// re-emitted, because the payload is the thing that was dangerous.
 #[cfg(feature = "mcp")]

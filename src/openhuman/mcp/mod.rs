@@ -45,6 +45,32 @@
 //! and `audit` keep their own gate and their `stub`, so a build without the
 //! feature still serves `/rpc` without those namespaces.
 
+/// Brings this domain up: its lifecycle subscriber and its service.
+///
+/// The one entry point core startup calls. It exists so that `src/core/` — which
+/// is transport, and carries no business logic — does not have to know that this
+/// domain has a service, that opening one can fail, or what to do when it does.
+///
+/// Never fails. MCP being unavailable must not stop the core coming up, and
+/// every caller in the domain already handles an absent service, so a failure is
+/// logged here and the process continues without it.
+///
+/// Idempotent: the subscriber registers once and the service opens once, so the
+/// two startup paths that call this — the RPC domain enable point and the
+/// boot-jobs path, which are gated separately — can both call it.
+#[cfg(feature = "mcp")]
+pub fn start(config: &crate::openhuman::config::Config) {
+    registry::bus::init();
+
+    if let Err(error) = host::init(config) {
+        log::warn!("[mcp] the service could not be opened; continuing without it: {error}");
+    }
+}
+
+/// Brings this domain up — the build without it, where there is nothing to do.
+#[cfg(not(feature = "mcp"))]
+pub fn start(_config: &crate::openhuman::config::Config) {}
+
 pub mod audit;
 // Ungated, like the transport below and for the same reason: `tinymcp` is an
 // ordinary dependency, and the startup path calls `host::init` without a `cfg`
