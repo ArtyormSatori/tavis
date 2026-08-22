@@ -9,6 +9,7 @@ import TextArea from '../../../components/ui/TextArea';
 import TextField from '../../../components/ui/TextField';
 import { useT } from '../../../lib/i18n/I18nContext';
 import type { TaskBoardCard, TaskBoardCardStatus } from '../../../types/turnState';
+import { COLUMN_STATUSES, STATUS_LABEL_KEYS } from './taskBoardColumns';
 import {
   emptyToNull,
   formatUrgency,
@@ -48,7 +49,6 @@ export function TaskBriefDialog({
   onClose: () => void;
   onUpdate?: (card: TaskBoardCard, nextCard: TaskBoardCard) => void;
   onDelete?: (card: TaskBoardCard) => void;
-  /** Statuses offered in the status dropdown, in column order. */
 }) {
   const { t } = useT();
   const source = readSourceMetadata(card.sourceMetadata);
