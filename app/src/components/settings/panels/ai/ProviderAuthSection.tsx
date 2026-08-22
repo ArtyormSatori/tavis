@@ -32,7 +32,7 @@ import {
   defaultEndpointForBuiltinCloudProvider,
 } from '../builtinCloudProviders';
 import { ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
-import { AddProviderDialog, type ProviderOptionGroup } from './AddProviderDialog';
+import { AddProviderDialog, type ProviderCategory } from './AddProviderDialog';
 import {
   type AISettings,
   BUILTIN_PROVIDER_META,
@@ -48,10 +48,6 @@ import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
 import { ProviderGroup, ProviderListRow, type ProviderRowAction } from './ProviderListRow';
 
 const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
-
-/** Sentinel option: "define your own endpoint" is an entry point, not a
- *  provider, so it cannot collide with a real slug. */
-const CUSTOM_OPTION = '__custom__';
 
 /**
  * CLI logins, in dialog order, each with the slug its credential is STORED
@@ -140,14 +136,16 @@ export const ProviderAuthSection = ({
     cp => !BUILTIN_RESERVED_SLUGS.includes(cp.slug)
   );
 
-  // Four categories, in the order a user is likely to want them. Each lists
-  // only what is NOT connected — the panel behind the dialog already shows the
-  // rest, and offering to add something twice is how you get two rows for one
-  // provider.
-  const pickerGroups: ProviderOptionGroup[] = [
+  // Three categories, each a different question rather than a slice of one:
+  // cloud wants an API key, local wants an endpoint on this machine, CLI wants
+  // nothing because another tool already holds the credential. Custom is not
+  // here — it is a single action, handled by the dialog's own button.
+  const providerCategories: ProviderCategory[] = [
     {
       id: 'cloud',
       title: t('settings.ai.providers.groupCloud'),
+      placeholder: t('settings.ai.providers.placeholderCloud'),
+      helper: t('settings.ai.providers.helperCloud'),
       options: BUILTIN_CLOUD_PROVIDER_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
         slug,
         label: BUILTIN_PROVIDER_META[slug]?.label ?? slug,
@@ -156,20 +154,10 @@ export const ProviderAuthSection = ({
       })),
     },
     {
-      id: 'custom',
-      title: t('settings.ai.providers.groupCustom'),
-      options: [
-        {
-          slug: CUSTOM_OPTION,
-          label: t('settings.ai.providers.custom'),
-          tone: BUILTIN_PROVIDER_META.custom?.tone ?? '',
-          detail: t('settings.ai.providers.customDetail'),
-        },
-      ],
-    },
-    {
       id: 'local',
       title: t('settings.ai.providers.groupLocal'),
+      placeholder: t('settings.ai.providers.placeholderLocal'),
+      helper: t('settings.ai.providers.helperLocal'),
       options: LOCAL_RUNTIME_SLUGS.filter(slug => !bySlug(slug)).map(slug => ({
         slug,
         label: LOCAL_CHIP_LABEL[slug as LocalChipSlug],
@@ -178,11 +166,10 @@ export const ProviderAuthSection = ({
       })),
     },
     {
-      // These do not store a key here; each imports a credential another tool
-      // already owns, so picking one connects directly with no dialog of its
-      // own to open.
       id: 'cli',
       title: t('settings.ai.providers.groupCli'),
+      placeholder: t('settings.ai.providers.placeholderCli'),
+      helper: t('settings.ai.providers.helperCli'),
       options: CLI_LOGINS.filter(cli => !bySlug(cli.storedAs)).map(cli => ({
         slug: cli.option,
         label:
@@ -197,10 +184,6 @@ export const ProviderAuthSection = ({
 
   const handlePick = (slug: string) => {
     setAddOpen(false);
-    if (slug === CUSTOM_OPTION) {
-      onAddCustomProvider();
-      return;
-    }
     if (slug === 'codex') {
       onConnectCodex();
       return;
@@ -439,8 +422,12 @@ export const ProviderAuthSection = ({
 
       {addOpen && (
         <AddProviderDialog
-          groups={pickerGroups}
+          categories={providerCategories}
           onPick={handlePick}
+          onAddCustom={() => {
+            setAddOpen(false);
+            onAddCustomProvider();
+          }}
           onClose={() => setAddOpen(false)}
         />
       )}
