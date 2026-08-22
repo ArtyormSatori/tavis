@@ -26,6 +26,8 @@ interface TooltipProps {
   side?: TooltipSide;
   /** Hover/focus dwell before showing, in ms. Keeps the tip from flickering. */
   delayMs?: number;
+  /** Allow explanatory copy to wrap instead of using the compact one-line pill. */
+  multiline?: boolean;
 }
 
 /** Gap in px between the trigger and the tooltip pill. */
@@ -76,7 +78,13 @@ const TRANSFORM: Record<TooltipSide, string> = {
  * screen readers (it takes precedence over `title`, so there's no double
  * announcement); the pill itself is decorative (`aria-hidden`).
  */
-export default function Tooltip({ label, children, side = 'right', delayMs = 300 }: TooltipProps) {
+export default function Tooltip({
+  label,
+  children,
+  side = 'right',
+  delayMs = 300,
+  multiline = false,
+}: TooltipProps) {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -153,7 +161,9 @@ export default function Tooltip({ label, children, side = 'right', delayMs = 300
             // Semantic tokens, not `bg-stone-800`/`text-white`/`dark:bg-neutral-700`:
             // those are raw palette scales, so the pill kept a fixed grey under
             // every user theme instead of following it.
-            className="pointer-events-none fixed z-[9999] whitespace-nowrap rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in"
+            className={`pointer-events-none fixed z-[9999] rounded-md bg-content px-2 py-1 text-xs font-medium text-surface shadow-medium animate-fade-in ${
+              multiline ? 'max-w-xs whitespace-normal' : 'whitespace-nowrap'
+            }`}
             style={{ top: anchor.top, left: anchor.left, transform: TRANSFORM[anchor.side] }}>
             {label}
           </div>,
