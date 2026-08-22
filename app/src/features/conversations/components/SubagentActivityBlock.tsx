@@ -30,6 +30,13 @@ function statusTagVariant(status: ToolTimelineEntryStatus): BadgeVariant {
   }
 }
 
+/** Tone classes for a child tool-call row's bullet, keyed by lifecycle status. */
+function toolCallTone(status: ToolTimelineEntryStatus): string {
+  if (status === 'running') return 'text-amber-700 dark:text-amber-300';
+  if (status === 'success') return 'text-sage-700 dark:text-sage-300';
+  return 'text-coral-700 dark:text-coral-300';
+}
+
 /**
  * Status pill for a tool-call row — a tinted "Done" / "Failed" / "Running"
  * tag instead of a bare ✓/✕ glyph, so the outcome reads at a glance. Built on
@@ -80,7 +87,7 @@ export function ToolCallRow({
   return (
     <div className="min-w-0" data-testid="subagent-tool-call">
       <div className="flex min-w-0 items-center gap-1.5">
-        <span aria-hidden className="shrink-0 text-[11px] text-content-faint">
+        <span aria-hidden className={`shrink-0 text-[11px] ${toolCallTone(call.status)}`}>
           •
         </span>
         <span className="shrink-0 text-[12px] whitespace-nowrap text-content-secondary">
