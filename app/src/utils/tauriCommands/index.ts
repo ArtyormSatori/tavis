@@ -13,7 +13,6 @@ export * from './localAi';
 export * from './config';
 export * from './cron';
 export * from './taskSources';
-export * from './heartbeat';
 export * from './service';
 export * from './voice';
 export * from './aboutApp';
