@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 
+import { cn } from '../../lib/cn';
 import { IS_DEV } from '../../utils/config';
-import { Button } from '../ui';
+import { Button, TabsList, TabsRoot, TabsTrigger } from '../ui';
 
 const namespace = 'chip-tabs';
 
@@ -36,10 +37,12 @@ interface ChipTabsProps<T extends string> {
   onChange: (id: T) => void;
   /**
    * Accessibility semantics for the row:
-   * - `'tab'` (default): `role="tablist"` + `role="tab"` / `aria-selected`. For
+   * - `'tab'` (default): `role="tablist"` + `role="tab"` / `aria-selected`, via
+   *   Radix `Tabs` — real roving-focus keyboard nav (arrows/Home/End). For
    *   in-page tab bars that swap content without changing route.
    * - `'nav'`: `role="navigation"` + `aria-current`. For chips that are real
-   *   route links (e.g. the settings sub-nav siblings).
+   *   route links (e.g. the settings sub-nav siblings) — Radix `Tabs` assumes
+   *   its trigger IS the navigation, so route links stay hand-rolled here.
    */
   as?: 'tab' | 'nav';
   /** Accessible label for the chip row. */
@@ -72,7 +75,7 @@ const compactChipSpacingClass = 'px-2 py-0.5';
 // high-contrast and on-theme under any palette (light, dark, or custom).
 // The hover fill is pinned to the same colour — a selected chip does not react
 // to hover, and `tertiary` would otherwise contribute one.
-const activeChipClass = 'bg-content text-surface hover:bg-content';
+const activeChipClass = 'data-[state=active]:bg-content data-[state=active]:text-surface data-[state=active]:hover:bg-content';
 const inactiveChipClass =
   'bg-surface border border-line text-content-secondary hover:bg-surface-hover';
 
@@ -84,6 +87,13 @@ const inactiveChipClass =
  * Presentational and controlled: the host owns the active `value` (route hash,
  * query param, or local state) and reacts to `onChange`. Pick `as="tab"` for
  * content-swapping tab bars and `as="nav"` for chips that are route links.
+ *
+ * `as="tab"` is built on Radix `Tabs` (`TabsRoot`/`TabsList`/`TabsTrigger` from
+ * `components/ui`) for its roving-focus keyboard model — a real DOM focus
+ * traversal via `RovingFocusGroup`, not the hand-rolled index math the previous
+ * implementation used. `as="nav"` stays a plain `<Button>` row: it renders real
+ * route links with `aria-current`, which isn't a tab-selection interaction
+ * Radix `Tabs` models.
  */
 export default function ChipTabs<T extends string>({
   items,
@@ -96,64 +106,66 @@ export default function ChipTabs<T extends string>({
   className = DEFAULT_ROW_CLASS,
   compact = false,
 }: ChipTabsProps<T>) {
-  const isNav = as === 'nav';
+  const spacingClass = compact ? compactChipSpacingClass : defaultChipSpacingClass;
+
+  if (as === 'nav') {
+    return (
+      <div className={className} role="navigation" aria-label={ariaLabel} data-testid={testId}>
+        {items.map(item => {
+          const active = item.id === value;
+          const chipTestId =
+            item.testId ?? (testIdPrefix ? `${testIdPrefix}-${item.id}` : undefined);
+
+          return (
+            <Button
+              key={item.id}
+              variant="tertiary"
+              size="xs"
+              data-testid={chipTestId}
+              aria-current={active ? 'page' : undefined}
+              onClick={() => {
+                debug('select', { id: item.id });
+                onChange(item.id);
+              }}
+              className={cn(
+                baseChipClass,
+                spacingClass,
+                active ? 'bg-content text-surface hover:bg-content' : inactiveChipClass
+              )}>
+              {item.label}
+            </Button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={className}
-      role={isNav ? 'navigation' : 'tablist'}
-      aria-label={ariaLabel}
-      data-testid={testId}>
-      {items.map((item, index) => {
-        const active = item.id === value;
-        const chipTestId = item.testId ?? (testIdPrefix ? `${testIdPrefix}-${item.id}` : undefined);
+    <TabsRoot
+      value={value}
+      onValueChange={v => {
+        debug('select', { id: v });
+        onChange(v as T);
+      }}
+      className="contents">
+      <TabsList className={className} aria-label={ariaLabel} data-testid={testId}>
+        {items.map(item => {
+          const chipTestId =
+            item.testId ?? (testIdPrefix ? `${testIdPrefix}-${item.id}` : undefined);
 
-        return (
-          <Button
-            key={item.id}
-            variant="tertiary"
-            size="xs"
-            data-testid={chipTestId}
-            role={isNav ? undefined : 'tab'}
-            id={isNav ? undefined : item.labelledBy}
-            aria-selected={isNav ? undefined : active}
-            aria-controls={isNav ? undefined : item.controls}
-            aria-current={isNav ? (active ? 'page' : undefined) : undefined}
-            tabIndex={isNav ? undefined : active ? 0 : -1}
-            onClick={() => {
-              debug('select', { id: item.id });
-              onChange(item.id);
-            }}
-            onKeyDown={
-              isNav
-                ? undefined
-                : event => {
-                    let nextIndex: number | null = null;
-                    if (event.key === 'ArrowRight') nextIndex = (index + 1) % items.length;
-                    if (event.key === 'ArrowLeft')
-                      nextIndex = (index - 1 + items.length) % items.length;
-                    if (event.key === 'Home') nextIndex = 0;
-                    if (event.key === 'End') nextIndex = items.length - 1;
-                    if (nextIndex === null) return;
-
-                    event.preventDefault();
-                    const nextItem = items[nextIndex];
-                    if (!nextItem) return;
-                    debug('keyboard select', { id: nextItem?.id, key: event.key });
-                    onChange(nextItem.id);
-                    const tabs = event.currentTarget
-                      .closest('[role="tablist"]')
-                      ?.querySelectorAll<HTMLElement>('[role="tab"]');
-                    tabs?.[nextIndex]?.focus();
-                  }
-            }
-            className={`${baseChipClass} ${
-              compact ? compactChipSpacingClass : defaultChipSpacingClass
-            } ${active ? activeChipClass : inactiveChipClass}`}>
-            {item.label}
-          </Button>
-        );
-      })}
-    </div>
+          return (
+            <TabsTrigger
+              key={item.id}
+              value={item.id}
+              data-testid={chipTestId}
+              id={item.labelledBy}
+              aria-controls={item.controls}
+              className={cn(baseChipClass, spacingClass, inactiveChipClass, activeChipClass)}>
+              {item.label}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </TabsRoot>
   );
 }
