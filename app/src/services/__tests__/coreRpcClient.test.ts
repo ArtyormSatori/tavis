@@ -1148,8 +1148,7 @@ describe('getCoreRpcToken (cloud-mode persistence)', () => {
     }));
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'https://core.example.com/rpc';
-      if (cmd === 'core_rpc_token') {
+      if (cmd === 'core_rpc_endpoint') {
         throw new Error('should not be called when stored token exists');
       }
       throw new Error(`unexpected invoke: ${cmd}`);
@@ -1163,7 +1162,7 @@ describe('getCoreRpcToken (cloud-mode persistence)', () => {
     const { callCoreRpc: freshCallCoreRpc } = await import('../coreRpcClient');
     await freshCallCoreRpc({ method: 'openhuman.ping' });
 
-    expect(vi.mocked(invoke)).not.toHaveBeenCalledWith('core_rpc_token', expect.anything());
+    expect(vi.mocked(invoke)).not.toHaveBeenCalledWith('core_rpc_endpoint', expect.anything());
     const requestInit = fetchMock.mock.calls[0][1] as RequestInit;
     const headers = requestInit.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer cloud-token-abc');
@@ -1220,8 +1219,9 @@ describe('getCoreRpcToken (cloud-mode persistence)', () => {
     }));
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'http://127.0.0.1:7788/rpc';
-      if (cmd === 'core_rpc_token') return 'local-sidecar-token';
+      if (cmd === 'core_rpc_endpoint') {
+        return { url: 'http://127.0.0.1:7788/rpc', token: 'local-sidecar-token' };
+      }
       throw new Error(`unexpected invoke: ${cmd}`);
     });
     const fetchMock = vi.mocked(fetch);
