@@ -13,6 +13,7 @@ import {
 } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
+import Card from '../../../ui/Card';
 import Checkbox from '../../../ui/Checkbox';
 import Label from '../../../ui/Label';
 import NativeSelect from '../../../ui/NativeSelect';
@@ -194,13 +195,11 @@ export const GlobalOwnModelSelector = ({
   };
 
   return (
-    <div className="flex w-full flex-col gap-4 rounded-xl border border-line bg-surface p-4">
-      <div className="flex flex-col gap-1">
-        <div className="text-sm font-medium text-content">{t('settings.ai.globalModel.title')}</div>
-        <p className="text-xs text-amber-700 dark:text-amber-200">
-          {t('settings.ai.globalModel.desc')}
-        </p>
-      </div>
+    <Card
+      title={t('settings.ai.globalModel.title')}
+      description={t('settings.ai.globalModel.desc')}
+      className="w-full">
+      <div className="flex flex-col gap-4 p-4">
 
       {customCloud.length === 0 && !localAvailable && !claudeCodeEnabled ? (
         <Alert variant="warning" className="p-3 text-xs">
@@ -322,7 +321,8 @@ export const GlobalOwnModelSelector = ({
           </div>
         </>
       )}
-    </div>
+      </div>
+    </Card>
   );
 };
 

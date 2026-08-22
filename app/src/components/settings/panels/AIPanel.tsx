@@ -21,6 +21,7 @@ import { connectOpenRouterViaOAuth } from '../../../utils/openrouterOAuth';
 import PanelPage from '../../layout/PanelPage';
 import Alert from '../../ui/Alert';
 import Button from '../../ui/Button';
+import Card from '../../ui/Card';
 import { ModalShell } from '../../ui/ModalShell';
 import SettingsBackButton from '../components/SettingsBackButton';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
@@ -273,7 +274,7 @@ const AIPanel = ({
                     <>
                       <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
 
-                      <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
+                      <Card className="w-full">
                         <WorkloadTable
                           title={t('settings.ai.routing.chatAndConversations')}
                           description={t('settings.ai.routing.chatDesc')}>
@@ -301,7 +302,7 @@ const AIPanel = ({
                             />
                           ))}
                         </WorkloadTable>
-                      </div>
+                      </Card>
                     </>
                   ) : null}
                 </div>
