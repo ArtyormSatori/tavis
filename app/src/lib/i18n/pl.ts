@@ -7404,11 +7404,11 @@ const messages: TranslationMap = {
   'settings.gateway.add': 'Dodaj lokalizację',
   'settings.gateway.save': 'Zapisz lokalizację',
   'settings.gateway.remove': 'Usuń',
-  'settings.gateway.use': 'Użyj tej',
+  'settings.gateway.use': 'Użyj tej lokalizacji',
   'settings.gateway.inUse': 'W użyciu',
   'settings.gateway.activating': 'Łączenie…',
   'settings.gateway.activatingStep': 'Łączenie: {step}',
-  'settings.gateway.connected': 'Połączono pod {endpoint}',
+  'settings.gateway.connected': 'Połączono pod adresem {endpoint}',
   'settings.gateway.failed': 'Nie udało się połączyć: {reason}',
   'settings.gateway.nameLabel': 'Nazwa',
   'settings.gateway.namePlaceholder': 'Serwer kompilacji',
@@ -7440,7 +7440,7 @@ const messages: TranslationMap = {
 
   'devOptions.gateway': 'Lokalizacja',
   'devOptions.provisionedCore': 'Rdzeń uruchomiony przez tę aplikację',
-  'devOptions.gatewayId': 'Lokalizacja',
+  'devOptions.gatewayId': 'Identyfikator lokalizacji',
 };
 
 export default messages;
