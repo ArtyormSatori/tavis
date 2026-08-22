@@ -10,7 +10,7 @@
  *
  * This file is a thin composition — every section lives in `./ai/*`.
  */
-import { type ReactNode, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { cn } from '../../../lib/cn';
 import { useT } from '../../../lib/i18n/I18nContext';
@@ -22,6 +22,7 @@ import { connectOpenRouterViaOAuth } from '../../../utils/openrouterOAuth';
 import PanelPage from '../../layout/PanelPage';
 import Alert from '../../ui/Alert';
 import Button from '../../ui/Button';
+import Card from '../../ui/Card';
 import { ModalShell } from '../../ui/ModalShell';
 import SettingsBackButton from '../components/SettingsBackButton';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
@@ -42,7 +43,6 @@ import { BackgroundLoopControls } from './ai/BackgroundLoopControls';
 import { CloudProviderEditor } from './ai/CloudProviderEditor';
 import { CustomRoutingDialog } from './ai/CustomRoutingDialog';
 import { GlobalOwnModelSelector } from './ai/GlobalOwnModelSelector';
-import { PanelSection } from './ai/PanelSection';
 import { ProviderAuthSection } from './ai/ProviderAuthSection';
 import { ProviderKeyDialog } from './ai/ProviderConnectControls';
 import { RoutingModeCards } from './ai/RoutingModeCards';
@@ -51,31 +51,8 @@ import { useAISettings, useInstalledModels, useOllamaStatus } from './ai/useAISe
 import { useCloudProviderEditorSubmit } from './ai/useCloudProviderEditorSubmit';
 import { useProviderConnect } from './ai/useProviderConnect';
 import { WorkloadRow } from './ai/WorkloadRow';
+import { WorkloadTable } from './ai/WorkloadTable';
 import { useReembedBackfillModal } from './useReembedBackfillModal';
-
-/**
- * One titled group of workload rows (chat, or background). Extracted because
- * the two groups were byte-identical markup differing only in their copy and
- * their row array, and because the pair now sits in a flex row that lets each
- * group take half the pane on a wide window instead of stacking in a column.
- */
-const WorkloadGroup = ({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-}) => (
-  <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-line bg-surface-muted px-3">
-    <div className="flex flex-col gap-1 border-b border-line py-3">
-      <div className="text-sm font-semibold text-content">{title}</div>
-      <div className="text-xs text-content-muted">{description}</div>
-    </div>
-    <div className="flex flex-col divide-y divide-line">{children}</div>
-  </div>
-);
 
 export type { CloudProvider, ProviderRef, RoutingMap } from './ai/aiPanelTypes';
 export { buildRoutingDiffSummary, BackgroundLoopControls };
@@ -194,8 +171,8 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
             Own = one provider/model for everything. Custom = fine-grained
             per-workload routing.
             ═══════════════════════════════════════════════════════════════ */}
-        <PanelSection title={t('settings.ai.routing')} description={t('settings.ai.routingDesc')}>
-          <div className="flex w-full flex-col gap-3">
+        <Card title={t('settings.ai.routing')} description={t('settings.ai.routingDesc')}>
+          <div className="flex w-full flex-col gap-4 p-4">
             <RoutingModeCards
               effectiveRoutingMode={effectiveRoutingMode}
               onSelectManaged={() => {
@@ -238,10 +215,8 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
               <>
                 <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
 
-                {/* Two groups side by side once there is room for them; the
-                    column fallback is the flex default, not a breakpoint. */}
-                <div className="flex w-full flex-col gap-3 2xl:flex-row 2xl:items-start">
-                  <WorkloadGroup
+                <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
+                  <WorkloadTable
                     title={t('settings.ai.routing.chatAndConversations')}
                     description={t('settings.ai.routing.chatDesc')}>
                     {chatRows.map(w => (
@@ -253,9 +228,9 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                         onCustomClick={() => setCustomDialogFor(w.id)}
                       />
                     ))}
-                  </WorkloadGroup>
+                  </WorkloadTable>
 
-                  <WorkloadGroup
+                  <WorkloadTable
                     title={t('settings.ai.routing.backgroundTasks')}
                     description={t('settings.ai.routing.bgTasksDesc')}>
                     {bgRows.map(w => (
@@ -267,12 +242,12 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
                         onCustomClick={() => setCustomDialogFor(w.id)}
                       />
                     ))}
-                  </WorkloadGroup>
+                  </WorkloadTable>
                 </div>
               </>
             ) : null}
           </div>
-        </PanelSection>
+        </Card>
       </div>
 
       {isDirty && (
