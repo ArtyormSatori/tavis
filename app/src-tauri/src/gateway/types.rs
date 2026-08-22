@@ -189,7 +189,7 @@ pub fn validate_remote_transport(url: &str, token: Option<&str>) -> Result<(), S
     if scheme != "http" && scheme != "https" {
         return Err(format!("{url} is not an http(s) endpoint"));
     }
-    let has_bearer = token.map(str::trim).map_or(false, |t| !t.is_empty());
+    let has_bearer = token.map(str::trim).is_some_and(|t| !t.is_empty());
     if has_bearer && scheme == "http" && !is_loopback_host(parsed.host_str().unwrap_or_default()) {
         return Err(
             "a remote core with a bearer token must be reached over https, not plain http".to_owned(),
