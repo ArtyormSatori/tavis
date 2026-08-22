@@ -42,8 +42,12 @@ import {
   SuggestionPrimitive,
   ThreadPrimitive,
   type ToolCallMessagePartComponent,
+  type Unstable_SlashCommand,
+  unstable_useSlashCommandAdapter,
   useAuiState,
 } from '@assistant-ui/react';
+import { LexicalComposerInput } from '@assistant-ui/react-lexical';
+import { ComposerTriggerPopover } from '@/components/assistant-ui/composer-trigger-popover';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -56,6 +60,7 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
+  SlashIcon,
   SquareIcon,
 } from 'lucide-react';
 import {
@@ -106,6 +111,9 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 
 const ThreadComponentsContext = createContext<ThreadComponents>(EMPTY_COMPONENTS);
 
+const NO_SLASH_COMMANDS: readonly Unstable_SlashCommand[] = [];
+const SlashCommandsContext = createContext<readonly Unstable_SlashCommand[]>(NO_SLASH_COMMANDS);
+
 // Startup exposes a loading placeholder thread; treat it as a new chat so
 // the composer mounts centered. Loads after startup keep the docked layout.
 const isNewChatView = (s: AssistantState) =>
@@ -138,12 +146,17 @@ const ThreadHistorySkeleton: FC = () => (
   </div>
 );
 
-export const Thread: FC<ThreadProps> = ({ components = EMPTY_COMPONENTS }) => {
+export const Thread: FC<ThreadProps> = ({
+  components = EMPTY_COMPONENTS,
+  slashCommands = NO_SLASH_COMMANDS,
+}) => {
   const isEmpty = useAuiState(isNewChatView);
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadRoot isEmpty={isEmpty} />
+      <SlashCommandsContext.Provider value={slashCommands}>
+        <ThreadRoot isEmpty={isEmpty} />
+      </SlashCommandsContext.Provider>
     </ThreadComponentsContext.Provider>
   );
 };
