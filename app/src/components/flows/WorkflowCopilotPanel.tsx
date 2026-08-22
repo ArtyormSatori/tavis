@@ -678,8 +678,18 @@ export default function WorkflowCopilotPanel({
           </div>
         )}
 
-        <ChatComposer
-          inputValue={text}
+        {/* A runtime scoped to THIS copilot's builder thread. `ChatComposer` is
+            built on `ComposerPrimitive`, which resolves its runtime from React
+            context — and the panel's own provider above closes around the
+            transcript only, so without this the composer would resolve the
+            app-wide runtime in `ChatRuntimeProvider`, which is bound to
+            `selectedThreadId` (the HOME chat's thread, never this one). Nothing
+            here routes a send through the runtime, so the practical effect
+            today is the composer text store; scoping it correctly anyway is
+            what keeps that true as primitives are adopted. */}
+        <AssistantUiRuntimeProvider threadId={threadId}>
+          <ChatComposer
+            inputValue={text}
           setInputValue={setText}
           onSend={submit}
           textInputRef={textInputRef}
@@ -697,10 +707,11 @@ export default function WorkflowCopilotPanel({
           isComposingTextRef={isComposingTextRef}
           maxAttachments={0}
           allowedMimeTypes={[]}
-          attachmentsEnabled={false}
-          micEnabled={false}
-          placeholder={t('flows.copilot.placeholder')}
-        />
+            attachmentsEnabled={false}
+            micEnabled={false}
+            placeholder={t('flows.copilot.placeholder')}
+          />
+        </AssistantUiRuntimeProvider>
       </div>
     </aside>
   );
