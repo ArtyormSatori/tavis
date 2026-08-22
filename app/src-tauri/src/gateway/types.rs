@@ -231,6 +231,38 @@ impl Gateway {
     }
 }
 
+/// A gateway record as the renderer is allowed to see it.
+///
+/// Deliberately credential-free, where [`Gateway`] is not: a `Remote` spec
+/// carries a bearer and a `Box`/SSH spec carries a destination and an
+/// explicit identity path, none of which the list UI needs. The renderer
+/// shows the id, the label and the kind badge, nothing else — every field
+/// here is what `GatewaySection` reads, and the full [`Gateway`] stays in the
+/// shell store (and is only passed back in by the user's own save).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GatewaySummary {
+    /// Stable identifier, referenced by the frontend's `coreMode`.
+    pub id: String,
+    /// What the user called it.
+    pub label: String,
+    /// The short stable kind word for the badge, e.g. `"ssh+docker"`.
+    ///
+    /// A summary keeps the kind but drops the credential-bearing spec leaves
+    /// (`token`, `identity`, `destination`), which the renderer never reads.
+    pub kind: String,
+}
+
+impl From<&Gateway> for GatewaySummary {
+    fn from(g: &Gateway) -> Self {
+        Self {
+            id: g.id.clone(),
+            label: g.label.clone(),
+            kind: g.spec.kind().to_string(),
+        }
+    }
+}
+
 /// What a gateway is doing right now.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "state", rename_all = "camelCase")]
