@@ -101,6 +101,14 @@ pub(crate) fn sanitize_url_for_display(url: &str) -> String {
     out.to_string()
 }
 
+/// True when `endpoint` is an `https:` URL (TLS). Used to refuse sending a
+/// bearer credential over a cleartext channel. Falls back to `false` when the
+/// value does not parse as an absolute URL, so an unparseable route is refused
+/// rather than silently allowed.
+fn is_https_endpoint(endpoint: &str) -> bool {
+    url::Url::parse(endpoint).is_ok_and(|u| u.scheme() == "https")
+}
+
 impl Route {
     /// An OpenAI-compatible endpoint and the bearer that authenticates it.
     pub fn openai_compatible(base_url: impl Into<String>, api_key: impl Into<String>) -> Self {
