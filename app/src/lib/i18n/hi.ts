@@ -943,6 +943,7 @@ const messages: TranslationMap = {
   'skills.explorer.emptyDescription':
     'SKILL.md पैकेज इंस्टॉल करें या Hermes-शैली फ़ोल्डर ~/.openhuman/skills में रखें।',
   'skills.explorer.emptyTitle': 'कोई स्किल नहीं मिली',
+  'skills.explorer.sourceFilterAria': 'स्रोत के अनुसार फ़िल्टर करें',
   'skills.explorer.installFromUrl': 'URL से इंस्टॉल करें',
   'skills.explorer.newSkill': 'नई स्किल',
   'skills.explorer.subtitle':

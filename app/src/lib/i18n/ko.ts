@@ -935,6 +935,7 @@ const messages: TranslationMap = {
   'skills.explorer.emptyDescription':
     'SKILL.md 패키지를 설치하거나 Hermes 스타일 폴더를 ~/.openhuman/skills에 넣으세요.',
   'skills.explorer.emptyTitle': '스킬을 찾을 수 없음',
+  'skills.explorer.sourceFilterAria': '소스별 필터링',
   'skills.explorer.installFromUrl': 'URL에서 설치',
   'skills.explorer.newSkill': '새 스킬',
   'skills.explorer.subtitle':

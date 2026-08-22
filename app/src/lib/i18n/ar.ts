@@ -923,6 +923,7 @@ const messages: TranslationMap = {
   'skills.explorer.emptyDescription':
     'ثبّت حزمة SKILL.md أو ضع مجلدات بنمط Hermes داخل ~/.openhuman/skills.',
   'skills.explorer.emptyTitle': 'لم يتم العثور على مهارات',
+  'skills.explorer.sourceFilterAria': 'التصفية حسب المصدر',
   'skills.explorer.installFromUrl': 'التثبيت من رابط',
   'skills.explorer.newSkill': 'مهارة جديدة',
   'skills.explorer.subtitle':

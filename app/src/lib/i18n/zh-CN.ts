@@ -891,6 +891,7 @@ const messages: TranslationMap = {
   'skills.explorer.emptyDescription':
     '安装 SKILL.md 包，或将 Hermes 风格的文件夹放到 ~/.openhuman/skills 下。',
   'skills.explorer.emptyTitle': '未找到技能',
+  'skills.explorer.sourceFilterAria': '按来源筛选',
   'skills.explorer.installFromUrl': '通过 URL 安装',
   'skills.explorer.newSkill': '新建技能',
   'skills.explorer.subtitle':

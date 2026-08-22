@@ -944,6 +944,7 @@ const messages: TranslationMap = {
   'skills.explorer.emptyDescription':
     'একটি SKILL.md প্যাকেজ ইনস্টল করুন বা Hermes-ধাঁচের ফোল্ডার ~/.openhuman/skills-এ রাখুন।',
   'skills.explorer.emptyTitle': 'কোনো স্কিল পাওয়া যায়নি',
+  'skills.explorer.sourceFilterAria': 'উৎস অনুসারে ফিল্টার করুন',
   'skills.explorer.installFromUrl': 'URL থেকে ইনস্টল করুন',
   'skills.explorer.newSkill': 'নতুন স্কিল',
   'skills.explorer.subtitle':

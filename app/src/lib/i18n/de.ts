@@ -981,6 +981,7 @@ const messages: TranslationMap = {
   'skills.explorer.emptyDescription':
     'Installiere ein SKILL.md-Paket oder lege Hermes-artige Ordner unter ~/.openhuman/skills ab.',
   'skills.explorer.emptyTitle': 'Keine Skills gefunden',
+  'skills.explorer.sourceFilterAria': 'Nach Quelle filtern',
   'skills.explorer.installFromUrl': 'Von URL installieren',
   'skills.explorer.newSkill': 'Neuer Skill',
   'skills.explorer.subtitle':
