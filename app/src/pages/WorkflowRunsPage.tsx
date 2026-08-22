@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { FlowRunStatus } from '../components/flows/FlowRunStatus';
-import PanelPage from '../components/layout/PanelPage';
+import SettingsTabbedPage from '../components/settings/layout/SettingsTabbedPage';
 import { CenteredLoadingState, ErrorBanner } from '../components/ui/LoadingState';
 import { useFlowRunFinished } from '../hooks/useFlowRunFinished';
 import { useFlowRunsLiveRefresh } from '../hooks/useFlowRunsLiveRefresh';
@@ -79,11 +79,11 @@ export default function WorkflowRunsPage() {
     t(`flows.allRuns.status.${status}`, status.replace(/_/g, ' '));
 
   return (
-    <PanelPage
-      testId="workflow-runs-page"
-      title={t('flows.allRuns.title')}
-      description={t('flows.allRuns.description')}>
-      <div className="p-4">
+    <div className="h-full p-4" data-testid="workflow-runs-page">
+      <SettingsTabbedPage
+        title={t('flows.allRuns.title')}
+        description={t('flows.allRuns.description')}>
+        <div className="pt-4">
         {pageLoading ? (
           <CenteredLoadingState label={t('flows.allRuns.loading')} />
         ) : pageError ? (
@@ -129,7 +129,8 @@ export default function WorkflowRunsPage() {
             })}
           </ul>
         )}
-      </div>
-    </PanelPage>
+        </div>
+      </SettingsTabbedPage>
+    </div>
   );
 }
