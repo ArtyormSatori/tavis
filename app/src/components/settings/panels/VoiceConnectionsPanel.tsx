@@ -10,7 +10,7 @@ export default function VoiceConnectionsPanel() {
     <SettingsTabbedPage
       title={t('pages.settings.ai.voice')}
       description={t('voice.providers.desc')}>
-      <VoicePanel embedded />
+      <VoicePanel embedded scrollable={false} />
     </SettingsTabbedPage>
   );
 }

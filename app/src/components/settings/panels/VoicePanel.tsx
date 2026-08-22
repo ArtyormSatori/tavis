@@ -59,9 +59,11 @@ interface VoicePanelProps {
   /** When true, render without the SettingsHeader chrome (used when embedded
    *  inside the onboarding custom wizard). */
   embedded?: boolean;
+  /** Let the host page own scrolling when this panel is embedded. */
+  scrollable?: boolean;
 }
 
-const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
+const VoicePanel = ({ embedded = false, scrollable = true }: VoicePanelProps = {}) => {
   const { t } = useT();
   const { navigateBack, navigateToSettings } = useSettingsNavigation();
   const [settings, setSettings] = useState<VoiceServerSettings | null>(null);
@@ -465,7 +467,8 @@ const VoicePanel = ({ embedded = false }: VoicePanelProps = {}) => {
       className="z-10"
       contentClassName=""
       description={embedded ? undefined : t('pages.settings.ai.voiceDesc')}
-      leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}>
+      leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}
+      scrollable={scrollable}>
       <div className={embedded ? 'space-y-5' : 'p-4 space-y-5'}>
         <SettingsSection title={t('voice.debug.alwaysOn')}>
           <SettingsRow
