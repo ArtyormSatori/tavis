@@ -32,6 +32,8 @@
 #[cfg(feature = "mcp")]
 pub mod bus;
 #[cfg(feature = "mcp")]
+pub(crate) mod helpers;
+#[cfg(feature = "mcp")]
 pub mod ops;
 #[cfg(feature = "mcp")]
 mod schemas;
