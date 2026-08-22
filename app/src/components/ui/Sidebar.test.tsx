@@ -201,6 +201,32 @@ describe('Sidebar', () => {
     expect(onWidthChange).toHaveBeenLastCalledWith(188);
   });
 
+  it('defaults the seam indicator to line-chrome — every current caller paints on the chrome', () => {
+    renderShell({ collapsible: 'icon' });
+    // The indicator is a nested `<span>`, not the `role="separator"` element
+    // itself — assert on the actual child rather than the outer div, which is
+    // exactly the seam a `className` override on the rail could never reach.
+    const indicator = screen.getByTestId('rail').querySelector('span:last-child');
+    expect(indicator?.className).toContain('group-hover:bg-line-chrome');
+    expect(indicator?.className).toContain('group-focus:bg-line-chrome');
+    expect(indicator?.className).not.toMatch(/\bgroup-hover:bg-line\b/);
+  });
+
+  it('lets a caller override the seam indicator via indicatorClassName', () => {
+    render(
+      <SidebarProvider>
+        <SidebarRail
+          data-testid="rail"
+          aria-label="Resize"
+          indicatorClassName="group-hover:bg-line group-focus:bg-line"
+        />
+      </SidebarProvider>
+    );
+    const indicator = screen.getByTestId('rail').querySelector('span:last-child');
+    expect(indicator?.className).toContain('group-hover:bg-line');
+    expect(indicator?.className).not.toContain('bg-line-chrome');
+  });
+
   it('binds mod+B only when keyboardShortcut is enabled', async () => {
     const user = userEvent.setup();
     const { unmount } = render(
