@@ -323,7 +323,7 @@ impl Turn<'_> {
                 crate::embed::error::CoreError::Rpc { .. } => "rpc",
                 crate::embed::error::CoreError::Encode { .. } => "encode",
                 crate::embed::error::CoreError::Decode { .. } => "decode",
-                _ => "other",
+                crate::embed::error::CoreError::InsecureRoute { .. } => "insecure_route",
             };
             log::debug!("[embed][agent] turn_failed session={session_id} kind={tag}");
             err
