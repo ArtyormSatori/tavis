@@ -167,7 +167,7 @@ interface SkillTileProps {
   onClick: () => void;
 }
 
-function SkillTile({ skill, onUninstall, onClick }: SkillTileProps) {
+export function SkillTile({ skill, onUninstall, onClick }: SkillTileProps) {
   const { t } = useT();
   const canUninstall = skill.scope === 'user';
 
