@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { setSidebarVisible } from '../../../store/layoutSlice';
@@ -144,7 +144,9 @@ describe('RootShellLayout — redux-controlled geometry', () => {
     // The routed content still renders unaffected.
     expect(screen.getByText('routed page')).toBeTruthy();
 
-    store.dispatch(setSidebarVisible({ id: APP_SHELL_LAYOUT_ID, visible: true }));
+    act(() => {
+      store.dispatch(setSidebarVisible({ id: APP_SHELL_LAYOUT_ID, visible: true }));
+    });
 
     expect(panel(store).sidebarVisible).toBe(true);
     expect(screen.getByTestId('root-shell-sidebar')).toHaveAttribute('data-state', 'expanded');
