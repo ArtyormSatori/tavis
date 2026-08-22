@@ -17,6 +17,12 @@
  */
 import { cn } from '@/components/assistant-ui/lib/utils';
 import { ToolFallback } from '@/components/assistant-ui/tool-fallback';
+import type { ThreadGroupPart } from '@/components/assistant-ui/thread';
+import {
+  ToolGroupContent,
+  ToolGroupRoot,
+  ToolGroupTrigger,
+} from '@/components/assistant-ui/tool-group';
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,6 +30,7 @@ import {
 } from '@/components/assistant-ui/ui/collapsible';
 import type { ToolCallMessagePartComponent } from '@assistant-ui/react';
 import { CheckIcon, ChevronDownIcon, Loader2Icon, WorkflowIcon } from 'lucide-react';
+import type { FC, PropsWithChildren } from 'react';
 
 import type { MockSubagentResult } from './mockScript';
 
@@ -138,3 +145,25 @@ export default SubagentCall;
  */
 export const MockToolFallback: ToolCallMessagePartComponent = props =>
   props.toolName === 'task' ? <SubagentCall {...props} /> : <ToolFallback {...props} />;
+
+/**
+ * Drop-in for `Thread`'s `components.ToolGroup` seam.
+ *
+ * Identical to the stock group except that a group holding work still in flight
+ * opens itself. Collapsed-by-default is right for a finished trace, but it
+ * hides the one thing a dispatched delegation needs to show: that it is still
+ * running while the answer below it streams. `defaultOpen` only applies on
+ * mount, so the group opens once and the reader can still collapse it.
+ */
+export const MockToolGroup: FC<PropsWithChildren<{ group: ThreadGroupPart }>> = ({
+  group,
+  children,
+}) => {
+  const running = group.status.type === 'running';
+  return (
+    <ToolGroupRoot variant="ghost" defaultOpen={running}>
+      <ToolGroupTrigger count={group.indices.length} active={running} />
+      <ToolGroupContent>{children}</ToolGroupContent>
+    </ToolGroupRoot>
+  );
+};

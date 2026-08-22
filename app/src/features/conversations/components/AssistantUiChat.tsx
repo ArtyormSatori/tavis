@@ -1,5 +1,10 @@
 import { Thread, type ThreadComponents } from '@/components/assistant-ui/thread';
-import { buildSeedMessages, mockChatModelAdapter, MockToolFallback } from '@/lib/assistantUiMock';
+import {
+  buildSeedMessages,
+  mockChatModelAdapter,
+  MockToolFallback,
+  MockToolGroup,
+} from '@/lib/assistantUiMock';
 import {
   AssistantRuntimeProvider,
   CompositeAttachmentAdapter,
@@ -18,11 +23,15 @@ const localAttachmentAdapter = new CompositeAttachmentAdapter([
 ]);
 
 /**
- * Routes a `task` tool call to the subagent renderer. Passed through `Thread`'s
- * `components` seam so the vendored component set stays unmodified and can
- * still be re-pulled from the registry.
+ * Routes a `task` tool call to the subagent renderer, and opens a tool group
+ * that still has work in flight. Both go through `Thread`'s `components` seam
+ * so the vendored component set stays unmodified and can still be re-pulled
+ * from the registry.
  */
-const components: ThreadComponents = { ToolFallback: MockToolFallback };
+const components: ThreadComponents = {
+  ToolFallback: MockToolFallback,
+  ToolGroup: MockToolGroup,
+};
 
 /**
  * The assistant-ui `Thread`, running against an isolated offline runtime.

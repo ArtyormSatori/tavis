@@ -14,4 +14,4 @@
 export { mockChatModelAdapter } from './mockChatModel';
 export { buildSeedMessages, MOCK_SCRIPT, SEED_PROMPT } from './mockScript';
 export type { MockStep, MockSubagentResult, MockSubagentStep } from './mockScript';
-export { MockToolFallback, SubagentCall } from './SubagentCall';
+export { MockToolFallback, MockToolGroup, SubagentCall } from './SubagentCall';
