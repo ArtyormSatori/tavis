@@ -2,6 +2,15 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Serialized-size ceiling for a pass-through MCP content block before it
+/// reaches a model prompt.
+///
+/// A block kind this build does not model is carried through as JSON rather
+/// than dropped, and the generic payload of such a block can be a base64 image
+/// or audio — megabytes. Above this ceiling the payload is elided, keeping the
+/// block type but not the bytes.
+const MAX_LLM_BLOCK_BYTES: usize = 64 * 1024;
+
 /// Result of executing a tool, containing content blocks and error status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolResult {
