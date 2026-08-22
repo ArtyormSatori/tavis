@@ -78,7 +78,7 @@ export function GoalSelector({ goal, onGoalChange, open, onOpenChange }: GoalSel
           <DialogFooter>
             {goal !== null && (
               <Button
-                variant="ghost"
+                variant="tertiary"
                 onClick={() => {
                   onGoalChange(null);
                   onOpenChange(false);
