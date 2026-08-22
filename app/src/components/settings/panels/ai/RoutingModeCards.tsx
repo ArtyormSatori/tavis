@@ -6,6 +6,7 @@
 import { cn } from '../../../../lib/cn';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Alert from '../../../ui/Alert';
+import Card from '../../../ui/Card';
 import Label from '../../../ui/Label';
 import { RadioGroupItem, RadioGroupRoot } from '../../../ui/RadioGroup';
 import type { RoutingMode } from './aiPanelTypes';
@@ -51,7 +52,8 @@ export const RoutingModeCards = ({
 }) => {
   const { t } = useT();
   return (
-    <div className="flex w-full flex-col gap-3">
+    <Card title={t('settings.ai.routing')} description={t('settings.ai.routingDesc')} className="w-full">
+      <div className="flex flex-col gap-3 p-4">
       <RadioGroupRoot
         aria-label={t('settings.ai.routing')}
         value={effectiveRoutingMode}
@@ -84,7 +86,8 @@ export const RoutingModeCards = ({
       {effectiveRoutingMode === 'managed' ? (
         <Alert variant="success">{t('settings.ai.routing.managedMsg')}</Alert>
       ) : null}
-    </div>
+      </div>
+    </Card>
   );
 };
 
