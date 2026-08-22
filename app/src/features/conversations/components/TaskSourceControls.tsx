@@ -197,7 +197,7 @@ export function TaskSourceControls({
           </div>
         </div>
         {error && (
-          <Alert variant="danger" className="mt-2 text-[11px]">
+          <Alert variant="destructive" className="mt-2 text-[11px]">
             {error}
           </Alert>
         )}
