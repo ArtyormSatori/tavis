@@ -199,13 +199,15 @@ function ComposioConnectorTile({
   };
 
   return (
-    <button
+    <Button
       type="button"
+      variant="tertiary"
+      size="md"
       data-testid={testId}
       onClick={handleClick}
       title={`${meta.name} — ${isPreview ? t('composio.previewTooltip') : meta.description}`}
       aria-label={`${meta.name}, ${statusLabel}. ${ctaLabel}.`}
-      className={`group relative flex h-full w-full flex-col justify-center items-center rounded-2xl border p-3 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+      className={`group relative h-full w-full flex-col justify-center rounded-xl border p-3 text-center ${
         isConnected
           ? 'border-sage-300 bg-sage-50/80 shadow-[0_0_0_1px_rgba(34,197,94,0.12)] hover:bg-sage-50 dark:border-sage-500/30 dark:bg-sage-500/10 dark:hover:bg-sage-500/15'
           : isPreview
@@ -249,7 +251,7 @@ function ComposioConnectorTile({
           {statusLabel}
         </span>
       </div>
-    </button>
+    </Button>
   );
 }
 
