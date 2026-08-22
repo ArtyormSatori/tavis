@@ -95,7 +95,14 @@ export {
 } from './Select';
 
 // Surfaces & content
-export { default as Card, type CardProps } from './Card';
+export {
+  default as Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  type CardProps,
+} from './Card';
 export {
   Alert,
   AlertDescription,
