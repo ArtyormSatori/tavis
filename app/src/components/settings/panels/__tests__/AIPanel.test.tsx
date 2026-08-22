@@ -1312,6 +1312,28 @@ describe('AIPanel', () => {
     );
   });
 
+  // Regression: picking a provider in the add-provider modal has to hand off to
+  // that provider's own connect dialog. Two Radix dialogs are involved (the
+  // picker unmounts as the key dialog mounts), so this asserts the handoff
+  // end to end rather than that `onOpenKeyDialog` was called.
+  it('picking a cloud provider opens its connect dialog', async () => {
+    vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
+
+    renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByTestId('add-provider-open'));
+
+    // Keyboard, not pointer: a pointer open depends on pointer capture and a
+    // popper measurement pass over a zero-sized jsdom layout. This is the path
+    // `ui/Select.test.tsx` documents as the stable one.
+    const trigger = await screen.findByTestId('add-provider-select-cloud');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+
+    fireEvent.keyDown(await screen.findByTestId('add-provider-option-openai'), { key: 'Enter' });
+
+    expect(await screen.findByRole('dialog', { name: /Connect OpenAI/i })).toBeInTheDocument();
+  });
+
   it('clicking Add Custom Provider opens the CloudProviderEditor', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
 
