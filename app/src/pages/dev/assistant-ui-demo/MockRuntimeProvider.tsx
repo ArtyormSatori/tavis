@@ -20,8 +20,7 @@ import {
 import debugFactory from 'debug';
 import { createContext, type ReactNode, useContext, useId, useMemo, useRef, useState } from 'react';
 
-import { mockChatModelAdapter } from './mockChatModel';
-import { buildSeedMessages } from './mockScript';
+import { buildSeedMessages, mockChatModelAdapter } from '@/lib/assistantUiMock';
 
 const debug = debugFactory('openhuman:assistant-ui-demo');
 

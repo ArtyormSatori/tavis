@@ -83,7 +83,7 @@ import { type FC, type ReactNode, useState } from 'react';
 
 import { CloneThreadShell } from './CloneThreadShell';
 import { DEFAULT_MODEL_ID, demoModelOptions } from './demoModels';
-import { SubagentCall } from './SubagentCall';
+import { SubagentCall } from '@/lib/assistantUiMock';
 
 const Logo: FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
   return (
