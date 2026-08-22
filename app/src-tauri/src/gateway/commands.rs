@@ -43,13 +43,20 @@ pub(crate) fn gateway_delete(id: String) -> Result<(), String> {
 }
 
 /// Make a gateway the one RPC goes to.
+///
+/// Returns an empty acknowledgment, not the [`ActiveGateway`]: the endpoint and
+/// bearer stay in the shell registry, where `core_rpc_url` / `core_rpc_token`
+/// answer from. Handing the bearer to the renderer would let an XSS exfiltrate
+/// a credential the renderer never needs — it only needs to know the switch
+/// happened.
 #[tauri::command]
 pub(crate) async fn gateway_activate(
     id: String,
     desktop: tauri::State<'_, crate::core_process::CoreProcessHandle>,
-) -> Result<ActiveGateway, String> {
+) -> Result<(), String> {
     let gateway = store::get(&id).ok_or_else(|| format!("no gateway named {id}"))?;
-    registry::activate(&gateway, desktop.inner()).await
+    registry::activate(&gateway, desktop.inner()).await?;
+    Ok(())
 }
 
 /// Which gateway is active.
