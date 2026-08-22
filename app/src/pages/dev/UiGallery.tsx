@@ -27,8 +27,6 @@ import {
   AvatarRoot,
   Badge,
   Button,
-  ButtonGroupItem,
-  ButtonGroupRoot,
   Card,
   Checkbox,
   CollapsibleContent,
@@ -44,9 +42,6 @@ import {
   DropdownMenuTrigger,
   EmptyState,
   Field,
-  HoverCardContent,
-  HoverCardRoot,
-  HoverCardTrigger,
   Input,
   InputGroupAddon,
   InputGroupButton,
@@ -634,25 +629,6 @@ export default function UiGallery() {
         </p>
       </Section>
 
-      <Section title="Button group">
-        <ButtonGroupRoot aria-label="Document actions">
-          <ButtonGroupItem>Save</ButtonGroupItem>
-          <ButtonGroupItem>Save as…</ButtonGroupItem>
-          <ButtonGroupItem>Export</ButtonGroupItem>
-        </ButtonGroupRoot>
-        <ButtonGroupRoot variant="primary" size="sm" aria-label="Primary actions">
-          <ButtonGroupItem>Run</ButtonGroupItem>
-          <ButtonGroupItem iconOnly aria-label="More run options">
-            ▾
-          </ButtonGroupItem>
-        </ButtonGroupRoot>
-        <ButtonGroupRoot orientation="vertical" className="w-40" aria-label="Vertical actions">
-          <ButtonGroupItem>Top</ButtonGroupItem>
-          <ButtonGroupItem>Middle</ButtonGroupItem>
-          <ButtonGroupItem tone="danger">Delete</ButtonGroupItem>
-        </ButtonGroupRoot>
-      </Section>
-
       <Section title="Input group">
         <InputGroupRoot>
           <InputGroupAddon>https://</InputGroupAddon>
@@ -667,32 +643,6 @@ export default function UiGallery() {
           <InputGroupAddon aria-hidden>🔍</InputGroupAddon>
           <InputGroupInput placeholder="Search" aria-label="Search" />
         </InputGroupRoot>
-      </Section>
-
-      <Section title="Hover card">
-        <div className="flex flex-wrap items-center gap-2">
-          <HoverCardRoot>
-            <HoverCardTrigger asChild>
-              <Button variant="tertiary">Preview a person</Button>
-            </HoverCardTrigger>
-            <HoverCardContent>
-              <div className="flex items-center gap-3">
-                <AvatarRoot>
-                  <AvatarFallback>ab</AvatarFallback>
-                </AvatarRoot>
-                <div>
-                  <p className="text-sm font-medium text-content">Ada Byron</p>
-                  <p className="text-xs text-content-muted">
-                    Rich, optional preview — not a label.
-                  </p>
-                </div>
-              </div>
-            </HoverCardContent>
-          </HoverCardRoot>
-          <span className="text-xs text-content-muted">
-            A label for an icon button belongs in Tooltip; this is for previews worth reading.
-          </span>
-        </div>
       </Section>
 
       <Section title="Sidebar">
