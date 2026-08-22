@@ -28,6 +28,7 @@ import {
   ChatThreadView,
   type ChatThreadViewHandle,
 } from '../../features/conversations/components/ChatThreadView';
+import { AssistantUiChat } from '../../features/conversations/components/AssistantUiChat';
 import { PlanReviewCard } from '../../features/conversations/components/PlanReviewCard';
 import {
   ThreadGoalEditorPanel,
@@ -1959,7 +1960,7 @@ const Conversations = ({
   );
 
   // Main chat area (right pane): header, message list, composer.
-  const mainPanel = (
+  const legacyMainPanel = (
     <div
       className={
         isSidebar
@@ -2560,6 +2561,20 @@ const Conversations = ({
           )}
         </div>
       </div>
+    </div>
+  );
+
+  // The first assistant-ui migration is intentionally a fresh, local surface.
+  // Keep the established pane above compiled but detached while follow-up work
+  // reconnects its OpenHuman-specific features one seam at a time.
+  const mainPanel = (
+    <div
+      className={
+        isSidebar
+          ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-line bg-surface'
+          : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'
+      }>
+      <AssistantUiChat />
     </div>
   );
 
