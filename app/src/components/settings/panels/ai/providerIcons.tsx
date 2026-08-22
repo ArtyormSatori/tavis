@@ -14,6 +14,7 @@
  * placeholder glyph — the caller already renders a good fallback, and a generic
  * cloud icon on twelve rows carries less information than twelve letters.
  */
+import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
 import {
   SiAlibabacloud,
@@ -53,8 +54,20 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   ollama: SiOllama,
 };
 
-/** The brand mark for a provider slug, or `null` when we ship none. */
-export const providerIcon = (slug: string): IconType | null => PROVIDER_ICONS[slug] ?? null;
+/**
+ * The rendered brand mark for a provider slug, or `null` when we ship none.
+ *
+ * Returns an ELEMENT, not a component. A caller that did
+ * `const Icon = providerIcon(slug)` and rendered `<Icon />` would be defining a
+ * component during render as far as React is concerned (and the lint rule that
+ * catches it is right: it gives the icon a fresh identity on every render, so
+ * React cannot reconcile it). Handing back an element keeps that impossible at
+ * the call site.
+ */
+export const providerIcon = (slug: string, className: string): ReactElement | null => {
+  const icon = PROVIDER_ICONS[slug];
+  return icon ? createElement(icon, { className }) : null;
+};
 
 /** Slugs with a mark — exported for the coverage test, not for rendering. */
 export const PROVIDER_ICON_SLUGS = Object.keys(PROVIDER_ICONS);
