@@ -667,6 +667,27 @@
     outline: none !important;
   }
 
+  /* `@plugin '@tailwindcss/forms'` gives every bare input / textarea / select a
+     focus ring of its own — a `box-shadow` in a hardcoded `blue-600`, a
+     `border-color` in the same blue, and a ring *offset* hardcoded to `#fff`.
+     The block above cannot reach it: it clears `outline`, and deliberately
+     "leaves borders and box-shadows alone" because components depend on those.
+     So the ring survived, in a blue that is not this app's accent and on a
+     white halo that stays white in dark mode — the stray light outline around a
+     focused composer.
+
+     Keeping the ring and re-pointing it at the theme is the fix; deleting it
+     would take a real focus affordance with it. `!important` is needed because
+     the plugin's selectors are attribute-qualified (`[type='text']:focus`) and
+     outrank any element selector written here. */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    --tw-ring-color: var(--color-ring) !important;
+    --tw-ring-offset-color: var(--color-background) !important;
+    border-color: var(--color-ring) !important;
+  }
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
