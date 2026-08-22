@@ -4566,8 +4566,10 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Choisissez un environnement local…',
   'settings.ai.providers.placeholderCli': 'Choisissez une connexion CLI…',
   'settings.ai.providers.helperCloud': 'Modèles hébergés. Vous fournissez une clé API.',
-  'settings.ai.providers.helperLocal': 'Modèles exécutés sur cet appareil. Vous fournissez le point de terminaison.',
-  'settings.ai.providers.helperCli': 'Réutilise une connexion que possède déjà un autre outil en ligne de commande.',
+  'settings.ai.providers.helperLocal':
+    'Modèles exécutés sur cet appareil. Vous fournissez le point de terminaison.',
+  'settings.ai.providers.helperCli':
+    'Réutilise une connexion que possède déjà un autre outil en ligne de commande.',
   'settings.ai.providers.categoryAllConnected': 'Tous connectés',
   'settings.ai.providers.addCustomAction': 'Ajouter un fournisseur personnalisé',
   'settings.ai.providers.customDetail': 'Votre propre point de terminaison compatible OpenAI',

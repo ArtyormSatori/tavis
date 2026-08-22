@@ -4527,8 +4527,10 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Wybierz lokalne środowisko…',
   'settings.ai.providers.placeholderCli': 'Wybierz logowanie CLI…',
   'settings.ai.providers.helperCloud': 'Modele hostowane. Klucz API podajesz Ty.',
-  'settings.ai.providers.helperLocal': 'Modele działające na tym urządzeniu. Punkt końcowy podajesz Ty.',
-  'settings.ai.providers.helperCli': 'Korzysta z logowania, które ma już inne narzędzie wiersza poleceń.',
+  'settings.ai.providers.helperLocal':
+    'Modele działające na tym urządzeniu. Punkt końcowy podajesz Ty.',
+  'settings.ai.providers.helperCli':
+    'Korzysta z logowania, które ma już inne narzędzie wiersza poleceń.',
   'settings.ai.providers.categoryAllConnected': 'Wszystkie połączone',
   'settings.ai.providers.addCustomAction': 'Dodaj własnego dostawcę',
   'settings.ai.providers.customDetail': 'Twój własny punkt końcowy zgodny z OpenAI',

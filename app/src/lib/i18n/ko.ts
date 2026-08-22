@@ -4413,7 +4413,8 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': '로컬 런타임 선택…',
   'settings.ai.providers.placeholderCli': 'CLI 로그인 선택…',
   'settings.ai.providers.helperCloud': '호스팅 모델입니다. API 키는 사용자가 입력합니다.',
-  'settings.ai.providers.helperLocal': '이 기기에서 실행되는 모델입니다. 엔드포인트는 사용자가 입력합니다.',
+  'settings.ai.providers.helperLocal':
+    '이 기기에서 실행되는 모델입니다. 엔드포인트는 사용자가 입력합니다.',
   'settings.ai.providers.helperCli': '다른 명령줄 도구가 이미 가진 로그인을 재사용합니다.',
   'settings.ai.providers.categoryAllConnected': '모두 연결됨',
   'settings.ai.providers.addCustomAction': '사용자 지정 제공자 추가',

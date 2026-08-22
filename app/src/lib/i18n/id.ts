@@ -4480,7 +4480,8 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Pilih runtime lokal…',
   'settings.ai.providers.placeholderCli': 'Pilih login CLI…',
   'settings.ai.providers.helperCloud': 'Model yang dihosting. Anda menyediakan kunci API.',
-  'settings.ai.providers.helperLocal': 'Model yang berjalan di perangkat ini. Anda menyediakan endpoint.',
+  'settings.ai.providers.helperLocal':
+    'Model yang berjalan di perangkat ini. Anda menyediakan endpoint.',
   'settings.ai.providers.helperCli': 'Memakai login yang sudah dimiliki alat baris perintah lain.',
   'settings.ai.providers.categoryAllConnected': 'Semua terhubung',
   'settings.ai.providers.addCustomAction': 'Tambahkan penyedia kustom',

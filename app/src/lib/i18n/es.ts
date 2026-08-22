@@ -4539,8 +4539,10 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Elige un entorno local…',
   'settings.ai.providers.placeholderCli': 'Elige un inicio de sesión de CLI…',
   'settings.ai.providers.helperCloud': 'Modelos alojados. Tú aportas una clave de API.',
-  'settings.ai.providers.helperLocal': 'Modelos que se ejecutan en este equipo. Tú aportas el endpoint.',
-  'settings.ai.providers.helperCli': 'Reutiliza un inicio de sesión que ya tiene otra herramienta de línea de comandos.',
+  'settings.ai.providers.helperLocal':
+    'Modelos que se ejecutan en este equipo. Tú aportas el endpoint.',
+  'settings.ai.providers.helperCli':
+    'Reutiliza un inicio de sesión que ya tiene otra herramienta de línea de comandos.',
   'settings.ai.providers.categoryAllConnected': 'Todos conectados',
   'settings.ai.providers.addCustomAction': 'Añadir un proveedor personalizado',
   'settings.ai.providers.customDetail': 'Tu propio endpoint compatible con OpenAI',

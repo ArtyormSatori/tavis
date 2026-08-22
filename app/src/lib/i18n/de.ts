@@ -4586,8 +4586,10 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Lokale Laufzeit auswählen…',
   'settings.ai.providers.placeholderCli': 'CLI-Anmeldung auswählen…',
   'settings.ai.providers.helperCloud': 'Gehostete Modelle. Sie geben einen API-Schlüssel an.',
-  'settings.ai.providers.helperLocal': 'Modelle, die auf diesem Gerät laufen. Sie geben den Endpunkt an.',
-  'settings.ai.providers.helperCli': 'Nutzt eine Anmeldung, die ein anderes Befehlszeilenwerkzeug bereits hat.',
+  'settings.ai.providers.helperLocal':
+    'Modelle, die auf diesem Gerät laufen. Sie geben den Endpunkt an.',
+  'settings.ai.providers.helperCli':
+    'Nutzt eine Anmeldung, die ein anderes Befehlszeilenwerkzeug bereits hat.',
   'settings.ai.providers.categoryAllConnected': 'Alle verbunden',
   'settings.ai.providers.addCustomAction': 'Eigenen Anbieter hinzufügen',
   'settings.ai.providers.customDetail': 'Ihr eigener OpenAI-kompatibler Endpunkt',

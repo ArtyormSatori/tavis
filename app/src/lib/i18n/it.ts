@@ -4533,8 +4533,10 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Scegli un runtime locale…',
   'settings.ai.providers.placeholderCli': 'Scegli un accesso CLI…',
   'settings.ai.providers.helperCloud': 'Modelli ospitati. Fornisci tu una chiave API.',
-  'settings.ai.providers.helperLocal': 'Modelli eseguiti su questo dispositivo. Fornisci tu endpoint.',
-  'settings.ai.providers.helperCli': 'Riusa un accesso che un altro strumento da riga di comando possiede già.',
+  'settings.ai.providers.helperLocal':
+    'Modelli eseguiti su questo dispositivo. Fornisci tu endpoint.',
+  'settings.ai.providers.helperCli':
+    'Riusa un accesso che un altro strumento da riga di comando possiede già.',
   'settings.ai.providers.categoryAllConnected': 'Tutti connessi',
   'settings.ai.providers.addCustomAction': 'Aggiungi un provider personalizzato',
   'settings.ai.providers.customDetail': 'Il tuo endpoint compatibile con OpenAI',

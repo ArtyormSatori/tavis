@@ -4502,8 +4502,10 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderLocal': 'Выберите локальную среду…',
   'settings.ai.providers.placeholderCli': 'Выберите вход через CLI…',
   'settings.ai.providers.helperCloud': 'Размещённые модели. Ключ API предоставляете вы.',
-  'settings.ai.providers.helperLocal': 'Модели, работающие на этом устройстве. Адрес предоставляете вы.',
-  'settings.ai.providers.helperCli': 'Использует вход, который уже есть у другого инструмента командной строки.',
+  'settings.ai.providers.helperLocal':
+    'Модели, работающие на этом устройстве. Адрес предоставляете вы.',
+  'settings.ai.providers.helperCli':
+    'Использует вход, который уже есть у другого инструмента командной строки.',
   'settings.ai.providers.categoryAllConnected': 'Все подключены',
   'settings.ai.providers.addCustomAction': 'Добавить своего провайдера',
   'settings.ai.providers.customDetail': 'Ваша собственная конечная точка, совместимая с OpenAI',

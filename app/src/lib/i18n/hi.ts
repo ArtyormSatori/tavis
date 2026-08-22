@@ -4463,7 +4463,8 @@ const messages: TranslationMap = {
   'settings.ai.providers.placeholderCli': 'CLI लॉगिन चुनें…',
   'settings.ai.providers.helperCloud': 'होस्टेड मॉडल। API कुंजी आप देते हैं।',
   'settings.ai.providers.helperLocal': 'इसी डिवाइस पर चलने वाले मॉडल। एंडपॉइंट आप देते हैं।',
-  'settings.ai.providers.helperCli': 'किसी अन्य कमांड लाइन टूल के मौजूदा लॉगिन का दोबारा उपयोग करता है।',
+  'settings.ai.providers.helperCli':
+    'किसी अन्य कमांड लाइन टूल के मौजूदा लॉगिन का दोबारा उपयोग करता है।',
   'settings.ai.providers.categoryAllConnected': 'सभी जुड़े हैं',
   'settings.ai.providers.addCustomAction': 'कस्टम प्रदाता जोड़ें',
   'settings.ai.providers.customDetail': 'आपका अपना OpenAI-संगत एंडपॉइंट',
