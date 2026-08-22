@@ -2565,9 +2565,9 @@ const Conversations = ({
   );
 
   // The first assistant-ui migration is intentionally a fresh, local surface.
-  // Keep the established pane above compiled but detached while follow-up work
-  // reconnects its OpenHuman-specific features one seam at a time.
-  const mainPanel = (
+  // Keep the established pane available while follow-up work reconnects its
+  // OpenHuman-specific features one seam at a time.
+  const assistantUiMainPanel = (
     <div
       className={
         isSidebar
@@ -2577,6 +2577,8 @@ const Conversations = ({
       <AssistantUiChat />
     </div>
   );
+  const renderAssistantUiOnly = true;
+  const mainPanel = renderAssistantUiOnly ? assistantUiMainPanel : legacyMainPanel;
 
   return (
     <div
