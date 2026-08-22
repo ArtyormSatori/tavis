@@ -106,6 +106,11 @@ const isWebTarget = buildTarget === "web";
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   root: "src",
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"),
+    },
+  },
   publicDir: "../public",
   // Read env files from the repo root (not `app/src/`, which is the vite
   // `root` and would be the default `envDir`). Lets `pnpm dev:app` pick up
