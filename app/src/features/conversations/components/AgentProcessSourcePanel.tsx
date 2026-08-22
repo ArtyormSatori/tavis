@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import createDebug from 'debug';
 
 import { Source, Sources, SourcesContent, SourcesTrigger } from '../../../components/ai-elements';
 import Button from '../../../components/ui/Button';
+import { SheetContent, SheetRoot, SheetTitle } from '../../../components/ui/Sheet';
 import { useT } from '../../../lib/i18n/I18nContext';
 import type { ProcessingTranscriptItem, ToolTimelineEntry } from '../../../store/chatRuntimeSlice';
 import {
@@ -12,7 +12,10 @@ import {
 } from '../../../utils/toolTimelineFormatting';
 import { AgentSparkIcon } from './AgentTimelineRail';
 import { ProcessingTranscriptView } from './ProcessingTranscriptView';
-import { SubagentActivityBlock, ToolTimelineBlock } from './ToolTimelineBlock';
+import { SubagentActivityBlock } from './SubagentActivityBlock';
+import { ToolTimelineBlock } from './ToolTimelineBlock';
+
+const log = createDebug('app:conversations:agent-process-source');
 
 /** Compact globe glyph for a source row. Inherits `currentColor`. */
 function GlobeIcon({ className }: { className?: string }) {
@@ -101,16 +104,6 @@ export function AgentProcessSourcePanel({
 }) {
   const { t } = useT();
 
-  // Close on Escape for keyboard parity with the backdrop click.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
   if (!open) return null;
 
   // Sources/sub-agents are scoped to the single step when one is selected,
@@ -124,33 +117,40 @@ export function AgentProcessSourcePanel({
       normalizeScopedBody(scopedEntry.argsBuffer))
     : undefined;
 
-  // Portaled to `document.body` rather than rendered in place. This is a
-  // viewport-level overlay, but its host tree sits inside `Conversations`'
-  // `relative z-10` wrapper — a stacking context. Left in place, `z-50` only
-  // orders it against its own siblings; from the outside the whole chat subtree
-  // is just "z-10", so any later sibling with a higher z-index paints straight
-  // over it. Portaling lifts it into the root stacking context, where `z-50`
-  // means what it reads like. Same pattern as `components/ui/ModalShell`.
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-end" data-testid="agent-process-source-panel">
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label={t('conversations.subagent.close')}
-        className="absolute inset-0 bg-surface-overlay/30 dark:bg-surface-overlay/50"
-        onClick={onClose}
-      />
-      <aside className="relative flex h-full w-full max-w-[600px] flex-col bg-surface shadow-xl">
+  log('render panel scoped=%s entries=%d sources=%d', Boolean(scopedEntry), entries.length, sources.length);
+
+  // The overlay is the shared Radix-backed `Sheet`: the hand-rolled portal +
+  // backdrop `<button>` + `keydown` listener it replaced had no focus trap, no
+  // scroll lock and no focus restore on close. `open` is hard-coded because the
+  // early return above already renders nothing when closed — `onOpenChange` is
+  // what routes Escape / outside-click back to the caller's `onClose`.
+  return (
+    <SheetRoot
+      open
+      onOpenChange={next => {
+        if (!next) onClose();
+      }}>
+      <SheetContent
+        side="right"
+        aria-describedby={undefined}
+        data-testid="agent-process-source-panel"
+        className="max-w-[600px]">
         {/* Header */}
-        <header className="flex items-center gap-2.5 border-b border-line px-4 py-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-500 dark:bg-primary-500/15">
+        <header className="flex shrink-0 items-center gap-2.5 border-b border-line px-4 py-3">
+          <span
+            aria-hidden
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-500 dark:bg-primary-500/15">
             <AgentSparkIcon />
           </span>
-          <span className="min-w-0 flex-1 truncate font-semibold text-content">
-            {scopedEntry
-              ? formatTimelineEntry(scopedEntry).title
-              : t('conversations.agentTaskInsights.processSourceTitle')}
-          </span>
+          {/* `asChild` keeps the historical inline span so the header layout is
+              unchanged while Radix gets its required accessible title. */}
+          <SheetTitle asChild>
+            <span className="min-w-0 flex-1 truncate font-semibold text-content">
+              {scopedEntry
+                ? formatTimelineEntry(scopedEntry).title
+                : t('conversations.agentTaskInsights.processSourceTitle')}
+            </span>
+          </SheetTitle>
           <Button
             iconOnly
             variant="tertiary"
@@ -249,8 +249,7 @@ export function AgentProcessSourcePanel({
             </Sources>
           ) : null}
         </div>
-      </aside>
-    </div>,
-    document.body
+      </SheetContent>
+    </SheetRoot>
   );
 }
