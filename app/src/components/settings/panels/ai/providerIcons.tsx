@@ -1,15 +1,13 @@
 /*
  * Brand marks for provider rows and the add-provider dialog.
  *
- * NOTHING IS DOWNLOADED OR VENDORED. `react-icons` is already a dependency and
- * ships the Simple Icons set (`react-icons/si`), so the marks come from a
- * package the app already installs and tree-shakes. Fetching brand SVGs into
- * the repo instead would add assets whose trademarks belong to other companies,
- * for logos this set already covers.
+ * `react-icons` supplies the Simple Icons marks already available in the app.
+ * Providers absent from that installed set use locally bundled, traceable
+ * assets, so provider marks render offline and never add a runtime network
+ * request.
  *
- * COVERAGE IS PARTIAL ON PURPOSE. Simple Icons carries roughly a third of the
- * ~29 providers here; the rest have no mark in any set we ship. Rather than
- * draw approximations of other companies' logos, an uncovered provider keeps
+ * Coverage is extended with those bundled assets. A provider with no traceable
+ * mark still keeps
  * the lettered swatch, which is why `providerIcon` returns `null` instead of a
  * placeholder glyph — the caller already renders a good fallback, and a generic
  * cloud icon on twelve rows carries less information than twelve letters.
