@@ -257,19 +257,22 @@ const Composer: FC = () => {
             enterKeyHint="send"
             aria-label="Message input"
           />
-          <ComposerAction />
+          <ComposerAction model={model} onModelChange={setModel} />
         </div>
       </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
   );
 };
 
-const ComposerAction: FC = () => {
+const ComposerAction: FC<{
+  model: string | null;
+  onModelChange: (value: string) => void;
+}> = ({ model, onModelChange }) => {
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
       <div className="flex items-center gap-1">
         <ComposerAddAttachment />
-        <ModelQualityPill value={model} onValueChange={setModel} />
+        <ModelQualityPill value={model} onValueChange={onModelChange} />
       </div>
       <div className="flex items-center gap-1.5">
         <AuiIf condition={s => s.thread.capabilities.dictation}>
