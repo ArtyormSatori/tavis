@@ -709,8 +709,15 @@
      So the default is flipped: no border unless a component asks for one,
      which is the convention every textarea here already follows. Scoped to
      `textarea` deliberately — the same reset on `input` is load-bearing for
-     bare checkboxes and radios, whose box IS that border. */
-  textarea {
+     bare checkboxes and radios, whose box IS that border.
+
+     `html textarea` rather than `textarea`, and no `!important`. Tailwind emits
+     plugin base styles *after* this block, so an equally specific selector
+     would lose on source order; the descendant bumps it to (0,0,2) and wins.
+     `!important` would go too far the other way and override the components
+     that legitimately set their own `border`, which is a single class at
+     (0,1,0) and still outranks this. */
+  html textarea {
     border-width: 0;
   }
 
