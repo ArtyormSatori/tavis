@@ -110,7 +110,6 @@ export const WorkloadRow = ({
                 <Badge variant={isPinned ? 'primary' : 'neutral'}>
                   {isPinned ? 'Pinned' : 'Managed'}
                 </Badge>
-                {model ? <span className="truncate font-mono text-xs text-content-secondary">{model}</span> : null}
               </div>
             </div>
           </>
@@ -119,8 +118,18 @@ export const WorkloadRow = ({
         )}
       </div>
 
-      <Button type="button" variant="secondary" size="xs" onClick={onCustomClick}>
-        {isPinned ? 'Change provider and model' : 'Select provider and model'}
+      <Button
+        type="button"
+        variant="secondary"
+        size="xs"
+        onClick={onCustomClick}
+        className="h-auto max-w-[15rem] flex-col items-start gap-0.5 px-3 py-2 text-left">
+        <span className="text-[10px] font-medium text-content-muted">
+          {isPinned ? 'Provider and model' : 'Select provider and model'}
+        </span>
+        <span className="max-w-full truncate font-mono text-xs text-content">
+          {model || 'Choose a model'}
+        </span>
       </Button>
     </li>
   );
