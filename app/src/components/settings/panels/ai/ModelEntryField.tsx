@@ -20,6 +20,8 @@
  */
 import { useCallback, useState } from 'react';
 
+import { cn } from '../../../../lib/cn';
+
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ModelInfo } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
@@ -106,6 +108,7 @@ export const ModelEntryField = ({
   placeholder,
   analyticsId,
   optionLabel,
+  className,
 }: {
   mode: ModelEntryMode;
   model: string;
@@ -121,6 +124,8 @@ export const ModelEntryField = ({
   analyticsId: string;
   /** Option text for a catalog entry. Defaults to the bare model id. */
   optionLabel?: (m: ModelInfo) => string;
+  /** Sizing for the field when it sits in a flex row beside its siblings. */
+  className?: string;
 }) => {
   const { t } = useT();
   const { isAzureProvider, manualEntry, useManualEntry, showAzureLegacyHint } = mode;
@@ -135,7 +140,7 @@ export const ModelEntryField = ({
   const showLoadingSelect = Boolean(catalogLoading) && !manualEntry;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={cn('flex flex-col gap-1.5', className)}>
       <Label className="text-xs text-content-secondary">{fieldLabel}</Label>
 
       {catalogError ? (
