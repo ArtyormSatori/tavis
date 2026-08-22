@@ -15,7 +15,5 @@
     "hooks": "@/components/assistant-ui/hooks",
     "utils": "@/components/assistant-ui/lib/utils"
   },
-  "registries": {
-    "@assistant-ui": "https://r.assistant-ui.com/styles/{style}/{name}.json"
-  }
+  "registries": { "@assistant-ui": "https://r.assistant-ui.com/styles/{style}/{name}.json" }
 }
