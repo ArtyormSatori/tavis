@@ -19,7 +19,6 @@ import SuperContextToggle from '../../components/chat/SuperContextToggle';
 import { whenSuperContextWriteSettled } from '../../components/chat/superContextWrite';
 import WorkflowProposalCard from '../../components/chat/WorkflowProposalCard';
 import { ConfirmationModal } from '../../components/intelligence/ConfirmationModal';
-import PanelHeader from '../../components/layout/PanelHeader';
 import { SidebarContent } from '../../components/layout/shell/SidebarSlot';
 import { settingsNavState } from '../../components/settings/modal/settingsOverlay';
 import UpsellBanner from '../../components/upsell/UpsellBanner';
@@ -1960,7 +1959,6 @@ const Conversations = ({
   );
 
   // Main chat area (right pane): header, message list, composer.
-  const showChatHeader = !isSidebar && Boolean(selectedThreadId);
   const mainPanel = (
     <div
       className={
@@ -1971,24 +1969,6 @@ const Conversations = ({
             // the absolutely-positioned floating composer.
             'relative flex-1 flex flex-col min-w-0'
       }>
-      {/* Page header band — the same flush title band every other page opens
-          with (PanelHeader / bg-surface-muted), naming the open thread. Page
-          variant only: the embedded sidebar variant lives in a narrow aside
-          where a full band would cost more vertical room than it earns, and its
-          host already titles the surface. Suppressed until a thread resolves so
-          a brand-new chat doesn't open with an empty band above the hero. */}
-      {showChatHeader && selectedThreadId && (
-        // No fade beneath the band, deliberately. The bottom of the pane needs
-        // one because the composer is absolutely positioned and floats over the
-        // messages; this header is `flex-shrink-0` in normal flow, so the scroll
-        // area simply starts below it and nothing ever scrolls underneath. A
-        // gradient here has no overlap to soften — it just paints a veil over
-        // whatever message happens to be at the top of the list.
-        <PanelHeader
-          title={resolveThreadDisplayTitle(selectedThreadId)}
-          className="flex-shrink-0 px-4 pt-4 pb-3"
-        />
-      )}
       <ChatThreadView
         ref={threadViewRef}
         threadId={selectedThreadId ?? null}
