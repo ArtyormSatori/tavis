@@ -1,10 +1,9 @@
 /*
  * Pure formatting helpers + small presentational primitives shared by the
- * background-loop controls (heartbeat section + usage ledger section).
+ * background-loop controls (loop map + usage ledger section).
  */
 import type { ComposioConnection } from '../../../../lib/composio/types';
 import type { CreditTransaction } from '../../../../services/api/creditsApi';
-import { SettingsSwitch } from '../../controls';
 import type { ProviderRef } from './aiPanelTypes';
 
 export const USD = new Intl.NumberFormat('en-US', {
@@ -47,14 +46,6 @@ export const formatDateTime = (value: string | null | undefined): string => {
 export const activeConnection = (connection: ComposioConnection): boolean => {
   const status = connection.status.toUpperCase();
   return status === 'ACTIVE' || status === 'CONNECTED';
-};
-
-export const normalizedToolkit = (connection: ComposioConnection): string =>
-  connection.toolkit.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-export const isCalendarConnection = (connection: ComposioConnection): boolean => {
-  const toolkit = normalizedToolkit(connection);
-  return toolkit === 'googlecalendar' || toolkit === 'calendar';
 };
 
 export function summarizeSpendByAction(
@@ -124,34 +115,6 @@ export function describeProvider(
   const provider = providers.find(p => p.slug === ref.providerSlug);
   return `${provider?.label ?? ref.providerSlug} ${ref.model || 'custom model'}`;
 }
-
-export const LoopToggle = ({
-  label,
-  description,
-  checked,
-  busy,
-  onToggle,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  busy: boolean;
-  onToggle: () => void;
-}) => (
-  <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2">
-    <div className="min-w-0">
-      <div className="text-sm font-medium text-content">{label}</div>
-      <div className="text-xs text-content-muted">{description}</div>
-    </div>
-    <SettingsSwitch
-      id={`loop-toggle-${label.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-      checked={checked}
-      onCheckedChange={onToggle}
-      disabled={busy}
-      aria-label={label}
-    />
-  </div>
-);
 
 export const MetricTile = ({
   label,
