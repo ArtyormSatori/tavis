@@ -24,7 +24,6 @@ import {
   SiNvidia,
   SiOllama,
   SiOpenai,
-  SiPerplexity,
   SiVercel,
   SiX,
 } from 'react-icons/si';
@@ -47,7 +46,6 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   nvidia: SiNvidia,
   'vercel-ai-gateway': SiVercel,
   xai: SiX,
-  perplexity: SiPerplexity,
   // Z.AI is Zhipu, whose models ship through Alibaba Cloud's model service; the
   // Alibaba Cloud mark is the closest thing the set carries. Dropped rather
   // than guessed if that ever reads as wrong.
