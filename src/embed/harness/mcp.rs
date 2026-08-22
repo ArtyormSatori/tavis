@@ -39,7 +39,12 @@ impl std::fmt::Debug for McpServer {
         let cfg = &self.0;
         f.debug_struct("McpServer")
             .field("name", &cfg.name)
-            .field("endpoint", &cfg.endpoint)
+            // The endpoint can itself embed credentials (userinfo/query); show
+            // a sanitized form so it cannot leak into host logs.
+            .field(
+                "endpoint",
+                &crate::embed::agent::sanitize_url_for_display(&cfg.endpoint),
+            )
             .field("command", &cfg.command)
             .field("args", &cfg.args)
             .field("env_redacted", &(!cfg.env.is_empty()))

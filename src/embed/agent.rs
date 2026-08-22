@@ -69,13 +69,32 @@ pub struct Route {
 
 impl std::fmt::Debug for Route {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // The bearer is a credential; a derived Debug would spill it into
-        // `Provider`'s Debug and from there into host logs and error paths.
+        // The bearer is a credential, and the base URL can itself carry
+        // userinfo (`https://user:pass@host`) or query credentials; a derived
+        // Debug would spill both into `Provider`'s Debug and from there into
+        // host logs and error paths.
         f.debug_struct("Route")
-            .field("base_url", &self.base_url)
+            .field("base_url", &sanitize_url_for_display(&self.base_url))
             .field("api_key", &"<redacted>")
             .finish()
     }
+}
+
+/// A URL safe to surface in logs/diagnostics: userinfo and query/fragment are
+/// stripped, so `https://user:pass@host/v1?key=secret` renders as
+/// `https://host/v1`. Falls back to the raw string only when it does not parse
+/// as an absolute URL (e.g. a bare host or protocol-relative value), since
+/// those carry no credential-bearing components to redact.
+pub(crate) fn sanitize_url_for_display(url: &str) -> String {
+    let Ok(parsed) = url::Url::parse(url) else {
+        return url.to_string();
+    };
+    let mut out = parsed;
+    let _ = out.set_username("");
+    let _ = out.set_password(None);
+    out.set_query(None);
+    out.set_fragment(None);
+    out.to_string()
 }
 
 impl Route {

@@ -89,3 +89,20 @@ fn debug_redacts_credentials() {
     );
     assert!(debug.contains("redacted"));
 }
+
+#[test]
+fn debug_redacts_credentials_embedded_in_the_endpoint() {
+    // The endpoint can itself carry userinfo or query credentials; Debug must
+    // strip them rather than print them verbatim.
+    let server = McpServer::http(
+        "remote",
+        "https://user:s3cret@mcp.example/v1?api_key=leaky",
+    );
+    let debug = format!("{server:?}");
+
+    assert!(
+        !debug.contains("s3cret") && !debug.contains("leaky"),
+        "endpoint credentials leaked into Debug: {debug}"
+    );
+    assert!(debug.contains("mcp.example"), "origin stays readable");
+}
