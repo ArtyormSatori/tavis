@@ -25,7 +25,8 @@ import type { ModelInfo } from '../../../../services/api/aiSettingsApi';
 import Alert from '../../../ui/Alert';
 import Button from '../../../ui/Button';
 import Label from '../../../ui/Label';
-import { SettingsSelect, SettingsTextField } from '../../controls';
+import NativeSelect from '../../../ui/NativeSelect';
+import TextField from '../../../ui/TextField';
 import { isAzureFoundryEndpoint, looksLikeAzureBaseModelId } from '../azureDeployment';
 
 /** Resolved entry-mode state for one picker. Produced by {@link useModelEntryMode}. */
@@ -158,11 +159,11 @@ export const ModelEntryField = ({
       ) : null}
 
       {showLoadingSelect ? (
-        <SettingsSelect disabled className="w-full opacity-60 cursor-wait">
+        <NativeSelect disabled className="w-full opacity-60 cursor-wait">
           <option>{t('settings.ai.loadingModels')}</option>
-        </SettingsSelect>
+        </NativeSelect>
       ) : useManualEntry ? (
-        <SettingsTextField
+        <TextField
           type="text"
           mono
           aria-label={fieldLabel}
@@ -171,7 +172,7 @@ export const ModelEntryField = ({
           placeholder={isAzureProvider ? t('settings.ai.deploymentNamePlaceholder') : placeholder}
         />
       ) : (
-        <SettingsSelect
+        <NativeSelect
           aria-label={fieldLabel}
           value={model}
           onChange={e => onModelChange(e.target.value)}
@@ -185,7 +186,7 @@ export const ModelEntryField = ({
               {optionLabel ? optionLabel(m) : m.id}
             </option>
           ))}
-        </SettingsSelect>
+        </NativeSelect>
       )}
 
       {/* Escape hatch out of the catalog: a deployment name (Azure) or any model

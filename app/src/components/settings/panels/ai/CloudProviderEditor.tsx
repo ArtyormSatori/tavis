@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
 import { ModalShell } from '../../../ui/ModalShell';
-import { SettingsTextField } from '../../controls';
+import TextField from '../../../ui/TextField';
 import { isAzureFoundryEndpoint, isAzureV1BaseUrl } from '../azureDeployment';
 import { presentProviderSetupError, ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
 import {
@@ -162,7 +162,7 @@ export const CloudProviderEditor = ({
           className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
           {t('common.name')}
         </label>
-        <SettingsTextField
+        <TextField
           id="cloud-provider-name"
           value={label}
           onChange={e => setLabel(e.target.value)}
@@ -185,7 +185,7 @@ export const CloudProviderEditor = ({
           className="text-[10px] font-semibold uppercase tracking-wide text-content-muted">
           {t('settings.ai.openAiUrlLabel')}
         </label>
-        <SettingsTextField
+        <TextField
           id="cloud-provider-openai-url"
           mono
           value={endpoint}
@@ -226,7 +226,7 @@ export const CloudProviderEditor = ({
             </Button>
           )}
         </label>
-        <SettingsTextField
+        <TextField
           aria-label={t('settings.ai.apiKeyFieldLabel')}
           type="text"
           mono

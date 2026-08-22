@@ -13,7 +13,7 @@ import {
 } from '../../../../services/api/aiSettingsApi';
 import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
-import { SettingsSelect } from '../../controls';
+import NativeSelect from '../../../ui/NativeSelect';
 import { isAzureFoundryEndpoint } from '../azureDeployment';
 import {
   CLAUDE_CODE_DEFAULT_MODEL,
@@ -211,7 +211,7 @@ export const GlobalOwnModelSelector = ({
               <label className="text-xs font-medium text-content-secondary">
                 {t('settings.ai.globalModel.provider')}
               </label>
-              <SettingsSelect
+              <NativeSelect
                 value={
                   source
                     ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}`
@@ -250,7 +250,7 @@ export const GlobalOwnModelSelector = ({
                 {(claudeCodeEnabled || source?.kind === 'claude-code') && (
                   <option value="claude-code:">{t('settings.ai.claudeCode.modalTitle')}</option>
                 )}
-              </SettingsSelect>
+              </NativeSelect>
             </div>
 
             {source?.kind === 'local' ? (
@@ -258,7 +258,7 @@ export const GlobalOwnModelSelector = ({
                 <label className="text-xs font-medium text-content-secondary">
                   {t('settings.ai.globalModel.model')}
                 </label>
-                <SettingsSelect
+                <NativeSelect
                   value={model}
                   onChange={e => setModel(e.target.value)}
                   className="w-full">
@@ -267,7 +267,7 @@ export const GlobalOwnModelSelector = ({
                       {m.id}
                     </option>
                   ))}
-                </SettingsSelect>
+                </NativeSelect>
               </div>
             ) : (
               <ModelEntryField

@@ -16,7 +16,8 @@ import {
 import Button from '../../../ui/Button';
 import Checkbox from '../../../ui/Checkbox';
 import { ModalShell } from '../../../ui/ModalShell';
-import { SettingsSelect, SettingsTextField } from '../../controls';
+import NativeSelect from '../../../ui/NativeSelect';
+import TextField from '../../../ui/TextField';
 import {
   appendTemperatureToProviderString,
   CLAUDE_CODE_DEFAULT_MODEL,
@@ -326,7 +327,7 @@ export const CustomRoutingDialog = ({
             <label className="text-xs font-medium text-content-secondary">
               {t('settings.ai.providerLabel')}
             </label>
-            <SettingsSelect
+            <NativeSelect
               value={
                 source ? `${source.kind}:${source.kind === 'cloud' ? source.providerSlug : ''}` : ''
               }
@@ -364,7 +365,7 @@ export const CustomRoutingDialog = ({
               {(claudeCodeEnabled || source?.kind === 'claude-code') && (
                 <option value="claude-code:">{t('settings.ai.claudeCode.modalTitle')}</option>
               )}
-            </SettingsSelect>
+            </NativeSelect>
           </div>
 
           {source?.kind === 'local' ? (
@@ -372,7 +373,7 @@ export const CustomRoutingDialog = ({
               <label className="text-xs font-medium text-content-secondary">
                 {t('settings.ai.modelLabel')}
               </label>
-              <SettingsSelect
+              <NativeSelect
                 value={model}
                 onChange={e => {
                   resetTestState();
@@ -384,14 +385,14 @@ export const CustomRoutingDialog = ({
                     {m.id}
                   </option>
                 ))}
-              </SettingsSelect>
+              </NativeSelect>
             </div>
           ) : source?.kind === 'claude-code' ? (
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-content-secondary">
                 {t('settings.ai.modelLabel')}
               </label>
-              <SettingsTextField
+              <TextField
                 type="text"
                 mono
                 value={model}

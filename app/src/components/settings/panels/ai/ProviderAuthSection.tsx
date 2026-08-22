@@ -8,7 +8,8 @@ import { LuCircleAlert, LuKeyRound, LuPencil } from 'react-icons/lu';
 import { useT } from '../../../../lib/i18n/I18nContext';
 import type { ProviderAuthError } from '../../../../services/api/aiSettingsApi';
 import Button from '../../../ui/Button';
-import { SettingsStatusLine, SettingsSwitch } from '../../controls';
+import StatusLine from '../../../ui/StatusLine';
+import Switch from '../../../ui/Switch';
 import { routingWithProviderRemoved } from '../aiRouting';
 import { BUILTIN_CLOUD_PROVIDER_SLUGS } from '../builtinCloudProviders';
 import { ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
@@ -108,7 +109,7 @@ export const ProviderAuthSection = ({
       <section className="space-y-3">
         {loading && <div className="text-xs text-content-muted">{t('common.loading')}</div>}
         {error && (
-          <SettingsStatusLine saving={false} error={error} savedNote={null} savingLabel="" />
+          <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />
         )}
 
         <div className="flex flex-wrap gap-1.5">
@@ -201,7 +202,7 @@ export const ProviderAuthSection = ({
                     <LuPencil className="h-3 w-3" />
                   </Button>
                 )}
-                <SettingsSwitch
+                <Switch
                   id={`local-runtime-toggle-${localKind}`}
                   checked={enabled}
                   onCheckedChange={async () => {

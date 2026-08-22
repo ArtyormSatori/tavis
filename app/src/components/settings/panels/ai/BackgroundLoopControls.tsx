@@ -19,7 +19,7 @@ import {
   type TeamUsage,
 } from '../../../../services/api/creditsApi';
 import Button from '../../../ui/Button';
-import { SettingsStatusLine } from '../../controls';
+import StatusLine from '../../../ui/StatusLine';
 import type { RoutingMap } from './aiPanelTypes';
 import {
   activeConnection,
@@ -191,7 +191,7 @@ export const BackgroundLoopControls = ({
         </div>
       )}
 
-      {error && <SettingsStatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
+      {error && <StatusLine saving={false} error={error} savedNote={null} savingLabel="" />}
 
       <section className={`grid gap-3 ${gridCols}`}>
         <div className="overflow-hidden rounded-lg border border-line bg-surface-muted">

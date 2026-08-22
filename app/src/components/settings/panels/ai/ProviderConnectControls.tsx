@@ -10,7 +10,8 @@ import { useT } from '../../../../lib/i18n/I18nContext';
 import { openUrl } from '../../../../utils/openUrl';
 import Button from '../../../ui/Button';
 import { DialogContent, DialogRoot } from '../../../ui/Dialog';
-import { SettingsSwitch, SettingsTextField } from '../../controls';
+import Switch from '../../../ui/Switch';
+import TextField from '../../../ui/TextField';
 import { builtinCloudProvider } from '../builtinCloudProviders';
 import { presentProviderSetupError, ProviderSetupErrorNotice } from '../ProviderSetupErrorNotice';
 import {
@@ -53,7 +54,7 @@ export const ProviderToggleChip = ({
           {t('settings.ai.routing.managedAlwaysOn')}
         </span>
       ) : (
-        <SettingsSwitch
+        <Switch
           id={`provider-toggle-${slug}`}
           checked={enabled}
           onCheckedChange={() => onToggle?.()}
@@ -261,7 +262,7 @@ export const ProviderKeyDialog = ({
             className="text-xs font-medium text-content-secondary">
             {fieldLabel}
           </label>
-          <SettingsTextField
+          <TextField
             id="provider-key-input"
             type={isLocalRuntime ? 'url' : 'text'}
             mono={isLocalRuntime}
@@ -290,7 +291,7 @@ export const ProviderKeyDialog = ({
                 className="mt-3 text-xs font-medium text-content-secondary">
                 {t('settings.ai.apiKeyFieldLabel')}
               </label>
-              <SettingsTextField
+              <TextField
                 id="provider-key-input-key"
                 type="text"
                 autoComplete="off"
