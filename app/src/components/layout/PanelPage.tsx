@@ -99,6 +99,7 @@ export default function PanelPage<T extends string = string>({
   tabsTestIdPrefix,
   children,
   contentClassName = DEFAULT_CONTENT_CLASS,
+  width = 'full',
   className = '',
   testId,
 }: PanelPageProps<T>) {
@@ -116,7 +117,8 @@ export default function PanelPage<T extends string = string>({
         leading={leading}
         action={action}
         headerExtra={headerExtra}
-        contentClassName={contentClassName}>
+        contentClassName={contentClassName}
+        width={width}>
         {children}
       </PanelScaffold>
     );
