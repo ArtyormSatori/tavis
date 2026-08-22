@@ -29,6 +29,7 @@ import { useT } from '../../../../lib/i18n/I18nContext';
 import Button from '../../../ui/Button';
 import Label from '../../../ui/Label';
 import { ModalShell } from '../../../ui/ModalShell';
+import { providerIcon } from './providerIcons';
 import {
   SelectContent,
   SelectItem,
@@ -59,25 +60,21 @@ export interface ProviderCategory {
   options: ProviderOption[];
 }
 
-const OptionSwatch = ({
-  label,
-  tone,
-  className,
-}: {
-  label: string;
-  tone: string;
-  className?: string;
-}) => (
-  <span
-    aria-hidden
-    className={cn(
-      'flex flex-shrink-0 items-center justify-center rounded-md font-semibold ring-1',
-      className,
-      tone
-    )}>
-    {label.trim().charAt(0).toUpperCase() || '?'}
-  </span>
-);
+/** Brand mark where Simple Icons has one, the initial where it does not. See
+ *  `providerIcons.tsx` for why coverage is partial by design. */
+const OptionSwatch = ({ slug, label, tone }: { slug: string; label: string; tone: string }) => {
+  const Icon = providerIcon(slug);
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-semibold ring-1',
+        tone
+      )}>
+      {Icon ? <Icon className="h-3.5 w-3.5" /> : label.trim().charAt(0).toUpperCase() || '?'}
+    </span>
+  );
+};
 
 const CategorySelect = ({
   category,
