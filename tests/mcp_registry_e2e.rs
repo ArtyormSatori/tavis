@@ -382,6 +382,17 @@ async fn set_enabled_false_disconnects_running_server() {
 
     let loaded = h.dynamic().store().get_server(&server.server_id).unwrap();
     assert!(!loaded.enabled);
+    // The `enabled` flag and the `disabled` status string are both derived from
+    // the store record, so on their own they would not catch a connection that
+    // survived the toggle. Disabling a running server must drop the live
+    // connection too.
+    assert!(
+        !h.dynamic()
+            .connections()
+            .is_connected(&server.server_id)
+            .await,
+        "disabling a running server must drop its live connection"
+    );
     let statuses = h.dynamic().status().await.expect("status");
     let mine = statuses
         .iter()
