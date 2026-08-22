@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
+  "style": "base-nova",
   "tsx": true,
   "tailwind": {
     "config": "../tailwind.config.js",
@@ -14,5 +14,8 @@
     "lib": "@/components/assistant-ui/lib",
     "hooks": "@/components/assistant-ui/hooks",
     "utils": "@/components/assistant-ui/lib/utils"
+  },
+  "registries": {
+    "@assistant-ui": "https://r.assistant-ui.com/styles/{style}/{name}.json"
   }
 }
