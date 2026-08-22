@@ -10,8 +10,7 @@ import {
   type WorkflowSummary,
 } from '../../services/api/skillsApi';
 import EmptyStateCard from '../EmptyStateCard';
-import ChipTabs from '../layout/ChipTabs';
-import { Badge, Checkbox, ModalShell, TextField } from '../ui';
+import { Badge, Checkbox, ModalShell, TabsList, TabsRoot, TabsTrigger, TextField } from '../ui';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
@@ -796,38 +795,22 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
     <div className="flex h-full min-h-0 flex-col overflow-hidden animate-fade-up">
       <div className="pb-3">
         <div className="flex items-center gap-2">
-          <ChipTabs<ExplorerView>
-            className="flex gap-2"
-            ariaLabel={t('skills.explorer.title')}
-            value={view}
-            onChange={setView}
-            items={[
-              {
-                id: 'registry',
-                label: (
-                  <>
-                    {t('skills.explorer.registryTab')}
-                    {catalogTotal > 0 && (
-                      <span className="ml-1.5 text-[10px] opacity-70">
-                        {catalogTotal.toLocaleString()}
-                      </span>
-                    )}
-                  </>
-                ),
-              },
-              {
-                id: 'installed',
-                label: (
-                  <>
-                    {t('skills.explorer.installedTab')}
-                    {skills.length > 0 && (
-                      <span className="ml-1.5 text-[10px] opacity-70">{skills.length}</span>
-                    )}
-                  </>
-                ),
-              },
-            ]}
-          />
+          <TabsRoot value={view} onValueChange={value => setView(value as ExplorerView)}>
+            <TabsList aria-label={t('skills.explorer.title')} className="border-b border-line">
+              <TabsTrigger
+                value="registry"
+                className="-mb-px rounded-none border-b-2 border-transparent px-3 py-1.5 data-[state=active]:border-primary-500 data-[state=active]:bg-transparent data-[state=active]:text-primary-600 dark:data-[state=active]:text-primary-300">
+                {t('skills.explorer.registryTab')}
+                {catalogTotal > 0 && <span className="text-[10px] opacity-70">{catalogTotal.toLocaleString()}</span>}
+              </TabsTrigger>
+              <TabsTrigger
+                value="installed"
+                className="-mb-px rounded-none border-b-2 border-transparent px-3 py-1.5 data-[state=active]:border-primary-500 data-[state=active]:bg-transparent data-[state=active]:text-primary-600 dark:data-[state=active]:text-primary-300">
+                {t('skills.explorer.installedTab)}
+                {skills.length > 0 && <span className="text-[10px] opacity-70">{skills.length}</span>}
+              </TabsTrigger>
+            </TabsList>
+          </TabsRoot>
           <Button
             variant="secondary"
             size="sm"
