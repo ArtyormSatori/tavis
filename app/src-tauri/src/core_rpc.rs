@@ -101,9 +101,12 @@ pub(crate) async fn post_json_rpc(
     // Remote gateway that slipped past persistence is still rejected here.
     let relay_token = relay_bearer_header(token);
     #[cfg(feature = "gateways")]
-    if relay_token.is_some() && crate::gateway::types::validate_remote_transport(url, token).is_err()
+    if relay_token.is_some()
+        && crate::gateway::types::validate_remote_transport(url, token).is_err()
     {
-        return Err(format!("refusing to send a bearer to {url} over an insecure transport"));
+        return Err(format!(
+            "refusing to send a bearer to {url} over an insecure transport"
+        ));
     }
 
     let client = reqwest::Client::builder()
@@ -196,8 +199,8 @@ fn unwrap_rpc_outcome(value: serde_json::Value) -> serde_json::Value {
 
 #[cfg(test)]
 mod tests {
-    use super::relay_bearer_header;
     use super::redact_url_for_log;
+    use super::relay_bearer_header;
 
     #[test]
     fn bearer_header_present_for_real_token() {

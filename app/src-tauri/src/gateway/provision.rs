@@ -405,8 +405,6 @@ async fn destroy_quietly(sandbox: &dyn Sandbox, box_id: &BoxId) {
 /// paths the core must be stopped explicitly or it keeps running headless.
 async fn stop_quietly(sandbox: &dyn Sandbox, box_id: &BoxId, process: &ProcessId) {
     if let Err(error) = sandbox.stop(box_id, process).await {
-        log::warn!(
-            "[gateway][provision] could not stop core {process} in box {box_id}: {error}"
-        );
+        log::warn!("[gateway][provision] could not stop core {process} in box {box_id}: {error}");
     }
 }

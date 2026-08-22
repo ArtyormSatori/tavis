@@ -163,7 +163,10 @@ impl GatewaySpec {
 /// Reused by [`validate_remote_transport`] and by the transport layer to allow
 /// plain HTTP only to the local core, never to a remote one carrying a bearer.
 fn is_loopback_host(host: &str) -> bool {
-    let h = host.trim_start_matches('[').trim_end_matches(']').to_ascii_lowercase();
+    let h = host
+        .trim_start_matches('[')
+        .trim_end_matches(']')
+        .to_ascii_lowercase();
     h == "127.0.0.1" || h == "::1" || h == "localhost" || h.ends_with(".localhost")
 }
 
@@ -191,7 +194,8 @@ pub fn validate_remote_transport(url: &str, token: Option<&str>) -> Result<(), S
     let has_bearer = token.map(str::trim).is_some_and(|t| !t.is_empty());
     if has_bearer && scheme == "http" && !is_loopback_host(parsed.host_str().unwrap_or_default()) {
         return Err(
-            "a remote core with a bearer token must be reached over https, not plain http".to_owned(),
+            "a remote core with a bearer token must be reached over https, not plain http"
+                .to_owned(),
         );
     }
     Ok(())
