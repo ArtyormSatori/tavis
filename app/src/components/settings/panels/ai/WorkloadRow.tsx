@@ -51,7 +51,17 @@ function resolveTarget(
   if (ref_.kind === 'claude-code') {
     return { provider: t('settings.ai.claudeCode.modalTitle'), model: ref_.model };
   }
-  if (ref_.kind === 'openhuman') {
+  // `openhuman` and `default` are the SAME state to the user: this workload
+  // has no explicit pin and inherits whatever Managed decides. `inferRoutingMode`
+  // already treats them as one (`refs.every(kind === 'openhuman' || 'default')`
+  // is what makes the mode "managed"), so rendering them differently is a bug.
+  //
+  // It is a PRE-EXISTING one, not a consequence of the table: the row before
+  // this rewrite had branches for `cloud`/`local`/`openhuman` only, so a
+  // `default` ref fell through to an empty string and rendered "No model
+  // selected" for a workload that does route somewhere. A stacked list of
+  // sub-labels hid it; a Provider column full of "No model selected" does not.
+  if (ref_.kind === 'openhuman' || ref_.kind === 'default') {
     return { provider: t('settings.ai.openhumanDefault'), model: null };
   }
   return { provider: null, model: null };
