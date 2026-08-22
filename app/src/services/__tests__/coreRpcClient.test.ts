@@ -1048,7 +1048,7 @@ describe('getCoreRpcUrl', () => {
     expect(second).toBe('http://new-host:8888/rpc');
   });
 
-  test('in Tauri mode calls invoke("core_rpc_url") when no stored URL', async () => {
+  test('in Tauri mode calls invoke("core_rpc_endpoint") when no stored URL', async () => {
     vi.doMock('../../utils/configPersistence', () => ({
       peekStoredRpcUrl: () => null,
       getStoredCoreToken: () => null,
@@ -1056,14 +1056,16 @@ describe('getCoreRpcUrl', () => {
     }));
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'http://tauri-resolved:7788/rpc';
+      if (cmd === 'core_rpc_endpoint') {
+        return { url: 'http://tauri-resolved:7788/rpc', token: '' };
+      }
       throw new Error(`unexpected: ${cmd}`);
     });
 
     const { getCoreRpcUrl: freshGetCoreRpcUrl } = await import('../coreRpcClient');
     const url = await freshGetCoreRpcUrl();
     expect(url).toBe('http://tauri-resolved:7788/rpc');
-    expect(vi.mocked(invoke)).toHaveBeenCalledWith('core_rpc_url');
+    expect(vi.mocked(invoke)).toHaveBeenCalledWith('core_rpc_endpoint');
   });
 
   test('in Tauri mode stored URL takes priority over invoke result', async () => {
@@ -1074,7 +1076,9 @@ describe('getCoreRpcUrl', () => {
     }));
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') return 'http://tauri-would-return:7788/rpc';
+      if (cmd === 'core_rpc_endpoint') {
+        return { url: 'http://tauri-would-return:7788/rpc', token: '' };
+      }
       throw new Error(`unexpected: ${cmd}`);
     });
 
@@ -1096,7 +1100,7 @@ describe('getCoreRpcUrl', () => {
     }));
     vi.mocked(isTauri).mockReturnValue(true);
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'core_rpc_url') {
+      if (cmd === 'core_rpc_endpoint') {
         throw new Error('should not be consulted when a stored URL exists');
       }
       throw new Error(`unexpected: ${cmd}`);
