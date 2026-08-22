@@ -3330,6 +3330,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             core_rpc_url,
             core_rpc_token,
+            core_rpc_endpoint,
             // Gateways: where the frontend's RPC goes. Absent, not stubbed,
             // when the feature is off.
             #[cfg(feature = "gateways")]
