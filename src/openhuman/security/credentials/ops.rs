@@ -444,7 +444,7 @@ async fn store_session_inner(
 
     // Determine user_id so we can scope the openhuman directory to this user.
     let resolved_user_id = metadata.get("user_id").cloned();
-    if pending_backend_validation && resolved_user_id.is_none() {
+    if pending_backend_validation && resolved_user_id.is_none() && !is_embedder_host() {
         if let Ok(root_dir) = default_root_openhuman_dir() {
             if let Some(active_user_id) = read_active_user_id(&root_dir) {
                 let active_user_dir = user_openhuman_dir(&root_dir, &active_user_id);
@@ -472,7 +472,16 @@ async fn store_session_inner(
         session_validation_logs
     };
 
-    if let Some(ref uid) = resolved_user_id {
+    // An embedder host (the harness) keeps session state under its own
+    // `config_path` scope and must never touch the operator's global
+    // `~/.openhuman/active_user.toml` or `users/` tree. Writing it would change
+    // which user the operator's real install believes is active purely by
+    // virtue of running a library call — the exact global side effect an
+    // ephemeral harness exists to avoid. The scoped auth profile is still
+    // stored below; only the global activation is skipped.
+    let operator_user_activation = !is_embedder_host();
+
+    if let Some(ref uid) = resolved_user_id.filter(|_| operator_user_activation) {
         if let Ok(root_dir) = default_root_openhuman_dir() {
             // Snapshot before we overwrite `active_user.toml` so we can tell
             // first activation from signed-out vs an in-place account switch.
