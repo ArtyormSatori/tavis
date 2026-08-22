@@ -264,10 +264,10 @@ const Composer: FC = () => {
   );
 };
 
-const ComposerAction: FC<{
-  model: string | null;
-  onModelChange: (value: string) => void;
-}> = ({ model, onModelChange }) => {
+const ComposerAction: FC<{ model: string | null; onModelChange: (value: string) => void }> = ({
+  model,
+  onModelChange,
+}) => {
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
       <div className="flex items-center gap-1">
