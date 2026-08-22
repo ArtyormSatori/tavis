@@ -17,10 +17,10 @@ import { MemoryTreeStatusPanel } from '../components/intelligence/MemoryTreeStat
 import { SyncAuditPanel } from '../components/intelligence/SyncAuditPanel';
 import { ToastContainer } from '../components/intelligence/Toast';
 import PageWelcome from '../components/layout/PageWelcome';
-import PanelPage from '../components/layout/PanelPage';
 import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import OrchestrationView from '../components/orchestration/OrchestrationView';
+import SettingsTabbedPage from '../components/settings/layout/SettingsTabbedPage';
 import { useTinyPlaceIdentity } from '../hooks/useTinyPlaceIdentity';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';
@@ -308,15 +308,16 @@ export default function Brain() {
             all custom controls live inside it. The title/description go through
             PanelPage so every page opens with the same flush header band, rather
             than a bordered card floating in the content column. */
-            <PanelPage
-              contentClassName="p-4"
+            <div className="h-full p-4">
+              <SettingsTabbedPage
               title={t(
                 BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>].titleKey
               )}
               description={t(
-                BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>].descKey
+                BRAIN_HEADERS[activeTab as Exclude<BrainTab, 'welcome' | 'orchestration'>]
+                  .descKey
               )}>
-              <div className="mx-auto max-w-3xl space-y-5">
+              <div className="w-full space-y-5">
                 {activeTab === 'graph' && (
                   <div className="space-y-5 animate-fade-up">
                     <MemoryControls
@@ -369,7 +370,8 @@ export default function Brain() {
                   </div>
                 )}
               </div>
-            </PanelPage>
+              </SettingsTabbedPage>
+            </div>
           )}
         </div>
       )}
