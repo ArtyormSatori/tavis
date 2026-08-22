@@ -3343,6 +3343,7 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     "L'environnement d'exécution n'a pas pu lire son fichier de configuration. config.toml appartient peut-être à un autre compte utilisateur, ou reste inaccessible au processus pour une autre raison. Redémarrez l'environnement d'exécution puis, si cela ne suffit pas, corrigez les droits du répertoire de travail ou recréez son volume.",
   'welcome.localSessionErrorFallback': 'Impossible de démarrer une session locale.',
+  'welcome.gatewaySessionErrorFallback': 'La connexion n’a pas pu être terminée pour le moment. Le stockage de session n’a pas répondu à temps (même après plusieurs tentatives). Redémarrez OpenHuman et réessayez.',
   'welcome.localSessionDesc': 'Utilise un profil local hors ligne et ignore TinyHumans OAuth.',
   'chat.agentChatDesc': "Ouvrir une session de chat direct avec l'agent.",
   'chat.modelPlaceholder': 'gpt-4o',

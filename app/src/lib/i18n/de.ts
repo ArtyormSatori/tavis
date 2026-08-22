@@ -3350,6 +3350,7 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'Die Laufzeitumgebung konnte ihre Konfigurationsdatei nicht lesen. config.toml gehört möglicherweise einem anderen Benutzerkonto oder ist für den Laufzeitprozess aus einem anderen Grund nicht zugänglich. Starten Sie die Laufzeitumgebung neu, und reparieren Sie andernfalls die Besitzrechte des Arbeitsverzeichnisses oder erstellen Sie dessen Volume neu.',
   'welcome.localSessionErrorFallback': 'Lokale Sitzung konnte nicht gestartet werden.',
+  'welcome.gatewaySessionErrorFallback': 'Die Anmeldung konnte gerade nicht abgeschlossen werden. Der Sitzungsspeicher hat nicht rechtzeitig geantwortet (auch nach erneutem Versuch). Bitte starten Sie OpenHuman neu und versuchen Sie es erneut.',
   'welcome.localSessionDesc':
     'Verwendet ein lokales Offline-Profil und überspringt TinyHumans OAuth.',
   'chat.agentChatDesc': 'Öffne eine direkte Chat-Sitzung mit dem Agenten.',

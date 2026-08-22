@@ -3271,6 +3271,7 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'Runtime tidak dapat membaca berkas konfigurasinya. config.toml mungkin milik akun pengguna lain, atau tidak dapat diakses oleh proses runtime karena alasan lain. Mulai ulang runtime, dan jika belum teratasi, perbaiki kepemilikan direktori kerja atau buat ulang volumenya.',
   'welcome.localSessionErrorFallback': 'Tidak dapat memulai sesi lokal.',
+  'welcome.gatewaySessionErrorFallback': 'Masuk tidak dapat diselesaikan saat ini. Penyimpanan sesi tidak merespons tepat waktu (bahkan setelah dicoba lagi). Mulai ulang OpenHuman dan coba lagi.',
   'welcome.localSessionDesc': 'Menggunakan profil lokal offline dan melewati TinyHumans OAuth.',
   'chat.agentChatDesc': 'Buka sesi chat langsung dengan agen.',
   'chat.modelPlaceholder': 'gpt-4o',
