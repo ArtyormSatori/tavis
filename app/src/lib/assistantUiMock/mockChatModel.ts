@@ -1,16 +1,28 @@
 /**
- * A mock `ChatModelAdapter` for the vendored assistant-ui `base` demo.
+ * A mock `ChatModelAdapter` that replays {@link MOCK_SCRIPT}.
  *
- * Upstream the demo runs against the docs site's live inference route. This
- * repo's copy is explicitly mock-only: nothing here reaches the OpenHuman core,
- * the backend, or any provider. It replays `MOCK_SCRIPT` so every surface the
- * transcript can render has something to show without a data source — thinking
- * tokens, tool calls with streaming arguments, subagent delegations with nested
- * steps, and streamed markdown prose.
+ * Nothing here reaches the OpenHuman core, the backend, or any provider. It
+ * exists so the assistant-ui surfaces have something to render while the real
+ * seams are reconnected: thinking tokens, tool calls with streaming arguments,
+ * subagent delegations with nested steps, and streamed markdown prose.
  *
- * The adapter yields **cumulative** content on every tick, which is what the
- * runtime expects: each yield replaces the assistant message's parts, so a part
- * that is still growing is re-emitted with more text rather than appended to.
+ * ## Subagents are dispatched, not awaited
+ *
+ * The interesting part is the scheduling. A delegation is asynchronous and
+ * non-blocking: the parent turn hands work off and carries on, and the
+ * subagent's steps arrive whenever they arrive — often *after* prose that was
+ * written later. An adapter that ran the script strictly in order could never
+ * show that, because every part would land in the order it was declared.
+ *
+ * So a `subagent` step starts a background timeline and the main line moves on
+ * immediately. Both mutate the same `parts` array; the main line owns the
+ * yielding (an async generator has exactly one producer), and background work
+ * only sets a dirty flag. Every wait on the main line is therefore chopped into
+ * short slices that flush pending background edits, which is what makes a
+ * subagent's steps appear *during* a later tool call rather than after it.
+ *
+ * The turn still cannot finish before its delegations do, so the tail drains
+ * them — but by then the answer is already on screen.
  */
 import type {
   ChatModelAdapter,
@@ -20,7 +32,7 @@ import type {
 } from '@assistant-ui/react';
 import debugFactory from 'debug';
 
-import { MOCK_SCRIPT, type MockSubagentResult } from './mockScript';
+import { MOCK_SCRIPT, type MockSubagentCall, type MockSubagentResult } from './mockScript';
 
 const debug = debugFactory('openhuman:assistant-ui-demo');
 
@@ -30,6 +42,12 @@ const CHUNK_MS = 16;
 const FIRST_CHUNK_MS = 350;
 /** Pause while a tool call's arguments stream in before it starts running. */
 const ARGS_MS = 260;
+/**
+ * How finely a main-line wait is sliced. Each slice is a chance to flush
+ * background subagent progress, so this is the resolution at which delegation
+ * looks concurrent rather than batched.
+ */
+const SLICE_MS = 60;
 
 type ToolCallPart = ThreadAssistantMessagePart & { type: 'tool-call' };
 
@@ -57,24 +75,96 @@ export const mockChatModelAdapter: ChatModelAdapter = {
   async *run(options: ChatModelRunOptions): AsyncGenerator<ChatModelRunResult, void> {
     const { abortSignal } = options;
     const runId = options.unstable_assistantMessageId ?? 'run';
-    debug('[assistant-ui-demo] run start messages=%d', options.messages.length);
 
     /** Everything emitted so far. Re-yielded in full on every tick. */
     const parts: ThreadAssistantMessagePart[] = [];
+    /** Set by background timelines; cleared when the main line flushes. */
+    let dirty = false;
+    /** Delegations still in flight. The turn drains these before completing. */
+    let pending = 0;
+
     const emit = (): ChatModelRunResult => ({ content: [...parts] });
 
-    await sleep(FIRST_CHUNK_MS, abortSignal);
+    /**
+     * Wait, in slices, flushing background progress as it appears. Delegating
+     * with `yield*` keeps the single-producer rule: this is the main line's own
+     * generator, not a second one racing it.
+     */
+    async function* waitFlushing(ms: number) {
+      for (let waited = 0; waited < ms; waited += SLICE_MS) {
+        await sleep(Math.min(SLICE_MS, ms - waited), abortSignal);
+        if (dirty) {
+          dirty = false;
+          yield emit();
+        }
+      }
+    }
+
+    /** Start a delegation and return immediately. */
+    function dispatchSubagent(step: MockSubagentCall, at: number, index: number) {
+      const base = {
+        type: 'tool-call' as const,
+        toolCallId: `${runId}-task-${index}`,
+        toolName: 'task',
+        args: step.args,
+        argsText: JSON.stringify(step.args, null, 2),
+      };
+      const state: MockSubagentResult = {
+        subagent: step.subagent,
+        status: 'running',
+        steps: [],
+        elapsedSeconds: 0,
+      };
+      const write = () => {
+        parts[at] = { ...base, result: { ...state, steps: [...state.steps] } };
+        dirty = true;
+      };
+      write();
+
+      pending += 1;
+      const startedAt = performance.now();
+
+      void (async () => {
+        try {
+          for (const nested of step.steps) {
+            // Tick the clock while waiting, so a long step still reads as work
+            // in progress rather than a frozen block.
+            for (let waited = 0; waited < step.stepMs; waited += SLICE_MS) {
+              await sleep(Math.min(SLICE_MS, step.stepMs - waited), abortSignal);
+              state.elapsedSeconds = Math.round((performance.now() - startedAt) / 100) / 10;
+              write();
+            }
+            state.steps.push(nested);
+            write();
+          }
+          state.status = 'complete';
+          state.report = step.report;
+          state.elapsedSeconds = Math.round((performance.now() - startedAt) / 100) / 10;
+          write();
+          debug('[assistant-ui-demo] subagent=%s done in %ss', step.subagent, state.elapsedSeconds);
+        } catch {
+          // Cancelling the turn aborts its delegations too; the parts they left
+          // behind stay as they are, which is the honest record of a stopped run.
+        } finally {
+          pending -= 1;
+          dirty = true;
+        }
+      })();
+    }
+
+    debug('[assistant-ui-demo] run start messages=%d', options.messages.length);
+    yield* waitFlushing(FIRST_CHUNK_MS);
 
     for (const [index, step] of MOCK_SCRIPT.entries()) {
       switch (step.kind) {
         case 'reasoning':
         case 'text': {
-          // Stream the block in, replacing the tail part each tick.
           const at = parts.length;
           let text = '';
           for (const piece of chunk(step.text)) {
             text += piece;
             parts[at] = { type: step.kind, text };
+            dirty = false;
             yield emit();
             await sleep(CHUNK_MS, abortSignal);
           }
@@ -83,21 +173,19 @@ export const mockChatModelAdapter: ChatModelAdapter = {
 
         case 'tool': {
           const at = parts.length;
-          const toolCallId = `${runId}-tool-${index}`;
           const argsText = JSON.stringify(step.args, null, 2);
 
-          // Arguments first, with no result — this is the "running" state the
-          // tool group renders a spinner for.
+          // Arguments first, with no result — the "running" state the tool
+          // group renders a spinner for.
           parts[at] = {
             type: 'tool-call',
-            toolCallId,
+            toolCallId: `${runId}-tool-${index}`,
             toolName: step.toolName,
             args: step.args,
             argsText,
           };
           yield emit();
-          await sleep(ARGS_MS, abortSignal);
-          await sleep(step.runMs, abortSignal);
+          yield* waitFlushing(ARGS_MS + step.runMs);
 
           parts[at] = { ...(parts[at] as ToolCallPart), result: step.result };
           yield emit();
@@ -105,46 +193,22 @@ export const mockChatModelAdapter: ChatModelAdapter = {
         }
 
         case 'subagent': {
+          // Reserve the slot, hand the work off, keep going.
           const at = parts.length;
-          const toolCallId = `${runId}-task-${index}`;
-          const argsText = JSON.stringify(step.args, null, 2);
-          const base = {
-            type: 'tool-call' as const,
-            toolCallId,
-            toolName: 'task',
-            args: step.args,
-            argsText,
-          };
-
-          // A delegation reports progress while it runs, so its result grows a
-          // nested step at a time rather than appearing whole at the end.
-          const running: MockSubagentResult = {
-            subagent: step.subagent,
-            status: 'running',
-            steps: [],
-          };
-          parts[at] = { ...base, result: { ...running } };
-          yield emit();
-
-          for (const nested of step.steps) {
-            await sleep(step.stepMs, abortSignal);
-            running.steps = [...running.steps, nested];
-            parts[at] = { ...base, result: { ...running } };
-            yield emit();
-          }
-
-          await sleep(step.stepMs, abortSignal);
-          parts[at] = {
-            ...base,
-            result: {
-              ...running,
-              status: 'complete',
-              report: step.report,
-            } satisfies MockSubagentResult,
-          };
+          parts[at] = { type: 'text', text: '' };
+          dispatchSubagent(step, at, index);
           yield emit();
           break;
         }
+      }
+    }
+
+    // The answer is on screen; drain whatever is still delegated.
+    while (pending > 0) {
+      yield* waitFlushing(SLICE_MS);
+      if (dirty) {
+        dirty = false;
+        yield emit();
       }
     }
 
