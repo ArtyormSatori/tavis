@@ -276,10 +276,8 @@ const AIPanel = ({
                   ) : null}
 
                   {effectiveRoutingMode === 'custom' ? (
-                    <Card
-                      title={t('settings.ai.routing.advanced')}
-                      description={t('settings.ai.routing.customDesc')}
-                      className="w-full">
+                    <>
+                      <Card className="w-full">
                         <WorkloadTable
                           title={t('settings.ai.routing.chatAndConversations')}
                           description={t('settings.ai.routing.chatDesc')}>
@@ -293,7 +291,9 @@ const AIPanel = ({
                             />
                           ))}
                         </WorkloadTable>
+                      </Card>
 
+                      <Card className="w-full">
                         <WorkloadTable
                           title={t('settings.ai.routing.backgroundTasks')}
                           description={t('settings.ai.routing.bgTasksDesc')}>
@@ -307,7 +307,8 @@ const AIPanel = ({
                             />
                           ))}
                         </WorkloadTable>
-                    </Card>
+                      </Card>
+                    </>
                   ) : null}
                 </>
                 {isDirty && (
