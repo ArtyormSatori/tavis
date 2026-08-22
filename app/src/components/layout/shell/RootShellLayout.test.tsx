@@ -2,13 +2,12 @@ import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '../../../test/test-utils';
-import RootShellLayout from './RootShellLayout';
+import { SIDEBAR_ICON_WIDTH } from '../../ui';
+import { setSidebarVisible } from '../../../store/layoutSlice';
+import RootShellLayout, { APP_SHELL_LAYOUT_ID } from './RootShellLayout';
 
 // Render i18n keys verbatim so assertions don't depend on locale copy.
 vi.mock('../../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) => k }) }));
-// The collapsed rail pulls in routing + nav config; the shell's own geometry is
-// the unit under test.
-vi.mock('./CollapsedNavRail', () => ({ default: () => null }));
 // macOS/Tauri-gated, and covered by its own spec.
 vi.mock('./WindowDragBar', () => ({ default: () => null }));
 
