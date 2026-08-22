@@ -69,20 +69,29 @@ function useDemoThreadRuntime() {
 }
 
 export function MockRuntimeProvider({ children }: { children: ReactNode }) {
+  const firstThread = useRef<{ id: string | null }>({ id: null });
+
+  // The context has to sit ABOVE the component that calls
+  // `useRemoteThreadListRuntime`: that hook renders the per-thread
+  // `runtimeHook` inside its own subtree, which a provider returned from this
+  // same component body would not cover.
+  return (
+    <FirstThreadContext.Provider value={firstThread.current}>
+      <MockRuntime>{children}</MockRuntime>
+    </FirstThreadContext.Provider>
+  );
+}
+
+function MockRuntime({ children }: { children: ReactNode }) {
   // One adapter instance for the page's lifetime — the options doc requires a
   // stable reference, since replacing it reloads the list and drops threads.
   const [adapter] = useState(() => new InMemoryThreadListAdapter());
-  const firstThread = useRef<{ id: string | null }>({ id: null });
   const runtime = useRemoteThreadListRuntime({
     runtimeHook: useDemoThreadRuntime,
     adapter,
   });
 
-  return (
-    <FirstThreadContext.Provider value={firstThread.current}>
-      <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>
-    </FirstThreadContext.Provider>
-  );
+  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
 }
 
 export default MockRuntimeProvider;
