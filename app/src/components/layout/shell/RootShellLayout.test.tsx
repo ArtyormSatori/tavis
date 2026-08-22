@@ -72,6 +72,11 @@ describe('RootShellLayout', () => {
     expect(divider.getAttribute('aria-orientation')).toBe('vertical');
     expect(divider.tabIndex).toBe(0);
   });
+
+  it('collapses to an icon-width column rather than unmounting the column', () => {
+    renderShell();
+    expect(screen.getByTestId('root-shell-sidebar')).toHaveAttribute('data-collapsible', 'icon');
+  });
 });
 
 // The sidebar primitive is driven as a CONTROLLED view over the `layout` slice.
