@@ -65,19 +65,9 @@ export const COMPOSER_DROPZONE =
  * Only the placeholder colour is remapped. `disabled:` handling is appended:
  * upstream has no disabled state because its composer is never locked, while
  * this one is (see `composerInteractionBlocked` / `isSending`).
- *
- * `border-0` is also appended, and it is not cosmetic. `@plugin
- * '@tailwindcss/forms'` resets every bare `textarea` to `border-width: 1px`,
- * `border-color: gray-500`, `border-radius: 0` — so this textarea drew a sharp
- * grey rectangle inside the rounded dropzone at all times, turning blue on
- * focus. Upstream never hit it (no forms plugin) and every other textarea in
- * this app happens to set its own `border`/`rounded`, which outranks the reset;
- * this one deliberately sets neither, so it inherited the reset instead. The
- * focus affordance here is the dropzone's `focus-within:bg-surface-muted/75`,
- * which is why the input asks for `outline-hidden` and `ring-0` as well.
  */
 export const COMPOSER_INPUT =
-  'max-h-32 min-h-14 w-full resize-none border-0 bg-transparent px-3.5 pt-3 pb-2 text-sm leading-5 ' +
+  'max-h-32 min-h-14 w-full resize-none bg-transparent px-3.5 pt-3 pb-2 text-sm leading-5 ' +
   'text-content outline-hidden placeholder:text-content-muted focus-visible:ring-0 ' +
   'disabled:cursor-not-allowed disabled:opacity-50';
 

@@ -693,6 +693,27 @@
     --tw-ring-offset-color: var(--color-background) !important;
   }
 
+  /* Same plugin, its other half: the forms reset also gives every bare
+     `textarea` `border-width: 1px`, `border-color: gray-500` and
+     `border-radius: 0`. A textarea that styles itself never notices — its own
+     `border` utility outranks the reset on layer order, and all four in this
+     app (`ui/TextArea`, `PlanReviewCard`, `ShareCardModal`, the legacy chat
+     composer) do exactly that.
+
+     The ones that notice are the assistant-ui composers. They are written
+     against a registry that assumes no forms plugin: `bg-transparent`, no
+     border, the focus affordance carried by the wrapper instead. Under the
+     reset they drew a sharp grey rectangle inside their rounded pill at all
+     times, turning blue on focus.
+
+     So the default is flipped: no border unless a component asks for one,
+     which is the convention every textarea here already follows. Scoped to
+     `textarea` deliberately — the same reset on `input` is load-bearing for
+     bare checkboxes and radios, whose box IS that border. */
+  textarea {
+    border-width: 0;
+  }
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
