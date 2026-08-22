@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
-import ChipTabs from '../../layout/ChipTabs';
+import SettingsTabbedPage from '../layout/SettingsTabbedPage';
 import AIPanel, { type AIPanelTab } from './AIPanel';
 
 /**
@@ -23,28 +23,19 @@ const LlmConnectionsPanel = () => {
   const [tab, setTab] = useState<AIPanelTab>('providers');
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="space-y-0.5">
-        <h1 className="text-2xl font-semibold tracking-tight text-content">
-          {t('pages.settings.ai.llm')}
-        </h1>
-        <p className="text-sm text-content-muted">{t('connections.header.llm')}</p>
-      </div>
-      <ChipTabs
-        className="flex flex-wrap gap-1.5"
-        ariaLabel={t('pages.settings.ai.llm')}
-        testIdPrefix="ai-tab"
-        items={[
-          { id: 'providers', label: t('settings.ai.llmProviders') },
-          { id: 'routing', label: t('settings.ai.routing') },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <AIPanel tab={tab} onTabChange={setTab} hideTabChrome />
-      </div>
-    </div>
+    <SettingsTabbedPage
+      title={t('pages.settings.ai.llm')}
+      description={t('connections.header.llm')}
+      tabs={[
+        { id: 'providers', label: t('settings.ai.llmProviders') },
+        { id: 'routing', label: t('settings.ai.routing') },
+      ]}
+      value={tab}
+      onChange={setTab}
+      tabsAriaLabel={t('pages.settings.ai.llm')}
+      tabsTestIdPrefix="ai-tab">
+      <AIPanel tab={tab} onTabChange={setTab} hideTabChrome />
+    </SettingsTabbedPage>
   );
 };
 
