@@ -806,7 +806,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
               <TabsTrigger
                 value="installed"
                 className="-mb-px rounded-none border-b-2 border-transparent px-3 py-1.5 data-[state=active]:border-primary-500 data-[state=active]:bg-transparent data-[state=active]:text-primary-600 dark:data-[state=active]:text-primary-300">
-                {t('skills.explorer.installedTab)}
+                {t('skills.explorer.installedTab')}
                 {skills.length > 0 && <span className="text-[10px] opacity-70">{skills.length}</span>}
               </TabsTrigger>
             </TabsList>
