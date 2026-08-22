@@ -967,9 +967,6 @@ const activeConnection = (connection: ComposioConnection): boolean => {
   return status === 'ACTIVE' || status === 'CONNECTED';
 };
 
-const normalizedToolkit = (connection: ComposioConnection): string =>
-  connection.toolkit.toLowerCase().replace(/[^a-z0-9]/g, '');
-
 function summarizeSpendByAction(
   transactions: CreditTransaction[]
 ): Array<[string, number, number]> {
