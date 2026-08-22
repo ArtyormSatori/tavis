@@ -217,4 +217,20 @@ mod tests {
         assert_eq!(relay_bearer_header(Some("")), None);
         assert_eq!(relay_bearer_header(Some("   ")), None);
     }
+
+    #[test]
+    fn redact_strips_credentials_query_and_path() {
+        // Userinfo, query, fragment, and path must not survive into logs; only
+        // the scheme://host[:port] surface is kept for transport diagnostics.
+        assert_eq!(
+            redact_url_for_log("http://user:pass@192.168.1.74:7788/rpc/secret?token=t0k#frag"),
+            "http://user@192.168.1.74:7788/"
+        );
+        assert_eq!(
+            redact_url_for_log("https://core.example.com/rpc"),
+            "https://core.example.com/"
+        );
+        // An unparseable URL degrades to the coarse sentinel.
+        assert_eq!(redact_url_for_log("not a url"), "<invalid relay url>");
+    }
 }
