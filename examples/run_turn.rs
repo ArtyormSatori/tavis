@@ -134,7 +134,10 @@ async fn run() -> anyhow::Result<()> {
     });
 
     let outcome = harness.turn(&prompt).on_progress(tx).send().await?;
-    printer.await.ok();
+    // Wait for the printer to drain, but bound it. A detached async sub-agent
+    // (`spawn_async_subagent`) can carry a clone of the sender past `send()`
+    // returning, so waiting on sender-drop alone could hang indefinitely.
+    let _ = tokio::time::timeout(std::time::Duration::from_secs(30), printer).await;
 
     println!("\nsession: {}", outcome.session_id);
     println!("{}", outcome.reply);
