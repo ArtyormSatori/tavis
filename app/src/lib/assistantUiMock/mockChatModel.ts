@@ -32,7 +32,12 @@ import type {
 } from '@assistant-ui/react';
 import debugFactory from 'debug';
 
-import { MOCK_SCRIPT, type MockSubagentCall, type MockSubagentResult } from './mockScript';
+import {
+  type JsonObject,
+  MOCK_SCRIPT,
+  type MockSubagentCall,
+  type MockSubagentResult,
+} from './mockScript';
 
 const debug = debugFactory('openhuman:assistant-ui-demo');
 
@@ -100,47 +105,63 @@ export const mockChatModelAdapter: ChatModelAdapter = {
       }
     }
 
-    /** Start a delegation and return immediately. */
+    /**
+     * Start a delegation and return immediately.
+     *
+     * Live progress rides on the part's **args**, not its result, and that is
+     * load-bearing rather than a style choice: assistant-ui derives a tool
+     * call's status from whether a result is present, so writing progress into
+     * `result` would mark the call complete the instant it started. The tool
+     * group would then collapse and stop showing its running state while the
+     * delegation was very much still going — the exact opposite of what this is
+     * meant to show. Streaming args are the channel for a call in flight;
+     * `result` is set once, at the end, and carries the report.
+     */
     function dispatchSubagent(step: MockSubagentCall, at: number, index: number) {
-      const base = {
-        type: 'tool-call' as const,
-        toolCallId: `${runId}-task-${index}`,
-        toolName: 'task',
-        args: step.args,
-        argsText: JSON.stringify(step.args, null, 2),
-      };
+      const toolCallId = `${runId}-task-${index}`;
       const state: MockSubagentResult = {
         subagent: step.subagent,
         status: 'running',
         steps: [],
         elapsedSeconds: 0,
       };
-      const write = () => {
-        parts[at] = { ...base, result: { ...state, steps: [...state.steps] } };
+
+      const write = (done: boolean) => {
+        const snapshot = { ...state, steps: [...state.steps] };
+        const args = done ? step.args : { ...step.args, progress: snapshot as unknown as JsonObject };
+        parts[at] = {
+          type: 'tool-call',
+          toolCallId,
+          toolName: 'task',
+          args,
+          argsText: JSON.stringify(args, null, 2),
+          ...(done ? { result: snapshot } : {}),
+        };
         dirty = true;
       };
-      write();
+      write(false);
 
       pending += 1;
       const startedAt = performance.now();
+      const elapsed = () => Math.round((performance.now() - startedAt) / 100) / 10;
 
       void (async () => {
         try {
           for (const nested of step.steps) {
-            // Tick the clock while waiting, so a long step still reads as work
-            // in progress rather than a frozen block.
+            // Tick the clock while waiting, so a long step reads as work in
+            // progress rather than a frozen block.
             for (let waited = 0; waited < step.stepMs; waited += SLICE_MS) {
               await sleep(Math.min(SLICE_MS, step.stepMs - waited), abortSignal);
-              state.elapsedSeconds = Math.round((performance.now() - startedAt) / 100) / 10;
-              write();
+              state.elapsedSeconds = elapsed();
+              write(false);
             }
             state.steps.push(nested);
-            write();
+            write(false);
           }
           state.status = 'complete';
           state.report = step.report;
-          state.elapsedSeconds = Math.round((performance.now() - startedAt) / 100) / 10;
-          write();
+          state.elapsedSeconds = elapsed();
+          write(true);
           debug('[assistant-ui-demo] subagent=%s done in %ss', step.subagent, state.elapsedSeconds);
         } catch {
           // Cancelling the turn aborts its delegations too; the parts they left
