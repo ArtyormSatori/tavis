@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { setSidebarVisible } from '../../../store/layoutSlice';
 import { renderWithProviders } from '../../../test/test-utils';
 import { SIDEBAR_ICON_WIDTH } from '../../ui';
-import { setSidebarVisible } from '../../../store/layoutSlice';
 import RootShellLayout, { APP_SHELL_LAYOUT_ID } from './RootShellLayout';
 
 // Render i18n keys verbatim so assertions don't depend on locale copy.
