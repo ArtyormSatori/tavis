@@ -36,6 +36,7 @@ import SkillSearchBar from '../components/skills/SkillSearchBar';
 import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
 import Alert from '../components/ui/Alert';
+import Badge from '../components/ui/Badge';
 import BetaBanner from '../components/ui/BetaBanner';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
