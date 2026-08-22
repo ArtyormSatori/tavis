@@ -376,7 +376,7 @@ function coreRpcErrorMessage(err: unknown): string {
  * their existing fallback behaviour.
  */
 async function resolveShellEndpoint(): Promise<{ url: string; token: string } | null> {
-  if (shellEndpoint) return shellEndpoint;
+  console.log('DBG resolveShellEndpoint enter',isTauri(),!!shellEndpoint); if (shellEndpoint) return shellEndpoint;
   if (!isTauri()) return null;
   try {
     const endpoint = await invoke<{ url: string; token: string }>('core_rpc_endpoint');
@@ -388,7 +388,7 @@ async function resolveShellEndpoint(): Promise<{ url: string; token: string } | 
   }
 }
 
-export async function getCoreRpcUrl(): Promise<string> {
+export async function getCoreRpcUrl(): Promise<string> { console.log('DBG getCoreRpcUrl enter isTauri=',isTauri(),'resolved=',resolvedCoreRpcUrl);
   if (resolvedCoreRpcUrl) {
     return resolvedCoreRpcUrl;
   }
@@ -465,7 +465,7 @@ export async function getCoreRpcUrl(): Promise<string> {
  *   3. `null` in non-Tauri environments (e.g. Vitest, web preview) when no
  *      stored token is set so existing tests remain unaffected.
  */
-export async function getCoreRpcToken(): Promise<string | null> {
+export async function getCoreRpcToken(): Promise<string | null> { console.log('DBG getCoreRpcToken enter isTauri=',isTauri(),'didResolve=',didResolveCoreRpcToken,'stored=',getStoredCoreToken());
   // Non-Tauri first-party webviews (the notch / overlay NSPanel WKWebViews have
   // no Tauri IPC) receive the per-process bearer injected as a global by the
   // Rust host. Honour it first — and not behind the resolution cache, so a late
