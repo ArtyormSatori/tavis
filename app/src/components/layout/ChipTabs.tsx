@@ -160,6 +160,18 @@ export default function ChipTabs<T extends string>({
               data-testid={chipTestId}
               id={item.labelledBy}
               aria-controls={item.controls}
+              // Radix selects on `onMouseDown` (real pointer interaction), not
+              // `onClick` — `fireEvent.click()` in RTL fires only a `click`
+              // event with no preceding `mousedown`, so relying on Radix's
+              // built-in activation alone leaves every `fireEvent.click(chip)`
+              // test across the app selecting nothing. Firing `onChange`
+              // directly here covers both: real pointer users hit
+              // `onMouseDown` (redundant, same value) and `click`-only
+              // dispatchers hit this.
+              onClick={() => {
+                debug('select', { id: item.id });
+                onChange(item.id);
+              }}
               className={cn(baseChipClass, spacingClass, inactiveChipClass, activeChipClass)}>
               {item.label}
             </TabsTrigger>
