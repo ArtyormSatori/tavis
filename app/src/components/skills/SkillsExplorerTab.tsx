@@ -11,8 +11,9 @@ import {
 } from '../../services/api/skillsApi';
 import EmptyStateCard from '../EmptyStateCard';
 import ChipTabs from '../layout/ChipTabs';
-import { Checkbox, ModalShell, TextField } from '../ui';
+import { Badge, Checkbox, ModalShell, TextField } from '../ui';
 import Button from '../ui/Button';
+import Card from '../ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import {
   DropdownMenuContent,
@@ -380,15 +381,24 @@ interface SkillDetailDialogProps {
 function CatalogRow({ entry, installed, installing, onInstall, onClick }: CatalogTileProps) {
   const { t } = useT();
   return (
-    <TableRow className="cursor-pointer" onClick={onClick}>
-      <TableCell className="min-w-[12rem] font-medium">{entry.name}</TableCell>
+    <TableRow className="group">
+      <TableCell className="min-w-[12rem]">
+        <Button
+          type="button"
+          variant="tertiary"
+          size="xs"
+          onClick={onClick}
+          className="h-auto max-w-full p-0 text-left font-medium hover:bg-transparent">
+          <span className="truncate">{entry.name}</span>
+        </Button>
+      </TableCell>
       <TableCell className="min-w-[18rem] max-w-xl text-xs text-content-muted">
         <span className="line-clamp-1">{entry.description}</span>
       </TableCell>
       <TableCell className="whitespace-nowrap"><SourceBadge source={entry.source} /></TableCell>
       <TableCell className="w-px whitespace-nowrap text-right">
         {installed ? (
-          <span className="text-xs text-sage-700 dark:text-sage-300">{t('skills.explorer.installed')}</span>
+          <Badge variant="success">{t('skills.explorer.installed')}</Badge>
         ) : (
           <Button
             variant="secondary"
@@ -1028,16 +1038,17 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
 
           {displayedCatalog.length > 0 && (
             <>
-              <Table className="border border-line">
-                <TableHeader>
+              <Card className="w-full">
+                <Table>
+                  <TableHeader>
                   <TableRow>
-                    <TableHead>Skill</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead className="text-right">Install</TableHead>
+                    <TableHead className="min-w-[12rem]">Skill</TableHead>
+                    <TableHead className="min-w-[18rem]">Description</TableHead>
+                    <TableHead>Provider</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
+                  </TableHeader>
+                  <TableBody>
                   {displayedCatalog.map(entry => (
                     <CatalogRow
                       key={`${entry.source}-${entry.id}`}
@@ -1048,8 +1059,9 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
                       onInstall={() => void handleRegistryInstall(entry)}
                     />
                   ))}
-                </TableBody>
-              </Table>
+                  </TableBody>
+                </Table>
+              </Card>
               {filteredCatalog.length > displayedCatalog.length && (
                 <div className="mt-3 flex flex-col items-center gap-1">
                   <Button
