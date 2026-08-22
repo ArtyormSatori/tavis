@@ -82,6 +82,15 @@ describe('<FeedbackFilterSelect />', () => {
     expect(screen.getByRole('option', { name: 'Bug' })).toHaveAttribute('data-state', 'unchecked');
   });
 
+  // COVERAGE GAP, deliberate. When this moved off a hand-rolled
+  // `aria-activedescendant` listbox onto Radix Select, one old test went with
+  // it: highlight movement across Up/Down/Home/End. It cannot be restored here
+  // — Radix drives the highlight with real roving DOM focus, which jsdom's
+  // layout-less focus handling does not traverse (verified: ArrowDown inside
+  // the listbox then Enter fires no change). Entering the keyboard path
+  // (ArrowDown), committing from it (Enter) and dismissing (Escape) ARE covered
+  // above. Traversal belongs in an E2E spec, not a jsdom test that would only
+  // pass by asserting something other than what it claims.
   it('commits the highlighted option with Enter', () => {
     const onChange = vi.fn();
     render(
