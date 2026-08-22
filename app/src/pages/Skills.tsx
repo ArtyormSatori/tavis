@@ -35,8 +35,8 @@ import {
 import SkillSearchBar from '../components/skills/SkillSearchBar';
 import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
-import BetaBanner from '../components/ui/BetaBanner';
 import Alert from '../components/ui/Alert';
+import BetaBanner from '../components/ui/BetaBanner';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { useVoiceSkillStatus } from '../features/voice/useVoiceSkillStatus';
@@ -1120,9 +1120,9 @@ export default function Skills() {
               </div>
             </div> */}
 
-              {composioError && (
-                <Alert variant="warning" className="p-3">
-                  <div className="flex items-start justify-between gap-3">
+                {composioError && (
+                  <Alert variant="warning" className="p-3">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h2 className="text-sm font-semibold text-amber-900">
                           {t('skills.composio.staleStatusTitle')}
@@ -1131,194 +1131,192 @@ export default function Skills() {
                           {composioError}
                         </p>
                       </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="xs"
-                      onClick={() => void refreshComposio()}
-                      className="shrink-0">
-                      {t('common.retry')}
-                    </Button>
-                  </div>
-                </Alert>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="xs"
+                        onClick={() => void refreshComposio()}
+                        className="shrink-0">
+                        {t('common.retry')}
+                      </Button>
+                    </div>
+                  </Alert>
                 )}
 
                 {
                   <>
-                  {activeTab === 'channels' && channelsGroup && (
-                    <Card className="animate-fade-up">
-                      <div className="p-3">
-                        <div className="px-1 pb-3 pt-1">
-                          <h2
-                            className="flex items-center gap-2 text-sm font-semibold text-content"
-                            data-walkthrough="skills-channels">
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-subtle">
-                              <SkillCategoryIcon
-                                category="Channels"
-                                className={skillCategoryHeadingClassName('Channels')}
-                              />
-                            </span>
-                            {t('skills.channels')}
-                          </h2>
-                          <p className="mt-0.5 text-[11px] leading-relaxed text-content-muted">
-                            {t('channels.defaultMessaging')}
-                          </p>
-                          <p className="mt-1 text-[11px] leading-relaxed text-content-faint">
-                            {t('channels.connectHelp.slackNote')}
-                          </p>
-                        </div>
-                        {/* One unified surface: each tile shows connection status,
+                    {activeTab === 'channels' && channelsGroup && (
+                      <Card className="animate-fade-up">
+                        <div className="p-3">
+                          <div className="px-1 pb-3 pt-1">
+                            <h2
+                              className="flex items-center gap-2 text-sm font-semibold text-content"
+                              data-walkthrough="skills-channels">
+                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-subtle">
+                                <SkillCategoryIcon
+                                  category="Channels"
+                                  className={skillCategoryHeadingClassName('Channels')}
+                                />
+                              </span>
+                              {t('skills.channels')}
+                            </h2>
+                            <p className="mt-0.5 text-[11px] leading-relaxed text-content-muted">
+                              {t('channels.defaultMessaging')}
+                            </p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-content-faint">
+                              {t('channels.connectHelp.slackNote')}
+                            </p>
+                          </div>
+                          {/* One unified surface: each tile shows connection status,
                           opens setup/configure on click, and owns the "default
                           messaging channel" selection via its footer control.
                           Connected channels and not-yet-connected channels are
                           rendered as two separate grids (no divider/label) so
                           each group occupies its own rows. */}
-                        {(() => {
-                          // The built-in web channel needs no connection — treat it
-                          // as always available so it stays selectable as default.
-                          const statusFor = (def: ChannelDefinition): ChannelConnectionStatus =>
-                            def.id === 'web'
-                              ? 'connected'
-                              : bestChannelStatus(def.id as ChannelType);
-                          const renderTile = (def: ChannelDefinition) => {
-                            const channelId = def.id as ChannelType;
+                          {(() => {
+                            // The built-in web channel needs no connection — treat it
+                            // as always available so it stays selectable as default.
+                            const statusFor = (def: ChannelDefinition): ChannelConnectionStatus =>
+                              def.id === 'web'
+                                ? 'connected'
+                                : bestChannelStatus(def.id as ChannelType);
+                            const renderTile = (def: ChannelDefinition) => {
+                              const channelId = def.id as ChannelType;
+                              return (
+                                <div key={channelId} data-testid={`skill-row-channel-${channelId}`}>
+                                  <ChannelTile
+                                    def={def}
+                                    status={statusFor(def)}
+                                    icon={channelIcons[def.icon]}
+                                    testId={`skill-install-channel-${channelId}`}
+                                    onOpen={() => setChannelModalDef(def)}
+                                    isDefault={
+                                      channelConnections.defaultMessagingChannel === channelId
+                                    }
+                                    onSetDefault={() => void handleSetDefaultChannel(channelId)}
+                                    setDefaultTestId={`channel-select-${channelId}`}
+                                    setDefaultBusy={defaultChannelBusy !== null}
+                                  />
+                                </div>
+                              );
+                            };
+                            const connected = channelDefs.filter(d => statusFor(d) === 'connected');
+                            const notConnected = channelDefs.filter(
+                              d => statusFor(d) !== 'connected'
+                            );
+                            const gridStyle = {
+                              gridTemplateColumns: 'repeat(auto-fill, minmax(13rem, 1fr))',
+                            };
                             return (
-                              <div key={channelId} data-testid={`skill-row-channel-${channelId}`}>
-                                <ChannelTile
-                                  def={def}
-                                  status={statusFor(def)}
-                                  icon={channelIcons[def.icon]}
-                                  testId={`skill-install-channel-${channelId}`}
-                                  onOpen={() => setChannelModalDef(def)}
-                                  isDefault={
-                                    channelConnections.defaultMessagingChannel === channelId
-                                  }
-                                  onSetDefault={() => void handleSetDefaultChannel(channelId)}
-                                  setDefaultTestId={`channel-select-${channelId}`}
-                                  setDefaultBusy={defaultChannelBusy !== null}
-                                />
+                              <div className="space-y-2 sm:space-y-3">
+                                {connected.length > 0 && (
+                                  <div className="grid gap-2 sm:gap-3" style={gridStyle}>
+                                    {connected.map(renderTile)}
+                                  </div>
+                                )}
+                                {notConnected.length > 0 && (
+                                  <div className="grid gap-2 sm:gap-3" style={gridStyle}>
+                                    {notConnected.map(renderTile)}
+                                  </div>
+                                )}
                               </div>
                             );
-                          };
-                          const connected = channelDefs.filter(d => statusFor(d) === 'connected');
-                          const notConnected = channelDefs.filter(
-                            d => statusFor(d) !== 'connected'
-                          );
-                          const gridStyle = {
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(13rem, 1fr))',
-                          };
-                          return (
-                            <div className="space-y-2 sm:space-y-3">
-                              {connected.length > 0 && (
-                                <div className="grid gap-2 sm:gap-3" style={gridStyle}>
-                                  {connected.map(renderTile)}
-                                </div>
-                              )}
-                              {notConnected.length > 0 && (
-                                <div className="grid gap-2 sm:gap-3" style={gridStyle}>
-                                  {notConnected.map(renderTile)}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </Card>
-                  )}
+                          })()}
+                        </div>
+                      </Card>
+                    )}
 
                     {activeTab === 'composio' && (
-                    <Card
-                      className="animate-fade-up"
-                      data-testid="composio-integrations-card">
-                      <div className="p-3" data-walkthrough="skills-grid">
-                        <p className="px-1 pb-3 text-xs leading-relaxed text-content-muted">
-                          {t('skills.integrationsSubtitle')}
-                        </p>
-                        {showLocalComposioApiKeyBanner && (
-                          <ComposioApiKeyEmptyState
-                            onOpenSettings={() => handleTabChange('composio-key')}
-                          />
-                        )}
-                        {!showLocalComposioApiKeyBanner && (
-                          <div className="space-y-3 px-1 pb-3">
-                            <SkillSearchBar value={searchQuery} onChange={setSearchQuery} />
-                            <SkillCategoryFilter
-                              categories={availableCategories}
-                              selected={selectedCategory}
-                              onChange={setSelectedCategory}
+                      <Card className="animate-fade-up" data-testid="composio-integrations-card">
+                        <div className="p-3" data-walkthrough="skills-grid">
+                          <p className="px-1 pb-3 text-xs leading-relaxed text-content-muted">
+                            {t('skills.integrationsSubtitle')}
+                          </p>
+                          {showLocalComposioApiKeyBanner && (
+                            <ComposioApiKeyEmptyState
+                              onOpenSettings={() => handleTabChange('composio-key')}
                             />
-                          </div>
-                        )}
-                        {!showLocalComposioApiKeyBanner &&
-                          // While the dynamic catalog is still being fetched and we
-                          // have nothing real to show yet, render a loading skeleton
-                          // instead of the hardcoded toolkit list. The hardcoded
-                          // KNOWN_COMPOSIO_TOOLKITS list is only used as a post-fetch
-                          // fallback (see composioCatalogToolkits), never during the
-                          // in-flight loading window (#3933).
-                          (composioLoading && composioSortedEntries.length === 0 ? (
-                            <div
-                              className="grid gap-2 sm:gap-3"
-                              data-testid="composio-integrations-loading"
-                              role="status"
-                              aria-label={t('skills.loadingIntegrations')}
-                              aria-busy="true"
-                              style={{
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(5.5rem, 1fr))',
-                                gridAutoRows: '6.5rem',
-                              }}>
-                              {Array.from({ length: 12 }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  data-testid="composio-skeleton-tile"
-                                  aria-hidden="true"
-                                  className="animate-pulse rounded-xl border border-line bg-surface-subtle"
-                                />
-                              ))}
+                          )}
+                          {!showLocalComposioApiKeyBanner && (
+                            <div className="space-y-3 px-1 pb-3">
+                              <SkillSearchBar value={searchQuery} onChange={setSearchQuery} />
+                              <SkillCategoryFilter
+                                categories={availableCategories}
+                                selected={selectedCategory}
+                                onChange={setSelectedCategory}
+                              />
                             </div>
-                          ) : composioSortedEntries.length > 0 ? (
-                            <div
-                              className="grid gap-2 sm:gap-3"
-                              style={{
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(5.5rem, 1fr))',
-                                gridAutoRows: '6.5rem',
-                              }}>
-                              {composioSortedEntries.map(({ meta, connection }) => {
-                                const allConns = composioConnectionsByToolkit?.get(meta.slug);
-                                const activeCount =
-                                  allConns?.filter(c => deriveComposioState(c) === 'connected')
-                                    .length ?? 0;
-                                return (
+                          )}
+                          {!showLocalComposioApiKeyBanner &&
+                            // While the dynamic catalog is still being fetched and we
+                            // have nothing real to show yet, render a loading skeleton
+                            // instead of the hardcoded toolkit list. The hardcoded
+                            // KNOWN_COMPOSIO_TOOLKITS list is only used as a post-fetch
+                            // fallback (see composioCatalogToolkits), never during the
+                            // in-flight loading window (#3933).
+                            (composioLoading && composioSortedEntries.length === 0 ? (
+                              <div
+                                className="grid gap-2 sm:gap-3"
+                                data-testid="composio-integrations-loading"
+                                role="status"
+                                aria-label={t('skills.loadingIntegrations')}
+                                aria-busy="true"
+                                style={{
+                                  gridTemplateColumns: 'repeat(auto-fill, minmax(5.5rem, 1fr))',
+                                  gridAutoRows: '6.5rem',
+                                }}>
+                                {Array.from({ length: 12 }).map((_, i) => (
                                   <div
-                                    key={meta.slug}
-                                    data-testid={`skill-row-composio-${meta.slug}`}
-                                    className="overflow-hidden">
-                                    <ComposioConnectorTile
-                                      meta={meta}
-                                      connection={connection}
-                                      activeConnectionCount={activeCount}
-                                      hasComposioError={Boolean(composioError)}
-                                      agentUnsupported={
-                                        agentReadinessKnown &&
-                                        deriveComposioState(connection) === 'connected' &&
-                                        !agentReadyComposioToolkits.has(meta.slug)
-                                      }
-                                      testId={`skill-install-composio-${meta.slug}`}
-                                      onOpen={() => setComposioModalToolkit(meta)}
-                                      onRetryGlobal={() => void refreshComposio()}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <p className="px-1 py-4 text-center text-xs text-content-faint">
-                              {t('skills.noResults')}
-                            </p>
-                          ))}
-                      </div>
-                    </Card>
-                  )}
+                                    key={i}
+                                    data-testid="composio-skeleton-tile"
+                                    aria-hidden="true"
+                                    className="animate-pulse rounded-xl border border-line bg-surface-subtle"
+                                  />
+                                ))}
+                              </div>
+                            ) : composioSortedEntries.length > 0 ? (
+                              <div
+                                className="grid gap-2 sm:gap-3"
+                                style={{
+                                  gridTemplateColumns: 'repeat(auto-fill, minmax(5.5rem, 1fr))',
+                                  gridAutoRows: '6.5rem',
+                                }}>
+                                {composioSortedEntries.map(({ meta, connection }) => {
+                                  const allConns = composioConnectionsByToolkit?.get(meta.slug);
+                                  const activeCount =
+                                    allConns?.filter(c => deriveComposioState(c) === 'connected')
+                                      .length ?? 0;
+                                  return (
+                                    <div
+                                      key={meta.slug}
+                                      data-testid={`skill-row-composio-${meta.slug}`}
+                                      className="overflow-hidden">
+                                      <ComposioConnectorTile
+                                        meta={meta}
+                                        connection={connection}
+                                        activeConnectionCount={activeCount}
+                                        hasComposioError={Boolean(composioError)}
+                                        agentUnsupported={
+                                          agentReadinessKnown &&
+                                          deriveComposioState(connection) === 'connected' &&
+                                          !agentReadyComposioToolkits.has(meta.slug)
+                                        }
+                                        testId={`skill-install-composio-${meta.slug}`}
+                                        onOpen={() => setComposioModalToolkit(meta)}
+                                        onRetryGlobal={() => void refreshComposio()}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="px-1 py-4 text-center text-xs text-content-faint">
+                                {t('skills.noResults')}
+                              </p>
+                            ))}
+                        </div>
+                      </Card>
+                    )}
 
                     {activeTab === 'composio' && otherGroups.map(group => renderGroup(group))}
 
