@@ -129,6 +129,38 @@ const PATTERN = new RegExp(
   'g'
 );
 
+/**
+ * Shade-less colour utilities: `bg-ocean`, `text-ocean/90`, `bg-surface`.
+ *
+ * Narrower prefix set than PATTERN on purpose. `text-`/`border-`/`ring-` also
+ * carry NON-colour values (`text-xs`, `border-2`, `ring-offset-2`), so a bare
+ * match there needs the exclusion set below or it flags half the codebase.
+ */
+const BARE_PATTERN = new RegExp(
+  `\\b(${UTILITY_PREFIXES.join('|')})-([a-z][a-z0-9]*(?:-[a-z][a-z0-9]*)*)(?:\\/\\d{1,3})?\\b(?!-?\\d)`,
+  'g'
+);
+
+/**
+ * Values that follow a colour-utility prefix but are not colours. Derived from
+ * the resolved theme where possible (font sizes, so a new `text-micro` needs no
+ * edit here) plus the static Tailwind keywords that share these prefixes.
+ */
+function nonColourValues(resolved) {
+  return new Set([
+    ...Object.keys(resolved?.theme?.fontSize ?? {}),
+    ...Object.keys(resolved?.theme?.borderWidth ?? {}),
+    ...Object.keys(resolved?.theme?.ringWidth ?? {}),
+    // Static keywords sharing bg-/text-/border-/ring-/divide-/from-/to-/via-.
+    'left', 'center', 'right', 'justify', 'start', 'end',
+    'wrap', 'nowrap', 'balance', 'pretty', 'clip', 'ellipsis',
+    'transparent', 'current', 'inherit', 'none', 'auto',
+    'solid', 'dashed', 'dotted', 'double', 'hidden', 'collapse', 'separate',
+    'fixed', 'local', 'scroll', 'cover', 'contain', 'repeat', 'no', 'origin',
+    'opacity', 'offset', 'blend', 'clip-text', 'gradient',
+  ]);
+}
+
 function* walk(dir) {
   for (const entry of readdirSync(dir)) {
     if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue;
@@ -154,6 +186,12 @@ for (const file of walk(path.join(appRoot, 'src'))) {
       if (!SHADES.has(shade)) continue;
       if (shadeExists(scale, shade)) continue;
       violations.push(`${path.relative(appRoot, file)}:${i + 1}: ${match}`);
+    }
+    for (const m of line.matchAll(BARE_PATTERN)) {
+      const [match, , name] = m;
+      if (nonColour.has(name)) continue;
+      if (bareExists(name)) continue;
+      violations.push(`${path.relative(appRoot, file)}:${i + 1}: ${match} (no such colour)`);
     }
   });
 }
