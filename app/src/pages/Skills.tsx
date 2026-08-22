@@ -833,66 +833,66 @@ export default function Skills() {
   const renderGroup = ({ category, items }: { category: SkillCategory; items: SkillItem[] }) => (
     <Card key={category} className="animate-fade-up">
       <div className="p-3">
-      <div className="px-1 pb-3 pt-1">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-content">
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-subtle">
-            <SkillCategoryIcon
-              category={category}
-              className={skillCategoryHeadingClassName(category)}
-            />
-          </span>
-          {category}
-        </h2>
-      </div>
-      <div className="space-y-2">
-        {items.map(item => {
-          if (item.kind === 'builtin') {
-            /* v8 ignore start -- BUILT_IN_SKILLS list is empty today; the per-id
+        <div className="px-1 pb-3 pt-1">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-content">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-subtle">
+              <SkillCategoryIcon
+                category={category}
+                className={skillCategoryHeadingClassName(category)}
+              />
+            </span>
+            {category}
+          </h2>
+        </div>
+        <div className="space-y-2">
+          {items.map(item => {
+            if (item.kind === 'builtin') {
+              /* v8 ignore start -- BUILT_IN_SKILLS list is empty today; the per-id
                branches below are retained for the hidden voice skill without
                dragging the diff-coverage gate down while unreachable. */
-            if (item.id === 'voice-stt') {
+              if (item.id === 'voice-stt') {
+                return (
+                  <UnifiedSkillCard
+                    key={item.id}
+                    icon={item.icon}
+                    title={item.name}
+                    description={item.description}
+                    statusLabel={voiceStatus.statusLabel}
+                    statusColor={voiceStatus.statusColor}
+                    ctaLabel={voiceStatus.ctaLabel}
+                    ctaVariant={voiceStatus.ctaVariant}
+                    testId={`skill-row-${item.id}`}
+                    ctaTestId={`skill-install-${item.id}`}
+                    onCtaClick={() => {
+                      if (
+                        voiceStatus.connectionStatus === 'connected' ||
+                        voiceStatus.connectionStatus === 'connecting' ||
+                        voiceStatus.connectionStatus === 'disconnected'
+                      ) {
+                        navigate(item.route!);
+                        return;
+                      }
+                      setVoiceModalOpen(true);
+                    }}
+                  />
+                );
+              }
               return (
                 <UnifiedSkillCard
                   key={item.id}
                   icon={item.icon}
                   title={item.name}
                   description={item.description}
-                  statusLabel={voiceStatus.statusLabel}
-                  statusColor={voiceStatus.statusColor}
-                  ctaLabel={voiceStatus.ctaLabel}
-                  ctaVariant={voiceStatus.ctaVariant}
+                  ctaLabel={t('nav.settings')}
                   testId={`skill-row-${item.id}`}
                   ctaTestId={`skill-install-${item.id}`}
-                  onCtaClick={() => {
-                    if (
-                      voiceStatus.connectionStatus === 'connected' ||
-                      voiceStatus.connectionStatus === 'connecting' ||
-                      voiceStatus.connectionStatus === 'disconnected'
-                    ) {
-                      navigate(item.route!);
-                      return;
-                    }
-                    setVoiceModalOpen(true);
-                  }}
+                  onCtaClick={() => navigate(item.route!)}
                 />
               );
+              /* v8 ignore stop */
             }
-            return (
-              <UnifiedSkillCard
-                key={item.id}
-                icon={item.icon}
-                title={item.name}
-                description={item.description}
-                ctaLabel={t('nav.settings')}
-                testId={`skill-row-${item.id}`}
-                ctaTestId={`skill-install-${item.id}`}
-                onCtaClick={() => navigate(item.route!)}
-              />
-            );
-            /* v8 ignore stop */
-          }
-        })}
-      </div>
+          })}
+        </div>
       </div>
     </Card>
   );
