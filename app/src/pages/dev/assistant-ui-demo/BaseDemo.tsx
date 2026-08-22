@@ -26,7 +26,6 @@ import {
 import { Button } from "@/components/assistant-ui/ui/button";
 import { Skeleton } from "@/components/assistant-ui/ui/skeleton";
 import { cn } from "@/components/assistant-ui/lib/utils";
-import icon from "@/public/favicon/icon.svg";
 import {
   ComposerQuotePreview,
   QuoteBlock,
@@ -83,11 +82,9 @@ import {
   LexicalComposerInput,
   type DirectiveChipProps,
 } from "@assistant-ui/react-lexical";
-import Image from "next/image";
 import { useState, type FC, type ReactNode } from "react";
 import { ModelSelector } from "@/components/assistant-ui/model-selector";
-import { docsModelOptions } from "@/components/pages/docs/assistant/docs-model-options";
-import { DEFAULT_MODEL_ID } from "@/lib/model";
+import { DEFAULT_MODEL_ID, demoModelOptions } from "./demoModels";
 
 const Logo: FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
   return (
@@ -97,10 +94,10 @@ const Logo: FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
         collapsed ? "size-8 shrink-0 justify-center" : "min-w-0 gap-2 px-2",
       )}
     >
-      <Image
-        src={icon}
+      <img
+        src="/logo.png"
         alt="logo"
-        className="size-5 shrink-0 dark:hue-rotate-180 dark:invert"
+        className="size-5 shrink-0 rounded-sm"
       />
       {!collapsed && (
         <span className="text-foreground/90 truncate">assistant-ui</span>
@@ -109,7 +106,7 @@ const Logo: FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
   );
 };
 
-const models = docsModelOptions();
+const models = demoModelOptions();
 
 const ModelPicker: FC = () => {
   return (
