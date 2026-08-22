@@ -215,7 +215,6 @@ const AIPanel = ({
             id: 'routing',
             label: t('settings.ai.routing'),
             contentClassName: embedded || hideTabChrome ? '' : 'p-4',
-            description: t('settings.ai.routingDesc'),
             content: (
               <div className="flex w-full flex-col">
                 {/* ═══════════════════════════════════════════════════════════════
