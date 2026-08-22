@@ -376,11 +376,10 @@ function coreRpcErrorMessage(err: unknown): string {
  * their existing fallback behaviour.
  */
 async function resolveShellEndpoint(): Promise<{ url: string; token: string } | null> {
-  console.log('DBG resolveShellEndpoint start isTauri=', isTauri(), 'shellEndpoint=', !!shellEndpoint, 'INVOKE?');
   if (shellEndpoint) return shellEndpoint;
   if (!isTauri()) return null;
   try {
-    const endpoint = await invoke<{ url: string; token: string }>('core_rpc_endpoint'); console.log('DBG invoke endpoint=', JSON.stringify(endpoint));
+    const endpoint = await invoke<{ url: string; token: string }>('core_rpc_endpoint');
     shellEndpoint = { url: endpoint?.url ?? '', token: endpoint?.token ?? '' };
     return shellEndpoint;
   } catch (err) {
