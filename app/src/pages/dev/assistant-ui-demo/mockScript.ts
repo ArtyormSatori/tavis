@@ -6,6 +6,14 @@
  * no file is read, no search is run, no subagent exists.
  */
 
+/**
+ * JSON-safe argument payload. Tool-call parts require their `args` to be plain
+ * JSON (`ReadonlyJSONObject` upstream); `Record<string, unknown>` is wider than
+ * that and does not satisfy it.
+ */
+type JsonValue = string | number | boolean | null | readonly JsonValue[] | JsonObject;
+export type JsonObject = { readonly [key: string]: JsonValue };
+
 export type MockSubagentStep = {
   /** Tool the subagent reached for. */
   tool: string;
@@ -24,7 +32,7 @@ export type MockSubagentResult = {
 export type MockToolStep = {
   kind: 'tool';
   toolName: string;
-  args: Record<string, unknown>;
+  args: JsonObject;
   /** Milliseconds the call "runs" before its result lands. */
   runMs: number;
   result: unknown;
@@ -34,7 +42,7 @@ export type MockToolStep = {
 export type MockSubagentCall = {
   kind: 'subagent';
   subagent: string;
-  args: Record<string, unknown>;
+  args: JsonObject;
   steps: MockSubagentStep[];
   /** Milliseconds between nested steps. */
   stepMs: number;
