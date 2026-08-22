@@ -28,46 +28,33 @@ describe('ChipTabs', () => {
     expect(screen.getByTestId('t-three')).toHaveAttribute('aria-selected', 'false');
   });
 
-  // COVERAGE GAP, moved to E2E deliberately (not silently dropped):
+  // COVERAGE GAP, deliberate. `uses roving tabIndex for keyboard navigation`
+  // asserted the hand-rolled implementation's STATIC roving tabIndex
+  // (tabIndex = f(active value), true from first render). Radix `Tabs`'
+  // `RovingFocusGroup` genuinely does not work that way, in a browser or in
+  // jsdom: `tabIndex` starts at -1 on EVERY item (verified directly — asking
+  // for `tabindex="0"` on the active chip immediately after render, with no
+  // interaction, returns `-1`) because the roving tab stop is a one-time
+  // ENTRY behavior. The group root is the tab stop until something actually
+  // focuses into it, at which point `RovingFocusGroup` redirects focus to the
+  // active item and only THEN does that item become the roving stop. There is
+  // no static "the active item already has tabIndex 0" invariant to assert
+  // pre-interaction, so this one cannot be restored — not because jsdom can't
+  // traverse focus, but because the behavior it asserted no longer exists.
   //
-  // Three tests used to live here — 'uses roving tabIndex for keyboard
-  // navigation', the it.each 'moves focus and selects with %s'
-  // (ArrowRight/ArrowLeft/Home/End), and 'wraps arrow-key navigation at
-  // either end' — asserting the hand-rolled implementation's STATIC roving
-  // tabIndex (tabIndex = f(active value), true from first render) and its
-  // manual index-math arrow-key handler.
-  //
-  // The Radix `Tabs` migration replaced that with `RovingFocusGroup`, whose
-  // model is genuinely different, not just harder to simulate: `tabIndex`
-  // starts at -1 on EVERY item (verified — `uses roving tabIndex` failed
-  // asking for `tabindex="0"` on the active chip immediately after render,
-  // got `-1`) because Radix's roving tab stop is a one-time ENTRY behavior —
-  // the group root itself is the tab stop (`tabindex="0"`) until something
-  // actually focuses into it, at which point `RovingFocusGroup` redirects
-  // focus to the active/current item and only THEN does that item become the
-  // roving stop. There is no static "the active item already has tabIndex 0"
-  // invariant to assert pre-interaction, in a browser or in jsdom.
-  //
-  // The arrow-key tests (which do call `.focus()` before `fireEvent.keyDown`,
-  // so they exercise the post-entry state) still failed — `onChange` was
-  // never called, 0 invocations — which matches this repo's known caveat
-  // (see the ChipTabs migration task notes): Radix's roving-focus keyboard
-  // handling is verified elsewhere in this codebase (`ToggleGroup.test.tsx`)
-  // only through `userEvent.keyboard(...)`, never raw `fireEvent.keyDown` +
-  // manual `.focus()`. `userEvent` models the real sequential
-  // focus/keydown/keyup event chain the collection + roving-focus internals
-  // expect; the raw `fireEvent` + manual-focus combination this file used
-  // does not reproduce it reliably in jsdom.
-  //
-  // Rewriting these to pass with `userEvent` was considered and rejected:
-  // that changes what's being tested (a different event-dispatch API) while
-  // keeping the original assertions' names and intent, which is exactly the
-  // "assert something weaker under the same name" outcome this was told not
-  // to do silently. Real keyboard-driven chip selection (arrow keys move
-  // focus and select, Home/End jump, wrap at the ends) is real product
-  // behavior and still needs coverage — it belongs in a WDIO/Appium E2E spec
-  // (`app/test/e2e/specs/`) that drives an actual focus/keyboard chain,
-  // not here.
+  // The other three tests below — the arrow-key it.each and the wrap test —
+  // are NOT a coverage gap: they're restored using `userEvent.keyboard(...)`
+  // rather than raw `fireEvent.keyDown` + manual `.focus()`. The raw-event
+  // version failed (`onChange` called 0 times) because Radix's roving-focus
+  // internals depend on the real sequential focus/keydown event chain
+  // `userEvent` models — the same reason this codebase's `ToggleGroup.test.tsx`
+  // only exercises Radix roving focus through `userEvent`, never `fireEvent`.
+  // The wrap test additionally needs a small controlled harness: Radix only
+  // fires `onValueChange` for a value that differs from the CURRENT `value`
+  // prop, so a wrap-then-wrap-back assertion against a component whose parent
+  // never re-renders with the intermediate value silently no-ops on the
+  // second step (verified) — not a Radix or jsdom quirk, just what "controlled"
+  // means.
 
   it('connects a tab to its panel through stable IDs', () => {
     render(
