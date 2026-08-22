@@ -31,6 +31,17 @@ struct State {
 static STATE: std::sync::LazyLock<Arc<Mutex<State>>> =
     std::sync::LazyLock::new(|| Arc::new(Mutex::new(State::default())));
 
+/// Serializes the whole `activate` transaction.
+///
+/// `STATE` protects individual fields but not a full activation: if two
+/// activations interleave, a slower one that finishes last would clobber the
+/// active gateway the user actually selected, and then tear down the newer
+/// box while RPC still points at it. Holding this lock across the entire
+/// sequence — provisioning, status commit, and previous-gateway teardown —
+/// means the last activation to start is also the last to finish.
+static ACTIVATION_LOCK: std::sync::LazyLock<Mutex<()>> =
+    std::sync::LazyLock::new(|| Mutex::new(()));
+
 /// Where RPC should currently go.
 ///
 /// Falls back to the in-process core when nothing has been activated — which is
@@ -96,6 +107,7 @@ pub async fn activate(
     gateway: &Gateway,
     desktop: &crate::core_process::CoreProcessHandle,
 ) -> Result<ActiveGateway, String> {
+    let _activation_guard = ACTIVATION_LOCK.lock().await;
     {
         let mut state = STATE.lock().await;
         state.status = Some(GatewayStatus::Activating {
