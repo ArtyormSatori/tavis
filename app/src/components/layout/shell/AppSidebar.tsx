@@ -1,5 +1,6 @@
 import debugFactory from 'debug';
 import { useEffect } from 'react';
+import { LuPanelLeftOpen } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useT } from '../../../lib/i18n/I18nContext';
@@ -17,7 +18,11 @@ import {
   SidebarMenuIcon,
   SidebarMenuItem,
   SidebarMenuLabel,
+  SidebarTrigger,
+  Tooltip,
+  useSidebar,
 } from '../../ui';
+import CollapsedNavRail from './CollapsedNavRail';
 import { NavIcon } from './navIcons';
 import SidebarHeader from './SidebarHeader';
 import SidebarNav from './SidebarNav';
