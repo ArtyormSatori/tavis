@@ -13,14 +13,14 @@
  *
  * The runtime under it is mock-only (see `MockRuntimeProvider`).
  */
-import { BaseDemo } from './BaseDemo';
+import { Base } from './BaseDemo';
 import { MockRuntimeProvider } from './MockRuntimeProvider';
 
 export function AssistantUiDemoPage() {
   return (
     <div className="h-dvh w-full overflow-hidden">
       <MockRuntimeProvider>
-        <BaseDemo />
+        <Base />
       </MockRuntimeProvider>
     </div>
   );
