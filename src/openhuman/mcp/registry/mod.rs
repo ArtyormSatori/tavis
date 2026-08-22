@@ -8,6 +8,8 @@
 //! # Modules
 //!
 //! - [`bus`] — the lifecycle subscriber that logs this domain's events.
+//! - [`store`] — the one direct reach into the registry's store that outlives
+//!   the extraction: an end-to-end test seeding the upstream response cache.
 //! - [`ops`] — the `mcp_clients` RPC handlers, delegating to the service
 //!   [`super::host`] holds and publishing this application's own events.
 //! - [`setup_ops`] — the `mcp_setup` handlers, likewise.
@@ -174,6 +176,33 @@ pub mod connections {
             .connections()
             .last_error(server_id)
             .await
+    }
+}
+
+/// The registry's own store, for the callers that reach it directly.
+///
+/// The store itself moved to `tinymcp`. What is left here is the one entry
+/// point outside this module that named it: an end-to-end test seeds the
+/// upstream response cache so it can exercise an install without reaching a
+/// real catalog. Keeping the spelling means that test needs no edit, and the
+/// signature is the one it already calls.
+#[cfg(feature = "mcp")]
+pub mod store {
+    use crate::openhuman::config::Config;
+    use crate::openhuman::mcp::host;
+
+    /// Writes one upstream response into the cache for `config`'s workspace.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the service cannot be opened or the row cannot be
+    /// written.
+    pub fn set_cached(config: &Config, cache_key: &str, body_json: &str) -> anyhow::Result<()> {
+        host::for_config(config)?
+            .dynamic()
+            .store()
+            .cache(cache_key, body_json)
+            .map_err(|error| anyhow::anyhow!("failed to seed the registry cache: {error}"))
     }
 }
 
