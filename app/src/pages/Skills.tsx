@@ -1101,7 +1101,9 @@ export default function Skills() {
             <SettingsTabbedPage
               title={t(CONNECTIONS_HEADERS[activeTab]!.titleKey)}
               description={t(CONNECTIONS_HEADERS[activeTab]!.descKey)}
-              headerAction={activeTab === 'skills' || activeTab === 'mcp' ? <BetaIndicator /> : undefined}
+              headerAction={
+                activeTab === 'skills' || activeTab === 'mcp' ? <BetaIndicator /> : undefined
+              }
               scrollable={activeTab !== 'skills'}>
               <div
                 className={activeTab === 'skills' ? 'h-full min-h-0 w-full' : 'w-full space-y-4'}>
