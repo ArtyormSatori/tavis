@@ -3,7 +3,6 @@
  * when a runtime is available. The small DOM fallback keeps this shared shell
  * usable by isolated render tests and non-chat previews that intentionally do
  * not mount an assistant-ui runtime.
- *
  */
 import { type AssistantState, ThreadPrimitive, useAuiState } from '@assistant-ui/react';
 import { forwardRef, type HTMLAttributes } from 'react';
@@ -34,7 +33,9 @@ export const Conversation = forwardRef<HTMLDivElement, ConversationProps>(
     // scroll authority; this viewport supplies assistant-ui's thread context
     // and future core affordances without competing auto-scroll behavior.
     return hasThreadRuntime ? (
-      <ThreadPrimitive.Viewport autoScroll={false} {...viewportProps} />
+      <ThreadPrimitive.Root className="contents">
+        <ThreadPrimitive.Viewport autoScroll={false} {...viewportProps} />
+      </ThreadPrimitive.Root>
     ) : (
       <div {...viewportProps} />
     );
