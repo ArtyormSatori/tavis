@@ -110,3 +110,59 @@ describe('listGateways', () => {
     expect(invoke).toHaveBeenCalledWith('gateway_list');
   });
 });
+
+describe('mutating and activating', () => {
+  it('saves a gateway without activating it', async () => {
+    // Editing an SSH destination should not tear the session down and
+    // re-provision on every keystroke that lands in a save.
+    invoke.mockResolvedValue(undefined);
+    const gateway = {
+      id: 'builder',
+      label: 'Build server',
+      spec: { kind: 'box' as const, reach: { kind: 'local' as const }, confinement: { kind: 'docker' as const, image: 'openhuman-core:local' } },
+    };
+
+    await saveGateway(gateway);
+
+    expect(invoke).toHaveBeenCalledWith('gateway_save', { gateway });
+    expect(invoke).not.toHaveBeenCalledWith('gateway_activate', expect.anything());
+  });
+
+  it('deletes a gateway by id', async () => {
+    invoke.mockResolvedValue(undefined);
+
+    await deleteGateway('builder');
+
+    expect(invoke).toHaveBeenCalledWith('gateway_delete', { id: 'builder' });
+  });
+
+  it('returns the endpoint the shell resolved', async () => {
+    invoke.mockResolvedValue({ id: 'builder', rpcUrl: 'http://127.0.0.1:54321/rpc', token: 'b' });
+
+    await expect(activateGateway('builder')).resolves.toEqual({
+      id: 'builder',
+      rpcUrl: 'http://127.0.0.1:54321/rpc',
+      token: 'b',
+    });
+    expect(invoke).toHaveBeenCalledWith('gateway_activate', { id: 'builder' });
+  });
+
+  it('lets an activation failure reach the caller', async () => {
+    // Unlike the read paths, this one must not be swallowed: the user asked
+    // for a switch and needs to know it did not happen.
+    invoke.mockRejectedValue(new Error('could not reach the box'));
+
+    await expect(activateGateway('builder')).rejects.toThrow('could not reach the box');
+  });
+
+  it('reports the active gateway and its status', async () => {
+    invoke.mockResolvedValueOnce('builder');
+    await expect(activeGatewayId()).resolves.toBe('builder');
+
+    invoke.mockResolvedValueOnce({ state: 'connected', endpoint: 'http://127.0.0.1:54321' });
+    await expect(gatewayStatus('builder')).resolves.toEqual({
+      state: 'connected',
+      endpoint: 'http://127.0.0.1:54321',
+    });
+  });
+});
