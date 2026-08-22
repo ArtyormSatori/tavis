@@ -912,6 +912,7 @@ export default function Skills() {
             onSelect={value => handleTabChange(value as ConnectionsTab)}
             groups={[
               {
+                label: t('connections.groups.integrations'),
                 items: [
                   {
                     value: 'composio',
