@@ -17,7 +17,7 @@ import debugFactory from 'debug';
 import { useCallback, useMemo, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
-import { ContextWindowPill, type ContextUsage } from './composer/ContextWindowPill';
+import { type ContextUsage, ContextWindowPill } from './composer/ContextWindowPill';
 import { GoalSelector } from './composer/GoalSelector';
 
 const debug = debugFactory('openhuman:assistant-ui');
@@ -106,11 +106,7 @@ export function AssistantUiChat() {
   );
 
   const components: ThreadComponents = useMemo(
-    () => ({
-      ToolFallback: MockToolFallback,
-      ToolGroup: MockToolGroup,
-      ComposerExtras,
-    }),
+    () => ({ ToolFallback: MockToolFallback, ToolGroup: MockToolGroup, ComposerExtras }),
     [ComposerExtras]
   );
 
