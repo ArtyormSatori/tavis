@@ -27,17 +27,36 @@ import { CheckIcon, ChevronDownIcon, Loader2Icon, WorkflowIcon } from 'lucide-re
 
 import type { MockSubagentResult } from './mockScript';
 
-/** Narrow the untyped tool result to the shape this demo's script produces. */
-function asSubagentResult(result: unknown): MockSubagentResult | undefined {
-  if (typeof result !== 'object' || result === null) return undefined;
-  const candidate = result as Partial<MockSubagentResult>;
+/** Narrow an untyped payload to the shape this demo's script produces. */
+function asSubagentResult(value: unknown): MockSubagentResult | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const candidate = value as Partial<MockSubagentResult>;
   if (typeof candidate.subagent !== 'string' || !Array.isArray(candidate.steps)) return undefined;
   return candidate as MockSubagentResult;
 }
 
+/**
+ * A delegation reports from two places over its life. While it runs there is no
+ * result — that is what keeps the runtime's status `running` — and progress
+ * arrives on the streaming args under `progress`. When it finishes, `result`
+ * carries the same shape plus the report. Reading result first means a finished
+ * call renders from the authoritative payload.
+ */
+function readState(
+  args: unknown,
+  result: unknown
+): { state: MockSubagentResult | undefined; running: boolean } {
+  const done = asSubagentResult(result);
+  if (done) return { state: done, running: done.status !== 'complete' };
+  const progress =
+    typeof args === 'object' && args !== null
+      ? asSubagentResult((args as { progress?: unknown }).progress)
+      : undefined;
+  return { state: progress, running: true };
+}
+
 export const SubagentCall: ToolCallMessagePartComponent = ({ args, result }) => {
-  const parsed = asSubagentResult(result);
-  const running = parsed?.status !== 'complete';
+  const { state: parsed, running } = readState(args, result);
   const elapsed = parsed?.elapsedSeconds;
   const description = (args as { description?: string } | undefined)?.description;
   const name =
