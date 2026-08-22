@@ -90,9 +90,7 @@ pub async fn mcp_clients_registry_get(
     // The install dialog needs both, and fetching them separately would be two
     // catalog round trips for one screen.
     let mut server = encode(&detail)?;
-    if let Some(object) = server.as_object_mut() {
-        object.insert("required_env_keys".to_string(), encode(&required_env_keys)?);
-    }
+    inject_required_env_keys(&mut server, &required_env_keys);
 
     Ok(RpcOutcome::new(
         json!({ "server": server }),
