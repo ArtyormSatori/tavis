@@ -1101,6 +1101,7 @@ export default function Skills() {
             <SettingsTabbedPage
               title={t(CONNECTIONS_HEADERS[activeTab]!.titleKey)}
               description={t(CONNECTIONS_HEADERS[activeTab]!.descKey)}
+              headerAction={activeTab === 'skills' || activeTab === 'mcp' ? <BetaIndicator /> : undefined}
               scrollable={activeTab !== 'skills'}>
               <div
                 className={activeTab === 'skills' ? 'h-full min-h-0 w-full' : 'w-full space-y-4'}>
@@ -1340,9 +1341,6 @@ export default function Skills() {
 
                     {activeTab === 'mcp' && (
                       <div className="space-y-3 animate-fade-up">
-                        <div className="flex justify-end">
-                          <BetaIndicator />
-                        </div>
                         <Card>
                           <div className="p-4">
                             <McpServersTab />

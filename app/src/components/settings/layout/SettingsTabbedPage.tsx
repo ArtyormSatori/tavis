@@ -5,6 +5,8 @@ import ChipTabs, { type ChipTabItem } from '../../layout/ChipTabs';
 export interface SettingsTabbedPageProps<T extends string> {
   title: ReactNode;
   description?: ReactNode;
+  /** Optional compact control aligned with the page title. */
+  headerAction?: ReactNode;
   tabs?: ChipTabItem<T>[];
   value?: T;
   onChange?: (value: T) => void;
@@ -25,6 +27,7 @@ export interface SettingsTabbedPageProps<T extends string> {
 export default function SettingsTabbedPage<T extends string>({
   title,
   description,
+  headerAction,
   tabs,
   value,
   onChange,
@@ -36,9 +39,12 @@ export default function SettingsTabbedPage<T extends string>({
   return (
     <div className="flex h-full flex-col">
       <div className="space-y-4 pb-4">
-        <header className="space-y-0.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-content">{title}</h1>
-          {description != null && <p className="text-sm text-content-muted">{description}</p>}
+        <header className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-0.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-content">{title}</h1>
+            {description != null && <p className="text-sm text-content-muted">{description}</p>}
+          </div>
+          {headerAction != null && <div className="shrink-0">{headerAction}</div>}
         </header>
         {tabs && tabs.length > 0 && value != null && onChange && tabsAriaLabel ? (
           <div>
