@@ -109,8 +109,15 @@ pub(crate) async fn post_json_rpc(
         ));
     }
 
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(30))
+    let mut client_builder = reqwest::Client::builder().timeout(Duration::from_secs(30));
+    if relay_token.is_some() {
+        // A bearer must never follow a redirect off the endpoint the user
+        // configured. reqwest strips Authorization on cross-origin redirects
+        // by default, but disabling redirects entirely for authenticated
+        // requests is the deterministic, fail-closed choice.
+        client_builder = client_builder.redirect(reqwest::redirect::Policy::none());
+    }
+    let client = client_builder
         .build()
         .map_err(|e| format!("failed to build HTTP client: {e}"))?;
 
