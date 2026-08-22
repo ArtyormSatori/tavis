@@ -143,7 +143,15 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
       contentClassName=""
       description={embedded ? undefined : t('pages.settings.ai.llmDesc')}
       leading={embedded ? undefined : <SettingsBackButton onBack={navigateBack} />}>
-      <div className={cn('flex w-full flex-col gap-6', !embedded && 'p-4')}>
+      {/*
+        Flex-wrap rather than a breakpoint grid. This panel renders inside a
+        pane whose width is set by the shell (sidebar, two-pane split), not by
+        the viewport, so a `xl:grid-cols-2` would be deciding from a number it
+        cannot see. `basis` + `flex-wrap` reflows off the space actually
+        available: one column when the pane is narrow, two once each section
+        has room for its own content.
+      */}
+      <div className={cn('flex w-full flex-wrap items-start gap-6', !embedded && 'p-4')}>
         <ProviderAuthSection
           draft={draft}
           persist={persist}
