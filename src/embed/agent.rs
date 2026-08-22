@@ -59,12 +59,23 @@ const AGENT_CHAT: &str = "openhuman.inference_agent_chat";
 /// credential with no endpoint are each half a statement, and the core ignores
 /// the pair unless both arrive non-blank. Constructing this type is what makes
 /// that requirement visible at compile time rather than at runtime.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Route {
     /// OpenAI-compatible base URL; `/chat/completions` is appended to it.
     pub base_url: String,
     /// The bearer presented to `base_url`.
     pub api_key: String,
+}
+
+impl std::fmt::Debug for Route {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The bearer is a credential; a derived Debug would spill it into
+        // `Provider`'s Debug and from there into host logs and error paths.
+        f.debug_struct("Route")
+            .field("base_url", &self.base_url)
+            .field("api_key", &"<redacted>")
+            .finish()
+    }
 }
 
 impl Route {

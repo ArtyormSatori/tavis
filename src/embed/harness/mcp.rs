@@ -25,8 +25,60 @@ pub use crate::openhuman::config::schema::{HttpHeader, McpAuthConfig};
 /// Build with [`stdio`](Self::stdio) for a local subprocess or
 /// [`http`](Self::http) for a remote endpoint; the two transports are mutually
 /// exclusive and the constructors keep them that way.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct McpServer(McpServerConfig);
+
+impl std::fmt::Debug for McpServer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // `McpServerConfig` and `McpAuthConfig` both derive Debug without
+        // redaction, so the derived formatter would print bearer tokens,
+        // passwords, header values and stdio environment values. A harness
+        // may be logged or surfaced in an error; keep the identifying fields
+        // (name, endpoint, command, enabled tools) and redact everything
+        // credential-shaped.
+        let cfg = &self.0;
+        f.debug_struct("McpServer")
+            .field("name", &cfg.name)
+            .field("endpoint", &cfg.endpoint)
+            .field("command", &cfg.command)
+            .field("args", &cfg.args)
+            .field("env_redacted", &(!cfg.env.is_empty()))
+            .field("cwd", &cfg.cwd)
+            .field("description", &cfg.description)
+            .field("enabled", &cfg.enabled)
+            .field("allowed_tools", &cfg.allowed_tools)
+            .field("disallowed_tools", &cfg.disallowed_tools)
+            .field("timeout_secs", &cfg.timeout_secs)
+            .field("auth", &McpAuthDebug(&cfg.auth))
+            .finish()
+    }
+}
+
+/// Redacting view of an [`McpAuthConfig`]: reveals only the auth kind, never the
+/// credential value.
+struct McpAuthDebug<'a>(&'a McpAuthConfig);
+
+impl std::fmt::Debug for McpAuthDebug<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            McpAuthConfig::None => f.write_str("None"),
+            McpAuthConfig::BearerToken { .. } => f.write_str("BearerToken(<redacted>)"),
+            McpAuthConfig::Basic { .. } => f.write_str("Basic(<redacted>)"),
+            McpAuthConfig::Header { name, .. } => {
+                f.debug_tuple("Header").field(name).field(&"<redacted>").finish()
+            }
+            McpAuthConfig::Headers { headers } => {
+                f.debug_tuple("Headers")
+                    .field(&headers.len())
+                    .field(&"<redacted>")
+                    .finish()
+            }
+            McpAuthConfig::QueryParam { name, .. } => {
+                f.debug_tuple("QueryParam").field(name).field(&"<redacted>").finish()
+            }
+        }
+    }
+}
 
 impl McpServer {
     /// A local server launched as a subprocess, speaking newline-delimited
