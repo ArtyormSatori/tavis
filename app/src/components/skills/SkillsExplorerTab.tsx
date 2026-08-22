@@ -926,6 +926,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
       </div>
 
       </div>
+      </div>
 
       <div className="min-h-0 flex-1 overflow-hidden p-3 pt-0">
 
