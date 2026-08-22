@@ -37,15 +37,6 @@ export const UsageLedgerSection = ({
   projectedExhaustAt,
   projectedHoursLeft,
   scheduledCallsPerRemainingDollar,
-  heartbeatTicksPerWeek,
-  heartbeatIntervalMinutes,
-  calendarConnectionsPolled,
-  activeCalendarConnectionsCount,
-  maxCalendarConnectionsPerTick,
-  calendarConnectionsSkipped,
-  notifyMeetingsEnabled,
-  subconsciousModelCallsPerWeek,
-  subconsciousEnabled,
   activeConnectionsCount,
 }: {
   t: (key: string, fallback?: string) => string;
@@ -71,15 +62,6 @@ export const UsageLedgerSection = ({
   projectedExhaustAt: string;
   projectedHoursLeft: number | null;
   scheduledCallsPerRemainingDollar: number | null;
-  heartbeatTicksPerWeek: number;
-  heartbeatIntervalMinutes: number;
-  calendarConnectionsPolled: number;
-  activeCalendarConnectionsCount: number;
-  maxCalendarConnectionsPerTick: number;
-  calendarConnectionsSkipped: number;
-  notifyMeetingsEnabled: boolean;
-  subconsciousModelCallsPerWeek: number;
-  subconsciousEnabled: boolean;
   activeConnectionsCount: number;
 }) => (
   <div className="rounded-lg border border-line bg-surface p-3">
@@ -194,34 +176,6 @@ export const UsageLedgerSection = ({
         {t('settings.ai.loopCallBudget')}
       </div>
       <div className="mt-2 grid gap-2">
-        <FormulaRow
-          label={t('settings.ai.heartbeatTicks')}
-          value={`${formatCount(heartbeatTicksPerWeek)}/week`}
-          detail={`10080 min/week / ${heartbeatIntervalMinutes} min interval`}
-        />
-        <FormulaRow
-          label={t('settings.ai.calendarPlannerCalls')}
-          value={`${formatCount(calendarPlannerCallsPerWeek)}/week`}
-          detail={
-            notifyMeetingsEnabled
-              ? `ticks * (1 list_connections + ${calendarConnectionsPolled} GOOGLECALENDAR_EVENTS_LIST)`
-              : 'Meeting collector disabled.'
-          }
-        />
-        <FormulaRow
-          label={t('settings.ai.calendarFanoutCap')}
-          value={`${formatCount(calendarConnectionsPolled)}/${formatCount(activeCalendarConnectionsCount)} conn/tick`}
-          detail={`max_calendar_connections_per_tick = ${maxCalendarConnectionsPerTick}; skipped now = ${calendarConnectionsSkipped}`}
-        />
-        <FormulaRow
-          label={t('settings.ai.subconsciousModelCalls')}
-          value={`${formatCount(subconsciousModelCallsPerWeek)}/week`}
-          detail={
-            subconsciousEnabled
-              ? 'one kind=subconscious_tick model call per heartbeat tick'
-              : 'Heartbeat inference disabled.'
-          }
-        />
         <FormulaRow
           label={t('settings.ai.composioSyncScans')}
           value={`${formatCount(composioConnectionScansPerWeek)}/week`}
