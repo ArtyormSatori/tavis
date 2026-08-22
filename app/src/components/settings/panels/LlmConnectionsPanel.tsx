@@ -41,7 +41,7 @@ const LlmConnectionsPanel = () => {
         value={tab}
         onChange={setTab}
       />
-      <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-subtle">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <AIPanel tab={tab} onTabChange={setTab} hideTabChrome />
       </div>
     </div>
