@@ -73,17 +73,17 @@ export interface ProviderRowAction {
 }
 
 const PROVIDER_SWATCH_TONES: Record<string, string> = {
-  openai: 'bg-black text-white ring-black',
+  openai: 'bg-black text-white ring-white/30',
   anthropic: 'bg-[#D97757]/15 text-[#D97757] ring-[#D97757]/40',
   'claude-code': 'bg-[#D97757]/15 text-[#D97757] ring-[#D97757]/40',
   google: 'bg-[#4285F4]/10 text-[#4285F4] ring-[#4285F4]/35',
   mistral: 'bg-[#FF7000]/10 text-[#FF7000] ring-[#FF7000]/35',
   huggingface: 'bg-[#FFD21E]/15 text-[#B88600] ring-[#FFD21E]/45',
   nvidia: 'bg-[#76B900]/10 text-[#5A8F00] ring-[#76B900]/40',
-  'vercel-ai-gateway': 'bg-black text-white ring-black',
-  xai: 'bg-black text-white ring-black',
+  'vercel-ai-gateway': 'bg-black text-white ring-white/30',
+  xai: 'bg-black text-white ring-white/30',
   zai: 'bg-[#FF6A00]/10 text-[#FF6A00] ring-[#FF6A00]/35',
-  ollama: 'bg-black text-white ring-black',
+  ollama: 'bg-black text-white ring-white/30',
 };
 
 /**
