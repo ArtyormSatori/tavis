@@ -577,7 +577,7 @@ describe('coreRpcClient', () => {
       vi.resetModules();
       vi.mocked(isTauri).mockReturnValue(true);
       vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-        if (cmd === 'core_rpc_token') return 'deadbeef';
+        if (cmd === 'core_rpc_endpoint') return { url: 'http://127.0.0.1:7788/rpc', token: 'deadbeef' };
         throw new Error(`unexpected command: ${cmd}`);
       });
       const { testCoreRpcConnection } = await import('../coreRpcClient');
@@ -614,7 +614,7 @@ describe('coreRpcClient', () => {
       vi.mocked(isTauri).mockReturnValue(true);
       const invokeMock = vi.mocked(invoke);
       invokeMock.mockImplementation(async (cmd: string) => {
-        if (cmd === 'core_rpc_token') return 'deadbeef';
+        if (cmd === 'core_rpc_endpoint') return { url: 'http://192.168.1.50:7788/rpc', token: 'deadbeef' };
         if (cmd === 'relay_http_rpc') {
           return { status: 200, body: '{"jsonrpc":"2.0","id":1,"result":{}}' };
         }
@@ -648,7 +648,7 @@ describe('coreRpcClient', () => {
       vi.resetModules();
       vi.mocked(isTauri).mockReturnValue(true);
       vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-        if (cmd === 'core_rpc_token') return 'deadbeef';
+        if (cmd === 'core_rpc_endpoint') return { url: 'http://127.0.0.1:7788/rpc', token: 'deadbeef' };
         if (cmd === 'relay_http_rpc') return { status: 200, body: '{}' };
         throw new Error(`unexpected command: ${cmd}`);
       });
