@@ -60,36 +60,32 @@ function loadTailwindConfig() {
   return sandbox.module.exports;
 }
 
-/**
- * Resolve the FULL Tailwind theme, not just `theme.extend.colors`.
- *
- * Two things this gets right that a name allow-list cannot:
- *
- *  - **`extend` keeps the defaults.** `sky-500` / `rose-500` are valid here even
- *    though `sky`/`rose` appear in the config only as single `accent.*` colours,
- *    because `extend` preserves Tailwind's built-in scales. A hand-maintained
- *    default list gets this right only until Tailwind changes, and gets it
- *    exactly backwards if the config ever switches from `extend` to a replacing
- *    `theme.colors` — it would keep allowing scales that no longer resolve.
- *  - **Scale vs single colour.** `accent`, `surface` and `content` ARE keys in
- *    the palette, but they hold named entries (`accent.lavender`,
- *    `surface.canvas`), not numeric shades. So `accent-lavender` is real while
- *    `accent-500` emits nothing. Checking the resolved shade key catches that;
- *    checking the scale NAME does not, and three such dead utilities passed the
- *    earlier version of this lint.
- */
 function shadeResolver() {
+  // Resolve the FULL theme, not just `theme.extend.colors`. Two things this
+  // gets right that a name allow-list cannot:
+  //
+  //  - `extend` KEEPS Tailwind's defaults, so `sky-500`/`rose-500` are valid
+  //    even though `sky`/`rose` appear in the config only as single `accent.*`
+  //    colours. A hand-maintained default list tracks that only until Tailwind
+  //    changes — and gets it exactly backwards if the config ever switches from
+  //    `extend` to a replacing `theme.colors`, where it would keep allowing
+  //    scales that no longer resolve.
+  //  - SCALE vs SINGLE COLOUR. `accent`, `surface` and `content` ARE palette
+  //    keys, but hold named entries (`accent.lavender`, `surface.canvas`), not
+  //    numeric shades. So `accent-lavender` is real while `accent-500` emits
+  //    nothing. Checking the resolved SHADE catches that; checking the scale
+  //    NAME does not — `bg-accent-500`, `bg-surface-500` and `text-content-500`
+  //    all passed the previous version of this lint while emitting no CSS.
   const resolveConfig = resolveConfigModule.default ?? resolveConfigModule;
   const colors = resolveConfig(loadTailwindConfig())?.theme?.colors;
   if (!colors || Object.keys(colors).length === 0) {
     throw new Error(
-      'lint:ui-tokens: resolved theme.colors was empty — refusing to run, ' +
-        'since an empty palette would flag every colour utility in the app.'
+      'lint:ui-tokens: resolved theme.colors is empty — refusing to run, since ' +
+        'an empty palette would flag every colour utility in the app.'
     );
   }
-  // Sanity-check the resolver against a scale that must always exist, so a
-  // future Tailwind change that alters the resolved shape fails loudly here
-  // rather than silently passing every utility.
+  // Fail loudly if the resolved shape ever changes, rather than silently
+  // passing everything.
   if (typeof colors.primary !== 'object' || !colors.primary['500']) {
     throw new Error(
       'lint:ui-tokens: resolved palette has no primary-500 — the config shape ' +
@@ -100,6 +96,24 @@ function shadeResolver() {
     const entry = colors[scale];
     return typeof entry === 'object' && entry !== null && Boolean(entry[shade]);
   };
+}
+
+
+const PATTERN = new RegExp(
+  `\\b(${UTILITY_PREFIXES.join('|')})-([a-z][a-z0-9]+)-(\\d{2,3})\\b`,
+  'g'
+);
+
+function* walk(dir) {
+  for (const entry of readdirSync(dir)) {
+    if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue;
+    const full = path.join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      yield* walk(full);
+    } else if (/\.(ts|tsx|js|jsx)$/.test(entry)) {
+      yield full;
+    }
+  }
 }
 
 const shadeExists = shadeResolver();
