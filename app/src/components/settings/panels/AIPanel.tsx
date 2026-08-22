@@ -177,7 +177,7 @@ const AIPanel = ({
             label: t('settings.ai.llmProviders'),
             contentClassName: embedded || hideTabChrome ? '' : 'p-4',
             content: (
-              <div className="flex w-full flex-col">
+              <div className="flex w-full flex-col gap-4">
                 <ProviderAuthSection
                   draft={draft}
                   persist={persist}
@@ -222,7 +222,7 @@ const AIPanel = ({
               Own = one provider/model for everything. Custom = fine-grained
               per-workload routing.
               ═══════════════════════════════════════════════════════════════ */}
-                <div className="flex w-full flex-col gap-4 p-4">
+                <div className="contents">
                   <RoutingModeCards
                     effectiveRoutingMode={effectiveRoutingMode}
                     onSelectManaged={() => {
