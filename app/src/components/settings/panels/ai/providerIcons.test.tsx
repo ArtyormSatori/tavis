@@ -21,11 +21,12 @@ describe('providerIcons', () => {
 
   it('returns null for a provider with no shipped mark, so the caller can letter it', () => {
     // Coverage is partial by design; the fallback is the contract, not a bug.
-    expect(providerIcon('a-provider-that-does-not-exist')).toBeNull();
+    expect(providerIcon('a-provider-that-does-not-exist', 'h-4 w-4')).toBeNull();
   });
 
-  it('returns a component for a covered provider', () => {
-    expect(providerIcon('openai')).toBeTypeOf('function');
-    expect(providerIcon('anthropic')).toBeTypeOf('function');
+  it('returns a rendered element for a covered provider', () => {
+    // An ELEMENT, not a component: see the note on `providerIcon`.
+    expect(providerIcon('openai', 'h-4 w-4')).toHaveProperty('type');
+    expect(providerIcon('anthropic', 'h-4 w-4')).toHaveProperty('type');
   });
 });
