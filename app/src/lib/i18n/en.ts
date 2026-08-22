@@ -3556,6 +3556,8 @@ const en: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'The runtime could not read its configuration file. config.toml may belong to a different user account, or be inaccessible to the runtime process for another reason. Restart the runtime, and if that does not help, repair the workspace ownership or re-create its volume.',
   'welcome.localSessionErrorFallback': 'Could not start a local session.',
+  'welcome.gatewaySessionErrorFallback':
+    'Sign-in could not be completed right now. The session store did not respond in time (even after retrying). Please restart OpenHuman and try again.',
   'welcome.localSessionDesc': 'Uses an offline local profile and skips TinyHumans OAuth.',
 
   // Chat: Agent chat panel description
