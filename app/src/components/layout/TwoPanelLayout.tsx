@@ -1,4 +1,5 @@
-import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect } from 'react';
+import { LuChevronRight } from 'react-icons/lu';
 
 import { useT } from '../../lib/i18n/I18nContext';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -11,6 +12,7 @@ import {
   toggleSidebar,
 } from '../../store/layoutSlice';
 import { Button } from '../ui';
+import { clampWidth, useResizableDivider } from './useResizableDivider';
 
 const namespace = 'two-panel-layout';
 
@@ -18,10 +20,6 @@ function debug(message: string, payload?: Record<string, unknown>) {
   if (import.meta.env.DEV) {
     console.debug(`[${namespace}] ${message}`, payload ?? {});
   }
-}
-
-function clampWidth(width: number, min: number, max: number): number {
-  return Math.min(Math.max(width, min), max);
 }
 
 /**
