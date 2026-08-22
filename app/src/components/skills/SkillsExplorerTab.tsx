@@ -748,9 +748,41 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
   const error = view === 'installed' ? skillsError : catalogError;
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface animate-fade-up">
-      <div className="p-3 pb-0">
-        <div className="flex items-center justify-end gap-1 px-1 pb-3 pt-1">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden animate-fade-up">
+      <div className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <ChipTabs<ExplorerView>
+            className="flex gap-2"
+            ariaLabel={t('skills.explorer.title')}
+            value={view}
+            onChange={setView}
+            items={[
+              {
+                id: 'registry',
+                label: (
+                  <>
+                    {t('skills.explorer.registryTab')}
+                    {catalogTotal > 0 && (
+                      <span className="ml-1.5 text-[10px] opacity-70">
+                        {catalogTotal.toLocaleString()}
+                      </span>
+                    )}
+                  </>
+                ),
+              },
+              {
+                id: 'installed',
+                label: (
+                  <>
+                    {t('skills.explorer.installedTab')}
+                    {skills.length > 0 && (
+                      <span className="ml-1.5 text-[10px] opacity-70">{skills.length}</span>
+                    )}
+                  </>
+                ),
+              },
+            ]}
+          />
           <Button
             variant="secondary"
             size="sm"
@@ -761,40 +793,6 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           </Button>
         </div>
 
-      {/* View toggle */}
-      <ChipTabs<ExplorerView>
-        className="flex gap-2 px-1 pb-3"
-        ariaLabel={t('skills.explorer.title')}
-        value={view}
-        onChange={setView}
-        items={[
-          {
-            id: 'registry',
-            label: (
-              <>
-                {t('skills.explorer.registryTab')}
-                {catalogTotal > 0 && (
-                  <span className="ml-1.5 text-[10px] opacity-70">
-                    {catalogTotal.toLocaleString()}
-                  </span>
-                )}
-              </>
-            ),
-          },
-          {
-            id: 'installed',
-            label: (
-              <>
-                {t('skills.explorer.installedTab')}
-                {skills.length > 0 && (
-                  <span className="ml-1.5 text-[10px] opacity-70">{skills.length}</span>
-                )}
-              </>
-            ),
-          },
-        ]}
-      />
-
       {/* Source toggles */}
       {view === 'registry' && sources.length > 0 && (
         <ToggleGroupRoot
@@ -804,7 +802,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           value={[...activeSources]}
           onValueChange={next => setActiveSources(new Set(next))}
           aria-label={t('skills.explorer.sourceFilterAria', 'Filter by source')}
-          className="flex flex-wrap gap-1.5 px-1 pb-3">
+          className="flex flex-wrap gap-1.5 pb-3">
           {sources.map(src => {
             const active = activeSources.has(src);
             return (
@@ -825,7 +823,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
       )}
 
       {/* Search */}
-      <div className="flex gap-2 px-1 pb-3">
+      <div className="flex gap-2 pb-3">
         <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-content-faint"
