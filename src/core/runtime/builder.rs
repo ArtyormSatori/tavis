@@ -1084,28 +1084,4 @@ mod tests {
         assert!(!headless.memory_sync);
         assert!(!headless.orchestration);
     }
-
-    #[test]
-    fn workspace_roots_both_workspace_dir_and_config_path() {
-        // Credential profiles and the file-backed keyring resolve from
-        // `config_path`'s parent, not from `workspace_dir`. If `workspace()`
-        // changed only the workspace, sessions and credentials would stay in
-        // the default config root while the documented contract says `dir`
-        // roots core state — so both must track the supplied directory.
-        use crate::openhuman::config::Config;
-
-        let base = Config::default();
-        let builder = CoreBuilder::new(crate::core::types::HostKind::Cli);
-        // `workspace` starts from the supplied config (or default), so verify
-        // against an explicitly supplied config to model the real use.
-        let _ = base;
-
-        // Exercise the sugar directly against a fresh builder.
-        let builder = CoreBuilder::new(crate::core::types::HostKind::Cli)
-            .workspace("/tmp/oh-workspace-test");
-        // `CoreBuilder` does not expose its config; assert through the
-        // workspace/action_dir sugar's observable contract by checking the
-        // builder's config field via a helper mirroring `workspace`.
-        let _ = builder;
-    }
 }
