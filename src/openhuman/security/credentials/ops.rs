@@ -43,6 +43,17 @@ const AUTH_ME_STORE_TRANSIENT_STATUSES: &[u16] = &[408, 429, 500, 502, 503, 504,
 const AUTH_ME_STORE_VALIDATION_BUDGET: Duration = Duration::from_secs(12);
 const AUTH_ME_STORE_VALIDATION_BUDGET_ENV: &str = "OPENHUMAN_AUTH_ME_STORE_TIMEOUT_MS";
 
+/// Whether this dispatch is running under an embedder-hosted core (the library
+/// `Harness`) rather than the desktop shell or CLI.
+///
+/// An embedder supplies its own scoped [`Config`] via `CoreBuilder::config`,
+/// so its `auth_store_session` must keep activation and credential state under
+/// that config's path and never touch the operator's global
+/// `~/.openhuman/active_user.toml` / `users/` tree.
+fn is_embedder_host() -> bool {
+    crate::core::runtime::context::CoreContext::current_embedder_config().is_some()
+}
+
 /// Start all login-gated background services (local AI, voice, and
 /// orchestration). Called both from the initial boot path (when an existing
 /// session is detected) and from `store_session()` on fresh login.
