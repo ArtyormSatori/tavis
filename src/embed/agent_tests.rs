@@ -98,3 +98,19 @@ fn absolute_roots_a_relative_path_at_the_cwd() {
     assert!(resolved.is_absolute());
     assert!(resolved.ends_with("sub/dir"));
 }
+
+#[test]
+fn route_debug_redacts_bearer_and_url_embedded_credentials() {
+    let route = Route::openai_compatible(
+        "https://user:topsecret@api.example/v1?key=leaky#frag",
+        "sk-bearer",
+    );
+    let debug = format!("{route:?}");
+
+    assert!(debug.contains("api.example"), "origin stays readable");
+    assert!(
+        !debug.contains("topsecret") && !debug.contains("sk-bearer") && !debug.contains("leaky"),
+        "credentials leaked into Route Debug: {debug}"
+    );
+    assert!(debug.contains("redacted"));
+}
