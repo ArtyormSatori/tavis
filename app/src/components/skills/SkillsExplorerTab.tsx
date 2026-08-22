@@ -750,16 +750,7 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface animate-fade-up">
       <div className="p-3 pb-0">
-      <div className="px-1 pb-3 pt-1">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-content">
-              {t('skills.explorer.title')}
-            </h2>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-content-muted">
-              {t('skills.explorer.subtitle')}
-            </p>
-          </div>
+        <div className="flex justify-end px-1 pb-3 pt-1">
           <Button
             variant="secondary"
             size="sm"
@@ -769,7 +760,6 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
             {t('skills.explorer.installFromUrl')}
           </Button>
         </div>
-      </div>
 
       {/* View toggle */}
       <ChipTabs<ExplorerView>

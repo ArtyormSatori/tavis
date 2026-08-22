@@ -460,7 +460,7 @@ const CONNECTIONS_HEADERS: Partial<Record<ConnectionsTab, { titleKey: string; de
     composio: { titleKey: 'connections.tabs.oauth', descKey: 'connections.header.composio' },
     channels: { titleKey: 'connections.tabs.channels', descKey: 'connections.header.channels' },
     mcp: { titleKey: 'connections.tabs.mcp', descKey: 'connections.header.mcp' },
-    skills: { titleKey: 'connections.tabs.skills', descKey: 'connections.header.skills' },
+    skills: { titleKey: 'connections.tabs.skills', descKey: 'skills.explorer.subtitle' },
   };
 
 /** Canonical header (title + description) for each relocated settings panel. */
