@@ -1237,4 +1237,38 @@ describe('getCoreRpcToken (cloud-mode persistence)', () => {
     const headers = requestInit.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer local-sidecar-token');
   });
+
+  test('resolves url and token from the same atomic endpoint snapshot (no race)', async () => {
+    // The shell answers `core_rpc_url` and `core_rpc_token` as separate
+    // commands; if a gateway activation landed between two calls the renderer
+    // could pair A's URL with B's bearer. The atomic `core_rpc_endpoint`
+    // command returns both halves in one snapshot, so getCoreRpcUrl() and
+    // getCoreRpcToken() must share it rather than each re-invoking.
+    vi.doMock('../../utils/configPersistence', () => ({
+      peekStoredRpcUrl: () => null,
+      getStoredCoreToken: () => null,
+      normalizeRpcUrl: normalizeMockRpcUrl,
+    }));
+    vi.mocked(isTauri).mockReturnValue(true);
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'core_rpc_endpoint') {
+        return { url: 'http://127.0.0.1:7788/rpc', token: 'consistent-token' };
+      }
+      throw new Error(`unexpected invoke: ${cmd}`);
+    });
+
+    const { getCoreRpcToken: freshGetToken, getCoreRpcUrl: freshGetUrl } =
+      await import('../coreRpcClient');
+
+    const [url, token] = await Promise.all([freshGetUrl(), freshGetToken()]);
+
+    expect(url).toBe('http://127.0.0.1:7788/rpc');
+    expect(token).toBe('consistent-token');
+    const endpointCalls = vi
+      .mocked(invoke)
+      .mock.calls.filter(([cmd]) => cmd === 'core_rpc_endpoint');
+    // One snapshot serves both halves — no independent re-resolution that could
+    // pair a stale URL with a fresh bearer.
+    expect(endpointCalls.length).toBe(1);
+  });
 });
