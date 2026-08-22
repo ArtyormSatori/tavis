@@ -263,7 +263,7 @@ module.exports = {
         // inset content card meets the window chrome. Deliberately NOT a drop
         // shadow: the card separates from the chrome by fill contrast, and this
         // only sharpens the top/left edge where the two surfaces are closest.
-        'content-edge': '-1px -1px 0 0 rgb(var(--line-chrome) / 0.45)',
+        'content-edge': 'inset 0 0 0 1px rgb(var(--line-chrome) / 0.45)',
       },
 
       // Premium animations for polished interactions
