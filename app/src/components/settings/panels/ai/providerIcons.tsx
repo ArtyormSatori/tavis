@@ -14,8 +14,8 @@
  */
 import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
+import { LuSparkles } from 'react-icons/lu';
 import {
-  SiAlibabacloud,
   SiAnthropic,
   SiApple,
   SiGooglegemini,
@@ -56,6 +56,7 @@ import { cn } from '../../../../lib/cn';
  * pins the keys against the real provider list.
  */
 const PROVIDER_ICONS: Record<string, IconType> = {
+  openhuman: LuSparkles,
   openai: SiOpenai,
   // Codex signs in as an OpenAI credential and is stored under `openai`, so it
   // never reaches this map under its own name.
@@ -67,35 +68,33 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   nvidia: SiNvidia,
   'vercel-ai-gateway': SiVercel,
   xai: SiX,
-  // Z.AI is Zhipu, whose models ship through Alibaba Cloud's model service; the
-  // Alibaba Cloud mark is the closest thing the set carries. Dropped rather
-  // than guessed if that ever reads as wrong.
-  zai: SiAlibabacloud,
   ollama: SiOllama,
   omlx: SiApple,
 };
 
 /** Locally bundled marks for providers absent from the installed icon set. */
-const PROVIDER_ASSETS: Record<string, string> = {
-  cerebras: cerebrasLogo,
-  deepinfra: deepinfraLogo,
-  openrouter: openrouterLogo,
-  deepseek: deepseekLogo,
-  fireworks: fireworksLogo,
-  gmi: gmiLogo,
-  groq: groqLogo,
-  kilocode: kilocodeLogo,
-  lmstudio: lmstudioLogo,
-  minimax: minimaxLogo,
-  modelscope: modelscopeLogo,
-  moonshot: moonshotLogo,
-  novita: novitaLogo,
-  orcarouter: orcarouterLogo,
-  stepfun: stepfunLogo,
-  sumopod: sumopodLogo,
-  together: togetherLogo,
-  venice: veniceLogo,
-  zai: zaiLogo,
+type ProviderAsset = { src: string; monochrome: boolean };
+
+const PROVIDER_ASSETS: Record<string, ProviderAsset> = {
+  cerebras: { src: cerebrasLogo, monochrome: true },
+  deepinfra: { src: deepinfraLogo, monochrome: true },
+  openrouter: { src: openrouterLogo, monochrome: true },
+  deepseek: { src: deepseekLogo, monochrome: true },
+  fireworks: { src: fireworksLogo, monochrome: true },
+  gmi: { src: gmiLogo, monochrome: false },
+  groq: { src: groqLogo, monochrome: true },
+  kilocode: { src: kilocodeLogo, monochrome: false },
+  lmstudio: { src: lmstudioLogo, monochrome: true },
+  minimax: { src: minimaxLogo, monochrome: true },
+  modelscope: { src: modelscopeLogo, monochrome: true },
+  moonshot: { src: moonshotLogo, monochrome: true },
+  novita: { src: novitaLogo, monochrome: true },
+  orcarouter: { src: orcarouterLogo, monochrome: false },
+  stepfun: { src: stepfunLogo, monochrome: true },
+  sumopod: { src: sumopodLogo, monochrome: false },
+  together: { src: togetherLogo, monochrome: true },
+  venice: { src: veniceLogo, monochrome: false },
+  zai: { src: zaiLogo, monochrome: false },
 };
 
 /**
@@ -113,7 +112,12 @@ export const providerIcon = (slug: string, className: string): ReactElement | nu
   if (icon) return createElement(icon, { className: cn(className, 'text-white') });
   const asset = PROVIDER_ASSETS[slug];
   return asset ? (
-    <img src={asset} alt="" aria-hidden className={cn(className, 'object-contain')} />
+    <img
+      src={asset.src}
+      alt=""
+      aria-hidden
+      className={cn(className, 'object-contain', asset.monochrome && 'brightness-0 invert')}
+    />
   ) : null;
 };
 
