@@ -55,16 +55,27 @@ import { useReembedBackfillModal } from './useReembedBackfillModal';
 export type { CloudProvider, ProviderRef, RoutingMap } from './ai/aiPanelTypes';
 export { buildRoutingDiffSummary, BackgroundLoopControls };
 
-type AiTab = 'providers' | 'routing';
+export type AIPanelTab = 'providers' | 'routing';
 
 interface AIPanelProps {
   /** When true, the panel is rendered embedded inside another flow (e.g. the
    *  onboarding custom wizard) and skips its own SettingsHeader chrome so the
    *  host frame's title/back controls aren't duplicated. */
   embedded?: boolean;
+  /** Selected section when the host owns the page-level chip tabs. */
+  tab?: AIPanelTab;
+  /** Called when the selected section changes. */
+  onTabChange?: (tab: AIPanelTab) => void;
+  /** Suppress PanelPage's internal tab chrome for a host-rendered chip row. */
+  hideTabChrome?: boolean;
 }
 
-const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
+const AIPanel = ({
+  embedded = false,
+  tab: controlledTab,
+  onTabChange,
+  hideTabChrome = false,
+}: AIPanelProps = {}) => {
   const { t } = useT();
   const { navigateBack } = useSettingsNavigation();
   const { saved, draft, isDirty, save, persist, discard, loading, error, reload } = useAISettings();
@@ -87,7 +98,12 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
   // each workload uses. They were stacked, so the routing controls sat below
   // a provider list whose length varies with the user's setup. Tabs give each
   // the full pane and a stable position.
-  const [tab, setTab] = useState<AiTab>('providers');
+  const [uncontrolledTab, setUncontrolledTab] = useState<AIPanelTab>('providers');
+  const tab = controlledTab ?? uncontrolledTab;
+  const handleTabChange = (nextTab: AIPanelTab) => {
+    if (controlledTab === undefined) setUncontrolledTab(nextTab);
+    onTabChange?.(nextTab);
+  };
 
   const {
     busyAction,
@@ -152,7 +168,8 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
         tabsAriaLabel={t('pages.settings.ai.llm')}
         tabsTestIdPrefix="ai-tab"
         value={tab}
-        onChange={setTab}
+        onChange={handleTabChange}
+        hideTabChrome={hideTabChrome}
         tabs={[
           {
             id: 'providers',

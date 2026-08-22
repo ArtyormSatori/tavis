@@ -52,6 +52,11 @@ interface PanelPageBaseProps<T extends string = string> {
   tabsAriaLabel?: string;
   /** Prefix for each chip's `data-testid` (`${prefix}-${id}`). */
   tabsTestIdPrefix?: string;
+  /**
+   * Render only the active tab body. The host supplies the tab controls when
+   * they belong in page-level chrome rather than this panel's surface.
+   */
+  hideTabChrome?: boolean;
 
   /** Body spacing for the single-body case. Defaults to `p-4 space-y-5`. */
   contentClassName?: string;
@@ -118,6 +123,7 @@ export default function PanelPage<T extends string = string>({
   onChange,
   tabsAriaLabel,
   tabsTestIdPrefix,
+  hideTabChrome = false,
   children,
   contentClassName = DEFAULT_CONTENT_CLASS,
   width = 'full',
@@ -155,22 +161,24 @@ export default function PanelPage<T extends string = string>({
   return (
     <div className={cn('relative flex h-full min-h-0 flex-col', className)} data-testid={testId}>
       {/* Fixed page chrome: optional title + description, then the chip row. */}
-      <PanelHeader
-        title={title}
-        description={description}
-        leading={leading}
-        action={action}
-        className="flex-shrink-0">
-        {headerExtra}
-        <ChipTabs
-          className="flex flex-wrap gap-1.5 pt-2"
-          ariaLabel={tabsAriaLabel}
-          testIdPrefix={tabsTestIdPrefix}
-          items={chipItems}
-          value={active.id}
-          onChange={id => onChange?.(id)}
-        />
-      </PanelHeader>
+      {!hideTabChrome && (
+        <PanelHeader
+          title={title}
+          description={description}
+          leading={leading}
+          action={action}
+          className="flex-shrink-0">
+          {headerExtra}
+          <ChipTabs
+            className="flex flex-wrap gap-1.5 pt-2"
+            ariaLabel={tabsAriaLabel}
+            testIdPrefix={tabsTestIdPrefix}
+            items={chipItems}
+            value={active.id}
+            onChange={id => onChange?.(id)}
+          />
+        </PanelHeader>
+      )}
 
       {/* Active tab body — its own scaffold owns the scroll. The border marks the
           seam below the chips. */}
@@ -179,7 +187,7 @@ export default function PanelPage<T extends string = string>({
           description={active.description}
           contentClassName={active.contentClassName ?? ''}
           width={width}
-          bodyBorder>
+          bodyBorder={!hideTabChrome}>
           {active.content}
         </PanelScaffold>
       </div>

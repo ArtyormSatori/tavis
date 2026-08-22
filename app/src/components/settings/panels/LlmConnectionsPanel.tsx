@@ -1,5 +1,8 @@
+import { useState } from 'react';
+
 import { useT } from '../../../lib/i18n/I18nContext';
-import AIPanel from './AIPanel';
+import ChipTabs from '../../layout/ChipTabs';
+import AIPanel, { type AIPanelTab } from './AIPanel';
 
 /**
  * The Connections → LLM surface: provider credentials and workload routing.
@@ -17,6 +20,7 @@ import AIPanel from './AIPanel';
  */
 const LlmConnectionsPanel = () => {
   const { t } = useT();
+  const [tab, setTab] = useState<AIPanelTab>('providers');
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -26,8 +30,19 @@ const LlmConnectionsPanel = () => {
         </h1>
         <p className="text-sm text-content-muted">{t('connections.header.llm')}</p>
       </div>
+      <ChipTabs
+        className="flex flex-wrap gap-1.5"
+        ariaLabel={t('pages.settings.ai.llm')}
+        testIdPrefix="ai-tab"
+        items={[
+          { id: 'providers', label: t('settings.ai.llmProviders') },
+          { id: 'routing', label: t('settings.ai.routing') },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
       <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-surface shadow-subtle">
-        <AIPanel />
+        <AIPanel tab={tab} onTabChange={setTab} hideTabChrome />
       </div>
     </div>
   );
