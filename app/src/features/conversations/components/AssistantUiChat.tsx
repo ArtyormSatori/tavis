@@ -115,9 +115,9 @@ export function AssistantUiChat() {
         data-testid="assistant-ui-chat"
         className="flex h-full min-h-0 flex-1 flex-col bg-surface"
         style={{
-          '--thread-max-width': '44rem',
-          '--composer-radius': '1.5rem',
-          '--composer-padding': '8px',
+          ['--thread-max-width' as string]: '44rem',
+          ['--composer-radius' as string]: '1.5rem',
+          ['--composer-padding' as string]: '8px',
         }}>
         <ThreadPrimitive.Viewport
           turnAnchor="top"
