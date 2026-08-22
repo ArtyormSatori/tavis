@@ -993,18 +993,23 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
           )}
 
           {sortedSkills.length > 0 && (
-            <div
-              className="grid gap-2 sm:gap-3"
-              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(14rem, 1fr))' }}>
-              {sortedSkills.map(skill => (
-                <SkillTile
-                  key={skill.id}
-                  skill={skill}
-                  onClick={() => setDetailSkill(skill)}
-                  onUninstall={() => setUninstallTarget(skill)}
-                />
-              ))}
-            </div>
+            <Card className="w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="sticky top-0 z-10 min-w-[12rem] bg-surface">Skill</TableHead>
+                    <TableHead className="sticky top-0 z-10 min-w-[18rem] bg-surface">Description</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-surface">Provider</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-surface text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedSkills.map(skill => (
+                    <InstalledSkillRow key={skill.id} skill={skill} onClick={() => setDetailSkill(skill)} onUninstall={() => setUninstallTarget(skill)} />
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
           )}
         </>
       )}
