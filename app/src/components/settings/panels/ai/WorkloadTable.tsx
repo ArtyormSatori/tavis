@@ -13,9 +13,6 @@
  */
 import { type ReactNode } from 'react';
 
-import { useT } from '../../../../lib/i18n/I18nContext';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '../../../ui/Table';
-
 export const WorkloadTable = ({
   title,
   description,
@@ -25,24 +22,13 @@ export const WorkloadTable = ({
   description: string;
   children: ReactNode;
 }) => {
-  const { t } = useT();
   return (
     <div className="flex w-full flex-col">
-      <div className="flex flex-col gap-0.5 px-4 pb-1 pt-4">
+      <div className="flex flex-col gap-0.5 px-4 pb-2 pt-4">
         <h4 className="text-sm font-semibold text-content">{title}</h4>
         <p className="text-xs text-content-muted">{description}</p>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead>{t('settings.ai.workload.columnHeader')}</TableHead>
-            <TableHead>{t('settings.ai.providerLabel')}</TableHead>
-            <TableHead>{t('settings.ai.modelLabel')}</TableHead>
-            <TableHead className="w-px" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>{children}</TableBody>
-      </Table>
+      <ul className="divide-y divide-line-subtle border-t border-line-subtle">{children}</ul>
     </div>
   );
 };
