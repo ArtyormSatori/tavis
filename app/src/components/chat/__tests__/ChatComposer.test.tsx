@@ -1,4 +1,8 @@
-import { AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react';
+import {
+  AssistantRuntimeProvider,
+  type ThreadMessageLike,
+  useExternalStoreRuntime,
+} from '@assistant-ui/react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { createRef, type ReactNode, useEffect, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -16,10 +20,13 @@ vi.mock('../../../lib/i18n/I18nContext', () => ({ useT: () => ({ t: (k: string) 
  * comment for why). What the runtime supplies is the composer *text store* the
  * `inputValue` prop is bridged into.
  */
+const EMPTY_RUNTIME_MESSAGES: ThreadMessageLike[] = [];
+
 function Runtime({ children }: { children: ReactNode }) {
-  const runtime = useExternalStoreRuntime({
-    messages: [],
+  const runtime = useExternalStoreRuntime<ThreadMessageLike>({
+    messages: EMPTY_RUNTIME_MESSAGES,
     isRunning: false,
+    convertMessage: m => m,
     onNew: async () => {},
   });
   return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
