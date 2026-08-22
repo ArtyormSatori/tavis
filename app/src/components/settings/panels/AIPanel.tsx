@@ -152,111 +152,123 @@ const AIPanel = ({ embedded = false }: AIPanelProps = {}) => {
         has room for its own content.
       */}
       <div className={cn('flex w-full flex-wrap items-start gap-6', !embedded && 'p-4')}>
-        <ProviderAuthSection
-          draft={draft}
-          persist={persist}
-          loading={loading}
-          error={error}
-          busyAction={busyAction}
-          providerAuthErrors={providerAuthErrors}
-          providerSaveNotice={providerSaveNotice}
-          onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
-          onProviderRemoved={slug =>
-            setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
-          }
-          codexAuthError={codexAuthError}
-          onConnectCodex={() => void connectOpenAiViaCodexAuth()}
-          onConnectProvider={connectProvider}
-          onOpenKeyDialog={(slug, localLabel) => {
-            setKeyDialogFor(slug);
-            setPendingLocalLabel(localLabel);
-          }}
-          onAddCustomProvider={() => setEditing('new')}
-          onEditCustomProvider={provider => setEditing(provider)}
-        />
+        <div className="min-w-[20rem] flex-1 basis-[30rem]">
+          <ProviderAuthSection
+            draft={draft}
+            persist={persist}
+            loading={loading}
+            error={error}
+            busyAction={busyAction}
+            providerAuthErrors={providerAuthErrors}
+            providerSaveNotice={providerSaveNotice}
+            onDismissProviderSaveNotice={() => setProviderSaveNotice(null)}
+            onProviderRemoved={slug =>
+              setProviderSaveNotice(prev => (prev?.slug === slug ? null : prev))
+            }
+            codexAuthError={codexAuthError}
+            onConnectCodex={() => void connectOpenAiViaCodexAuth()}
+            onConnectProvider={connectProvider}
+            onOpenKeyDialog={(slug, localLabel) => {
+              setKeyDialogFor(slug);
+              setPendingLocalLabel(localLabel);
+            }}
+            onAddCustomProvider={() => setEditing('new')}
+            onEditCustomProvider={provider => setEditing(provider)}
+          />
+        </div>
 
         {/* ═══════════════════════════════════════════════════════════════
             ROUTING — top-level routing mode. Managed = OpenHuman decides.
             Own = one provider/model for everything. Custom = fine-grained
             per-workload routing.
             ═══════════════════════════════════════════════════════════════ */}
-        <Card title={t('settings.ai.routing')} description={t('settings.ai.routingDesc')}>
-          <div className="flex w-full flex-col gap-4 p-4">
-            <RoutingModeCards
-              effectiveRoutingMode={effectiveRoutingMode}
-              onSelectManaged={() => {
-                setRoutingEditorMode(null);
-                void persist({ ...draft, routing: routingWithAllWorkloads({ kind: 'openhuman' }) });
-              }}
-              onSelectOwn={() => setRoutingEditorMode('own')}
-              onSelectCustom={() => setRoutingEditorMode('custom')}
-            />
-
-            {effectiveRoutingMode === 'own' ? (
-              <GlobalOwnModelSelector
-                current={sharedModelRef}
-                saved={inferSharedModelRef(saved.routing)}
-                cloudProviders={draft.cloudProviders}
-                localModels={installed}
-                ollamaRunning={ollama.state === 'running'}
-                modelRegistry={draft.modelRegistry}
-                onApply={async (next, vision) => {
-                  const reg =
-                    next.kind === 'cloud'
-                      ? { slug: next.providerSlug, model: next.model }
-                      : next.kind === 'local'
-                        ? { slug: 'ollama', model: next.model }
-                        : next.kind === 'claude-code'
-                          ? { slug: 'claude-code', model: next.model }
-                          : null;
-                  await persist({
+        <div className="min-w-[20rem] flex-1 basis-[30rem]">
+          <Card title={t('settings.ai.routing')} description={t('settings.ai.routingDesc')}>
+            <div className="flex w-full flex-col gap-4 p-4">
+              <RoutingModeCards
+                effectiveRoutingMode={effectiveRoutingMode}
+                onSelectManaged={() => {
+                  setRoutingEditorMode(null);
+                  void persist({
                     ...draft,
-                    routing: routingWithAllWorkloads(next),
-                    modelRegistry: reg
-                      ? upsertModelRegistryVision(draft.modelRegistry, reg.slug, reg.model, vision)
-                      : draft.modelRegistry,
+                    routing: routingWithAllWorkloads({ kind: 'openhuman' }),
                   });
                 }}
+                onSelectOwn={() => setRoutingEditorMode('own')}
+                onSelectCustom={() => setRoutingEditorMode('custom')}
               />
-            ) : null}
 
-            {effectiveRoutingMode === 'custom' ? (
-              <>
-                <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
+              {effectiveRoutingMode === 'own' ? (
+                <GlobalOwnModelSelector
+                  current={sharedModelRef}
+                  saved={inferSharedModelRef(saved.routing)}
+                  cloudProviders={draft.cloudProviders}
+                  localModels={installed}
+                  ollamaRunning={ollama.state === 'running'}
+                  modelRegistry={draft.modelRegistry}
+                  onApply={async (next, vision) => {
+                    const reg =
+                      next.kind === 'cloud'
+                        ? { slug: next.providerSlug, model: next.model }
+                        : next.kind === 'local'
+                          ? { slug: 'ollama', model: next.model }
+                          : next.kind === 'claude-code'
+                            ? { slug: 'claude-code', model: next.model }
+                            : null;
+                    await persist({
+                      ...draft,
+                      routing: routingWithAllWorkloads(next),
+                      modelRegistry: reg
+                        ? upsertModelRegistryVision(
+                            draft.modelRegistry,
+                            reg.slug,
+                            reg.model,
+                            vision
+                          )
+                        : draft.modelRegistry,
+                    });
+                  }}
+                />
+              ) : null}
 
-                <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
-                  <WorkloadTable
-                    title={t('settings.ai.routing.chatAndConversations')}
-                    description={t('settings.ai.routing.chatDesc')}>
-                    {chatRows.map(w => (
-                      <WorkloadRow
-                        key={w.id}
-                        workload={w}
-                        ref_={draft.routing[w.id]}
-                        cloudProviders={draft.cloudProviders}
-                        onCustomClick={() => setCustomDialogFor(w.id)}
-                      />
-                    ))}
-                  </WorkloadTable>
+              {effectiveRoutingMode === 'custom' ? (
+                <>
+                  <Alert variant="info">{t('settings.ai.routing.customDesc')}</Alert>
 
-                  <WorkloadTable
-                    title={t('settings.ai.routing.backgroundTasks')}
-                    description={t('settings.ai.routing.bgTasksDesc')}>
-                    {bgRows.map(w => (
-                      <WorkloadRow
-                        key={w.id}
-                        workload={w}
-                        ref_={draft.routing[w.id]}
-                        cloudProviders={draft.cloudProviders}
-                        onCustomClick={() => setCustomDialogFor(w.id)}
-                      />
-                    ))}
-                  </WorkloadTable>
-                </div>
-              </>
-            ) : null}
-          </div>
-        </Card>
+                  <div className="flex w-full flex-col overflow-hidden rounded-xl border border-line">
+                    <WorkloadTable
+                      title={t('settings.ai.routing.chatAndConversations')}
+                      description={t('settings.ai.routing.chatDesc')}>
+                      {chatRows.map(w => (
+                        <WorkloadRow
+                          key={w.id}
+                          workload={w}
+                          ref_={draft.routing[w.id]}
+                          cloudProviders={draft.cloudProviders}
+                          onCustomClick={() => setCustomDialogFor(w.id)}
+                        />
+                      ))}
+                    </WorkloadTable>
+
+                    <WorkloadTable
+                      title={t('settings.ai.routing.backgroundTasks')}
+                      description={t('settings.ai.routing.bgTasksDesc')}>
+                      {bgRows.map(w => (
+                        <WorkloadRow
+                          key={w.id}
+                          workload={w}
+                          ref_={draft.routing[w.id]}
+                          cloudProviders={draft.cloudProviders}
+                          onCustomClick={() => setCustomDialogFor(w.id)}
+                        />
+                      ))}
+                    </WorkloadTable>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </Card>
+        </div>
       </div>
 
       {isDirty && (

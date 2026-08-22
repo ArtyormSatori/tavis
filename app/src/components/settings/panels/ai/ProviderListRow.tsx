@@ -153,9 +153,7 @@ export const ProviderListRow = ({
                 <DropdownMenuItem
                   key={action.label}
                   onSelect={action.onSelect}
-                  className={cn(
-                    action.destructive && 'text-coral-600 dark:text-coral-300'
-                  )}>
+                  className={cn(action.destructive && 'text-coral-600 dark:text-coral-300')}>
                   {action.label}
                 </DropdownMenuItem>
               ))}

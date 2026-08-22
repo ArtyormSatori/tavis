@@ -45,7 +45,7 @@ import {
 } from './aiPanelTypes';
 import { ClaudeCodeConnect } from './ClaudeCodeStatusCard';
 import { ProviderGroup, ProviderListRow, type ProviderRowAction } from './ProviderListRow';
-import { ProviderPicker, type ProviderOptionGroup } from './ProviderPicker';
+import { type ProviderOptionGroup, ProviderPicker } from './ProviderPicker';
 
 const LOCAL_RUNTIME_SLUGS = ['lmstudio', 'ollama', 'omlx'] as const;
 
