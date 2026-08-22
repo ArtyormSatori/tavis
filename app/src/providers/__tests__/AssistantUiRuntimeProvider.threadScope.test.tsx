@@ -128,7 +128,7 @@ describe('AssistantUiRuntimeProvider thread scoping', () => {
     expect(screen.getByTestId('probe')).toHaveTextContent('home question');
   });
 
-  it('routes each runtime's writes to the surface owning ITS thread', async () => {
+  it('routes writes from each runtime to the surface owning its own thread', async () => {
     const homeSend = vi.fn(async () => {});
     const copilotSend = vi.fn(async () => {});
     registerChatSurface(HOME_THREAD, { send: homeSend });
