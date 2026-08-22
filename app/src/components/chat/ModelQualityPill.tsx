@@ -47,7 +47,11 @@ function displayValue(value: string | null | undefined): string {
  * provider/model picker so configured providers and their model discovery stay
  * consistent with routing.
  */
-export default function ModelQualityPill({ className, value, onValueChange }: ModelQualityPillProps) {
+export default function ModelQualityPill({
+  className,
+  value,
+  onValueChange,
+}: ModelQualityPillProps) {
   const [open, setOpen] = useState(false);
   const [providers, setProviders] = useState<CloudProvider[]>([]);
   const [loading, setLoading] = useState(false);
@@ -92,7 +96,9 @@ export default function ModelQualityPill({ className, value, onValueChange }: Mo
         disabled={!onValueChange || loading}
         onClick={() => setOpen(true)}
         className={`h-7 min-w-0 rounded-md px-2 text-xs text-content-muted hover:bg-surface-hover hover:text-content ${className ?? ''}`}>
-        <span className="min-w-0 truncate font-medium">{loading ? 'Loading models…' : displayValue(value)}</span>
+        <span className="min-w-0 truncate font-medium">
+          {loading ? 'Loading models…' : displayValue(value)}
+        </span>
         <svg
           className="ml-1 size-3.5 shrink-0 opacity-50"
           fill="none"
