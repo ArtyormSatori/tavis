@@ -106,10 +106,10 @@ const PROVIDER_SWATCH_TONES: Record<string, string> = {
 export const ProviderSwatch = ({
   slug,
   label,
-  tone,
 }: {
   slug: string;
   label: string;
+  /** Retained for callers that supply a custom-provider fallback tone. */
   tone: string;
 }) => {
   const icon = providerIcon(slug, 'h-4 w-4');
