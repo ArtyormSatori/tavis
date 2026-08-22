@@ -68,7 +68,7 @@ HTTP, socket.io, cron, channels, heartbeat, update scheduler.
 turn through `run_turn_via_tinyagents_shared`, and asserts no listener was
 bound.
 
-**Status: done.** `tests/harness_embed.rs` and `examples/run_turn.rs` exist. The
+**Acceptance test status: done.** `tests/harness_embed.rs` and `examples/run_turn.rs` exist. The
 turn goes through `openhuman.inference_agent_chat` rather than reaching
 `run_turn_via_tinyagents_shared` directly — dispatch is the only path that
 honours `DomainSet` gating and installs `CoreContext` scope (see

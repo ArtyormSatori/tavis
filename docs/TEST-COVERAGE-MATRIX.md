@@ -647,11 +647,11 @@ End-to-end coverage of the agent harness via the web-chat RPC surface against an
 
 | Status           | Count                                            |
 | ---------------- | ------------------------------------------------ |
-| ✅ Covered       | 79                                               |
-| 🟡 Partial       | 27                                               |
+| ✅ Covered       | 89                                               |
+| 🟡 Partial       | 28                                               |
 | ❌ Missing       | 26                                               |
 | 🚫 Manual smoke  | 11                                               |
-| **Total leaves** | **143 explicit + nested = 214 product features** |
+| **Total leaves** | **154 explicit + nested = 214 product features** |
 
 PR-A delta: 13 leaves moved from ❌ → ✅ via 5 WDIO specs + 2 Vitest + 1 Rust integration test.
 Section 16 adds 11 leaves (10 ✅, 1 🟡) for the embedded library harness.

@@ -121,3 +121,33 @@ fn a_dir_workspace_puts_config_beside_it_too() {
         ResolvedWorkspace::resolve(&Workspace::dir(temp.path().join("ws")), None).expect("resolve");
     assert_eq!(resolved.config_path, temp.path().join("config.toml"));
 }
+
+#[test]
+fn a_relative_dir_workspace_does_not_resolve_siblings_against_cwd() {
+    // `Path::parent()` on the single-component relative path "ws" is
+    // `Some("")`, not `None`. Resolving the sibling action_dir / config_path
+    // against that empty parent would put them in the process working
+    // directory rather than beside the workspace — breaking the
+    // credential-isolation invariant. Both must fall back to the workspace's
+    // own directory.
+    // Run from a contained cwd so the bare relative path and its sibling
+    // directories land in a temp dir rather than the test's working directory.
+    let cwd_guard = std::env::current_dir().expect("current dir");
+    let temp = tempfile::tempdir().expect("tempdir");
+    std::env::set_current_dir(temp.path()).expect("chdir to temp");
+    let result = std::panic::catch_unwind(|| {
+        let resolved =
+            ResolvedWorkspace::resolve(&Workspace::dir("ws"), None).expect("resolve");
+        assert_eq!(resolved.workspace_dir, std::path::PathBuf::from("ws"));
+        assert_eq!(
+            resolved.action_dir,
+            std::path::PathBuf::from("ws").join("action")
+        );
+        assert_eq!(
+            resolved.config_path,
+            std::path::PathBuf::from("ws").join("config.toml")
+        );
+    });
+    std::env::set_current_dir(&cwd_guard).expect("restore cwd");
+    result.expect("assertions held");
+}

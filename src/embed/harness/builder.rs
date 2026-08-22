@@ -251,6 +251,17 @@ impl HarnessBuilder {
         };
 
         if let Some(config) = config.as_mut() {
+            // `Inherit` keeps the operator's resolved paths, but an explicit
+            // action_dir is a caller instruction, not a discovered default, so
+            // it must survive onto the inherited config. Without this an
+            // `action_dir` is silently disregarded for `Workspace::Inherit`,
+            // and the agent runs against the operator's configured action
+            // directory instead.
+            if inherit {
+                if let Some(dir) = self.action_dir.as_ref() {
+                    config.action_dir = dir.clone();
+                }
+            }
             if let Some(url) = self.backend_url.clone() {
                 config.api_url = Some(url);
             }

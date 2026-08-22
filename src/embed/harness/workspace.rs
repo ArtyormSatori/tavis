@@ -119,15 +119,26 @@ impl ResolvedWorkspace {
             }
             Workspace::Dir(dir) => {
                 let workspace_dir = dir.clone();
+                // `Path::parent()` yields `Some("")` for a single-component
+                // relative path (e.g. `Workspace::dir("ws")`), not `None`.
+                // Treating that empty parent as a real directory would make the
+                // sibling `action/` and `config.toml` resolve against the
+                // process working directory instead of beside the workspace,
+                // which breaks the credential-isolation invariant below.
+                let parent = dir
+                    .parent()
+                    .filter(|parent| !parent.as_os_str().is_empty());
                 let action_dir = action_dir_override
                     .map(Path::to_path_buf)
                     // A sibling, for the `is_workspace_internal_path` reason
-                    // above. `dir.parent()` is `None` only for a filesystem
-                    // root, where a sibling is meaningless anyway.
-                    .or_else(|| dir.parent().map(|parent| parent.join("action")))
+                    // above. `dir.parent()` is `None` (or an empty path) only
+                    // for a filesystem root or a path with no parent — all
+                    // cases where a sibling is meaningless anyway, and using
+                    // the workspace dir itself is the only safe fallback.
+                    .or_else(|| parent.map(|parent| parent.join("action")))
                     .unwrap_or_else(|| dir.join("action"));
                 create_dirs(&workspace_dir, &action_dir)?;
-                let config_path = dir.parent().unwrap_or(dir.as_path()).join("config.toml");
+                let config_path = parent.unwrap_or(dir.as_path()).join("config.toml");
                 Ok(Self {
                     workspace_dir,
                     action_dir,
