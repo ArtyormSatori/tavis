@@ -18,7 +18,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use super::types::{Gateway, DESKTOP_ID};
+use super::types::{validate_remote_transport, Gateway, GatewaySpec, DESKTOP_ID};
 
 /// The file gateway records are written to.
 const STORE_FILE: &str = "gateways.json";
@@ -73,6 +73,9 @@ pub fn save(gateway: Gateway) -> Result<(), String> {
     }
     if gateway.id.trim().is_empty() {
         return Err("a gateway needs an id".to_owned());
+    }
+    if let GatewaySpec::Remote { url, token } = &gateway.spec {
+        validate_remote_transport(url, token.as_deref())?;
     }
 
     let mut stored = read();
