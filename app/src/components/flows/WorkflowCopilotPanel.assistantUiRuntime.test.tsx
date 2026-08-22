@@ -24,7 +24,7 @@ import { act, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { __resetChatSurfaces } from '../../providers/chatSurfaceHandlers';
+import { __resetChatSurfaces, getChatSurface } from '../../providers/chatSurfaceHandlers';
 import chatRuntimeReducer, { type WorkflowProposal } from '../../store/chatRuntimeSlice';
 import threadReducer from '../../store/threadSlice';
 import type { ThreadMessage } from '../../types/thread';
@@ -220,7 +220,6 @@ describe('WorkflowCopilotPanel assistant-ui runtime', () => {
     renderPanel();
     // `sending` blocks a composer send, so `submit` no-ops; the cancel path is
     // the one under test here.
-    const { getChatSurface } = await import('../../providers/chatSurfaceHandlers');
     await act(async () => {
       await getChatSurface(BUILDER_THREAD)?.cancel?.();
     });
