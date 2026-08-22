@@ -82,6 +82,9 @@ let resolvingCoreRpcUrl: Promise<string> | null = null;
 let resolvedCoreRpcToken: string | null = null;
 let didResolveCoreRpcToken = false;
 let resolvingCoreRpcToken: Promise<string | null> | null = null;
+// The one snapshot the shell answered with, resolved atomically so the URL
+// and bearer can never describe different cores (see `resolveShellEndpoint`).
+let shellEndpoint: { url: string; token: string } | null = null;
 
 // ---------------------------------------------------------------------------
 // Active transport override (used by iOS / remote profiles)
