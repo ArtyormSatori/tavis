@@ -14,7 +14,6 @@
  */
 import { createElement, type ReactElement } from 'react';
 import type { IconType } from 'react-icons';
-import { LuNetwork } from 'react-icons/lu';
 import {
   SiAlibabacloud,
   SiAnthropic,
@@ -33,6 +32,7 @@ import cerebrasLogo from '../../../../assets/provider-icons/cerebras.svg';
 import deepinfraLogo from '../../../../assets/provider-icons/deepinfra.svg';
 import deepseekLogo from '../../../../assets/provider-icons/deepseek.svg';
 import fireworksLogo from '../../../../assets/provider-icons/fireworks.svg';
+import gmiLogo from '../../../../assets/provider-icons/gmi.ico';
 import groqLogo from '../../../../assets/provider-icons/groq.svg';
 import kilocodeLogo from '../../../../assets/provider-icons/kilocode.ico';
 import lmstudioLogo from '../../../../assets/provider-icons/lmstudio.svg';
@@ -73,7 +73,6 @@ const PROVIDER_ICONS: Record<string, IconType> = {
   zai: SiAlibabacloud,
   ollama: SiOllama,
   omlx: SiApple,
-  gmi: LuNetwork,
 };
 
 /** Locally bundled marks for providers absent from the installed icon set. */
@@ -83,6 +82,7 @@ const PROVIDER_ASSETS: Record<string, string> = {
   openrouter: openrouterLogo,
   deepseek: deepseekLogo,
   fireworks: fireworksLogo,
+  gmi: gmiLogo,
   groq: groqLogo,
   kilocode: kilocodeLogo,
   lmstudio: lmstudioLogo,
