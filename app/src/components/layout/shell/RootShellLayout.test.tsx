@@ -122,18 +122,28 @@ describe('RootShellLayout — redux-controlled geometry', () => {
     expect(panel(store).sidebarWidth).toBe(340);
   });
 
-  it('unmounts the column when collapsed and reopens it through the store', () => {
+  it('narrows the column to the icon width when collapsed, rather than unmounting it', () => {
     const { store } = renderShell({}, withLayout(false, 300));
 
-    expect(screen.queryByTestId('root-shell-sidebar')).toBeNull();
+    // `collapsible="icon"` — the column stays mounted at a real, non-zero
+    // width. The content's own adaptation (e.g. AppSidebar's collapsed rail)
+    // is that content's responsibility, not this shell's; the stand-in
+    // `sidebar` prop here has none, so it just renders narrowed.
+    const sidebar = screen.getByTestId('root-shell-sidebar');
+    expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+    expect(sidebar.style.width).toBe(`${SIDEBAR_ICON_WIDTH}px`);
+    expect(screen.getByText('sidebar body')).toBeTruthy();
+    // The resize rail is hidden while collapsed — a fixed icon width isn't
+    // draggable.
     expect(screen.queryByTestId('root-shell-divider')).toBeNull();
-    // The routed content still renders — collapsing hides the column only.
+    // The routed content still renders unaffected.
     expect(screen.getByText('routed page')).toBeTruthy();
 
-    fireEvent.click(screen.getByTestId('root-shell-reopen'));
+    store.dispatch(setSidebarVisible({ id: APP_SHELL_LAYOUT_ID, visible: true }));
 
     expect(panel(store).sidebarVisible).toBe(true);
-    expect(screen.getByTestId('root-shell-sidebar')).toBeTruthy();
+    expect(screen.getByTestId('root-shell-sidebar')).toHaveAttribute('data-state', 'expanded');
+    expect(screen.getByTestId('root-shell-sidebar').style.width).toBe('300px');
   });
 
   it('leaves mod+B to the command registry — the primitive binds no shortcut', () => {
