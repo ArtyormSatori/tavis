@@ -17,12 +17,12 @@ import Badge from '../../../ui/Badge';
 import Button from '../../../ui/Button';
 import { TableCell, TableRow } from '../../../ui/Table';
 import {
+  slugTone,
   type CloudProvider,
   type ProviderRef,
   type Workload,
   WORKLOAD_MODEL_HINT_KEYS,
 } from './aiPanelTypes';
-import { slugTone } from './aiPanelTypes';
 import { ProviderSwatch } from './ProviderListRow';
 
 export type WorkloadRowProps = {
@@ -45,7 +45,11 @@ function resolveTarget(
 ): { provider: string | null; providerSlug: string | null; model: string | null } {
   if (ref_.kind === 'cloud') {
     const cloud = cloudProviders.find(c => c.slug === ref_.providerSlug);
-    return { provider: cloud?.label ?? ref_.providerSlug, providerSlug: ref_.providerSlug, model: ref_.model };
+    return {
+      provider: cloud?.label ?? ref_.providerSlug,
+      providerSlug: ref_.providerSlug,
+      model: ref_.model,
+    };
   }
   if (ref_.kind === 'local') {
     return { provider: t('settings.ai.localOllama'), providerSlug: 'ollama', model: ref_.model };
