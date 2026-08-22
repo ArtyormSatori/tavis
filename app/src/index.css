@@ -445,7 +445,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    color: var(--color-text-primary);
+    /* `--color-text-primary` was never defined by any stylesheet, so this
+       declaration was invalid and inherited text fell back to the UA default
+       black — in dark mode too. Every element with an explicit colour class
+       looked right, which is why it survived: only *inherited* text was wrong.
+       `--color-content` is the canonical token and flips with the theme. */
+    color: var(--color-content);
   }
 
   /* Thin, theme-tinted, auto-hiding scrollbars app-wide — the macOS overlay
@@ -512,7 +517,7 @@
     /* Themes may supply a decorative `--app-gradient`; fall back to the flat
        canvas colour when they don't. */
     background: var(--app-gradient, var(--color-background));
-    color: var(--color-text-primary);
+    color: var(--color-content);
     position: absolute;
     top: 0;
     left: 0;
