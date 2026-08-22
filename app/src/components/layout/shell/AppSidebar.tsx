@@ -137,6 +137,10 @@ export default function AppSidebar() {
     );
   }, [showRewards, isReady, coreSnapshot.sessionToken]);
 
+  useEffect(() => {
+    log('sidebar body: %s', collapsed ? 'collapsed rail' : 'expanded');
+  }, [collapsed]);
+
   const handleFooterNav = (tab: string, path: string, active: boolean) => {
     log('footer nav click: tab=%s active=%s', tab, active);
     if (!active) {
