@@ -13,10 +13,10 @@ import EmptyStateCard from '../components/EmptyStateCard';
 import { ToastContainer } from '../components/intelligence/Toast';
 import PageSectionHeader from '../components/layout/PageSectionHeader';
 import PageWelcome from '../components/layout/PageWelcome';
-import PanelPage from '../components/layout/PanelPage';
 import { SidebarContent } from '../components/layout/shell/SidebarSlot';
 import TwoPaneNav from '../components/layout/TwoPaneNav';
 import { SettingsLayoutProvider } from '../components/settings/layout/SettingsLayoutContext';
+import SettingsTabbedPage from '../components/settings/layout/SettingsTabbedPage';
 import ComposioPanel from '../components/settings/panels/ComposioPanel';
 import EmbeddingsPanel from '../components/settings/panels/EmbeddingsPanel';
 import LlmConnectionsPanel from '../components/settings/panels/LlmConnectionsPanel';
@@ -1086,14 +1086,11 @@ export default function Skills() {
             )}
           </div>
         ) : (
-          <PanelPage contentClassName="p-4">
+          <div className="h-full p-4">
+            <SettingsTabbedPage
+              title={t(CONNECTIONS_HEADERS[activeTab]!.titleKey)}
+              description={t(CONNECTIONS_HEADERS[activeTab]!.descKey)}>
             <div className={'mx-auto w-full max-w-3xl space-y-4'}>
-              {CONNECTIONS_HEADERS[activeTab] && (
-                <PageSectionHeader
-                  title={t(CONNECTIONS_HEADERS[activeTab]!.titleKey)}
-                  description={t(CONNECTIONS_HEADERS[activeTab]!.descKey)}
-                />
-              )}
               {/* <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <h1 className="text-base font-semibold text-content">
@@ -1327,7 +1324,8 @@ export default function Skills() {
                 </>
               }
             </div>
-          </PanelPage>
+            </SettingsTabbedPage>
+          </div>
         )}
       </div>
 
