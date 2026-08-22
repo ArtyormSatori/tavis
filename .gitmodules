@@ -34,4 +34,3 @@
 [submodule "vendor/tinymcp"]
 	path = vendor/tinymcp
 	url = https://github.com/tinyhumansai/tinymcp
-	branch = mcp-extraction
