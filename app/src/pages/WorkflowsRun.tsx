@@ -11,8 +11,8 @@
  */
 import { useNavigate } from 'react-router-dom';
 
-import WorkflowRunnerBody from '../components/skills/WorkflowRunnerBody';
 import SettingsTabbedPage from '../components/settings/layout/SettingsTabbedPage';
+import WorkflowRunnerBody from '../components/skills/WorkflowRunnerBody';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { useT } from '../lib/i18n/I18nContext';
