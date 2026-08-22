@@ -8,6 +8,10 @@
    Tailwind layers so the var-backed utility colours resolve. */
 @import './styles/tokens.css' layer(base);
 
+/* shadcn/Base UI semantic token aliases over the canonical palette above. Must
+   follow tokens.css (it aliases those vars) and precede the Tailwind layers. */
+@import './styles/shadcn-tokens.css' layer(base);
+
 /* Tailwind CSS imports */
 @import 'tailwindcss';
 @import 'tw-animate-css';
@@ -43,6 +47,36 @@
   --color-surface-hover: rgb(var(--surface-hover));
   --color-surface-overlay: rgb(var(--surface-overlay));
   --color-surface-chrome: rgb(var(--surface-chrome));
+
+  /* shadcn/Base UI semantic colours (see styles/shadcn-tokens.css). Every
+     registry component and ~200 app files are written against these. */
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  --color-sidebar: rgb(var(--sidebar));
+  --color-sidebar-foreground: rgb(var(--sidebar-foreground));
+  --color-sidebar-primary: rgb(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: rgb(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: rgb(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: rgb(var(--sidebar-accent-foreground));
+  --color-sidebar-border: rgb(var(--sidebar-border));
+  --color-sidebar-ring: rgb(var(--sidebar-ring));
 
   --color-content: rgb(var(--content));
   --color-content-secondary: rgb(var(--content-secondary));
