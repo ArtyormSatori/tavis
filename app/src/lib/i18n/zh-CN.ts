@@ -4480,6 +4480,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': '正在保存...',
   'settings.ai.globalModel.saved': '已保存',
   'settings.ai.workload.noModel': '未选择型号',
+  'settings.ai.workload.columnHeader': '任务类型',
   'settings.ai.workload.changeModel': '改变模型',
   'settings.ai.workload.chooseModel': '选择型号',
   'settings.ai.provider.ollama': 'Ollama',

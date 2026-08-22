@@ -4684,6 +4684,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': '저장 중…',
   'settings.ai.globalModel.saved': '저장됨',
   'settings.ai.workload.noModel': '선택된 모델 없음',
+  'settings.ai.workload.columnHeader': '작업 유형',
   'settings.ai.workload.changeModel': '모델 변경',
   'settings.ai.workload.chooseModel': '모델 선택',
   'settings.ai.provider.ollama': 'Ollama',

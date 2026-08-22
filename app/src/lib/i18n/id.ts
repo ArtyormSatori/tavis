@@ -4757,6 +4757,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': 'Menyimpan…',
   'settings.ai.globalModel.saved': 'Tersimpan',
   'settings.ai.workload.noModel': 'Tidak ada model yang dipilih',
+  'settings.ai.workload.columnHeader': 'Beban kerja',
   'settings.ai.workload.changeModel': 'Ubah Model',
   'settings.ai.workload.chooseModel': 'Pilih Model',
   'settings.ai.provider.ollama': 'Ollama',

@@ -5302,6 +5302,7 @@ const en: TranslationMap = {
   'settings.ai.globalModel.saving': 'Saving…',
   'settings.ai.globalModel.saved': 'Saved',
   'settings.ai.workload.noModel': 'No model selected',
+  'settings.ai.workload.columnHeader': 'Workload',
   'settings.ai.workload.changeModel': 'Change Model',
   'settings.ai.workload.chooseModel': 'Choose Model',
   'settings.ai.provider.ollama': 'Ollama',

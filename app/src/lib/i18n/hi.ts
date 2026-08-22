@@ -4735,6 +4735,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': 'सहेजा जा रहा है...',
   'settings.ai.globalModel.saved': 'सहेजा गया',
   'settings.ai.workload.noModel': 'कोई मॉडल चयनित नहीं',
+  'settings.ai.workload.columnHeader': 'कार्यभार',
   'settings.ai.workload.changeModel': 'मॉडल बदलें',
   'settings.ai.workload.chooseModel': 'मॉडल चुनें',
   'settings.ai.provider.ollama': 'Ollama',

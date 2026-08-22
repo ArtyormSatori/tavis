@@ -4804,6 +4804,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': 'Zapisywanie…',
   'settings.ai.globalModel.saved': 'Zapisano',
   'settings.ai.workload.noModel': 'Nie wybrano modelu',
+  'settings.ai.workload.columnHeader': 'Zadanie',
   'settings.ai.workload.changeModel': 'Zmień model',
   'settings.ai.workload.chooseModel': 'Wybierz model',
   'settings.ai.provider.ollama': 'Ollama',

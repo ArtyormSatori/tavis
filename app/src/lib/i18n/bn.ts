@@ -4739,6 +4739,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': 'ইনস্টল করা হয়েছে...',
   'settings.ai.globalModel.saved': 'সংরক্ষণ করা হচ্ছে...',
   'settings.ai.workload.noModel': 'সংরক্ষণ করা হয়েছে',
+  'settings.ai.workload.columnHeader': 'কাজের ধরন',
   'settings.ai.workload.changeModel': 'কোনো মডেল নির্বাচিত হয়নি',
   'settings.ai.workload.chooseModel': 'মডেল পরিবর্তন করুন [[I18N_SEP_92731] মডেল চয়ন করুন',
   'settings.ai.provider.ollama': 'Ollama',

@@ -4628,6 +4628,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': 'جاري الحفظ...',
   'settings.ai.globalModel.saved': 'تم الحفظ',
   'settings.ai.workload.noModel': 'لم يتم تحديد نموذج',
+  'settings.ai.workload.columnHeader': 'المهمة',
   'settings.ai.workload.changeModel': 'تغيير النموذج',
   'settings.ai.workload.chooseModel': 'اختر النموذج',
   'settings.ai.provider.ollama': 'Ollama',

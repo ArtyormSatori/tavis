@@ -4820,6 +4820,7 @@ const messages: TranslationMap = {
   'settings.ai.globalModel.saving': 'Guardando…',
   'settings.ai.globalModel.saved': 'Guardado',
   'settings.ai.workload.noModel': 'Ningún modelo seleccionado',
+  'settings.ai.workload.columnHeader': 'Carga de trabajo',
   'settings.ai.workload.changeModel': 'Cambiar modelo',
   'settings.ai.workload.chooseModel': 'Elige modelo',
   'settings.ai.provider.ollama': 'Ollama',
