@@ -95,34 +95,9 @@ export const MOCK_SCRIPT: readonly MockStep[] = [
     text: `The user is exercising the demo, so there is no real question to answer. What I can do is make the turn cover every part the transcript knows how to render, in the order a real turn would produce them.`,
   },
   { kind: 'text', text: INTRO },
-  {
-    kind: 'tool',
-    toolName: 'web_search',
-    args: { query: 'assistant-ui base example thread primitives', max_results: 5 },
-    runMs: 900,
-    result: {
-      results: [
-        { title: 'assistant-ui — base demo', url: 'https://www.assistant-ui.com/demos/base' },
-        { title: 'Thread primitives', url: 'https://www.assistant-ui.com/docs/ui/Thread' },
-      ],
-      took_ms: 812,
-    },
-  },
-  {
-    kind: 'reasoning',
-    text: `The docs confirm the part types the renderer groups: reasoning, tool calls, and text. Two nested delegations will show what a subagent looks like next to an ordinary call.`,
-  },
-  {
-    kind: 'tool',
-    toolName: 'read_file',
-    args: { path: 'app/src/pages/dev/assistant-ui-demo/BaseDemo.tsx', offset: 592, limit: 40 },
-    runMs: 600,
-    result: {
-      path: 'app/src/pages/dev/assistant-ui-demo/BaseDemo.tsx',
-      lines: 40,
-      excerpt: '<MessagePrimitive.GroupedParts groupBy={groupPartByType({ … })}>',
-    },
-  },
+
+  // Dispatched here, but its four nested steps land during the `web_search`
+  // call and the reasoning block below — the turn does not wait for it.
   {
     kind: 'subagent',
     subagent: 'code-explorer',
@@ -131,7 +106,7 @@ export const MOCK_SCRIPT: readonly MockStep[] = [
       description: 'Map the vendored component set',
       prompt: 'List every component under components/assistant-ui and what each one renders.',
     },
-    stepMs: 620,
+    stepMs: 900,
     steps: [
       { tool: 'glob', detail: 'app/src/components/assistant-ui/**/*.tsx — 19 files' },
       { tool: 'read_file', detail: 'thread.tsx — viewport, composer, action bar' },
@@ -141,6 +116,22 @@ export const MOCK_SCRIPT: readonly MockStep[] = [
     report:
       'Nineteen components. `thread.tsx` owns the viewport and composer; `tool-group.tsx` collapses consecutive tool calls; `reasoning.tsx` renders the thinking block. All of them read shadcn semantic tokens, so they follow the app theme.',
   },
+
+  {
+    kind: 'tool',
+    toolName: 'web_search',
+    args: { query: 'assistant-ui base example thread primitives', max_results: 5 },
+    runMs: 1400,
+    result: {
+      results: [
+        { title: 'assistant-ui — base demo', url: 'https://www.assistant-ui.com/demos/base' },
+        { title: 'Thread primitives', url: 'https://www.assistant-ui.com/docs/ui/Thread' },
+      ],
+      took_ms: 812,
+    },
+  },
+
+  // A second delegation, dispatched while the first is still going.
   {
     kind: 'subagent',
     subagent: 'test-runner',
@@ -149,16 +140,28 @@ export const MOCK_SCRIPT: readonly MockStep[] = [
       description: 'Check the demo route typechecks',
       prompt: 'Run the typecheck and report anything that fails in the demo directory.',
     },
-    stepMs: 520,
+    stepMs: 2600,
     steps: [
       { tool: 'shell', detail: 'pnpm typecheck' },
       { tool: 'shell', detail: 'eslint src/pages/dev/assistant-ui-demo' },
     ],
     report: 'Typecheck clean, no lint errors in the demo directory.',
   },
+
   {
     kind: 'reasoning',
-    text: `Both delegations came back clean. Time to summarise what the turn actually demonstrated.`,
+    text: `Both delegations are still working. Nothing about them blocks this turn, so I can keep going and fold their reports in when they land.`,
+  },
+  {
+    kind: 'tool',
+    toolName: 'read_file',
+    args: { path: 'app/src/pages/dev/assistant-ui-demo/BaseDemo.tsx', offset: 592, limit: 40 },
+    runMs: 700,
+    result: {
+      path: 'app/src/pages/dev/assistant-ui-demo/BaseDemo.tsx',
+      lines: 40,
+      excerpt: '<MessagePrimitive.GroupedParts groupBy={groupPartByType({ … })}>',
+    },
   },
   { kind: 'text', text: ANSWER },
 ];
