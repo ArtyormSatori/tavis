@@ -85,7 +85,14 @@ export function useAppNotices(): AppNotice[] {
   const navigate = useNavigate();
   const active = useAppSelector(selectActiveUserErrors);
   const { level: budgetLevel, pct: budgetPct } = useEmbeddingBudgetState();
-  const { teamUsage, isLoading: usageLoading, isAtLimit, isNearLimit, isFreeTier } = useUsageState();
+  const {
+    teamUsage,
+    isLoading: usageLoading,
+    isAtLimit,
+    isNearLimit,
+    isFreeTier,
+    usagePct,
+  } = useUsageState();
 
   // Per-session, per-key dismissal for the derived (non-store) notices.
   //
@@ -170,7 +177,7 @@ export function useAppNotices(): AppNotice[] {
             ? t('upsell.global.limitMessage')
             : t('upsell.global.nearLimitMessage').replace(
                 '{pct}',
-                String(Math.round(usagePctOf(teamUsage)))
+                String(Math.round(usagePct * 100))
               ),
           actionLabel: t('chat.upgrade'),
           onAction: () => void openUrl(PRICING_URL),
@@ -197,10 +204,6 @@ export function useAppNotices(): AppNotice[] {
     t,
     teamUsage,
     usageLoading,
+    usagePct,
   ]);
-}
-
-/** Percentage used, from whichever shape the usage payload carries. */
-function usagePctOf(teamUsage: { usagePct?: number } | null): number {
-  return Math.round((teamUsage?.usagePct ?? 0) * 100);
 }
