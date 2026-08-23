@@ -30,6 +30,7 @@ import { LuBell, LuInfo, LuTriangleAlert, LuX } from 'react-icons/lu';
 import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import { Button } from '../ui';
+import { useEmbeddingBudgetNativeNotice } from './useEmbeddingBudgetNativeNotice';
 import { type AppNotice, type NoticeSeverity, peakSeverity, useAppNotices } from './useAppNotices';
 
 /** Accent per severity — the badge fill and the row's leading icon. */
@@ -89,6 +90,10 @@ export default function NoticeCenter() {
   const { t } = useT();
   const notices = useAppNotices();
   const [open, setOpen] = useState(false);
+  // Reaches a user who is not looking at the app; deliberately independent of
+  // whether this panel is open, or even rendered (the hook runs before the
+  // empty-list early return below).
+  useEmbeddingBudgetNativeNotice();
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   // Close on Escape while the panel is open. A fixed overlay with no dismissal
