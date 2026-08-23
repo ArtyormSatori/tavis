@@ -82,8 +82,9 @@ interface RootShellLayoutProps {
  *   - **Card** — the routed content sits on a single inset, rounded
  *     {@link ContentSurface}, the only opaque sheet in the shell.
  *
- * The two separate by fill contrast, which is why the sidebar needs no border
- * and the panes need no divider fill. The dragged sidebar width persists per
+ * The two separate by fill contrast — the canvas/chrome neutrals sit below the
+ * card's surface — which is why the sidebar needs no border and the panes need
+ * no divider fill. The dragged sidebar width persists per
  * user via the `layout` slice (id `app-shell`).
  *
  * ## Redux stays the source of truth
