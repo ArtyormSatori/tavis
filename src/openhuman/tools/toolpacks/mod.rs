@@ -21,6 +21,7 @@
 //! and re-deriving schemas per iteration is the upstream change that would
 //! retire this proxy.
 
+pub mod groups;
 pub mod ops;
 pub mod registry;
 pub mod tools;
@@ -29,6 +30,7 @@ pub mod types;
 pub use ops::{append_pack_tools, bind_pack_registry, strip_packed_from_visible};
 pub use registry::{all_packed_tool_names, pack, pack_for_tool, PACKS};
 pub use tools::{PackRegistryHandle, LOAD_SKILL, USE_SKILL};
+pub use groups::{GroupMode, ToolGroups, GROUP_COUNT};
 pub use types::ToolPack;
 
 #[cfg(test)]
