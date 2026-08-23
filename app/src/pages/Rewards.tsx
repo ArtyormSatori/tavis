@@ -1,6 +1,6 @@
 import createDebug from 'debug';
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import EmptyStateCard from '../components/EmptyStateCard';
 import ChipTabs from '../components/layout/ChipTabs';
@@ -33,7 +33,6 @@ function errorMessage(err: unknown): string {
 const Rewards = () => {
   const { t } = useT();
   const navigate = useNavigate();
-  const location = useLocation();
   const { snapshot: coreSnapshot } = useCoreState();
   const isLocalSession = isLocalSessionToken(coreSnapshot.sessionToken);
   const [selectedTab, setSelectedTab] = useState<RewardsTab>('rewards');

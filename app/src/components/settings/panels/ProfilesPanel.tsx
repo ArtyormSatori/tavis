@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { LuPlus } from 'react-icons/lu';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import {
@@ -26,7 +26,6 @@ import SettingsPanel from '../layout/SettingsPanel';
 const ProfilesPanel = () => {
   const { t } = useT();
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useAppDispatch();
   const profiles = useAppSelector(selectAgentProfiles);
   const activeId = useAppSelector(selectActiveAgentProfileId);

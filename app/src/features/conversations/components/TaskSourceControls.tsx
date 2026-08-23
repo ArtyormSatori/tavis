@@ -1,7 +1,7 @@
 import createDebug from 'debug';
 import { useCallback, useEffect, useState } from 'react';
 import { LuRefreshCw } from 'react-icons/lu';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Alert } from '../../../components/ui/Alert';
 import Badge from '../../../components/ui/Badge';
@@ -35,7 +35,6 @@ const log = createDebug('app:conversations:task-sources');
 export function TaskSourceControls({ disabled, compact }: { disabled: boolean; compact: boolean }) {
   const { t } = useT();
   const navigate = useNavigate();
-  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [sources, setSources] = useState<TaskSource[]>([]);
   const [status, setStatus] = useState<TaskSourcesStatus | null>(null);

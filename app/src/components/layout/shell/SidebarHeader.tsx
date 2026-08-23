@@ -1,5 +1,5 @@
 import { LuKeyboard, LuPanelLeftClose, LuSettings } from 'react-icons/lu';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { registry } from '../../../lib/commands/registry';
 import { useT } from '../../../lib/i18n/I18nContext';
@@ -20,7 +20,6 @@ const ICON_BTN = 'h-7 w-7 flex-none rounded-md text-content-muted hover:text-con
 export default function SidebarHeader() {
   const { t } = useT();
   const navigate = useNavigate();
-  const location = useLocation();
   const { hide } = useRootSidebar();
 
   return (

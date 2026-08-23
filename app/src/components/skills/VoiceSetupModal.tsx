@@ -5,7 +5,7 @@
  * settings. Otherwise, starts the voice server and shows success.
  */
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import type { VoiceSkillStatus } from '../../features/voice/useVoiceSkillStatus';
 import { useT } from '../../lib/i18n/I18nContext';
@@ -31,7 +31,6 @@ interface Props {
 
 export default function VoiceSetupModal({ onClose, skillStatus }: Props) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useT();
   const { sttModelMissing, serverStatus } = skillStatus;
 
