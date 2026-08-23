@@ -2663,6 +2663,10 @@ const Conversations = ({
         attachmentsEnabled={CHAT_ATTACHMENTS_ENABLED}
         attachmentInteractionBlocked={composerInteractionBlocked || isSending}
         onAttachmentOnlySend={() => void handleComposerSend()}
+        // Idle-composer shortcut to the full-bleed mascot stage. Chat and Human
+        // share one mascot (mascotSlice), so this is a change of venue for the
+        // same conversation partner, not a second one.
+        onOpenHumanMode={() => navigate('/human')}
         onModelChange={(value, contextWindow) => {
           setComposerModelOverride(value);
           setComposerModelContextWindow(contextWindow ?? null);

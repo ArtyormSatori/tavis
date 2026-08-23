@@ -72,6 +72,7 @@ export function AssistantUiChat({
   attachmentsEnabled,
   attachmentInteractionBlocked,
   onAttachmentOnlySend,
+  onOpenHumanMode,
 }: {
   threadGoal: ThreadGoalController;
   model: string | null;
@@ -88,6 +89,8 @@ export function AssistantUiChat({
   attachmentsEnabled: boolean;
   attachmentInteractionBlocked: boolean;
   onAttachmentOnlySend: () => void;
+  /** Opens the Human page from the composer's idle primary slot. */
+  onOpenHumanMode?: () => void;
 }) {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -174,6 +177,7 @@ export function AssistantUiChat({
       ToolGroup: ChatToolGroup,
       ComposerExtras,
       ComposerHeader,
+      onOpenHumanMode,
       ...(attachmentsEnabled
         ? {
             ComposerAttachments,
@@ -191,6 +195,7 @@ export function AssistantUiChat({
       attachments.length,
       attachmentsEnabled,
       onAttachmentOnlySend,
+      onOpenHumanMode,
     ]
   );
 
