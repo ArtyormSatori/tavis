@@ -81,7 +81,11 @@ const SettingsSidebar = () => {
           lives on the content below, not on this header. */}
       <SettingsSearchBar value={searchQuery} onValueChange={setSearchQuery} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-1.5 pb-2">
+      {/* px-3 is the shell sidebar's gutter (`SidebarGroup`/`SidebarHeader`).
+          This list is projected into that same column, so a narrower inset of
+          its own put settings rows and app-nav rows on two different left
+          edges. */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-2">
         {sections.map(section => (
           <div
             key={section.key}
@@ -89,7 +93,7 @@ const SettingsSidebar = () => {
               section.labelKey ? `settings-sidebar-group-${section.key}` : 'settings-search-results'
             }>
             {section.labelKey && (
-              <div className="px-2 pb-0.5 pt-2.5">
+              <div className="px-2.5 pb-0.5 pt-2.5">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-content-muted">
                   {t(section.labelKey)}
                 </span>
@@ -100,11 +104,11 @@ const SettingsSidebar = () => {
                 const active = activeSidebarId === row.id;
                 const highlight = !!row.highlight;
                 const rowClass = active
-                  ? // Active rows lift with a neutral fill + weight, matching the
-                    // app sidebar. The accent is reserved for rows that carry
-                    // real meaning (see `highlight` below), so selection and
-                    // significance stay visually distinct.
-                    'bg-surface/70 font-semibold text-content'
+                  ? // Active rows carry the accent fill, matching
+                    // `SidebarMenuButton` in the app nav directly above this
+                    // list — the two render in the same column, so selection
+                    // has to look the same in both.
+                    'bg-primary-500 font-semibold text-content-inverted'
                   : highlight
                     ? // Highlighted-but-inactive rows (e.g. Billing) accent the
                       // text only — this is semantic, so it keeps its colour.
@@ -119,7 +123,7 @@ const SettingsSidebar = () => {
                       aria-current={active ? 'page' : undefined}
                       onClick={() => navigateToSettings(row.route)}
                       className={cn(
-                        'h-auto w-full justify-start gap-2 rounded-md px-2 py-1 text-left text-[14px] font-normal',
+                        'h-auto w-full justify-start gap-2 rounded-md px-2.5 py-1 text-left text-[14px] font-normal',
                         rowClass
                       )}>
                       <span
@@ -148,7 +152,7 @@ const SettingsSidebar = () => {
         {isSearching && !hasRows && (
           <p
             data-testid="settings-search-empty"
-            className="px-2 pt-3 text-center text-xs text-content-faint">
+            className="px-2.5 pt-3 text-center text-xs text-content-faint">
             {t('settings.settingsSearch.noResults').replace('{query}', searchQuery.trim())}
           </p>
         )}
