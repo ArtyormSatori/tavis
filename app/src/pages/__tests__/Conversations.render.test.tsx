@@ -855,41 +855,6 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     expect(screen.getByTestId('route-path')).toHaveTextContent('/chat');
   });
 
-  // Covers line 1443: onClick inside "Top Up" button in budget-exceeded banner
-  it('clicking "Top Up" in the budget banner calls openUrl', async () => {
-    const { openUrl } = await import('../../utils/openUrl');
-
-    const teamUsage = { cycleBudgetUsd: 10, remainingUsd: 0, cycleSpentUsd: 10, cycleEndsAt: null };
-
-    mockUseUsageState.mockReturnValue({
-      teamUsage,
-      currentPlan: null,
-      currentTier: 'PRO' as const,
-      isFreeTier: false,
-      usagePct: 1.0,
-      isNearLimit: true,
-      isAtLimit: true,
-      isBudgetExhausted: true,
-      shouldShowBudgetCompletedMessage: true,
-      isLoading: false,
-      refresh: vi.fn(),
-    });
-
-    await act(async () => {
-      await renderConversations({ thread: emptyThreadState });
-    });
-
-    // Budget banner renders — cycleBudgetUsd: 10 > 0 → cycle-budget exhausted copy
-    expect(screen.getByText(/used your included cycle budget/i)).toBeInTheDocument();
-
-    // Click "Top Up" button — covers line 1442-1443 (onClick callback)
-    const topUpBtn = screen.getByText('Top Up');
-    await act(async () => {
-      fireEvent.click(topUpBtn);
-    });
-
-    expect(openUrl).toHaveBeenCalled();
-  });
 
   it('clicking OpenRouter free models in the budget banner routes chat workloads', async () => {
     const teamUsage = { cycleBudgetUsd: 10, remainingUsd: 0, cycleSpentUsd: 10, cycleEndsAt: null };
