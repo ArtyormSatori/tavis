@@ -603,13 +603,15 @@ describe('createWalkthroughSteps', () => {
       '[data-walkthrough="skills-channels"]',
       '[data-walkthrough="settings-menu"]',
       '[data-walkthrough="tab-chat"]',
-      '[data-walkthrough="tab-human"]',
       '[data-walkthrough="tab-brain"]',
       '[data-walkthrough="tab-connections"]',
       '[data-walkthrough="tab-feedback"]',
       '[data-walkthrough="chat-agent-panel"]',
     ]);
     expect(targets).not.toContain('[data-walkthrough="tab-activity"]');
+    // Human has no nav row — the chat composer's idle button opens it — so a
+    // tour step pointing at one would stall on a target that never mounts.
+    expect(targets).not.toContain('[data-walkthrough="tab-human"]');
     expect(targets).not.toContain('[data-walkthrough="intelligence-header"]');
   });
 
