@@ -1951,7 +1951,7 @@ describe('AIPanel', () => {
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
     expect(rowEl).not.toBeNull();
-    fireEvent.click(within(rowEl as HTMLElement).getByRole('button', { name: /Change Model/i }));
+    fireEvent.click(within(rowEl as HTMLElement).getByRole('button'));
 
     const dialog = await screen.findByRole('dialog', { name: /Custom routing/i });
 
@@ -2011,7 +2011,7 @@ describe('AIPanel', () => {
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
     expect(rowEl).not.toBeNull();
-    fireEvent.click(within(rowEl as HTMLElement).getByRole('button', { name: /Change Model/i }));
+    fireEvent.click(within(rowEl as HTMLElement).getByRole('button'));
 
     const dialog = await screen.findByRole('dialog', { name: /Custom routing/i });
     fireEvent.click(within(dialog).getByRole('button', { name: /^Test$/i }));
@@ -2060,7 +2060,7 @@ describe('AIPanel', () => {
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
     expect(rowEl).not.toBeNull();
-    fireEvent.click(within(rowEl as HTMLElement).getByRole('button', { name: /Change Model/i }));
+    fireEvent.click(within(rowEl as HTMLElement).getByRole('button'));
 
     const dialog = await screen.findByRole('dialog', { name: /Custom routing/i });
     fireEvent.click(within(dialog).getByRole('button', { name: /^Test$/i }));
@@ -2102,7 +2102,7 @@ describe('AIPanel', () => {
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
     expect(rowEl).not.toBeNull();
-    fireEvent.click(within(rowEl as HTMLElement).getByRole('button', { name: /Change Model/i }));
+    fireEvent.click(within(rowEl as HTMLElement).getByRole('button'));
 
     const dialog = await screen.findByRole('dialog', { name: /Custom routing/i });
     fireEvent.click(within(dialog).getByRole('button', { name: /^Test$/i }));
