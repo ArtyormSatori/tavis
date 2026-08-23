@@ -394,7 +394,7 @@ const ThemeStudioPanel = () => {
             role="radiogroup"
             aria-label={t('settings.theme.backdropHeading', 'Background')}>
             {(['mesh', 'solid', 'image'] as BackdropKind[]).map(kind => {
-              const current = effectiveTheme.backdrop?.kind ?? 'mesh';
+              const current = effectiveTheme.backdrop?.kind ?? 'solid';
               const sel = current === kind;
               return (
                 <button

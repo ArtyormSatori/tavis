@@ -17,7 +17,7 @@ interface AppBackgroundProps {
  */
 export default function AppBackground({ className = '' }: AppBackgroundProps) {
   const theme = useAppSelector(selectEffectiveTheme);
-  const backdrop = theme.backdrop?.kind ?? 'mesh';
+  const backdrop = theme.backdrop?.kind ?? 'solid';
   const showDots = theme.backdrop?.dots !== false; // default on
 
   return (
