@@ -2,27 +2,20 @@ import { type ReactElement, useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { selectChatMascotDismissed, setChatMascotDismissed } from '../../../store/mascotSlice';
 import {
-  type AgentMessageViewMode,
   FONT_SIZE_PX,
   type FontSize,
   MAX_FONT_SIZE_PX,
   MIN_FONT_SIZE_PX,
   selectEffectiveFontSizePx,
-  setAgentMessageViewMode,
   setCustomFontSizePx,
   setFontSize,
-  setHideAgentInsights,
-  setTabBarLabels,
-  setThemeMode,
-  type TabBarLabels,
-  type ThemeMode,
 } from '../../../store/themeSlice';
 import LanguageSelect from '../../LanguageSelect';
 import Slider from '../../ui/Slider';
-import { SettingsNumberField, SettingsRow, SettingsSection, SettingsSwitch } from '../controls';
+import { SettingsNumberField, SettingsRow, SettingsSection } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
+import ThemeStudioPanel from './ThemeStudioPanel';
 
 interface ModeOption {
   id: ThemeMode;
@@ -75,24 +68,7 @@ const SystemIcon = (
 const AppearancePanel = () => {
   const { t } = useT();
   const dispatch = useAppDispatch();
-  const mode = useAppSelector(state => state.theme.mode);
   const effectiveFontSizePx = useAppSelector(selectEffectiveFontSizePx);
-  const tabBarLabels = useAppSelector(state => state.theme.tabBarLabels);
-  const agentMessageViewMode = useAppSelector(state => state.theme.agentMessageViewMode ?? 'text');
-  const hideAgentInsights = useAppSelector(state => state.theme.hideAgentInsights ?? false);
-  const labelsAlwaysVisible = tabBarLabels === 'always';
-  const assistantTextModeEnabled = agentMessageViewMode === 'text';
-  const toggleTabBarLabels = () => {
-    const next: TabBarLabels = labelsAlwaysVisible ? 'hover' : 'always';
-    dispatch(setTabBarLabels(next));
-  };
-  const toggleAssistantTextMode = () => {
-    const next: AgentMessageViewMode = assistantTextModeEnabled ? 'bubbles' : 'text';
-    dispatch(setAgentMessageViewMode(next));
-  };
-  const toggleHideAgentInsights = () => {
-    dispatch(setHideAgentInsights(!hideAgentInsights));
-  };
 
   // Local draft for the numeric px field so partial typing doesn't thrash the
   // store; commits (blur / Enter) clamp and dispatch, while the slider dispatches
