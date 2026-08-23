@@ -452,6 +452,7 @@ function CatalogRow({ entry, installed, installing, onInstall, onClick }: Catalo
           <Button
             variant="secondary"
             size="xs"
+            data-testid={`registry-install-${entry.id}`}
             disabled={installing}
             onClick={event => {
               event.stopPropagation();
