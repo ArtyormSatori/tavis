@@ -384,3 +384,36 @@ async fn every_entry_point_degrades_rather_than_hanging_when_the_module_is_gone(
         Err(VoiceCallError::Unavailable(_))
     ));
 }
+
+#[test]
+fn every_member_this_client_calls_is_one_the_contract_declares() {
+    // The fifteen call sites in this module are written as `tinyvoice_bus`
+    // constants, so a rename upstream is a compile error here rather than a
+    // `MemberNotFound` at runtime. This pins the other direction: a member the
+    // contract declares and this client never calls is either a gap in the
+    // client or a member that should not be in the contract, and either way it
+    // should be noticed here rather than discovered later.
+    use tinyvoice_bus::names::methods;
+    let called = [
+        methods::ROUTE,
+        methods::EXTRACT_COMMAND,
+        methods::WAKE_WORD_PRESENT,
+        methods::IS_HALLUCINATED,
+        methods::VAD_OPEN,
+        methods::VAD_PUSH,
+        methods::VAD_IS_SPEAKING,
+        methods::VAD_RESET,
+        methods::VAD_CLOSE,
+        methods::PREPARE_FRAMES,
+        methods::FRAME_ENERGIES,
+        methods::ENCODE_WAV,
+        methods::ENCODE_WAV_PCM16,
+        methods::PREPARE_CAPTURE,
+    ];
+    for member in tinyvoice_bus::names::METHODS {
+        assert!(
+            called.contains(member) || *member == methods::SEGMENT,
+            "the contract declares `{member}`, which this client never calls"
+        );
+    }
+}
