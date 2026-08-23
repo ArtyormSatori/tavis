@@ -8,12 +8,13 @@
 use serde::{Deserialize, Serialize};
 
 use crate::openhuman::config::Config;
+use crate::openhuman::memory::source_scope::current_source_scope;
 use crate::openhuman::memory::tree::retrieval::{
     cover::cover_window_scoped,
-    drill_down::drill_down,
+    drill_down::drill_down_scoped,
     fetch::fetch_leaves_scoped,
     search::search_entities,
-    source::query_source,
+    source::{query_source_scoped, SourceQuery},
     types::{EntityMatch, QueryResponse, RetrievalHit},
 };
 use crate::openhuman::memory::tree::score::extract::EntityKind;
@@ -54,13 +55,17 @@ pub async fn query_source_rpc(
         None => None,
     };
     let limit = req.limit.unwrap_or(0);
-    let resp = query_source(
+    // Explicit scope — see the note in `cover_window_rpc`.
+    let resp = query_source_scoped(
         config,
-        req.source_id.as_deref(),
-        source_kind,
-        req.time_window_days,
-        req.query.as_deref(),
-        limit,
+        SourceQuery {
+            source_id: req.source_id.as_deref(),
+            source_kind,
+            time_window_days: req.time_window_days,
+            query: req.query.as_deref(),
+            limit,
+        },
+        current_source_scope(),
     )
     .await
     .map_err(|e| format!("query_source: {e}"))?;
@@ -235,7 +240,15 @@ pub async fn drill_down_rpc(
     req: DrillDownRequest,
 ) -> Result<RpcOutcome<DrillDownResponse>, String> {
     let depth = req.max_depth.unwrap_or(1);
-    let hits = drill_down(config, &req.node_id, depth, req.query.as_deref(), req.limit)
+    // Explicit scope — see the note in `cover_window_rpc`.
+    let hits = drill_down_scoped(
+        config,
+        &req.node_id,
+        depth,
+        req.query.as_deref(),
+        req.limit,
+        current_source_scope(),
+    )
         .await
         .map_err(|e| format!("drill_down: {e}"))?;
     let n = hits.len();
