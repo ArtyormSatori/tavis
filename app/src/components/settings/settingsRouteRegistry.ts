@@ -235,15 +235,6 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
 
   // --- About ---
   {
-    id: 'keyboard-shortcuts',
-    titleKey: 'shortcuts.title',
-    descriptionKey: 'shortcuts.menuDesc',
-    section: 'home',
-    searchKeywords: ['keyboard', 'shortcuts', 'keys', 'hotkeys', 'bindings', 'cheatsheet'],
-    navGroup: 'general',
-    navOrder: 98,
-  },
-  {
     // Core connection — promotes cloud-mode remote-core config (persisted
     // RPC URL + token) into a first-class setting plus a live status
     // indicator (GH-4396). Sits just above About in General.
@@ -569,15 +560,6 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
   },
   // dev-workflow (the cron-based GitHub dev-automation panel) was retired —
   // superseded by first-level Workflows (/flows) and the skills workflow runner.
-  {
-    id: 'cron-jobs',
-    titleKey: 'settings.developerMenu.cronJobs.title',
-    descriptionKey: 'settings.developerMenu.cronJobs.desc',
-    section: 'developer',
-    devOnly: true,
-    navGroup: 'automationIntegrations',
-    searchKeywords: ['cron', 'schedule', 'jobs'],
-  },
   // Composio trigger-triage config merged into the Connections Composio page.
   // Agent Chat + Local Model Debug are now chips on the Connections → LLM page.
   {
