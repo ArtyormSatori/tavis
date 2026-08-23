@@ -13,7 +13,6 @@ import {
 } from '../../../utils/tauriCommands';
 import { MemoryTextWithEntities } from '../../intelligence/MemoryTextWithEntities';
 import Button from '../../ui/Button';
-import SettingsBackButton from '../components/SettingsBackButton';
 import {
   SettingsEmptyState,
   SettingsSection,
@@ -22,12 +21,11 @@ import {
   SettingsTextArea,
   SettingsTextField,
 } from '../controls';
-import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
+import SettingsPanel from '../layout/SettingsPanel';
 import { normalizeMemoryDocuments } from './memoryDebugUtils';
 
 const MemoryDebugPanel = () => {
   const { t } = useT();
-  const { navigateBack } = useSettingsNavigation();
   const [documents, setDocuments] = useState<MemoryDebugDocument[]>([]);
   const [documentsRaw, setDocumentsRaw] = useState<unknown>(null);
   const [documentsNamespaceFilter, setDocumentsNamespaceFilter] = useState('');
