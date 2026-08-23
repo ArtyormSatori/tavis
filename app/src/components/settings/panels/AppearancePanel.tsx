@@ -1,4 +1,4 @@
-import { type ReactElement, useState } from 'react';
+import { useState } from 'react';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -56,6 +56,36 @@ const AppearancePanel = () => {
     console.debug('[appearance] custom font-size slider', { px });
     dispatch(setCustomFontSizePx(px));
   };
+
+  // Built at render time so the labels follow the active locale; `t()` itself
+  // memoises on locale change, so this stays stable across re-renders within a
+  // locale.
+  const FONT_SIZE_OPTIONS: FontSizeOption[] = [
+    {
+      id: 'small',
+      label: t('settings.appearance.fontSizeSmall'),
+      description: t('settings.appearance.fontSizeSmallDesc'),
+      glyphClass: 'text-xs',
+    },
+    {
+      id: 'medium',
+      label: t('settings.appearance.fontSizeMedium'),
+      description: t('settings.appearance.fontSizeMediumDesc'),
+      glyphClass: 'text-sm',
+    },
+    {
+      id: 'large',
+      label: t('settings.appearance.fontSizeLarge'),
+      description: t('settings.appearance.fontSizeLargeDesc'),
+      glyphClass: 'text-base',
+    },
+    {
+      id: 'xlarge',
+      label: t('settings.appearance.fontSizeXLarge'),
+      description: t('settings.appearance.fontSizeXLargeDesc'),
+      glyphClass: 'text-lg',
+    },
+  ];
 
   return (
     <SettingsPanel description={t('settings.appearance.menuDesc')}>
