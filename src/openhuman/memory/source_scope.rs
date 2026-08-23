@@ -21,16 +21,14 @@
 //! [`as_bus_scope`] is the join between the two — it reads the ambient scope and
 //! renders it in the vocabulary the provider call expects.
 //!
-//!  of memory-source scopes an agent may recall from.
+//! # Semantics
 //!
 //! Agent profiles can restrict which memory sources a flavour recalls (the
 //! `AgentProfile::memory_sources` allowlist). Threading that allowlist through
 //! every memory tool and the deep `select_trees` retrieval layer would touch
-//! dozens of call sites, so — mirroring [`thread_context`] — the channel sets a
-//! [`tokio::task_local`] around the agent turn and the source-tree retrieval
-//! reads it.
+//! dozens of call sites, so the channel sets a [`tokio::task_local`] around the
+//! agent turn and the retrieval path reads it.
 //!
-//! Semantics:
 //! - `None` scope (outside any [`with_source_scope`], or `with_source_scope(None, …)`)
 //!   means **unrestricted** — every source tree is visible. This is the default
 //!   for profile-less cron, sub-agents, the CLI, and any profile that left
