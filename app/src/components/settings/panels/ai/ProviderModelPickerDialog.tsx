@@ -11,6 +11,7 @@ import {
   type OllamaModel,
   slugTone,
 } from './aiPanelTypes';
+import { ModelEntryField, useModelEntryMode } from './ModelEntryField';
 import { ProviderSwatch } from './ProviderListRow';
 
 export interface ProviderModelSelection {
@@ -84,6 +85,18 @@ export function ProviderModelPickerDialog({
   const [model, setModel] = useState(initial?.model ?? '');
   const [catalog, setCatalog] = useState<ModelInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [catalogRequest, setCatalogRequest] = useState(0);
+
+  const selectedCloudProvider =
+    source?.kind === 'cloud'
+      ? cloudProviders.find(provider => provider.slug === source.providerSlug)
+      : undefined;
+  const modelEntryMode = useModelEntryMode({
+    endpoint: selectedCloudProvider?.endpoint,
+    model,
+    catalogIds: catalog.map(candidate => candidate.id),
+  });
 
   useEffect(() => {
     if (!source || source.kind !== 'cloud') {
@@ -93,6 +106,7 @@ export function ProviderModelPickerDialog({
     let active = true;
     setLoading(true);
     setCatalog([]);
+    setCatalogError(null);
     void listProviderModels(source.providerSlug)
       .then(models => {
         if (!active) return;
@@ -100,22 +114,27 @@ export function ProviderModelPickerDialog({
         setLoading(false);
       })
       .catch(() => {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setCatalogError('Could not load models from this provider.');
+        }
       });
     return () => {
       active = false;
     };
-  }, [localModels, source]);
+  }, [catalogRequest, localModels, source]);
 
   const filteredSources = sources.filter(candidate =>
     sourceLabel(candidate, cloudProviders).toLocaleLowerCase().includes(query.toLocaleLowerCase())
   );
-  const filteredModels = catalog.filter(candidate =>
-    candidate.id.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-  );
   const selectSource = (nextSource: CustomDialogSource) => {
     setSource(nextSource);
     setModel(nextSource.kind === 'claude-code' ? CLAUDE_CODE_DEFAULT_MODEL : '');
+    modelEntryMode.syncToEndpoint(
+      nextSource.kind === 'cloud'
+        ? cloudProviders.find(provider => provider.slug === nextSource.providerSlug)?.endpoint
+        : undefined
+    );
   };
 
   return (
@@ -194,22 +213,39 @@ export function ProviderModelPickerDialog({
           </div>
         </div>
         <div className="min-w-0 p-4">
-          <p className="mb-2 text-xs font-medium text-content-muted">Model</p>
-          <TextField
-            value={model}
-            onChange={event => setModel(event.target.value)}
-            placeholder="Enter a model ID"
-            aria-label="Model"
-            mono
-          />
-          <div className="mt-3 max-h-56 space-y-1 overflow-y-auto">
-            {loading ? <p className="text-sm text-content-muted">Loading models…</p> : null}
-            {source?.kind === 'claude-code' ? (
+          {source?.kind === 'cloud' ? (
+            <ModelEntryField
+              mode={modelEntryMode}
+              model={model}
+              onModelChange={setModel}
+              catalog={catalog}
+              catalogLoading={loading}
+              catalogError={catalogError}
+              onRetry={() => setCatalogRequest(request => request + 1)}
+              label="Model"
+              placeholder="Enter a model ID"
+              analyticsId="settings-ai-model-picker-manual-entry"
+            />
+          ) : (
+            <>
+              <p className="mb-2 text-xs font-medium text-content-muted">Model</p>
+              <TextField
+                value={model}
+                onChange={event => setModel(event.target.value)}
+                placeholder="Enter a model ID"
+                aria-label="Model"
+                mono
+              />
+            </>
+          )}
+          {source?.kind !== 'cloud' ? (
+            <div className="mt-3 max-h-56 space-y-1 overflow-y-auto">
+              {source?.kind === 'claude-code' ? (
               <p className="text-sm text-content-muted">
                 Use a Claude Code model alias or model ID.
               </p>
-            ) : (
-              filteredModels.map(candidate => (
+              ) : (
+                catalog.map(candidate => (
                 <Button
                   key={candidate.id}
                   type="button"
@@ -219,9 +255,10 @@ export function ProviderModelPickerDialog({
                   className={`w-full justify-start font-mono ${model === candidate.id ? 'bg-surface-muted' : ''}`}>
                   {candidate.id}
                 </Button>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </ModalShell>
