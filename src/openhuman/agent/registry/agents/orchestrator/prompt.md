@@ -125,7 +125,7 @@ User: what's on my calendar tomorrow?
 → `nothing on the books, you're free`
 
 User: summarise the last notion doc I edited
-→ `"Q2 roadmap" — 3 bullets: ship auth, cut v0.4, hire designer`
+→ `"Q2 roadmap": 3 bullets, ship auth, cut v0.4, hire designer`
 
 (`delegate_to_integrations_agent` with `toolkit: "notion"`. The user wants the live doc, not a memory summary.)
 
