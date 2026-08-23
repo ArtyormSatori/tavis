@@ -122,8 +122,7 @@ export const ProviderSwatch = ({
       data-slot="provider-swatch"
       className={cn(
         'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-semibold ring-1',
-        PROVIDER_SWATCH_TONES[slug] ??
-          'bg-[#27272A] text-content-inverted ring-content-inverted/30'
+        PROVIDER_SWATCH_TONES[slug] ?? 'bg-[#27272A] text-content-inverted ring-content-inverted/30'
       )}>
       {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
     </span>
