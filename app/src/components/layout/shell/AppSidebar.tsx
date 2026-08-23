@@ -108,34 +108,10 @@ export default function AppSidebar() {
   const navigate = useNavigate();
   const { state: sidebarState } = useSidebar();
   const collapsed = sidebarState === 'collapsed';
-  const { snapshot: coreSnapshot, isReady } = useCoreState();
-  // Rewards is a cloud-only surface (credits/referrals/coupons live behind the
-  // backend rewards API); the page itself renders an "unavailable" state for
-  // local sessions, so there's no point offering the entry there. Mirrors the
-  // `cloudOnly` intent recorded for rewards in navConfig's AVATAR_MENU_ITEMS.
-  //
-  // Show it only once core state has bootstrapped to a real, non-local session.
-  // The initial snapshot is `{ isReady: false, sessionToken: null }`, and
-  // `isLocalSessionToken(null)` is `false`, so gating on the token alone would
-  // briefly flash Rewards for a local session until the first refresh resolves.
-  const showRewards =
-    isReady &&
-    Boolean(coreSnapshot.sessionToken) &&
-    !isLocalSessionToken(coreSnapshot.sessionToken);
+  // Rewards used to be a cloud-gated row here beside Feedback; it is a primary
+  // `NAV_TABS` destination now (below Connections), and its gate travelled with
+  // it into `useCloudNavGate`. The footer is Feedback alone.
   const feedbackActive = location.pathname === '/feedback';
-  const rewardsActive = location.pathname === '/rewards';
-
-  // Log the gate outcome whenever it resolves/flips. Booleans only — never the
-  // session token or a raw path.
-  useEffect(() => {
-    log(
-      'rewards footer entry visibility resolved: visible=%s isReady=%s hasSession=%s local=%s',
-      showRewards,
-      isReady,
-      Boolean(coreSnapshot.sessionToken),
-      isLocalSessionToken(coreSnapshot.sessionToken)
-    );
-  }, [showRewards, isReady, coreSnapshot.sessionToken]);
 
   useEffect(() => {
     log('sidebar body: %s', collapsed ? 'collapsed rail' : 'expanded');
@@ -215,18 +191,8 @@ export default function AppSidebar() {
         <SidebarSlotOutlet className="flex h-full flex-col" />
       </SidebarScrollRegion>
       <SidebarFooter>
-        {/* Slim account affordances pinned above the status bar — Rewards then
-            Feedback. Rewards is shown only for a resolved cloud session. */}
+        {/* Slim account affordance pinned above the status bar. */}
         <SidebarMenu>
-          {showRewards && (
-            <FooterNavButton
-              iconId="rewards"
-              label={t('nav.rewards')}
-              active={rewardsActive}
-              walkthroughAttr="tab-rewards"
-              onClick={() => handleFooterNav('rewards', '/rewards', rewardsActive)}
-            />
-          )}
           <FooterNavButton
             iconId="feedback"
             label={t('nav.feedback')}
