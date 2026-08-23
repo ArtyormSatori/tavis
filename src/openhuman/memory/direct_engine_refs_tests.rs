@@ -263,11 +263,6 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
         "engine dependency predates this branch; the facade deletion made it visible",
     ),
     (
-        "src/openhuman/agent/task_dispatcher/executor.rs",
-        Verdict::FacadeRevealed,
-        "engine dependency predates this branch; the facade deletion made it visible",
-    ),
-    (
         "src/openhuman/agent/tinyagents/host/agent_memory.rs",
         Verdict::FacadeRevealed,
         "engine dependency predates this branch; the facade deletion made it visible",
@@ -304,11 +299,6 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
     ),
     (
         "src/openhuman/config/ops/model.rs",
-        Verdict::FacadeRevealed,
-        "engine dependency predates this branch; the facade deletion made it visible",
-    ),
-    (
-        "src/openhuman/cron/scheduler.rs",
         Verdict::FacadeRevealed,
         "engine dependency predates this branch; the facade deletion made it visible",
     ),
@@ -513,17 +503,7 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
         "engine dependency predates this branch; the facade deletion made it visible",
     ),
     (
-        "src/openhuman/skills/runtime/run_machinery.rs",
-        Verdict::FacadeRevealed,
-        "engine dependency predates this branch; the facade deletion made it visible",
-    ),
-    (
         "src/openhuman/tools/registry/ops.rs",
-        Verdict::FacadeRevealed,
-        "engine dependency predates this branch; the facade deletion made it visible",
-    ),
-    (
-        "src/openhuman/web_chat/run_task.rs",
         Verdict::FacadeRevealed,
         "engine dependency predates this branch; the facade deletion made it visible",
     ),
@@ -660,11 +640,6 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
         "src/openhuman/memory/tools/diff.rs",
         Verdict::NeedsWiderSeam,
         "sources::{get_source, list_sources}; MemorySourceSink is accept_source_items + forget_source, with no list door",
-    ),
-    (
-        "src/openhuman/memory/tools/search/chunk_context.rs",
-        Verdict::NeedsWiderSeam,
-        "get_chunk / list_chunks by id and source, plus source_scope::chunk_source_allowed",
     ),
 ];
 
