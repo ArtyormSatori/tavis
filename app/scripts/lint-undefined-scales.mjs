@@ -26,8 +26,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import vm from 'node:vm';
-import resolveConfigModule from 'tailwindcss/resolveConfig.js';
+import tailwindColorsModule from 'tailwindcss/colors';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(here, '..');
@@ -77,67 +76,43 @@ const UTILITY_PREFIXES = [
 ];
 
 /**
- * `tailwind.config.js` is CommonJS (`module.exports`) but this package is
- * `"type": "module"`, so `require()` / `import` both refuse it. It is pure
- * data with no `require` calls, so evaluate it in a throwaway vm context with
- * a stub `module`/`exports` — the same trick Tailwind's own loader performs.
+ * Tailwind v4 removed `resolveConfig` and this app now defines its custom
+ * palette in `src/index.css`'s `@theme` block. Build the effective shade set
+ * from Tailwind's exported default palette plus every numeric
+ * `--color-<scale>-<shade>` variable declared by the app.
  */
-function loadTailwindConfig() {
-  const source = readFileSync(path.join(appRoot, 'tailwind.config.js'), 'utf8');
-  const sandbox = { module: { exports: {} }, require: () => ({}) };
-  sandbox.exports = sandbox.module.exports;
-  vm.createContext(sandbox);
-  new vm.Script(source, { filename: 'tailwind.config.js' }).runInContext(sandbox);
-  return sandbox.module.exports;
-}
-
 function shadeResolver() {
-  // Resolve the FULL theme, not just `theme.extend.colors`. Two things this
-  // gets right that a name allow-list cannot:
-  //
-  //  - `extend` KEEPS Tailwind's defaults, so `sky-500`/`rose-500` are valid
-  //    even though `sky`/`rose` appear in the config only as single `accent.*`
-  //    colours. A hand-maintained default list tracks that only until Tailwind
-  //    changes — and gets it exactly backwards if the config ever switches from
-  //    `extend` to a replacing `theme.colors`, where it would keep allowing
-  //    scales that no longer resolve.
-  //  - SCALE vs SINGLE COLOUR. `accent`, `surface` and `content` ARE palette
-  //    keys, but hold named entries (`accent.lavender`, `surface.canvas`), not
-  //    numeric shades. So `accent-lavender` is real while `accent-500` emits
-  //    nothing. Checking the resolved SHADE catches that; checking the scale
-  //    NAME does not — `bg-accent-500`, `bg-surface-500` and `text-content-500`
-  //    all passed the previous version of this lint while emitting no CSS.
-  const resolveConfig = resolveConfigModule.default ?? resolveConfigModule;
-  const resolved = resolveConfig(loadTailwindConfig());
-  const colors = resolved?.theme?.colors;
-  if (!colors || Object.keys(colors).length === 0) {
-    throw new Error(
-      'lint:ui-tokens: resolved theme.colors is empty — refusing to run, since ' +
-        'an empty palette would flag every colour utility in the app.'
-    );
-  }
-  // Fail loudly if the resolved shape ever changes, rather than silently
-  // passing everything.
-  if (typeof colors.primary !== 'object' || !colors.primary['500']) {
-    throw new Error(
-      'lint:ui-tokens: resolved palette has no primary-500 — the config shape ' +
-        'changed and this lint can no longer be trusted.'
-    );
-  }
-  const shadeExists = (scale, shade) => {
-    const entry = colors[scale];
-    return typeof entry === 'object' && entry !== null && Boolean(entry[shade]);
-  };
+  const colors = tailwindColorsModule.default ?? tailwindColorsModule;
+  const shades = new Set();
+  const scaleNames = new Set();
 
-  // Names carrying at least one numeric shade — what a caller may legally write
-  // as `<utility>-<name>-<shade>`. Used only for the operator-facing message.
-  const scaleNames = Object.keys(colors).filter(
-    k =>
-      typeof colors[k] === 'object' &&
-      colors[k] !== null &&
-      Object.keys(colors[k]).some(x => /^\d+$/.test(x))
-  );
-  return { shadeExists, scaleNames };
+  for (const [scale, values] of Object.entries(colors)) {
+    if (!values || typeof values !== 'object') continue;
+    for (const shade of Object.keys(values)) {
+      if (!/^\d+$/.test(shade)) continue;
+      shades.add(`${scale}-${shade}`);
+      scaleNames.add(scale);
+    }
+  }
+
+  const themeCss = readFileSync(path.join(appRoot, 'src/index.css'), 'utf8');
+  for (const match of themeCss.matchAll(/--color-([a-z][a-z0-9-]*)-(\d{1,3})\s*:/g)) {
+    const [, scale, shade] = match;
+    shades.add(`${scale}-${shade}`);
+    scaleNames.add(scale);
+  }
+
+  if (!shades.has('primary-500')) {
+    throw new Error(
+      'lint:ui-tokens: Tailwind v4 theme has no primary-500 — refusing to run, ' +
+        'because the app palette could not be loaded.'
+    );
+  }
+
+  return {
+    shadeExists: (scale, shade) => shades.has(`${scale}-${shade}`),
+    scaleNames: [...scaleNames],
+  };
 }
 
 const PATTERN = new RegExp(
@@ -177,12 +152,12 @@ for (const file of walk(path.join(appRoot, 'src'))) {
 if (violations.length > 0) {
   console.error(
     `lint:ui-tokens: ${violations.length} Tailwind utility/utilities name a colour scale that ` +
-      `tailwind.config.js does not define. These emit NO CSS and render uncoloured:\n`
+      `the Tailwind v4 theme does not define. These emit NO CSS and render uncoloured:\n`
   );
   for (const v of violations) console.error(`  ${v}`);
   console.error(
     `\nScales that define numeric shades: ${[...scaleNames].sort().join(', ')}\n` +
-      `Fix by choosing a defined semantic token — do NOT add the missing scale to tailwind.config.js.`
+      `Fix by choosing a defined semantic token — do NOT add a scale only to silence this lint.`
   );
   process.exit(1);
 }
