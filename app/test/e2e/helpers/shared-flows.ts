@@ -91,6 +91,18 @@ export async function waitForHomePage(timeout = 15_000) {
   ];
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
+    // The unified chat surface can legitimately render without a greeting
+    // marker (for example while its thread data is still loading). Once the
+    // authenticated root shell is mounted, the post-onboarding route is ready
+    // for the caller to navigate to its feature under test.
+    if (
+      supportsExecuteScript() &&
+      (await browser.execute(
+        () => document.querySelector('[data-testid="root-shell-sidebar"]') !== null
+      ))
+    ) {
+      return 'application shell';
+    }
     for (const text of candidates) {
       if (await textExists(text)) return text;
     }
