@@ -38,20 +38,20 @@ describe('SidebarNav active matching', () => {
     expect(tabButton('Workflows')).not.toHaveAttribute('aria-current');
   });
 
-  it('gives the active tab a neutral fill that lifts off the chrome, not an accent tint', () => {
+  it('gives the active tab the accent fill, not a neutral surface lift', () => {
     renderWithProviders(<SidebarNav />, { initialEntries: ['/chat'] });
 
     const active = tabButton('Chat');
-    // The sidebar sits on the themed chrome layer, which already carries the
-    // theme's hue — so selection is a neutral surface lift plus weight. Tinting
-    // the pill on top of a tinted chrome stacks two colours and reads as noise.
-    expect(active.className).toContain('bg-surface/70');
+    // The accent is the only colour in this column, which is what makes it
+    // legible as selection rather than decoration. This was a neutral
+    // `bg-surface/70` while the chrome was a themed WebGL mesh; the flat
+    // default backdrop left a neutral pill with nothing to lift against.
+    expect(active.className).toContain('bg-primary-500');
     expect(active.className).toContain('font-semibold');
-    expect(active.className).not.toContain('bg-primary');
     expect(active.className).not.toContain(RAW_WHITE_FILL);
 
     // Inactive tabs carry no active fill.
-    expect(tabButton('Human').className).not.toContain('bg-surface/70');
+    expect(tabButton('Workflows').className).not.toContain('bg-primary-500');
   });
 
   it('renders rows as sidebar menu primitives, not bare buttons', () => {
