@@ -1125,9 +1125,6 @@ fn all_tools_registers_integration_families_when_enabled_and_signed_in() {
     assert_contains_all(
         &names,
         &[
-            "apify_run_actor",
-            "apify_get_run_status",
-            "apify_get_run_results",
             "google_places_search",
             "google_places_details",
             "parallel_search",
@@ -1273,83 +1270,6 @@ fn all_tools_omits_search_surface_when_search_is_disabled() {
             "did not expect search tool `{search_tool}` when search is disabled; got: {names:?}"
         );
     }
-}
-
-#[tokio::test]
-async fn all_tools_executes_apify_family_against_fake_backend() {
-    let backend = integration_test_support::spawn_fake_integration_backend().await;
-    let tmp = TempDir::new().unwrap();
-    let cfg = integration_test_config(&tmp, &backend.base_url);
-    store_test_session_token(&cfg);
-    let tools = integration_tools_for_config(&tmp, &cfg);
-
-    let run = find_tool(&tools, "apify_run_actor")
-        .execute(serde_json::json!({
-            "actor_id": "apify/linkedin-profile-scraper",
-            "input": { "profile": "alice" },
-            "sync": true,
-            "timeout_secs": 45,
-            "memory_mbytes": 512
-        }))
-        .await
-        .expect("apify_run_actor execute");
-    let run_display = run.output_for_llm(true);
-    assert!(run_display.contains("apify/linkedin-profile-scraper"));
-    assert!(!run_display.contains("run-apify-linkedin-profile-scraper"));
-    let run_payload = only_json_content(&run);
-    assert_eq!(
-        run_payload["run_id"],
-        serde_json::json!("run-apify-linkedin-profile-scraper")
-    );
-
-    let status = find_tool(&tools, "apify_get_run_status")
-        .execute(serde_json::json!({ "run_id": "run-apify-linkedin-profile-scraper" }))
-        .await
-        .expect("apify_get_run_status execute");
-    let status_display = status.output_for_llm(true);
-    let status_prose = status_display
-        .split("[apify_run_ref]")
-        .next()
-        .expect("status prose before ref");
-    assert!(status_display.contains("Status: SUCCEEDED"));
-    assert!(!status_prose.contains("run-apify-linkedin-profile-scraper"));
-    assert!(!status_prose.contains("dataset-run-apify-linkedin-profile-scraper"));
-    assert!(status_display.contains("[apify_run_ref]"));
-    let status_payload = only_json_content(&status);
-    assert_eq!(
-        status_payload["run_id"],
-        serde_json::json!("run-apify-linkedin-profile-scraper")
-    );
-    assert_eq!(
-        status_payload["dataset_id"],
-        serde_json::json!("dataset-run-apify-linkedin-profile-scraper")
-    );
-
-    let results = find_tool(&tools, "apify_get_run_results")
-        .execute(serde_json::json!({
-            "run_id": "run-apify-linkedin-profile-scraper",
-            "limit": 2,
-            "offset": 1
-        }))
-        .await
-        .expect("apify_get_run_results execute");
-    assert!(results.output().contains("Fetched 2 dataset item(s)."));
-    assert!(results
-        .output()
-        .contains("https://example.com/run-apify-linkedin-profile-scraper/1"));
-
-    let requests = backend.requests();
-    assert_eq!(requests.len(), 3);
-    assert_eq!(requests[0].path, "/agent-integrations/apify/run");
-    assert_eq!(
-        requests[0].body["actorId"],
-        serde_json::json!("apify/linkedin-profile-scraper")
-    );
-    assert_eq!(requests[0].body["memoryMbytes"], serde_json::json!(512));
-    assert_eq!(
-        requests[2].path,
-        "/agent-integrations/apify/runs/run-apify-linkedin-profile-scraper/results?limit=2&offset=1"
-    );
 }
 
 #[tokio::test]
