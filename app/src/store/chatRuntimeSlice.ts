@@ -1378,7 +1378,10 @@ const chatRuntimeSlice = createSlice({
         toolCallId?: string;
       }>
     ) => {
-      const { threadId, round, delta, toolName, toolCallId } = action.payload;
+      const { threadId, round, delta, toolName } = action.payload;
+      // `""` means "no id" — see `toolCallReceived` for why the empty string
+      // must never reach a row id.
+      const toolCallId = action.payload.toolCallId || undefined;
       const entries = (state.toolTimelineByThread[threadId] ??= []);
       let matchIdx = -1;
       if (toolCallId) matchIdx = entries.findIndex(e => e.id === toolCallId);
@@ -1399,7 +1402,11 @@ const chatRuntimeSlice = createSlice({
         state.toolTimelineSeqByThread[threadId] = seq + 1;
         entries.push(
           decorateEntry({
-            id: toolCallId ?? '',
+            // Same stable fallback `toolCallReceived` generates. This branch
+            // used to write `''`, so an args-delta that arrived before its
+            // `tool_call` event with no id produced an id-less row — and a
+            // second one collided with it.
+            id: toolCallId ?? `${threadId}:${round}:${entries.length}:${toolName ?? ''}`,
             name: toolName ?? '',
             round,
             seq,
