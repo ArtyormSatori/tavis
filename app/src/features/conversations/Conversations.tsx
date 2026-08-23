@@ -18,8 +18,6 @@ import QueuedFollowups from '../../components/chat/QueuedFollowups';
 import WorkflowProposalCard from '../../components/chat/WorkflowProposalCard';
 import { ConfirmationModal } from '../../components/intelligence/ConfirmationModal';
 import { SidebarContent } from '../../components/layout/shell/SidebarSlot';
-import UpsellBanner from '../../components/upsell/UpsellBanner';
-import { dismissBanner, shouldShowBanner } from '../../components/upsell/upsellDismissState';
 import { AssistantUiChat } from '../../features/conversations/components/AssistantUiChat';
 import { selectBackgroundProcesses } from '../../features/conversations/components/BackgroundProcessesPanel';
 import {
@@ -62,7 +60,6 @@ import {
   validateAndReadFile,
 } from '../../lib/attachments';
 import { useT } from '../../lib/i18n/I18nContext';
-import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
 import { threadApi } from '../../services/api/threadApi';
 import { fetchThreadTokenUsage } from '../../services/api/threadUsageApi';
 import {
@@ -338,7 +335,6 @@ const Conversations = ({
   );
   const sendAdvisoryRef = useRef(sendAdvisory);
   sendAdvisoryRef.current = sendAdvisory;
-  const [openRouterStatus, setOpenRouterStatus] = useState<'idle' | 'saving' | 'error'>('idle');
   // Threads whose send is mid-flight (dispatched locally, backend not yet
   // accepted). A Set so concurrent sends to different threads each track their
   // own pending state instead of clobbering a single slot.
@@ -578,17 +574,6 @@ const Conversations = ({
     } catch (error) {
       debug('[chat] create thread failed: %O', error);
       setSendError(chatSendError('create_thread_failed', t('chat.createThreadFailed')));
-    }
-  };
-
-  const handleUseOpenRouterFree = async () => {
-    setOpenRouterStatus('saving');
-    try {
-      await applyOpenRouterFreeModels();
-      setOpenRouterStatus('idle');
-    } catch (err) {
-      console.warn('[chat] applyOpenRouterFreeModels failed', err);
-      setOpenRouterStatus('error');
     }
   };
 
@@ -2044,11 +2029,6 @@ const Conversations = ({
             : 'absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-195 px-4 pb-4 pt-6'
         }>
         <>
-          {openRouterStatus === 'error' && (
-            <div className="mb-3 rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700">
-              {t('openrouterFree.error')}
-            </div>
-          )}
 
           {/* Cycle usage pill moved into ChatComposer toolbar */}
         </>
@@ -2510,11 +2490,6 @@ const Conversations = ({
 
   const assistantComposerHeader = (
     <>
-      {openRouterStatus === 'error' && (
-        <div className="rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700">
-          {t('openrouterFree.error')}
-        </div>
-      )}
       {attachError && (
         <div className="rounded-lg border border-coral-200 bg-coral-50 px-3 py-2">
           <p className="text-xs text-coral-500" data-chat-send-error-code={attachError.code}>

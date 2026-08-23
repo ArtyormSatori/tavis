@@ -125,6 +125,18 @@ export function useAppNotices(): AppNotice[] {
     setDismissed(prev => new Set(prev).add(id));
   }, []);
 
+  // The OpenRouter switch can fail, and the banner this replaced showed that
+  // failure inline. Surfacing it as its own notice keeps that feedback rather
+  // than letting the click look like it silently did nothing.
+  const [openRouterFailed, setOpenRouterFailed] = useState(false);
+  const useOpenRouterFree = useCallback(() => {
+    setOpenRouterFailed(false);
+    void applyOpenRouterFreeModels().catch((error: unknown) => {
+      console.warn('[notices] applyOpenRouterFreeModels failed', error);
+      setOpenRouterFailed(true);
+    });
+  }, []);
+
   const runErrorAction = useCallback(
     (entry: UserActionableError) => {
       if (entry.action !== 'dismiss') navigate(ACTION_ROUTE[entry.action]);
@@ -229,11 +241,17 @@ export function useAppNotices(): AppNotice[] {
         // The free-tier escape hatch the banner carried. Kept because it is the
         // only remediation that does not require a payment method.
         secondaryActionLabel: t('openrouterFree.cta'),
-        onSecondaryAction: () => {
-          void applyOpenRouterFreeModels().catch((error: unknown) => {
-            console.warn('[notices] applyOpenRouterFreeModels failed', error);
-          });
-        },
+        onSecondaryAction: useOpenRouterFree,
+      });
+    }
+
+    if (openRouterFailed) {
+      notices.push({
+        id: 'openrouter-free:failed',
+        severity: 'warning',
+        title: t('openrouterFree.cta'),
+        body: t('openrouterFree.error'),
+        onDismiss: () => setOpenRouterFailed(false),
       });
     }
 
@@ -249,7 +267,9 @@ export function useAppNotices(): AppNotice[] {
     isFreeTier,
     isNearLimit,
     navigate,
+    openRouterFailed,
     runErrorAction,
+    useOpenRouterFree,
     t,
     shouldShowBudgetCompletedMessage,
     teamUsage,
