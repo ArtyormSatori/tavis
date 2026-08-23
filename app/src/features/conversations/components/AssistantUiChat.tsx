@@ -12,7 +12,7 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import { AssistantUiRuntimeProvider } from '../../../providers/AssistantUiRuntimeProvider';
 import { emptySessionTokenUsage } from '../../../store/chatRuntimeSlice';
 import { useAppSelector } from '../../../store/hooks';
-import { selectCustomPrimaryColor, selectMascotColor } from '../../../store/mascotSlice';
+import { DEFAULT_MASCOT_COLOR } from '../../../store/mascotSlice';
 import { MascotChipAvatar } from '../../human/Mascot/MascotChipAvatar';
 import { ChatToolFallback, ChatToolGroup } from './ChatToolParts';
 import { contextUsageFromTokenUsage, ContextWindowPill } from './composer/ContextWindowPill';
@@ -98,8 +98,14 @@ export function AssistantUiChat({
   const fileInputRef = useRef<HTMLInputElement>(null);
   // The idle composer button wears the user's own mascot (yellow by default),
   // so the control looks like the thing it opens rather than a generic glyph.
-  const mascotColor = useAppSelector(selectMascotColor);
-  const mascotCustomPrimary = useAppSelector(selectCustomPrimaryColor);
+  //
+  // Read defensively rather than through `selectMascotColor` /
+  // `selectCustomPrimaryColor`: this component is mounted by suites that build
+  // a partial store, and those selectors dereference `state.mascot` unguarded,
+  // so a store without the slice crashes the whole chat surface on render.
+  // `ChatThreadView` reads `state.theme?.` the same way for the same reason.
+  const mascotColor = useAppSelector(state => state.mascot?.color ?? DEFAULT_MASCOT_COLOR);
+  const mascotCustomPrimary = useAppSelector(state => state.mascot?.customPrimaryColor ?? null);
   const selectedThreadId = useAppSelector(state => state.thread.selectedThreadId);
   const loadError = useAppSelector(state => state.thread.messagesError);
   const tokenUsage = useAppSelector(state =>
