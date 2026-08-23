@@ -34,7 +34,7 @@ use tinymemory_core::store::chunks::store::{
     count_chunks, count_chunks_by_lifecycle_status, CHUNK_STATUS_BUFFERED,
 };
 use tinymemory_core::store::trees::{store as tree_store, types::TreeKind};
-use tinymemory_core::sync_events::{emit_sync_stage, MemorySyncStage, MemorySyncTrigger};
+use tinymemory_api::sync_events::{emit_sync_stage, MemorySyncStage, MemorySyncTrigger};
 
 // ── helpers ─────────────────────────────────────────────────────────────
 
