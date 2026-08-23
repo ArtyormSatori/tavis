@@ -150,7 +150,7 @@ function composioSortRank(connection: ComposioConnection | undefined): number {
  * name, and a bare icon column would leave a ragged empty strip for any toolkit
  * whose logo failed to load.
  */
-const COMPOSIO_COLUMNS = (t: (key: string) => string): DataTableColumn<never>[] => [
+const COMPOSIO_COLUMNS = <T,>(t: (key: string) => string): DataTableColumn<T>[] => [
   { id: 'app', header: t('composio.colApp'), className: 'min-w-56' },
   { id: 'status', header: t('composio.colStatus') },
   { id: 'accounts', header: t('composio.colAccounts') },
@@ -1323,7 +1323,7 @@ export default function Skills() {
                             // in-flight loading window (#3933).
                             (
                               <DataTable<(typeof composioSortedEntries)[number]>
-                                columns={COMPOSIO_COLUMNS(t)}
+                                columns={COMPOSIO_COLUMNS<(typeof composioSortedEntries)[number]>(t)}
                                 rows={composioSortedEntries}
                                 rowKey={entry => entry.meta.slug}
                                 ariaLabel={t('skills.integrationsSubtitle')}
