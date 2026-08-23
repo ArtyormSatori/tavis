@@ -246,6 +246,25 @@ describe('NoticeCenter', () => {
     expect(screen.getByTestId('pathname')).toHaveTextContent('/connections?tab=skills');
   });
 
+  it('raises the near-limit warning and persists its dismissal for 24h', async () => {
+    usageState.teamUsage = { plan: 'free' };
+    usageState.isNearLimit = true;
+    usageState.isFreeTier = true;
+    usageState.usagePct = 0.85;
+    localStorage.removeItem('openhuman:upsell:conversations-warning');
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    expect(screen.getByText('Approaching usage limit')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('notice-dismiss'));
+
+    // Persisted, not session-only: usage creeps up over days, so re-nagging on
+    // every restart is exactly what the banner's 24h cooldown prevented.
+    expect(localStorage.getItem('openhuman:upsell:conversations-warning')).not.toBeNull();
+    expect(screen.queryByTestId('notice-center')).toBeNull();
+  });
+
   it('dismisses a classified error out of the list', async () => {
     renderCenter([memoryError]);
 
