@@ -1,5 +1,5 @@
-import { LuKeyboard, LuPanelLeftClose, LuSettings } from 'react-icons/lu';
-import { useNavigate } from 'react-router-dom';
+import { LuKeyboard, LuMegaphone, LuPanelLeftClose, LuSettings } from 'react-icons/lu';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { registry } from '../../../lib/commands/registry';
 import { useT } from '../../../lib/i18n/I18nContext';
@@ -15,12 +15,18 @@ const ICON_BTN = 'h-7 w-7 flex-none rounded-md text-content-muted hover:text-con
 
 /**
  * Thin utility header at the top of the root sidebar: keyboard shortcuts,
- * Settings, and collapse. Language is chosen from Settings, not here.
+ * Feedback, Settings, and collapse. Language is chosen from Settings, not here.
+ *
+ * Feedback moved up here from the sidebar footer row: it is a utility action
+ * like the other three, not a destination the user returns to, and the footer
+ * is now only the connectivity/version strip.
  */
 export default function SidebarHeader() {
   const { t } = useT();
   const navigate = useNavigate();
+  const location = useLocation();
   const { hide } = useRootSidebar();
+  const feedbackActive = location.pathname === '/feedback';
 
   return (
     // The primitive's header slot supplies the px-3/pb-2/pt-3 band; this only
@@ -42,6 +48,23 @@ export default function SidebarHeader() {
             analyticsId="sidebar-header-shortcuts"
             aria-label={t('shortcuts.title')}>
             <LuKeyboard className="h-4 w-4" />
+          </Button>
+        </Tooltip>
+
+        {/* Share feedback — a utility action, so it sits with the other three
+            rather than occupying a nav row. `aria-current` marks it while the
+            route is open, matching how the nav rows signal the active page. */}
+        <Tooltip label={t('nav.feedback')}>
+          <Button
+            variant="tertiary"
+            iconOnly
+            onClick={() => navigate('/feedback')}
+            className={ICON_BTN}
+            analyticsId="sidebar-header-feedback"
+            data-walkthrough="tab-feedback"
+            aria-current={feedbackActive ? 'page' : undefined}
+            aria-label={t('nav.feedback')}>
+            <LuMegaphone className="h-4 w-4" />
           </Button>
         </Tooltip>
 
