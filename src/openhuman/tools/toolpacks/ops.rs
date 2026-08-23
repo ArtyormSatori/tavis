@@ -47,14 +47,19 @@ pub fn bind_pack_registry(tools: &Arc<Vec<Box<dyn Tool>>>) {
 /// when the agent actually lost something to a pack — otherwise every narrow
 /// sub-agent would grow two tools that can only report an empty skill.
 ///
+/// `agent_id` selects which packs apply: a pack is skipped for the specialist
+/// that owns its family (see [`super::types::ToolPack::owners`]), because
+/// withholding a belt from the agent that exists to run it only buys a
+/// `load_skill` round trip per turn.
+///
 /// A caller with an *empty* `visible` set means "everything is visible"
 /// (the harness's historical sentinel), so there is nothing to subtract from
 /// and the set is left alone.
-pub fn strip_packed_from_visible(visible: &mut HashSet<String>) {
+pub fn strip_packed_from_visible(visible: &mut HashSet<String>, agent_id: &str) {
     if visible.is_empty() {
         return;
     }
-    let packed: Vec<String> = registry::all_packed_tool_names()
+    let packed: Vec<String> = registry::packed_tool_names_for_agent(agent_id)
         .into_iter()
         .filter(|name| visible.contains(*name))
         .map(str::to_string)
@@ -68,6 +73,7 @@ pub fn strip_packed_from_visible(visible: &mut HashSet<String>) {
     visible.insert(LOAD_SKILL.to_string());
     visible.insert(USE_SKILL.to_string());
     tracing::info!(
+        agent = %agent_id,
         hidden = packed.len(),
         "[toolpacks] withheld packed tool schemas; load_skill/use_skill advertised instead"
     );
