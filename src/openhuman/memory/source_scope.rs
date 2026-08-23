@@ -3,7 +3,7 @@
 //! # Why this is here and not in a tinymemory crate
 //!
 //! The engine has a task-local of the same shape
-//! (`tinymemory_core::source_scope`), and for a while this host simply used it.
+//! (`crate::openhuman::memory::source_scope`), and for a while this host simply used it.
 //! That only worked because the host linked the engine. Once memory is reached
 //! through the loadable TinyMemory module, it stops working *silently*: the
 //! module is a separately compiled `cdylib` with its own statics, so a

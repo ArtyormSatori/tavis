@@ -13,7 +13,7 @@ use crate::openhuman::memory::guard::test_support::{
 };
 use crate::openhuman::security::live_policy;
 use crate::openhuman::security::policy::{AutonomyLevel, SecurityPolicy};
-use tinymemory_core::source_scope::with_source_scope;
+use crate::openhuman::memory::source_scope::with_source_scope;
 
 fn ingest_request(content: &str) -> IngestRequest {
     IngestRequest {
