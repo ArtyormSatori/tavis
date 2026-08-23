@@ -80,7 +80,7 @@ export default function SidebarNav() {
   };
 
   return (
-    // `SidebarGroup` supplies the px-2/py-1 flex-column band that used to sit
+    // `SidebarGroup` supplies the px-3/py-1 flex-column band that used to sit
     // directly on `<nav>`; the semantic landmark element stays a plain `<nav>`
     // (no primitive substitutes for that a11y role) and picks up
     // `shrink-0` so the caller no longer needs a wrapping div for it.
