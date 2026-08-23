@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate, Route, useLocation } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 
 import SettingsIndexRedirect from './layout/SettingsIndexRedirect';
 import AboutPanel from './panels/AboutPanel';
@@ -41,9 +41,8 @@ import WorkflowRunnerPanel from './panels/WorkflowRunnerPanel';
 
 /**
  * Single vertical-scroll wrapper for a settings panel. The surrounding card
- * (bg / border / rounding) is provided by the host — `SettingsLayout`'s content
- * pane on iOS, or `SettingsModalLayout`'s right column on desktop — so panels
- * sit directly on it. PanelScaffold-based panels are `h-full` and own their own
+ * (bg / border / rounding) is provided by `SettingsLayout`'s content pane — so
+ * panels sit directly on it. PanelScaffold-based panels are `h-full` and own their own
  * internal scroll; legacy panels that overflow scroll here. Either way there's
  * exactly one scrollbar.
  */
@@ -56,25 +55,21 @@ const wrapSettingsPage = (element: ReactNode) => (
 );
 
 /**
- * Redirect that stays *within* `/settings/*` while preserving nav state — most
- * importantly the desktop modal's `backgroundLocation`, so a legacy-slug hop
- * inside the modal keeps its backdrop instead of falling back to the default
- * page. Use this for in-settings redirects only; external redirects (`/brain`,
- * `/connections`) intentionally exit the modal and keep a plain `<Navigate>`.
+ * Redirect that stays *within* `/settings/*`. A thin alias for `<Navigate>`,
+ * kept because it names the intent at ~10 call sites: these hops land on
+ * another settings panel, while the external ones (`/brain`, `/connections`)
+ * deliberately leave the settings tree.
  */
-const SettingsRedirect = ({ to }: { to: string }) => {
-  const location = useLocation();
-  return <Navigate to={to} replace state={location.state} />;
-};
+const SettingsRedirect = ({ to }: { to: string }) => <Navigate to={to} replace />;
 
 /**
  * The full settings route table — index, every panel, and every legacy-slug
  * redirect. Returned as a fragment of `<Route>` elements (via a function call,
- * not a nested component) so it can be embedded directly inside a `<Routes>` in
- * both hosts:
+ * not a nested component) so it can be embedded directly inside a `<Routes>`:
  *
- *   - Desktop modal: `<Routes>{settingsRouteElements()}</Routes>`
- *   - iOS full page:  `<Routes><Route element={<SettingsLayout/>}>{settingsRouteElements()}</Route></Routes>`
+ *   `<Routes><Route element={<SettingsLayout/>}>{settingsRouteElements()}</Route></Routes>`
+ *
+ * Desktop and iOS both mount it that way through `pages/Settings.tsx`.
  *
  * Retired slugs are kept as redirects so deep links keep working.
  */
