@@ -1,17 +1,18 @@
 import { useMemo, useRef, useState } from 'react';
+import { LuX } from 'react-icons/lu';
+import { useNavigate } from 'react-router-dom';
 
+import Button from '../../components/ui/Button';
 import { useT } from '../../lib/i18n/I18nContext';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
 import {
   selectCustomMascotGifUrl,
   selectCustomPrimaryColor,
   selectCustomSecondaryColor,
   selectMascotColor,
   selectSpeakReplies,
-  setSpeakReplies,
 } from '../../store/mascotSlice';
 import { HUMAN_VOICE_REALTIME_ENABLED, HUMAN_VOICE_SHOW_BOTH } from '../../utils/config';
-import Conversations from '../conversations/Conversations';
 import {
   CustomGifMascot,
   getMascotPalette,
@@ -28,7 +29,7 @@ import { resolveHumanVoiceEntry } from './voiceEntry';
 
 const HumanPage = () => {
   const { t } = useT();
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   // Reads the shared preference rather than the old
   // `localStorage['human.speakReplies']` this page used to own. That key is
   // consumed and deleted by the mascot slice's persist migration, so keeping the
