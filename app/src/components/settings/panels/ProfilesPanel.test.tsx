@@ -79,8 +79,7 @@ describe('ProfilesPanel', () => {
     renderPanel();
     await screen.findByText('Writer');
     fireEvent.click(screen.getByText('New profile'));
-    // Second arg carries the backgroundLocation nav state for the desktop modal.
-    expect(mockNavigate).toHaveBeenCalledWith('/settings/profiles/new', expect.anything());
+    expect(mockNavigate).toHaveBeenCalledWith('/settings/profiles/new');
   });
 
   it('sets a non-active profile as active', async () => {

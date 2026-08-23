@@ -58,9 +58,7 @@ describe('SidebarHeader', () => {
   it('settings button navigates to /settings', () => {
     renderWithProviders(<SidebarHeader />, { initialEntries: ['/home'] });
     fireEvent.click(screen.getByRole('button', { name: 'nav.settings' }));
-    expect(mockNavigate).toHaveBeenCalledWith('/settings', {
-      state: { backgroundLocation: expect.objectContaining({ pathname: '/home' }) },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('/settings');
   });
 
   it('Collapse button calls hide()', () => {
