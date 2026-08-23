@@ -379,6 +379,15 @@ SidebarTrigger.displayName = 'SidebarTrigger';
 /**
  * The routed content beside the column. `unframed` renders it edge-to-edge —
  * the framed default is an inset, rounded card on the chrome.
+ *
+ * The card's hairline is painted by an `::after` overlay rather than by the
+ * element's own `box-shadow`. An inset shadow renders above the element's
+ * background but *below* its children's, so any page whose root paints an
+ * opaque fill — `Thread`'s `bg-background` on the chat surface is the one that
+ * exposed this — covered the edge and the page appeared borderless. The
+ * overlay sits above the content, is `pointer-events-none`, and inherits the
+ * radius, so it draws the same hairline on every page regardless of what the
+ * page paints.
  */
 export interface SidebarInsetProps extends HTMLAttributes<HTMLDivElement> {
   unframed?: boolean;
@@ -392,7 +401,8 @@ export const SidebarInset = forwardRef<HTMLDivElement, SidebarInsetProps>(
       data-unframed={unframed ? 'true' : undefined}
       className={cn(
         'relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface',
-        !unframed && 'm-3 rounded-2xl shadow-content-edge',
+        !unframed &&
+          'm-3 rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:shadow-content-edge',
         className
       )}
       {...rest}
