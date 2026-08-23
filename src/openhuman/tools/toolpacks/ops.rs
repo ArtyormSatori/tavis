@@ -59,8 +59,14 @@ pub fn strip_packed_from_visible(visible: &mut HashSet<String>, agent_id: &str) 
     if visible.is_empty() {
         return;
     }
+    // Groups an embedder marked `Advertised` keep their schemas on the wire;
+    // `Off` groups were never registered, so nothing of theirs can be in
+    // `visible` to subtract. Only `Withheld` — the default for every group —
+    // is actually withheld here.
+    let groups = super::groups::current();
     let packed: Vec<String> = registry::packed_tool_names_for_agent(agent_id)
         .into_iter()
+        .filter(|name| groups.mode_for_tool(name) == super::groups::GroupMode::Withheld)
         .filter(|name| visible.contains(*name))
         .map(str::to_string)
         .collect();

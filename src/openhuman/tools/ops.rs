@@ -1262,10 +1262,24 @@ pub fn all_tools_with_runtime(
     let after_domains = tools.len();
 
     tools.retain(|t| crate::core::all::capability_allowed(tool_capability(t.name())));
+    let after_capabilities = tools.len();
+
+    // 3. ToolGroups: a group an embedder set to `Off` is not registered at all.
+    //    `Advertised` and `Withheld` both keep the tool here — they differ only
+    //    in whether its schema reaches the provider, which is decided later by
+    //    `strip_packed_from_visible`. Same default-open rule as the two filters
+    //    above: with no ambient context every group is `Withheld`, so nothing
+    //    is dropped and the desktop list is unchanged.
+    {
+        let groups = crate::openhuman::tools::toolpacks::groups::current();
+        tools.retain(|t| {
+            groups.mode_for_tool(t.name()) != crate::openhuman::tools::toolpacks::GroupMode::Off
+        });
+    }
 
     log::debug!(
-        "[tools::ops][post-filter] {before} assembled → {after_domains} after DomainSet → {} after \
-         memory capabilities",
+        "[tools::ops][post-filter] {before} assembled → {after_domains} after DomainSet → \
+         {after_capabilities} after memory capabilities → {} after ToolGroups",
         tools.len()
     );
 
