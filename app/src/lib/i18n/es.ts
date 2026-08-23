@@ -2592,9 +2592,6 @@ const messages: TranslationMap = {
   'chat.left': 'restante',
   'chat.setup': 'Configurar',
   'chat.switchToText': 'Cambiar a texto',
-  'chat.superContext.label': 'Súper contexto',
-  'chat.superContext.hint':
-    'Súper contexto permite a OpenHuman reunir y preparar contexto a partir de todos los datos a los que tiene acceso para ofrecer una respuesta muy relevante. Súper contexto está en fase beta inicial.',
   'chat.transcribing': 'Transcribiendo...',
   'chat.stopAndSend': 'Detener y enviar',
   'chat.startTalking': 'Empieza a hablar',
@@ -3078,6 +3075,8 @@ const messages: TranslationMap = {
   'welcome.coreConfigUnreadable':
     'El entorno de ejecución no pudo leer su archivo de configuración. Es posible que config.toml pertenezca a otra cuenta de usuario o que resulte inaccesible para el proceso por otro motivo. Reinicia el entorno de ejecución y, si eso no ayuda, repara la propiedad del espacio de trabajo o vuelve a crear su volumen.',
   'welcome.localSessionErrorFallback': 'No se pudo iniciar una sesión local.',
+  'welcome.gatewaySessionErrorFallback':
+    'No se pudo completar el inicio de sesión en este momento. El almacén de sesión no respondió a tiempo (incluso después de reintentar). Reinicia OpenHuman e inténtalo de nuevo.',
   'welcome.localSessionDesc': 'Utiliza un perfil local sin conexión y omite TinyHumans OAuth.',
   'channels.activeRouteValue': '{channel} vía {authMode}',
   'privacy.dataKind.messages': 'Mensajes',
@@ -6956,6 +6955,53 @@ const messages: TranslationMap = {
   'notifications.configRecovered.body':
     'No se pudo leer tu archivo de configuración, por lo que se restauró desde una copia de seguridad o se restableció a los valores predeterminados. El archivo ilegible se conservó con el sufijo ".corrupted" por si lo necesitas.',
   'chat.sources.usedCount': 'Se usaron {n} fuentes',
+  // Gateways: cores this app provisions and runs elsewhere.
+  'settings.gateway.title': 'Ejecutar el núcleo en otro lugar',
+  'settings.gateway.description':
+    'El núcleo puede ejecutarse localmente, en un contenedor o en otra máquina mediante SSH. También puedes conectarte a un núcleo remoto mediante una URL. OpenHuman gestiona el ciclo de vida de las ubicaciones que aprovisiona; para una URL remota, solo establece la conexión.',
+  'settings.gateway.add': 'Añadir una ubicación',
+  'settings.gateway.save': 'Guardar ubicación',
+  'settings.gateway.remove': 'Quitar',
+  'settings.gateway.use': 'Usar esta',
+  'settings.gateway.inUse': 'En uso',
+  'settings.gateway.activating': 'Conectando…',
+  'settings.gateway.activatingStep': 'Conectando: {step}',
+  'settings.gateway.connected': 'Conectado en {endpoint}',
+  'settings.gateway.failed': 'No se pudo conectar: {reason}',
+  'settings.gateway.nameLabel': 'Nombre',
+  'settings.gateway.namePlaceholder': 'Servidor de compilación',
+  'settings.gateway.whereLegend': '¿Dónde debe ejecutarse?',
+  'settings.gateway.where.here': 'En este ordenador',
+  'settings.gateway.where.ssh': 'En otra máquina, mediante SSH',
+  'settings.gateway.destinationLabel': 'Destino SSH',
+  'settings.gateway.destinationPlaceholder': 'builder@example.com',
+  'settings.gateway.destinationHelp':
+    'Un host de tu configuración de SSH, o usuario@host. Los puertos, las claves y los hosts de salto que ya tengas configurados allí se usan tal cual.',
+  'settings.gateway.identityLabel': 'Clave privada (opcional)',
+  'settings.gateway.identityPlaceholder': '~/.ssh/id_ed25519',
+  'settings.gateway.acceptNewHostKey': 'Confiar en esta máquina la primera vez que se conecte',
+  'settings.gateway.acceptNewHostKeyHelp':
+    'Acepta una clave de host que nunca has visto. Una clave que ha cambiado se sigue rechazando, porque ese es el caso que indica que algo va mal.',
+  'settings.gateway.containedLabel': 'Ejecutarlo dentro de un contenedor',
+  'settings.gateway.imageLabel': 'Imagen del contenedor',
+  'settings.gateway.binaryLabel': 'Ruta a openhuman-core',
+  'settings.gateway.kind.desktop': 'Dentro de esta aplicación',
+  'settings.gateway.kind.remote': 'Un núcleo en una URL',
+  'settings.gateway.kind.docker': 'En un contenedor en este ordenador',
+  'settings.gateway.kind.ssh': 'En otra máquina',
+  'settings.gateway.kind.ssh+docker': 'En un contenedor de otra máquina',
+  'settings.gateway.kind.local-process': 'En este ordenador',
+  'settings.gateway.idRequired': 'Ponle un nombre a esta ubicación.',
+  'settings.gateway.idReserved':
+    'Ese nombre está reservado para el núcleo propio de la aplicación.',
+  'settings.gateway.destinationRequired': 'Indica la máquina a la que conectarse.',
+  'settings.gateway.imageRequired': 'Indica la imagen de contenedor que se va a ejecutar.',
+  'settings.gateway.binaryRequired': 'Indica la ruta a openhuman-core en esa máquina.',
+  'settings.gateway.portInvalid': 'El puerto SSH debe ser un número.',
+
+  'devOptions.gateway': 'Ubicación',
+  'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicación',
+  'devOptions.gatewayId': 'ID de la ubicación',
 };
 
 export default messages;

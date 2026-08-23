@@ -109,6 +109,15 @@ pub fn all_tools_with_runtime(
     #[cfg(not(feature = "skills"))]
     let _ = (active_profile, skill_allowlist, profile_skills_root);
 
+    // One shared snapshot of this session's configuration for both language
+    // clients. They each hand it to the `tinyruntime` module on every call —
+    // the module holds no configuration of its own — so the two must not be
+    // able to disagree about which version this session asked for. The
+    // registry is assembled under `config`, so the bootstraps share that same
+    // Arc rather than a separately-cloned `root_config` — one configuration
+    // snapshot for everything this session builds.
+    let shared_config = Arc::clone(&config);
+
     // Build a session-scoped managed Node.js bootstrap once, so ShellTool,
     // NodeExecTool, and NpmExecTool all share the same memoised resolution
     // state. Disabled when `node.enabled = false` — in that case shell skips
@@ -124,11 +133,7 @@ pub fn all_tools_with_runtime(
             prefer_system = root_config.node.prefer_system,
             "[tools::ops] node runtime enabled — constructing shared NodeBootstrap"
         );
-        Some(Arc::new(NodeBootstrap::new(
-            root_config.node.clone(),
-            action_dir.to_path_buf(),
-            reqwest::Client::new(),
-        )))
+        Some(Arc::new(NodeBootstrap::new(Arc::clone(&shared_config))))
     } else {
         tracing::debug!(
             "[tools::ops] node runtime disabled — shell PATH injection + node_exec/npm_exec suppressed"
@@ -141,9 +146,7 @@ pub fn all_tools_with_runtime(
             prefer_system = root_config.runtime_python.prefer_system,
             "[tools::ops] python runtime enabled — constructing shared PythonBootstrap"
         );
-        Some(Arc::new(PythonBootstrap::new(
-            root_config.runtime_python.clone(),
-        )))
+        Some(Arc::new(PythonBootstrap::new(Arc::clone(&shared_config))))
     } else {
         tracing::debug!(
             "[tools::ops] python runtime disabled — shell python/pip PATH injection suppressed"
@@ -737,13 +740,13 @@ pub fn all_tools_with_runtime(
         #[cfg(feature = "mcp")]
         Box::new(McpRegistryStatusTool::new(config.clone())),
         #[cfg(feature = "mcp")]
-        Box::new(McpRegistryListToolsTool),
+        Box::new(McpRegistryListToolsTool::new(config.clone())),
         #[cfg(feature = "mcp")]
         Box::new(McpRegistryConnectTool::new(config.clone())),
         #[cfg(feature = "mcp")]
-        Box::new(McpRegistryDisconnectTool),
+        Box::new(McpRegistryDisconnectTool::new(config.clone())),
         #[cfg(feature = "mcp")]
-        Box::new(McpRegistryToolCallTool),
+        Box::new(McpRegistryToolCallTool::new(config.clone())),
         #[cfg(feature = "mcp")]
         Box::new(McpRegistryConfigAssistTool::new(config.clone())),
         #[cfg(feature = "mcp")]
@@ -924,15 +927,29 @@ pub fn all_tools_with_runtime(
             .any(|name| name.eq_ignore_ascii_case("gitbooks"))
     });
     if root_config.gitbooks.enabled && gitbooks_allowed {
-        tools.push(Box::new(GitbooksSearchTool::new(
-            root_config.gitbooks.endpoint.clone(),
-            root_config.gitbooks.timeout_secs,
-        )));
-        tools.push(Box::new(GitbooksGetPageTool::new(
-            root_config.gitbooks.endpoint.clone(),
-            root_config.gitbooks.timeout_secs,
-        )));
-        tracing::debug!("[gitbooks] registered gitbooks_search + gitbooks_get_page");
+        // Building the client can fail on a malformed proxy or an unusable TLS
+        // setting. Both are logged and the tools are simply not registered:
+        // taking the whole surface down over a documentation server would cost
+        // the user every other tool for no reason.
+        match (
+            GitbooksSearchTool::new(
+                root_config.gitbooks.endpoint.clone(),
+                root_config.gitbooks.timeout_secs,
+            ),
+            GitbooksGetPageTool::new(
+                root_config.gitbooks.endpoint.clone(),
+                root_config.gitbooks.timeout_secs,
+            ),
+        ) {
+            (Ok(search), Ok(get_page)) => {
+                tools.push(Box::new(search));
+                tools.push(Box::new(get_page));
+                tracing::debug!("[gitbooks] registered gitbooks_search + gitbooks_get_page");
+            }
+            (Err(error), _) | (_, Err(error)) => {
+                tracing::warn!("[gitbooks] tools not registered: {error}");
+            }
+        }
     } else if root_config.gitbooks.enabled {
         tracing::debug!("[profiles] gitbooks tools suppressed by profile mcp allowlist");
     }
@@ -947,7 +964,7 @@ pub fn all_tools_with_runtime(
         let cfg = Arc::new(root_config.clone());
         tools.push(Box::new(McpSetupSearchTool::new(Arc::clone(&cfg))));
         tools.push(Box::new(McpSetupGetTool::new(Arc::clone(&cfg))));
-        tools.push(Box::new(McpSetupRequestSecretTool::new()));
+        tools.push(Box::new(McpSetupRequestSecretTool::new(Arc::clone(&cfg))));
         tools.push(Box::new(McpSetupTestConnectionTool::new(Arc::clone(&cfg))));
         tools.push(Box::new(McpSetupInstallAndConnectTool::new(cfg)));
         tracing::debug!("[mcp_setup] registered 5 setup-agent tools");
@@ -964,8 +981,11 @@ pub fn all_tools_with_runtime(
     #[cfg(feature = "mcp")]
     {
         let mcp_registry = {
-            let base =
-                crate::openhuman::mcp::config_servers::McpServerRegistry::from_config(root_config);
+            // Built from the converted configuration, which is the one place
+            // the two vocabularies meet. A registry that cannot be built is
+            // logged and treated as empty: a malformed proxy or TLS setting
+            // must not take the whole tool surface down with it.
+            let base = crate::openhuman::mcp::host::static_registry(root_config);
             // Scope the MCP surface to the active profile's allowlist. `None` keeps
             // every configured server; `Some(&[])` yields an empty registry.
             match mcp_allowlist {
