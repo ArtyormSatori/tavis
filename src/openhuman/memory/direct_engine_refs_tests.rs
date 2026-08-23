@@ -353,11 +353,6 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
         "engine dependency predates this branch; the facade deletion made it visible",
     ),
     (
-        "src/openhuman/memory/guard/audit.rs",
-        Verdict::FacadeRevealed,
-        "engine dependency predates this branch; the facade deletion made it visible",
-    ),
-    (
         "src/openhuman/memory/guard/policy.rs",
         Verdict::FacadeRevealed,
         "engine dependency predates this branch; the facade deletion made it visible",

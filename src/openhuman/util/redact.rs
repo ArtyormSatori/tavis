@@ -61,15 +61,17 @@ mod tests {
         assert!(out.chars().all(|c| c.is_ascii_hexdigit()), "{out}");
     }
 
-    /// Pins byte-parity with `tinymemory_core::util::redact::redact`, which this
-    /// replaced at five call sites. The two are independent going forward, but
-    /// a silent change on day one would make old and new log lines for the same
-    /// id fail to match while both looked correct.
+    /// Pins byte-parity with the `tinymemory_core::util::redact::redact` this
+    /// replaced at five call sites, so old and new log lines for the same id
+    /// still match when someone greps across the change.
+    ///
+    /// The expected value is a **literal**, not a call into the engine helper.
+    /// Asserting against the engine would reintroduce exactly the dependency
+    /// this module exists to remove — and `memory::direct_engine_refs_tests`
+    /// counts inline `#[cfg(test)]` references, so it would also have to be
+    /// allowlisted. A pinned constant tests the same property without either.
     #[test]
     fn matches_the_engine_helper_it_replaced() {
-        assert_eq!(
-            redact("gmail:alice@example.com"),
-            tinymemory_core::util::redact::redact("gmail:alice@example.com")
-        );
+        assert_eq!(redact("gmail:alice@example.com"), "c3e9777d");
     }
 }
