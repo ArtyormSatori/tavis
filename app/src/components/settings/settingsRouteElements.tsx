@@ -28,7 +28,6 @@ import ProfilesPanel from './panels/ProfilesPanel';
 import RecoveryPhrasePanel from './panels/RecoveryPhrasePanel';
 import SandboxSettingsPanel from './panels/SandboxSettingsPanel';
 import SecurityPanel from './panels/SecurityPanel';
-import ThemeStudioPanel from './panels/ThemeStudioPanel';
 import ToolPolicyDiagnosticsPanel from './panels/ToolPolicyDiagnosticsPanel';
 import ToolsPanel from './panels/ToolsPanel';
 import WorkflowRunnerPanel from './panels/WorkflowRunnerPanel';
@@ -84,7 +83,8 @@ export function settingsRouteElements(): ReactNode {
       <Route path="security" element={wrapSettingsPage(<SecurityPanel />)} />
       <Route path="migration" element={wrapSettingsPage(<MigrationPanel />)} />
       <Route path="appearance" element={wrapSettingsPage(<AppearancePanel />)} />
-      <Route path="theme" element={wrapSettingsPage(<ThemeStudioPanel />)} />
+      {/* Theme studio merged into Appearance — one page for one subject. */}
+      <Route path="theme" element={<SettingsRedirect to="/settings/appearance" />} />
       <Route path="notifications" element={wrapSettingsPage(<NotificationsPanel />)} />
       {/* Real device-pairing panel (replaces the old "Coming Soon" stub). */}
       <Route path="devices" element={wrapSettingsPage(<DevicesPanel />)} />
