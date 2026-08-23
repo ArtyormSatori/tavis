@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { classifyIntegrationError } from '../lib/userErrors/classify';
-import { useAppDispatch } from '../store/hooks';
 import { dismissUserError, reportUserError } from '../store/userErrorsSlice';
 
 import ChannelSetupModal from '../components/channels/ChannelSetupModal';
@@ -39,7 +38,6 @@ import {
 import SkillSearchBar from '../components/skills/SkillSearchBar';
 import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
-import Alert from '../components/ui/Alert';
 import Badge from '../components/ui/Badge';
 import BetaIndicator from '../components/ui/BetaIndicator';
 import Button from '../components/ui/Button';
@@ -712,19 +710,18 @@ export default function Skills() {
   //
   // The per-card `hasComposioError` degradation below stays — that IS local,
   // and it is what marks *which* cards are unreliable.
-  const notifyDispatch = useAppDispatch();
   useEffect(() => {
     const descriptor = classifyIntegrationError(composioError, 'composio');
     if (!descriptor) return;
-    notifyDispatch(reportUserError({ descriptor, at: Date.now() }));
-  }, [composioError, notifyDispatch]);
+    dispatch(reportUserError({ descriptor, at: Date.now() }));
+  }, [composioError, dispatch]);
 
   // Clear it the moment the poll succeeds, so a recovered integration does not
   // leave a stale warning the user has to dismiss by hand.
   useEffect(() => {
     if (composioError) return;
-    notifyDispatch(dismissUserError({ id: 'integration_degraded:integration:composio' }));
-  }, [composioError, notifyDispatch]);
+    dispatch(dismissUserError({ id: 'integration_degraded:integration:composio' }));
+  }, [composioError, dispatch]);
 
   // Unified item list
   const allItems: SkillItem[] = useMemo(() => {
