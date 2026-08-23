@@ -28,48 +28,6 @@ import { SidebarSlotOutlet } from './SidebarSlot';
 
 const log = debugFactory('sidebar');
 
-interface FooterNavButtonProps {
-  /** `NavTab.id`-style icon key resolved by {@link NavIcon}. */
-  iconId: string;
-  /** Already-translated label (also used as the `title`). */
-  label: string;
-  /** Whether the current route matches this entry. */
-  active: boolean;
-  /** `data-walkthrough` attribute for the walkthrough tour. */
-  walkthroughAttr: string;
-  onClick: () => void;
-}
-
-/**
- * Slim footer affordance row shared by the Rewards and Feedback entries. Kept
- * thin and low-profile so it reads as a footer entry, not a primary nav tab —
- * hence the tighter `sm` footprint and 13px type over {@link SidebarNav}'s rows.
- */
-function FooterNavButton({
-  iconId,
-  label,
-  active,
-  walkthroughAttr,
-  onClick,
-}: FooterNavButtonProps) {
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        size="sm"
-        isActive={active}
-        data-walkthrough={walkthroughAttr}
-        onClick={onClick}
-        title={label}
-        className="h-auto gap-2.5 px-2.5 py-1.5 text-[13px]">
-        <SidebarMenuIcon>
-          <NavIcon id={iconId} className="h-4 w-4" />
-        </SidebarMenuIcon>
-        <SidebarMenuLabel>{label}</SidebarMenuLabel>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-}
-
 /**
  * The root-shell sidebar. Mounted as the sole child of `RootShellLayout`'s
  * `<Sidebar collapsible="icon">` column, so it renders one of two bodies
@@ -106,29 +64,10 @@ export default function AppSidebar() {
   const navigate = useNavigate();
   const { state: sidebarState } = useSidebar();
   const collapsed = sidebarState === 'collapsed';
-  // Rewards used to be a cloud-gated row here beside Feedback; it is a primary
-  // `NAV_TABS` destination now (below Connections), and its gate travelled with
-  // it into `useCloudNavGate`. The footer is Feedback alone.
-  const feedbackActive = location.pathname === '/feedback';
 
   useEffect(() => {
     log('sidebar body: %s', collapsed ? 'collapsed rail' : 'expanded');
   }, [collapsed]);
-
-  const handleFooterNav = (tab: string, path: string, active: boolean) => {
-    log('footer nav click: tab=%s active=%s', tab, active);
-    if (!active) {
-      trackEvent('tab_bar_change', {
-        from_tab: 'unknown',
-        to_tab: tab,
-        // Normalize to a route template so route-scoped entity IDs (thread,
-        // flow, team, …) never leave the app via analytics.
-        from_path: normalizeAnalyticsPagePath(location.pathname),
-        to_path: path,
-      });
-    }
-    navigate(path);
-  };
 
   if (collapsed) {
     return (
@@ -189,18 +128,11 @@ export default function AppSidebar() {
         <SidebarSlotOutlet className="flex h-full flex-col" />
       </SidebarScrollRegion>
       <SidebarFooter>
-        {/* Slim account affordance pinned above the status bar. */}
-        <SidebarMenu>
-          <FooterNavButton
-            iconId="feedback"
-            label={t('nav.feedback')}
-            active={feedbackActive}
-            walkthroughAttr="tab-feedback"
-            onClick={() => handleFooterNav('feedback', '/feedback', feedbackActive)}
-          />
-        </SidebarMenu>
         {/* App-wide footer: connectivity status + build/version, pinned to the
-            bottom of the sidebar. */}
+            bottom of the sidebar. Rewards and Feedback were rows here once;
+            Rewards is a primary `NAV_TABS` destination now and Feedback is a
+            header icon beside the keyboard shortcut, so the footer is the
+            status strip alone. */}
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-1 pt-2">
           <ConnectionIndicator />
           &middot;
