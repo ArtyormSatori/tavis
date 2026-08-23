@@ -22,16 +22,19 @@ export interface NavTab {
 
 /**
  * Ordered list of sidebar nav entries:
- *   chat → human → flows → connections
+ *   chat → flows → connections
  *
  * Orchestration (TinyPlace multi-agent coordination) is no longer a top-level
  * tab — it was folded back under Brain as the `/brain?tab=orchestration`
  * sub-tab, so the sidebar stays lean.
  *
- * Brain has no primary tab either. `/brain` (and every `?tab=` sub-view) is
- * still a live route reached from the surfaces that link into it — the
- * memory/sync redirects, the orchestration deep links — it is just no longer
- * one of the five things the sidebar spends a row on.
+ * Brain and Human have no primary tab either, and both routes are still live.
+ * `/brain` (and every `?tab=` sub-view) is reached from the surfaces that link
+ * into it — the memory/sync redirects, the orchestration deep links. `/human`
+ * is reached from the chat composer: with nothing to send, the composer's
+ * primary button is the mascot, and it opens the Human page (see
+ * `ComposerIdleAction` in `AssistantUiChat`). A sidebar row for it would be a
+ * second door to the same place.
  *
  * Settings has no primary tab — it's reached via the gear icon in the sidebar
  * header. Chat is the default landing and the merged Home surface: its empty
@@ -47,7 +50,6 @@ export interface NavTab {
  */
 export const NAV_TABS: NavTab[] = [
   { id: 'chat', labelKey: 'nav.chat', path: '/chat', walkthroughAttr: 'tab-chat' },
-  { id: 'human', labelKey: 'nav.human', path: '/human', walkthroughAttr: 'tab-human' },
   { id: 'flows', labelKey: 'nav.flows', path: '/flows', walkthroughAttr: 'tab-flows' },
   {
     id: 'connections',
