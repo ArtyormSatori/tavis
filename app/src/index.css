@@ -314,14 +314,30 @@
       transform: translateY(0);
     }
   }
+  /* Entrance for the centered dialog surfaces (`ui/Dialog`, `ui/AlertDialog`).
+     Animates the `translate` PROPERTY, not `transform`, and that distinction is
+     the whole point of this keyframe.
+
+     Those dialogs center with `-translate-x-1/2 -translate-y-1/2`. Under
+     Tailwind v3 those utilities compiled into `transform`, so a keyframe
+     setting `transform` *replaced* the centering for the animation's duration
+     and only had to carry the -50% pair itself. Under v4 they compile to
+     `translate: var(--tw-translate-x) var(--tw-translate-y)` instead — a
+     separate property that composes with `transform` rather than being
+     overridden by it. A `transform: translate(-50%, …)` keyframe therefore
+     *added* to the utility, so every modal opened at -100%/-100% (up and to
+     the left of center) and snapped into place when the animation ended.
+
+     Animating `translate` overrides the same property the utility sets and
+     lands on the identical value, so there is nothing left to snap. */
   @keyframes dialogIn {
     0% {
       opacity: 0;
-      transform: translate(-50%, calc(-50% + 10px));
+      translate: -50% calc(-50% + 10px);
     }
     100% {
       opacity: 1;
-      transform: translate(-50%, -50%);
+      translate: -50% -50%;
     }
   }
   @keyframes slideIn {
