@@ -1809,7 +1809,7 @@ describe('AIPanel', () => {
   it('LM Studio save persists the local_ai provider and endpoint', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
-    await openProviderConnectDialog('lm-studio', 'local');
+    await openProviderConnectDialog('lmstudio', 'local');
     const dialog = await screen.findByRole('dialog', { name: /Connect LM Studio/i });
 
     fireEvent.change(within(dialog).getByLabelText(/Endpoint URL/i), {
