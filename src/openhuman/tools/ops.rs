@@ -1130,20 +1130,6 @@ pub fn all_tools_with_runtime(
     // ── Agent integration tools (backend-proxied) ─────────────────
     if let Some(client) = crate::openhuman::integrations::build_client(root_config) {
         tracing::debug!("[integrations] client built successfully");
-        if root_config.integrations.apify.is_active() {
-            tools.push(Box::new(crate::openhuman::tools::ApifyRunActorTool::new(
-                Arc::clone(&client),
-            )));
-            tools.push(Box::new(
-                crate::openhuman::tools::ApifyGetRunStatusTool::new(Arc::clone(&client)),
-            ));
-            tools.push(Box::new(
-                crate::openhuman::tools::ApifyGetRunResultsTool::new(Arc::clone(&client)),
-            ));
-            tracing::debug!("[integrations] registered apify tools");
-        } else {
-            tracing::debug!("[integrations] apify disabled — skipping");
-        }
         if root_config.integrations.google_places.is_active() {
             tools.push(Box::new(
                 crate::openhuman::tools::GooglePlacesSearchTool::new(Arc::clone(&client)),
