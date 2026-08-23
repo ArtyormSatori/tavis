@@ -84,9 +84,9 @@ describe('NoticeCenter', () => {
     renderCenter([memoryError]);
 
     const center = screen.getByTestId('notice-center');
-    expect(center.className).toContain('bottom-4');
-    expect(center.className).toContain('right-4');
-    expect(center.className).not.toContain('left-4');
+    expect(center.className).toContain('bottom-2');
+    expect(center.className).toContain('right-2');
+    expect(center.className).not.toContain('left-2');
   });
 
   it('badges the active count and opens the panel on click', async () => {

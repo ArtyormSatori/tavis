@@ -129,7 +129,7 @@ export default function NoticeCenter() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2"
+      className="fixed bottom-2 right-2 z-50 flex flex-col items-end gap-2"
       data-testid="notice-center">
       {open && (
         <div
