@@ -3,21 +3,28 @@ import { describe, expect, it } from 'vitest';
 import { AVATAR_MENU_ITEMS, NAV_TABS } from '../navConfig';
 
 describe('NAV_TABS', () => {
-  it('has exactly 4 entries', () => {
-    expect(NAV_TABS).toHaveLength(4);
+  it('has exactly 5 entries', () => {
+    expect(NAV_TABS).toHaveLength(5);
   });
 
   it('has the correct ids in order', () => {
-    expect(NAV_TABS.map(t => t.id)).toEqual(['chat', 'flows', 'connections', 'rewards']);
+    expect(NAV_TABS.map(t => t.id)).toEqual(['chat', 'brain', 'flows', 'connections', 'rewards']);
   });
 
   it('has the correct paths', () => {
-    expect(NAV_TABS.map(t => t.path)).toEqual(['/chat', '/flows', '/connections', '/rewards']);
+    expect(NAV_TABS.map(t => t.path)).toEqual([
+      '/chat',
+      '/brain',
+      '/flows',
+      '/connections',
+      '/rewards',
+    ]);
   });
 
   it('has the correct labelKeys', () => {
     expect(NAV_TABS.map(t => t.labelKey)).toEqual([
       'nav.chat',
+      'nav.brain',
       'nav.flows',
       'nav.connections',
       'nav.rewards',
@@ -27,6 +34,7 @@ describe('NAV_TABS', () => {
   it('has the correct walkthroughAttrs', () => {
     expect(NAV_TABS.map(t => t.walkthroughAttr)).toEqual([
       'tab-chat',
+      'tab-brain',
       'tab-flows',
       'tab-connections',
       'tab-rewards',
@@ -41,10 +49,6 @@ describe('NAV_TABS', () => {
     // `/human` is still a live route; the composer's primary slot opens it when
     // there is nothing to send, so a sidebar row would be a second door.
     expect(NAV_TABS.find(t => t.id === 'human')).toBeUndefined();
-  });
-
-  it('no longer contains a brain tab (reached from the surfaces that link into it)', () => {
-    expect(NAV_TABS.find(t => t.id === 'brain')).toBeUndefined();
   });
 
   it('no longer contains a top-level orchestration tab (folded under Brain)', () => {
