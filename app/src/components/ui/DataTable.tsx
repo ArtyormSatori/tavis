@@ -135,7 +135,6 @@ function FilterMenu({ filter }: { filter: DataTableFilter }) {
                 checked={active}
                 onCheckedChange={() => {}}
                 aria-hidden
-                tabIndex={-1}
                 className="pointer-events-none"
               />
               <span>{option.label ?? option.value}</span>
