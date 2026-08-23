@@ -78,9 +78,7 @@ const AppearancePanel = () => {
   const mode = useAppSelector(state => state.theme.mode);
   const effectiveFontSizePx = useAppSelector(selectEffectiveFontSizePx);
   const tabBarLabels = useAppSelector(state => state.theme.tabBarLabels);
-  const agentMessageViewMode = useAppSelector(
-    state => state.theme.agentMessageViewMode ?? 'text'
-  );
+  const agentMessageViewMode = useAppSelector(state => state.theme.agentMessageViewMode ?? 'text');
   const hideAgentInsights = useAppSelector(state => state.theme.hideAgentInsights ?? false);
   const labelsAlwaysVisible = tabBarLabels === 'always';
   const assistantTextModeEnabled = agentMessageViewMode === 'text';

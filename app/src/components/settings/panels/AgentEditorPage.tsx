@@ -70,10 +70,7 @@ const AgentEditorPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id: routeId } = useParams<{ id: string }>();
-  const backToList = useCallback(
-    () => navigate('/settings/agents'),
-    [navigate, location]
-  );
+  const backToList = useCallback(() => navigate('/settings/agents'), [navigate, location]);
   const isCreate = !routeId;
 
   const [loading, setLoading] = useState(!isCreate);

@@ -26,6 +26,7 @@ import PageSectionHeader from '../components/layout/PageSectionHeader';
 import PageWelcome from '../components/layout/PageWelcome';
 import PanelPage from '../components/layout/PanelPage';
 import { usePageWelcomeView } from '../components/layout/usePageWelcomeView';
+import CronJobsPanel from '../components/settings/panels/CronJobsPanel';
 import BetaBanner from '../components/ui/BetaBanner';
 import Button from '../components/ui/Button';
 import { CenteredLoadingState, ErrorBanner } from '../components/ui/LoadingState';
@@ -48,7 +49,6 @@ import {
   setFlowEnabled,
 } from '../services/api/flowsApi';
 import type { ToastNotification } from '../types/intelligence';
-import CronJobsPanel from '../components/settings/panels/CronJobsPanel';
 import WorkflowDiscoveriesPage from './WorkflowDiscoveriesPage';
 import WorkflowRunsPage from './WorkflowRunsPage';
 

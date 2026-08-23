@@ -138,10 +138,7 @@ const ProfilesPanel = () => {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() =>
-                          navigate(
-                            `/settings/profiles/edit/${profile.id}`)
-                        }>
+                        onClick={() => navigate(`/settings/profiles/edit/${profile.id}`)}>
                         {t('common.edit')}
                       </Button>
                       {!profile.builtIn && (

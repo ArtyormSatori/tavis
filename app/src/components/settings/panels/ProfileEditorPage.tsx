@@ -52,10 +52,7 @@ const ProfileEditorPage = () => {
   const dispatch = useAppDispatch();
   const { id: routeId } = useParams<{ id: string }>();
   const profiles = useAppSelector(selectAgentProfiles);
-  const backToList = useCallback(
-    () => navigate('/settings/profiles'),
-    [navigate, location]
-  );
+  const backToList = useCallback(() => navigate('/settings/profiles'), [navigate, location]);
   const isCreate = !routeId;
 
   const existing = useMemo(
