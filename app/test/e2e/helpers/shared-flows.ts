@@ -172,8 +172,11 @@ const HASH_REDIRECTS = {
   '/settings/composio-triggers': '/connections?tab=composio-key',
   '/settings/autonomy': '/settings/agent-access',
   '/settings/composio-routing': '/connections?tab=composio-key',
-  '/settings/agent-chat': '/connections?tab=llm#agent-chat',
-  '/settings/local-model-debug': '/connections?tab=llm#local-model',
+  // The retired debug panels both redirect to the surviving LLM surface.
+  // Do not append their former fragment identifiers: the browser treats a
+  // second `#` as part of the hash and the router intentionally removes it.
+  '/settings/agent-chat': '/connections?tab=llm',
+  '/settings/local-model-debug': '/connections?tab=llm',
   '/settings/llm': '/connections?tab=llm',
   '/settings/voice': '/connections?tab=voice',
   '/settings/search': '/connections?tab=search',
