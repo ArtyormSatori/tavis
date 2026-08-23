@@ -9,7 +9,7 @@ import { restartCoreProcess } from '../../services/coreProcessControl';
 import { selectBlockingState } from '../../store/connectivitySelectors';
 import { useAppSelector } from '../../store/hooks';
 import { resolveUserName } from '../../utils/userName';
-import { DiscordBanner, PromotionalCreditsBanner, UsageLimitBanner } from '../home/HomeBanners';
+import { DiscordBanner, PromotionalCreditsBanner } from '../home/HomeBanners';
 import { Button } from '../ui';
 
 const debug = debugFactory('chat:new-window-hero');
@@ -25,7 +25,6 @@ const debug = debugFactory('chat:new-window-hero');
 export default function ChatNewWindowHero() {
   const { t } = useT();
   const { user } = useUser();
-  const { shouldShowBudgetCompletedMessage } = useUsageState();
 
   const userName = resolveUserName(user).split(' ')[0];
   const promoCredits = user?.usage?.promotionBalanceUsd ?? 0;
@@ -37,7 +36,6 @@ export default function ChatNewWindowHero() {
 
   const [isRestartingCore, setIsRestartingCore] = useState(false);
   const [restartError, setRestartError] = useState<string | null>(null);
-  const [openRouterStatus, setOpenRouterStatus] = useState<'idle' | 'saving' | 'error'>('idle');
 
   const welcomeVariants = useMemo(
     () => [
@@ -70,16 +68,6 @@ export default function ChatNewWindowHero() {
     }
   };
 
-  const handleUseOpenRouterFree = async () => {
-    setOpenRouterStatus('saving');
-    try {
-      await applyOpenRouterFreeModels();
-      setOpenRouterStatus('idle');
-    } catch (err) {
-      debug('applyOpenRouterFreeModels failed: %o', err);
-      setOpenRouterStatus('error');
-    }
-  };
 
   // Typewriter cycle — identical cadence to the former Home greeting.
   useEffect(() => {

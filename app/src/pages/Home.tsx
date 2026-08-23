@@ -5,8 +5,7 @@ import ConnectionIndicator from '../components/ConnectionIndicator';
 import {
   DiscordBanner,
   PromotionalCreditsBanner,
-  UsageLimitBanner,
-} from '../components/home/HomeBanners';
+  } from '../components/home/HomeBanners';
 import Button from '../components/ui/Button';
 import { useUsageState } from '../hooks/useUsageState';
 import { useUser } from '../hooks/useUser';
@@ -26,7 +25,6 @@ const Home = () => {
   const { t } = useT();
   const { user } = useUser();
   const navigate = useNavigate();
-  const { shouldShowBudgetCompletedMessage } = useUsageState();
   const _userName = resolveHomeUserName(user);
   const userName = _userName.split(' ')[0]; // Get first name only
   const promoCredits = user?.usage?.promotionBalanceUsd ?? 0;
@@ -47,7 +45,6 @@ const Home = () => {
   const blocking = useAppSelector(selectBlockingState);
   const [isRestartingCore, setIsRestartingCore] = useState(false);
   const [restartError, setRestartError] = useState<string | null>(null);
-  const [openRouterStatus, setOpenRouterStatus] = useState<'idle' | 'saving' | 'error'>('idle');
 
   const dispatch = useAppDispatch();
   const themeMode = useAppSelector(state => state.theme.mode) as ThemeMode;
@@ -69,17 +66,6 @@ const Home = () => {
     }
   };
 
-  const handleUseOpenRouterFree = async () => {
-    setOpenRouterStatus('saving');
-    try {
-      await applyOpenRouterFreeModels();
-      setOpenRouterStatus('idle');
-      navigate('/chat');
-    } catch (err) {
-      console.warn('[home] applyOpenRouterFreeModels failed', err);
-      setOpenRouterStatus('error');
-    }
-  };
 
   const statusCopy = {
     ok: t('home.statusOk'),
