@@ -778,7 +778,7 @@ inference = ["dep:cpal"]
 # reference instead of extracted text
 # (`agent::multimodal::extract_pdf_text`). Slim / headless builds opt out via
 # `--no-default-features --features "<explicit list without documents>"`.
-documents = ["modules"]
+documents = ["modules", "dep:tinydocs-bus"]
 # Hosting: the `hosting_*` agent tools that put a workspace on a real hosting
 # provider — a site, a managed database wired into it, its environment, its
 # domains, its deployments and the traffic they served. Default-OFF,
@@ -833,6 +833,9 @@ voice = [
     # alone fails to resolve `openhuman::modules` — which the product build
     # hides, because `documents` turns `modules` on anyway.
     "modules",
+    # The member names and payload types the module answers with. Contract
+    # only — `serde` and nothing else.
+    "dep:tinyvoice-bus",
     "dep:lettre",
     "dep:arboard",
     "dep:enigo",
