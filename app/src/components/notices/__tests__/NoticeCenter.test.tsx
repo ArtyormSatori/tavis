@@ -18,7 +18,9 @@ const usageState = vi.hoisted(() => ({
   isNearLimit: false,
   isFreeTier: false,
   usagePct: 0,
+  shouldShowBudgetCompletedMessage: false,
 }));
+const applyOpenRouterFreeModels = vi.hoisted(() => vi.fn());
 const showNativeNotification = vi.hoisted(() => vi.fn());
 
 vi.mock('../../../hooks/useEmbeddingBudgetState', () => ({
@@ -27,6 +29,7 @@ vi.mock('../../../hooks/useEmbeddingBudgetState', () => ({
 vi.mock('../../../hooks/useUsageState', () => ({ useUsageState: () => usageState }));
 vi.mock('../../../lib/nativeNotifications/tauriBridge', () => ({ showNativeNotification }));
 vi.mock('../../../utils/openUrl', () => ({ openUrl: vi.fn() }));
+vi.mock('../../../services/api/openrouterFreeModels', () => ({ applyOpenRouterFreeModels }));
 
 const memoryError: UserErrorDescriptor = {
   id: 'memory_budget_exhausted:memory:managed',
@@ -70,7 +73,10 @@ describe('NoticeCenter', () => {
     usageState.isNearLimit = false;
     usageState.isFreeTier = false;
     usageState.usagePct = 0;
+    usageState.shouldShowBudgetCompletedMessage = false;
     showNativeNotification.mockClear();
+    applyOpenRouterFreeModels.mockReset();
+    applyOpenRouterFreeModels.mockResolvedValue(undefined);
     // Module-scoped once-per-session latch — reset so each test starts cold.
     __resetNativeNotificationLatchForTests();
   });
@@ -167,6 +173,77 @@ describe('NoticeCenter', () => {
     const titles = screen.getAllByTestId('notice-item').map(item => item.textContent ?? '');
     expect(titles[0]).toContain('Usage limit reached');
     expect(screen.getByTestId('notice-badge').className).toContain('bg-coral-500');
+  });
+
+  /**
+   * This state was rendered in four places off one flag (both Conversations
+   * layouts, the new-window hero, Home). It is one notice now, and it has to
+   * carry BOTH remediations the banner offered — the OpenRouter one is the
+   * only fix that does not require a payment method.
+   */
+  it('raises the spent cycle budget with both remediations', async () => {
+    usageState.teamUsage = { cycleBudgetUsd: 5, cycleEndsAt: null };
+    usageState.shouldShowBudgetCompletedMessage = true;
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+
+    expect(screen.getByText(/used your included cycle budget/i)).toBeInTheDocument();
+    expect(screen.getByTestId('notice-action')).toHaveTextContent('Top Up');
+    expect(screen.getByTestId('notice-secondary-action')).toHaveTextContent(
+      'Use OpenRouter free models'
+    );
+  });
+
+  it('runs the OpenRouter routing helper from the secondary action', async () => {
+    usageState.teamUsage = { cycleBudgetUsd: 5, cycleEndsAt: null };
+    usageState.shouldShowBudgetCompletedMessage = true;
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    await userEvent.click(screen.getByTestId('notice-secondary-action'));
+
+    expect(applyOpenRouterFreeModels).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces a failed OpenRouter switch as its own notice', async () => {
+    applyOpenRouterFreeModels.mockRejectedValueOnce(new Error('nope'));
+    usageState.teamUsage = { cycleBudgetUsd: 0, cycleEndsAt: null };
+    usageState.shouldShowBudgetCompletedMessage = true;
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    await userEvent.click(screen.getByTestId('notice-secondary-action'));
+
+    // The banner this replaced showed the failure inline; without this the
+    // click would look like it silently did nothing.
+    expect(await screen.findByText(/couldn't|could not|failed/i)).toBeInTheDocument();
+  });
+
+  it('raises an integration outage with the source detail verbatim', async () => {
+    renderCenter([
+      {
+        id: 'integration_degraded:integration:composio',
+        kind: 'integration_degraded',
+        severity: 'warning',
+        scope: 'integration',
+        provider: 'composio',
+        titleKey: 'userErrors.integrationDegraded.title',
+        bodyKey: 'userErrors.integrationDegraded.body',
+        detail: '[composio] list_connections failed: credits are exhausted.',
+        action: 'open_connections',
+      },
+    ]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+
+    expect(screen.getByText(/Connections are showing stale status/i)).toBeInTheDocument();
+    // The backend's own user-facing text says what actually failed — the
+    // translated body cannot.
+    expect(screen.getByText(/list_connections failed/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('notice-action'));
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/connections?tab=skills');
   });
 
   it('dismisses a classified error out of the list', async () => {
