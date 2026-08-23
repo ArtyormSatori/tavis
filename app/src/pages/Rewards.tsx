@@ -4,12 +4,12 @@ import { LuGift, LuTicket, LuUsers } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import EmptyStateCard from '../components/EmptyStateCard';
-import SettingsTabbedPage from '../components/settings/layout/SettingsTabbedPage';
-import TwoPaneNav from '../components/layout/TwoPaneNav';
 import { SidebarContent } from '../components/layout/shell/SidebarSlot';
+import TwoPaneNav from '../components/layout/TwoPaneNav';
 import RewardsCommunityTab from '../components/rewards/RewardsCommunityTab';
 import RewardsRedeemTab from '../components/rewards/RewardsRedeemTab';
 import RewardsReferralsTab from '../components/rewards/RewardsReferralsTab';
+import SettingsTabbedPage from '../components/settings/layout/SettingsTabbedPage';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';
 import { rewardsApi } from '../services/api/rewardsApi';
