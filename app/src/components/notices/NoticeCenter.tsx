@@ -1,15 +1,10 @@
 /**
  * NoticeCenter — the single place the app raises notices at the user.
  *
- * A small, quiet FAB in the **bottom-left** corner with a count badge, opening
- * a panel of everything currently worth telling them: classified runtime
- * errors, the memory-embedding budget, plan usage limits. Sources are merged
- * by {@link useAppNotices}; this file is presentation only.
- *
- * Bottom-left, not bottom-right: the right corner is where transient chrome
- * lands (toasts, the composer's own affordances), and this is persistent —
- * it stays until the state it describes is actually fixed. Two persistent
- * things in one corner is how a corner becomes a pile.
+ * A small, quiet FAB in the **bottom-right** corner with a count badge,
+ * opening a panel of everything currently worth telling them: classified
+ * runtime errors, the memory-embedding budget, plan usage limits. Sources are
+ * merged by {@link useAppNotices}; this file is presentation only.
  *
  * It replaces the full-width banners that used to be pushed above every route
  * (`GlobalUpsellBanner`, `MemoryEmbeddingBudgetBanner`). Those displaced page
@@ -120,7 +115,7 @@ export default function NoticeCenter() {
 
   return (
     <div
-      className="fixed bottom-4 left-4 z-50 flex flex-col items-start gap-2"
+      className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2"
       data-testid="notice-center">
       {open && (
         <div

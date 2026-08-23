@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import userErrorsReducer, { reportUserError } from '../../../store/userErrorsSlice';
 import type { UserErrorDescriptor } from '../../../types/userError';
 import NoticeCenter from '../NoticeCenter';
+import { __resetNativeNotificationLatchForTests } from '../useEmbeddingBudgetNativeNotice';
 
 const budgetState = vi.hoisted(() => ({ level: 'none' as string, pct: 0 }));
 const usageState = vi.hoisted(() => ({
@@ -45,17 +46,17 @@ function LocationProbe() {
 function renderCenter(descriptors: UserErrorDescriptor[] = []) {
   const store = configureStore({ reducer: { userErrors: userErrorsReducer } });
   descriptors.forEach((d, i) => store.dispatch(reportUserError({ descriptor: d, at: 1000 + i })));
-  return {
-    store,
-    ...render(
-      <Provider store={store}>
-        <MemoryRouter initialEntries={['/chat']}>
-          <NoticeCenter />
-          <LocationProbe />
-        </MemoryRouter>
-      </Provider>
-    ),
-  };
+  const tree = (
+    <Provider store={store}>
+      <MemoryRouter initialEntries={['/chat']}>
+        <NoticeCenter />
+        <LocationProbe />
+      </MemoryRouter>
+    </Provider>
+  );
+  const utils = render(tree);
+  // Re-render the same tree so a `rerender()` keeps the store and router.
+  return { store, ...utils, rerender: () => utils.rerender(tree) };
 }
 
 describe('NoticeCenter', () => {
@@ -68,6 +69,8 @@ describe('NoticeCenter', () => {
     usageState.isFreeTier = false;
     usageState.usagePct = 0;
     showNativeNotification.mockClear();
+    // Module-scoped once-per-session latch — reset so each test starts cold.
+    __resetNativeNotificationLatchForTests();
   });
 
   it('renders no chrome at all when there is nothing to say', () => {
@@ -75,13 +78,13 @@ describe('NoticeCenter', () => {
     expect(screen.queryByTestId('notice-center')).toBeNull();
   });
 
-  it('anchors to the bottom-left corner', () => {
+  it('anchors to the bottom-right corner', () => {
     renderCenter([memoryError]);
 
     const center = screen.getByTestId('notice-center');
     expect(center.className).toContain('bottom-4');
-    expect(center.className).toContain('left-4');
-    expect(center.className).not.toContain('right-4');
+    expect(center.className).toContain('right-4');
+    expect(center.className).not.toContain('left-4');
   });
 
   it('badges the active count and opens the panel on click', async () => {
@@ -135,11 +138,7 @@ describe('NoticeCenter', () => {
     // The escalation is a different notice id, so silencing the 75% warning
     // must not silence it — otherwise the user is back to a silent failure.
     budgetState.level = 'exhausted';
-    rerender(
-      <MemoryRouter>
-        <NoticeCenter />
-      </MemoryRouter>
-    );
+    rerender();
     expect(screen.getByTestId('notice-center')).toBeInTheDocument();
   });
 
