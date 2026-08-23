@@ -63,7 +63,6 @@ import {
   RefreshCwIcon,
   SlashIcon,
   SquareIcon,
-  UserRoundIcon,
 } from 'lucide-react';
 import {
   type ComponentType,
@@ -109,12 +108,14 @@ export type ThreadComponents = {
   /** Sends an attachment-only message through the host's normal send path. */
   onComposerAttachmentSend?: (() => void) | undefined;
   /**
-   * Opens the host's voice/presence surface. When supplied, the composer's
-   * primary slot shows it as a person glyph while there is nothing to send,
-   * and reverts to Send on the first character or attachment — the slot
-   * ChatGPT gives its voice mode. Omit it and the slot is always Send.
+   * Host-owned control for the composer's primary slot while there is nothing
+   * to send — the slot ChatGPT gives its voice mode. Send takes the slot back
+   * on the first character or attachment, and a running turn always shows
+   * Cancel. A component rather than a callback for the same reason
+   * `ComposerAddAttachment` is one: what belongs there is the host's own
+   * branding and behaviour, and this file should not learn about either.
    */
-  onOpenHumanMode?: (() => void) | undefined;
+  ComposerIdleAction?: ComponentType | undefined;
 };
 
 export type ThreadProps = {
@@ -412,14 +413,14 @@ const ComposerAction: FC<{
     ComposerAddAttachment: HostComposerAddAttachment,
     hasComposerAttachments,
     onComposerAttachmentSend,
-    onOpenHumanMode,
+    ComposerIdleAction,
   } = useContext(ThreadComponentsContext);
-  // Nothing to send: the primary slot offers the host's presence surface
-  // instead of a Send button that would refuse the click anyway. Guarded on
+  // Nothing to send: the primary slot goes to the host's idle control instead
+  // of a Send button that would refuse the click anyway. Guarded on
   // `isRunning` by the surrounding `AuiIf`, so a streaming turn still shows
   // Cancel.
-  const showHumanMode =
-    !!onOpenHumanMode && composerText.trim().length === 0 && !hasComposerAttachments;
+  const showIdleAction =
+    !!ComposerIdleAction && composerText.trim().length === 0 && !hasComposerAttachments;
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
       <div className="flex min-w-0 items-center gap-1">
@@ -459,19 +460,8 @@ const ComposerAction: FC<{
           </AuiIf>
         </AuiIf>
         <AuiIf condition={s => !s.thread.isRunning}>
-          {showHumanMode ? (
-            <TooltipIconButton
-              tooltip="Human mode"
-              side="bottom"
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="aui-composer-human-mode text-muted-foreground hover:text-foreground size-7 rounded-full"
-              data-testid="composer-human-mode"
-              aria-label="Human mode"
-              onClick={() => onOpenHumanMode?.()}>
-              <UserRoundIcon className="aui-composer-human-mode-icon size-4" />
-            </TooltipIconButton>
+          {showIdleAction ? (
+            <ComposerIdleAction />
           ) : hasComposerAttachments && composerText.trim().length === 0 ? (
             <TooltipIconButton
               tooltip="Send message"
