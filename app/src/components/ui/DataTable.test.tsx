@@ -73,6 +73,24 @@ describe('<DataTable />', () => {
       expect(head.className).toContain('bg-surface');
     }
 
+    // The header's scroll container must be the region that owns overflow — no
+    // `overflow-hidden` card wrapper in between, which is itself a scroll
+    // container and would silently re-break this.
+    const head = screen.getAllByRole('columnheader')[0];
+    let node: HTMLElement | null = head.parentElement;
+    let scroller: HTMLElement | null = null;
+    while (node) {
+      const cls = node.className ?? '';
+      if (typeof cls === 'string' && /overflow-(auto|scroll|hidden|x-auto|y-auto)/.test(cls)) {
+        scroller = node;
+        break;
+      }
+      node = node.parentElement;
+    }
+    expect(scroller).not.toBeNull();
+    expect(scroller?.className).toContain('overflow-auto');
+    expect(scroller?.className).not.toContain('overflow-hidden');
+
     const table = screen.getByRole('table');
     // `border-separate` is what lets the header keep its own bottom border
     // while stuck; under `border-collapse` the border belongs to the grid and
