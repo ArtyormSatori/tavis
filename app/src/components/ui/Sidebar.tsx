@@ -550,10 +550,17 @@ const MENU_BUTTON_SIZES: Record<SidebarMenuButtonSize, string> = {
 /**
  * One navigation row.
  *
- * The active state is a neutral fill lifted off the chrome, not an accent tint:
- * the chrome carries the theme's hue, so tinting a pill on top of it stacks two
- * colours and reads as noise. Weight and contrast carry the selection instead,
- * and the fills are alpha-based so they lift against whatever the theme paints.
+ * The active state is a solid `primary-500` pill with inverted text. This was
+ * a neutral `bg-surface/70` fill, on the reasoning that the chrome carries the
+ * theme's hue so an accent pill stacks two colours. That held while the chrome
+ * was a themed WebGL mesh; the default backdrop is flat now and the chrome is a
+ * plain neutral, so a neutral pill on it is the thing that reads as noise —
+ * there is nothing for it to lift against. The accent is the only colour in
+ * this column, which is what makes it legible as *selection* rather than
+ * decoration.
+ *
+ * The hover/idle states stay alpha-based so they still lift against whatever a
+ * theme paints behind them.
  */
 export const SidebarMenuButton = forwardRef<HTMLButtonElement, SidebarMenuButtonProps>(
   (
@@ -582,7 +589,7 @@ export const SidebarMenuButton = forwardRef<HTMLButtonElement, SidebarMenuButton
           'disabled:pointer-events-none disabled:opacity-50',
           MENU_BUTTON_SIZES[size],
           isActive
-            ? 'bg-surface/70 font-semibold text-content'
+            ? 'bg-primary-500 font-semibold text-content-inverted'
             : 'text-content-muted hover:bg-surface/40 hover:text-content-secondary',
           className
         )}

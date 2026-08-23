@@ -105,7 +105,10 @@ interface AvatarMenuItem {
 
 /**
  * Avatar dropdown menu items shown beneath the agent-profile list.
- * Order: Account → Billing → Rewards → Invites → Wallet.
+ * Order: Account → Billing → Invites → Wallet.
+ *
+ * Rewards is not here: it is a primary `NAV_TABS` destination now, and one
+ * door per surface is the point of moving it.
  */
 export const AVATAR_MENU_ITEMS: AvatarMenuItem[] = [
   {
@@ -119,13 +122,6 @@ export const AVATAR_MENU_ITEMS: AvatarMenuItem[] = [
     labelKey: 'nav.avatarMenu.billing',
     target: BILLING_DASHBOARD_URL,
     kind: 'openUrl',
-    cloudOnly: true,
-  },
-  {
-    id: 'rewards',
-    labelKey: 'nav.avatarMenu.rewards',
-    target: '/rewards',
-    kind: 'navigate',
     cloudOnly: true,
   },
   {
