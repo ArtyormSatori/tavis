@@ -34,7 +34,9 @@ describe('ProviderModelPickerDialog', () => {
       />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'gpt-4o-mini' }));
+    fireEvent.change(await screen.findByRole('combobox', { name: 'Model' }), {
+      target: { value: 'gpt-4o-mini' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Use this model' }));
 
     await waitFor(() =>
