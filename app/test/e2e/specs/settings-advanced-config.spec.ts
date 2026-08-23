@@ -5,7 +5,6 @@ import { waitForApp } from '../helpers/app-helpers';
 import { callOpenhumanRpc } from '../helpers/core-rpc';
 import {
   clickLabelContaining,
-  clickSelector,
   clickText,
   textExists,
   waitForText,
