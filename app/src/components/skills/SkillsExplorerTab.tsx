@@ -280,8 +280,28 @@ function InstalledSkillRow({ skill, onUninstall, onClick }: SkillTileProps) {
       </TableCell>
       <TableCell className="min-w-[18rem] max-w-xl text-xs text-content-muted">
         <span className="line-clamp-1">{skill.description || t('skills.explorer.noDescription')}</span>
+        {(skill.tags.length > 0 || skill.warnings.length > 0) && (
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            {skill.tags.map(tag => (
+              <Badge key={tag} variant="neutral">{tag}</Badge>
+            ))}
+            {skill.warnings.map(warning => (
+              <span key={warning} className="text-[10px] text-amber-700 dark:text-amber-300">
+                {warning}
+              </span>
+            ))}
+          </div>
+        )}
       </TableCell>
-      <TableCell className="whitespace-nowrap"><SkillFormatBadge format={skill.sourceFormat} /></TableCell>
+      <TableCell className="whitespace-nowrap">
+        <div className="flex flex-wrap items-center gap-1">
+          <SkillFormatBadge format={skill.sourceFormat} />
+          <SkillScopeBadge scope={skill.scope} />
+          {skill.version && (
+            <span className="text-[10px] font-mono text-content-faint">v{skill.version}</span>
+          )}
+        </div>
+      </TableCell>
       <TableCell className="w-px whitespace-nowrap text-right">
         {skill.scope === 'user' ? (
           <Button variant="secondary" tone="danger" size="xs" data-testid={`skill-uninstall-${skill.id}`} onClick={event => { event.stopPropagation(); onUninstall(); }}>
