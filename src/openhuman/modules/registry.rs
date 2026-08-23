@@ -431,17 +431,11 @@ const TINYVOICE: ModuleRecord = ModuleRecord {
 /// Lazy, because a host that never runs a skill, a flow step, or a `node_exec`
 /// should not pay a download and a `dlopen` for the ability to.
 ///
-/// # No pinned assets yet
-///
-/// `assets` is deliberately empty: this build pins no published release. The
-/// module still loads from a developer build named by `modules.local` or from
-/// the module search path (`OPENHUMAN_MODULE_PATH`), which is how it is
-/// exercised today. A download attempt reports that no artifact exists for this
-/// platform, which is accurate.
-///
-/// When the first release is cut, take the digests verbatim from that release's
-/// `checksum.toml` — never from a local build, which would agree with itself no
-/// matter what was served.
+/// The digests below are v0.2.2's, taken verbatim from that release's
+/// `checksum.toml`. Until it existed this record carried no assets at all and
+/// the module was reachable only from a developer build named by
+/// `modules.local` or found on `OPENHUMAN_MODULE_PATH` — so on any machine that
+/// had not built it, the runtime domain was a set of tools that could not run.
 const TINYRUNTIME: ModuleRecord = ModuleRecord {
     id: "tinyruntime",
     description: "Language runtime resolution, installation, and pooled execution",
@@ -522,7 +516,7 @@ const TINYRUNTIME: ModuleRecord = ModuleRecord {
 /// Lazy, and loaded by the same call that loads the router: a language is only
 /// worth its `dlopen` when something asks for that language.
 ///
-/// See [`TINYRUNTIME`] on why `assets` is empty.
+/// Released alongside the router and pinned the same way — see [`TINYRUNTIME`].
 const TINYRUNTIME_NODEJS: ModuleRecord = ModuleRecord {
     id: "tinyruntime-nodejs",
     description: "Node.js runtime provider for tinyruntime",
@@ -595,7 +589,7 @@ const TINYRUNTIME_NODEJS: ModuleRecord = ModuleRecord {
 /// Answers which host interpreters count, which standalone build to install, and
 /// what a warm Python worker is. It installs nothing itself.
 ///
-/// See [`TINYRUNTIME`] on why `assets` is empty.
+/// Released alongside the router and pinned the same way — see [`TINYRUNTIME`].
 const TINYRUNTIME_PYTHON: ModuleRecord = ModuleRecord {
     id: "tinyruntime-python",
     description: "Python runtime provider for tinyruntime",
