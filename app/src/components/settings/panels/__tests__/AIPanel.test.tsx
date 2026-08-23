@@ -747,7 +747,7 @@ describe('AIPanel', () => {
     fireEvent.click(chooseButtons[0]);
 
     // Selecting the Azure provider flips the dialog to free text and relabels.
-    fireEvent.click(await screen.findByRole('button', { name: /Select provider and model/i }));
+    await openGlobalModelPicker();
     await selectPickerProvider(/Azure Foundry/i);
 
     const deploymentInput = await screen.findByRole('textbox', { name: /Deployment name/i });
@@ -809,7 +809,7 @@ describe('AIPanel', () => {
     });
     fireEvent.click(chooseButtons[0]);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Select provider and model/i }));
+    await openGlobalModelPicker();
     await selectPickerProvider(/OpenAI/i);
 
     // Catalog dropdown, no Azure labelling.
