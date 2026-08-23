@@ -143,7 +143,20 @@ function composioSortRank(connection: ComposioConnection | undefined): number {
   }
 }
 
-interface ComposioConnectorTileProps {
+/**
+ * Columns for the OAuth integrations table. The icon lives inside the first
+ * cell rather than in a column of its own — it identifies the app alongside its
+ * name, and a bare icon column would leave a ragged empty strip for any toolkit
+ * whose logo failed to load.
+ */
+const COMPOSIO_COLUMNS = (t: (key: string) => string): DataTableColumn<never>[] => [
+  { id: 'app', header: t('composio.colApp'), className: 'min-w-56' },
+  { id: 'status', header: t('composio.colStatus') },
+  { id: 'accounts', header: t('composio.colAccounts') },
+  { id: 'action', header: t('skills.explorer.colAction'), align: 'right' },
+];
+
+interface ComposioConnectorRowProps {
   meta: ComposioToolkitMeta;
   connection: ComposioConnection | undefined;
   /** Number of active connections for this toolkit (for multi-account badge). */
@@ -155,7 +168,7 @@ interface ComposioConnectorTileProps {
   onRetryGlobal: () => void;
 }
 
-function ComposioConnectorTile({
+function ComposioConnectorRow({
   meta,
   connection,
   activeConnectionCount = 0,
@@ -164,7 +177,7 @@ function ComposioConnectorTile({
   testId,
   onOpen,
   onRetryGlobal,
-}: ComposioConnectorTileProps) {
+}: ComposioConnectorRowProps) {
   const { t } = useT();
   const rawState = deriveComposioState(connection);
   const state = hasComposioError ? 'error' : rawState;
@@ -187,10 +200,6 @@ function ComposioConnectorTile({
             : t('skills.connect');
 
   const isConnected = state === 'connected' && !isPreview;
-  const isPending = state === 'pending';
-  const isExpired = state === 'expired';
-  const isError = state === 'error' || hasComposioError;
-
   const handleClick = () => {
     if (hasComposioError) {
       void onRetryGlobal();
@@ -1311,66 +1320,43 @@ export default function Skills() {
                             // KNOWN_COMPOSIO_TOOLKITS list is only used as a post-fetch
                             // fallback (see composioCatalogToolkits), never during the
                             // in-flight loading window (#3933).
-                            (composioLoading && composioSortedEntries.length === 0 ? (
-                              <div
-                                className="grid gap-2 sm:gap-3"
-                                data-testid="composio-integrations-loading"
-                                role="status"
-                                aria-label={t('skills.loadingIntegrations')}
-                                aria-busy="true"
-                                style={{
-                                  gridTemplateColumns: 'repeat(auto-fill, minmax(5.5rem, 1fr))',
-                                  gridAutoRows: '6.5rem',
-                                }}>
-                                {Array.from({ length: 12 }).map((_, i) => (
-                                  <div
-                                    key={i}
-                                    data-testid="composio-skeleton-tile"
-                                    aria-hidden="true"
-                                    className="animate-pulse rounded-xl border border-line bg-surface-subtle"
-                                  />
-                                ))}
-                              </div>
-                            ) : composioSortedEntries.length > 0 ? (
-                              <div
-                                className="grid gap-2 sm:gap-3"
-                                style={{
-                                  gridTemplateColumns: 'repeat(auto-fill, minmax(5.5rem, 1fr))',
-                                  gridAutoRows: '6.5rem',
-                                }}>
-                                {composioSortedEntries.map(({ meta, connection }) => {
+                            (
+                              <DataTable<(typeof composioSortedEntries)[number]>
+                                columns={COMPOSIO_COLUMNS(t)}
+                                rows={composioSortedEntries}
+                                rowKey={entry => entry.meta.slug}
+                                ariaLabel={t('skills.integrationsSubtitle')}
+                                loading={composioLoading && composioSortedEntries.length === 0}
+                                empty={
+                                  <p className="px-1 py-4 text-center text-xs text-content-faint">
+                                    {t('skills.noResults')}
+                                  </p>
+                                }
+                                renderRow={({ meta, connection }) => {
                                   const allConns = composioConnectionsByToolkit?.get(meta.slug);
                                   const activeCount =
                                     allConns?.filter(c => deriveComposioState(c) === 'connected')
                                       .length ?? 0;
                                   return (
-                                    <div
+                                    <ComposioConnectorRow
                                       key={meta.slug}
-                                      data-testid={`skill-row-composio-${meta.slug}`}
-                                      className="overflow-hidden">
-                                      <ComposioConnectorTile
-                                        meta={meta}
-                                        connection={connection}
-                                        activeConnectionCount={activeCount}
-                                        hasComposioError={Boolean(composioError)}
-                                        agentUnsupported={
-                                          agentReadinessKnown &&
-                                          deriveComposioState(connection) === 'connected' &&
-                                          !agentReadyComposioToolkits.has(meta.slug)
-                                        }
-                                        testId={`skill-install-composio-${meta.slug}`}
-                                        onOpen={() => setComposioModalToolkit(meta)}
-                                        onRetryGlobal={() => void refreshComposio()}
-                                      />
-                                    </div>
+                                      meta={meta}
+                                      connection={connection}
+                                      activeConnectionCount={activeCount}
+                                      hasComposioError={Boolean(composioError)}
+                                      agentUnsupported={
+                                        agentReadinessKnown &&
+                                        deriveComposioState(connection) === 'connected' &&
+                                        !agentReadyComposioToolkits.has(meta.slug)
+                                      }
+                                      testId={`skill-row-composio-${meta.slug}`}
+                                      onOpen={() => setComposioModalToolkit(meta)}
+                                      onRetryGlobal={() => void refreshComposio()}
+                                    />
                                   );
-                                })}
-                              </div>
-                            ) : (
-                              <p className="px-1 py-4 text-center text-xs text-content-faint">
-                                {t('skills.noResults')}
-                              </p>
-                            ))}
+                                }}
+                              />
+                            )}
                         </div>
                       </Card>
                     )}
