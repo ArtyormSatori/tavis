@@ -35,8 +35,8 @@ import {
 import SkillSearchBar from '../components/skills/SkillSearchBar';
 import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
-import Badge from '../components/ui/Badge';
 import { DataTable, type DataTableColumn, TableCell, TableRow } from '../components/ui';
+import Badge from '../components/ui/Badge';
 import BetaIndicator from '../components/ui/BetaIndicator';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -1314,50 +1314,49 @@ export default function Skills() {
                               />
                             </div>
                           )}
-                          {!showLocalComposioApiKeyBanner &&
+                          {!showLocalComposioApiKeyBanner && (
                             // While the dynamic catalog is still being fetched and we
                             // have nothing real to show yet, render a loading skeleton
                             // instead of the hardcoded toolkit list. The hardcoded
                             // KNOWN_COMPOSIO_TOOLKITS list is only used as a post-fetch
                             // fallback (see composioCatalogToolkits), never during the
                             // in-flight loading window (#3933).
-                            (
-                              <DataTable<(typeof composioSortedEntries)[number]>
-                                columns={COMPOSIO_COLUMNS<(typeof composioSortedEntries)[number]>(t)}
-                                rows={composioSortedEntries}
-                                rowKey={entry => entry.meta.slug}
-                                ariaLabel={t('skills.integrationsSubtitle')}
-                                loading={composioLoading && composioSortedEntries.length === 0}
-                                empty={
-                                  <p className="px-1 py-4 text-center text-xs text-content-faint">
-                                    {t('skills.noResults')}
-                                  </p>
-                                }
-                                renderRow={({ meta, connection }) => {
-                                  const allConns = composioConnectionsByToolkit?.get(meta.slug);
-                                  const activeCount =
-                                    allConns?.filter(c => deriveComposioState(c) === 'connected')
-                                      .length ?? 0;
-                                  return (
-                                    <ComposioConnectorRow
-                                      key={meta.slug}
-                                      meta={meta}
-                                      connection={connection}
-                                      activeConnectionCount={activeCount}
-                                      hasComposioError={Boolean(composioError)}
-                                      agentUnsupported={
-                                        agentReadinessKnown &&
-                                        deriveComposioState(connection) === 'connected' &&
-                                        !agentReadyComposioToolkits.has(meta.slug)
-                                      }
-                                      testId={`skill-row-composio-${meta.slug}`}
-                                      onOpen={() => setComposioModalToolkit(meta)}
-                                      onRetryGlobal={() => void refreshComposio()}
-                                    />
-                                  );
-                                }}
-                              />
-                            )}
+                            <DataTable<(typeof composioSortedEntries)[number]>
+                              columns={COMPOSIO_COLUMNS<(typeof composioSortedEntries)[number]>(t)}
+                              rows={composioSortedEntries}
+                              rowKey={entry => entry.meta.slug}
+                              ariaLabel={t('skills.integrationsSubtitle')}
+                              loading={composioLoading && composioSortedEntries.length === 0}
+                              empty={
+                                <p className="px-1 py-4 text-center text-xs text-content-faint">
+                                  {t('skills.noResults')}
+                                </p>
+                              }
+                              renderRow={({ meta, connection }) => {
+                                const allConns = composioConnectionsByToolkit?.get(meta.slug);
+                                const activeCount =
+                                  allConns?.filter(c => deriveComposioState(c) === 'connected')
+                                    .length ?? 0;
+                                return (
+                                  <ComposioConnectorRow
+                                    key={meta.slug}
+                                    meta={meta}
+                                    connection={connection}
+                                    activeConnectionCount={activeCount}
+                                    hasComposioError={Boolean(composioError)}
+                                    agentUnsupported={
+                                      agentReadinessKnown &&
+                                      deriveComposioState(connection) === 'connected' &&
+                                      !agentReadyComposioToolkits.has(meta.slug)
+                                    }
+                                    testId={`skill-row-composio-${meta.slug}`}
+                                    onOpen={() => setComposioModalToolkit(meta)}
+                                    onRetryGlobal={() => void refreshComposio()}
+                                  />
+                                );
+                              }}
+                            />
+                          )}
                         </div>
                       </Card>
                     )}
