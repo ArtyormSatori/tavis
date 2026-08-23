@@ -315,7 +315,22 @@ async fn multi_batch_volume_builds_full_tree() {
     let source_tree = loop {
         drain_until_idle(&cfg).await.unwrap();
         if memory_queue::count_by_status(&cfg, JobStatus::Failed).unwrap() > 0 {
-            panic!("memory jobs failed before the source tree sealed");
+            let failed_jobs = tinymemory_core::store::chunks::with_connection(&cfg, |conn| {
+                let mut stmt = conn.prepare(
+                    "SELECT kind, attempts, last_error FROM mem_tree_jobs \
+                     WHERE status = 'failed' ORDER BY created_at_ms",
+                )?;
+                let rows = stmt.query_map([], |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, i64>(1)?,
+                        row.get::<_, Option<String>>(2)?,
+                    ))
+                })?;
+                rows.collect::<Result<Vec<_>, _>>().map_err(Into::into)
+            })
+            .unwrap();
+            panic!("memory jobs failed before the source tree sealed: {failed_jobs:?}");
         }
         if let Some(tree) = tree_store::list_trees_by_kind(&cfg, TreeKind::Source)
             .unwrap()
