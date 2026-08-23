@@ -61,7 +61,7 @@ mod tests {
         assert!(out.chars().all(|c| c.is_ascii_hexdigit()), "{out}");
     }
 
-    /// Pins byte-parity with `tinymemory_core::util::redact::redact`, which this
+    /// Pins byte-parity with `crate::openhuman::util::redact::redact`, which this
     /// replaced at five call sites. The two are independent going forward, but
     /// a silent change on day one would make old and new log lines for the same
     /// id fail to match while both looked correct.
@@ -69,7 +69,7 @@ mod tests {
     fn matches_the_engine_helper_it_replaced() {
         assert_eq!(
             redact("gmail:alice@example.com"),
-            tinymemory_core::util::redact::redact("gmail:alice@example.com")
+            crate::openhuman::util::redact::redact("gmail:alice@example.com")
         );
     }
 }

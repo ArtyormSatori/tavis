@@ -418,7 +418,7 @@ pub async fn delete_source_rpc(
     let log = format!(
         // Redact the source id: it can embed user-linked identifiers.
         "memory_tree::read: delete_source source_id_hash={} deleted={} chunks_removed={} tree_cleaned={}",
-        tinymemory_core::util::redact::redact(&source_id),
+        crate::openhuman::util::redact::redact(&source_id),
         resp.deleted,
         resp.chunks_removed,
         tree_cleaned
