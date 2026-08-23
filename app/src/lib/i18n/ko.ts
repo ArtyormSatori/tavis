@@ -3014,6 +3014,9 @@ const messages: TranslationMap = {
     '{name} 도구를 다시 활성화하려면 다시 연결하세요. OpenHuman은 OAuth 액세스를 새로 고칠 때까지 이 통합을 사용할 수 없는 상태로 유지합니다.',
   'composio.envVarOverrides': '설정되어 있으며, 이 설정을 재정의합니다.',
   'composio.previewBadge': '미리보기',
+  'composio.colApp': '앱',
+  'composio.colStatus': '상태',
+  'composio.colAccounts': '계정',
   'composio.previewTooltip':
     '에이전트 통합이 곧 제공됩니다. 연결할 수는 있지만 에이전트는 아직 이 툴킷을 사용할 수 없습니다.',
   'memory.day.sun': '일',

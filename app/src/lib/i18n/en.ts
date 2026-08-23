@@ -3326,6 +3326,9 @@ const en: TranslationMap = {
     'Reconnect to re-enable {name} tools. OpenHuman will keep this integration unavailable until you refresh OAuth access.',
   'composio.envVarOverrides': 'is set, it overrides this setting.',
   'composio.previewBadge': 'Preview',
+  'composio.colApp': 'App',
+  'composio.colStatus': 'Status',
+  'composio.colAccounts': 'Accounts',
   'composio.previewTooltip':
     "Agent integration coming soon: you can connect, but the agent can't use this toolkit yet.",
 

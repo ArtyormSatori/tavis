@@ -3051,6 +3051,9 @@ const messages: TranslationMap = {
     'পুনরায় সংযোগ করতে PH__0 টুল পুনরায় সংযুক্ত করুন। আপনি OAuth অ্যাক্সেস রিফ্রেশ না করা পর্যন্ত OpenHuman এই ইন্টিগ্রেশনটি অনুপলব্ধ রাখবে৷',
   'composio.envVarOverrides': 'সেট থাকলে, এই সেটিং ওভাররাইড করে।',
   'composio.previewBadge': 'পূর্বরূপ',
+  'composio.colApp': 'অ্যাপ',
+  'composio.colStatus': 'স্ট্যাটাস',
+  'composio.colAccounts': 'অ্যাকাউন্ট',
   'composio.previewTooltip':
     'এজেন্ট ইন্টিগ্রেশন শীঘ্রই আসছে: আপনি সংযোগ করতে পারেন, কিন্তু এজেন্ট এখনও এই টুলকিটটি ব্যবহার করতে পারবেন না।',
   'memory.day.sun': 'রবি',

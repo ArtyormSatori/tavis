@@ -3060,6 +3060,9 @@ const messages: TranslationMap = {
     'Sambungkan kembali untuk mengaktifkan kembali alat {name}. OpenHuman akan membuat integrasi ini tidak tersedia sampai Anda menyegarkan akses OAuth.',
   'composio.envVarOverrides': 'diatur, itu menggantikan pengaturan ini.',
   'composio.previewBadge': 'Pratinjau',
+  'composio.colApp': 'Aplikasi',
+  'composio.colStatus': 'Status',
+  'composio.colAccounts': 'Akun',
   'composio.previewTooltip':
     'Integrasi agen segera hadir: Anda dapat terhubung, tetapi agen belum dapat menggunakan perangkat ini.',
   'memory.day.sun': 'Min',

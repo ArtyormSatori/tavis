@@ -3049,6 +3049,9 @@ const messages: TranslationMap = {
     '{name} टूल को पुनः सक्षम करने के लिए पुनः कनेक्ट करें। OpenHuman इस एकीकरण को तब तक अनुपलब्ध रखेगा जब तक आप OAuth पहुंच को ताज़ा नहीं करते।',
   'composio.envVarOverrides': 'सेट है तो यह सेटिंग ओवरराइड होती है।',
   'composio.previewBadge': 'पूर्वावलोकन',
+  'composio.colApp': 'ऐप',
+  'composio.colStatus': 'स्थिति',
+  'composio.colAccounts': 'खाते',
   'composio.previewTooltip':
     'एजेंट एकीकरण जल्द ही आ रहा है - आप कनेक्ट कर सकते हैं, लेकिन एजेंट अभी तक इस टूलकिट का उपयोग नहीं कर सकता है।',
   'memory.day.sun': 'रवि',

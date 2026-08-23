@@ -3100,6 +3100,9 @@ const messages: TranslationMap = {
     'Reconecte para reativar as ferramentas {name}. OpenHuman manterá esta integração indisponível até que você atualize o acesso de OAuth.',
   'composio.envVarOverrides': 'está definida, ela substitui esta configuração.',
   'composio.previewBadge': 'Visualização',
+  'composio.colApp': 'Aplicativo',
+  'composio.colStatus': 'Status',
+  'composio.colAccounts': 'Contas',
   'composio.previewTooltip':
     'Integração do agente em breve – você pode se conectar, mas o agente ainda não pode usar este kit de ferramentas.',
   'memory.day.sun': 'Dom',

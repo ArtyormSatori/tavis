@@ -2981,6 +2981,9 @@ const messages: TranslationMap = {
     'أعد الاتصال لإعادة تمكين أدوات {name}. OpenHuman سيبقي هذا التكامل غير متاح حتى تقوم بتحديث وصول OAuth.',
   'composio.envVarOverrides': 'محدد، فإنه يتجاوز هذا الإعداد.',
   'composio.previewBadge': 'معاينة',
+  'composio.colApp': 'التطبيق',
+  'composio.colStatus': 'الحالة',
+  'composio.colAccounts': 'الحسابات',
   'composio.previewTooltip':
     'سيتم دمج الوكيل قريبًا - يمكنك الاتصال، ولكن لا يمكن للوكيل استخدام مجموعة الأدوات هذه بعد.',
   'memory.day.sun': 'أحد',
