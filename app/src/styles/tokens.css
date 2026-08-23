@@ -49,7 +49,7 @@
   --line-chrome: 212 212 212; /* the hairline where the content card meets the
                                  chrome (stone-300). Drawn as a zero-blur inset
                                  box-shadow, not a border — see the
-                                 `content-edge` shadow in tailwind.config.js. */
+                                 `--shadow-content-edge` token in index.css. */
 
   /* ---- Accent palette: primary (Complementary Blue) ---- */
   --primary-50: 239 246 255;
