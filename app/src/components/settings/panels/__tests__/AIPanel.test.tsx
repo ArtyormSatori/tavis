@@ -1517,7 +1517,7 @@ describe('AIPanel', () => {
     renderWithProviders(<AIPanel />);
 
     // Count connected-provider toggles before dialog interaction.
-    const chipsBefore = screen.getAllByRole('switch').length;
+    const chipsBefore = screen.queryAllByRole('switch').length;
 
     // Open the dialog.
     await openProviderConnectDialog('openai');
