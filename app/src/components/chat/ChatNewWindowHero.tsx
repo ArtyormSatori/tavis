@@ -117,29 +117,6 @@ export default function ChatNewWindowHero() {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-md flex-col justify-center py-4">
-      {shouldShowBudgetCompletedMessage && (
-        <UsageLimitBanner
-          tone="danger"
-          icon="⚠️"
-          title={t('home.usageExhaustedTitle')}
-          message={t('home.usageExhaustedBody')}
-          ctaLabel={t('home.usageExhaustedCta')}
-          secondaryCtaLabel={
-            openRouterStatus === 'saving' ? t('openrouterFree.saving') : t('openrouterFree.cta')
-          }
-          onSecondaryCtaClick={() => {
-            if (openRouterStatus !== 'saving') {
-              void handleUseOpenRouterFree();
-            }
-          }}
-        />
-      )}
-      {openRouterStatus === 'error' && (
-        <div className="mb-3 rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700 dark:border-coral-500/30 dark:bg-coral-900/20 dark:text-coral-200">
-          {t('openrouterFree.error')}
-        </div>
-      )}
-
       {showPromoBanner && <PromotionalCreditsBanner promoCredits={promoCredits} />}
 
       {/* Main card — sizes to its content. The full height lives on the
