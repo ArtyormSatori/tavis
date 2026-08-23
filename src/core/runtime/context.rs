@@ -146,7 +146,10 @@ impl CoreContext {
         bool,
         Option<crate::openhuman::config::Config>,
     )> {
-        log::debug!("[core-context] init: host_kind={host_kind:?} domains={domains:?}");
+        log::debug!(
+            "[core-context] init: host_kind={host_kind:?} domains={domains:?} \
+             tool_groups={tool_groups:?}"
+        );
         // 1. Ensure all controllers are registered before anything dispatches.
         let _ = crate::core::all::all_registered_controllers();
 
