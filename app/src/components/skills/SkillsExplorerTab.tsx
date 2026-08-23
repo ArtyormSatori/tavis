@@ -556,7 +556,7 @@ function SkillDetailDialog({
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-content-faint">
                   {t('skills.detail.version')}
                 </span>
-                <p className="text-xs font-mono text-content-secondary">{version}</p>
+                <p className="text-xs font-mono text-content-secondary">v{version}</p>
               </div>
             )}
             {author && (
