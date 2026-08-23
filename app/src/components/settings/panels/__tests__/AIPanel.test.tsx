@@ -165,6 +165,12 @@ const openProviderConnectDialog = async (
   fireEvent.keyDown(await screen.findByTestId(`add-provider-option-${slug}`), { key: 'Enter' });
 };
 
+const openProviderRowAction = async (slug: string, action: RegExp) => {
+  const row = await screen.findByTestId(`provider-row-${slug}`);
+  fireEvent.click(within(row).getByRole('button'));
+  fireEvent.click(await screen.findByRole('menuitem', { name: action }));
+};
+
 const baseUsage = {
   remainingUsd: 1.5,
   cycleBudgetUsd: 10,
@@ -1798,8 +1804,7 @@ describe('AIPanel', () => {
       ],
     });
     renderWithProviders(<AIPanel />);
-    const editButton = await screen.findByRole('button', { name: /Edit endpoint/i });
-    fireEvent.click(editButton);
+    await openProviderRowAction('ollama', /Edit endpoint/i);
 
     const dialog = await screen.findByRole('dialog', { name: /Connect Ollama/i });
     const urlInput = within(dialog).getByLabelText(/Endpoint URL/i) as HTMLInputElement;
@@ -1848,8 +1853,8 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(settingsWithOllama);
     renderWithProviders(<AIPanel />);
 
-    const editBtn = await screen.findByRole('button', { name: /Edit endpoint/i });
-    expect(editBtn).toBeInTheDocument();
+    const row = await screen.findByTestId('provider-row-ollama');
+    expect(within(row).getByRole('button')).toBeInTheDocument();
   });
 
   it('edit-endpoint button opens the dialog pre-populated with the saved URL', async () => {
@@ -1871,7 +1876,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(settingsWithOllama);
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Edit endpoint/i }));
+    await openProviderRowAction('ollama', /Edit endpoint/i);
 
     const dialog = await screen.findByRole('dialog', { name: /Connect Ollama/i });
     const urlInput = within(dialog).getByLabelText(/Endpoint URL/i) as HTMLInputElement;
