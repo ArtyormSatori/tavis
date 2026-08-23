@@ -327,13 +327,27 @@ async fn multi_batch_volume_builds_full_tree() {
                 .iter()
                 .find(|tree| tree.scope == source_id)
                 .map(|tree| tree_store::get_buffer(&cfg, &tree.id, 0).unwrap());
+            let failed_jobs = tinymemory_core::store::chunks::with_connection(&cfg, |conn| {
+                let mut stmt = conn.prepare(
+                    "SELECT kind, attempts, last_error FROM mem_tree_jobs \
+                     WHERE status = 'failed' ORDER BY created_at_ms",
+                )?;
+                let rows = stmt.query_map([], |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, i64>(1)?,
+                        row.get::<_, Option<String>>(2)?,
+                    ))
+                })?;
+                rows.collect::<Result<Vec<_>, _>>().map_err(Into::into)
+            })
+            .unwrap();
             panic!(
                 "source tree did not seal before timeout: trees={trees:?}, buffer={buffer:?}, \
-                 ready={}, running={}, done={}, failed={}",
+                 ready={}, running={}, done={}, failed_jobs={failed_jobs:?}",
                 memory_queue::count_by_status(&cfg, JobStatus::Ready).unwrap(),
                 memory_queue::count_by_status(&cfg, JobStatus::Running).unwrap(),
                 memory_queue::count_by_status(&cfg, JobStatus::Done).unwrap(),
-                memory_queue::count_by_status(&cfg, JobStatus::Failed).unwrap(),
             );
         }
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
