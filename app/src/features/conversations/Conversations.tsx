@@ -2375,6 +2375,10 @@ const Conversations = ({
               setInputValue={setInputValue}
               onSend={handleComposerSend}
               onStopGeneration={rustChat ? handleStopGeneration : undefined}
+              // Idle-composer shortcut to the full-bleed mascot stage. Chat and
+              // Human share one mascot (mascotSlice), so this is a change of
+              // venue for the same conversation partner, not a second one.
+              onOpenHumanMode={() => navigate('/human')}
               textInputRef={textInputRef}
               fileInputRef={fileInputRef}
               composerInteractionBlocked={composerInteractionBlocked}
