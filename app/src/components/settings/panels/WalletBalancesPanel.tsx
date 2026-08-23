@@ -14,6 +14,7 @@ import {
   type WalletChain,
 } from '../../../services/walletApi';
 import Button from '../../ui/Button';
+import { DataTable, type DataTableColumn, TableCell, TableRow } from '../../ui';
 import { SettingsEmptyState, SettingsSection } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import SettingsPanel from '../layout/SettingsPanel';
@@ -54,6 +55,22 @@ function truncateAddress(address: string): string {
   if (address.length <= 12) return address;
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
+
+/**
+ * Shared column set. Both the real balances and the pre-setup placeholders
+ * render through it, so the two states line up column-for-column instead of
+ * being two differently-shaped lists.
+ *
+ * `cell` is omitted throughout: every row here is custom-rendered (a row owns
+ * its own copy button, its own clipboard state and its own action pair), and
+ * the columns exist to define the header and the alignment.
+ */
+const COLUMNS_FOR = (t: (key: string) => string): DataTableColumn<never>[] => [
+  { id: 'network', header: t('walletBalances.colNetwork') },
+  { id: 'address', header: t('walletBalances.colAddress') },
+  { id: 'balance', header: t('walletBalances.colBalance'), align: 'right' },
+  { id: 'actions', header: t('walletBalances.colActions'), align: 'right' },
+];
 
 // ---------------------------------------------------------------------------
 // BalanceRow — a single chain/network entry with Send / Receive actions
@@ -244,6 +261,7 @@ const ChainPlaceholderRow = ({
 
 const WalletBalancesPanel = () => {
   const { t } = useT();
+  const COLUMNS = COLUMNS_FOR(t);
   const { navigateToSettings } = useSettingsNavigation();
 
   const [balances, setBalances] = useState<BalanceInfo[] | null>(null);
