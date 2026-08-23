@@ -537,7 +537,11 @@ impl GitOperationsTool {
         // Validate the repository instead of trusting the presence of a `.git`
         // path. This handles linked-worktree gitfiles and rejects malformed
         // ancestor markers that Git itself cannot open.
-        if git2::Repository::discover(&effective_dir).is_err() {
+        let is_worktree = self
+            .run_git_command_in(&effective_dir, &["rev-parse", "--is-inside-work-tree"])
+            .await
+            .is_ok_and(|output| output.trim() == "true");
+        if !is_worktree {
             return Ok(ToolResult::error("Not in a git repository"));
         }
 
