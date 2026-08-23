@@ -156,6 +156,25 @@ jobs:
           workspaces: . -> target
           cache-on-failure: true
           key: core
+      - name: Install checksum-pinned TinyMemory test module
+        run: |
+          # Memory unit tests exercise the host/module seam. Supplying the
+          # exact native fixture keeps them independent of GitHub's release
+          # metadata API and mirrors the Rust E2E and desktop-E2E jobs.
+          # tinybus validates every directory ancestor, so a container-root
+          # owned directory outside the runner-owned checkout is required.
+          module_root="/opt/openhuman-test-modules/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          memory_dir="$module_root/tinymemory"
+          memory_archive="$memory_dir/tinymemory-module-1.0.1-ubuntu-22.04-x86_64.tar.gz"
+          rm -rf "$memory_dir"
+          mkdir -p "$memory_dir"
+          curl --fail --location --silent --show-error \
+            "https://github.com/tinyhumansai/tinymemory/releases/download/v1.0.1/$(basename "$memory_archive")" \
+            --output "$memory_archive"
+          echo "35d13463041f455bebd833a71ba370d891a4e59d1b8e576e81635e2777a0c3dd  $memory_archive" \
+            | sha256sum --check
+          tar --no-same-owner -xzf "$memory_archive" -C "$memory_dir"
+          echo "TINYMEMORY_TEST_MODULE=$memory_dir/libtinymemory_module.so" >> "$GITHUB_ENV"
       - name: Test core crate (openhuman)
         # This script uses Bash-only process substitution below. Reusable
         # workflows do not inherit the caller's `defaults.run.shell`, and
