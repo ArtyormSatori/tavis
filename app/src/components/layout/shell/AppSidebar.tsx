@@ -1,7 +1,6 @@
 import debugFactory from 'debug';
 import { useEffect } from 'react';
 import { LuPanelLeftOpen } from 'react-icons/lu';
-import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useT } from '../../../lib/i18n/I18nContext';
 import { trackEvent } from '../../../services/analytics';
@@ -10,18 +9,12 @@ import { APP_VERSION } from '../../../utils/config';
 import ConnectionIndicator from '../../ConnectionIndicator';
 import {
   SidebarFooter,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuIcon,
-  SidebarMenuItem,
-  SidebarMenuLabel,
   SidebarContent as SidebarScrollRegion,
   SidebarTrigger,
   Tooltip,
   useSidebar,
 } from '../../ui';
 import CollapsedNavRail from './CollapsedNavRail';
-import { NavIcon } from './navIcons';
 import SidebarHeader from './SidebarHeader';
 import SidebarNav from './SidebarNav';
 import { SidebarSlotOutlet } from './SidebarSlot';
@@ -60,8 +53,6 @@ const log = debugFactory('sidebar');
  */
 export default function AppSidebar() {
   const { t } = useT();
-  const location = useLocation();
-  const navigate = useNavigate();
   const { state: sidebarState } = useSidebar();
   const collapsed = sidebarState === 'collapsed';
 
