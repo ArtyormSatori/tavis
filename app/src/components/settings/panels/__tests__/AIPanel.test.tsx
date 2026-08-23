@@ -1717,10 +1717,7 @@ describe('AIPanel', () => {
   it('toggling Ollama ON shows an Endpoint URL field with localhost default', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect Ollama/i })).toBeInTheDocument()
-    );
-    fireEvent.click(screen.getByRole('switch', { name: /Connect Ollama/i }));
+    await openProviderConnectDialog('ollama', 'local');
 
     // ProviderKeyDialog renders in endpoint mode for local runtimes: the
     // input is labelled "Endpoint URL", not "API key".
@@ -1734,10 +1731,7 @@ describe('AIPanel', () => {
   it('rejects a non-http endpoint URL and keeps the dialog open', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect Ollama/i })).toBeInTheDocument()
-    );
-    fireEvent.click(screen.getByRole('switch', { name: /Connect Ollama/i }));
+    await openProviderConnectDialog('ollama', 'local');
     const dialog = await screen.findByRole('dialog', { name: /Connect Ollama/i });
     const urlInput = within(dialog).getByLabelText(/Endpoint URL/i);
     fireEvent.change(urlInput, { target: { value: 'ftp://nope' } });
@@ -1753,10 +1747,7 @@ describe('AIPanel', () => {
   it('Ollama save normalizes the endpoint and persists local_ai.base_url', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect Ollama/i })).toBeInTheDocument()
-    );
-    fireEvent.click(screen.getByRole('switch', { name: /Connect Ollama/i }));
+    await openProviderConnectDialog('ollama', 'local');
     const dialog = await screen.findByRole('dialog', { name: /Connect Ollama/i });
 
     // Type a host with no path — the URL normalizer must append `/v1` for
@@ -1779,10 +1770,7 @@ describe('AIPanel', () => {
   it('passes Ollama 0.0.0.0 endpoint through to the Rust normalizer', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect Ollama/i })).toBeInTheDocument()
-    );
-    fireEvent.click(screen.getByRole('switch', { name: /Connect Ollama/i }));
+    await openProviderConnectDialog('ollama', 'local');
     const dialog = await screen.findByRole('dialog', { name: /Connect Ollama/i });
 
     fireEvent.change(within(dialog).getByLabelText(/Endpoint URL/i), {
@@ -1821,10 +1809,7 @@ describe('AIPanel', () => {
   it('LM Studio save persists the local_ai provider and endpoint', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect LM Studio/i })).toBeInTheDocument()
-    );
-    fireEvent.click(screen.getByRole('switch', { name: /Connect LM Studio/i }));
+    await openProviderConnectDialog('lm-studio', 'local');
     const dialog = await screen.findByRole('dialog', { name: /Connect LM Studio/i });
 
     fireEvent.change(within(dialog).getByLabelText(/Endpoint URL/i), {
@@ -1897,9 +1882,11 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
     renderWithProviders(<AIPanel />);
 
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect Ollama/i })).toBeInTheDocument()
-    );
+    fireEvent.click(await screen.findByTestId('add-provider-open'));
+    const trigger = await screen.findByTestId('add-provider-select-local');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(await screen.findByTestId('add-provider-option-ollama')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Edit endpoint/i })).not.toBeInTheDocument();
   });
 
