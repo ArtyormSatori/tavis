@@ -167,7 +167,9 @@ const openProviderConnectDialog = async (
 
 const openProviderRowAction = async (slug: string, action: RegExp) => {
   const row = await screen.findByTestId(`provider-row-${slug}`);
-  fireEvent.click(within(row).getByRole('button'));
+  const trigger = within(row).getByRole('button');
+  trigger.focus();
+  fireEvent.keyDown(trigger, { key: 'Enter' });
   fireEvent.click(await screen.findByRole('menuitem', { name: action }));
 };
 
