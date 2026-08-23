@@ -1399,11 +1399,17 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     expect(screen.getByTestId('stopped-marker')).toHaveTextContent('Stopped');
   });
 
-  it('shows Send and no Stop button while the thread is idle (#4862)', async () => {
+  it('shows no Stop button while the thread is idle (#4862)', async () => {
     await renderSelectedConversation();
 
     expect(screen.queryByRole('button', { name: 'Stop generating' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Send message' })).toBeInTheDocument();
+    // An idle thread with an empty composer gives the primary slot to the
+    // Human-page shortcut rather than a Send button that would refuse the
+    // click; Send returns as soon as there is something to send, which
+    // `queues via the Send button while a turn streams` covers. What #4862
+    // pins here is the absence of Stop.
+    expect(screen.getByTestId('composer-human-mode')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
   });
 
   it('releases the pending-send lock when appendMessage rejects with a generic error', async () => {
