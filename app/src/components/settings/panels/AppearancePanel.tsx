@@ -180,62 +180,12 @@ const AppearancePanel = () => {
 
   return (
     <SettingsPanel description={t('settings.appearance.menuDesc')}>
-      {/* ── Theme picker — intentional bespoke tile UI ─────────────── */}
-      <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-content-faint mb-2 px-1">
-          {t('settings.appearance.themeHeading')}
-        </h3>
-        <div
-          className="bg-surface rounded-xl border border-line overflow-hidden"
-          role="radiogroup"
-          aria-label={t('settings.appearance.themeAria')}>
-          {OPTIONS.map((opt, idx) => {
-            const selected = opt.id === mode;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => dispatch(setThemeMode(opt.id))}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors focus:outline-hidden focus-visible:bg-primary-50 dark:focus-visible:bg-primary-900/30 ${
-                  idx !== 0 ? 'border-t border-line-subtle' : ''
-                } ${selected ? 'bg-primary-50 dark:bg-primary-500/10' : 'hover:bg-surface-hover'}`}>
-                <span
-                  className={`flex items-center justify-center w-9 h-9 rounded-lg ${
-                    selected
-                      ? 'bg-primary-500 text-content-inverted'
-                      : 'bg-surface-subtle text-content-secondary'
-                  }`}>
-                  {opt.icon}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-sm font-medium text-content">{opt.label}</span>
-                  <span className="block text-xs text-content-muted">{opt.description}</span>
-                </span>
-                {selected && (
-                  <svg
-                    className="w-5 h-5 text-primary-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-xs text-content-muted leading-relaxed px-1 mt-2">
-          {t('settings.appearance.helperText')}
-        </p>
-      </div>
+      {/* Colours, fonts and background — the former "Theme studio" page, now
+          sections of this one. Its gallery header carries the Light / Dark /
+          Auto toggle, which is why this page no longer has a separate theme-mode
+          tile list: `setThemeMode` and `setThemeVariant` write the same two
+          slice fields, so the two controls were one control shown twice. */}
+      <ThemeStudioPanel embedded />
 
       {/* ── Font size picker — intentional bespoke tile UI ─────────── */}
       <div>
@@ -333,67 +283,6 @@ const AppearancePanel = () => {
           {t('settings.appearance.fontSizeHelperText')}
         </p>
       </div>
-
-      {/* ── Tab bar labels toggle ──────────────────────────────────── */}
-      <SettingsSection title={t('settings.appearance.tabBarHeading')}>
-        <SettingsRow
-          htmlFor="switch-tab-bar-labels"
-          label={t('settings.appearance.tabBarAlwaysShowLabels')}
-          description={t('settings.appearance.tabBarAlwaysShowLabelsDesc')}
-          control={
-            <SettingsSwitch
-              id="switch-tab-bar-labels"
-              checked={labelsAlwaysVisible}
-              onCheckedChange={toggleTabBarLabels}
-              aria-label={t('settings.appearance.tabBarAlwaysShowLabels')}
-            />
-          }
-        />
-      </SettingsSection>
-
-      {/* ── Chat display toggle ────────────────────────────────────── */}
-      <SettingsSection title={t('settings.appearance.chatHeading')}>
-        <SettingsRow
-          htmlFor="switch-assistant-text-mode"
-          label={t('settings.appearance.assistantTextMode')}
-          description={t('settings.appearance.assistantTextModeDesc')}
-          control={
-            <SettingsSwitch
-              id="switch-assistant-text-mode"
-              checked={assistantTextModeEnabled}
-              onCheckedChange={toggleAssistantTextMode}
-              aria-label={t('settings.appearance.assistantTextMode')}
-            />
-          }
-        />
-        <SettingsRow
-          htmlFor="switch-hide-agent-insights"
-          label={t('settings.appearance.hideAgentInsights')}
-          description={t('settings.appearance.hideAgentInsightsDesc')}
-          control={
-            <SettingsSwitch
-              id="switch-hide-agent-insights"
-              checked={hideAgentInsights}
-              onCheckedChange={toggleHideAgentInsights}
-              aria-label={t('settings.appearance.hideAgentInsights')}
-            />
-          }
-        />
-        <SettingsRow
-          htmlFor="switch-show-chat-mascot"
-          label={t('settings.appearance.showChatMascot')}
-          description={t('settings.appearance.showChatMascotDesc')}
-          control={
-            <SettingsSwitch
-              id="switch-show-chat-mascot"
-              checked={showChatMascot}
-              onCheckedChange={next => dispatch(setChatMascotDismissed(!next))}
-              aria-label={t('settings.appearance.showChatMascot')}
-              data-testid="switch-show-chat-mascot"
-            />
-          }
-        />
-      </SettingsSection>
 
       {/* ── Display language (moved from the old settings home list) ── */}
       <SettingsSection title={t('settings.language')}>
