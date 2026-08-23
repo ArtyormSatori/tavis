@@ -149,6 +149,11 @@ const selectPickerProvider = async (name: RegExp) => {
   fireEvent.click(await screen.findByRole('button', { name }));
 };
 
+const openCustomProviderEditor = async () => {
+  fireEvent.click(await screen.findByTestId('add-provider-open'));
+  fireEvent.click(await screen.findByTestId('add-provider-custom'));
+};
+
 const baseUsage = {
   remainingUsd: 1.5,
   cycleBudgetUsd: 10,
@@ -542,7 +547,7 @@ describe('AIPanel', () => {
     );
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     fireEvent.change(await screen.findByPlaceholderText('My Provider'), {
       target: { value: 'Azure Foundry' },
@@ -578,7 +583,7 @@ describe('AIPanel', () => {
     );
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     fireEvent.change(await screen.findByPlaceholderText('My Provider'), {
       target: { value: 'Azure Legacy' },
@@ -605,7 +610,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(baseSettings);
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     const urlField = screen.getByPlaceholderText('https://api.openai.com/v1');
     fireEvent.change(urlField, {
@@ -626,7 +631,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue(baseSettings);
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     fireEvent.change(screen.getByPlaceholderText('https://api.openai.com/v1'), {
       target: { value: 'https://litellm.mycorp.dev/v1' },
@@ -645,7 +650,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     fireEvent.change(await screen.findByPlaceholderText('My Provider'), {
       target: { value: 'Azure Foundry' },
@@ -671,7 +676,7 @@ describe('AIPanel', () => {
     vi.mocked(setCloudProviderKey).mockRejectedValueOnce(new Error('keyring is locked'));
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     fireEvent.change(await screen.findByPlaceholderText('My Provider'), {
       target: { value: 'Azure Foundry' },
@@ -699,7 +704,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockRejectedValueOnce(new Error('provider returned 404'));
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     fireEvent.change(await screen.findByPlaceholderText('My Provider'), {
       target: { value: 'Azure Foundry' },
@@ -1066,7 +1071,7 @@ describe('AIPanel', () => {
 
     try {
       renderWithProviders(<AIPanel />);
-      fireEvent.click(await screen.findByRole('button', { name: /Add Custom Provider/i }));
+      await openCustomProviderEditor();
       fireEvent.change(await screen.findByPlaceholderText('My Provider'), {
         target: { value: 'My Host' },
       });
@@ -1375,7 +1380,7 @@ describe('AIPanel', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Add Custom Provider/i })).toBeInTheDocument()
     );
-    fireEvent.click(screen.getByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
 
     await waitFor(() => expect(screen.getByText(/Add cloud provider/i)).toBeInTheDocument());
     expect(screen.getByLabelText(/^Name$/i)).toBeInTheDocument();
@@ -1678,7 +1683,7 @@ describe('AIPanel', () => {
       expect(screen.getByRole('button', { name: /Add Custom Provider/i })).toBeInTheDocument()
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
     await waitFor(() => expect(screen.getByText(/Add cloud provider/i)).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText(/^Name$/i), { target: { value: 'Team Gateway' } });
     fireEvent.change(screen.getByLabelText(/OpenAI URL/i), {
@@ -1708,7 +1713,7 @@ describe('AIPanel', () => {
       expect(screen.getByRole('button', { name: /Add Custom Provider/i })).toBeInTheDocument()
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Add Custom Provider/i }));
+    await openCustomProviderEditor();
     await waitFor(() => expect(screen.getByText(/Add cloud provider/i)).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText(/^Name$/i), { target: { value: 'My Team Gateway' } });
