@@ -30,7 +30,7 @@ import OpenhumanLinkModal from './components/OpenhumanLinkModal';
 import PersistRehydrationScreen from './components/PersistRehydrationScreen';
 import PttHotkeyManager from './components/PttHotkeyManager';
 import SecurityBanner from './components/SecurityBanner';
-import UserErrorCenter from './components/userErrors/UserErrorCenter';
+import NoticeCenter from './components/notices/NoticeCenter';
 import AppWalkthrough from './components/walkthrough/AppWalkthrough';
 import { useNotchBootSync } from './hooks/useNotchBootSync';
 import { I18nProvider } from './lib/i18n/I18nContext';
@@ -258,11 +258,11 @@ export function AppShellDesktop() {
           )}
         </div>
         <OpenhumanLinkModal />
-        {/* User-actionable runtime errors (#3931): a first-class panel for
-            expected user states (insufficient BYO credits, managed-budget
-            exhaustion). Mounted outside the routes so entries survive route
+        {/* Every notice the app raises, in one bottom-left FAB: classified
+            runtime errors (#3931), the memory-embedding budget (#5324), plan
+            usage limits. Mounted outside the routes so entries survive route
             changes and background-job completion. */}
-        <UserErrorCenter />
+        <NoticeCenter />
         {/* Post-onboarding Joyride walkthrough — mounted here (outside routes) so
             it persists across tab navigations. Joyride targets span Home + the
             sidebar nav so it must stay mounted while the user moves between routes. */}
