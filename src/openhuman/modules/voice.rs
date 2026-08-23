@@ -29,7 +29,6 @@
 //! than taking dictation down with it. The one thing none of them may do is
 //! guess: see [`is_hallucinated`].
 
-use serde::Deserialize;
 use tinyvoice_bus::names::methods;
 
 use super::{host, ops, registry};
