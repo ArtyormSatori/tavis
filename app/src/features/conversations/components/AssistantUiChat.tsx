@@ -5,6 +5,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import AttachmentPreview from '../../../components/chat/AttachmentPreview';
 import { Button } from '../../../components/ui';
+import { MascotChipAvatar } from '../../human/Mascot/MascotChipAvatar';
 import type { Attachment } from '../../../lib/attachments';
 import { useRegisterAction } from '../../../lib/commands/useRegisterAction';
 import { useSlashCommands } from '../../../lib/commands/useSlashCommands';
@@ -12,6 +13,7 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import { AssistantUiRuntimeProvider } from '../../../providers/AssistantUiRuntimeProvider';
 import { emptySessionTokenUsage } from '../../../store/chatRuntimeSlice';
 import { useAppSelector } from '../../../store/hooks';
+import { selectMascotColor, selectMascotCustomPrimary } from '../../../store/mascotSlice';
 import { ChatToolFallback, ChatToolGroup } from './ChatToolParts';
 import { contextUsageFromTokenUsage, ContextWindowPill } from './composer/ContextWindowPill';
 import {
@@ -94,6 +96,10 @@ export function AssistantUiChat({
 }) {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // The idle composer button wears the user's own mascot (yellow by default),
+  // so the control looks like the thing it opens rather than a generic glyph.
+  const mascotColor = useAppSelector(selectMascotColor);
+  const mascotCustomPrimary = useAppSelector(selectMascotCustomPrimary);
   const selectedThreadId = useAppSelector(state => state.thread.selectedThreadId);
   const loadError = useAppSelector(state => state.thread.messagesError);
   const tokenUsage = useAppSelector(state =>
@@ -170,6 +176,32 @@ export function AssistantUiChat({
     ),
     [attachmentInteractionBlocked, attachments.length, maxAttachments, onAttachFiles, t]
   );
+  /**
+   * Primary-slot control for an empty composer: a circular button carrying the
+   * user's mascot, opening the Human page. Same 28px circle as the Send button
+   * it stands in for, so the row's metrics don't shift when a character is
+   * typed; the avatar is inset a little so the mascot reads inside the circle
+   * rather than filling it edge to edge.
+   */
+  const ComposerIdleAction = useCallback(
+    () =>
+      onOpenHumanMode ? (
+        <Button
+          type="button"
+          iconOnly
+          variant="secondary"
+          size="xs"
+          analyticsId="chat-composer-human-mode"
+          data-testid="composer-human-mode"
+          aria-label={t('composer.humanMode')}
+          title={t('composer.humanMode')}
+          className="size-7 shrink-0 rounded-full p-0"
+          onClick={onOpenHumanMode}>
+          <MascotChipAvatar color={mascotColor} customPrimary={mascotCustomPrimary} size={18} />
+        </Button>
+      ) : null,
+    [mascotColor, mascotCustomPrimary, onOpenHumanMode, t]
+  );
 
   const components: ThreadComponents = useMemo(
     () => ({
@@ -177,7 +209,7 @@ export function AssistantUiChat({
       ToolGroup: ChatToolGroup,
       ComposerExtras,
       ComposerHeader,
-      onOpenHumanMode,
+      ComposerIdleAction,
       ...(attachmentsEnabled
         ? {
             ComposerAttachments,
@@ -192,10 +224,10 @@ export function AssistantUiChat({
       ComposerAttachments,
       ComposerExtras,
       ComposerHeader,
+      ComposerIdleAction,
       attachments.length,
       attachmentsEnabled,
       onAttachmentOnlySend,
-      onOpenHumanMode,
     ]
   );
 
