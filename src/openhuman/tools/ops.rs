@@ -518,17 +518,6 @@ pub fn all_tools_with_runtime(
             security.clone(),
         )),
         Box::new(GmailUnsubscribeTool),
-        // Knowledge & memory tools (agent-tool expansion). Read/bounded-write
-        // ship default-ON; the overextending siblings (people_refresh_address_book —
-        // bulk OS contacts ingest with a permission prompt) ship default-OFF via
-        // `tools::user_filter`. (The vault domain was removed upstream in #3040.)
-        Box::new(PeopleListTool),
-        Box::new(PeopleResolveTool),
-        Box::new(PeopleScoreTool),
-        Box::new(PeopleGetTool),
-        Box::new(PeopleAddAliasTool),
-        Box::new(PeopleRecordInteractionTool),
-        Box::new(PeopleRefreshAddressBookTool),
         // Skills metadata tools. `skill_run` is already exposed by RunSkillTool
         // above, so it is not duplicated. Reads ship default-ON; the
         // create/install/uninstall mutators ship default-OFF via
@@ -588,28 +577,6 @@ pub fn all_tools_with_runtime(
         Box::new(WorkflowInstallFromUrlTool::new(config.clone())),
         #[cfg(feature = "skills")]
         Box::new(WorkflowUninstallTool),
-        // Threads (conversation) tools. Read/bounded-write ship default-ON;
-        // the destructive thread_delete / thread_purge_all ship default-OFF
-        // via `tools::user_filter` (thread_destructive toggle).
-        Box::new(ThreadListTool),
-        Box::new(ThreadReadTool),
-        Box::new(ThreadCreateTool),
-        Box::new(ThreadUpdateTitleTool),
-        Box::new(ThreadUpdateLabelsTool),
-        Box::new(ThreadMessageListTool),
-        // Read-only cross-thread transcript search (trigram index). Lets the
-        // context scout and other agents recall what was said in earlier chats.
-        Box::new(ThreadTranscriptSearchTool),
-        Box::new(ThreadMessageAppendTool),
-        Box::new(ThreadMessageUpdateTool),
-        Box::new(ThreadTitleGenerateTool),
-        Box::new(ThreadTurnStateGetTool),
-        Box::new(ThreadTurnStateListTool),
-        Box::new(ThreadTurnStateClearTool),
-        Box::new(ThreadTaskBoardReadTool::new(config.clone())),
-        Box::new(ThreadTaskBoardWriteTool::new(config.clone())),
-        Box::new(ThreadDeleteTool),
-        Box::new(ThreadPurgeAllTool),
         // Learning (user-profile facet cache) tools. Reads ship default-ON;
         // every mutator ships default-OFF via `tools::user_filter`
         // (learning_manage toggle) — they persistently rewrite the assistant's
@@ -684,41 +651,11 @@ pub fn all_tools_with_runtime(
         Box::new(ConfigRuntimeFlagsTool),
         Box::new(ConfigResolveApiUrlTool),
         Box::new(ConfigDataPathsTool),
-        // Account & money. Reads default-ON; billing money-movers (billing_writes)
-        // and team admin ops (team_admin) ship default-OFF via `tools::user_filter`.
-        // credentials exposes only non-secret reads.
-        Box::new(ReferralStatsTool::new(config.clone())),
-        Box::new(ReferralClaimTool::new(config.clone())),
-        Box::new(BillingPlanTool::new(config.clone())),
-        Box::new(BillingBalanceTool::new(config.clone())),
-        Box::new(BillingTransactionsTool::new(config.clone())),
-        Box::new(BillingAutoRechargeTool::new(config.clone())),
-        Box::new(BillingCardsTool::new(config.clone())),
-        Box::new(BillingCouponsTool::new(config.clone())),
-        Box::new(BillingPortalTool::new(config.clone())),
-        Box::new(BillingPurchasePlanTool::new(config.clone())),
-        Box::new(BillingTopUpTool::new(config.clone())),
-        Box::new(BillingCoinbaseChargeTool::new(config.clone())),
-        Box::new(BillingSetupIntentTool::new(config.clone())),
-        Box::new(BillingUpdateCardTool::new(config.clone())),
-        Box::new(BillingDeleteCardTool::new(config.clone())),
-        Box::new(BillingRedeemCouponTool::new(config.clone())),
-        Box::new(BillingUpdateAutoRechargeTool::new(config.clone())),
-        Box::new(TeamListTool::new(config.clone())),
-        Box::new(TeamUsageTool::new(config.clone())),
-        Box::new(TeamGetTool::new(config.clone())),
-        Box::new(TeamListMembersTool::new(config.clone())),
-        Box::new(TeamListInvitesTool::new(config.clone())),
-        Box::new(TeamCreateTool::new(config.clone())),
-        Box::new(TeamUpdateTool::new(config.clone())),
-        Box::new(TeamDeleteTool::new(config.clone())),
-        Box::new(TeamSwitchTool::new(config.clone())),
-        Box::new(TeamJoinTool::new(config.clone())),
-        Box::new(TeamLeaveTool::new(config.clone())),
-        Box::new(TeamCreateInviteTool::new(config.clone())),
-        Box::new(TeamRevokeInviteTool::new(config.clone())),
-        Box::new(TeamRemoveMemberTool::new(config.clone())),
-        Box::new(TeamChangeMemberRoleTool::new(config.clone())),
+        // Account & money. The billing / team / referral agent-tool families were
+        // removed: money movement and team administration are dashboard
+        // surfaces, not things an agent should reach for mid-turn, and their
+        // controllers remain registered for the UI. `credentials` exposes only
+        // non-secret reads.
         Box::new(CredentialListTool::new(config.clone())),
         Box::new(SessionStateTool::new(config.clone())),
         Box::new(SessionGetUserTool::new(config.clone())),
@@ -772,17 +709,6 @@ pub fn all_tools_with_runtime(
     // choosing it and reporting the failure back to the user.
     #[cfg(feature = "memory-git")]
     tools.push(Box::new(crate::openhuman::memory::diff::MemoryDiffTool));
-
-    // tiny.place agent surface. These wrap the internal tiny.place controllers
-    // so the dedicated tinyplace subagent can register identities, inspect
-    // inbox/DM state, trade marketplace assets, manage groups, and work jobs
-    // through the same validation/client paths as JSON-RPC.
-    let tinyplace_tools = crate::openhuman::tinyplace::tools::all_tinyplace_agent_tools();
-    log::debug!(
-        "[tools::ops][tinyplace] registering tinyplace agent tools count={}",
-        tinyplace_tools.len()
-    );
-    tools.extend(tinyplace_tools);
 
     // Presentation generation (#2778). Native-Rust engine (ppt-rs
     // backed) as of the #2780-follow-up rust-engine refactor — no
