@@ -951,11 +951,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
 
     renderWithProviders(<AIPanel />);
-    await waitFor(() => expect(screen.getAllByText(/OpenAI/i).length).toBeGreaterThan(0));
-
-    // Find the "Connect OpenAI" switch button and click it.
-    const connectSwitch = screen.getByRole('switch', { name: /Connect OpenAI/i });
-    fireEvent.click(connectSwitch);
+    await openProviderConnectDialog('openai');
 
     // ProviderKeyDialog should appear.
     await waitFor(() =>
@@ -976,7 +972,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockRejectedValue(new Error('HTTP request failed'));
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect DeepSeek/i }));
+    await openProviderConnectDialog('deepseek');
     const dialog = await screen.findByRole('dialog', { name: /Connect DeepSeek/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), {
       target: { value: 'sk-deepseek-123' },
@@ -1006,7 +1002,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockRejectedValue(new Error('HTTP 401 invalid api key'));
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect DeepSeek/i }));
+    await openProviderConnectDialog('deepseek');
     const dialog = await screen.findByRole('dialog', { name: /Connect DeepSeek/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), { target: { value: 'sk-bad' } });
     fireEvent.click(within(dialog).getByRole('button', { name: /^Save$/i }));
@@ -1022,7 +1018,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockRejectedValue(new Error('provider returned 403: forbidden'));
 
     renderWithProviders(<AIPanel />);
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect DeepSeek/i }));
+    await openProviderConnectDialog('deepseek');
     const dialog = await screen.findByRole('dialog', { name: /Connect DeepSeek/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), {
       target: { value: 'sk-revoked' },
@@ -1050,7 +1046,7 @@ describe('AIPanel', () => {
 
     try {
       renderWithProviders(<AIPanel />);
-      fireEvent.click(await screen.findByRole('switch', { name: /Connect DeepSeek/i }));
+      await openProviderConnectDialog('deepseek');
       const dialog = await screen.findByRole('dialog', { name: /Connect DeepSeek/i });
       fireEvent.change(within(dialog).getByLabelText(/API key/i), { target: { value: 'sk-bad' } });
       fireEvent.click(within(dialog).getByRole('button', { name: /^Save$/i }));
@@ -1118,7 +1114,7 @@ describe('AIPanel', () => {
       </I18nProvider>
     );
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Kimi \(Moonshot\)/i }));
+    await openProviderConnectDialog('moonshot');
     const dialog = await screen.findByRole('dialog', { name: /Kimi \(Moonshot\)/i });
     const link = within(dialog).getByRole('link', { name: /^Get API key$/i });
 
@@ -1141,7 +1137,7 @@ describe('AIPanel', () => {
         </I18nProvider>
       );
 
-      fireEvent.click(await screen.findByRole('switch', { name: /Kimi \(Moonshot\)/i }));
+      await openProviderConnectDialog('moonshot');
       const dialog = await screen.findByRole('dialog', { name: /Kimi \(Moonshot\)/i });
       fireEvent.click(within(dialog).getByRole('link', { name: /^Get API key$/i }));
 
@@ -1167,7 +1163,7 @@ describe('AIPanel', () => {
       { preloadedState: { locale: { current: 'zh-CN' } } }
     );
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Kimi \(Moonshot\)/i }));
+    await openProviderConnectDialog('moonshot');
     const dialog = await screen.findByRole('dialog', { name: /Kimi \(Moonshot\)/i });
 
     expect(within(dialog).getByRole('link', { name: '获取 API Key' })).toBeInTheDocument();
@@ -1183,7 +1179,7 @@ describe('AIPanel', () => {
       { preloadedState: { locale: { current: 'fr' } } }
     );
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Kimi \(Moonshot\)/i }));
+    await openProviderConnectDialog('moonshot');
     const dialog = await screen.findByRole('dialog', { name: /Kimi \(Moonshot\)/i });
     const heading = within(dialog).getByRole('heading', {
       name: /Connecter un fournisseur Kimi \(Moonshot\)/i,
@@ -1202,7 +1198,7 @@ describe('AIPanel', () => {
       { preloadedState: { locale: { current: 'ar' } } }
     );
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Kimi \(Moonshot\)/i }));
+    await openProviderConnectDialog('moonshot');
     const dialog = await screen.findByRole('dialog', { name: /Kimi \(Moonshot\)/i });
     const link = within(dialog).getByRole('link', { name: 'احصل على مفتاح API' });
 
@@ -1220,7 +1216,7 @@ describe('AIPanel', () => {
       </I18nProvider>
     );
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect OpenAI/i }));
+    await openProviderConnectDialog('openai');
     const dialog = await screen.findByRole('dialog', { name: /Connect OpenAI/i });
 
     expect(within(dialog).queryByRole('link', { name: /^Get API key$/i })).not.toBeInTheDocument();
