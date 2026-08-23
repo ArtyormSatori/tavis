@@ -40,10 +40,10 @@ import {
 } from './ai/aiPanelTypes';
 import { BackgroundLoopControls } from './ai/BackgroundLoopControls';
 import { CloudProviderEditor } from './ai/CloudProviderEditor';
+import { CustomRoutingDialog } from './ai/CustomRoutingDialog';
 import { GlobalOwnModelSelector } from './ai/GlobalOwnModelSelector';
 import { ProviderAuthSection } from './ai/ProviderAuthSection';
 import { ProviderKeyDialog } from './ai/ProviderConnectControls';
-import { ProviderModelPickerDialog } from './ai/ProviderModelPickerDialog';
 import { RoutingModeCards } from './ai/RoutingModeCards';
 import { SaveBar } from './ai/SaveBar';
 import { useAISettings, useInstalledModels, useOllamaStatus } from './ai/useAISettingsState';
@@ -382,35 +382,38 @@ const AIPanel = ({
       {pickerFor &&
         (() => {
           const current = draft.routing[pickerFor];
-          const initial =
-            current.kind === 'cloud'
-              ? {
-                  source: { kind: 'cloud' as const, providerSlug: current.providerSlug },
-                  model: current.model,
-                }
-              : current.kind === 'local'
-                ? { source: { kind: 'local' as const }, model: current.model }
-                : current.kind === 'claude-code'
-                  ? { source: { kind: 'claude-code' as const }, model: current.model }
-                  : null;
+          const workload = WORKLOADS.find(candidate => candidate.id === pickerFor);
+          if (!workload) return null;
           return (
-            <ProviderModelPickerDialog
+            <CustomRoutingDialog
+              workload={workload}
+              initial={current}
               cloudProviders={draft.cloudProviders}
               localModels={installed}
               ollamaRunning={ollama.state === 'running'}
-              claudeCodeEnabled={draft.cloudProviders.some(
-                provider => provider.slug === 'claude-code'
-              )}
-              initial={initial}
+              modelRegistry={draft.modelRegistry}
               onClose={() => setPickerFor(null)}
-              onSelect={async ({ source, model }) => {
-                const next =
-                  source.kind === 'cloud'
-                    ? { kind: 'cloud' as const, providerSlug: source.providerSlug, model }
-                    : source.kind === 'local'
-                      ? { kind: 'local' as const, model }
-                      : { kind: 'claude-code' as const, model };
-                await persist({ ...draft, routing: { ...draft.routing, [pickerFor]: next } });
+              onSubmit={(next, vision) => {
+                const registryTarget =
+                  next.kind === 'cloud'
+                    ? { slug: next.providerSlug, model: next.model }
+                    : next.kind === 'local'
+                      ? { slug: 'ollama', model: next.model }
+                      : next.kind === 'claude-code'
+                        ? { slug: 'claude-code', model: next.model }
+                        : null;
+                void persist({
+                  ...draft,
+                  routing: { ...draft.routing, [pickerFor]: next },
+                  modelRegistry: registryTarget
+                    ? upsertModelRegistryVision(
+                        draft.modelRegistry,
+                        registryTarget.slug,
+                        registryTarget.model,
+                        vision
+                      )
+                    : draft.modelRegistry,
+                });
                 setPickerFor(null);
               }}
             />
