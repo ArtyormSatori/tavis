@@ -13,7 +13,7 @@ import { useT } from '../../../lib/i18n/I18nContext';
 import { AssistantUiRuntimeProvider } from '../../../providers/AssistantUiRuntimeProvider';
 import { emptySessionTokenUsage } from '../../../store/chatRuntimeSlice';
 import { useAppSelector } from '../../../store/hooks';
-import { selectMascotColor, selectMascotCustomPrimary } from '../../../store/mascotSlice';
+import { selectCustomPrimaryColor, selectMascotColor } from '../../../store/mascotSlice';
 import { ChatToolFallback, ChatToolGroup } from './ChatToolParts';
 import { contextUsageFromTokenUsage, ContextWindowPill } from './composer/ContextWindowPill';
 import {
@@ -99,7 +99,7 @@ export function AssistantUiChat({
   // The idle composer button wears the user's own mascot (yellow by default),
   // so the control looks like the thing it opens rather than a generic glyph.
   const mascotColor = useAppSelector(selectMascotColor);
-  const mascotCustomPrimary = useAppSelector(selectMascotCustomPrimary);
+  const mascotCustomPrimary = useAppSelector(selectCustomPrimaryColor);
   const selectedThreadId = useAppSelector(state => state.thread.selectedThreadId);
   const loadError = useAppSelector(state => state.thread.messagesError);
   const tokenUsage = useAppSelector(state =>
