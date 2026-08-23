@@ -321,10 +321,21 @@ async fn multi_batch_volume_builds_full_tree() {
         {
             break tree;
         }
-        assert!(
-            tokio::time::Instant::now() < deadline,
-            "source tree did not seal before timeout"
-        );
+        if tokio::time::Instant::now() >= deadline {
+            let trees = tree_store::list_trees_by_kind(&cfg, TreeKind::Source).unwrap();
+            let buffer = trees
+                .iter()
+                .find(|tree| tree.scope == source_id)
+                .map(|tree| tree_store::get_buffer(&cfg, &tree.id, 0).unwrap());
+            panic!(
+                "source tree did not seal before timeout: trees={trees:?}, buffer={buffer:?}, \
+                 ready={}, running={}, done={}, failed={}",
+                memory_queue::count_by_status(&cfg, JobStatus::Ready).unwrap(),
+                memory_queue::count_by_status(&cfg, JobStatus::Running).unwrap(),
+                memory_queue::count_by_status(&cfg, JobStatus::Done).unwrap(),
+                memory_queue::count_by_status(&cfg, JobStatus::Failed).unwrap(),
+            );
+        }
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     };
 
