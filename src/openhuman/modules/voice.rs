@@ -30,6 +30,7 @@
 //! guess: see [`is_hallucinated`].
 
 use serde::Deserialize;
+use tinyvoice_bus::names::methods;
 
 use super::{host, ops, registry};
 use crate::openhuman::config::Config;
@@ -99,7 +100,7 @@ pub use tinyvoice_bus::VoiceIntent;
 /// to the agent — the fast path is an optimisation, and losing it costs a round
 /// trip rather than the request.
 pub async fn route(config: &Config, transcript: &str) -> Result<VoiceIntent, VoiceCallError> {
-    let json: String = call(config, "Route", (transcript,)).await?;
+    let json: String = call(config, methods::ROUTE, (transcript,)).await?;
     let intent: VoiceIntent = serde_json::from_str(&json)
         .map_err(|e| VoiceCallError::Failed(format!("could not decode intent: {e}")))?;
     Ok(clamped(intent))
@@ -142,7 +143,7 @@ pub async fn extract_command(
     transcript: &str,
     wake_word: &str,
 ) -> Result<Option<String>, VoiceCallError> {
-    let command: String = call(config, "ExtractCommand", (transcript, wake_word)).await?;
+    let command: String = call(config, methods::EXTRACT_COMMAND, (transcript, wake_word)).await?;
     Ok(if command.is_empty() {
         None
     } else {
@@ -163,7 +164,7 @@ pub async fn wake_word_present(
     transcript: &str,
     wake_word: &str,
 ) -> Result<bool, VoiceCallError> {
-    call(config, "WakeWordPresent", (transcript, wake_word)).await
+    call(config, methods::WAKE_WORD_PRESENT, (transcript, wake_word)).await
 }
 
 /// Whether an STT transcript looks like a hallucination rather than speech.
@@ -182,7 +183,7 @@ pub async fn is_hallucinated(
     text: &str,
     mode: HallucinationMode,
 ) -> Result<bool, VoiceCallError> {
-    call(config, "IsHallucinated", (text, hallucination_mode_wire(mode))).await
+    call(config, methods::IS_HALLUCINATED, (text, hallucination_mode_wire(mode))).await
 }
 
 /// Downmix, resample to 16 kHz, optionally silence-gate, and frame as WAV.
@@ -208,7 +209,7 @@ pub async fn prepare_capture(
     let encoded = encode_samples(samples);
     let wav: String = call(
         config,
-        "PrepareCapture",
+        methods::PREPARE_CAPTURE,
         (encoded, source_rate, channels, gate_threshold),
     )
     .await?;
@@ -226,7 +227,7 @@ pub async fn encode_wav(
     sample_rate: u32,
 ) -> Result<Vec<u8>, VoiceCallError> {
     let encoded = encode_samples(samples);
-    let wav: String = call(config, "EncodeWav", (encoded, sample_rate)).await?;
+    let wav: String = call(config, methods::ENCODE_WAV, (encoded, sample_rate)).await?;
     decode_audio(&wav)
 }
 
@@ -286,7 +287,7 @@ impl VadSession {
     pub async fn open(config: &Config, vad: VadConfig) -> Result<Self, VoiceCallError> {
         let json = serde_json::to_string(&vad)
             .map_err(|e| VoiceCallError::Failed(format!("could not encode VAD config: {e}")))?;
-        let id: u64 = call(config, "VadOpen", (json,)).await?;
+        let id: u64 = call(config, methods::VAD_OPEN, (json,)).await?;
         Ok(Self { id })
     }
 
@@ -304,7 +305,7 @@ impl VadSession {
         frame_ms: u32,
         energies: &[f32],
     ) -> Result<Vec<IndexedVadEvent>, VoiceCallError> {
-        let json: String = call(config, "VadPush", (self.id, frame_ms, energies)).await?;
+        let json: String = call(config, methods::VAD_PUSH, (self.id, frame_ms, energies)).await?;
         serde_json::from_str(&json)
             .map_err(|e| VoiceCallError::Failed(format!("could not decode VAD events: {e}")))
     }
@@ -316,7 +317,7 @@ impl VadSession {
     /// [`VoiceCallError`] when the module is unavailable or the session is not
     /// open.
     pub async fn is_speaking(&self, config: &Config) -> Result<bool, VoiceCallError> {
-        call(config, "VadIsSpeaking", (self.id,)).await
+        call(config, methods::VAD_IS_SPEAKING, (self.id,)).await
     }
 
     /// Abort any in-flight utterance without emitting an event.
@@ -329,7 +330,7 @@ impl VadSession {
     /// [`VoiceCallError`] when the module is unavailable or the session is not
     /// open.
     pub async fn reset(&self, config: &Config) -> Result<(), VoiceCallError> {
-        call(config, "VadReset", (self.id,)).await
+        call(config, methods::VAD_RESET, (self.id,)).await
     }
 
     /// Release the session. Closing one that is already gone is not an error.
@@ -338,7 +339,7 @@ impl VadSession {
     ///
     /// [`VoiceCallError`] only when the module itself is unreachable.
     pub async fn close(&self, config: &Config) -> Result<(), VoiceCallError> {
-        call(config, "VadClose", (self.id,)).await
+        call(config, methods::VAD_CLOSE, (self.id,)).await
     }
 }
 
@@ -359,7 +360,7 @@ pub async fn prepare_frames(
 ) -> Result<Vec<f32>, VoiceCallError> {
     let encoded: String = call(
         config,
-        "PrepareFrames",
+        methods::PREPARE_FRAMES,
         (encode_samples(samples), source_rate, channels),
     )
     .await?;
@@ -378,7 +379,7 @@ pub async fn frame_energies(
 ) -> Result<Vec<f32>, VoiceCallError> {
     call(
         config,
-        "FrameEnergies",
+        methods::FRAME_ENERGIES,
         (encode_samples(samples), frame_len),
     )
     .await
@@ -402,7 +403,7 @@ pub async fn encode_wav_pcm16(
     use base64::Engine as _;
     let bytes: Vec<u8> = samples.iter().flat_map(|s| s.to_le_bytes()).collect();
     let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
-    let wav: String = call(config, "EncodeWavPcm16", (encoded, sample_rate, channels)).await?;
+    let wav: String = call(config, methods::ENCODE_WAV_PCM16, (encoded, sample_rate, channels)).await?;
     decode_audio(&wav)
 }
 
