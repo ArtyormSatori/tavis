@@ -6640,6 +6640,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': '조치 필요',
   'userErrors.dismiss': '닫기',
+  'userErrors.action.openConnections': '연결 열기',
+  'userErrors.integrationDegraded.title': '연결 상태가 최신이 아닙니다',
+  'userErrors.integrationDegraded.body': '연결된 통합에서 오류가 발생하고 있어 앱에 표시된 연결 상태가 최신이 아닐 수 있습니다.',
   'userErrors.action.openBilling': '결제 열기',
   'userErrors.action.openProviderSettings': '제공업체 설정',
   'userErrors.action.openEmbeddingsSettings': '임베딩 설정',

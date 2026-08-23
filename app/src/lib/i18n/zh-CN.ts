@@ -6352,6 +6352,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': '需要操作',
   'userErrors.dismiss': '忽略',
+  'userErrors.action.openConnections': '打开连接',
+  'userErrors.integrationDegraded.title': '连接显示的状态已过期',
+  'userErrors.integrationDegraded.body': '某个已连接的集成正在返回错误，因此应用中显示的连接状态可能不是最新的。',
   'userErrors.action.openBilling': '打开账单',
   'userErrors.action.openProviderSettings': '提供商设置',
   'userErrors.action.openEmbeddingsSettings': '设置嵌入',

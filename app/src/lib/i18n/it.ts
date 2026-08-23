@@ -6841,6 +6841,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Azione necessaria',
   'userErrors.dismiss': 'Ignora',
+  'userErrors.action.openConnections': 'Apri connessioni',
+  'userErrors.integrationDegraded.title': 'Le connessioni mostrano uno stato non aggiornato',
+  'userErrors.integrationDegraded.body': 'Un\'integrazione collegata restituisce errori, quindi lo stato delle connessioni mostrato nell\'app potrebbe non essere aggiornato.',
   'userErrors.action.openBilling': 'Apri fatturazione',
   'userErrors.action.openProviderSettings': 'Impostazioni del provider',
   'userErrors.action.openEmbeddingsSettings': 'Configura gli embedding',

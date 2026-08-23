@@ -6565,6 +6565,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'إجراء مطلوب',
   'userErrors.dismiss': 'تجاهل',
+  'userErrors.action.openConnections': 'فتح الاتصالات',
+  'userErrors.integrationDegraded.title': 'الاتصالات تعرض حالة قديمة',
+  'userErrors.integrationDegraded.body': 'أحد التكاملات المتصلة يعيد أخطاء، لذا قد تكون حالة الاتصال المعروضة في التطبيق غير محدثة.',
   'userErrors.action.openBilling': 'فتح الفوترة',
   'userErrors.action.openProviderSettings': 'إعدادات المزود',
   'userErrors.action.openEmbeddingsSettings': 'إعداد التضمينات',

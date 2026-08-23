@@ -6789,6 +6789,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Требуется действие',
   'userErrors.dismiss': 'Отклонить',
+  'userErrors.action.openConnections': 'Открыть подключения',
+  'userErrors.integrationDegraded.title': 'Подключения показывают устаревший статус',
+  'userErrors.integrationDegraded.body': 'Подключенная интеграция возвращает ошибки, поэтому отображаемый статус подключений может быть неактуальным.',
   'userErrors.action.openBilling': 'Открыть оплату',
   'userErrors.action.openProviderSettings': 'Настройки провайдера',
   'userErrors.action.openEmbeddingsSettings': 'Настроить эмбеддинги',

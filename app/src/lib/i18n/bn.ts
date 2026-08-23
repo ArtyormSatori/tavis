@@ -6717,6 +6717,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'পদক্ষেপ প্রয়োজন',
   'userErrors.dismiss': 'বাতিল করুন',
+  'userErrors.action.openConnections': 'সংযোগ খুলুন',
+  'userErrors.integrationDegraded.title': 'সংযোগগুলি পুরনো অবস্থা দেখাচ্ছে',
+  'userErrors.integrationDegraded.body': 'একটি সংযুক্ত ইন্টিগ্রেশন ত্রুটি ফেরত দিচ্ছে, তাই অ্যাপে দেখানো সংযোগের অবস্থা পুরনো হতে পারে।',
   'userErrors.action.openBilling': 'বিলিং খুলুন',
   'userErrors.action.openProviderSettings': 'প্রদানকারী সেটিংস',
   'userErrors.action.openEmbeddingsSettings': 'এমবেডিং সেট আপ করুন',

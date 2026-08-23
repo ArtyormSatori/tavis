@@ -6885,6 +6885,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Action requise',
   'userErrors.dismiss': 'Ignorer',
+  'userErrors.action.openConnections': 'Ouvrir les connexions',
+  'userErrors.integrationDegraded.title': 'Les connexions affichent un état obsolète',
+  'userErrors.integrationDegraded.body': 'Une intégration connectée renvoie des erreurs, l\'état des connexions affiché dans l\'application peut donc être obsolète.',
   'userErrors.action.openBilling': 'Ouvrir la facturation',
   'userErrors.action.openProviderSettings': 'Paramètres du fournisseur',
   'userErrors.action.openEmbeddingsSettings': 'Configurer les embeddings',

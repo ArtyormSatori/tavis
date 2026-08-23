@@ -6748,6 +6748,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Tindakan diperlukan',
   'userErrors.dismiss': 'Tutup',
+  'userErrors.action.openConnections': 'Buka koneksi',
+  'userErrors.integrationDegraded.title': 'Koneksi menampilkan status yang usang',
+  'userErrors.integrationDegraded.body': 'Sebuah integrasi yang terhubung mengembalikan galat, sehingga status koneksi yang ditampilkan mungkin sudah tidak akurat.',
   'userErrors.action.openBilling': 'Buka penagihan',
   'userErrors.action.openProviderSettings': 'Pengaturan penyedia',
   'userErrors.action.openEmbeddingsSettings': 'Siapkan embedding',

@@ -6858,6 +6858,9 @@ const messages: TranslationMap = {
   // User-actionable runtime errors (#3931)
   'userErrors.title': 'Acción necesaria',
   'userErrors.dismiss': 'Descartar',
+  'userErrors.action.openConnections': 'Abrir conexiones',
+  'userErrors.integrationDegraded.title': 'Las conexiones muestran un estado desactualizado',
+  'userErrors.integrationDegraded.body': 'Una integración conectada está devolviendo errores, por lo que el estado de conexión que ves puede estar desactualizado.',
   'userErrors.action.openBilling': 'Abrir facturación',
   'userErrors.action.openProviderSettings': 'Configuración del proveedor',
   'userErrors.action.openEmbeddingsSettings': 'Configurar embeddings',
