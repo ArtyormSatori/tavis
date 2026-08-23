@@ -1378,7 +1378,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Add Custom Provider/i })).toBeInTheDocument()
+      expect(screen.getByTestId('add-provider-open')).toBeInTheDocument()
     );
     await openCustomProviderEditor();
 
@@ -1680,7 +1680,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Add Custom Provider/i })).toBeInTheDocument()
+      expect(screen.getByTestId('add-provider-open')).toBeInTheDocument()
     );
 
     await openCustomProviderEditor();
@@ -1710,7 +1710,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Add Custom Provider/i })).toBeInTheDocument()
+      expect(screen.getByTestId('add-provider-open')).toBeInTheDocument()
     );
 
     await openCustomProviderEditor();
