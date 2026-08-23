@@ -661,7 +661,7 @@ describe('SkillsExplorerTab', () => {
       expect(screen.getByRole('button', { name: 'Filter by source' })).toBeInTheDocument();
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Filter by source' }));
+      fireEvent.pointerDown(screen.getByRole('button', { name: 'Filter by source' }), { button: 0 });
     });
     expect(await screen.findByRole('menuitem', { name: /built-in/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /ClawHub/i })).toBeInTheDocument();
@@ -682,7 +682,7 @@ describe('SkillsExplorerTab', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Filter by source' }));
+      fireEvent.pointerDown(screen.getByRole('button', { name: 'Filter by source' }), { button: 0 });
     });
     await act(async () => {
       fireEvent.click(await screen.findByRole('menuitem', { name: /ClawHub/i }));
