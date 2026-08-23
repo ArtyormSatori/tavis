@@ -1152,29 +1152,6 @@ export default function Skills() {
               </div>
             </div> */}
 
-                {composioError && (
-                  <Alert variant="warning" className="p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-amber-900">
-                          {t('skills.composio.staleStatusTitle')}
-                        </h2>
-                        <p className="mt-1 text-xs leading-relaxed text-amber-800">
-                          {composioError}
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="xs"
-                        onClick={() => void refreshComposio()}
-                        className="shrink-0">
-                        {t('common.retry')}
-                      </Button>
-                    </div>
-                  </Alert>
-                )}
-
                 {
                   <>
                     {activeTab === 'channels' && channelsGroup && (
