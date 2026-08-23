@@ -410,9 +410,16 @@ fn every_member_this_client_calls_is_one_the_contract_declares() {
         methods::ENCODE_WAV_PCM16,
         methods::PREPARE_CAPTURE,
     ];
+    // `Segment` is the one deliberate omission: it segments a complete energy
+    // buffer in one call, and the always-on capture loop needs the stateful
+    // `Vad*` session instead, because a segmenter is a state machine across
+    // frames that arrive one at a time.
     for member in tinyvoice_bus::names::METHODS {
+        if *member == methods::SEGMENT {
+            continue;
+        }
         assert!(
-            called.contains(member) || *member == methods::SEGMENT,
+            called.contains(member),
             "the contract declares `{member}`, which this client never calls"
         );
     }
