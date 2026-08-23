@@ -55,98 +55,37 @@ impl std::fmt::Display for VoiceCallError {
     }
 }
 
-/// Which hallucination list applies, mirroring `tinyvoice::transcript::Mode`.
+/// Which hallucination list applies.
 ///
-/// Redeclared here rather than imported because this crate does not depend on
-/// `tinyvoice` — the module is the only link, and its interface speaks strings.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum HallucinationMode {
-    /// Push-to-talk dictation. Aggressive.
-    Dictation,
-    /// Chat voice input. Conservative.
-    Conversation,
-}
+/// The contract's own type under the name the voice domain has always used for
+/// it. It was redeclared here — with a comment saying it had to be, "because
+/// this crate does not depend on `tinyvoice`" — and that is no longer true:
+/// `tinyvoice-bus` is exactly that dependency, and it costs `serde` and
+/// nothing else.
+pub use tinyvoice_bus::transcript::Mode as HallucinationMode;
 
-impl HallucinationMode {
-    /// The wire value the module expects.
-    fn as_wire(self) -> &'static str {
-        match self {
-            Self::Dictation => "dictation",
-            Self::Conversation => "conversation",
-        }
+/// The wire value for a screening mode.
+///
+/// The interface takes the mode as a plain string argument rather than a JSON
+/// value, so this reaches the same spelling the contract's `rename_all =
+/// "snake_case"` derive produces without a `serde_json` round trip. The match
+/// is exhaustive, so a variant added upstream is a compile error here rather
+/// than a mode that silently screens as something else.
+fn hallucination_mode_wire(mode: HallucinationMode) -> &'static str {
+    match mode {
+        HallucinationMode::Dictation => "dictation",
+        HallucinationMode::Conversation => "conversation",
     }
 }
 
 /// A recognised fast-path voice command, or `Unknown`.
 ///
-/// Deserialized from the module's tagged JSON. The variants and their payload
-/// names are the wire contract — renaming one here silently turns it into
-/// `Unknown`, which is why [`VoiceIntent::Unknown`] carries the catch-all
-/// `#[serde(other)]` and the tests below pin every tag.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-#[serde(tag = "intent", rename_all = "snake_case")]
-pub enum VoiceIntent {
-    /// "play <song/artist>".
-    Play {
-        /// The cleaned search query.
-        query: String,
-    },
-    /// Pause playback.
-    Pause,
-    /// Resume playback.
-    Resume,
-    /// Skip to the next track.
-    Next,
-    /// Go back to the previous track.
-    Previous,
-    /// "open/launch/start <app>".
-    OpenApp {
-        /// The cleaned application name.
-        app: String,
-    },
-    /// "set volume to N", absolute `0..=100`.
-    SetVolume {
-        /// Target volume percentage.
-        percent: u8,
-    },
-    /// Raise the volume.
-    VolumeUp,
-    /// Lower the volume.
-    VolumeDown,
-    /// Mute audio output.
-    Mute,
-    /// Unmute audio output.
-    Unmute,
-    /// Not a confident fast command — defer to the agent.
-    #[serde(other)]
-    Unknown,
-}
-
-impl VoiceIntent {
-    /// A stable, **non-PII** variant name, for logs and metrics.
-    ///
-    /// Never includes the `query` / `app` payloads. This path is fed by an
-    /// always-on microphone, so those fields can hold anything said in the
-    /// room: a log line naming the variant is diagnostics, and one naming the
-    /// query is a recording.
-    #[must_use]
-    pub fn kind(&self) -> &'static str {
-        match self {
-            Self::Play { .. } => "play",
-            Self::Pause => "pause",
-            Self::Resume => "resume",
-            Self::Next => "next",
-            Self::Previous => "previous",
-            Self::OpenApp { .. } => "open_app",
-            Self::SetVolume { .. } => "set_volume",
-            Self::VolumeUp => "volume_up",
-            Self::VolumeDown => "volume_down",
-            Self::Mute => "mute",
-            Self::Unmute => "unmute",
-            Self::Unknown => "unknown",
-        }
-    }
-}
+/// The contract's own type. `Unknown` carries `#[serde(other)]` upstream, so a
+/// module newer than this host — which `is_compatible` permits, it only
+/// requires the module's minor version to be at least the host's — reports an
+/// intent this build has never heard of as `Unknown` and the utterance goes to
+/// the agent, rather than failing to decode.
+pub use tinyvoice_bus::VoiceIntent;
 
 /// Classify a command transcript into a fast-path intent.
 ///
@@ -163,25 +102,29 @@ pub async fn route(config: &Config, transcript: &str) -> Result<VoiceIntent, Voi
     let json: String = call(config, "Route", (transcript,)).await?;
     let intent: VoiceIntent = serde_json::from_str(&json)
         .map_err(|e| VoiceCallError::Failed(format!("could not decode intent: {e}")))?;
-    Ok(intent.clamped())
+    Ok(clamped(intent))
 }
 
-impl VoiceIntent {
-    /// Bring payloads back inside the range the executors assume.
-    ///
-    /// The module already clamps a spoken volume to `0..=100`, so in practice
-    /// this changes nothing. It runs anyway because *this* type is decoded from
-    /// a wire payload, and `percent` is interpolated straight into an
-    /// `osascript` command by `voice::always_on::execute_intent`. A value the
-    /// host never checked reaching a shell command is the shape of bug worth
-    /// spending three lines to make impossible, rather than one that depends on
-    /// a remote clamp staying correct.
-    #[must_use]
-    fn clamped(self) -> Self {
-        match self {
-            Self::SetVolume { percent } if percent > 100 => Self::SetVolume { percent: 100 },
-            other => other,
+/// Bring payloads back inside the range the executors assume.
+///
+/// The module already clamps a spoken volume to `0..=100`, so in practice this
+/// changes nothing. It runs anyway because the value is decoded from a wire
+/// payload, and `percent` is interpolated straight into an `osascript` command
+/// by `voice::always_on::execute_intent`. A value the host never checked
+/// reaching a shell command is the shape of bug worth spending three lines to
+/// make impossible, rather than one that depends on a remote clamp staying
+/// correct.
+///
+/// It is a free function rather than an inherent method because the type is
+/// the contract's now, and this is host policy: the contract describes what a
+/// module may say, not what this host is willing to act on.
+#[must_use]
+fn clamped(intent: VoiceIntent) -> VoiceIntent {
+    match intent {
+        VoiceIntent::SetVolume { percent } if percent > 100 => {
+            VoiceIntent::SetVolume { percent: 100 }
         }
+        other => other,
     }
 }
 
@@ -239,7 +182,7 @@ pub async fn is_hallucinated(
     text: &str,
     mode: HallucinationMode,
 ) -> Result<bool, VoiceCallError> {
-    call(config, "IsHallucinated", (text, mode.as_wire())).await
+    call(config, "IsHallucinated", (text, hallucination_mode_wire(mode))).await
 }
 
 /// Downmix, resample to 16 kHz, optionally silence-gate, and frame as WAV.
