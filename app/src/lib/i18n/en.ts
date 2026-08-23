@@ -7052,6 +7052,7 @@ const en: TranslationMap = {
   'composer.attachFile': 'Attach file',
   'composer.modelSelector': 'Model',
   'composer.voiceMode': 'Voice mode',
+  'composer.humanMode': 'Human mode',
   'composer.qualityHigh': 'High',
   // Sync budget dialog
   'syncBudget.title': 'Sync budget',

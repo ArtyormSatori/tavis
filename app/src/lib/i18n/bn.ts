@@ -6447,6 +6447,7 @@ const messages: TranslationMap = {
   'composer.attachFile': 'ফাইল সংযুক্ত করুন',
   'composer.modelSelector': 'মডেল',
   'composer.voiceMode': 'ভয়েস মোড',
+  'composer.humanMode': 'হিউম্যান মোড',
   'composer.qualityHigh': 'উচ্চ',
   // Agent activity level
   'activityLevel.title': 'এজেন্ট কার্যকলাপের স্তর',

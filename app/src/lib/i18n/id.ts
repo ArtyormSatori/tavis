@@ -6473,6 +6473,7 @@ const messages: TranslationMap = {
   'composer.attachFile': 'Lampirkan file',
   'composer.modelSelector': 'Model',
   'composer.voiceMode': 'Mode suara',
+  'composer.humanMode': 'Mode manusia',
   'composer.qualityHigh': 'Tinggi',
   // Agent activity level
   'activityLevel.title': 'Tingkat aktivitas agen',

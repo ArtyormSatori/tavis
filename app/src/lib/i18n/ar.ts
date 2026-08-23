@@ -6300,6 +6300,7 @@ const messages: TranslationMap = {
   'composer.attachFile': 'إرفاق ملف',
   'composer.modelSelector': 'النموذج',
   'composer.voiceMode': 'وضع الصوت',
+  'composer.humanMode': 'وضع الإنسان',
   'composer.qualityHigh': 'عالٍ',
   // Agent activity level
   'activityLevel.title': 'مستوى نشاط الوكيل',

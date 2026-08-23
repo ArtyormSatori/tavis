@@ -6601,6 +6601,7 @@ const messages: TranslationMap = {
   'composer.attachFile': 'Joindre un fichier',
   'composer.modelSelector': 'Modèle',
   'composer.voiceMode': 'Mode vocal',
+  'composer.humanMode': 'Mode humain',
   'composer.qualityHigh': 'Élevé',
   // Agent activity level
   'activityLevel.title': "Niveau d'activité de l'agent",

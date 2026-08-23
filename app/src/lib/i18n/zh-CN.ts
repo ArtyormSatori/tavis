@@ -6095,6 +6095,7 @@ const messages: TranslationMap = {
   'composer.attachFile': '附加文件',
   'composer.modelSelector': '模型',
   'composer.voiceMode': '语音模式',
+  'composer.humanMode': '助手模式',
   'composer.qualityHigh': '高',
   // Agent activity level
   'activityLevel.title': '智能体活动级别',

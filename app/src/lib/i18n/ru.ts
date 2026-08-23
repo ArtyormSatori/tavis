@@ -6509,6 +6509,7 @@ const messages: TranslationMap = {
   'composer.attachFile': 'Прикрепить файл',
   'composer.modelSelector': 'Модель',
   'composer.voiceMode': 'Голосовой режим',
+  'composer.humanMode': 'Режим человека',
   'composer.qualityHigh': 'Высокое',
   // Agent activity level
   'activityLevel.title': 'Уровень активности агента',

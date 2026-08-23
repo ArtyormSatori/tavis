@@ -6372,6 +6372,7 @@ const messages: TranslationMap = {
   'composer.attachFile': '파일 첨부',
   'composer.modelSelector': '모델',
   'composer.voiceMode': '음성 모드',
+  'composer.humanMode': '휴먼 모드',
   'composer.qualityHigh': '높음',
   // Agent activity level
   'activityLevel.title': '에이전트 활동 수준',
