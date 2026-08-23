@@ -1,4 +1,3 @@
-import debugFactory from 'debug';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useUser } from '../../hooks/useUser';
