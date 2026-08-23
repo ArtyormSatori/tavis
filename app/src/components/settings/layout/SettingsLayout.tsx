@@ -8,10 +8,11 @@ import SettingsSidebar from './SettingsSidebar';
 const log = debug('settings:layout');
 
 /**
- * Settings shell. The grouped navigation now lives in the root app sidebar's
- * dynamic region (projected via {@link SidebarContent}); this component only
- * renders the routed panel, which owns the single vertical scroll. The sibling
- * sub-nav chips are rendered inside each panel's header (via SettingsPanel).
+ * Settings shell, used by every target. The grouped navigation lives in the
+ * root app sidebar's dynamic region (projected via {@link SidebarContent});
+ * this component only renders the routed panel, which owns the single vertical
+ * scroll. The sibling sub-nav chips are rendered inside each panel's header
+ * (via SettingsPanel).
  */
 const SettingsLayout = () => {
   log('render');
