@@ -145,7 +145,6 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
 
   const navigateToSettings = useCallback(
     (route: SettingsRoute | string = 'home') => {
-      // Preserve the modal's backdrop (desktop) across panel-to-panel nav.
       const target = route === 'home' ? '/settings' : `/settings/${route}`;
       navigate(target);
     },
@@ -168,12 +167,17 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
   }, [currentRoute, goBackWithFallback]);
 
   const closeSettings = useCallback(() => {
-    // On desktop the modal was opened over a page (backgroundLocation); return
-    // there. Otherwise fall back to /home.
-    const background = (location.state as { backgroundLocation?: To } | null)?.backgroundLocation;
-    // replace so pressing Back after closing doesn't reopen the Settings modal.
-    navigate(background ?? '/home', { replace: true });
-  }, [navigate, location.state]);
+    // Settings is a routed page, so "close" means leaving it: step back to
+    // whatever the user was on, or land on /home for a deep link with no
+    // history behind it. `replace` in the fallback so Back doesn't bounce
+    // straight back into Settings.
+    const historyState = window.history.state as { idx?: number } | null;
+    if (typeof historyState?.idx === 'number' && historyState.idx > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate('/home', { replace: true });
+  }, [navigate]);
 
   // -------------------------------------------------------------------------
   // Breadcrumbs — derived from the registry.
