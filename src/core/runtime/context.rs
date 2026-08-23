@@ -59,7 +59,6 @@ pub struct CoreContext {
     /// [`CoreContext::current`] → [`CoreContext::domains`]. `full()` for the
     /// desktop shell / standalone CLI (byte-identical to pre-#4796).
     domains: crate::core::runtime::DomainSet,
-    tool_groups: Default::default(),
     /// The configuration an embedder supplied to
     /// [`CoreBuilder::config`](crate::core::runtime::CoreBuilder::config),
     /// if any.
@@ -117,7 +116,6 @@ impl CoreContext {
         host_kind: HostKind,
         token: &TokenSource,
         domains: crate::core::runtime::DomainSet,
-        tool_groups: Default::default(),
     ) -> anyhow::Result<(
         Arc<CoreContext>,
         bool,
@@ -141,7 +139,6 @@ impl CoreContext {
         host_kind: HostKind,
         token: &TokenSource,
         domains: crate::core::runtime::DomainSet,
-        tool_groups: Default::default(),
         preloaded_config: Option<crate::openhuman::config::Config>,
     ) -> anyhow::Result<(
         Arc<CoreContext>,
@@ -508,7 +505,6 @@ impl CoreContext {
     #[cfg(test)]
     pub(crate) fn for_test(
         domains: crate::core::runtime::DomainSet,
-        tool_groups: Default::default(),
         workspace_dir: Option<std::path::PathBuf>,
         memory_subsystem: Option<crate::openhuman::config::schema::MemorySubsystemConfig>,
     ) -> Arc<CoreContext> {
@@ -575,7 +571,6 @@ impl StoreInitPlan {
 pub async fn init_stores(
     cfg: &crate::openhuman::config::Config,
     domains: crate::core::runtime::DomainSet,
-    tool_groups: Default::default(),
 ) {
     let plan = StoreInitPlan::for_domains(domains);
 
@@ -591,7 +586,6 @@ pub async fn init_stores(
         keyring_dir.display(),
         crate::openhuman::security::keyring::backend_name(),
         domains,
-        tool_groups: Default::default(),
     );
     if plan.memory {
         // The extracted memory subsystem reaches back into this crate through
