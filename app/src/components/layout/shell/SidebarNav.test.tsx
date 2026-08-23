@@ -62,7 +62,7 @@ describe('SidebarNav active matching', () => {
     expect(active.dataset.active).toBe('true');
     expect(active.closest('[data-slot="sidebar-menu-item"]')).not.toBeNull();
     expect(active.closest('[data-slot="sidebar-menu"]')).not.toBeNull();
-    expect(tabButton('Human').dataset.active).toBe('false');
+    expect(tabButton('Workflows').dataset.active).toBe('false');
   });
 
   it('clears an active provider selection when clicking the already-active nav item', () => {
