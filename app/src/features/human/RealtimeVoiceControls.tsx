@@ -1,6 +1,6 @@
 import { ConversationProvider } from '@elevenlabs/react';
-import { LuMic, LuSquare } from 'react-icons/lu';
 import { type RefObject, useEffect } from 'react';
+import { LuMic, LuSquare } from 'react-icons/lu';
 
 import Button from '../../components/ui/Button';
 import { useT } from '../../lib/i18n/I18nContext';

@@ -72,12 +72,10 @@ const HumanPage = () => {
     [mascotColor, customSecondary, palette]
   );
 
-  // Which voice control the tab offers. Build-flag driven (#5399). In the
-  // single-control modes the realtime button takes the slot the push-to-talk mic
-  // used to own, so the tab has one voice affordance rather than two competing
-  // ones. `both` keeps them apart instead of stacking them — the realtime button
-  // floats over the mascot stage where it used to live, the card keeps
-  // tap-and-speak — so the two paths stay visually distinct while being compared.
+  // Which voice control the tab offers. Build-flag driven (#5399). With the
+  // chat rail removed there is nowhere left for the two paths to sit side by
+  // side, so `realtime` and `both` now render the same single icon toggle and
+  // only `push-to-talk` differs (see the render comment below).
   const voiceEntry = resolveHumanVoiceEntry({
     realtimeEnabled: HUMAN_VOICE_REALTIME_ENABLED,
     showBoth: HUMAN_VOICE_SHOW_BOTH,
