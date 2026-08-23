@@ -853,8 +853,11 @@ describe('AIPanel', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
 
     // Enter a model id → the per-model "Supports vision" checkbox appears.
-    const modelInput = await screen.findByPlaceholderText('Enter model id');
+    await openGlobalModelPicker();
+    await selectPickerProvider(/OpenAI/i);
+    const modelInput = await screen.findByPlaceholderText('Enter a model ID');
     fireEvent.change(modelInput, { target: { value: 'gpt-4o' } });
+    fireEvent.click(screen.getByRole('button', { name: /Use this model/i }));
 
     const visionCheckbox = await screen.findByRole('checkbox', { name: /Supports vision/i });
     expect(visionCheckbox).not.toBeChecked();
