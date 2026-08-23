@@ -491,7 +491,9 @@ export const SidebarGroupLabel = forwardRef<HTMLDivElement, SidebarGroupLabelPro
         ref={ref}
         data-slot="sidebar-group-label"
         className={cn(
-          'flex h-7 shrink-0 items-center px-2 text-micro font-medium uppercase tracking-wide text-content-faint',
+          // px-2.5 matches SidebarMenuButton's own inner padding, so a group
+          // heading's text sits on the same left edge as the row labels under it.
+          'flex h-7 shrink-0 items-center px-2.5 text-micro font-medium uppercase tracking-wide text-content-faint',
           className
         )}
         {...rest}
