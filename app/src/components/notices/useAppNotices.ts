@@ -21,12 +21,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useEmbeddingBudgetState } from '../../hooks/useEmbeddingBudgetState';
+import { formatResetTime } from '../../features/conversations/utils/format';
 import { useUsageState } from '../../hooks/useUsageState';
 import { useT } from '../../lib/i18n/I18nContext';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectActiveUserErrors } from '../../store/userErrorsSelectors';
 import { dismissUserError, resolveUserError } from '../../store/userErrorsSlice';
 import type { UserActionableError, UserErrorAction } from '../../types/userError';
+import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
 import { PRICING_URL } from '../../utils/links';
 import { openUrl } from '../../utils/openUrl';
 
@@ -43,6 +45,16 @@ export interface AppNotice {
   /** Primary next step. Omitted when there is nothing to click. */
   actionLabel?: string;
   onAction?: () => void;
+  /**
+   * An alternative remediation, when a notice genuinely has two.
+   *
+   * Exists for the exhausted-budget case, whose banner offered both "top up"
+   * and "switch to OpenRouter's free models" — the second is the only fix that
+   * costs nothing, so collapsing to one CTA would have quietly removed the
+   * option a user without a card actually needs.
+   */
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   /** Omitted when the notice must not be silenced. */
   onDismiss?: () => void;
 }
@@ -98,6 +110,7 @@ export function useAppNotices(): AppNotice[] {
     isNearLimit,
     isFreeTier,
     usagePct,
+    shouldShowBudgetCompletedMessage,
   } = useUsageState();
 
   // Per-session, per-key dismissal for the derived (non-store) notices.
@@ -194,6 +207,36 @@ export function useAppNotices(): AppNotice[] {
       }
     }
 
+    // ── Included cycle budget spent ────────────────────────────────────
+    // Rendered in four places before this (both Conversations layouts, the
+    // new-window hero, Home) off one account-level flag. Same state, four
+    // copies of the copy — so it is one notice now.
+    if (teamUsage && shouldShowBudgetCompletedMessage) {
+      const resets =
+        teamUsage.cycleEndsAt != null
+          ? ` ${t('chat.resets')} ${formatResetTime(teamUsage.cycleEndsAt)}.`
+          : '';
+      notices.push({
+        id: 'usage:cycle-budget-spent',
+        severity: 'error',
+        title: t('home.usageExhaustedTitle'),
+        body:
+          teamUsage.cycleBudgetUsd > 0
+            ? `${t('chat.weeklyLimitHit')}${resets} ${t('chat.topUpToContinue')}`
+            : t('chat.budgetComplete'),
+        actionLabel: t('chat.topUp'),
+        onAction: () => void openUrl(PRICING_URL),
+        // The free-tier escape hatch the banner carried. Kept because it is the
+        // only remediation that does not require a payment method.
+        secondaryActionLabel: t('openrouterFree.cta'),
+        onSecondaryAction: () => {
+          void applyOpenRouterFreeModels().catch((error: unknown) => {
+            console.warn('[notices] applyOpenRouterFreeModels failed', error);
+          });
+        },
+      });
+    }
+
     return notices.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);
   }, [
     active,
@@ -208,6 +251,7 @@ export function useAppNotices(): AppNotice[] {
     navigate,
     runErrorAction,
     t,
+    shouldShowBudgetCompletedMessage,
     teamUsage,
     usageLoading,
     usagePct,

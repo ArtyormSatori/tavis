@@ -56,7 +56,7 @@ function NoticeRow({ notice }: { notice: AppNotice }) {
           {notice.body}
         </p>
         {notice.meta && <p className="mt-1 text-[11px] text-content-muted">{notice.meta}</p>}
-        {(notice.onAction || notice.onDismiss) && (
+        {(notice.onAction || notice.onSecondaryAction || notice.onDismiss) && (
           <div className="mt-2 flex items-center gap-1.5">
             {notice.onAction && notice.actionLabel && (
               <Button
@@ -66,6 +66,16 @@ function NoticeRow({ notice }: { notice: AppNotice }) {
                 analyticsId="notice-center-action"
                 onClick={notice.onAction}>
                 {notice.actionLabel}
+              </Button>
+            )}
+            {notice.onSecondaryAction && notice.secondaryActionLabel && (
+              <Button
+                size="xs"
+                variant="secondary"
+                data-testid="notice-secondary-action"
+                analyticsId="notice-center-secondary-action"
+                onClick={notice.onSecondaryAction}>
+                {notice.secondaryActionLabel}
               </Button>
             )}
             {notice.onDismiss && (
