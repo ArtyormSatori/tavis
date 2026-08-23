@@ -30,8 +30,6 @@ import OpenhumanLinkModal from './components/OpenhumanLinkModal';
 import PersistRehydrationScreen from './components/PersistRehydrationScreen';
 import PttHotkeyManager from './components/PttHotkeyManager';
 import SecurityBanner from './components/SecurityBanner';
-import SettingsModal from './components/settings/modal/SettingsModal';
-import { resolveSettingsOverlay } from './components/settings/modal/settingsOverlay';
 import GlobalUpsellBanner from './components/upsell/GlobalUpsellBanner';
 import MemoryEmbeddingBudgetBanner from './components/upsell/MemoryEmbeddingBudgetBanner';
 import UserErrorCenter from './components/userErrors/UserErrorCenter';
@@ -234,10 +232,6 @@ export function AppShellDesktop() {
   const onWorkflowCanvas = location.pathname.startsWith('/flows/');
   const chromeless = !token || onOnboardingRoute || onHiddenChromePath || onWorkflowCanvas;
 
-  // Desktop Settings is a modal overlay (the backgroundLocation pattern): when
-  // the URL is a settings path we keep rendering the page behind it.
-  const { settingsOpen, baseLocation } = resolveSettingsOverlay(location);
-
   const content = (
     <div ref={scrollRef} className="relative h-full overflow-y-auto">
       <GlobalUpsellBanner />
@@ -247,7 +241,7 @@ export function AppShellDesktop() {
           Only renders for users whose embeddings actually bill against the
           managed budget. */}
       <MemoryEmbeddingBudgetBanner />
-      <AppRoutes location={baseLocation} />
+      <AppRoutes />
     </div>
   );
 
@@ -269,9 +263,6 @@ export function AppShellDesktop() {
             <RootShellLayout sidebar={<AppSidebar />}>{content}</RootShellLayout>
           )}
         </div>
-        {/* Desktop Settings modal — mounted over whatever page is rendered
-            beneath when the URL is a settings path. */}
-        {settingsOpen && !chromeless && <SettingsModal />}
         <OpenhumanLinkModal />
         {/* User-actionable runtime errors (#3931): a first-class panel for
             expected user states (insufficient BYO credits, managed-budget
