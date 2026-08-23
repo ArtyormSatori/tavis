@@ -3364,6 +3364,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'نقل لليمين',
   'conversations.taskKanban.title': 'المهام',
   'conversations.threadTodo.title': 'الخطة',
+  'conversations.composer.context.title': 'نافذة السياق',
+  'conversations.composer.context.input': 'المدخلات',
+  'conversations.composer.context.cached': 'مدخلات مخزّنة',
+  'conversations.composer.context.output': 'المخرجات',
+  'conversations.composer.context.cost': 'التكلفة',
+  'conversations.composer.command.clear': 'مسح المحادثة',
+  'conversations.composer.command.goal': 'تحديد هدف المحادثة أو تعديله',
   'conversations.planReview.title': 'مراجعة الخطة',
   'conversations.planReview.subtitle':
     'وافق لتشغيلها، أو ارفضها لتجاهلها، أو أرسل ملاحظات لتعديلها.',
@@ -6646,6 +6653,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'تمت استعادة ملف الإعدادات',
   'notifications.configRecovered.body':
     'تعذّرت قراءة ملف الإعدادات، لذا تمت استعادته من نسخة احتياطية أو إعادة تعيينه إلى الإعدادات الافتراضية. تم الاحتفاظ بالملف غير القابل للقراءة باللاحقة ".corrupted" في حال احتجت إليه.',
+  'chat.sources.usedCount': 'استخدم {n} مصدرًا',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'تشغيل النواة في مكان آخر',
   'settings.gateway.description':
@@ -6692,7 +6700,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'الموقع',
   'devOptions.provisionedCore': 'نواة شغّلها هذا التطبيق',
   'devOptions.gatewayId': 'معرّف الموقع',
-  'chat.sources.usedCount': 'استخدم {n} مصدرًا',
 };
 
 export default messages;

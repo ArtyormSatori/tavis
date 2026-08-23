@@ -3468,6 +3468,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Переместить вправо',
   'conversations.taskKanban.title': 'Задачи',
   'conversations.threadTodo.title': 'План',
+  'conversations.composer.context.title': 'Контекстное окно',
+  'conversations.composer.context.input': 'Ввод',
+  'conversations.composer.context.cached': 'Ввод из кэша',
+  'conversations.composer.context.output': 'Вывод',
+  'conversations.composer.context.cost': 'Стоимость',
+  'conversations.composer.command.clear': 'Очистить переписку',
+  'conversations.composer.command.goal': 'Задать или изменить цель обсуждения',
   'conversations.planReview.title': 'Проверить план',
   'conversations.planReview.subtitle':
     'Одобрите для запуска, отклоните для отмены или отправьте отзыв для доработки.',
@@ -6874,6 +6881,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Файл настроек восстановлен',
   'notifications.configRecovered.body':
     'Не удалось прочитать файл настроек, поэтому он был восстановлен из резервной копии или сброшен к значениям по умолчанию. Нечитаемый файл сохранён с суффиксом ".corrupted" на случай, если он вам понадобится.',
+  'chat.sources.usedCount': 'Использовано источников: {n}',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Запустить ядро в другом месте',
   'settings.gateway.description':
@@ -6920,7 +6928,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Размещение',
   'devOptions.provisionedCore': 'Ядро, запущенное этим приложением',
   'devOptions.gatewayId': 'Размещение',
-  'chat.sources.usedCount': 'Использовано источников: {n}',
 };
 
 export default messages;

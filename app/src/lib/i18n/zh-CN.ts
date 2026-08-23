@@ -3257,6 +3257,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': '向右移动',
   'conversations.taskKanban.title': '任务',
   'conversations.threadTodo.title': '计划',
+  'conversations.composer.context.title': '上下文窗口',
+  'conversations.composer.context.input': '输入',
+  'conversations.composer.context.cached': '缓存输入',
+  'conversations.composer.context.output': '输出',
+  'conversations.composer.context.cost': '费用',
+  'conversations.composer.command.clear': '清空对话',
+  'conversations.composer.command.goal': '设置或修改会话目标',
   'conversations.planReview.title': '审阅计划',
   'conversations.planReview.subtitle': '批准以执行，拒绝以放弃，或发送反馈以修改。',
   'conversations.planReview.approve': '批准并执行',
@@ -6431,6 +6438,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': '已恢复设置文件',
   'notifications.configRecovered.body':
     '无法读取你的设置文件，因此已从备份恢复或重置为默认值。无法读取的文件已保留并加上 ".corrupted" 后缀，以备你需要。',
+  'chat.sources.usedCount': '使用了 {n} 个来源',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': '在别处运行内核',
   'settings.gateway.description':
@@ -6477,7 +6485,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': '位置',
   'devOptions.provisionedCore': '由本应用启动的内核',
   'devOptions.gatewayId': '位置',
-  'chat.sources.usedCount': '使用了 {n} 个来源',
 };
 
 export default messages;

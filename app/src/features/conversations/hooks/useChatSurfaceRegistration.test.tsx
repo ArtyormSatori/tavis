@@ -26,14 +26,15 @@ afterEach(() => __resetChatSurfaces());
 function useHarness(
   threadId: string | null,
   send: (text?: string) => Promise<void>,
-  stop: () => void
+  stop: () => void,
+  registerWithoutThread = false
 ) {
   const sendRef = useRef<((text?: string) => Promise<void>) | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
   // Assigned during render, exactly as `Conversations.tsx` does it.
   sendRef.current = send;
   stopRef.current = stop;
-  useChatSurfaceRegistration(threadId, sendRef, stopRef);
+  useChatSurfaceRegistration(threadId, sendRef, stopRef, registerWithoutThread);
 }
 
 describe('useChatSurfaceRegistration', () => {
@@ -87,6 +88,15 @@ describe('useChatSurfaceRegistration', () => {
     );
 
     expect(getChatSurface(null)).toBeNull();
+  });
+
+  it('can register the home composer before its first thread exists', async () => {
+    const send = vi.fn(async () => {});
+    renderHook(() => useHarness(null, send, () => {}, true));
+
+    await getChatSurface(null)?.send('/new');
+
+    expect(send).toHaveBeenCalledWith('/new');
   });
 
   it('keeps the registered identity stable across re-renders with fresh closures', () => {

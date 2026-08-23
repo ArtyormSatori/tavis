@@ -3755,6 +3755,13 @@ const en: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Move right',
   'conversations.taskKanban.title': 'Tasks',
   'conversations.threadTodo.title': 'Plan',
+  'conversations.composer.context.title': 'Context window',
+  'conversations.composer.context.input': 'Input',
+  'conversations.composer.context.cached': 'Cached input',
+  'conversations.composer.context.output': 'Output',
+  'conversations.composer.context.cost': 'Cost',
+  'conversations.composer.command.clear': 'Clear the conversation',
+  'conversations.composer.command.goal': 'Set or edit the thread goal',
   'conversations.planReview.title': 'Review plan',
   'conversations.planReview.subtitle':
     'Approve to run it, reject to discard, or send feedback to revise.',

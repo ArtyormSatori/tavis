@@ -16,6 +16,12 @@ describe('chatSurfaceHandlers', () => {
     expect(getChatSurface('t1')).toBe(handlers);
   });
 
+  it('keeps an explicitly registered unscoped surface for a new chat', () => {
+    const handlers = { send: vi.fn(async () => {}) };
+    registerChatSurface(null, handlers);
+    expect(getChatSurface(null)).toBe(handlers);
+  });
+
   it('keeps threads isolated from one another', () => {
     const a = { send: vi.fn(async () => {}) };
     const b = { send: vi.fn(async () => {}) };

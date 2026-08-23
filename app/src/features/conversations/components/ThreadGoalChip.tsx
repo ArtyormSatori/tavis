@@ -27,7 +27,7 @@ import {
 const POLL_INTERVAL_MS = 10_000;
 
 /** Shared controller returned by {@link useThreadGoal}. */
-interface ThreadGoalController {
+export interface ThreadGoalController {
   threadId: string | null;
   goal: ThreadGoal | null;
   /** Whether the editor panel (above the composer) is open. */

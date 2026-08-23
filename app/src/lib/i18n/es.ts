@@ -3502,6 +3502,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Mover a la derecha',
   'conversations.taskKanban.title': 'Tareas',
   'conversations.threadTodo.title': 'Plan',
+  'conversations.composer.context.title': 'Ventana de contexto',
+  'conversations.composer.context.input': 'Entrada',
+  'conversations.composer.context.cached': 'Entrada en caché',
+  'conversations.composer.context.output': 'Salida',
+  'conversations.composer.context.cost': 'Coste',
+  'conversations.composer.command.clear': 'Vaciar la conversación',
+  'conversations.composer.command.goal': 'Definir o editar el objetivo del hilo',
   'conversations.planReview.title': 'Revisar plan',
   'conversations.planReview.subtitle':
     'Aprueba para ejecutarlo, recházalo para descartarlo o envía comentarios para revisarlo.',
@@ -6947,6 +6954,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Se recuperó el archivo de configuración',
   'notifications.configRecovered.body':
     'No se pudo leer tu archivo de configuración, por lo que se restauró desde una copia de seguridad o se restableció a los valores predeterminados. El archivo ilegible se conservó con el sufijo ".corrupted" por si lo necesitas.',
+  'chat.sources.usedCount': 'Se usaron {n} fuentes',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Ejecutar el núcleo en otro lugar',
   'settings.gateway.description':
@@ -6994,7 +7002,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Ubicación',
   'devOptions.provisionedCore': 'Núcleo iniciado por esta aplicación',
   'devOptions.gatewayId': 'ID de la ubicación',
-  'chat.sources.usedCount': 'Se usaron {n} fuentes',
 };
 
 export default messages;

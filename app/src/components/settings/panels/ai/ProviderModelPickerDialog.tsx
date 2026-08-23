@@ -16,6 +16,8 @@ import { ProviderSwatch } from './ProviderListRow';
 export interface ProviderModelSelection {
   source: CustomDialogSource;
   model: string;
+  /** Provider-reported context window for this exact model, when known. */
+  contextWindow?: number | null;
 }
 
 interface ProviderModelPickerDialogProps {
@@ -134,7 +136,18 @@ export function ProviderModelPickerDialog({
             variant="primary"
             size="sm"
             disabled={!source || !model.trim()}
-            onClick={() => source && onSelect({ source, model: model.trim() })}>
+            onClick={() => {
+              if (!source) return;
+              const selectedModel = catalog.find(candidate => candidate.id === model.trim());
+              onSelect({
+                source,
+                model: model.trim(),
+                contextWindow:
+                  selectedModel && (selectedModel.context_window ?? 0) > 0
+                    ? selectedModel.context_window
+                    : null,
+              });
+            }}>
             Use this model
           </Button>
         </div>

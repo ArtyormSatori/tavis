@@ -3406,6 +3406,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': '오른쪽으로 이동',
   'conversations.taskKanban.title': '작업',
   'conversations.threadTodo.title': '계획',
+  'conversations.composer.context.title': '컨텍스트 창',
+  'conversations.composer.context.input': '입력',
+  'conversations.composer.context.cached': '캐시된 입력',
+  'conversations.composer.context.output': '출력',
+  'conversations.composer.context.cost': '비용',
+  'conversations.composer.command.clear': '대화 비우기',
+  'conversations.composer.command.goal': '스레드 목표 설정 또는 수정',
   'conversations.planReview.title': '계획 검토',
   'conversations.planReview.subtitle':
     '실행하려면 승인하고, 버리려면 거부하거나, 수정하려면 의견을 보내세요.',
@@ -6723,6 +6730,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': '설정 파일 복구됨',
   'notifications.configRecovered.body':
     '설정 파일을 읽을 수 없어 백업에서 복원하거나 기본값으로 재설정했습니다. 읽을 수 없는 파일은 필요할 경우를 대비해 ".corrupted" 접미사를 붙여 보관했습니다.',
+  'chat.sources.usedCount': '출처 {n}개 사용',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': '코어를 다른 곳에서 실행',
   'settings.gateway.description':
@@ -6769,7 +6777,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': '위치',
   'devOptions.provisionedCore': '이 앱이 시작한 코어',
   'devOptions.gatewayId': '위치',
-  'chat.sources.usedCount': '출처 {n}개 사용',
 };
 
 export default messages;

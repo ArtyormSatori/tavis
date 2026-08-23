@@ -1,58 +1,136 @@
 import { Thread, type ThreadComponents } from '@/components/assistant-ui/thread';
-import { buildSeedMessages, mockChatModelAdapter, MockToolFallback } from '@/lib/assistantUiMock';
+import { type AssistantState, useAui, useAuiState } from '@assistant-ui/react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
+
+import { useRegisterAction } from '../../../lib/commands/useRegisterAction';
+import { useSlashCommands } from '../../../lib/commands/useSlashCommands';
+import { AssistantUiRuntimeProvider } from '../../../providers/AssistantUiRuntimeProvider';
+import { emptySessionTokenUsage } from '../../../store/chatRuntimeSlice';
+import { useAppSelector } from '../../../store/hooks';
+import { ChatToolFallback, ChatToolGroup } from './ChatToolParts';
+import { contextUsageFromTokenUsage, ContextWindowPill } from './composer/ContextWindowPill';
 import {
-  AssistantRuntimeProvider,
-  CompositeAttachmentAdapter,
-  SimpleImageAttachmentAdapter,
-  SimpleTextAttachmentAdapter,
-  useLocalRuntime,
-} from '@assistant-ui/react';
-import debugFactory from 'debug';
-import { useMemo } from 'react';
+  type ThreadGoalController,
+  ThreadGoalEditorPanel,
+  ThreadGoalFooterTrigger,
+} from './ThreadGoalChip';
 
-const debug = debugFactory('openhuman:assistant-ui');
+const EMPTY_TOKEN_USAGE = emptySessionTokenUsage();
+const selectComposerText = (state: AssistantState) => state.composer.text;
 
-const localAttachmentAdapter = new CompositeAttachmentAdapter([
-  new SimpleImageAttachmentAdapter(),
-  new SimpleTextAttachmentAdapter(),
-]);
+function ComposerTextBridge({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const aui = useAui();
+  const composerText = useAuiState(selectComposerText);
+  const previousHostValue = useRef(value);
+
+  useEffect(() => {
+    // A host-side write (dictation, ESC restore, clear) wins for this pass.
+    if (previousHostValue.current !== value) {
+      previousHostValue.current = value;
+      if (composerText !== value) aui.composer.setText(value);
+      return;
+    }
+    // Otherwise the editor changed and the host draft follows it.
+    if (composerText !== value) onChange(composerText);
+  }, [aui, composerText, onChange, value]);
+
+  return null;
+}
 
 /**
- * Routes a `task` tool call to the subagent renderer. Passed through `Thread`'s
- * `components` seam so the vendored component set stays unmodified and can
- * still be re-pulled from the registry.
- */
-const components: ThreadComponents = { ToolFallback: MockToolFallback };
-
-/**
- * The assistant-ui `Thread`, running against an isolated offline runtime.
+ * The assistant-ui `Thread`, projected from OpenHuman's Redux transcript.
  *
- * This surface is still a stand-in: `Conversations` renders it instead of the
- * legacy pane (`renderAssistantUiOnly`) while the OpenHuman-specific seams are
- * reconnected one at a time. Nothing here reaches the core or the backend.
- *
- * What changed is what the stand-in *shows*. It used to answer every turn with
- * a single non-streamed sentence ("This is a local placeholder response…"),
- * which exercised almost nothing: no streaming, no reasoning, no tool calls, so
- * the parts of `Thread` that matter most for the migration were never on
- * screen. It now replays the shared mock turn — thinking tokens, tool calls
- * with streaming arguments, subagent delegations with nested steps, and
- * markdown prose — and seeds that turn on mount so the surface is populated
- * before you type.
+ * The runtime is a read-only projection; Redux and the core remain authoritative
+ * for messages, streaming and persistence. Composer sends are forwarded through
+ * the chat-surface registration owned by `Conversations`, so this uses the same
+ * send/cancel path as the legacy composer.
  */
-export function AssistantUiChat() {
-  const initialMessages = useMemo(() => buildSeedMessages(), []);
-  debug('[assistant-ui] mounting mock chat surface seeded=%d', initialMessages.length);
+export function AssistantUiChat({
+  threadGoal,
+  model,
+  modelContextWindow,
+  onModelChange,
+  composerHeader,
+  inputValue,
+  onInputValueChange,
+  onEscape,
+}: {
+  threadGoal: ThreadGoalController;
+  model: string | null;
+  modelContextWindow?: number | null;
+  onModelChange: (value: string, contextWindow?: number | null) => void;
+  composerHeader?: ReactNode;
+  inputValue: string;
+  onInputValueChange: (value: string) => void;
+  onEscape?: () => void;
+}) {
+  const selectedThreadId = useAppSelector(state => state.thread.selectedThreadId);
+  const loadError = useAppSelector(state => state.thread.messagesError);
+  const tokenUsage = useAppSelector(state =>
+    selectedThreadId
+      ? (state.chatRuntime.usageByThread[selectedThreadId] ?? EMPTY_TOKEN_USAGE)
+      : EMPTY_TOKEN_USAGE
+  );
+  const contextUsage = useMemo(
+    () => contextUsageFromTokenUsage(tokenUsage, modelContextWindow),
+    [modelContextWindow, tokenUsage]
+  );
+  const openThreadGoal = threadGoal.open;
 
-  const runtime = useLocalRuntime(mockChatModelAdapter, {
-    adapters: { attachments: localAttachmentAdapter },
-    initialMessages,
+  useRegisterAction({
+    id: 'chat.goal',
+    label: 'Set thread goal',
+    labelKey: 'conversations.composer.command.goal',
+    group: 'Chat',
+    handler: openThreadGoal,
+    enabled: () => selectedThreadId !== null,
+    keywords: ['goal', 'objective', 'thread goal'],
+    slashCommand: { id: 'goal', descriptionKey: 'conversations.composer.command.goal' },
   });
+  const slashCommands = useSlashCommands();
+
+  const ComposerExtras = useCallback(
+    () => (
+      <>
+        <ContextWindowPill usage={contextUsage} />
+        <div className="absolute right-0 bottom-full left-0 pb-2">
+          <ThreadGoalEditorPanel ctl={threadGoal} />
+        </div>
+        <ThreadGoalFooterTrigger ctl={threadGoal} />
+      </>
+    ),
+    [contextUsage, threadGoal]
+  );
+  const ComposerHeader = useCallback(() => <>{composerHeader}</>, [composerHeader]);
+
+  const components: ThreadComponents = useMemo(
+    () => ({
+      ToolFallback: ChatToolFallback,
+      ToolGroup: ChatToolGroup,
+      ComposerExtras,
+      ComposerHeader,
+    }),
+    [ComposerExtras, ComposerHeader]
+  );
 
   return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      <Thread components={components} />
-    </AssistantRuntimeProvider>
+    <AssistantUiRuntimeProvider>
+      <ComposerTextBridge value={inputValue} onChange={onInputValueChange} />
+      <Thread
+        components={components}
+        model={model}
+        onModelChange={onModelChange}
+        loadError={loadError}
+        onEscape={onEscape}
+        slashCommands={slashCommands}
+      />
+    </AssistantUiRuntimeProvider>
   );
 }
 

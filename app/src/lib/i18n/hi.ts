@@ -3443,6 +3443,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'दाएं ले जाएं',
   'conversations.taskKanban.title': 'टास्क',
   'conversations.threadTodo.title': 'योजना',
+  'conversations.composer.context.title': 'कॉन्टेक्स्ट विंडो',
+  'conversations.composer.context.input': 'इनपुट',
+  'conversations.composer.context.cached': 'कैश किया गया इनपुट',
+  'conversations.composer.context.output': 'आउटपुट',
+  'conversations.composer.context.cost': 'लागत',
+  'conversations.composer.command.clear': 'बातचीत साफ़ करें',
+  'conversations.composer.command.goal': 'थ्रेड का लक्ष्य तय करें या बदलें',
   'conversations.planReview.title': 'योजना की समीक्षा करें',
   'conversations.planReview.subtitle':
     'इसे चलाने के लिए स्वीकृत करें, हटाने के लिए अस्वीकार करें, या संशोधित करने के लिए प्रतिक्रिया भेजें।',
@@ -6797,6 +6804,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'सेटिंग फ़ाइल पुनर्प्राप्त की गई',
   'notifications.configRecovered.body':
     'आपकी सेटिंग फ़ाइल पढ़ी नहीं जा सकी, इसलिए इसे बैकअप से पुनर्स्थापित किया गया या डिफ़ॉल्ट पर रीसेट कर दिया गया। न पढ़ी जा सकने वाली फ़ाइल को, ज़रूरत पड़ने पर, ".corrupted" प्रत्यय के साथ रखा गया है।',
+  'chat.sources.usedCount': '{n} स्रोतों का उपयोग किया',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'कोर को कहीं और चलाएँ',
   'settings.gateway.description':
@@ -6843,7 +6851,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'स्थान',
   'devOptions.provisionedCore': 'इस ऐप द्वारा शुरू किया गया कोर',
   'devOptions.gatewayId': 'स्थान',
-  'chat.sources.usedCount': '{n} स्रोतों का उपयोग किया',
 };
 
 export default messages;

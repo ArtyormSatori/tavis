@@ -12,7 +12,7 @@ import { Button } from '../ui';
 interface ModelQualityPillProps {
   className?: string;
   value?: string | null;
-  onValueChange?: (value: string) => void;
+  onValueChange?: (value: string, contextWindow?: number | null) => void;
 }
 
 function selectionFromValue(value: string | null | undefined): ProviderModelSelection | null {
@@ -119,7 +119,7 @@ export default function ModelQualityPill({
           initial={initial}
           onClose={() => setOpen(false)}
           onSelect={selection => {
-            onValueChange?.(selectionValue(selection));
+            onValueChange?.(selectionValue(selection), selection.contextWindow);
             setOpen(false);
           }}
         />

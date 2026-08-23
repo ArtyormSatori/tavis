@@ -3527,6 +3527,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Déplacer à droite',
   'conversations.taskKanban.title': 'Tâches',
   'conversations.threadTodo.title': 'Plan',
+  'conversations.composer.context.title': 'Fenêtre de contexte',
+  'conversations.composer.context.input': 'Entrée',
+  'conversations.composer.context.cached': 'Entrée en cache',
+  'conversations.composer.context.output': 'Sortie',
+  'conversations.composer.context.cost': 'Coût',
+  'conversations.composer.command.clear': 'Effacer la conversation',
+  'conversations.composer.command.goal': 'Définir ou modifier l’objectif du fil',
   'conversations.planReview.title': 'Examiner le plan',
   'conversations.planReview.subtitle':
     'Approuvez pour l’exécuter, rejetez pour l’abandonner ou envoyez un retour pour le réviser.',
@@ -6974,6 +6981,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Fichier de paramètres récupéré',
   'notifications.configRecovered.body':
     'Votre fichier de paramètres n\'a pas pu être lu ; il a donc été restauré à partir d\'une sauvegarde ou réinitialisé aux valeurs par défaut. Le fichier illisible a été conservé avec le suffixe ".corrupted" au cas où vous en auriez besoin.',
+  'chat.sources.usedCount': '{n} sources utilisées',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Exécuter le cœur ailleurs',
   'settings.gateway.description':
@@ -7021,7 +7029,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Emplacement',
   'devOptions.provisionedCore': 'Cœur démarré par cette application',
   'devOptions.gatewayId': 'Emplacement',
-  'chat.sources.usedCount': '{n} sources utilisées',
 };
 
 export default messages;

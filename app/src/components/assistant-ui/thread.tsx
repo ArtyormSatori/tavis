@@ -5,6 +5,7 @@ import {
   ComposerAttachments,
   UserMessageAttachments,
 } from '@/components/assistant-ui/attachment';
+import { ComposerTriggerPopover } from '@/components/assistant-ui/composer-trigger-popover';
 import { File } from '@/components/assistant-ui/file';
 import { ThreadFollowupSuggestions } from '@/components/assistant-ui/follow-up-suggestions';
 import { Image } from '@/components/assistant-ui/image';
@@ -42,8 +43,12 @@ import {
   SuggestionPrimitive,
   ThreadPrimitive,
   type ToolCallMessagePartComponent,
+  type Unstable_SlashCommand,
+  unstable_useSlashCommandAdapter,
+  useAui,
   useAuiState,
 } from '@assistant-ui/react';
+import { LexicalComposerInput } from '@assistant-ui/react-lexical';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -56,6 +61,7 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
+  SlashIcon,
   SquareIcon,
 } from 'lucide-react';
 import {
@@ -64,7 +70,8 @@ import {
   type FC,
   type PropsWithChildren,
   useContext,
-  useState,
+  useEffect,
+  useRef,
 } from 'react';
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -82,13 +89,42 @@ export type ThreadComponents = {
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ToolGroup?: ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>> | undefined;
   ReasoningGroup?: ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>> | undefined;
+  /**
+   * Extra controls in the composer's action row, to the right of the model
+   * selector. A seam rather than a fixed set because what belongs there is
+   * host-specific — OpenHuman puts the context-window meter and the thread
+   * goal here — and hard-coding either would make this component unusable by
+   * anything else.
+   */
+  ComposerExtras?: ComponentType | undefined;
+  /** Full-width host content immediately above the composer shell. */
+  ComposerHeader?: ComponentType | undefined;
 };
 
-export type ThreadProps = { components?: ThreadComponents | undefined };
+export type ThreadProps = {
+  components?: ThreadComponents | undefined;
+  /** Host-owned model route used for real sends. */
+  model?: string | null | undefined;
+  /** Updates the host's composer route and selected model metadata. */
+  onModelChange?: ((value: string, contextWindow?: number | null) => void) | undefined;
+  /** Host transport error shown in place of an empty welcome state. */
+  loadError?: string | null | undefined;
+  /** Host-specific Escape behavior (for example cancel + restore prompt). */
+  onEscape?: (() => void) | undefined;
+  /**
+   * Commands offered when the composer input starts with `/`. Supplied by the
+   * host because a command's `execute` is host behaviour (`/clear` has to
+   * reach a runtime this component does not own).
+   */
+  slashCommands?: readonly Unstable_SlashCommand[] | undefined;
+};
 
 const EMPTY_COMPONENTS: ThreadComponents = {};
 
 const ThreadComponentsContext = createContext<ThreadComponents>(EMPTY_COMPONENTS);
+
+const NO_SLASH_COMMANDS: readonly Unstable_SlashCommand[] = [];
+const SlashCommandsContext = createContext<readonly Unstable_SlashCommand[]>(NO_SLASH_COMMANDS);
 
 // Startup exposes a loading placeholder thread; treat it as a new chat so
 // the composer mounts centered. Loads after startup keep the docked layout.
@@ -122,17 +158,38 @@ const ThreadHistorySkeleton: FC = () => (
   </div>
 );
 
-export const Thread: FC<ThreadProps> = ({ components = EMPTY_COMPONENTS }) => {
+export const Thread: FC<ThreadProps> = ({
+  components = EMPTY_COMPONENTS,
+  model = 'hint:chat',
+  onModelChange,
+  loadError = null,
+  onEscape,
+  slashCommands = NO_SLASH_COMMANDS,
+}) => {
   const isEmpty = useAuiState(isNewChatView);
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadRoot isEmpty={isEmpty} />
+      <SlashCommandsContext.Provider value={slashCommands}>
+        <ThreadRoot
+          isEmpty={isEmpty}
+          model={model}
+          onModelChange={onModelChange}
+          loadError={loadError}
+          onEscape={onEscape}
+        />
+      </SlashCommandsContext.Provider>
     </ThreadComponentsContext.Provider>
   );
 };
 
-const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
+const ThreadRoot: FC<{
+  isEmpty: boolean;
+  model: string | null;
+  onModelChange?: (value: string, contextWindow?: number | null) => void;
+  loadError: string | null;
+  onEscape?: () => void;
+}> = ({ isEmpty, model, onModelChange, loadError, onEscape }) => {
   const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
 
   return (
@@ -153,12 +210,21 @@ const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
             'mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4',
             isEmpty && 'justify-center'
           )}>
-          <AuiIf condition={isNewChatView}>
-            <Welcome />
-          </AuiIf>
-          <AuiIf condition={isHistoryLoadingView}>
-            <ThreadHistorySkeleton />
-          </AuiIf>
+          {loadError ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+              <p className="text-sm font-medium text-destructive">Failed to load messages</p>
+              <p className="text-muted-foreground max-w-md text-xs">{loadError}</p>
+            </div>
+          ) : (
+            <>
+              <AuiIf condition={isNewChatView}>
+                <Welcome />
+              </AuiIf>
+              <AuiIf condition={isHistoryLoadingView}>
+                <ThreadHistorySkeleton />
+              </AuiIf>
+            </>
+          )}
 
           <div data-slot="aui_message-group" className="mb-14 flex flex-col gap-y-6 empty:hidden">
             <ThreadPrimitive.Messages>{() => <ThreadMessage />}</ThreadPrimitive.Messages>
@@ -171,7 +237,7 @@ const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
             )}>
             <ThreadScrollToBottom />
             <ThreadFollowupSuggestions />
-            <Composer />
+            <Composer model={model} onModelChange={onModelChange} onEscape={onEscape} />
             <AuiIf condition={s => isNewChatView(s) && s.composer.isEmpty}>
               <ThreadSuggestions />
             </AuiIf>
@@ -239,40 +305,96 @@ const ThreadSuggestionItem: FC = () => {
   );
 };
 
-const Composer: FC = () => {
-  const [model, setModel] = useState<string | null>('hint:chat');
+const Composer: FC<{
+  model: string | null;
+  onModelChange?: (value: string, contextWindow?: number | null) => void;
+  onEscape?: () => void;
+}> = ({ model, onModelChange, onEscape }) => {
+  const aui = useAui();
+  const commands = useContext(SlashCommandsContext);
+  const slash = unstable_useSlashCommandAdapter({ commands, fallbackIcon: SlashIcon });
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
+  const { ComposerHeader } = useContext(ThreadComponentsContext);
+  useEffect(() => {
+    const textbox = inputWrapperRef.current?.querySelector<HTMLElement>('[contenteditable="true"]');
+    textbox?.setAttribute('aria-label', 'Message input');
+    return () => textbox?.removeAttribute('aria-label');
+  }, []);
 
   return (
-    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
-      <ComposerPrimitive.AttachmentDropzone asChild>
-        <div
-          data-slot="aui_composer-shell"
-          className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]">
-          <ComposerAttachments />
-          <ComposerPrimitive.Input
-            placeholder="Send a message..."
-            className="aui-composer-input caret-primary placeholder:text-muted-foreground/60 max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-hidden"
-            rows={1}
-            autoFocus
-            enterKeyHint="send"
-            aria-label="Message input"
-          />
-          <ComposerAction model={model} onModelChange={setModel} />
-        </div>
-      </ComposerPrimitive.AttachmentDropzone>
-    </ComposerPrimitive.Root>
+    <ComposerPrimitive.Unstable_TriggerPopoverRoot>
+      <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
+        {ComposerHeader ? <ComposerHeader /> : null}
+        <ComposerPrimitive.AttachmentDropzone asChild>
+          <div
+            data-slot="aui_composer-shell"
+            className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]">
+            <ComposerAttachments />
+            {/*
+             * Lexical rather than the plain `ComposerPrimitive.Input` textarea,
+             * because `/` commands need a rich input: the trigger popover has to
+             * anchor to the caret and the accepted command has to become a chip
+             * rather than literal text the model would read. `commands` is empty
+             * unless the host supplies some, and with none the popover never
+             * opens, so a host that wants a plain box still gets one.
+             */}
+            <LexicalComposerInput
+              ref={inputWrapperRef}
+              placeholder="Send a message..."
+              onInputCapture={event => {
+                const target = event.target;
+                if (target instanceof HTMLElement) {
+                  const text = target.textContent ?? '';
+                  globalThis.queueMicrotask(() => aui.composer.setText(text));
+                }
+              }}
+              onKeyDownCapture={event => {
+                if (event.key === 'Escape' && onEscape) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onEscape();
+                  return;
+                }
+                const native = event.nativeEvent;
+                if (
+                  native.isComposing ||
+                  native.keyCode === 229 ||
+                  ('which' in native && native.which === 229)
+                ) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }
+              }}
+              className="aui-composer-input caret-primary [&_.aui-lexical-placeholder]:text-muted-foreground/60 relative max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none [&_.aui-lexical-input]:min-h-lh [&_.aui-lexical-input]:outline-none [&_.aui-lexical-placeholder]:pointer-events-none [&_.aui-lexical-placeholder]:absolute [&_.aui-lexical-placeholder]:top-0 [&_.aui-lexical-placeholder]:right-0 [&_.aui-lexical-placeholder]:left-0 [&_.aui-lexical-placeholder]:truncate [&_.aui-lexical-placeholder]:px-2.5 [&_.aui-lexical-placeholder]:py-1"
+              aria-label="Message input"
+            />
+            <ComposerAction model={model} onModelChange={onModelChange} />
+          </div>
+        </ComposerPrimitive.AttachmentDropzone>
+
+        {commands.length > 0 && (
+          <ComposerTriggerPopover char="/" {...slash} emptyItemsLabel="No matching commands" />
+        )}
+      </ComposerPrimitive.Root>
+    </ComposerPrimitive.Unstable_TriggerPopoverRoot>
   );
 };
 
-const ComposerAction: FC<{ model: string | null; onModelChange: (value: string) => void }> = ({
-  model,
-  onModelChange,
-}) => {
+const ComposerExtrasSlot: FC = () => {
+  const { ComposerExtras } = useContext(ThreadComponentsContext);
+  return ComposerExtras ? <ComposerExtras /> : null;
+};
+
+const ComposerAction: FC<{
+  model: string | null;
+  onModelChange?: (value: string, contextWindow?: number | null) => void;
+}> = ({ model, onModelChange }) => {
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 items-center gap-1">
         <ComposerAddAttachment />
         <ModelQualityPill value={model} onValueChange={onModelChange} />
+        <ComposerExtrasSlot />
       </div>
       <div className="flex items-center gap-1.5">
         <AuiIf condition={s => s.thread.capabilities.dictation}>
@@ -362,9 +484,20 @@ const AssistantMessage: FC = () => {
       data-slot="aui_assistant-message-root"
       data-role="assistant"
       className="fade-in slide-in-from-bottom-1 animate-in relative -mb-7.5 pb-7.5 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto]">
+      {/*
+       * One vertical rhythm for the whole message, rather than each part
+       * bringing its own margin. Measured before this change the gaps ran
+       * 16 / 0 / 0 / 16 / 0 / 0 px — `reasoning-root` carries `mb-4` and
+       * nothing else carried anything, so a reasoning block sat apart while a
+       * tool group and the prose beneath it touched. `[&>*+*]:mt-3` spaces
+       * adjacent blocks evenly and the `mb-0` override neutralises the one
+       * component with an opinion. The chain-of-thought wrapper below gets the
+       * same pair, because reasoning and tool groups are siblings *inside* it
+       * rather than of it, so spacing only the outer level misses them.
+       */}
       <div
         data-slot="aui_assistant-message-content"
-        className="text-foreground px-2 leading-relaxed wrap-break-word">
+        className="text-foreground [&>*+*]:mt-3 [&_[data-slot=reasoning-root]]:mb-0 px-2 leading-relaxed wrap-break-word">
         <MessagePrimitive.GroupedParts
           groupBy={groupPartByType({
             reasoning: ['group-chainOfThought', 'group-reasoning'],
@@ -374,7 +507,11 @@ const AssistantMessage: FC = () => {
           {({ part, children }) => {
             switch (part.type) {
               case 'group-chainOfThought':
-                return <div data-slot="aui_chain-of-thought">{children}</div>;
+                return (
+                  <div data-slot="aui_chain-of-thought" className="[&>*+*]:mt-3">
+                    {children}
+                  </div>
+                );
               case 'group-tool':
                 if (ToolGroup) {
                   return <ToolGroup group={part}>{children}</ToolGroup>;
@@ -442,6 +579,14 @@ const AssistantMessage: FC = () => {
       <div
         data-slot="aui_assistant-message-footer"
         className={cn('ms-2 flex items-center', ACTION_BAR_HEIGHT)}>
+        <AuiIf
+          condition={s =>
+            s.message.status?.type === 'incomplete' && s.message.status.reason === 'cancelled'
+          }>
+          <span data-testid="stopped-marker" className="text-muted-foreground text-xs">
+            Stopped
+          </span>
+        </AuiIf>
         <BranchPicker />
         <AssistantActionBar />
       </div>

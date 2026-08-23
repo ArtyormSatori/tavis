@@ -3482,6 +3482,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Przesuń w prawo',
   'conversations.taskKanban.title': 'Zadania',
   'conversations.threadTodo.title': 'Plan',
+  'conversations.composer.context.title': 'Okno kontekstu',
+  'conversations.composer.context.input': 'Wejście',
+  'conversations.composer.context.cached': 'Wejście z pamięci podręcznej',
+  'conversations.composer.context.output': 'Wyjście',
+  'conversations.composer.context.cost': 'Koszt',
+  'conversations.composer.command.clear': 'Wyczyść rozmowę',
+  'conversations.composer.command.goal': 'Ustaw lub zmień cel wątku',
   'conversations.planReview.title': 'Przejrzyj plan',
   'conversations.planReview.subtitle':
     'Zatwierdź, aby go uruchomić, odrzuć, aby go odrzucić, lub wyślij opinię, aby go poprawić.',
@@ -6901,6 +6908,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Odzyskano plik ustawień',
   'notifications.configRecovered.body':
     'Nie można było odczytać pliku ustawień, więc został przywrócony z kopii zapasowej lub zresetowany do wartości domyślnych. Nieczytelny plik zachowano z sufiksem ".corrupted" na wypadek, gdybyś go potrzebował.',
+  'chat.sources.usedCount': 'Użyto {n} źródeł',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Uruchom rdzeń gdzie indziej',
   'settings.gateway.description':
@@ -6947,7 +6955,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Lokalizacja',
   'devOptions.provisionedCore': 'Rdzeń uruchomiony przez tę aplikację',
   'devOptions.gatewayId': 'Identyfikator lokalizacji',
-  'chat.sources.usedCount': 'Użyto {n} źródeł',
 };
 
 export default messages;

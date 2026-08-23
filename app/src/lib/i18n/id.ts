@@ -3456,6 +3456,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Pindah ke kanan',
   'conversations.taskKanban.title': 'Tugas',
   'conversations.threadTodo.title': 'Rencana',
+  'conversations.composer.context.title': 'Jendela konteks',
+  'conversations.composer.context.input': 'Masukan',
+  'conversations.composer.context.cached': 'Masukan tersimpan',
+  'conversations.composer.context.output': 'Keluaran',
+  'conversations.composer.context.cost': 'Biaya',
+  'conversations.composer.command.clear': 'Bersihkan percakapan',
+  'conversations.composer.command.goal': 'Tetapkan atau ubah tujuan utas',
   'conversations.planReview.title': 'Tinjau rencana',
   'conversations.planReview.subtitle':
     'Setujui untuk menjalankannya, tolak untuk membuangnya, atau kirim masukan untuk merevisinya.',
@@ -6833,6 +6840,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'File pengaturan dipulihkan',
   'notifications.configRecovered.body':
     'File pengaturan Anda tidak dapat dibaca, jadi dipulihkan dari cadangan atau disetel ulang ke default. File yang tidak terbaca disimpan dengan akhiran ".corrupted" jika Anda membutuhkannya.',
+  'chat.sources.usedCount': 'Menggunakan {n} sumber',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Jalankan core di tempat lain',
   'settings.gateway.description':
@@ -6879,7 +6887,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Lokasi',
   'devOptions.provisionedCore': 'Core yang dijalankan aplikasi ini',
   'devOptions.gatewayId': 'Lokasi',
-  'chat.sources.usedCount': 'Menggunakan {n} sumber',
 };
 
 export default messages;

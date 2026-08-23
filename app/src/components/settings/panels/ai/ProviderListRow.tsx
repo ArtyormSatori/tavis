@@ -73,28 +73,28 @@ export interface ProviderRowAction {
 }
 
 const PROVIDER_SWATCH_TONES: Record<string, string> = {
-  openai: 'bg-black text-white ring-white/30',
-  anthropic: 'bg-[#D97757] text-white ring-white/30',
-  'claude-code': 'bg-[#D97757] text-white ring-white/30',
-  google: 'bg-[#4285F4] text-white ring-white/30',
-  mistral: 'bg-[#FF7000] text-white ring-white/30',
-  huggingface: 'bg-[#B88600] text-white ring-white/30',
-  nvidia: 'bg-[#5A8F00] text-white ring-white/30',
-  'vercel-ai-gateway': 'bg-black text-white ring-white/30',
-  xai: 'bg-black text-white ring-white/30',
-  zai: 'bg-[#FF6A00] text-white ring-white/30',
-  ollama: 'bg-black text-white ring-white/30',
-  lmstudio: 'bg-[#303E5C] text-white ring-white/30',
-  omlx: 'bg-[#6E6E73] text-white ring-white/30',
-  gmi: 'bg-[#0F766E] text-white ring-white/30',
-  openrouter: 'bg-[#7624F4] text-white ring-white/30',
-  deepseek: 'bg-[#4D6BFE] text-white ring-white/30',
-  cerebras: 'bg-[#FF6A00] text-white ring-white/30',
-  fireworks: 'bg-[#EF476F] text-white ring-white/30',
-  groq: 'bg-[#F55036] text-white ring-white/30',
-  minimax: 'bg-[#7048E8] text-white ring-white/30',
-  moonshot: 'bg-[#5B5CE2] text-white ring-white/30',
-  together: 'bg-[#9D36D5] text-white ring-white/30',
+  openai: 'bg-[#000000] text-content-inverted ring-content-inverted/30',
+  anthropic: 'bg-[#D97757] text-content-inverted ring-content-inverted/30',
+  'claude-code': 'bg-[#D97757] text-content-inverted ring-content-inverted/30',
+  google: 'bg-[#4285F4] text-content-inverted ring-content-inverted/30',
+  mistral: 'bg-[#FF7000] text-content-inverted ring-content-inverted/30',
+  huggingface: 'bg-[#B88600] text-content-inverted ring-content-inverted/30',
+  nvidia: 'bg-[#5A8F00] text-content-inverted ring-content-inverted/30',
+  'vercel-ai-gateway': 'bg-[#000000] text-content-inverted ring-content-inverted/30',
+  xai: 'bg-[#000000] text-content-inverted ring-content-inverted/30',
+  zai: 'bg-[#FF6A00] text-content-inverted ring-content-inverted/30',
+  ollama: 'bg-[#000000] text-content-inverted ring-content-inverted/30',
+  lmstudio: 'bg-[#303E5C] text-content-inverted ring-content-inverted/30',
+  omlx: 'bg-[#6E6E73] text-content-inverted ring-content-inverted/30',
+  gmi: 'bg-[#0F766E] text-content-inverted ring-content-inverted/30',
+  openrouter: 'bg-[#7624F4] text-content-inverted ring-content-inverted/30',
+  deepseek: 'bg-[#4D6BFE] text-content-inverted ring-content-inverted/30',
+  cerebras: 'bg-[#FF6A00] text-content-inverted ring-content-inverted/30',
+  fireworks: 'bg-[#EF476F] text-content-inverted ring-content-inverted/30',
+  groq: 'bg-[#F55036] text-content-inverted ring-content-inverted/30',
+  minimax: 'bg-[#7048E8] text-content-inverted ring-content-inverted/30',
+  moonshot: 'bg-[#5B5CE2] text-content-inverted ring-content-inverted/30',
+  together: 'bg-[#9D36D5] text-content-inverted ring-content-inverted/30',
 };
 
 /**
@@ -122,7 +122,7 @@ export const ProviderSwatch = ({
       data-slot="provider-swatch"
       className={cn(
         'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-semibold ring-1',
-        PROVIDER_SWATCH_TONES[slug] ?? 'bg-[#27272A] text-white ring-white/30'
+        PROVIDER_SWATCH_TONES[slug] ?? 'bg-[#27272A] text-content-inverted ring-content-inverted/30'
       )}>
       {icon ?? (label.trim().charAt(0).toUpperCase() || '?')}
     </span>

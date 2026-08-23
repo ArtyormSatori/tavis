@@ -27,21 +27,25 @@ export interface ChatSurfaceHandlers {
 }
 
 const registry = new Map<string, ChatSurfaceHandlers>();
+const UNSCOPED_SURFACE = '__openhuman_unscoped_chat_surface__';
 
 /** Register the handlers for `threadId`; returns the unregister function. */
-export function registerChatSurface(threadId: string, handlers: ChatSurfaceHandlers): () => void {
-  registry.set(threadId, handlers);
+export function registerChatSurface(
+  threadId: string | null,
+  handlers: ChatSurfaceHandlers
+): () => void {
+  const key = threadId ?? UNSCOPED_SURFACE;
+  registry.set(key, handlers);
   return () => {
     // Only clear if we still own the slot — a remount that re-registered first
     // must not be torn down by the outgoing instance's cleanup.
-    if (registry.get(threadId) === handlers) registry.delete(threadId);
+    if (registry.get(key) === handlers) registry.delete(key);
   };
 }
 
 /** The handlers registered for `threadId`, or `null` when no surface owns it. */
 export function getChatSurface(threadId: string | null): ChatSurfaceHandlers | null {
-  if (!threadId) return null;
-  return registry.get(threadId) ?? null;
+  return registry.get(threadId ?? UNSCOPED_SURFACE) ?? null;
 }
 
 /** Test seam — drops every registration. */

@@ -3501,6 +3501,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Sposta a destra',
   'conversations.taskKanban.title': 'Attività',
   'conversations.threadTodo.title': 'Piano',
+  'conversations.composer.context.title': 'Finestra di contesto',
+  'conversations.composer.context.input': 'Input',
+  'conversations.composer.context.cached': 'Input in cache',
+  'conversations.composer.context.output': 'Output',
+  'conversations.composer.context.cost': 'Costo',
+  'conversations.composer.command.clear': 'Svuota la conversazione',
+  'conversations.composer.command.goal': 'Imposta o modifica l’obiettivo della conversazione',
   'conversations.planReview.title': 'Rivedi il piano',
   'conversations.planReview.subtitle':
     'Approva per eseguirlo, rifiuta per scartarlo o invia un feedback per rivederlo.',
@@ -6931,6 +6938,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'File delle impostazioni recuperato',
   'notifications.configRecovered.body':
     'Non è stato possibile leggere il tuo file delle impostazioni, quindi è stato ripristinato da un backup o reimpostato ai valori predefiniti. Il file illeggibile è stato conservato con il suffisso ".corrupted" nel caso ti servisse.',
+  'chat.sources.usedCount': 'Utilizzate {n} fonti',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Esegui il core altrove',
   'settings.gateway.description':
@@ -6977,7 +6985,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Posizione',
   'devOptions.provisionedCore': 'Core avviato da questa app',
   'devOptions.gatewayId': 'ID della posizione',
-  'chat.sources.usedCount': 'Utilizzate {n} fonti',
 };
 
 export default messages;

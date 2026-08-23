@@ -3444,6 +3444,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'ডানে সরান',
   'conversations.taskKanban.title': 'টাস্ক',
   'conversations.threadTodo.title': 'পরিকল্পনা',
+  'conversations.composer.context.title': 'কনটেক্সট উইন্ডো',
+  'conversations.composer.context.input': 'ইনপুট',
+  'conversations.composer.context.cached': 'ক্যাশ করা ইনপুট',
+  'conversations.composer.context.output': 'আউটপুট',
+  'conversations.composer.context.cost': 'খরচ',
+  'conversations.composer.command.clear': 'কথোপকথন মুছে ফেলুন',
+  'conversations.composer.command.goal': 'থ্রেডের লক্ষ্য নির্ধারণ বা সম্পাদনা করুন',
   'conversations.planReview.title': 'পরিকল্পনা পর্যালোচনা করুন',
   'conversations.planReview.subtitle':
     'চালানোর জন্য অনুমোদন করুন, বাতিল করতে প্রত্যাখ্যান করুন, অথবা সংশোধনের জন্য মতামত পাঠান।',
@@ -6801,6 +6808,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'সেটিংস ফাইল পুনরুদ্ধার করা হয়েছে',
   'notifications.configRecovered.body':
     'আপনার সেটিংস ফাইল পড়া যায়নি, তাই এটি একটি ব্যাকআপ থেকে পুনরুদ্ধার করা হয়েছে বা ডিফল্টে রিসেট করা হয়েছে। অপঠনযোগ্য ফাইলটি, প্রয়োজনে ব্যবহারের জন্য, ".corrupted" প্রত্যয় সহ রাখা হয়েছে।',
+  'chat.sources.usedCount': '{n}টি উৎস ব্যবহার করা হয়েছে',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'কোরটি অন্য কোথাও চালান',
   'settings.gateway.description':
@@ -6847,7 +6855,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'অবস্থান',
   'devOptions.provisionedCore': 'এই অ্যাপের চালু করা কোর',
   'devOptions.gatewayId': 'অবস্থান',
-  'chat.sources.usedCount': '{n}টি উৎস ব্যবহার করা হয়েছে',
 };
 
 export default messages;

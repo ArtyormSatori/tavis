@@ -3537,6 +3537,13 @@ const messages: TranslationMap = {
   'conversations.taskKanban.moveRight': 'Bewege dich nach rechts',
   'conversations.taskKanban.title': 'Aufgaben',
   'conversations.threadTodo.title': 'Plan',
+  'conversations.composer.context.title': 'Kontextfenster',
+  'conversations.composer.context.input': 'Eingabe',
+  'conversations.composer.context.cached': 'Zwischengespeicherte Eingabe',
+  'conversations.composer.context.output': 'Ausgabe',
+  'conversations.composer.context.cost': 'Kosten',
+  'conversations.composer.command.clear': 'Unterhaltung leeren',
+  'conversations.composer.command.goal': 'Ziel des Threads festlegen oder bearbeiten',
   'conversations.planReview.title': 'Plan prüfen',
   'conversations.planReview.subtitle':
     'Genehmigen zum Ausführen, ablehnen zum Verwerfen oder Feedback zum Überarbeiten senden.',
@@ -6989,6 +6996,7 @@ const messages: TranslationMap = {
   'notifications.configRecovered.title': 'Einstellungsdatei wiederhergestellt',
   'notifications.configRecovered.body':
     'Deine Einstellungsdatei konnte nicht gelesen werden und wurde daher aus einer Sicherung wiederhergestellt oder auf die Standardwerte zurückgesetzt. Die unlesbare Datei wurde mit der Endung ".corrupted" aufbewahrt, falls du sie noch brauchst.',
+  'chat.sources.usedCount': '{n} Quellen verwendet',
   // Gateways: cores this app provisions and runs elsewhere.
   'settings.gateway.title': 'Den Kern woanders ausführen',
   'settings.gateway.description':
@@ -7035,7 +7043,6 @@ const messages: TranslationMap = {
   'devOptions.gateway': 'Ort',
   'devOptions.provisionedCore': 'Von dieser App gestarteter Kern',
   'devOptions.gatewayId': 'Ort',
-  'chat.sources.usedCount': '{n} Quellen verwendet',
 };
 
 export default messages;

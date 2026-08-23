@@ -33,7 +33,6 @@ import {
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
 import { Button } from '@/components/assistant-ui/ui/button';
 import { Skeleton } from '@/components/assistant-ui/ui/skeleton';
-import { SubagentCall } from '@/lib/assistantUiMock';
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -82,6 +81,7 @@ import {
 } from 'lucide-react';
 import { type FC, type ReactNode, useState } from 'react';
 
+import { SubagentCall } from './assistantUiMock';
 import { CloneThreadShell } from './CloneThreadShell';
 import { DEFAULT_MODEL_ID, demoModelOptions } from './demoModels';
 
@@ -605,7 +605,7 @@ const AssistantMessage: FC = () => {
       className="fade-in slide-in-from-bottom-1 animate-in relative mx-auto w-full max-w-(--thread-max-width) duration-150">
       <div
         data-slot="aui_assistant-message-content"
-        className="text-foreground px-2 leading-relaxed wrap-break-word">
+        className="text-foreground [&>*+*]:mt-3 [&_[data-slot=reasoning-root]]:mb-0 px-2 leading-relaxed wrap-break-word">
         <MessagePrimitive.GroupedParts
           groupBy={groupPartByType({
             reasoning: ['group-chainOfThought', 'group-reasoning'],
@@ -615,10 +615,17 @@ const AssistantMessage: FC = () => {
           {({ part, children }) => {
             switch (part.type) {
               case 'group-chainOfThought':
-                return <div data-slot="aui_chain-of-thought">{children}</div>;
+                return (
+                  <div data-slot="aui_chain-of-thought" className="[&>*+*]:mt-3">
+                    {children}
+                  </div>
+                );
               case 'group-tool':
                 return (
-                  <ToolGroupRoot variant="ghost">
+                  // Local addition: a group holding work still in flight opens
+                  // itself, so a dispatched delegation is visible while the
+                  // answer below it streams. Upstream is collapsed-by-default.
+                  <ToolGroupRoot variant="ghost" defaultOpen={part.status.type === 'running'}>
                     <ToolGroupTrigger
                       count={part.indices.length}
                       active={part.status.type === 'running'}
