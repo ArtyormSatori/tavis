@@ -50,7 +50,11 @@ function NoticeRow({ notice }: { notice: AppNotice }) {
       />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-content">{notice.title}</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-content-secondary">{notice.body}</p>
+        {/* `whitespace-pre-line` so a notice carrying a source detail renders
+            it as its own paragraph rather than one run-on line. */}
+        <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-content-secondary">
+          {notice.body}
+        </p>
         {notice.meta && <p className="mt-1 text-[11px] text-content-muted">{notice.meta}</p>}
         {(notice.onAction || notice.onDismiss) && (
           <div className="mt-2 flex items-center gap-1.5">

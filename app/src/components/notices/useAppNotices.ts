@@ -55,12 +55,16 @@ const ACTION_ROUTE: Record<Exclude<UserErrorAction, 'dismiss'>, string> = {
   // this one screen, so a single CTA covers them without the user needing to
   // know which one applies.
   open_embeddings_settings: '/connections?tab=embeddings',
+  // Opening this screen also restarts the integration health poll, so it is
+  // both the explanation and the retry.
+  open_connections: '/connections?tab=skills',
 };
 
 const ACTION_LABEL_KEY: Record<Exclude<UserErrorAction, 'dismiss'>, string> = {
   open_billing: 'userErrors.action.openBilling',
   open_provider_settings: 'userErrors.action.openProviderSettings',
   open_embeddings_settings: 'userErrors.action.openEmbeddingsSettings',
+  open_connections: 'userErrors.action.openConnections',
 };
 
 const SEVERITY_RANK: Record<NoticeSeverity, number> = { error: 0, warning: 1, info: 2 };
@@ -125,7 +129,9 @@ export function useAppNotices(): AppNotice[] {
         id: entry.id,
         severity: entry.severity,
         title: t(entry.titleKey),
-        body: t(entry.bodyKey),
+        // `detail` is the source's own user-facing text (see the field's docs);
+        // it says what actually failed, which the translated body cannot.
+        body: entry.detail ? `${t(entry.bodyKey)}\n\n${entry.detail}` : t(entry.bodyKey),
         meta: [
           t(`userErrors.scope.${entry.scope}`, entry.scope),
           new Date(entry.lastSeenAt).toLocaleTimeString(),
