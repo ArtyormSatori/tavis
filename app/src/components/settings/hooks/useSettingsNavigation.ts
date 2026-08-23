@@ -61,7 +61,6 @@ interface BreadcrumbItem {
 interface SettingsNavigationHook {
   currentRoute: SettingsRoute;
   navigateToSettings: (route?: SettingsRoute | string) => void;
-  navigateToTeamManagement: (teamId: string) => void;
   navigateBack: () => void;
   closeSettings: () => void;
   breadcrumbs: BreadcrumbItem[];
@@ -151,13 +150,6 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
     [navigate]
   );
 
-  const navigateToTeamManagement = useCallback(
-    (teamId: string) => {
-      navigate(`/settings/team/manage/${teamId}`);
-    },
-    [navigate]
-  );
-
   const navigateBack = useCallback(() => {
     if (currentRoute === 'home') {
       goBackWithFallback('/home');
@@ -192,7 +184,6 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
   return {
     currentRoute,
     navigateToSettings,
-    navigateToTeamManagement,
     navigateBack,
     closeSettings,
     breadcrumbs,
