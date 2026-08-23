@@ -211,26 +211,30 @@ const ChainPlaceholderRow = ({
   const badgeClass = badgeClassFor(chain);
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 opacity-70">
-      <span
-        className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold font-mono min-w-12 justify-center shrink-0 ${badgeClass}`}>
-        {balanceBadge({ chain, evmNetwork })}
-      </span>
-      <div className="min-w-0">
-        <span className="block text-xs font-medium text-content-faint truncate">
-          {balanceNetworkLabel({ chain, evmNetwork })}
-        </span>
-        <span className="font-mono text-[11px] text-content-faint truncate">
+    <TableRow className="opacity-70">
+      <TableCell className="whitespace-nowrap">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold font-mono min-w-12 justify-center shrink-0 ${badgeClass}`}>
+            {balanceBadge({ chain, evmNetwork })}
+          </span>
+          <span className="text-xs font-medium text-content-faint">
+            {balanceNetworkLabel({ chain, evmNetwork })}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <span className="font-mono text-[11px] text-content-faint">
           {t('walletBalances.notSetUp')}
         </span>
-      </div>
-      <div className="flex-1" />
-      <div className="text-right shrink-0">
+      </TableCell>
+      <TableCell className="whitespace-nowrap text-right">
         {/* Em dash placeholder — punctuation, not translatable copy. */}
         <span className="text-sm font-medium text-content-faint font-mono">—</span>
         <span className="ml-1 text-xs text-content-faint">{symbol}</span>
-      </div>
-    </div>
+      </TableCell>
+      <TableCell className="w-px" />
+    </TableRow>
   );
 };
 
@@ -389,16 +393,19 @@ const WalletBalancesPanel = () => {
               </div>
             </div>
           </div>
-          <div className="divide-y divide-line-subtle">
-            {PLACEHOLDER_ROWS.map(row => (
+          <DataTable<(typeof PLACEHOLDER_ROWS)[number]>
+            columns={COLUMNS}
+            rows={PLACEHOLDER_ROWS}
+            rowKey={row => `${row.chain}-${row.evmNetwork ?? 'native'}`}
+            renderRow={row => (
               <ChainPlaceholderRow
                 key={`${row.chain}-${row.evmNetwork ?? 'native'}`}
                 chain={row.chain}
                 evmNetwork={row.evmNetwork}
                 symbol={row.symbol}
               />
-            ))}
-          </div>
+            )}
+          />
         </div>
       );
     }
@@ -427,16 +434,19 @@ const WalletBalancesPanel = () => {
 
     if (balances && balances.length > 0) {
       return (
-        <div className="divide-y divide-line-subtle">
-          {balances.map(balance => (
+        <DataTable<BalanceInfo>
+          columns={COLUMNS}
+          rows={balances}
+          rowKey={balanceKey}
+          renderRow={balance => (
             <BalanceRow
               key={balanceKey(balance)}
               balance={balance}
               onSend={setSendTarget}
               onReceive={setReceiveTarget}
             />
-          ))}
-        </div>
+          )}
+        />
       );
     }
 
