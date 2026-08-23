@@ -1545,7 +1545,7 @@ describe('AIPanel', () => {
     // the connect dialog is now a real Radix Dialog (migrated off a hand-rolled
     // `<div role="dialog">`), so Radix aria-hides the rest of the tree while it
     // is open and the default role query would otherwise see zero switches.
-    expect(screen.getAllByRole('switch', { hidden: true }).length).toBe(chipsBefore);
+    expect(screen.queryAllByRole('switch', { hidden: true }).length).toBe(chipsBefore);
 
     // Specifically: no "Disconnect OpenAI" switch (chip is still in off state).
     expect(
