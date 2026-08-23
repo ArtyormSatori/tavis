@@ -29,7 +29,6 @@ import {
   SettingsTextField,
 } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
-import { settingsNavState } from '../modal/settingsOverlay';
 
 const MODEL_HINTS = ['hint:reasoning', 'hint:chat', 'hint:agentic', 'hint:coding'];
 
@@ -54,7 +53,7 @@ const ProfileEditorPage = () => {
   const { id: routeId } = useParams<{ id: string }>();
   const profiles = useAppSelector(selectAgentProfiles);
   const backToList = useCallback(
-    () => navigate('/settings/profiles', settingsNavState(location)),
+    () => navigate('/settings/profiles'),
     [navigate, location]
   );
   const isCreate = !routeId;

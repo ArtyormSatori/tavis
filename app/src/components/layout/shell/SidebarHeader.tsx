@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { registry } from '../../../lib/commands/registry';
 import { useT } from '../../../lib/i18n/I18nContext';
-import { settingsNavState } from '../../settings/modal/settingsOverlay';
 import { Button, SidebarHeader as SidebarHeaderShell, Tooltip } from '../../ui';
 import { useRootSidebar } from './RootShellLayout';
 
@@ -51,7 +50,7 @@ export default function SidebarHeader() {
           <Button
             variant="tertiary"
             iconOnly
-            onClick={() => navigate('/settings', settingsNavState(location))}
+            onClick={() => navigate('/settings')}
             className={ICON_BTN}
             analyticsId="sidebar-header-settings"
             aria-label={t('nav.settings')}>

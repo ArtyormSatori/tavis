@@ -5,7 +5,6 @@ import debug from 'debug';
 import { useCallback } from 'react';
 import { type To, useLocation, useNavigate } from 'react-router-dom';
 
-import { settingsNavState } from '../modal/settingsOverlay';
 import { entryRoute, findEntryByRoute, SETTINGS_ROUTE_REGISTRY } from '../settingsRouteRegistry';
 
 const log = debug('settings:nav');
@@ -148,14 +147,14 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
     (route: SettingsRoute | string = 'home') => {
       // Preserve the modal's backdrop (desktop) across panel-to-panel nav.
       const target = route === 'home' ? '/settings' : `/settings/${route}`;
-      navigate(target, settingsNavState(location));
+      navigate(target);
     },
     [navigate, location]
   );
 
   const navigateToTeamManagement = useCallback(
     (teamId: string) => {
-      navigate(`/settings/team/manage/${teamId}`, settingsNavState(location));
+      navigate(`/settings/team/manage/${teamId}`);
     },
     [navigate, location]
   );

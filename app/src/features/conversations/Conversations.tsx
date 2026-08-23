@@ -18,7 +18,6 @@ import QueuedFollowups from '../../components/chat/QueuedFollowups';
 import WorkflowProposalCard from '../../components/chat/WorkflowProposalCard';
 import { ConfirmationModal } from '../../components/intelligence/ConfirmationModal';
 import { SidebarContent } from '../../components/layout/shell/SidebarSlot';
-import { settingsNavState } from '../../components/settings/modal/settingsOverlay';
 import UpsellBanner from '../../components/upsell/UpsellBanner';
 import { dismissBanner, shouldShowBanner } from '../../components/upsell/upsellDismissState';
 import { AssistantUiChat } from '../../features/conversations/components/AssistantUiChat';
@@ -2171,7 +2170,7 @@ const Conversations = ({
                     // STT/TTS provider settings live on the Voice panel
                     // since PR 2; the legacy local-model route was for
                     // back when speech assets were lumped with Ollama.
-                    navigate('/settings/voice', settingsNavState(location));
+                    navigate('/settings/voice');
                   }}
                   className="text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors">
                   {t('chat.setup')}

@@ -10,7 +10,6 @@ import { usePageWelcomeView } from '../components/layout/usePageWelcomeView';
 import RewardsCommunityTab from '../components/rewards/RewardsCommunityTab';
 import RewardsRedeemTab from '../components/rewards/RewardsRedeemTab';
 import RewardsReferralsTab from '../components/rewards/RewardsReferralsTab';
-import { settingsNavState } from '../components/settings/modal/settingsOverlay';
 import { useT } from '../lib/i18n/I18nContext';
 import { useCoreState } from '../providers/CoreStateProvider';
 import { rewardsApi } from '../services/api/rewardsApi';
@@ -193,7 +192,7 @@ const Rewards = () => {
             title={t('rewards.title')}
             description={t('rewards.localUnavailable')}
             actionLabel={t('rewards.localUnavailableCta')}
-            onAction={() => navigate('/settings/account', settingsNavState(location))}
+            onAction={() => navigate('/settings/account')}
           />
         </div>
       </div>

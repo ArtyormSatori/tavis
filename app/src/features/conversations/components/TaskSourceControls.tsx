@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { LuRefreshCw } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { settingsNavState } from '../../../components/settings/modal/settingsOverlay';
 import { Alert } from '../../../components/ui/Alert';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
@@ -163,7 +162,7 @@ export function TaskSourceControls({ disabled, compact }: { disabled: boolean; c
             <Button
               variant="tertiary"
               size="xs"
-              onClick={() => navigate('/settings/integrations', settingsNavState(location))}
+              onClick={() => navigate('/settings/integrations')}
               className="px-0 text-[11px] text-primary-600 hover:bg-transparent hover:underline dark:text-primary-300">
               {t('conversations.taskKanban.sources.manage')}
             </Button>

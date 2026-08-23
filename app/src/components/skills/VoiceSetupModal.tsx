@@ -13,7 +13,6 @@ import {
   openhumanUpdateVoiceServerSettings,
   openhumanVoiceServerStart,
 } from '../../utils/tauriCommands/voice';
-import { settingsNavState } from '../settings/modal/settingsOverlay';
 import { CheckIcon, WarningIcon } from '../ui';
 import Button from '../ui/Button';
 import {
@@ -60,12 +59,12 @@ export default function VoiceSetupModal({ onClose, skillStatus }: Props) {
     onClose();
     // STT model install lives on the Voice settings panel (PR 2). The
     // legacy `/settings/local-model` route handled Ollama assets only.
-    navigate('/settings/voice', settingsNavState(location));
+    navigate('/settings/voice');
   };
 
   const handleGoToSettings = () => {
     onClose();
-    navigate('/settings/voice', settingsNavState(location));
+    navigate('/settings/voice');
   };
 
   return (

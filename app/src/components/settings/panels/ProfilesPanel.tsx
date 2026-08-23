@@ -22,7 +22,6 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import Button from '../../ui/Button';
 import { SettingsEmptyState, SettingsSection } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
-import { settingsNavState } from '../modal/settingsOverlay';
 
 const ProfilesPanel = () => {
   const { t } = useT();
@@ -72,7 +71,7 @@ const ProfilesPanel = () => {
           type="button"
           variant="primary"
           size="sm"
-          onClick={() => navigate('/settings/profiles/new', settingsNavState(location))}>
+          onClick={() => navigate('/settings/profiles/new')}>
           <LuPlus className="h-4 w-4" />
           {t('settings.profiles.new')}
         </Button>
@@ -142,9 +141,7 @@ const ProfilesPanel = () => {
                         size="sm"
                         onClick={() =>
                           navigate(
-                            `/settings/profiles/edit/${profile.id}`,
-                            settingsNavState(location)
-                          )
+                            `/settings/profiles/edit/${profile.id}`)
                         }>
                         {t('common.edit')}
                       </Button>
