@@ -18,7 +18,6 @@ type SettingsRoute =
   | 'agents'
   | 'agent-access'
   | 'account'
-  | 'cron-jobs'
   | 'privacy'
   | 'billing'
   | 'developer-options'
@@ -28,7 +27,6 @@ type SettingsRoute =
   | 'recovery-phrase'
   | 'wallet-balances'
   | 'notifications'
-  | 'notification-routing'
   | 'personality'
   | 'appearance'
   | 'approval-history'
@@ -107,7 +105,6 @@ const getCurrentRoute = (pathname: string): SettingsRoute => {
   }
 
   // Legacy redirect targets that don't have a registry entry.
-  if (firstSegment === 'notification-routing') return 'notification-routing';
 
   log('getCurrentRoute: unknown slug "%s", defaulting to home', firstSegment);
   return 'home';
