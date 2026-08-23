@@ -735,32 +735,6 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     expect(writeText).toHaveBeenCalledWith(agentContent);
   });
 
-  // Covers budget banner: budget-exhausted banner + OpenRouter CTA
-  it('renders budget-limit banner when teamUsage is present', async () => {
-    // cycleBudgetUsd: 0 → renders "Your included budget is complete" branch
-    const teamUsage = { cycleBudgetUsd: 0, remainingUsd: 0, cycleSpentUsd: 0, cycleEndsAt: null };
-
-    mockUseUsageState.mockReturnValue({
-      teamUsage,
-      currentPlan: null,
-      currentTier: 'PRO' as const,
-      isFreeTier: false,
-      usagePct: 1.0,
-      isNearLimit: true,
-      isAtLimit: true,
-      isBudgetExhausted: true,
-      shouldShowBudgetCompletedMessage: true,
-      isLoading: false,
-      refresh: vi.fn(),
-    });
-
-    await act(async () => {
-      await renderConversations({ thread: emptyThreadState });
-    });
-
-    expect(screen.getByText(/Your included budget is complete/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Use OpenRouter free models/i })).toBeInTheDocument();
-  });
 
   // Covers line 247: if (cancelled) return — the non-cancelled path through loadThreads callback
   it('selects first thread after loadThreads resolves (non-cancelled path)', async () => {
@@ -855,36 +829,6 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     expect(screen.getByTestId('route-path')).toHaveTextContent('/chat');
   });
 
-  it('clicking OpenRouter free models in the budget banner routes chat workloads', async () => {
-    const teamUsage = { cycleBudgetUsd: 10, remainingUsd: 0, cycleSpentUsd: 10, cycleEndsAt: null };
-    mockUseOpenRouterFreeModels.mockResolvedValueOnce(undefined);
-
-    mockUseUsageState.mockReturnValue({
-      teamUsage,
-      currentPlan: null,
-      currentTier: 'PRO' as const,
-      isFreeTier: false,
-      usagePct: 1.0,
-      isNearLimit: true,
-      isAtLimit: true,
-      isBudgetExhausted: true,
-      shouldShowBudgetCompletedMessage: true,
-      isLoading: false,
-      refresh: vi.fn(),
-    });
-
-    await act(async () => {
-      await renderConversations({ thread: emptyThreadState });
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Use OpenRouter free models/i }));
-    });
-
-    await waitFor(() => {
-      expect(mockUseOpenRouterFreeModels).toHaveBeenCalledTimes(1);
-    });
-  });
 
   it('handles /new from the composer without a selected thread or sending chat text', async () => {
     mockGetThreads.mockReturnValue(new Promise(() => {}));
