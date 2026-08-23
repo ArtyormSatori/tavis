@@ -6814,7 +6814,8 @@ const messages: TranslationMap = {
   'userErrors.dismiss': 'Odrzuć',
   'userErrors.action.openConnections': 'Otwórz połączenia',
   'userErrors.integrationDegraded.title': 'Połączenia pokazują nieaktualny stan',
-  'userErrors.integrationDegraded.body': 'Podłączona integracja zwraca błędy, więc stan połączeń widoczny w aplikacji może być nieaktualny.',
+  'userErrors.integrationDegraded.body':
+    'Podłączona integracja zwraca błędy, więc stan połączeń widoczny w aplikacji może być nieaktualny.',
   'userErrors.action.openBilling': 'Otwórz rozliczenia',
   'userErrors.action.openProviderSettings': 'Ustawienia dostawcy',
   'userErrors.action.openEmbeddingsSettings': 'Skonfiguruj osadzenia',

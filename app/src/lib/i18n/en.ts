@@ -7124,7 +7124,8 @@ const en: TranslationMap = {
   'userErrors.dismiss': 'Dismiss',
   'userErrors.action.openConnections': 'Open connections',
   'userErrors.integrationDegraded.title': 'Connections are showing stale status',
-  'userErrors.integrationDegraded.body': 'A connected integration is returning errors, so the connection state shown in the app may be out of date.',
+  'userErrors.integrationDegraded.body':
+    'A connected integration is returning errors, so the connection state shown in the app may be out of date.',
   'userErrors.action.openBilling': 'Open billing',
   'userErrors.action.openProviderSettings': 'Provider settings',
   'userErrors.action.openEmbeddingsSettings': 'Set up embeddings',

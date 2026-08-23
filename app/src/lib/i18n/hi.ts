@@ -6716,7 +6716,8 @@ const messages: TranslationMap = {
   'userErrors.dismiss': 'खारिज करें',
   'userErrors.action.openConnections': 'कनेक्शन खोलें',
   'userErrors.integrationDegraded.title': 'कनेक्शन पुरानी स्थिति दिखा रहे हैं',
-  'userErrors.integrationDegraded.body': 'एक जुड़ा हुआ इंटीग्रेशन त्रुटियां लौटा रहा है, इसलिए ऐप में दिख रही कनेक्शन स्थिति पुरानी हो सकती है।',
+  'userErrors.integrationDegraded.body':
+    'एक जुड़ा हुआ इंटीग्रेशन त्रुटियां लौटा रहा है, इसलिए ऐप में दिख रही कनेक्शन स्थिति पुरानी हो सकती है।',
   'userErrors.action.openBilling': 'बिलिंग खोलें',
   'userErrors.action.openProviderSettings': 'प्रदाता सेटिंग्स',
   'userErrors.action.openEmbeddingsSettings': 'एम्बेडिंग सेट करें',

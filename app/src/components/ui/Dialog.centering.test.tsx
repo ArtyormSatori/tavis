@@ -42,8 +42,8 @@ const declaredIn = (keyframe: string, property: string): string[] => {
   if (start === -1) throw new Error(`no keyframes named ${keyframe}`);
   const end = tailwindSource.indexOf('\n  }', start);
   const block = tailwindSource.slice(start, end);
-  return Array.from(block.matchAll(new RegExp(`(?:^|[;{\\s])${property}:\\s*([^;]+);`, 'g'))).map(m =>
-    m[1].trim()
+  return Array.from(block.matchAll(new RegExp(`(?:^|[;{\\s])${property}:\\s*([^;]+);`, 'g'))).map(
+    m => m[1].trim()
   );
 };
 

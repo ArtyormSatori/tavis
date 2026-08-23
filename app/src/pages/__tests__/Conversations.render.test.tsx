@@ -735,7 +735,6 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     expect(writeText).toHaveBeenCalledWith(agentContent);
   });
 
-
   // Covers line 247: if (cancelled) return — the non-cancelled path through loadThreads callback
   it('selects first thread after loadThreads resolves (non-cancelled path)', async () => {
     const threads = [makeThread({ id: 't-1', title: 'First Thread' })];
@@ -828,7 +827,6 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     await waitFor(() => expect(threadApi.deleteThread).toHaveBeenCalledWith('t-del'));
     expect(screen.getByTestId('route-path')).toHaveTextContent('/chat');
   });
-
 
   it('handles /new from the composer without a selected thread or sending chat text', async () => {
     mockGetThreads.mockReturnValue(new Promise(() => {}));
