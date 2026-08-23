@@ -2044,52 +2044,6 @@ const Conversations = ({
             : 'absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-195 px-4 pb-4 pt-6'
         }>
         <>
-          {teamUsage && shouldShowBudgetCompletedMessage && (
-            <div className="mb-3 p-3 rounded-xl bg-coral-50 border border-coral-200 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <svg
-                  className="w-4 h-4 text-coral-400 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                <p className="text-xs text-coral-600">
-                  {teamUsage.cycleBudgetUsd > 0
-                    ? `${t('chat.weeklyLimitHit')}${teamUsage.cycleEndsAt ? ` ${t('chat.resets')} ${formatResetTime(teamUsage.cycleEndsAt)}.` : ''} ${t('chat.topUpToContinue')}`
-                    : t('chat.budgetComplete')}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  data-analytics-id="chat-budget-openrouter-free"
-                  disabled={openRouterStatus === 'saving'}
-                  onClick={() => {
-                    void handleUseOpenRouterFree();
-                  }}
-                  className="px-3 py-1.5 rounded-lg border border-coral-300 bg-surface text-coral-700 hover:bg-coral-100 disabled:cursor-wait disabled:opacity-70 text-xs font-medium transition-colors">
-                  {openRouterStatus === 'saving'
-                    ? t('openrouterFree.saving')
-                    : t('openrouterFree.cta')}
-                </button>
-                <button
-                  type="button"
-                  data-analytics-id="chat-budget-top-up"
-                  onClick={() => {
-                    void openUrl(PRICING_URL);
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-coral-500 hover:bg-coral-400 text-content-inverted text-xs font-medium transition-colors">
-                  {t('chat.topUp')}
-                </button>
-              </div>
-            </div>
-          )}
           {openRouterStatus === 'error' && (
             <div className="mb-3 rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700">
               {t('openrouterFree.error')}
@@ -2556,49 +2510,6 @@ const Conversations = ({
 
   const assistantComposerHeader = (
     <>
-      {isNearLimit &&
-        !isAtLimit &&
-        isFreeTier &&
-        shouldShowBanner('conversations-warning', 24 * 60 * 60 * 1000) && (
-          <UpsellBanner
-            variant="warning"
-            title={t('chat.approachingLimit')}
-            message={t('chat.approachingLimitMsg').replace(
-              '{pct}',
-              String(Math.round(usagePct * 100))
-            )}
-            ctaLabel={t('chat.upgrade')}
-            onCtaClick={() => void openUrl(PRICING_URL)}
-            dismissible
-            onDismiss={() => dismissBanner('conversations-warning')}
-          />
-        )}
-      {teamUsage && shouldShowBudgetCompletedMessage && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-coral-200 bg-coral-50 p-3">
-          <p className="min-w-0 text-xs text-coral-600">
-            {teamUsage.cycleBudgetUsd > 0
-              ? `${t('chat.weeklyLimitHit')}${teamUsage.cycleEndsAt ? ` ${t('chat.resets')} ${formatResetTime(teamUsage.cycleEndsAt)}.` : ''} ${t('chat.topUpToContinue')}`
-              : t('chat.budgetComplete')}
-          </p>
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              data-analytics-id="chat-budget-openrouter-free"
-              disabled={openRouterStatus === 'saving'}
-              onClick={() => void handleUseOpenRouterFree()}
-              className="rounded-lg border border-coral-300 bg-surface px-3 py-1.5 text-xs font-medium text-coral-700 transition-colors hover:bg-coral-100 disabled:cursor-wait disabled:opacity-70">
-              {openRouterStatus === 'saving' ? t('openrouterFree.saving') : t('openrouterFree.cta')}
-            </button>
-            <button
-              type="button"
-              data-analytics-id="chat-budget-top-up"
-              onClick={() => void openUrl(PRICING_URL)}
-              className="rounded-lg bg-coral-500 px-3 py-1.5 text-xs font-medium text-content-inverted transition-colors hover:bg-coral-400">
-              {t('chat.topUp')}
-            </button>
-          </div>
-        </div>
-      )}
       {openRouterStatus === 'error' && (
         <div className="rounded-lg border border-coral-200 bg-coral-50 px-3 py-2 text-xs text-coral-700">
           {t('openrouterFree.error')}
