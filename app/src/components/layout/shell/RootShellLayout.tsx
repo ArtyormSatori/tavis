@@ -190,13 +190,13 @@ export default function RootShellLayout({ sidebar, children, unframed }: RootShe
     // a single continuous surface. Scrimming per-pane would tint them
     // differently and reintroduce the very seam this layout removes.
     //
-    // The alpha is deliberately light: the themed AppBackground behind it is an
-    // *animated* WebGL mesh gradient, and the content card above is opaque, so
-    // the chrome is the only place that motion is visible at all. A heavier
-    // scrim (or a backdrop blur, which also smears the 18px dotted canvas)
-    // flattens it back into paint and leaves the shader burning GPU for nothing.
-    // /30 is the legibility knob — raise it if sidebar labels wash out, which is
-    // most likely under a `backdrop: image` theme rather than the mesh.
+    // The alpha is deliberately light: the content card above is opaque, so the
+    // chrome is the only place the themed AppBackground is visible at all. That
+    // matters most under the opt-in `mesh` backdrop, where a heavier scrim (or a
+    // backdrop blur, which also smears the 18px dotted canvas) flattens the
+    // shader back into paint and leaves it burning GPU for nothing. /30 is the
+    // legibility knob — raise it if sidebar labels wash out, which is most
+    // likely under a `backdrop: image` theme rather than the flat default.
     <SidebarProvider
       open={isOpen}
       onOpenChange={handleOpenChange}
