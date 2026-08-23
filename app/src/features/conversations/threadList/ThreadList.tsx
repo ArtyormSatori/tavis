@@ -73,7 +73,11 @@ export function ThreadList({
         </button>
       </div>
       {/* Rows are inset pills, so the scroll container carries the gutter. */}
-      <div className="flex-1 overflow-y-auto px-2 pb-3">
+      {/* px-3 is the shell sidebar's gutter (`SidebarGroup`/`SidebarHeader`).
+          This list is projected into that same column, so a narrower inset of
+          its own put thread rows and app-nav rows on two different left
+          edges. */}
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
         {threads.length === 0 ? (
           <p className="px-4 py-6 text-xs text-content-faint text-center">{t('chat.noThreads')}</p>
         ) : (
