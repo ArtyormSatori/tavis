@@ -59,6 +59,7 @@ pub struct CoreContext {
     /// [`CoreContext::current`] → [`CoreContext::domains`]. `full()` for the
     /// desktop shell / standalone CLI (byte-identical to pre-#4796).
     domains: crate::core::runtime::DomainSet,
+    tool_groups: Default::default(),
     /// The configuration an embedder supplied to
     /// [`CoreBuilder::config`](crate::core::runtime::CoreBuilder::config),
     /// if any.
@@ -76,6 +77,15 @@ pub struct CoreContext {
     /// phase 2 of `docs/plans/pluggable-core/` introduced for exactly this
     /// migration — lets that loader prefer it without any handler changing.
     embedder_config: Option<crate::openhuman::config::Config>,
+    /// Per-tool-group disclosure for this context (see
+    /// [`ToolGroups`](crate::openhuman::tools::toolpacks::ToolGroups)).
+    ///
+    /// The third narrowing axis, independent of `domains` the same way
+    /// `DomainSet` is independent of `ServiceSet`: `DomainSet` decides which
+    /// families *exist*, `ToolGroups` decides how the ones that exist reach
+    /// the model. Defaults to every group withheld, which is what the
+    /// compiled-in pack table meant before the type existed.
+    tool_groups: crate::openhuman::tools::toolpacks::ToolGroups,
 }
 
 /// The complete input to a workspace-scoped memory binding.
@@ -107,6 +117,7 @@ impl CoreContext {
         host_kind: HostKind,
         token: &TokenSource,
         domains: crate::core::runtime::DomainSet,
+        tool_groups: Default::default(),
     ) -> anyhow::Result<(
         Arc<CoreContext>,
         bool,
@@ -130,6 +141,7 @@ impl CoreContext {
         host_kind: HostKind,
         token: &TokenSource,
         domains: crate::core::runtime::DomainSet,
+        tool_groups: Default::default(),
         preloaded_config: Option<crate::openhuman::config::Config>,
     ) -> anyhow::Result<(
         Arc<CoreContext>,
@@ -242,6 +254,7 @@ impl CoreContext {
                 memory_subsystem,
             }),
             domains,
+            tool_groups: Default::default(),
             embedder_config,
         });
 
@@ -260,6 +273,11 @@ impl CoreContext {
     /// Which domain families are live for this context (#4796). The controller
     /// registry consults this (via [`CoreContext::current`]) to filter its
     /// schema/dispatch/tool surface. `full()` for desktop/CLI.
+    /// Per-group tool disclosure for this context.
+    pub fn tool_groups(&self) -> crate::openhuman::tools::toolpacks::ToolGroups {
+        self.tool_groups.clone()
+    }
+
     pub fn domains(&self) -> crate::core::runtime::DomainSet {
         self.domains
     }
@@ -490,6 +508,7 @@ impl CoreContext {
     #[cfg(test)]
     pub(crate) fn for_test(
         domains: crate::core::runtime::DomainSet,
+        tool_groups: Default::default(),
         workspace_dir: Option<std::path::PathBuf>,
         memory_subsystem: Option<crate::openhuman::config::schema::MemorySubsystemConfig>,
     ) -> Arc<CoreContext> {
@@ -500,6 +519,7 @@ impl CoreContext {
                 memory_subsystem: memory_subsystem.unwrap_or_default(),
             }),
             domains,
+            tool_groups: Default::default(),
             embedder_config: None,
         })
     }
@@ -555,6 +575,7 @@ impl StoreInitPlan {
 pub async fn init_stores(
     cfg: &crate::openhuman::config::Config,
     domains: crate::core::runtime::DomainSet,
+    tool_groups: Default::default(),
 ) {
     let plan = StoreInitPlan::for_domains(domains);
 
@@ -570,6 +591,7 @@ pub async fn init_stores(
         keyring_dir.display(),
         crate::openhuman::security::keyring::backend_name(),
         domains,
+        tool_groups: Default::default(),
     );
     if plan.memory {
         // The extracted memory subsystem reaches back into this crate through
@@ -685,6 +707,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         })
     }
@@ -712,6 +735,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: Some(config),
         })
     }
@@ -865,6 +889,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         };
 
@@ -913,6 +938,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         });
         let b = Arc::new(CoreContext {
@@ -922,6 +948,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         });
 
@@ -947,6 +974,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         };
 
@@ -973,6 +1001,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         };
 
@@ -1012,6 +1041,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         };
         let b = CoreContext {
@@ -1021,6 +1051,7 @@ mod tests {
                 memory_subsystem: untrusted_external_memory_cfg(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         };
 
@@ -1050,6 +1081,7 @@ mod tests {
                 memory_subsystem: Default::default(),
             }),
             domains: crate::core::runtime::DomainSet::full(),
+            tool_groups: Default::default(),
             embedder_config: None,
         };
         assert!(ctx.memory_binding().is_err(), "no workspace ⇒ no binding");
