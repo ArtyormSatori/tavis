@@ -6682,6 +6682,10 @@ const en: TranslationMap = {
   'wallet.ariaLabel': 'Wallet views',
   // WalletBalancesPanel strings
   'walletBalances.title': 'Wallet Balances',
+  'walletBalances.colNetwork': 'Network',
+  'walletBalances.colAddress': 'Address',
+  'walletBalances.colBalance': 'Balance',
+  'walletBalances.colActions': 'Actions',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Loading balances…',
   'walletBalances.retry': 'Retry',

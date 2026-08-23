@@ -6205,6 +6205,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'Afficher les soldes multi-chaînes de votre portefeuille local',
   'walletBalances.title': 'Soldes du portefeuille',
+  'walletBalances.colNetwork': 'Réseau',
+  'walletBalances.colAddress': 'Adresse',
+  'walletBalances.colBalance': 'Solde',
+  'walletBalances.colActions': 'Actions',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Chargement des soldes…',
   'walletBalances.retry': 'Retry',

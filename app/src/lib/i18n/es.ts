@@ -6178,6 +6178,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'Ver saldos en múltiples cadenas de tu billetera local',
   'walletBalances.title': 'Saldos de billetera',
+  'walletBalances.colNetwork': 'Red',
+  'walletBalances.colAddress': 'Dirección',
+  'walletBalances.colBalance': 'Saldo',
+  'walletBalances.colActions': 'Acciones',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Cargando saldos…',
   'walletBalances.retry': 'Retry',

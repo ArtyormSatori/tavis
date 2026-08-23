@@ -6163,6 +6163,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'Visualizza i saldi multi-chain del tuo portafoglio locale',
   'walletBalances.title': 'Saldi portafoglio',
+  'walletBalances.colNetwork': 'Rete',
+  'walletBalances.colAddress': 'Indirizzo',
+  'walletBalances.colBalance': 'Saldo',
+  'walletBalances.colActions': 'Azioni',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Caricamento saldi…',
   'walletBalances.retry': 'Retry',

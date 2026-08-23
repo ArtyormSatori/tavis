@@ -6118,6 +6118,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'Просмотр мультичейн-балансов вашего локального кошелька',
   'walletBalances.title': 'Баланс кошелька',
+  'walletBalances.colNetwork': 'Сеть',
+  'walletBalances.colAddress': 'Адрес',
+  'walletBalances.colBalance': 'Баланс',
+  'walletBalances.colActions': 'Действия',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Загрузка балансов…',
   'walletBalances.retry': 'Retry',

@@ -6144,6 +6144,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'Przeglądaj salda wielu sieci dla swojego lokalnego portfela',
   'walletBalances.title': 'Salda portfela',
+  'walletBalances.colNetwork': 'Sieć',
+  'walletBalances.colAddress': 'Adres',
+  'walletBalances.colBalance': 'Saldo',
+  'walletBalances.colActions': 'Akcje',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Ładowanie sald…',
   'walletBalances.retry': 'Retry',

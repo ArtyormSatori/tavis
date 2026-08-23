@@ -6218,6 +6218,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'Multi-Chain-Guthaben deiner lokalen Wallet anzeigen',
   'walletBalances.title': 'Wallet-Guthaben',
+  'walletBalances.colNetwork': 'Netzwerk',
+  'walletBalances.colAddress': 'Adresse',
+  'walletBalances.colBalance': 'Guthaben',
+  'walletBalances.colActions': 'Aktionen',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'Guthaben wird geladen…',
   'walletBalances.retry': 'Retry',

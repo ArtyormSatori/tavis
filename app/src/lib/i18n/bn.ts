@@ -6060,6 +6060,10 @@ const messages: TranslationMap = {
   'pages.settings.account.walletBalancesDesc':
     'আপনার স্থানীয় ওয়ালেটের মাল্টি-চেইন ব্যালেন্স দেখুন',
   'walletBalances.title': 'ওয়ালেট ব্যালেন্স',
+  'walletBalances.colNetwork': 'নেটওয়ার্ক',
+  'walletBalances.colAddress': 'ঠিকানা',
+  'walletBalances.colBalance': 'ব্যালেন্স',
+  'walletBalances.colActions': 'অ্যাকশন',
   'walletBalances.refresh': 'Refresh',
   'walletBalances.loading': 'ব্যালেন্স লোড হচ্ছে…',
   'walletBalances.retry': 'Retry',
