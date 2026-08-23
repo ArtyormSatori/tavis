@@ -544,6 +544,7 @@ const messages: TranslationMap = {
   'common.next': '下一步',
   'common.finish': '完成',
   'common.close': '关闭',
+  'notices.title': '通知',
   'common.enabled': '已启用',
   'common.disabled': '已禁用',
   'common.on': '开',

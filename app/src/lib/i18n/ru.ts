@@ -580,6 +580,7 @@ const messages: TranslationMap = {
   'common.next': 'Далее',
   'common.finish': 'Завершить',
   'common.close': 'Закрыть',
+  'notices.title': 'Уведомления',
   'common.enabled': 'Включено',
   'common.disabled': 'Отключено',
   'common.on': 'Вкл',

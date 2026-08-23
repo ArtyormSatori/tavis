@@ -576,6 +576,7 @@ const messages: TranslationMap = {
   'common.next': 'आगे',
   'common.finish': 'पूरा करें',
   'common.close': 'बंद करें',
+  'notices.title': 'सूचनाएं',
   'common.enabled': 'चालू है',
   'common.disabled': 'बंद है',
   'common.on': 'चालू',

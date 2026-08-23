@@ -291,6 +291,7 @@ const en: TranslationMap = {
   'common.next': 'Next',
   'common.finish': 'Finish',
   'common.close': 'Close',
+  'notices.title': 'Notifications',
   'common.enabled': 'Enabled',
   'common.disabled': 'Disabled',
   'common.on': 'On',

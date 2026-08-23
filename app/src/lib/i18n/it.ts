@@ -590,6 +590,7 @@ const messages: TranslationMap = {
   'common.next': 'Avanti',
   'common.finish': 'Fine',
   'common.close': 'Chiudi',
+  'notices.title': 'Notifiche',
   'common.enabled': 'Abilitato',
   'common.disabled': 'Disabilitato',
   'common.on': 'Attivo',

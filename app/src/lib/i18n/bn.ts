@@ -576,6 +576,7 @@ const messages: TranslationMap = {
   'common.next': 'পরবর্তী',
   'common.finish': 'সম্পন্ন',
   'common.close': 'বন্ধ করুন',
+  'notices.title': 'বিজ্ঞপ্তি',
   'common.enabled': 'সক্রিয়',
   'common.disabled': 'নিষ্ক্রিয়',
   'common.on': 'চালু',

@@ -560,6 +560,7 @@ const messages: TranslationMap = {
   'common.next': 'التالي',
   'common.finish': 'إنهاء',
   'common.close': 'إغلاق',
+  'notices.title': 'الإشعارات',
   'common.enabled': 'مفعّل',
   'common.disabled': 'معطّل',
   'common.on': 'تشغيل',

@@ -569,6 +569,7 @@ const messages: TranslationMap = {
   'common.next': '다음',
   'common.finish': '완료',
   'common.close': '닫기',
+  'notices.title': '알림',
   'common.enabled': '활성화됨',
   'common.disabled': '비활성화됨',
   'common.on': '켜짐',

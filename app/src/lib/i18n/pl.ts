@@ -585,6 +585,7 @@ const messages: TranslationMap = {
   'common.next': 'Dalej',
   'common.finish': 'Zakończ',
   'common.close': 'Zamknij',
+  'notices.title': 'Powiadomienia',
   'common.enabled': 'Włączone',
   'common.disabled': 'Wyłączone',
   'common.on': 'Wł.',

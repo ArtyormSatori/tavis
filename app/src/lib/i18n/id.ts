@@ -580,6 +580,7 @@ const messages: TranslationMap = {
   'common.next': 'Berikutnya',
   'common.finish': 'Selesai',
   'common.close': 'Tutup',
+  'notices.title': 'Notifikasi',
   'common.enabled': 'Aktif',
   'common.disabled': 'Nonaktif',
   'common.on': 'Nyala',
