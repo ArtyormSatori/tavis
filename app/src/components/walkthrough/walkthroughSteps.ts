@@ -150,15 +150,6 @@ export function createWalkthroughSteps(
       skipBeacon: true,
     },
 
-    // ── Step 9 — primary nav: Brain ───────────────────────────────────────
-    {
-      target: '[data-walkthrough="tab-brain"]',
-      title: t('walkthrough.steps.brainTab.title'),
-      content: t('walkthrough.steps.brainTab.content'),
-      placement: 'top',
-      skipBeacon: true,
-    },
-
     // ── Step 10 — primary nav: Connections ────────────────────────────────
     {
       target: '[data-walkthrough="tab-connections"]',
