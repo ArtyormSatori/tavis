@@ -122,7 +122,7 @@ export default function AppSidebar() {
             Rewards is a primary `NAV_TABS` destination now and Feedback is a
             header icon beside the keyboard shortcut, so the footer is the
             status strip alone. */}
-        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-1">
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
           <ConnectionIndicator />
           &middot;
           <span className="text-[10px] text-content-faint">

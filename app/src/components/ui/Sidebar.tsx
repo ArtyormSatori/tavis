@@ -322,7 +322,12 @@ export const SidebarRail = forwardRef<HTMLDivElement, SidebarRailProps>(
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
         className={cn(
-          'group relative w-px flex-none cursor-col-resize select-none self-stretch',
+          // `w-0`, not `w-px`: the rail sits between the column and the content
+          // card, so any layout width of its own makes the card's left gutter
+          // wider than its other three by exactly that much. The seam is drawn
+          // by the absolutely-positioned indicator below instead, which costs
+          // no width — and it only paints on hover/focus anyway.
+          'group relative w-0 flex-none cursor-col-resize select-none self-stretch',
           'bg-transparent focus:outline-hidden',
           className
         )}
@@ -331,7 +336,7 @@ export const SidebarRail = forwardRef<HTMLDivElement, SidebarRailProps>(
         <span className="absolute inset-y-0 -left-1 -right-1 z-10" />
         <span
           className={cn(
-            'absolute inset-0 transition-colors',
+            'absolute inset-y-0 left-0 w-px transition-colors',
             indicatorClassName ?? DEFAULT_RAIL_INDICATOR
           )}
         />
@@ -441,7 +446,7 @@ export const SidebarFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEl
     <div
       ref={ref}
       data-slot="sidebar-footer"
-      className={cn('flex flex-none flex-col gap-1 px-2 pb-2 pt-1', className)}
+      className={cn('flex flex-none flex-col gap-1 px-3 pb-2 pt-1', className)}
       {...rest}
     />
   )
@@ -467,7 +472,7 @@ export const SidebarGroup = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEle
     <div
       ref={ref}
       data-slot="sidebar-group"
-      className={cn('relative flex w-full min-w-0 flex-col px-2 py-1', className)}
+      className={cn('relative flex w-full min-w-0 flex-col px-3 py-1', className)}
       {...rest}
     />
   )
