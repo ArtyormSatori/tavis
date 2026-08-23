@@ -37,9 +37,9 @@ describe('Settings - AI & Skills', function () {
     this.timeout(90_000);
     await navigateViaHash('/settings/llm');
 
-    const panel = await browser.$('[data-testid="api-keys-panel"]');
-    await panel.waitForExist({ timeout: 15_000 });
-    expect(await panel.isDisplayed()).toBe(true);
+    const providersTab = await browser.$('[data-testid="ai-tab-providers"]');
+    await providersTab.waitForExist({ timeout: 15_000 });
+    expect(await providersTab.isDisplayed()).toBe(true);
   });
 
   it('mounts Tools panel and shows skill toggles (13.3.2)', async () => {

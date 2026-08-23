@@ -207,16 +207,16 @@ describe('Settings - Advanced Config', function () {
   it('redirects retired agent chat debug links to the LLM settings surface', async function () {
     this.timeout(90_000);
     await navigateViaHash('/settings/agent-chat');
-    const panel = await browser.$('[data-testid="api-keys-panel"]');
-    await panel.waitForExist({ timeout: 15_000 });
-    expect(await panel.isDisplayed()).toBe(true);
+    const providersTab = await browser.$('[data-testid="ai-tab-providers"]');
+    await providersTab.waitForExist({ timeout: 15_000 });
+    expect(await providersTab.isDisplayed()).toBe(true);
   });
 
   it('mounts the remaining advanced settings routes', async function () {
     this.timeout(90_000);
     await navigateViaHash('/settings/local-model-debug');
-    const panel = await browser.$('[data-testid="api-keys-panel"]');
-    await panel.waitForExist({ timeout: 15_000 });
+    const providersTab = await browser.$('[data-testid="ai-tab-providers"]');
+    await providersTab.waitForExist({ timeout: 15_000 });
 
     await navigateViaHash('/settings/about');
     await waitForText('Software updates', 15_000);
