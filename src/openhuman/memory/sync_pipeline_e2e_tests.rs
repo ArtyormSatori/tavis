@@ -54,6 +54,18 @@ fn test_config() -> (TempDir, Config) {
     (tmp, cfg)
 }
 
+fn failed_job_diagnostics(cfg: &Config) -> Vec<(String, i64, Option<String>)> {
+    tinymemory_core::store::chunks::with_connection(cfg, |conn| {
+        let mut stmt = conn.prepare(
+            "SELECT kind, attempts, last_error FROM mem_tree_jobs \
+             WHERE status = 'failed' ORDER BY created_at_ms",
+        )?;
+        let rows = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(Into::into)
+    })
+    .unwrap()
+}
+
 async fn ensure_event_bus() {
     // Standing the bus up is async now — it connects to a broker. Idempotent.
     crate::core::bus::init().await.expect("bus init");
@@ -315,6 +327,11 @@ async fn multi_batch_volume_builds_full_tree() {
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(60);
     let source_tree = loop {
         drain_until_idle(&cfg).await.unwrap();
+        let failed_jobs = failed_job_diagnostics(&cfg);
+        assert!(
+            failed_jobs.is_empty(),
+            "memory jobs failed before the source tree sealed: {failed_jobs:?}"
+        );
         if let Some(tree) = tree_store::list_trees_by_kind(&cfg, TreeKind::Source)
             .unwrap()
             .into_iter()
