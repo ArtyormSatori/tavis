@@ -248,3 +248,15 @@ mod tests {
         .await;
     }
 }
+
+#[cfg(test)]
+mod identity_probe {
+    /// Compiles only if the engine's `SourceKind` and the contract's are the
+    /// *same item*, not structural twins.
+    #[allow(dead_code)]
+    fn same_item(
+        x: tinymemory_core::store::chunks::types::SourceKind,
+    ) -> tinymemory_api::chunks::SourceKind {
+        x
+    }
+}
