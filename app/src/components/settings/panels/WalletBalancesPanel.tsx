@@ -104,25 +104,23 @@ const BalanceRow = ({ balance, onSend, onReceive }: BalanceRowProps) => {
   const networkLabel = balanceNetworkLabel(balance);
 
   return (
-    <div className="px-4 py-3">
-      <div className="flex items-center gap-3">
-        {/* Network badge */}
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold font-mono min-w-12 justify-center shrink-0 ${badgeClass}`}>
-          {balanceBadge(balance)}
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-content-secondary truncate">
-              {networkLabel}
+    <TableRow data-testid={`wallet-row-${balanceKey(balance)}`}>
+      <TableCell className="whitespace-nowrap">
+        <div className="flex items-center gap-2">
+          {/* Network badge */}
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold font-mono min-w-12 justify-center shrink-0 ${badgeClass}`}>
+            {balanceBadge(balance)}
+          </span>
+          <span className="text-xs font-medium text-content-secondary">{networkLabel}</span>
+          {balance.providerStatus !== 'ready' && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              {t('walletBalances.providerMissing')}
             </span>
-            {balance.providerStatus !== 'ready' && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                {t('walletBalances.providerMissing')}
-              </span>
-            )}
-          </div>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
           {/* Address + copy button */}
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="font-mono text-[11px] text-content-muted truncate">
@@ -161,41 +159,36 @@ const BalanceRow = ({ balance, onSend, onReceive }: BalanceRowProps) => {
               )}
             </Button>
           </div>
+      </TableCell>
+      <TableCell className="whitespace-nowrap text-right">
+        <span
+          title={t('walletBalances.rawBalance').replace('{raw}', balance.raw)}
+          className="text-sm font-medium text-content font-mono">
+          {balance.formatted}
+        </span>
+        <span className="ml-1 text-xs text-content-muted">{balance.assetSymbol}</span>
+      </TableCell>
+      <TableCell className="w-px whitespace-nowrap text-right">
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="xs"
+            onClick={() => onSend(balance)}
+            data-testid={`wallet-send-${balanceKey(balance)}`}>
+            {t('walletBalances.send')}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="xs"
+            onClick={() => onReceive(balance)}
+            data-testid={`wallet-receive-${balanceKey(balance)}`}>
+            {t('walletBalances.receive')}
+          </Button>
         </div>
-
-        {/* Amount */}
-        <div className="text-right shrink-0">
-          <span
-            title={t('walletBalances.rawBalance').replace('{raw}', balance.raw)}
-            className="text-sm font-medium text-content font-mono">
-            {balance.formatted}
-          </span>
-          <span className="ml-1 text-xs text-content-muted">{balance.assetSymbol}</span>
-        </div>
-      </div>
-
-      {/* Send / Receive actions */}
-      <div className="flex gap-2 mt-2.5">
-        <Button
-          type="button"
-          variant="secondary"
-          size="xs"
-          onClick={() => onSend(balance)}
-          className="flex-1"
-          data-testid={`wallet-send-${balanceKey(balance)}`}>
-          {t('walletBalances.send')}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="xs"
-          onClick={() => onReceive(balance)}
-          className="flex-1"
-          data-testid={`wallet-receive-${balanceKey(balance)}`}>
-          {t('walletBalances.receive')}
-        </Button>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 };
 
