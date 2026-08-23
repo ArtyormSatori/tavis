@@ -742,13 +742,13 @@ describe('AIPanel', () => {
     fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
-      name: /Choose Model|Change Model/i,
+      name: /Choose a model/i,
     });
     fireEvent.click(chooseButtons[0]);
 
     // Selecting the Azure provider flips the dialog to free text and relabels.
-    const providerSelect = await screen.findByDisplayValue(/Azure Foundry|OpenAI|Ollama/i);
-    fireEvent.change(providerSelect, { target: { value: 'cloud:azure-foundry' } });
+    fireEvent.click(await screen.findByRole('button', { name: /Select provider and model/i }));
+    await selectPickerProvider(/Azure Foundry/i);
 
     const deploymentInput = await screen.findByRole('textbox', { name: /Deployment name/i });
     fireEvent.change(deploymentInput, { target: { value: 'workload-deployment' } });
@@ -766,7 +766,7 @@ describe('AIPanel', () => {
     // dialog-to-routing handoff drops the value. Put the deployment name back
     // and assert it reaches the persisted per-workload routing verbatim.
     fireEvent.change(deploymentInput, { target: { value: 'workload-deployment' } });
-    fireEvent.click(screen.getByRole('button', { name: /^Apply$|^Save$|^Confirm$/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Use this model/i }));
     fireEvent.click(screen.getByRole('button', { name: /^Save$/ }));
 
     await waitFor(() => expect(saveAISettings).toHaveBeenCalled());
@@ -805,14 +805,12 @@ describe('AIPanel', () => {
     fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
-      name: /Choose Model|Change Model/i,
+      name: /Choose a model/i,
     });
     fireEvent.click(chooseButtons[0]);
 
-    const providerSelect = await screen.findByDisplayValue(
-      /Azure Foundry|OpenAI|OpenHuman|Ollama/i
-    );
-    fireEvent.change(providerSelect, { target: { value: 'cloud:openai' } });
+    fireEvent.click(await screen.findByRole('button', { name: /Select provider and model/i }));
+    await selectPickerProvider(/OpenAI/i);
 
     // Catalog dropdown, no Azure labelling.
     await waitFor(() =>
