@@ -269,7 +269,10 @@ export function SkillTile({ skill, onUninstall, onClick }: SkillTileProps) {
 function InstalledSkillRow({ skill, onUninstall, onClick }: SkillTileProps) {
   const { t } = useT();
   return (
-    <TableRow>
+    <TableRow
+      data-testid={`skill-explorer-tile-${skill.id}`}
+      onClick={onClick}
+      className="cursor-pointer">
       <TableCell className="min-w-48">
         <Button type="button" variant="tertiary" size="xs" onClick={onClick} className="h-auto max-w-full p-0 text-left font-medium hover:bg-transparent">
           <span className="truncate">{skill.name}</span>
@@ -404,7 +407,10 @@ interface SkillDetailDialogProps {
 function CatalogRow({ entry, installed, installing, onInstall, onClick }: CatalogTileProps) {
   const { t } = useT();
   return (
-    <TableRow className="group">
+    <TableRow
+      className="group cursor-pointer"
+      data-testid={`registry-tile-${entry.id}`}
+      onClick={onClick}>
       <TableCell className="min-w-48">
         <Button
           type="button"
