@@ -17,13 +17,6 @@ import { SettingsNumberField, SettingsRow, SettingsSection } from '../controls';
 import SettingsPanel from '../layout/SettingsPanel';
 import ThemeStudioPanel from './ThemeStudioPanel';
 
-interface ModeOption {
-  id: ThemeMode;
-  label: string;
-  description: string;
-  icon: ReactElement;
-}
-
 interface FontSizeOption {
   id: FontSize;
   label: string;
@@ -31,39 +24,6 @@ interface FontSizeOption {
   /** Sample "A" glyph sized to preview the option inline. */
   glyphClass: string;
 }
-
-const SunIcon = (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-    />
-  </svg>
-);
-
-const MoonIcon = (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
-    />
-  </svg>
-);
-
-const SystemIcon = (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 17v2m6-2v2m-9-2h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z"
-    />
-  </svg>
-);
 
 const AppearancePanel = () => {
   const { t } = useT();
@@ -96,63 +56,6 @@ const AppearancePanel = () => {
     console.debug('[appearance] custom font-size slider', { px });
     dispatch(setCustomFontSizePx(px));
   };
-
-  // Build at render time so the labels follow the active locale; `t()` itself
-  // memoises on locale change, so this stays stable across re-renders within a
-  // locale.
-  const OPTIONS: ModeOption[] = [
-    {
-      id: 'light',
-      label: t('settings.appearance.modeLight'),
-      description: t('settings.appearance.modeLightDesc'),
-      icon: SunIcon,
-    },
-    {
-      id: 'dark',
-      label: t('settings.appearance.modeDark'),
-      description: t('settings.appearance.modeDarkDesc'),
-      icon: MoonIcon,
-    },
-    {
-      id: 'system',
-      label: t('settings.appearance.modeSystem'),
-      description: t('settings.appearance.modeSystemDesc'),
-      icon: SystemIcon,
-    },
-  ];
-
-  const FONT_SIZE_OPTIONS: FontSizeOption[] = [
-    {
-      id: 'small',
-      label: t('settings.appearance.fontSizeSmall'),
-      description: t('settings.appearance.fontSizeSmallDesc'),
-      glyphClass: 'text-xs',
-    },
-    {
-      id: 'medium',
-      label: t('settings.appearance.fontSizeMedium'),
-      description: t('settings.appearance.fontSizeMediumDesc'),
-      glyphClass: 'text-sm',
-    },
-    {
-      id: 'large',
-      label: t('settings.appearance.fontSizeLarge'),
-      description: t('settings.appearance.fontSizeLargeDesc'),
-      glyphClass: 'text-base',
-    },
-    {
-      id: 'xlarge',
-      label: t('settings.appearance.fontSizeXLarge'),
-      description: t('settings.appearance.fontSizeXLargeDesc'),
-      glyphClass: 'text-lg',
-    },
-  ];
-
-  // Mirrors the composer's dismiss affordance. Framed positively ("show")
-  // rather than as the stored `dismissed` flag, so the switch reads the same
-  // direction as every other one in this section.
-  const mascotDismissed = useAppSelector(selectChatMascotDismissed);
-  const showChatMascot = !mascotDismissed;
 
   return (
     <SettingsPanel description={t('settings.appearance.menuDesc')}>
