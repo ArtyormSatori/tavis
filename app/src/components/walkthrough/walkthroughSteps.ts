@@ -150,7 +150,7 @@ export function createWalkthroughSteps(
       skipBeacon: true,
     },
 
-    // ── Step 10 — primary nav: Connections ────────────────────────────────
+    // ── Step 9 — primary nav: Connections ────────────────────────────────
     {
       target: '[data-walkthrough="tab-connections"]',
       title: t('walkthrough.steps.connectionsTab.title'),
@@ -159,7 +159,7 @@ export function createWalkthroughSteps(
       skipBeacon: true,
     },
 
-    // ── Step 11 — primary nav: Feedback ───────────────────────────────────
+    // ── Step 10 — primary nav: Feedback ───────────────────────────────────
     {
       target: '[data-walkthrough="tab-feedback"]',
       title: t('walkthrough.steps.feedbackTab.title'),
@@ -168,7 +168,7 @@ export function createWalkthroughSteps(
       skipBeacon: true,
     },
 
-    // ── Step 12 — /chat (pre-seeded welcome message) ──────────────────────
+    // ── Step 11 — /chat (pre-seeded welcome message) ──────────────────────
     {
       target: '[data-walkthrough="chat-agent-panel"]',
       title: t('walkthrough.steps.allSet.title'),
