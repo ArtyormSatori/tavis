@@ -1222,17 +1222,17 @@ describe('AIPanel', () => {
     expect(within(dialog).queryByRole('link', { name: /^Get API key$/i })).not.toBeInTheDocument();
   });
 
-  it('renders Phase 1 built-in provider chips including SumoPod', async () => {
+  it('renders Phase 1 built-in providers in the add-provider catalog including SumoPod', async () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
 
     renderWithProviders(<AIPanel />);
 
-    for (const label of ['Groq', 'DeepSeek', 'MiniMax', 'SumoPod']) {
-      await waitFor(() =>
-        expect(
-          screen.getByRole('switch', { name: new RegExp(`Connect ${label}`, 'i') })
-        ).toBeInTheDocument()
-      );
+    fireEvent.click(await screen.findByTestId('add-provider-open'));
+    const trigger = await screen.findByTestId('add-provider-select-cloud');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    for (const slug of ['groq', 'deepseek', 'minimax', 'sumopod']) {
+      expect(await screen.findByTestId(`add-provider-option-${slug}`)).toBeInTheDocument();
     }
   });
 
@@ -1241,7 +1241,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect SumoPod/i }));
+    await openProviderConnectDialog('sumopod');
     const dialog = await screen.findByRole('dialog', { name: /Connect SumoPod/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), {
       target: { value: 'sk-sumopod-test' },
@@ -1273,7 +1273,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect MiniMax/i }));
+    await openProviderConnectDialog('minimax');
     const dialog = await screen.findByRole('dialog', { name: /Connect MiniMax/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), {
       target: { value: 'sk-minimax-test' },
@@ -1309,7 +1309,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    fireEvent.click(await screen.findByRole('switch', { name: /Connect OpenAI/i }));
+    await openProviderConnectDialog('openai');
     const dialog = await screen.findByRole('dialog', { name: /Connect OpenAI/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), {
       target: { value: 'sk-bad-key' },
@@ -1324,11 +1324,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
 
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenRouter/i })).toBeInTheDocument()
-    );
-
-    fireEvent.click(screen.getByRole('switch', { name: /Connect OpenRouter/i }));
+    await openProviderConnectDialog('openrouter');
 
     const dialog = await screen.findByRole('dialog', { name: /Connect OpenRouter/i });
     expect(within(dialog).getByLabelText(/API key/i)).toBeInTheDocument();
@@ -1342,11 +1338,7 @@ describe('AIPanel', () => {
     vi.mocked(connectOpenRouterViaOAuth).mockResolvedValue('sk-or-from-oauth');
 
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenRouter/i })).toBeInTheDocument()
-    );
-
-    fireEvent.click(screen.getByRole('switch', { name: /Connect OpenRouter/i }));
+    await openProviderConnectDialog('openrouter');
     const dialog = await screen.findByRole('dialog', { name: /Connect OpenRouter/i });
     fireEvent.click(within(dialog).getByRole('button', { name: /Sign in with OpenRouter/i }));
 
