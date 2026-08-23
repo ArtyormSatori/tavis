@@ -2044,27 +2044,6 @@ const Conversations = ({
             : 'absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-195 px-4 pb-4 pt-6'
         }>
         <>
-          {isNearLimit &&
-            !isAtLimit &&
-            isFreeTier &&
-            shouldShowBanner('conversations-warning', 24 * 60 * 60 * 1000) && (
-              <div className="mb-3">
-                <UpsellBanner
-                  variant="warning"
-                  title={t('chat.approachingLimit')}
-                  message={t('chat.approachingLimitMsg').replace(
-                    '{pct}',
-                    String(Math.round(usagePct * 100))
-                  )}
-                  ctaLabel={t('chat.upgrade')}
-                  onCtaClick={() => {
-                    void openUrl(PRICING_URL);
-                  }}
-                  dismissible
-                  onDismiss={() => dismissBanner('conversations-warning')}
-                />
-              </div>
-            )}
           {teamUsage && shouldShowBudgetCompletedMessage && (
             <div className="mb-3 p-3 rounded-xl bg-coral-50 border border-coral-200 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
