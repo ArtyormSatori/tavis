@@ -406,8 +406,13 @@ export const SidebarInset = forwardRef<HTMLDivElement, SidebarInsetProps>(
       data-unframed={unframed ? 'true' : undefined}
       className={cn(
         'relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface',
+        // `my-3 mr-3`, with NO left margin: the card butts against the sidebar
+        // column so the two read as one continuous surface, and the gutter the
+        // shell shows is the three outer edges. A left margin here put a strip
+        // of chrome between the nav and the content that nothing else lined up
+        // with.
         !unframed &&
-          'm-3 rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:shadow-content-edge',
+          'my-3 mr-3 rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:shadow-content-edge',
         className
       )}
       {...rest}
