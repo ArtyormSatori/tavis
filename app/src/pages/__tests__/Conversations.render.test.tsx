@@ -855,7 +855,6 @@ describe('Conversations — smoke render (#1123 welcome-lock removal)', () => {
     expect(screen.getByTestId('route-path')).toHaveTextContent('/chat');
   });
 
-
   it('clicking OpenRouter free models in the budget banner routes chat workloads', async () => {
     const teamUsage = { cycleBudgetUsd: 10, remainingUsd: 0, cycleSpentUsd: 10, cycleEndsAt: null };
     mockUseOpenRouterFreeModels.mockResolvedValueOnce(undefined);
