@@ -55,7 +55,7 @@ export function ThreadList({
       {/* Section header: a muted group label with the "new" affordance docked on
           the right, replacing the old full-width centered button. Mirrors the
           grouped-nav idiom the settings sidebar already uses. */}
-      <div className="flex shrink-0 items-center justify-between px-4 pb-1.5 pt-4">
+      <div className="flex shrink-0 items-center justify-between px-3 pb-1.5 pt-4">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-content-muted">
           {t('chat.conversationsHeading')}
         </span>
@@ -72,11 +72,10 @@ export function ThreadList({
           </svg>
         </button>
       </div>
-      {/* Rows are inset pills, so the scroll container carries the gutter. */}
-      {/* px-3 is the shell sidebar's gutter (`SidebarGroup`/`SidebarHeader`).
-          This list is projected into that same column, so a narrower inset of
-          its own put thread rows and app-nav rows on two different left
-          edges. */}
+      {/* Rows are inset pills, so the scroll container carries the gutter, and
+          it is px-3 — the shell sidebar's own (`SidebarGroup`/`SidebarHeader`).
+          This list is projected into that column, so a narrower inset of its
+          own put thread rows and app-nav rows on two different left edges. */}
       <div className="flex-1 overflow-y-auto px-3 pb-3">
         {threads.length === 0 ? (
           <p className="px-4 py-6 text-xs text-content-faint text-center">{t('chat.noThreads')}</p>
