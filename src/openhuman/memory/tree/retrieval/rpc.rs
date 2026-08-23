@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::openhuman::config::Config;
 use crate::openhuman::memory::tree::retrieval::{
-    cover::cover_window,
+    cover::cover_window_scoped,
     drill_down::drill_down,
     fetch::fetch_leaves,
     search::search_entities,
@@ -118,13 +118,19 @@ pub async fn cover_window_rpc(
     };
     let limit = req.limit.unwrap_or(0);
     log::trace!("[rpc][memory_tree] cover_window dispatch limit={limit}");
-    let resp = cover_window(
+    // `cover_window_scoped`, not `cover_window`: the ambient variant reads the
+    // ENGINE's task-local, and this host now sets its own
+    // (`memory::source_scope`) because a task-local cannot cross to the loadable
+    // memory module. Reading the engine's here would find it absent, and absent
+    // means unrestricted — a per-profile source gate failing open.
+    let resp = cover_window_scoped(
         config,
         req.since_ms,
         req.until_ms,
         req.source_id.as_deref(),
         source_kind,
         limit,
+        current_source_scope(),
     )
     .await
     .map_err(|e| format!("cover_window: {e}"))?;
@@ -272,7 +278,8 @@ pub async fn fetch_leaves_rpc(
     config: &Config,
     req: FetchLeavesRequest,
 ) -> Result<RpcOutcome<FetchLeavesResponse>, String> {
-    let hits = fetch_leaves(config, &req.chunk_ids)
+    // Explicit scope, for the reason given in `cover_window_rpc`.
+    let hits = fetch_leaves_scoped(config, &req.chunk_ids, current_source_scope())
         .await
         .map_err(|e| format!("fetch_leaves: {e}"))?;
     let n = hits.len();
