@@ -358,10 +358,13 @@ describe('AIPanel', () => {
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
+    await openGlobalModelPicker();
+    await selectPickerProvider(/Azure Foundry/i);
 
     // The field is a free-text "Deployment name" box, not a catalog dropdown.
     const deploymentInput = await screen.findByRole('textbox', { name: /Deployment name/i });
     fireEvent.change(deploymentInput, { target: { value: 'gpt-5.6-terra' } });
+    fireEvent.click(screen.getByRole('button', { name: /Use this model/i }));
 
     fireEvent.click(screen.getByRole('button', { name: /^Save$/ }));
 
@@ -387,6 +390,8 @@ describe('AIPanel', () => {
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
+    await openGlobalModelPicker();
+    await selectPickerProvider(/Azure Foundry/i);
 
     // Seeding the field with a base model id is what produced the bug, so the
     // deployment field must come up empty and wait for the user.
@@ -417,6 +422,8 @@ describe('AIPanel', () => {
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
+    await openGlobalModelPicker();
+    await selectPickerProvider(/^OpenAI Cloud provider$/i);
 
     // Existing behaviour is unchanged: a populated catalog still renders a
     // dropdown and there is no Azure-specific labelling.
@@ -457,6 +464,7 @@ describe('AIPanel', () => {
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
+    await openGlobalModelPicker();
 
     expect(
       await screen.findByText(/confirm this is the name you gave your deployment/i)
@@ -481,6 +489,7 @@ describe('AIPanel', () => {
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
+    await openGlobalModelPicker();
 
     expect(await screen.findByText(/This is not the model ID/i)).toBeInTheDocument();
     await waitFor(() =>
@@ -503,6 +512,8 @@ describe('AIPanel', () => {
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
+    await openGlobalModelPicker();
+    await selectPickerProvider(/Azure Foundry/i);
 
     await screen.findByRole('textbox', { name: /Deployment name/i });
     fireEvent.click(await screen.findByRole('button', { name: /Choose from list/i }));
