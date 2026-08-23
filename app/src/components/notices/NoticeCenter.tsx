@@ -25,8 +25,8 @@ import { LuBell, LuInfo, LuTriangleAlert, LuX } from 'react-icons/lu';
 import { cn } from '../../lib/cn';
 import { useT } from '../../lib/i18n/I18nContext';
 import { Button } from '../ui';
-import { useEmbeddingBudgetNativeNotice } from './useEmbeddingBudgetNativeNotice';
 import { type AppNotice, type NoticeSeverity, peakSeverity, useAppNotices } from './useAppNotices';
+import { useEmbeddingBudgetNativeNotice } from './useEmbeddingBudgetNativeNotice';
 
 /** Accent per severity — the badge fill and the row's leading icon. */
 const SEVERITY_STYLE: Record<NoticeSeverity, { badge: string; icon: string }> = {

@@ -69,7 +69,9 @@ const SEVERITY_RANK: Record<NoticeSeverity, number> = { error: 0, warning: 1, in
 export function peakSeverity(notices: readonly AppNotice[]): NoticeSeverity | null {
   return notices.reduce<NoticeSeverity | null>(
     (peak, notice) =>
-      peak === null || SEVERITY_RANK[notice.severity] < SEVERITY_RANK[peak] ? notice.severity : peak,
+      peak === null || SEVERITY_RANK[notice.severity] < SEVERITY_RANK[peak]
+        ? notice.severity
+        : peak,
     null
   );
 }
@@ -151,9 +153,7 @@ export function useAppNotices(): AppNotice[] {
         id: budgetId,
         // Exhausted is not a warning: memory has already stopped growing.
         severity: exhausted ? 'error' : 'warning',
-        title: exhausted
-          ? t('memoryBudget.exhaustedTitle')
-          : t('memoryBudget.approachingTitle'),
+        title: exhausted ? t('memoryBudget.exhaustedTitle') : t('memoryBudget.approachingTitle'),
         body: exhausted
           ? t('memoryBudget.exhaustedMessage')
           : t('memoryBudget.approachingMessage').replace('{pct}', String(budgetPct)),
