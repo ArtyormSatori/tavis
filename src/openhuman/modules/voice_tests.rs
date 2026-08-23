@@ -7,7 +7,10 @@
 //! honest — `tinyvoice`'s own loader E2E, which drives a real module over
 //! a real broker against the published artifact.
 
-use super::{encode_samples, HallucinationMode, VoiceCallError, VoiceIntent};
+use super::{
+    clamped, encode_samples, hallucination_mode_wire, HallucinationMode, VoiceCallError,
+    VoiceIntent,
+};
 use crate::openhuman::config::Config;
 /// The intent tags are a wire contract with the module. A rename on either
 /// side turns a real command into `Unknown`, which degrades silently — the
@@ -62,8 +65,11 @@ fn an_unrecognised_tag_degrades_to_unknown_rather_than_failing() {
 fn hallucination_modes_use_the_wire_spelling() {
     // The module rejects an unknown mode rather than defaulting, so a typo
     // here is a hard failure at runtime rather than a silent mode swap.
-    assert_eq!(HallucinationMode::Dictation.as_wire(), "dictation");
-    assert_eq!(HallucinationMode::Conversation.as_wire(), "conversation");
+    assert_eq!(hallucination_mode_wire(HallucinationMode::Dictation), "dictation");
+    assert_eq!(
+        hallucination_mode_wire(HallucinationMode::Conversation),
+        "conversation"
+    );
 }
 
 #[test]
@@ -138,14 +144,15 @@ async fn a_disabled_host_reports_unavailable_without_starting_a_broker() {
 
 #[test]
 fn the_registry_entry_matches_the_interface_this_client_calls() {
-    // The bus name and object path are duplicated between the registry and
-    // the module's own source. A mismatch is not a compile error — it is a
-    // `NameHasNoOwner` at first use, in the field, on whichever platform
-    // nobody tested.
+    // The registry is a plain `const` table and cannot name a gated crate, so
+    // the bus name and object path are still written out there by hand. This
+    // is what checks them against the contract's own constants — a mismatch is
+    // not a compile error, it is a `NameHasNoOwner` at first use, in the field,
+    // on whichever platform nobody tested.
     let record =
         crate::openhuman::modules::registry::find("tinyvoice").expect("tinyvoice is registered");
-    assert_eq!(record.bus_name, "ai.tinyhumans.tinyvoice.Voice");
-    assert_eq!(record.object_path, "/ai/tinyhumans/tinyvoice/Voice");
+    assert_eq!(record.bus_name, tinyvoice_bus::names::BUS_NAME);
+    assert_eq!(record.object_path, tinyvoice_bus::names::OBJECT_PATH);
     assert!(
         record.object_path.starts_with('/') && !record.object_path.contains('.'),
         "an object path with a dot in it is rejected by the loader, not by the compiler"
@@ -314,7 +321,7 @@ fn an_out_of_range_volume_is_clamped_at_the_boundary() {
         serde_json::from_str(r#"{"intent":"set_volume","percent":255}"#).expect("decodes");
     assert_eq!(decoded, VoiceIntent::SetVolume { percent: 255 });
     assert_eq!(
-        decoded.clamped(),
+        clamped(decoded.clone()),
         VoiceIntent::SetVolume { percent: 100 },
         "the clamp is what `route` applies before any caller sees the intent"
     );
@@ -322,7 +329,7 @@ fn an_out_of_range_volume_is_clamped_at_the_boundary() {
     // In-range values are untouched, including the boundary itself.
     for percent in [0u8, 1, 50, 100] {
         let intent = VoiceIntent::SetVolume { percent };
-        assert_eq!(intent.clone().clamped(), intent);
+        assert_eq!(clamped(intent.clone()), intent);
     }
 }
 
