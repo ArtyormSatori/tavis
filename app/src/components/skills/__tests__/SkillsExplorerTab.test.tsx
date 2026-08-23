@@ -647,7 +647,7 @@ describe('SkillsExplorerTab', () => {
     });
   });
 
-  it('shows source toggle buttons when sources are available', async () => {
+  it('shows source filter options when sources are available', async () => {
     const { skillsApi } = await import('../../../services/api/skillsApi');
     const { skillRegistryApi } = await import('../../../services/api/skillRegistryApi');
     vi.mocked(skillsApi.listWorkflows).mockResolvedValue([]);
@@ -657,14 +657,14 @@ describe('SkillsExplorerTab', () => {
 
     render(<SkillsExplorerTab />);
 
-    // Source toggles are rendered as buttons with their source name text
     await waitFor(() => {
-      const buttons = screen.getAllByRole('button');
-      const sourceButtons = buttons.filter(
-        b => b.textContent === 'built-in' || b.textContent === 'ClawHub'
-      );
-      expect(sourceButtons.length).toBe(2);
+      expect(screen.getByRole('button', { name: 'Filter by source' })).toBeInTheDocument();
     });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by source' }));
+    });
+    expect(await screen.findByRole('menuitem', { name: /built-in/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /ClawHub/i })).toBeInTheDocument();
   });
 
   it('deselecting a source filter triggers search with single active source', async () => {
@@ -677,16 +677,15 @@ describe('SkillsExplorerTab', () => {
 
     render(<SkillsExplorerTab />);
 
-    // Wait for sources to load and buttons to appear
     await waitFor(() => {
-      const buttons = screen.getAllByRole('button');
-      expect(buttons.some(b => b.textContent === 'ClawHub')).toBe(true);
+      expect(screen.getByRole('button', { name: 'Filter by source' })).toBeInTheDocument();
     });
 
-    // Deselect 'ClawHub' — only 'built-in' remains active → triggers search with source filter
-    const clawhubBtn = screen.getAllByRole('button').find(b => b.textContent === 'ClawHub')!;
     await act(async () => {
-      fireEvent.click(clawhubBtn);
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by source' }));
+    });
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('menuitem', { name: /ClawHub/i }));
     });
 
     await waitFor(() => {
