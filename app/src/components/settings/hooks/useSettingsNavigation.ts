@@ -3,7 +3,7 @@
 // every registered route resolves without a parallel switch-statement.
 import debug from 'debug';
 import { useCallback } from 'react';
-import { type To, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { entryRoute, findEntryByRoute, SETTINGS_ROUTE_REGISTRY } from '../settingsRouteRegistry';
 
@@ -148,14 +148,14 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
       const target = route === 'home' ? '/settings' : `/settings/${route}`;
       navigate(target);
     },
-    [navigate, location]
+    [navigate]
   );
 
   const navigateToTeamManagement = useCallback(
     (teamId: string) => {
       navigate(`/settings/team/manage/${teamId}`);
     },
-    [navigate, location]
+    [navigate]
   );
 
   const navigateBack = useCallback(() => {
