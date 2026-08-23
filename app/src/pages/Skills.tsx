@@ -36,6 +36,7 @@ import SkillSearchBar from '../components/skills/SkillSearchBar';
 import SkillsExplorerTab from '../components/skills/SkillsExplorerTab';
 import VoiceSetupModal from '../components/skills/VoiceSetupModal';
 import Badge from '../components/ui/Badge';
+import { DataTable, type DataTableColumn, TableCell, TableRow } from '../components/ui';
 import BetaIndicator from '../components/ui/BetaIndicator';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -222,7 +223,7 @@ function ComposioConnectorRow({
       role="button"
       tabIndex={0}
       onClick={handleClick}
-      onKeyDown={event => {
+      onKeyDown={(event: React.KeyboardEvent<HTMLTableRowElement>) => {
         if (event.key === 'Enter') handleClick();
         if (event.key === ' ' || event.key === 'Space') {
           event.preventDefault();
