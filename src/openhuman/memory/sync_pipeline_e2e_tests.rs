@@ -314,6 +314,9 @@ async fn multi_batch_volume_builds_full_tree() {
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(60);
     let source_tree = loop {
         drain_until_idle(&cfg).await.unwrap();
+        if memory_queue::count_by_status(&cfg, JobStatus::Failed).unwrap() > 0 {
+            panic!("memory jobs failed before the source tree sealed");
+        }
         if let Some(tree) = tree_store::list_trees_by_kind(&cfg, TreeKind::Source)
             .unwrap()
             .into_iter()
