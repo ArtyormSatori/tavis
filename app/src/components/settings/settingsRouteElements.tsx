@@ -12,16 +12,14 @@ import AppearancePanel from './panels/AppearancePanel';
 import ApprovalHistoryPanel from './panels/ApprovalHistoryPanel';
 import BillingPanel from './panels/BillingPanel';
 import CoreConnectionPanel from './panels/CoreConnectionPanel';
-import CronJobsPanel from './panels/CronJobsPanel';
 import DeveloperOptionsPanel from './panels/DeveloperOptionsPanel';
 import DevicesPanel from './panels/DevicesPanel';
 import EventLogPanel from './panels/EventLogPanel';
-import KeyboardShortcutsPanel from './panels/KeyboardShortcutsPanel';
 import McpServerPanel from './panels/McpServerPanel';
 import MemoryDataPanel from './panels/MemoryDataPanel';
 import MemoryDebugPanel from './panels/MemoryDebugPanel';
 import MigrationPanel from './panels/MigrationPanel';
-import NotificationsTabbedPanel from './panels/NotificationsTabbedPanel';
+import NotificationsPanel from './panels/NotificationsPanel';
 import PermissionsPanel from './panels/PermissionsPanel';
 import PersonalityPanel from './panels/PersonalityPanel';
 import PrivacyPanel from './panels/PrivacyPanel';
@@ -87,7 +85,7 @@ export function settingsRouteElements(): ReactNode {
       <Route path="migration" element={wrapSettingsPage(<MigrationPanel />)} />
       <Route path="appearance" element={wrapSettingsPage(<AppearancePanel />)} />
       <Route path="theme" element={wrapSettingsPage(<ThemeStudioPanel />)} />
-      <Route path="notifications" element={wrapSettingsPage(<NotificationsTabbedPanel />)} />
+      <Route path="notifications" element={wrapSettingsPage(<NotificationsPanel />)} />
       {/* Real device-pairing panel (replaces the old "Coming Soon" stub). */}
       <Route path="devices" element={wrapSettingsPage(<DevicesPanel />)} />
 
@@ -129,7 +127,11 @@ export function settingsRouteElements(): ReactNode {
       {/* Core connection — promotes cloud-mode remote-core config into a
           first-class setting with a live status indicator (GH-4396). */}
       <Route path="core" element={wrapSettingsPage(<CoreConnectionPanel />)} />
-      <Route path="keyboard-shortcuts" element={wrapSettingsPage(<KeyboardShortcutsPanel />)} />
+      {/* Keyboard shortcuts is no longer a settings page — the in-app overlay
+          (mod+/ or the sidebar's keyboard icon, `meta.keyboard-shortcuts`) is
+          the one surface. The slug redirects so old links do not fall through
+          to the settings index. */}
+      <Route path="keyboard-shortcuts" element={<SettingsRedirect to="/settings/account" />} />
       <Route path="developer-options" element={wrapSettingsPage(<DeveloperOptionsPanel />)} />
       {/* Token savings merged into the Usage & limits surface on Connections. */}
       <Route path="token-usage" element={<Navigate to="/connections?tab=usage#tokens" replace />} />
@@ -147,7 +149,8 @@ export function settingsRouteElements(): ReactNode {
           kept as a redirect so an old deep link lands on the LLM page rather
           than the settings index via the catch-all. */}
       <Route path="agent-chat" element={<Navigate to="/connections?tab=llm" replace />} />
-      <Route path="cron-jobs" element={wrapSettingsPage(<CronJobsPanel />)} />
+      {/* Schedules live on the Workflows page now (`/flows?view=schedules`). */}
+      <Route path="cron-jobs" element={<Navigate to="/flows?view=schedules" replace />} />
       {/* Tasks now live on Brain's Orchestration Kanban board. */}
       <Route path="tasks" element={<Navigate to="/brain?tab=orchestration&ov=tasks" replace />} />
       {/* Workflows is a first-level module now — /settings/automations bounces
@@ -211,10 +214,8 @@ export function settingsRouteElements(): ReactNode {
       />
       <Route path="webhooks-triggers" element={<Navigate to="/connections" replace />} />
       {/* Notification routing tab */}
-      <Route
-        path="notification-routing"
-        element={<SettingsRedirect to="/settings/notifications#routing" />}
-      />
+      {/* The routing tab was removed; land on the notifications page itself. */}
+      <Route path="notification-routing" element={<SettingsRedirect to="/settings/notifications" />} />
       {/* Fallback */}
       <Route path="*" element={<SettingsRedirect to="/settings" />} />
     </>
