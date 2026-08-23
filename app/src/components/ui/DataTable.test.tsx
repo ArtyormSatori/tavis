@@ -23,13 +23,7 @@ const COLUMNS: DataTableColumn<Row>[] = [
 
 function renderTable(props: Partial<Parameters<typeof DataTable<Row>>[0]> = {}) {
   return render(
-    <DataTable<Row>
-      columns={COLUMNS}
-      rows={ROWS}
-      rowKey={row => row.id}
-      testId="dt"
-      {...props}
-    />
+    <DataTable<Row> columns={COLUMNS} rows={ROWS} rowKey={row => row.id} testId="dt" {...props} />
   );
 }
 
