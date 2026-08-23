@@ -278,6 +278,7 @@ describe('AIPanel', () => {
 
   it('renders Managed, Use Your Own Models, and Advanced routing controls', async () => {
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Managed/i })).toBeInTheDocument()
     );
@@ -287,6 +288,7 @@ describe('AIPanel', () => {
 
   it('renders all visible advanced workload labels', async () => {
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Advanced/i })).toBeInTheDocument()
     );
@@ -340,6 +342,7 @@ describe('AIPanel', () => {
     ]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -368,6 +371,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-5.6-terra-2026-07-09' }]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -397,6 +401,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -436,6 +441,7 @@ describe('AIPanel', () => {
     ]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -459,6 +465,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-5.6-terra-2026-07-09' }]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -480,6 +487,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
