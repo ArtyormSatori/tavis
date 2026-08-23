@@ -4181,6 +4181,7 @@ dependencies = [
  "tinychannels",
  "tinycortex",
  "tinycortex-api",
+ "tinydocs-bus",
  "tinyflows",
  "tinyhosts",
  "tinyhumans-sdk",
@@ -4192,6 +4193,7 @@ dependencies = [
  "tinymemory-tinycortex",
  "tinyplace",
  "tinyruntime-bus",
+ "tinyvoice-bus",
  "tinywallet",
  "tokio",
  "tokio-stream",
@@ -6455,6 +6457,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinydocs-bus"
+version = "0.1.13"
+dependencies = [
+ "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "tinyflows"
 version = "0.8.0"
 dependencies = [
@@ -6719,6 +6729,13 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tinyvoice-bus"
+version = "0.1.2"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "tinywallet"
