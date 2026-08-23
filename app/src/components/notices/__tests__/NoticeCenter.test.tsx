@@ -46,7 +46,10 @@ function LocationProbe() {
 function renderCenter(descriptors: UserErrorDescriptor[] = []) {
   const store = configureStore({ reducer: { userErrors: userErrorsReducer } });
   descriptors.forEach((d, i) => store.dispatch(reportUserError({ descriptor: d, at: 1000 + i })));
-  const tree = (
+  // A FRESH element each time: React bails out of re-rendering when handed a
+  // referentially identical one, so reusing a single `tree` constant would make
+  // `rerender()` a no-op and hide a genuine change in the mocked hook state.
+  const tree = () => (
     <Provider store={store}>
       <MemoryRouter initialEntries={['/chat']}>
         <NoticeCenter />
@@ -54,9 +57,8 @@ function renderCenter(descriptors: UserErrorDescriptor[] = []) {
       </MemoryRouter>
     </Provider>
   );
-  const utils = render(tree);
-  // Re-render the same tree so a `rerender()` keeps the store and router.
-  return { store, ...utils, rerender: () => utils.rerender(tree) };
+  const utils = render(tree());
+  return { store, ...utils, rerender: () => utils.rerender(tree()) };
 }
 
 describe('NoticeCenter', () => {
