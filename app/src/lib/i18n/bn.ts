@@ -4308,7 +4308,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'সরাতে টেনে আনুন · পজিশন রিসেট করতে ডাবল-ক্লিক করুন',
   'pages.settings.account.connections': 'সংযোগ',
   'pages.settings.account.connectionsDesc': 'সংযোগের বিবরণ',
-  'pages.settings.account.migration': 'অন্য সহকারী থেকে আমদানি করুন',
+  'pages.settings.account.migration': 'আমদানি',
   'pages.settings.account.migrationDesc':
     'OpenClaw (এবং শীঘ্রই Hermes) থেকে মেমরি ও নোট এই ওয়ার্কস্পেসে স্থানান্তর করুন।',
   'pages.settings.account.privacy': 'গোপনীয়তা',

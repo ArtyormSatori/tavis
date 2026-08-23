@@ -4321,7 +4321,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'Seret untuk memindahkan · Klik dua kali untuk mereset posisi',
   'pages.settings.account.connections': 'Koneksi',
   'pages.settings.account.connectionsDesc': 'Deskripsi koneksi',
-  'pages.settings.account.migration': 'Impor dari asisten lain',
+  'pages.settings.account.migration': 'Impor',
   'pages.settings.account.migrationDesc':
     'Migrasikan memori dan catatan dari OpenClaw (dan, segera, Hermes) ke ruang kerja ini.',
   'pages.settings.account.privacy': 'Privasi',

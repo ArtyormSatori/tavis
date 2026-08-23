@@ -4068,7 +4068,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': '拖动以移动 · 双击重置位置',
   'pages.settings.account.connections': '连接',
   'pages.settings.account.connectionsDesc': '管理已连接的账户和服务',
-  'pages.settings.account.migration': '从其他助手导入',
+  'pages.settings.account.migration': '导入',
   'pages.settings.account.migrationDesc':
     '将 OpenClaw（即将支持 Hermes）的记忆和笔记迁移到此工作区。',
   'pages.settings.account.privacy': '隐私',

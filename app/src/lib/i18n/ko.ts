@@ -4254,7 +4254,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': '드래그하여 이동 · 두 번 클릭하여 위치 초기화',
   'pages.settings.account.connections': '연결',
   'pages.settings.account.connectionsDesc': '연결된 계정 연결을 검토하고 관리합니다',
-  'pages.settings.account.migration': '다른 어시스턴트에서 가져오기',
+  'pages.settings.account.migration': '가져오기',
   'pages.settings.account.migrationDesc':
     'OpenClaw(또는 곧 Hermes)의 메모리와 메모를 이 작업 공간으로 마이그레이션합니다.',
   'pages.settings.account.privacy': '개인정보 보호',

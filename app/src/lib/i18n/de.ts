@@ -4422,7 +4422,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'Zum Verschieben ziehen · Doppelklicken, um die Position zurückzusetzen',
   'pages.settings.account.connections': 'Verbindungen',
   'pages.settings.account.connectionsDesc': 'Überprüfe und verwalte verknüpfte Kontoverbindungen',
-  'pages.settings.account.migration': 'Von einem anderen Assistenten importieren',
+  'pages.settings.account.migration': 'Importieren',
   'pages.settings.account.migrationDesc':
     'Migriere Speicher und Notizen von OpenClaw (oder bald Hermes) in diesen Arbeitsbereich.',
   'pages.settings.account.privacy': 'Privatsphäre',

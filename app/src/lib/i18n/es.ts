@@ -4379,7 +4379,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'Arrastra para mover · Doble clic para restablecer posición',
   'pages.settings.account.connections': 'Conexiones',
   'pages.settings.account.connectionsDesc': 'Descripción de conexiones',
-  'pages.settings.account.migration': 'Importar desde otro asistente',
+  'pages.settings.account.migration': 'Importar',
   'pages.settings.account.migrationDesc':
     'Migra memoria y notas desde OpenClaw (y pronto Hermes) a este espacio de trabajo.',
   'pages.settings.account.privacy': 'Privacidad',

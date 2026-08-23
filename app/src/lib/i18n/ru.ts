@@ -4344,7 +4344,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'Перетащи для перемещения · Двойной клик для сброса позиции',
   'pages.settings.account.connections': 'Подключения',
   'pages.settings.account.connectionsDesc': 'Описание подключений',
-  'pages.settings.account.migration': 'Импорт из другого ассистента',
+  'pages.settings.account.migration': 'Импорт',
   'pages.settings.account.migrationDesc':
     'Перенесите память и заметки из OpenClaw (а вскоре и Hermes) в это рабочее пространство.',
   'pages.settings.account.privacy': 'Конфиденциальность',

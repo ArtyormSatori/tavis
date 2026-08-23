@@ -4914,7 +4914,7 @@ const en: TranslationMap = {
   'overlay.orbTitle': 'Drag to move · Double-click to reset position',
   'pages.settings.account.connections': 'Connections',
   'pages.settings.account.connectionsDesc': 'Review and manage linked account connections',
-  'pages.settings.account.migration': 'Import from another assistant',
+  'pages.settings.account.migration': 'Import',
   'pages.settings.account.migrationDesc':
     'Bring memory and notes over from OpenClaw (Hermes coming soon)',
   'pages.settings.account.privacy': 'Privacy',

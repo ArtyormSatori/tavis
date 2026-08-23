@@ -4304,7 +4304,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'मूव करने के लिए खींचें · पोज़िशन रीसेट के लिए डबल-क्लिक करें',
   'pages.settings.account.connections': 'कनेक्शन',
   'pages.settings.account.connectionsDesc': 'कनेक्शन विवरण',
-  'pages.settings.account.migration': 'किसी अन्य असिस्टेंट से इम्पोर्ट करें',
+  'pages.settings.account.migration': 'इम्पोर्ट',
   'pages.settings.account.migrationDesc':
     'OpenClaw (और जल्द ही Hermes) से मेमोरी और नोट्स इस वर्कस्पेस में माइग्रेट करें।',
   'pages.settings.account.privacy': 'प्राइवेसी',

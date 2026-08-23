@@ -4406,7 +4406,7 @@ const messages: TranslationMap = {
   'overlay.orbTitle': 'Glisse pour déplacer · Double-clique pour réinitialiser la position',
   'pages.settings.account.connections': 'Connexions',
   'pages.settings.account.connectionsDesc': 'Description des connexions',
-  'pages.settings.account.migration': 'Importer depuis un autre assistant',
+  'pages.settings.account.migration': 'Importer',
   'pages.settings.account.migrationDesc':
     'Migrez la mémoire et les notes depuis OpenClaw (et bientôt Hermes) vers cet espace de travail.',
   'pages.settings.account.privacy': 'Confidentialité',
