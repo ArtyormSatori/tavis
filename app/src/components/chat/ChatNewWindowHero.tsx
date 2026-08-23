@@ -9,7 +9,6 @@ import { resolveUserName } from '../../utils/userName';
 import { DiscordBanner, PromotionalCreditsBanner } from '../home/HomeBanners';
 import { Button } from '../ui';
 
-
 /**
  * Hero shown above the composer in the chat "new window" (empty thread) state —
  * the merged Home surface. Mirrors the former Home card (greeting, connection
@@ -63,7 +62,6 @@ export default function ChatNewWindowHero() {
       setIsRestartingCore(false);
     }
   };
-
 
   // Typewriter cycle — identical cadence to the former Home greeting.
   useEffect(() => {

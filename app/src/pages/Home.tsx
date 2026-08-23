@@ -2,10 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ConnectionIndicator from '../components/ConnectionIndicator';
-import {
-  DiscordBanner,
-  PromotionalCreditsBanner,
-  } from '../components/home/HomeBanners';
+import { DiscordBanner, PromotionalCreditsBanner } from '../components/home/HomeBanners';
 import Button from '../components/ui/Button';
 import { useUser } from '../hooks/useUser';
 import { useT } from '../lib/i18n/I18nContext';
@@ -63,7 +60,6 @@ const Home = () => {
       setIsRestartingCore(false);
     }
   };
-
 
   const statusCopy = {
     ok: t('home.statusOk'),

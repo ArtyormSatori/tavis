@@ -20,18 +20,18 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useEmbeddingBudgetState } from '../../hooks/useEmbeddingBudgetState';
 import { formatResetTime } from '../../features/conversations/utils/format';
+import { useEmbeddingBudgetState } from '../../hooks/useEmbeddingBudgetState';
 import { useUsageState } from '../../hooks/useUsageState';
 import { useT } from '../../lib/i18n/I18nContext';
+import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectActiveUserErrors } from '../../store/userErrorsSelectors';
 import { dismissUserError, resolveUserError } from '../../store/userErrorsSlice';
 import type { UserActionableError, UserErrorAction } from '../../types/userError';
-import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
-import { dismissBanner, shouldShowBanner } from '../upsell/upsellDismissState';
 import { PRICING_URL } from '../../utils/links';
 import { openUrl } from '../../utils/openUrl';
+import { dismissBanner, shouldShowBanner } from '../upsell/upsellDismissState';
 
 export type NoticeSeverity = 'error' | 'warning' | 'info';
 

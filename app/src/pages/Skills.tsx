@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { classifyIntegrationError } from '../lib/userErrors/classify';
-import { dismissUserError, reportUserError } from '../store/userErrorsSlice';
-
 import ChannelSetupModal from '../components/channels/ChannelSetupModal';
 import McpServersTab from '../components/channels/mcp/McpServersTab';
 import ComposioConnectModal from '../components/composio/ComposioConnectModal';
@@ -49,9 +46,11 @@ import { canonicalizeComposioToolkitSlug } from '../lib/composio/toolkitSlug';
 import { type ComposioConnection, deriveComposioState } from '../lib/composio/types';
 import { getCoreStateSnapshot } from '../lib/coreState/store';
 import { useT } from '../lib/i18n/I18nContext';
+import { classifyIntegrationError } from '../lib/userErrors/classify';
 import { channelConnectionsApi } from '../services/api/channelConnectionsApi';
 import { setDefaultMessagingChannel } from '../store/channelConnectionsSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { dismissUserError, reportUserError } from '../store/userErrorsSlice';
 import type { ChannelConnectionStatus, ChannelDefinition, ChannelType } from '../types/channels';
 import type { ToastNotification } from '../types/intelligence';
 import { IS_DEV } from '../utils/config';

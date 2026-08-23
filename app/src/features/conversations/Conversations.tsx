@@ -2024,10 +2024,7 @@ const Conversations = ({
             ? 'mx-auto w-full max-w-195 min-h-0 overflow-y-auto px-4 py-3'
             : 'absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-195 px-4 pb-4 pt-6'
         }>
-        <>
-
-          {/* Cycle usage pill moved into ChatComposer toolbar */}
-        </>
+        <>{/* Cycle usage pill moved into ChatComposer toolbar */}</>
 
         {sendAdvisory && (
           <div className="flex items-center justify-between mb-2">
