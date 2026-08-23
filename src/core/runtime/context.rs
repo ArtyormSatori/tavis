@@ -121,7 +121,7 @@ impl CoreContext {
         bool,
         Option<crate::openhuman::config::Config>,
     )> {
-        Self::init_with_config(host_kind, token, domains, None).await
+        Self::init_with_config(host_kind, token, domains, Default::default(), None).await
     }
 
     /// [`init`](Self::init) with an optional caller-supplied configuration.
@@ -139,6 +139,7 @@ impl CoreContext {
         host_kind: HostKind,
         token: &TokenSource,
         domains: crate::core::runtime::DomainSet,
+        tool_groups: crate::openhuman::tools::toolpacks::ToolGroups,
         preloaded_config: Option<crate::openhuman::config::Config>,
     ) -> anyhow::Result<(
         Arc<CoreContext>,
@@ -251,7 +252,7 @@ impl CoreContext {
                 memory_subsystem,
             }),
             domains,
-            tool_groups: Default::default(),
+            tool_groups,
             embedder_config,
         });
 
