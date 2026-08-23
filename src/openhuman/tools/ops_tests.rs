@@ -54,7 +54,6 @@ fn store_test_session_token(config: &Config) {
 fn integration_test_config(tmp: &TempDir, backend_url: &str) -> Config {
     let mut cfg = test_config(tmp);
     cfg.api_url = Some(backend_url.to_string());
-    cfg.integrations.apify.enabled = true;
     cfg.integrations.google_places.enabled = true;
     cfg.integrations.parallel.enabled = true;
     cfg.integrations.tinyfish.enabled = true;
@@ -1100,7 +1099,6 @@ fn all_tools_registers_integration_families_when_enabled_and_signed_in() {
     let http = crate::openhuman::config::HttpRequestConfig::default();
     let mut cfg = test_config(&tmp);
     cfg.api_url = Some("https://backend.example.test".to_string());
-    cfg.integrations.apify.enabled = true;
     cfg.integrations.google_places.enabled = true;
     cfg.integrations.parallel.enabled = true;
     cfg.integrations.tinyfish.enabled = true;
