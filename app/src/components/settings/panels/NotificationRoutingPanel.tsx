@@ -262,7 +262,7 @@ const NotificationRoutingPanel = ({ embedded = false }: NotificationRoutingPanel
 
   // Embedded inside the tabbed Notifications page: the parent owns the header,
   // so render just the padded body.
-  if (embedded) return <div className="p-4 space-y-5">{body}</div>;
+  if (embedded) return <div className="space-y-5">{body}</div>;
 
   return <SettingsPanel>{body}</SettingsPanel>;
 };
