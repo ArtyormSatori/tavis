@@ -21,9 +21,6 @@ type SettingsRoute =
   | 'cron-jobs'
   | 'privacy'
   | 'billing'
-  | 'team'
-  | 'team-members'
-  | 'team-invites'
   | 'developer-options'
   | 'llm'
   | 'voice'
@@ -79,7 +76,6 @@ interface SettingsNavigationHook {
 const extractSettingsSlug = (pathname: string): string => {
   // Strip the leading /settings/ and take the first path segment.
   // e.g. /settings/agents/edit/123 → 'agents'
-  // e.g. /settings/team/manage/456/members → 'team/manage/456/members'
   const match = /^\/settings\/(.+)$/.exec(pathname);
   if (!match) return '';
   return match[1];
@@ -89,13 +85,6 @@ const getCurrentRoute = (pathname: string): SettingsRoute => {
   const slug = extractSettingsSlug(pathname);
   if (!slug) return 'home';
 
-  // --- special-cased team sub-routes (dynamic segments) ---
-  if (/^team\/manage\/.+\/members/.test(slug)) return 'team-members';
-  if (/^team\/manage\/.+\/invites/.test(slug)) return 'team-invites';
-  if (/^team\/manage\//.test(slug)) return 'team';
-  if (/^team\/members/.test(slug)) return 'team-members';
-  if (/^team\/invites/.test(slug)) return 'team-invites';
-  if (/^team(\/|$)/.test(slug)) return 'team';
   // --- agent editor sub-routes ---
   if (/^agents\/(new|edit)/.test(slug)) return 'agents';
 
