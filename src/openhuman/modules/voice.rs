@@ -230,61 +230,40 @@ pub async fn encode_wav(
     decode_audio(&wav)
 }
 
-/// Tuning for a VAD session, mirroring `tinyvoice::vad::VadConfig`.
+/// Tuning for a VAD session.
 ///
-/// Built from `voice_server` config by [`VadConfig::from_server_config`]. The
-/// module has no such constructor on purpose — it does not know what OpenHuman
-/// persists — so the mapping lives here.
-#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize)]
-pub struct VadConfig {
-    /// Peak-RMS energy above which a frame counts as speech.
-    pub onset_threshold: f32,
-    /// How long energy must stay below `onset_threshold` before the utterance
-    /// closes. Bridges natural mid-sentence pauses.
-    pub hangover_ms: u32,
-    /// Minimum voiced duration for a segment to be emitted.
-    pub min_speech_ms: u32,
-    /// Hard ceiling on a single utterance.
-    pub max_utterance_ms: u32,
-}
+/// The contract's own type. There is no `from_server_config` on it and there
+/// should not be: a crate that any host can link cannot know what *this* host
+/// persists, so that mapping stays here as [`vad_config_from_server_config`].
+pub use tinyvoice_bus::vad::VadConfig;
 
-impl VadConfig {
-    /// Build VAD tuning from the persisted voice-server config.
-    #[must_use]
-    pub fn from_server_config(c: &crate::openhuman::config::VoiceServerConfig) -> Self {
-        Self {
-            onset_threshold: c.vad_onset_threshold,
-            hangover_ms: c.vad_hangover_ms,
-            min_speech_ms: c.vad_min_speech_ms,
-            // Config stores seconds; the module speaks milliseconds. Clamped to
-            // at least 1ms so a zero or negative setting cannot make every
-            // utterance close on its first frame.
-            max_utterance_ms: (c.vad_max_utterance_secs * 1000.0).round().max(1.0) as u32,
-        }
+/// Build VAD tuning from the persisted voice-server config.
+///
+/// A free function rather than an inherent method because [`VadConfig`] is the
+/// contract's type. The unit conversion is the reason this exists at all:
+/// OpenHuman persists the utterance ceiling in seconds and the module speaks
+/// milliseconds.
+#[must_use]
+pub fn vad_config_from_server_config(c: &crate::openhuman::config::VoiceServerConfig) -> VadConfig {
+    VadConfig {
+        onset_threshold: c.vad_onset_threshold,
+        hangover_ms: c.vad_hangover_ms,
+        min_speech_ms: c.vad_min_speech_ms,
+        // Config stores seconds; the module speaks milliseconds. Clamped to at
+        // least 1ms so a zero or negative setting cannot make every utterance
+        // close on its first frame.
+        max_utterance_ms: (c.vad_max_utterance_secs * 1000.0).round().max(1.0) as u32,
     }
 }
 
-/// What the segmenter reported at one frame.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum VadEvent {
-    /// Energy crossed the onset threshold — an utterance has begun.
-    SpeechStart {
-        /// Index of the frame, within the batch that was pushed.
-        frame: usize,
-    },
-    /// An utterance closed.
-    SpeechEnd {
-        /// Index of the frame, within the batch that was pushed.
-        frame: usize,
-        /// Accumulated speech duration, excluding the trailing silence.
-        voiced_ms: u32,
-        /// False when the segment was too short to be worth transcribing.
-        emit: bool,
-        /// True when the close was forced by the utterance ceiling.
-        forced: bool,
-    },
-}
+/// What the segmenter reported, and at which frame.
+///
+/// The contract splits these in two — [`VadEvent`] is what happened,
+/// [`IndexedVadEvent`] pairs it with the frame — where this host used to carry
+/// one enum with `frame` repeated in every variant. The JSON is identical
+/// either way: `IndexedVadEvent` flattens its event, so the wire still reads
+/// `{"frame": 3, "kind": "speech_start"}`.
+pub use tinyvoice_bus::vad::{IndexedVadEvent, VadEvent};
 
 /// A live VAD session held by the module.
 ///
@@ -324,7 +303,7 @@ impl VadSession {
         config: &Config,
         frame_ms: u32,
         energies: &[f32],
-    ) -> Result<Vec<VadEvent>, VoiceCallError> {
+    ) -> Result<Vec<IndexedVadEvent>, VoiceCallError> {
         let json: String = call(config, "VadPush", (self.id, frame_ms, energies)).await?;
         serde_json::from_str(&json)
             .map_err(|e| VoiceCallError::Failed(format!("could not decode VAD events: {e}")))
