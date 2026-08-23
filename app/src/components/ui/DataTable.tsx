@@ -194,6 +194,7 @@ export default function DataTable<T>({
   const { t } = useT();
   const searchId = useId();
   const hasToolbar = Boolean(toolbarStart || search || filters?.length || toolbarEnd);
+  const showTable = !loading && rows.length > 0;
 
   const head = (
     <TableHeader>
@@ -273,7 +274,19 @@ export default function DataTable<T>({
 
       {error != null && <div className="shrink-0 pb-3">{error}</div>}
 
-      <div className="min-h-0 flex-1 overflow-auto">
+      {/* The ONE scroll container, and the card itself.
+          These cannot be two elements: `overflow-hidden` on an inner card
+          wrapper is also a scroll container, so a `sticky top-0` header inside
+          it binds to a box that never scrolls and silently stops sticking —
+          the same trap `Table`'s default `overflow-x-auto` wrapper sets, one
+          level further in. Border and radius therefore go on the scroller, and
+          only while a table is actually rendered, so the empty and loading
+          states are not framed. */}
+      <div
+        className={cn(
+          'min-h-0 flex-1 overflow-auto',
+          showTable && 'rounded-xl border border-line bg-surface'
+        )}>
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <span
@@ -286,12 +299,10 @@ export default function DataTable<T>({
           (empty ?? null)
         ) : (
           <>
-            <div className="overflow-hidden rounded-xl border border-line bg-surface">
-              <Table containerClassName="w-full" aria-label={ariaLabel}>
-                {head}
-                {body}
-              </Table>
-            </div>
+            <Table containerClassName="w-full" aria-label={ariaLabel}>
+              {head}
+              {body}
+            </Table>
             {footer}
           </>
         )}
