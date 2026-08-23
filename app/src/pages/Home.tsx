@@ -7,10 +7,8 @@ import {
   PromotionalCreditsBanner,
   } from '../components/home/HomeBanners';
 import Button from '../components/ui/Button';
-import { useUsageState } from '../hooks/useUsageState';
 import { useUser } from '../hooks/useUser';
 import { useT } from '../lib/i18n/I18nContext';
-import { applyOpenRouterFreeModels } from '../services/api/openrouterFreeModels';
 import { restartCoreProcess } from '../services/coreProcessControl';
 import { selectBlockingState } from '../store/connectivitySelectors';
 import { useAppDispatch, useAppSelector } from '../store/hooks';

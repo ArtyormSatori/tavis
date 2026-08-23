@@ -1,10 +1,8 @@
 import debugFactory from 'debug';
 import { useEffect, useMemo, useState } from 'react';
 
-import { useUsageState } from '../../hooks/useUsageState';
 import { useUser } from '../../hooks/useUser';
 import { useT } from '../../lib/i18n/I18nContext';
-import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
 import { restartCoreProcess } from '../../services/coreProcessControl';
 import { selectBlockingState } from '../../store/connectivitySelectors';
 import { useAppSelector } from '../../store/hooks';
@@ -12,7 +10,6 @@ import { resolveUserName } from '../../utils/userName';
 import { DiscordBanner, PromotionalCreditsBanner } from '../home/HomeBanners';
 import { Button } from '../ui';
 
-const debug = debugFactory('chat:new-window-hero');
 
 /**
  * Hero shown above the composer in the chat "new window" (empty thread) state —
