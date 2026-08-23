@@ -128,6 +128,11 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = function () {};
 }
 
+// Polyfill scrollTo for assistant-ui's thread viewport in jsdom.
+if (typeof Element !== 'undefined' && !Element.prototype.scrollTo) {
+  Element.prototype.scrollTo = function () {};
+}
+
 // Polyfill the Pointer Capture API for Radix primitives in jsdom.
 // Radix's Select, Slider, Toggle and DropdownMenu call these unconditionally
 // on pointerdown; jsdom implements none of them, so without this the very
