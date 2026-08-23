@@ -4,11 +4,9 @@ import { LuPanelLeftOpen } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useT } from '../../../lib/i18n/I18nContext';
-import { useCoreState } from '../../../providers/CoreStateProvider';
 import { trackEvent } from '../../../services/analytics';
 import { normalizeAnalyticsPagePath } from '../../../services/analyticsRoutes';
 import { APP_VERSION } from '../../../utils/config';
-import { isLocalSessionToken } from '../../../utils/localSession';
 import ConnectionIndicator from '../../ConnectionIndicator';
 import {
   SidebarFooter,
