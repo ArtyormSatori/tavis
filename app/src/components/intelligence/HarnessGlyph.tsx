@@ -22,7 +22,7 @@ const GLYPH: Record<GlyphKind, { label: string; tone: string }> = {
   gemini: { label: 'G', tone: 'bg-primary-500 text-content-inverted' },
   // Literal hex (Tailwind's slate-800) rather than the `bg-slate-*` utility —
   // this is cursor's brand identity color, not a themed neutral surface.
-  cursor: { label: 'Cu', tone: 'bg-slate-800 text-content-inverted' },
+  cursor: { label: 'Cu', tone: 'bg-[#1e293b] text-content-inverted' },
   windsurf: { label: 'Ws', tone: 'bg-teal-500 text-content-inverted' },
   openhuman: { label: 'OH', tone: 'bg-sage-500 text-content-inverted' },
 };

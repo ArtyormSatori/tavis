@@ -109,7 +109,7 @@ const PROVIDER_ASSETS: Record<string, ProviderAsset> = {
  */
 export const providerIcon = (slug: string, className: string): ReactElement | null => {
   const icon = PROVIDER_ICONS[slug];
-  if (icon) return createElement(icon, { className: cn(className, 'text-white') });
+  if (icon) return createElement(icon, { className: cn(className, 'text-content-inverted') });
   const asset = PROVIDER_ASSETS[slug];
   return asset ? (
     <img
