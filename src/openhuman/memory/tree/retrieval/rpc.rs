@@ -11,7 +11,7 @@ use crate::openhuman::config::Config;
 use crate::openhuman::memory::tree::retrieval::{
     cover::cover_window_scoped,
     drill_down::drill_down,
-    fetch::fetch_leaves,
+    fetch::fetch_leaves_scoped,
     search::search_entities,
     source::query_source,
     types::{EntityMatch, QueryResponse, RetrievalHit},
