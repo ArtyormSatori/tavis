@@ -18,11 +18,17 @@ export interface NavTab {
   path: string;
   /** Value of `data-walkthrough` attribute on the rendered button, if any. */
   walkthroughAttr?: string;
+  /**
+   * Hide the entry unless the session is a resolved cloud session. Applied by
+   * both rails through `useCloudNavGate()`; see that hook for why the gate is
+   * three terms rather than a token check.
+   */
+  cloudOnly?: boolean;
 }
 
 /**
  * Ordered list of sidebar nav entries:
- *   chat → flows → connections
+ *   chat → flows → connections → rewards
  *
  * Orchestration (TinyPlace multi-agent coordination) is no longer a top-level
  * tab — it was folded back under Brain as the `/brain?tab=orchestration`
@@ -56,6 +62,16 @@ export const NAV_TABS: NavTab[] = [
     labelKey: 'nav.connections',
     path: '/connections',
     walkthroughAttr: 'tab-connections',
+  },
+  // Rewards was a footer row beside Feedback; it is a primary destination now,
+  // directly below Connections. The cloud gate travelled with it — a local
+  // session still never sees it, because the page has nothing to show one.
+  {
+    id: 'rewards',
+    labelKey: 'nav.rewards',
+    path: '/rewards',
+    walkthroughAttr: 'tab-rewards',
+    cloudOnly: true,
   },
   // Settings is reached via the gear icon in the sidebar header, so it no
   // longer has its own primary nav tab. Feedback lives in a slim footer row
