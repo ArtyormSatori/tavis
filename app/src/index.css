@@ -536,8 +536,15 @@
     line-height: 1.6;
 
     /* Themes may supply a decorative `--app-gradient`; fall back to the flat
-       canvas colour when they don't. */
-    background: var(--app-gradient, var(--color-background));
+       canvas colour when they don't.
+
+       `--color-surface-canvas`, NOT `--color-background`: the latter is the
+       shadcn alias and resolves to `--surface`, i.e. the *card* colour, so the
+       app canvas and the content card painted the same value and the frame
+       around the card had nothing but the chrome scrim to separate them. The
+       canvas token is what "app background — primary background" means in
+       `styles/tokens.css`. */
+    background: var(--app-gradient, var(--color-surface-canvas));
     color: var(--color-content);
     position: absolute;
     top: 0;
