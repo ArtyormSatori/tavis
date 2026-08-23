@@ -29,6 +29,7 @@ import { selectActiveUserErrors } from '../../store/userErrorsSelectors';
 import { dismissUserError, resolveUserError } from '../../store/userErrorsSlice';
 import type { UserActionableError, UserErrorAction } from '../../types/userError';
 import { applyOpenRouterFreeModels } from '../../services/api/openrouterFreeModels';
+import { dismissBanner, shouldShowBanner } from '../upsell/upsellDismissState';
 import { PRICING_URL } from '../../utils/links';
 import { openUrl } from '../../utils/openUrl';
 
@@ -80,6 +81,17 @@ const ACTION_LABEL_KEY: Record<Exclude<UserErrorAction, 'dismiss'>, string> = {
 };
 
 const SEVERITY_RANK: Record<NoticeSeverity, number> = { error: 0, warning: 1, info: 2 };
+
+/**
+ * How long a dismissed near-limit warning stays quiet.
+ *
+ * Carried over from the chat banner this notice replaced, which persisted its
+ * dismissal via `upsellDismissState`. The other derived notices use the
+ * in-memory set below, but usage creeps up over days — re-nagging on every
+ * restart is what the 24h cooldown was there to stop.
+ */
+const NEAR_LIMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const NEAR_LIMIT_BANNER_ID = 'conversations-warning';
 
 /** Highest severity present, or `null` for an empty list. */
 export function peakSeverity(notices: readonly AppNotice[]): NoticeSeverity | null {
@@ -198,7 +210,11 @@ export function useAppNotices(): AppNotice[] {
     // ── Plan usage limit ───────────────────────────────────────────────
     if (!usageLoading && teamUsage) {
       const upsellId = isAtLimit ? 'usage:at-limit' : 'usage:near-limit';
-      const show = isAtLimit || (isNearLimit && isFreeTier);
+      const show = isAtLimit
+        ? true
+        : isNearLimit &&
+          isFreeTier &&
+          shouldShowBanner(NEAR_LIMIT_BANNER_ID, NEAR_LIMIT_COOLDOWN_MS);
       if (show && !dismissed.has(upsellId)) {
         notices.push({
           id: upsellId,
@@ -214,7 +230,14 @@ export function useAppNotices(): AppNotice[] {
           onAction: () => void openUrl(PRICING_URL),
           // At the limit the app is already gated, so silencing it would hide
           // the only explanation of why nothing works.
-          ...(isAtLimit ? {} : { onDismiss: () => dismiss(upsellId) }),
+          ...(isAtLimit
+            ? {}
+            : {
+                onDismiss: () => {
+                  dismissBanner(NEAR_LIMIT_BANNER_ID);
+                  dismiss(upsellId);
+                },
+              }),
         });
       }
     }
