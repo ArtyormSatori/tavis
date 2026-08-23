@@ -712,6 +712,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
     // Per-workload rows live behind the advanced routing mode.
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
       name: /Choose Model|Change Model/i,
@@ -774,6 +775,7 @@ describe('AIPanel', () => {
     vi.mocked(listProviderModels).mockResolvedValue([{ id: 'gpt-4o' }]);
 
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const chooseButtons = await screen.findAllByRole('button', {
       name: /Choose Model|Change Model/i,
@@ -819,6 +821,7 @@ describe('AIPanel', () => {
       ],
     });
     renderWithProviders(<AIPanel />);
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     await waitFor(() =>
       expect(screen.getByRole('radio', { name: /Use Your Own Models/i })).toBeInTheDocument()
     );
@@ -888,6 +891,7 @@ describe('AIPanel', () => {
     // Wait for load.
     await waitFor(() => expect(screen.getAllByText(/Anthropic/i).length).toBeGreaterThan(0));
 
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(screen.getByRole('radio', { name: /Managed/i }));
 
     await waitFor(() => expect(vi.mocked(saveAISettings)).toHaveBeenCalled());
@@ -1917,6 +1921,7 @@ describe('AIPanel', () => {
     vi.mocked(saveAISettings).mockResolvedValue(undefined);
     renderWithProviders(<AIPanel />);
 
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
@@ -1976,6 +1981,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
@@ -2024,6 +2030,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
@@ -2065,6 +2072,7 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
+    fireEvent.click(await screen.findByRole('tab', { name: /^Routing$/i }));
     fireEvent.click(await screen.findByRole('radio', { name: /Advanced/i }));
     const reasoningRow = await screen.findByText('Reasoning');
     const rowEl = reasoningRow.closest('[data-slot="workload-row"]');
