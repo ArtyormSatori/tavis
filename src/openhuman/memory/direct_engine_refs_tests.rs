@@ -610,11 +610,6 @@ const ALLOWED: &[(&str, Verdict, &str)] = &[
     // served over the bus. They are what an embedded engine needs, and they
     // are the last thing to remove, not the first.
     (
-        "src/openhuman/memory/host.rs",
-        Verdict::HostSide,
-        "installs the event sink into the in-process engine",
-    ),
-    (
         "src/openhuman/memory/host_impls.rs",
         Verdict::HostSide,
         "installs the eight host seams (embedding, chat, composio, config, nlp, scheduler gate, shutdown, error reporter); mirrored over the bus by modules/memory_host.rs",
