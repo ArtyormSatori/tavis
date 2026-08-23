@@ -50,7 +50,15 @@ export default function CollapsedNavRail() {
   const handleHome = useHomeNav();
   const unreadCount = useAppSelector(state => selectUnreadCount(state.notifications.items));
 
-  const tabs = useMemo(() => NAV_TABS.map(tab => ({ ...tab, label: t(tab.labelKey) })), [t]);
+  const cloudAllowed = useCloudNavGate();
+  const tabs = useMemo(
+    () =>
+      NAV_TABS.filter(tab => !tab.cloudOnly || cloudAllowed).map(tab => ({
+        ...tab,
+        label: t(tab.labelKey),
+      })),
+    [cloudAllowed, t]
+  );
   const activeTab = tabs.find(tab => matchActive(tab.path, location.pathname));
 
   const handleClick = (tab: NavTab, active: boolean) => {
