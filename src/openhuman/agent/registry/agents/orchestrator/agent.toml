@@ -12,7 +12,15 @@ sandbox_mode = "sandboxed"
 # long-running deep work, or directly to `worker` specialists for the
 # fast path. See `AgentTier` in `src/openhuman/agent/harness/definition.rs`.
 agent_tier = "chat"
-omit_identity = true
+# Identity now loads from the workspace rather than from this agent's compiled
+# prompt (#5701). `IdentitySection` injects SOUL.md (product persona, shared by
+# every agent that opts in) and ROLE.md (this agent's own role brief, which used
+# to be the `# Master Agent` / `## Core Responsibilities` preamble in prompt.md).
+# Both are user-editable files under the workspace, so tuning the agent's
+# identity no longer means recompiling. Turning this on is what makes the
+# section run at all — with `omit_identity = true` the builder skips
+# `IdentitySection` wholesale and neither file is read.
+omit_identity = false
 omit_memory_context = true
 omit_safety_preamble = true
 omit_skills_catalog = false
