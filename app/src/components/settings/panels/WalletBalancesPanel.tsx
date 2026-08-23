@@ -65,7 +65,7 @@ function truncateAddress(address: string): string {
  * its own copy button, its own clipboard state and its own action pair), and
  * the columns exist to define the header and the alignment.
  */
-const COLUMNS_FOR = (t: (key: string) => string): DataTableColumn<never>[] => [
+const COLUMNS_FOR = <T,>(t: (key: string) => string): DataTableColumn<T>[] => [
   { id: 'network', header: t('walletBalances.colNetwork') },
   { id: 'address', header: t('walletBalances.colAddress') },
   { id: 'balance', header: t('walletBalances.colBalance'), align: 'right' },
@@ -261,7 +261,6 @@ const ChainPlaceholderRow = ({
 
 const WalletBalancesPanel = () => {
   const { t } = useT();
-  const COLUMNS = COLUMNS_FOR(t);
   const { navigateToSettings } = useSettingsNavigation();
 
   const [balances, setBalances] = useState<BalanceInfo[] | null>(null);
@@ -412,7 +411,7 @@ const WalletBalancesPanel = () => {
             </div>
           </div>
           <DataTable<(typeof PLACEHOLDER_ROWS)[number]>
-            columns={COLUMNS}
+            columns={COLUMNS_FOR<(typeof PLACEHOLDER_ROWS)[number]>(t)}
             rows={PLACEHOLDER_ROWS}
             rowKey={row => `${row.chain}-${row.evmNetwork ?? 'native'}`}
             renderRow={row => (
@@ -453,7 +452,7 @@ const WalletBalancesPanel = () => {
     if (balances && balances.length > 0) {
       return (
         <DataTable<BalanceInfo>
-          columns={COLUMNS}
+          columns={COLUMNS_FOR<BalanceInfo>(t)}
           rows={balances}
           rowKey={balanceKey}
           renderRow={balance => (
