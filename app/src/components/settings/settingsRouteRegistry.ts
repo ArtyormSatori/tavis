@@ -146,8 +146,9 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
     navOrder: 0,
   },
   {
-    // appearance also hosts the display-language selector (formerly an inline
-    // row on the old settings home list).
+    // appearance hosts the display-language selector (formerly an inline row on
+    // the old settings home list) and the whole former Theme studio page —
+    // palette, fonts, backdrop, import/export. `/settings/theme` redirects here.
     id: 'appearance',
     titleKey: 'settings.appearance.title',
     descriptionKey: 'settings.appearance.menuDesc',
@@ -159,6 +160,10 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
       'mode',
       'color',
       'colour',
+      'font',
+      'palette',
+      'background',
+      'backdrop',
       'language',
       'locale',
       'translation',
