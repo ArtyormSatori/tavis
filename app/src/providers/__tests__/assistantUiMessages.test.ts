@@ -186,7 +186,7 @@ describe('buildRuntimeMessages', () => {
     const content = buildRuntimeMessages([answer], null, {
       turnTimelines: { 'req-1': timeline },
       turnTranscripts: { 'req-1': transcript },
-    })[0]?.content as { type: string; toolCallId?: string }[];
+    })[0]?.content as unknown as { type: string; toolCallId?: string }[];
 
     const toolIds = content.filter(part => part.type === 'tool-call').map(part => part.toolCallId);
     expect(toolIds).toHaveLength(1);
@@ -208,7 +208,7 @@ describe('buildRuntimeMessages', () => {
     const content = buildRuntimeMessages([answer], null, {
       turnTimelines: { 'req-1': timeline },
       turnTranscripts: { 'req-1': transcript },
-    })[0]?.content as { type: string; toolCallId?: string }[];
+    })[0]?.content as unknown as { type: string; toolCallId?: string }[];
 
     const toolIds = content.filter(part => part.type === 'tool-call').map(part => part.toolCallId);
     expect(toolIds).toEqual(['c1', 'c2']);
