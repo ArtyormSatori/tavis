@@ -154,6 +154,17 @@ const openCustomProviderEditor = async () => {
   fireEvent.click(await screen.findByTestId('add-provider-custom'));
 };
 
+const openProviderConnectDialog = async (
+  slug: string,
+  category: 'cloud' | 'local' | 'cli' = 'cloud'
+) => {
+  fireEvent.click(await screen.findByTestId('add-provider-open'));
+  const trigger = await screen.findByTestId(`add-provider-select-${category}`);
+  trigger.focus();
+  fireEvent.keyDown(trigger, { key: 'Enter' });
+  fireEvent.keyDown(await screen.findByTestId(`add-provider-option-${slug}`), { key: 'Enter' });
+};
+
 const baseUsage = {
   remainingUsd: 1.5,
   cycleBudgetUsd: 10,
