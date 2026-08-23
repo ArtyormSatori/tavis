@@ -50,7 +50,7 @@ fn test_config() -> (TempDir, Config) {
     cfg.memory_tree.embedding_endpoint = None;
     cfg.memory_tree.embedding_model = None;
     cfg.memory_tree.embedding_strict = false;
-    cfg.memory.embedding_provider = "none".to_string();
+    cfg.embeddings_provider = Some("none".to_string());
     (tmp, cfg)
 }
 
