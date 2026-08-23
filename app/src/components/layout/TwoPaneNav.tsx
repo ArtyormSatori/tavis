@@ -48,7 +48,7 @@ export default function TwoPaneNav({
       {header && <div className="shrink-0 px-3 pb-1 pt-3">{header}</div>}
       {/* When there's no header, the list needs its own top padding so the first
           item doesn't collide with the pane's top edge. */}
-      <div className={`min-h-0 flex-1 overflow-y-auto px-1.5 pb-2 ${header ? '' : 'pt-3'}`}>
+      <div className={`min-h-0 flex-1 overflow-y-auto px-3 pb-2 ${header ? '' : 'pt-3'}`}>
         {groups.map((group, groupIndex) => (
           <div key={group.label ?? `__group-${groupIndex}`}>
             {group.label && (
@@ -74,12 +74,12 @@ export default function TwoPaneNav({
                       // translucent chrome and an opaque pane.
                       className={`h-auto w-full justify-start rounded-md px-2.5 py-1.5 text-left text-[14px] ${
                         active
-                          ? 'bg-surface/70 font-semibold text-content hover:bg-surface/70'
+                          ? 'bg-primary-500 font-semibold text-content-inverted hover:bg-primary-500'
                           : 'font-normal text-content-muted hover:bg-surface/40 hover:text-content-secondary'
                       }`}>
                       <span
                         className={`shrink-0 ${
-                          active ? 'text-content-secondary' : 'text-content-faint'
+                          active ? 'text-content-inverted' : 'text-content-faint'
                         }`}>
                         {item.icon ?? null}
                       </span>
