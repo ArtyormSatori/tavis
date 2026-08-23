@@ -18,6 +18,7 @@ import {
   SidebarMenuLabel,
 } from '../../ui';
 import { NavIcon } from './navIcons';
+import { useCloudNavGate } from './useCloudNavGate';
 
 /**
  * Active-route matching for a nav entry. Mirrors the rules the former

@@ -15,6 +15,7 @@ import {
   Tooltip,
 } from '../../ui';
 import { NavIcon } from './navIcons';
+import { useCloudNavGate } from './useCloudNavGate';
 import { useHomeNav } from './useHomeNav';
 
 /** Same active-route rules as the expanded {@link SidebarNav}. */
