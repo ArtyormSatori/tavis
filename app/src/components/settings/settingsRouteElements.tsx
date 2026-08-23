@@ -30,10 +30,6 @@ import ProfilesPanel from './panels/ProfilesPanel';
 import RecoveryPhrasePanel from './panels/RecoveryPhrasePanel';
 import SandboxSettingsPanel from './panels/SandboxSettingsPanel';
 import SecurityPanel from './panels/SecurityPanel';
-import TeamInvitesPanel from './panels/TeamInvitesPanel';
-import TeamManagementPanel from './panels/TeamManagementPanel';
-import TeamMembersPanel from './panels/TeamMembersPanel';
-import TeamPanel from './panels/TeamPanel';
 import ThemeStudioPanel from './panels/ThemeStudioPanel';
 import ToolPolicyDiagnosticsPanel from './panels/ToolPolicyDiagnosticsPanel';
 import ToolsPanel from './panels/ToolsPanel';
@@ -80,12 +76,11 @@ export function settingsRouteElements(): ReactNode {
 
       {/* ── General ─────────────────────────────────────────────── */}
       <Route path="account" element={wrapSettingsPage(<AccountPanel />)} />
-      <Route path="team" element={wrapSettingsPage(<TeamPanel />)} />
-      <Route path="team/manage/:teamId" element={wrapSettingsPage(<TeamManagementPanel />)} />
-      <Route path="team/manage/:teamId/members" element={wrapSettingsPage(<TeamMembersPanel />)} />
-      <Route path="team/manage/:teamId/invites" element={wrapSettingsPage(<TeamInvitesPanel />)} />
-      <Route path="team/members" element={wrapSettingsPage(<TeamMembersPanel />)} />
-      <Route path="team/invites" element={wrapSettingsPage(<TeamInvitesPanel />)} />
+      {/* Teams were removed from the product. The slugs stay as redirects so
+          existing deep links land on Account rather than reaching the settings
+          index via the catch-all. */}
+      <Route path="team" element={<SettingsRedirect to="/settings/account" />} />
+      <Route path="team/*" element={<SettingsRedirect to="/settings/account" />} />
       <Route path="billing" element={wrapSettingsPage(<BillingPanel />)} />
       <Route path="privacy" element={wrapSettingsPage(<PrivacyPanel />)} />
       <Route path="security" element={wrapSettingsPage(<SecurityPanel />)} />

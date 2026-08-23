@@ -281,21 +281,21 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
   // =========================================================================
   // ACCOUNT section leaf panels
   // =========================================================================
-  {
-    id: 'team',
-    titleKey: 'pages.settings.account.team',
-    descriptionKey: 'pages.settings.account.teamDesc',
-    section: 'account',
-    searchKeywords: ['members', 'invites', 'organization', 'organisation', 'workspace'],
-    navParent: 'account',
-  },
+  // Teams were removed from the product; the `team` entry went with them. The
+  // route slugs survive as redirects in `settingsRouteElements`.
+  //
+  // Privacy, Security and Migration are their OWN sidebar rows rather than
+  // sub-nav pills under Account (`navParent: 'account'`, as they were): each is
+  // a full page of unrelated controls, and burying three of them behind one
+  // Account row meant the sidebar named one destination for four pages.
   {
     id: 'privacy',
     titleKey: 'pages.settings.account.privacy',
     descriptionKey: 'pages.settings.account.privacyDesc',
     section: 'account',
     searchKeywords: ['telemetry', 'tracking', 'analytics', 'data'],
-    navParent: 'account',
+    navGroup: 'general',
+    navOrder: 5,
   },
   {
     id: 'security',
@@ -303,7 +303,8 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
     descriptionKey: 'pages.settings.account.securityDesc',
     section: 'account',
     searchKeywords: ['keychain', 'secret', 'password', 'encryption', 'credentials'],
-    navParent: 'account',
+    navGroup: 'general',
+    navOrder: 6,
   },
   {
     id: 'migration',
@@ -311,7 +312,8 @@ export const SETTINGS_ROUTE_REGISTRY: SettingsRegistryEntry[] = [
     descriptionKey: 'pages.settings.account.migrationDesc',
     section: 'account',
     searchKeywords: ['import', 'export', 'transfer', 'data'],
-    navParent: 'account',
+    navGroup: 'general',
+    navOrder: 7,
   },
 
   // =========================================================================
