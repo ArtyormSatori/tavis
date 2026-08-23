@@ -250,8 +250,15 @@
   --shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.12), 0 24px 48px -12px rgba(0, 0, 0, 0.12);
   --shadow-crisp: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.08);
   --shadow-cmd-palette: var(--cmd-shadow-palette);
+  /* The hairline around the routed content card (`SidebarInset` / the app's
+     `app-content-surface`). Drawn as a zero-blur inset box-shadow rather than a
+     border so it costs no layout box and cannot fight a caller's own border.
+     Near-opaque on purpose: the card sits on the themed chrome, and at the
+     original 0.45/0.7 the edge read as a smudge rather than an edge on a light
+     surface. The bottom edge stays the stronger of the two so the card still
+     reads as resting on the chrome rather than floating in it. */
   --shadow-content-edge:
-    inset 0 0 0 1px rgb(var(--line-chrome) / 0.45), inset 0 -1px 0 rgb(var(--line-chrome) / 0.7);
+    inset 0 0 0 1px rgb(var(--line-chrome) / 0.9), inset 0 -1px 0 rgb(var(--line-chrome));
 
   --animate-fade-in: fadeIn 0.2s ease-out forwards;
   --animate-fade-up: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
