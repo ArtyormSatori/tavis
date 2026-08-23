@@ -78,8 +78,9 @@ const MOCK_DOCKER_ENTRY: CatalogEntry = {
 };
 
 async function switchToInstalled() {
-  const installedTab = screen.getByText('Installed', { selector: 'button' });
+  const installedTab = screen.getByRole('tab', { name: /Installed/i });
   await act(async () => {
+    fireEvent.pointerDown(installedTab, { button: 0 });
     fireEvent.click(installedTab);
   });
 }
