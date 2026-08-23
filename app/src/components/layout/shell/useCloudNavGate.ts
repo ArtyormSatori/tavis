@@ -25,7 +25,8 @@ const log = debugFactory('sidebar');
  */
 export function useCloudNavGate(): boolean {
   const { snapshot, isReady } = useCoreState();
-  const allowed = isReady && Boolean(snapshot.sessionToken) && !isLocalSessionToken(snapshot.sessionToken);
+  const allowed =
+    isReady && Boolean(snapshot.sessionToken) && !isLocalSessionToken(snapshot.sessionToken);
 
   // Log the gate outcome whenever it resolves/flips. Booleans only — never the
   // session token or a raw path.

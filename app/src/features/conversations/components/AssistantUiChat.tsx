@@ -5,7 +5,6 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import AttachmentPreview from '../../../components/chat/AttachmentPreview';
 import { Button } from '../../../components/ui';
-import { MascotChipAvatar } from '../../human/Mascot/MascotChipAvatar';
 import type { Attachment } from '../../../lib/attachments';
 import { useRegisterAction } from '../../../lib/commands/useRegisterAction';
 import { useSlashCommands } from '../../../lib/commands/useSlashCommands';
@@ -14,6 +13,7 @@ import { AssistantUiRuntimeProvider } from '../../../providers/AssistantUiRuntim
 import { emptySessionTokenUsage } from '../../../store/chatRuntimeSlice';
 import { useAppSelector } from '../../../store/hooks';
 import { selectCustomPrimaryColor, selectMascotColor } from '../../../store/mascotSlice';
+import { MascotChipAvatar } from '../../human/Mascot/MascotChipAvatar';
 import { ChatToolFallback, ChatToolGroup } from './ChatToolParts';
 import { contextUsageFromTokenUsage, ContextWindowPill } from './composer/ContextWindowPill';
 import {
