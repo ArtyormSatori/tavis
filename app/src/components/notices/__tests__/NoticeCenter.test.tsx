@@ -1,0 +1,199 @@
+import { configureStore } from '@reduxjs/toolkit';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Provider } from 'react-redux';
+import { MemoryRouter, useLocation } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import userErrorsReducer, { reportUserError } from '../../../store/userErrorsSlice';
+import type { UserErrorDescriptor } from '../../../types/userError';
+import NoticeCenter from '../NoticeCenter';
+
+const budgetState = vi.hoisted(() => ({ level: 'none' as string, pct: 0 }));
+const usageState = vi.hoisted(() => ({
+  teamUsage: null as unknown,
+  isLoading: false,
+  isAtLimit: false,
+  isNearLimit: false,
+  isFreeTier: false,
+  usagePct: 0,
+}));
+const showNativeNotification = vi.hoisted(() => vi.fn());
+
+vi.mock('../../../hooks/useEmbeddingBudgetState', () => ({
+  useEmbeddingBudgetState: () => budgetState,
+}));
+vi.mock('../../../hooks/useUsageState', () => ({ useUsageState: () => usageState }));
+vi.mock('../../../lib/nativeNotifications/tauriBridge', () => ({ showNativeNotification }));
+vi.mock('../../../utils/openUrl', () => ({ openUrl: vi.fn() }));
+
+const memoryError: UserErrorDescriptor = {
+  id: 'memory_budget_exhausted:memory:managed',
+  kind: 'memory_budget_exhausted',
+  severity: 'error',
+  scope: 'memory',
+  titleKey: 'userErrors.memoryBudgetExhausted.title',
+  bodyKey: 'userErrors.memoryBudgetExhausted.body',
+  action: 'open_embeddings_settings',
+};
+
+function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="pathname">{`${location.pathname}${location.search}`}</div>;
+}
+
+function renderCenter(descriptors: UserErrorDescriptor[] = []) {
+  const store = configureStore({ reducer: { userErrors: userErrorsReducer } });
+  descriptors.forEach((d, i) => store.dispatch(reportUserError({ descriptor: d, at: 1000 + i })));
+  return {
+    store,
+    ...render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/chat']}>
+          <NoticeCenter />
+          <LocationProbe />
+        </MemoryRouter>
+      </Provider>
+    ),
+  };
+}
+
+describe('NoticeCenter', () => {
+  beforeEach(() => {
+    budgetState.level = 'none';
+    budgetState.pct = 0;
+    usageState.teamUsage = null;
+    usageState.isAtLimit = false;
+    usageState.isNearLimit = false;
+    usageState.isFreeTier = false;
+    usageState.usagePct = 0;
+    showNativeNotification.mockClear();
+  });
+
+  it('renders no chrome at all when there is nothing to say', () => {
+    renderCenter([]);
+    expect(screen.queryByTestId('notice-center')).toBeNull();
+  });
+
+  it('anchors to the bottom-left corner', () => {
+    renderCenter([memoryError]);
+
+    const center = screen.getByTestId('notice-center');
+    expect(center.className).toContain('bottom-4');
+    expect(center.className).toContain('left-4');
+    expect(center.className).not.toContain('right-4');
+  });
+
+  it('badges the active count and opens the panel on click', async () => {
+    renderCenter([memoryError]);
+
+    expect(screen.getByTestId('notice-badge')).toHaveTextContent('1');
+    expect(screen.queryByTestId('notice-panel')).toBeNull();
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+
+    const panel = screen.getByTestId('notice-panel');
+    expect(within(panel).getByText('Memory has stopped growing')).toBeInTheDocument();
+  });
+
+  /**
+   * The whole point of the consolidation: the memory-embedding warning used to
+   * be a full-width banner above every route. It is a notice now, and it has to
+   * reach this panel from the budget hook, not just from the errors slice.
+   */
+  it('raises the memory-embedding budget state as a notice', async () => {
+    budgetState.level = 'exhausted';
+    budgetState.pct = 100;
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+
+    expect(screen.getByText('Memory has stopped growing')).toBeInTheDocument();
+    expect(screen.getByTestId('notice-action')).toHaveTextContent('Set up embeddings');
+  });
+
+  it('routes to the embeddings screen from the memory notice action', async () => {
+    budgetState.level = 'exhausted';
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    await userEvent.click(screen.getByTestId('notice-action'));
+
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/connections?tab=embeddings');
+  });
+
+  it('lets the early budget warning be dismissed but not the exhausted state', async () => {
+    budgetState.level = 'warn';
+    budgetState.pct = 80;
+    const { rerender } = renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    expect(screen.getByTestId('notice-dismiss')).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId('notice-dismiss'));
+    expect(screen.queryByTestId('notice-center')).toBeNull();
+
+    // The escalation is a different notice id, so silencing the 75% warning
+    // must not silence it — otherwise the user is back to a silent failure.
+    budgetState.level = 'exhausted';
+    rerender(
+      <MemoryRouter>
+        <NoticeCenter />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('notice-center')).toBeInTheDocument();
+  });
+
+  it('raises the usage limit as a notice that cannot be dismissed at the limit', async () => {
+    usageState.teamUsage = { plan: 'free' };
+    usageState.isAtLimit = true;
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+
+    expect(screen.getByText('Usage limit reached')).toBeInTheDocument();
+    // Already gated — silencing it would hide the only explanation.
+    expect(screen.queryByTestId('notice-dismiss')).toBeNull();
+  });
+
+  it('sorts errors above warnings so the badge summarises the worst state', async () => {
+    budgetState.level = 'warn';
+    usageState.teamUsage = { plan: 'free' };
+    usageState.isAtLimit = true;
+    renderCenter([]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+
+    const titles = screen.getAllByTestId('notice-item').map(item => item.textContent ?? '');
+    expect(titles[0]).toContain('Usage limit reached');
+    expect(screen.getByTestId('notice-badge').className).toContain('bg-coral-500');
+  });
+
+  it('dismisses a classified error out of the list', async () => {
+    renderCenter([memoryError]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    await userEvent.click(screen.getByTestId('notice-dismiss'));
+
+    expect(screen.queryByTestId('notice-center')).toBeNull();
+  });
+
+  it('closes on Escape', async () => {
+    renderCenter([memoryError]);
+
+    await userEvent.click(screen.getByTestId('notice-trigger'));
+    expect(screen.getByTestId('notice-panel')).toBeInTheDocument();
+
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByTestId('notice-panel')).toBeNull();
+  });
+
+  it('fires the OS notification once when the memory budget is exhausted', () => {
+    budgetState.level = 'exhausted';
+    renderCenter([]);
+
+    expect(showNativeNotification).toHaveBeenCalledTimes(1);
+    expect(showNativeNotification.mock.calls[0][0]).toMatchObject({
+      tag: 'memory-embedding-budget-exhausted',
+    });
+  });
+});
