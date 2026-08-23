@@ -1011,7 +1011,7 @@ async fn vault_health_check_reports_writable_and_obsidian_registered_when_ready(
 #[tokio::test]
 async fn wipe_all_clears_ingest_gate() {
     use tinymemory_core::store::chunks::store as chunk_store;
-    use tinymemory_core::store::chunks::types::SourceKind;
+    use tinymemory_api::chunks::SourceKind;
 
     let (_tmp, cfg) = test_config();
     let gate_key = "notion:conn-1:page-abc@1700000000000";

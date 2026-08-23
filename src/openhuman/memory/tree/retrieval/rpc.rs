@@ -19,7 +19,7 @@ use crate::openhuman::memory::tree::retrieval::{
 };
 use crate::openhuman::memory::tree::score::extract::EntityKind;
 use crate::rpc::RpcOutcome;
-use tinymemory_core::store::chunks::types::SourceKind;
+use tinymemory_api::chunks::SourceKind;
 
 // ── query_source ──────────────────────────────────────────────────────
 
@@ -320,7 +320,7 @@ mod tests {
     use chrono::{TimeZone, Utc};
     use tempfile::TempDir;
     use tinymemory_core::store::chunks::store::upsert_chunks;
-    use tinymemory_core::store::chunks::types::{chunk_id, Chunk, Metadata, SourceRef};
+    use tinymemory_api::chunks::{chunk_id, Chunk, Metadata, SourceRef};
     use tinymemory_core::store::content as content_store;
 
     fn stage_test_chunks(cfg: &Config, chunks: &[Chunk]) {

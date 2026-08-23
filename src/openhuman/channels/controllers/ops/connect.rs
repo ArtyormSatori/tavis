@@ -9,7 +9,7 @@ use crate::openhuman::config::{Config, DiscordConfig, IMessageConfig, TelegramCo
 use crate::openhuman::security::credentials;
 use crate::rpc::RpcOutcome;
 use tinymemory_core::store::chunks::store as memory_tree_store;
-use tinymemory_core::store::chunks::types::SourceKind;
+use tinymemory_api::chunks::SourceKind;
 
 use super::super::definitions::{
     all_channel_definitions, find_channel_definition, ChannelAuthMode, ChannelDefinition,

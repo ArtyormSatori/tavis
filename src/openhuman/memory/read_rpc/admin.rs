@@ -6,7 +6,7 @@ use crate::rpc::RpcOutcome;
 use tinymemory_core::store::chunks::store::{
     delete_chunks_by_source, delete_orphaned_source_tree, with_connection,
 };
-use tinymemory_core::store::chunks::types::SourceKind;
+use tinymemory_api::chunks::SourceKind;
 
 use super::types::{
     DeleteSourceResponse, FlushNowResponse, FlushSourceTreeResponse, ResetTreeResponse,

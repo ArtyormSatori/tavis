@@ -241,7 +241,7 @@ use chrono::{TimeZone, Utc};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use tinymemory_core::store::chunks::store as memory_tree_store;
-use tinymemory_core::store::chunks::types::{chunk_id, Chunk, Metadata, SourceKind, SourceRef};
+use tinymemory_api::chunks::{chunk_id, Chunk, Metadata, SourceKind, SourceRef};
 
 struct WorkspaceEnvGuard {
     previous: Option<std::ffi::OsString>,

@@ -42,8 +42,8 @@ pub use vault::{obsidian_vault_status_rpc, vault_health_check_rpc};
 #[allow(dead_code)]
 pub(crate) fn parse_source_kind_str(
     s: &str,
-) -> Option<tinymemory_core::store::chunks::types::SourceKind> {
-    tinymemory_core::store::chunks::types::SourceKind::parse(s).ok()
+) -> Option<tinymemory_api::chunks::SourceKind> {
+    tinymemory_api::chunks::SourceKind::parse(s).ok()
 }
 
 #[cfg(test)]
@@ -53,7 +53,7 @@ pub(crate) use admin::clear_composio_sync_state;
 #[cfg(test)]
 pub(crate) use tinymemory_core::store::chunks::store::with_connection;
 #[cfg(test)]
-pub(crate) use tinymemory_core::store::chunks::types::SourceKind;
+pub(crate) use tinymemory_api::chunks::SourceKind;
 
 #[cfg(test)]
 #[path = "../read_rpc_tests.rs"]
