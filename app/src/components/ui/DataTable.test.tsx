@@ -119,7 +119,9 @@ describe('<DataTable />', () => {
     expect(trigger).toHaveTextContent('Filter (1)');
 
     await userEvent.click(trigger);
-    await userEvent.click(await screen.findByText('ClawHub'));
+    // Scoped to the menu: 'ClawHub' is also a cell value in the table body.
+    const menu = await screen.findByRole('menu');
+    await userEvent.click(within(menu).getByText('ClawHub'));
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect([...onChange.mock.calls[0][0]]).toEqual(['built-in', 'ClawHub']);
