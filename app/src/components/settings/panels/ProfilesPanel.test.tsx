@@ -95,10 +95,7 @@ describe('ProfilesPanel', () => {
     renderPanel();
     await screen.findByText('Writer');
     fireEvent.click(screen.getAllByText('Edit')[0]);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.stringContaining('/settings/profiles/edit/'),
-      expect.anything()
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('/settings/profiles/edit/'));
   });
 
   it('deletes a custom profile after confirmation', async () => {
