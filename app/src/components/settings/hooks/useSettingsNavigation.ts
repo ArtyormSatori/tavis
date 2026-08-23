@@ -170,11 +170,5 @@ export const useSettingsNavigation = (): SettingsNavigationHook => {
 
   const breadcrumbs: BreadcrumbItem[] = [];
 
-  return {
-    currentRoute,
-    navigateToSettings,
-    navigateBack,
-    closeSettings,
-    breadcrumbs,
-  };
+  return { currentRoute, navigateToSettings, navigateBack, closeSettings, breadcrumbs };
 };
