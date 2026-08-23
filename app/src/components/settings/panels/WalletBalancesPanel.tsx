@@ -13,8 +13,8 @@ import {
   fetchWalletStatus,
   type WalletChain,
 } from '../../../services/walletApi';
-import Button from '../../ui/Button';
 import { DataTable, type DataTableColumn, TableCell, TableRow } from '../../ui';
+import Button from '../../ui/Button';
 import { SettingsEmptyState, SettingsSection } from '../controls';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import SettingsPanel from '../layout/SettingsPanel';
@@ -138,44 +138,44 @@ const BalanceRow = ({ balance, onSend, onReceive }: BalanceRowProps) => {
         </div>
       </TableCell>
       <TableCell>
-          {/* Address + copy button */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-mono text-[11px] text-content-muted truncate">
-              {truncateAddress(balance.address)}
-            </span>
-            <Button
-              type="button"
-              iconOnly
-              variant="tertiary"
-              size="sm"
-              onClick={() => void handleCopyAddress()}
-              aria-label={t('walletBalances.copyAddress')}
-              className="shrink-0 text-content-faint hover:text-content-secondary dark:hover:text-content-secondary">
-              {copied ? (
-                <svg
-                  className="w-3.5 h-3.5 text-sage-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              )}
-            </Button>
-          </div>
+        {/* Address + copy button */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-mono text-[11px] text-content-muted truncate">
+            {truncateAddress(balance.address)}
+          </span>
+          <Button
+            type="button"
+            iconOnly
+            variant="tertiary"
+            size="sm"
+            onClick={() => void handleCopyAddress()}
+            aria-label={t('walletBalances.copyAddress')}
+            className="shrink-0 text-content-faint hover:text-content-secondary dark:hover:text-content-secondary">
+            {copied ? (
+              <svg
+                className="w-3.5 h-3.5 text-sage-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            )}
+          </Button>
+        </div>
       </TableCell>
       <TableCell className="whitespace-nowrap text-right">
         <span

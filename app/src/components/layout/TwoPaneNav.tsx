@@ -56,10 +56,7 @@ export default function TwoPaneNav({
   walkthroughId,
 }: TwoPaneNavProps) {
   return (
-    <nav
-      aria-label={ariaLabel}
-      data-walkthrough={walkthroughId}
-      className="flex h-full flex-col">
+    <nav aria-label={ariaLabel} data-walkthrough={walkthroughId} className="flex h-full flex-col">
       {header && <div className="shrink-0 px-3 pb-1 pt-3">{header}</div>}
       {/* When there's no header, the list needs its own top padding so the first
           item doesn't collide with the pane's top edge. */}
