@@ -51,6 +51,8 @@
 use std::collections::HashSet;
 use std::future::Future;
 
+use tinymemory_api::provider::types::SourceScope;
+
 tokio::task_local! {
     static SOURCE_SCOPE: Option<HashSet<String>>;
 }
@@ -98,6 +100,22 @@ pub fn scope_allowed(scope: &str) -> bool {
         None => true,
         Some(set) => set.contains(scope),
     }
+}
+
+/// Render the ambient scope in the vocabulary a `MemoryProvider` call takes.
+///
+/// This is the whole point of keeping the task-local host-side: the ambient
+/// value is gathered once per turn, and every provider call that accepts a
+/// scope passes the result of this function rather than relying on the driver
+/// to read a task-local it cannot see.
+///
+/// `None` means unrestricted and must stay `None` — [`SourceScope`] treats an
+/// **empty** allowlist as denying every source-attributed item, so mapping
+/// "no restriction" onto `Some(SourceScope::new([]))` would invert the policy
+/// and silently blank out recall.
+#[must_use]
+pub fn as_bus_scope() -> Option<SourceScope> {
+    current_source_scope().map(|set| SourceScope::new(set))
 }
 
 /// The tag every memory-source–ingested chunk carries (set by
