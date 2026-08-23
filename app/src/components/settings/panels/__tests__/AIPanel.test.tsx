@@ -1516,16 +1516,11 @@ describe('AIPanel', () => {
 
     renderWithProviders(<AIPanel />);
 
-    // Wait for OpenAI chip to render (disabled).
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenAI/i })).toBeInTheDocument()
-    );
-
-    // Count provider chips before dialog interaction.
+    // Count connected-provider toggles before dialog interaction.
     const chipsBefore = screen.getAllByRole('switch').length;
 
     // Open the dialog.
-    fireEvent.click(screen.getByRole('switch', { name: /Connect OpenAI/i }));
+    await openProviderConnectDialog('openai');
     await waitFor(() =>
       expect(screen.getByRole('dialog', { name: /Connect OpenAI/i })).toBeInTheDocument()
     );
@@ -1566,13 +1561,11 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
 
     renderWithProviders(<AIPanel />);
-
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenAI/i })).toBeInTheDocument()
-    );
-
-    const codexButton = screen.getByRole('button', { name: /Connect Codex/i });
-    expect(codexButton).toBeInTheDocument();
+    fireEvent.click(await screen.findByTestId('add-provider-open'));
+    const trigger = await screen.findByTestId('add-provider-select-cli');
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(await screen.findByTestId('add-provider-option-codex')).toBeInTheDocument();
     // The Korean fallback must be gone from the English onboarding screen.
     expect(screen.queryByText(/인증/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Codex 인증/i })).not.toBeInTheDocument();
@@ -1582,12 +1575,7 @@ describe('AIPanel', () => {
     vi.mocked(loadAISettings).mockResolvedValue({ ...baseSettings, cloudProviders: [] });
 
     renderWithProviders(<AIPanel />);
-
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenAI/i })).toBeInTheDocument()
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: /Connect Codex/i }));
+    await openProviderConnectDialog('codex', 'cli');
 
     await waitFor(() => expect(vi.mocked(importOpenAiCodexCliAuth)).toHaveBeenCalledTimes(1));
     expect(vi.mocked(startOpenAiCodexOAuth)).not.toHaveBeenCalled();
@@ -1627,12 +1615,7 @@ describe('AIPanel', () => {
     vi.mocked(importOpenAiCodexCliAuth).mockRejectedValueOnce(new Error(errorCode));
 
     renderWithProviders(<AIPanel />);
-
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenAI/i })).toBeInTheDocument()
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: /Connect Codex/i }));
+    await openProviderConnectDialog('codex', 'cli');
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(expectedMessage));
     expect(vi.mocked(setCloudProviderKey)).not.toHaveBeenCalled();
@@ -1649,11 +1632,7 @@ describe('AIPanel', () => {
     );
 
     renderWithProviders(<AIPanel />);
-    await waitFor(() =>
-      expect(screen.getByRole('switch', { name: /Connect OpenAI/i })).toBeInTheDocument()
-    );
-
-    fireEvent.click(screen.getByRole('switch', { name: /Connect OpenAI/i }));
+    await openProviderConnectDialog('openai');
     const dialog = await screen.findByRole('dialog', { name: /Connect OpenAI/i });
     fireEvent.change(within(dialog).getByLabelText(/API key/i), {
       target: { value: 'sk-bad-key' },
