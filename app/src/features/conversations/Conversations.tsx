@@ -37,7 +37,6 @@ import {
   handleComposerSlashCommand,
 } from '../../features/conversations/composerSendDecision';
 import { useMemorySyncActive } from '../../features/conversations/hooks/useBackgroundActivity';
-import { formatResetTime } from '../../features/conversations/utils/format';
 import {
   GENERAL_TAB_VALUE,
   isThreadVisibleInTab,
@@ -113,8 +112,6 @@ import type { ConfirmationModal as ConfirmationModalType } from '../../types/int
 import type { ThreadMessage } from '../../types/thread';
 import { chatThreadPath } from '../../utils/chatRoutes';
 import { CHAT_ATTACHMENTS_ENABLED } from '../../utils/config';
-import { PRICING_URL } from '../../utils/links';
-import { openUrl } from '../../utils/openUrl';
 import {
   notifyOverlaySttState,
   openhumanVoiceStatus,
@@ -424,15 +421,14 @@ const Conversations = ({
   const ignoreNextTitleBlurRef = useRef(false);
 
   const {
-    teamUsage,
     isAtLimit,
-    isNearLimit,
-    isFreeTier,
-    shouldShowBudgetCompletedMessage,
-    usagePct,
     // #3767: gate on the tier for the selected chat mode — Quick runs on the
     // `chat` tier, Reasoning on the `reasoning` tier — so the credits prompt
     // reflects the mode the user actually picked.
+    //
+    // Only `isAtLimit` is read here now: the near-limit and spent-budget
+    // banners this file rendered are notices in `NoticeCenter`, which reads
+    // the same hook once for the whole app.
   } = useUsageState(selectedAgentProfileId === 'reasoning' ? 'reasoning' : 'chat');
   const [deleteModal, setDeleteModal] = useState<ConfirmationModalType>({
     isOpen: false,
