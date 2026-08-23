@@ -30,8 +30,6 @@ import OpenhumanLinkModal from './components/OpenhumanLinkModal';
 import PersistRehydrationScreen from './components/PersistRehydrationScreen';
 import PttHotkeyManager from './components/PttHotkeyManager';
 import SecurityBanner from './components/SecurityBanner';
-import GlobalUpsellBanner from './components/upsell/GlobalUpsellBanner';
-import MemoryEmbeddingBudgetBanner from './components/upsell/MemoryEmbeddingBudgetBanner';
 import UserErrorCenter from './components/userErrors/UserErrorCenter';
 import AppWalkthrough from './components/walkthrough/AppWalkthrough';
 import { useNotchBootSync } from './hooks/useNotchBootSync';
@@ -234,13 +232,9 @@ export function AppShellDesktop() {
 
   const content = (
     <div ref={scrollRef} className="relative h-full overflow-y-auto">
-      <GlobalUpsellBanner />
-      {/* #5324: memory-specific budget warning. Distinct from the banner
-          above — that one sells a plan upgrade, this one steers to the
-          embedding fixes (local Ollama / BYO key) that keep memory growing.
-          Only renders for users whose embeddings actually bill against the
-          managed budget. */}
-      <MemoryEmbeddingBudgetBanner />
+      {/* The plan-usage upsell and the #5324 memory-embedding warning used to
+          be full-width banners here, pushing every route down. Both are
+          notices in `NoticeCenter` now — see its docs for why. */}
       <AppRoutes />
     </div>
   );
