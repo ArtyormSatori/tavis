@@ -130,7 +130,15 @@ function assistantParts(
   }
 
   for (const entry of [...timeline].sort((a, b) => a.seq - b.seq)) {
-    if (!emittedToolIds.has(entry.id)) parts.push(toolPart(entry));
+    // The `has` check also stands in for id uniqueness across the timeline
+    // itself, not just against the transcript pass above. assistant-ui keys
+    // tool parts as `toolCallId-${id}` and *throws* on a repeat ("Duplicate key
+    // … in useResources"), taking the thread render down — so a duplicate has
+    // to be dropped here rather than trusted not to occur. The slice no longer
+    // mints colliding ids, but threads persisted before that fix still can.
+    if (emittedToolIds.has(entry.id)) continue;
+    emittedToolIds.add(entry.id);
+    parts.push(toolPart(entry));
   }
   if (text.length > 0) parts.push({ type: 'text', text });
   return parts;
