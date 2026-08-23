@@ -271,7 +271,16 @@ function InstalledSkillRow({ skill, onUninstall, onClick }: SkillTileProps) {
   return (
     <TableRow
       data-testid={`skill-explorer-tile-${skill.id}`}
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={event => {
+        if (event.key === 'Enter') onClick();
+        if (event.key === ' ' || event.key === 'Space') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
       className="cursor-pointer">
       <TableCell className="min-w-48">
         <Button type="button" variant="tertiary" size="xs" onClick={onClick} className="h-auto max-w-full p-0 text-left font-medium hover:bg-transparent">
@@ -430,7 +439,16 @@ function CatalogRow({ entry, installed, installing, onInstall, onClick }: Catalo
     <TableRow
       className="group cursor-pointer"
       data-testid={`registry-tile-${entry.id}`}
-      onClick={onClick}>
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={event => {
+        if (event.key === 'Enter') onClick();
+        if (event.key === ' ' || event.key === 'Space') {
+          event.preventDefault();
+          onClick();
+        }
+      }}>
       <TableCell className="min-w-48">
         <Button
           type="button"
