@@ -827,11 +827,11 @@ export default function SkillsExplorerTab({ onToast }: SkillsExplorerTabProps) {
         <div className="flex items-center gap-2">
           <TabsRoot value={view} onValueChange={value => setView(value as ExplorerView)}>
             <TabsList aria-label={t('skills.explorer.title')}>
-              <TabsTrigger value="registry">
+              <TabsTrigger value="registry" onClick={() => setView("registry")}>
                 {t('skills.explorer.registryTab')}
                 {catalogTotal > 0 && <span className="text-[10px] opacity-70">{catalogTotal.toLocaleString()}</span>}
               </TabsTrigger>
-              <TabsTrigger value="installed">
+              <TabsTrigger value="installed" onClick={() => setView("installed")}>
                 {t('skills.explorer.installedTab')}
                 {skills.length > 0 && <span className="text-[10px] opacity-70">{skills.length}</span>}
               </TabsTrigger>
