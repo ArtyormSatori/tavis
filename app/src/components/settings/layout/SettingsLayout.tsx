@@ -33,7 +33,11 @@ const SettingsLayout = () => {
           card, with the page's own header and full-bleed divider inside the
           inner one. The shell already provides the surface; every other routed
           page uses it directly, and settings does now too. */}
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col">
+      {/* No `max-w-*`/`mx-auto` here: capping the column and centring it reads
+          as a left/right gutter the other routed pages do not have, which is
+          what made settings look inset. The pane is the width of the content
+          surface, same as Connections or Workflows. */}
+      <div className="flex h-full min-h-0 w-full flex-col">
         <div className="min-h-0 flex-1 overflow-hidden">
           <Outlet />
         </div>
