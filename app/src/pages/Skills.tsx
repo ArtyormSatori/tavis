@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { classifyIntegrationError } from '../lib/userErrors/classify';
+import { useAppDispatch } from '../store/hooks';
+import { dismissUserError, reportUserError } from '../store/userErrorsSlice';
+
 import ChannelSetupModal from '../components/channels/ChannelSetupModal';
 import McpServersTab from '../components/channels/mcp/McpServersTab';
 import ComposioConnectModal from '../components/composio/ComposioConnectModal';
@@ -699,6 +703,28 @@ export default function Skills() {
     composioLoading,
     composioError,
   ]);
+
+  // Raise a Composio outage as an app-wide notice rather than an alert on this
+  // page. The state is about the user's account, not about this screen: while
+  // it is set, every tool-calling surface in the app is degraded, yet only a
+  // visitor to Connections used to be told. `NoticeCenter` keeps it visible on
+  // whatever route they are on, and the entry survives navigating away.
+  //
+  // The per-card `hasComposioError` degradation below stays — that IS local,
+  // and it is what marks *which* cards are unreliable.
+  const notifyDispatch = useAppDispatch();
+  useEffect(() => {
+    const descriptor = classifyIntegrationError(composioError, 'composio');
+    if (!descriptor) return;
+    notifyDispatch(reportUserError({ descriptor, at: Date.now() }));
+  }, [composioError, notifyDispatch]);
+
+  // Clear it the moment the poll succeeds, so a recovered integration does not
+  // leave a stale warning the user has to dismiss by hand.
+  useEffect(() => {
+    if (composioError) return;
+    notifyDispatch(dismissUserError({ id: 'integration_degraded:integration:composio' }));
+  }, [composioError, notifyDispatch]);
 
   // Unified item list
   const allItems: SkillItem[] = useMemo(() => {
