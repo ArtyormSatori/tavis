@@ -423,7 +423,7 @@ describe('AIPanel', () => {
     );
     fireEvent.click(screen.getByRole('radio', { name: /Use Your Own Models/i }));
     await openGlobalModelPicker();
-    await selectPickerProvider(/^OpenAI Cloud provider$/i);
+    await selectPickerProvider(/OpenAI/i);
 
     // Existing behaviour is unchanged: a populated catalog still renders a
     // dropdown and there is no Azure-specific labelling.
