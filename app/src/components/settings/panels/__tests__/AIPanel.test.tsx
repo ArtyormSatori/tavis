@@ -138,6 +138,17 @@ const baseSettings = {
 
 const baseLocalSnapshot = { status: null, diagnostics: null, presets: null, installedModels: [] };
 
+const openGlobalModelPicker = async () => {
+  const label = await screen.findByText('Provider and model');
+  const button = label.closest('button');
+  expect(button).not.toBeNull();
+  fireEvent.click(button!);
+};
+
+const selectPickerProvider = async (name: RegExp) => {
+  fireEvent.click(await screen.findByRole('button', { name }));
+};
+
 const baseUsage = {
   remainingUsd: 1.5,
   cycleBudgetUsd: 10,
