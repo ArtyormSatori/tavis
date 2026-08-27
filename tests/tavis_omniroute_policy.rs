@@ -1,4 +1,4 @@
-use openhuman::openhuman::config::Config;
+use openhuman_core::openhuman::config::Config;
 
 const DEFAULT_TAVIS_OMNIROUTE_URL: &str = "http://127.0.0.1:20128/v1";
 
