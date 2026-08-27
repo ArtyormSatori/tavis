@@ -19,8 +19,8 @@ permissions:
   contents: read
 
 jobs:
-  omniroute-policy:
-    name: OmniRoute policy RED/GREEN gate
+  tavis-remediation:
+    name: TAVIS Phase 0-6 RED/GREEN gate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -35,5 +35,5 @@ jobs:
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Run OmniRoute policy test
-        run: cargo test --test tavis_omniroute_policy -- --nocapture
+      - name: Run TAVIS remediation tests
+        run: cargo test --test tavis_omniroute_policy --test tavis_agent_evidence -- --nocapture
