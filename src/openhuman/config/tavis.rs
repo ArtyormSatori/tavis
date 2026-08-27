@@ -51,6 +51,9 @@ pub fn apply_tavis_defaults(config: &mut Config) {
     config.heartbeat_provider = Some("omniroute:hint:reasoning".to_string());
     config.learning_provider = Some("omniroute:hint:reasoning".to_string());
     config.subconscious_provider = Some("omniroute:hint:chat".to_string());
+
+    config.browser.enabled = true;
+    config.browser.session_name = Some("tavis".to_string());
 }
 
 #[cfg(test)]
