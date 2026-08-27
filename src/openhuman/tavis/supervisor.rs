@@ -1,6 +1,6 @@
 //! Deterministic TAVIS supervision policy over OpenHuman's native health model.
 
-use crate::openhuman::platform::health::core::{verdict, HealthSnapshot};
+use crate::openhuman::platform::health::{verdict, HealthSnapshot};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SupervisorPolicy {
