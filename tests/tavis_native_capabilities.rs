@@ -41,7 +41,10 @@ fn tavis_defaults_enable_browser_with_persistent_session_without_weakening_secur
     let mut config = Config::default();
     apply_tavis_defaults(&mut config);
 
-    assert!(config.browser.enabled, "TAVIS Browser must be available after startup policy is applied");
+    assert!(
+        config.browser.enabled,
+        "TAVIS Browser must be available after startup policy is applied"
+    );
     assert_eq!(config.browser.session_name.as_deref(), Some("tavis"));
     assert_eq!(config.browser.backend, "auto");
     assert!(
