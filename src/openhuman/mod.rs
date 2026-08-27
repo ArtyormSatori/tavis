@@ -65,6 +65,7 @@ pub mod sandbox;
 pub mod search;
 pub mod security;
 pub mod skills;
+pub mod tavis;
 #[cfg(feature = "e2e-test-support")]
 pub mod test_support;
 pub mod threads;
