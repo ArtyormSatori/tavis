@@ -12,7 +12,10 @@ fn tavis_agent_requires_verified_success_before_task_completion() {
         "Opened target page",
     ));
 
-    assert!(!ledger.is_complete(), "unverified success must not complete a task");
+    assert!(
+        !ledger.is_complete(),
+        "unverified success must not complete a task"
+    );
 
     ledger
         .mark_verified("a1")
@@ -39,6 +42,9 @@ fn tavis_agent_replanning_is_bounded() {
 
     assert!(ledger.request_replan().is_ok());
     assert!(ledger.request_replan().is_ok());
-    assert!(ledger.request_replan().is_err(), "replanning must stop at the configured bound");
+    assert!(
+        ledger.request_replan().is_err(),
+        "replanning must stop at the configured bound"
+    );
     assert_eq!(ledger.replans_used(), 2);
 }
