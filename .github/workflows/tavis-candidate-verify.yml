@@ -17,8 +17,6 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
-      - name: Rust format
-        run: cargo fmt --check
       - name: TAVIS policy tests
         run: >-
           cargo test
@@ -27,3 +25,5 @@ jobs:
           --test tavis_voice_policy
           --test tavis_hardening_policy
           -- --nocapture
+      - name: Rust format
+        run: cargo fmt --check
