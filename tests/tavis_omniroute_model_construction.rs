@@ -13,10 +13,11 @@ fn omniroute_abstract_hint_constructs_through_native_factory() {
         0.2,
     );
 
-    assert!(
-        result.is_ok(),
-        "TAVIS OmniRoute hint must be accepted by the native OpenHuman factory: {result:?}"
-    );
-    let (_, model_id) = result.expect("OmniRoute model construction");
+    let (_, model_id) = match result {
+        Ok(value) => value,
+        Err(error) => panic!(
+            "TAVIS OmniRoute hint must be accepted by the native OpenHuman factory: {error}"
+        ),
+    };
     assert_eq!(model_id, "hint:chat");
 }
