@@ -1,4 +1,6 @@
-use openhuman_core::openhuman::config::{apply_tavis_defaults, Config, TAVIS_OMNIROUTE_PROVIDER_ID, TAVIS_OMNIROUTE_URL};
+use openhuman_core::openhuman::config::{
+    apply_tavis_defaults, Config, TAVIS_OMNIROUTE_PROVIDER_ID, TAVIS_OMNIROUTE_URL,
+};
 
 #[tokio::test]
 async fn config_reload_reapplies_tavis_fail_closed_policy() {
@@ -30,7 +32,19 @@ async fn config_reload_reapplies_tavis_fail_closed_policy() {
         loaded.primary_cloud.as_deref(),
         Some(TAVIS_OMNIROUTE_PROVIDER_ID)
     );
-    assert!(loaded.chat_provider.as_deref().unwrap_or_default().starts_with("omniroute:"));
-    assert!(loaded.reasoning_provider.as_deref().unwrap_or_default().starts_with("omniroute:"));
-    assert!(loaded.vision_provider.as_deref().unwrap_or_default().starts_with("omniroute:"));
+    assert!(loaded
+        .chat_provider
+        .as_deref()
+        .unwrap_or_default()
+        .starts_with("omniroute:"));
+    assert!(loaded
+        .reasoning_provider
+        .as_deref()
+        .unwrap_or_default()
+        .starts_with("omniroute:"));
+    assert!(loaded
+        .vision_provider
+        .as_deref()
+        .unwrap_or_default()
+        .starts_with("omniroute:"));
 }
