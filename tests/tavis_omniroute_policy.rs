@@ -1,4 +1,4 @@
-use openhuman_core::openhuman::config::Config;
+use openhuman_core::openhuman::config::{apply_tavis_defaults, Config};
 use openhuman_core::openhuman::inference::provider::factory::provider_for_role;
 
 const DEFAULT_TAVIS_OMNIROUTE_URL: &str = "http://127.0.0.1:20128/v1";
@@ -15,8 +15,9 @@ fn tavis_defaults_llm_inference_to_omniroute() {
 }
 
 #[test]
-fn tavis_default_workloads_resolve_to_omniroute() {
-    let config = Config::default();
+fn tavis_policy_routes_all_llm_workloads_through_omniroute() {
+    let mut config = Config::default();
+    apply_tavis_defaults(&mut config);
 
     for role in [
         "chat",
@@ -35,4 +36,20 @@ fn tavis_default_workloads_resolve_to_omniroute() {
             "TAVIS workload {role} must resolve through OmniRoute, got {provider:?}"
         );
     }
+}
+
+#[test]
+fn tavis_policy_registers_omniroute_as_no_auth_local_gateway() {
+    let mut config = Config::default();
+    apply_tavis_defaults(&mut config);
+
+    let provider = config
+        .cloud_providers
+        .iter()
+        .find(|provider| provider.slug == "omniroute")
+        .expect("TAVIS must register OmniRoute in OpenHuman's provider registry");
+
+    assert_eq!(provider.endpoint, DEFAULT_TAVIS_OMNIROUTE_URL);
+    assert_eq!(provider.auth_style.as_str(), "none");
+    assert_eq!(config.primary_cloud.as_deref(), Some("tavis-omniroute"));
 }
