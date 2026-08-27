@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use openhuman_core::openhuman::platform::health::core::{ComponentHealth, HealthSnapshot};
+use openhuman_core::openhuman::platform::health::{ComponentHealth, HealthSnapshot};
 use openhuman_core::openhuman::tavis::supervisor::{
     supervisor_decision, SupervisorDecision, SupervisorPolicy,
 };
