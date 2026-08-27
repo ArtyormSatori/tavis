@@ -53,3 +53,17 @@ fn tavis_policy_registers_omniroute_as_no_auth_local_gateway() {
     assert_eq!(provider.auth_style.as_str(), "none");
     assert_eq!(config.primary_cloud.as_deref(), Some("tavis-omniroute"));
 }
+
+#[test]
+fn tavis_runtime_router_rejects_direct_provider_bypass() {
+    let mut config = Config::default();
+    apply_tavis_defaults(&mut config);
+
+    // Simulate a stale config, UI bug, or malicious mutation after startup.
+    // The inference chokepoint must still fail closed to OmniRoute.
+    config.chat_provider = Some("openai:gpt-5".to_string());
+    config.reasoning_provider = Some("anthropic:claude-opus-4".to_string());
+
+    assert!(provider_for_role("chat", &config).starts_with("omniroute:"));
+    assert!(provider_for_role("reasoning", &config).starts_with("omniroute:"));
+}
