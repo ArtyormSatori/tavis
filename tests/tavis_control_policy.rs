@@ -1,5 +1,7 @@
 use openhuman_core::openhuman::security::credentials::responses::AuthStateResponse;
-use openhuman_core::openhuman::tavis::control::{authorize_control_action, ControlAction, ControlProof};
+use openhuman_core::openhuman::tavis::control::{
+    authorize_control_action, ControlAction, ControlProof,
+};
 
 #[test]
 fn login_alone_cannot_authorize_sensitive_control_actions() {
