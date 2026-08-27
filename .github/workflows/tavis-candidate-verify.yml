@@ -17,6 +17,8 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
+      - name: Apply candidate config-load patch
+        run: python3 scripts/remediation/patch-tavis-config-load-finalizer.py
       - name: TAVIS policy tests
         run: >-
           cargo test
