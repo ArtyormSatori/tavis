@@ -5,5 +5,7 @@
 
 pub mod control;
 pub mod hardening;
+pub mod knowledge_graph;
+pub mod supervisor;
 pub mod update;
 pub mod voice;
