@@ -1,6 +1,4 @@
-use openhuman_core::openhuman::config::schema::cloud_providers::{
-    AuthStyle, CloudProviderCreds,
-};
+use openhuman_core::openhuman::config::schema::cloud_providers::{AuthStyle, CloudProviderCreds};
 use openhuman_core::openhuman::config::{apply_tavis_defaults, Config};
 use openhuman_core::openhuman::inference::provider::factory::create_chat_model_from_string_with_model_id;
 
@@ -18,17 +16,13 @@ fn tavis_factory_rejects_explicit_external_provider_bypass() {
         ..CloudProviderCreds::default()
     });
 
-    let error = match create_chat_model_from_string_with_model_id(
-        "chat",
-        "external:model",
-        &config,
-        0.2,
-    ) {
-        Ok(_) => panic!(
-            "TAVIS production mode must reject explicit provider strings that bypass OmniRoute"
-        ),
-        Err(error) => error,
-    };
+    let error =
+        match create_chat_model_from_string_with_model_id("chat", "external:model", &config, 0.2) {
+            Ok(_) => panic!(
+                "TAVIS production mode must reject explicit provider strings that bypass OmniRoute"
+            ),
+            Err(error) => error,
+        };
 
     assert!(
         error.to_string().contains("TAVIS_OMNIROUTE_ONLY"),
