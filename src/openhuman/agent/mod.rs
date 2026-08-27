@@ -70,6 +70,7 @@ pub mod stop_hooks;
 pub mod task_board;
 pub mod task_dispatcher;
 pub(crate) mod task_session;
+pub mod tavis_capabilities;
 pub mod tavis_evidence;
 pub mod tinyagents;
 pub mod tool_policy;
