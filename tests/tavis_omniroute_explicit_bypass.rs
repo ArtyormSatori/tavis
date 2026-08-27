@@ -18,13 +18,17 @@ fn tavis_factory_rejects_explicit_external_provider_bypass() {
         ..CloudProviderCreds::default()
     });
 
-    let error = create_chat_model_from_string_with_model_id(
+    let error = match create_chat_model_from_string_with_model_id(
         "chat",
         "external:model",
         &config,
         0.2,
-    )
-    .expect_err("TAVIS production mode must reject explicit provider strings that bypass OmniRoute");
+    ) {
+        Ok(_) => panic!(
+            "TAVIS production mode must reject explicit provider strings that bypass OmniRoute"
+        ),
+        Err(error) => error,
+    };
 
     assert!(
         error.to_string().contains("TAVIS_OMNIROUTE_ONLY"),
