@@ -36,4 +36,4 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Run TAVIS remediation tests
-        run: cargo test --test tavis_omniroute_policy --test tavis_agent_evidence -- --nocapture
+        run: cargo test --test tavis_omniroute_policy --test tavis_agent_evidence --test tavis_native_capabilities -- --nocapture
