@@ -28,6 +28,7 @@ jobs:
           cargo test
           --test tavis_omniroute_policy
           --test tavis_omniroute_model_construction
+          --test tavis_omniroute_explicit_bypass
           --test tavis_config_load_policy
           --test tavis_agent_evidence
           --test tavis_native_capabilities
