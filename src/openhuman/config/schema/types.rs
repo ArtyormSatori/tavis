@@ -40,7 +40,7 @@ pub const DEFAULT_MODEL: &str = MODEL_CHAT_V1;
 /// drift waiting to happen.
 pub use tinymemory_api::host::DEFAULT_MEMORY_SYNC_INTERVAL_SECS;
 
-/// Preset memory-sync cadences (seconds) offered in the UI: 4h / 12h / 24h.
+/// Preset memory-sync cadences (seconds) offered by the UI: 4h / 12h / 24h.
 /// "Manual only" is represented separately by `Some(0)`. See issue #3302.
 pub const MEMORY_SYNC_INTERVAL_PRESETS_SECS: [u64; 3] = [14_400, 43_200, 86_400];
 
@@ -791,7 +791,7 @@ impl Default for Config {
             schema_version: 0,
             api_url: None,
             api_key: None,
-            inference_url: None,
+            inference_url: Some("http://127.0.0.1:20128/v1".to_string()),
             ephemeral_route: None,
             default_model: Some(DEFAULT_MODEL.to_string()),
             default_temperature: DEFAULT_TEMPERATURE,
