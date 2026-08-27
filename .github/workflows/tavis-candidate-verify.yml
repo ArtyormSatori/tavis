@@ -17,19 +17,24 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
-      - name: Apply candidate config-load patch
-        run: python3 scripts/remediation/patch-tavis-config-load-finalizer.py
+      - name: Apply candidate fail-closed patches
+        run: |
+          python3 scripts/remediation/patch-tavis-config-load-finalizer.py
+          python3 scripts/remediation/patch-tavis-omniroute-chokepoint.py
       - name: TAVIS policy tests
         run: >-
           cargo test
+          --test tavis_omniroute_policy
+          --test tavis_omniroute_model_construction
+          --test tavis_config_load_policy
+          --test tavis_agent_evidence
+          --test tavis_native_capabilities
+          --test tavis_knowledge_graph
+          --test tavis_supervisor_policy
           --test tavis_control_policy
           --test tavis_update_policy
           --test tavis_voice_policy
           --test tavis_hardening_policy
-          --test tavis_config_load_policy
-          --test tavis_omniroute_model_construction
-          --test tavis_knowledge_graph
-          --test tavis_supervisor_policy
           -- --nocapture
       - name: Rust format
         run: cargo fmt --check
