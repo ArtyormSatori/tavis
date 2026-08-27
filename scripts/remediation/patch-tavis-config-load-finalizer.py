@@ -4,18 +4,12 @@ from pathlib import Path
 path = Path("src/openhuman/config/schema/load/impl_load.rs")
 text = path.read_text()
 
-# TAVIS policy must be applied last, after migrations/env/decryption, so stale
-# serialized config or process env cannot redirect production inference around
-# OmniRoute. Keep this scoped to load return paths; save() remains unchanged.
+# Apply TAVIS fail-closed policy at every Config load return boundary, after
+# migrations/env/decryption. save() is intentionally untouched.
 replacements = [
     (
-        """            config.apply_env_overrides_from(env);\n\n            tracing::debug!(""",
-        """            config.apply_env_overrides_from(env);\n            crate::openhuman::config::apply_tavis_defaults(&mut config);\n\n            tracing::debug!(""",
-        1,
-    ),
-    (
-        """            if migrated_legacy_secrets {\n                // One-time forced migration:""",
-        """            if migrated_legacy_secrets {\n                // One-time forced migration:""",
+        """            tracing::debug!(\n                path = %config.config_path.display(),\n                workspace = %config.workspace_dir.display(),\n                source = resolution_source.as_str(),\n                initialized = false,\n                persisted = false,\n                \"Config loaded (pre-login, in-memory only — no dirs or files written)\"\n            );\n            return Ok(config);""",
+        """            tracing::debug!(\n                path = %config.config_path.display(),\n                workspace = %config.workspace_dir.display(),\n                source = resolution_source.as_str(),\n                initialized = false,\n                persisted = false,\n                \"Config loaded (pre-login, in-memory only — no dirs or files written)\"\n            );\n            crate::openhuman::config::apply_tavis_defaults(&mut config);\n            return Ok(config);""",
         1,
     ),
     (
@@ -53,7 +47,9 @@ replacements = [
 for old, new, expected in replacements:
     found = text.count(old)
     if found != expected:
-        raise SystemExit(f"patch target mismatch: expected {expected}, found {found}: {old[:80]!r}")
+        raise SystemExit(
+            f"patch target mismatch: expected {expected}, found {found}: {old[:90]!r}"
+        )
     text = text.replace(old, new, expected)
 
 path.write_text(text)
