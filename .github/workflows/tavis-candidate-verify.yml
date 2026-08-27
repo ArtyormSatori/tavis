@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: TAVIS reference-only provenance
+        run: bash tests/tavis_reference_only_guard.sh
       - uses: dtolnay/rust-toolchain@stable
       - name: Apply candidate fail-closed patches
         run: |
