@@ -1,0 +1,29 @@
+name: TAVIS Candidate Verify
+
+on:
+  push:
+    branches:
+      - tavis/verify-phase0-12-candidate
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Rust format
+        run: cargo fmt --check
+      - name: TAVIS policy tests
+        run: >-
+          cargo test
+          --test tavis_control_policy
+          --test tavis_update_policy
+          --test tavis_voice_policy
+          --test tavis_hardening_policy
+          -- --nocapture
