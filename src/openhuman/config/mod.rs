@@ -62,8 +62,7 @@ pub use schema::{
     SEARCH_ENGINE_MANAGED, SEARCH_ENGINE_PARALLEL, SEARCH_ENGINE_QUERIT,
 };
 pub use tavis::{
-    apply_tavis_defaults, TAVIS_OMNIROUTE_PROVIDER_ID, TAVIS_OMNIROUTE_SLUG,
-    TAVIS_OMNIROUTE_URL,
+    apply_tavis_defaults, TAVIS_OMNIROUTE_PROVIDER_ID, TAVIS_OMNIROUTE_SLUG, TAVIS_OMNIROUTE_URL,
 };
 // Kept as a separate re-export (issue #4117) so the large alphabetized group
 // above stays byte-identical and rustfmt-stable.
