@@ -28,6 +28,8 @@ jobs:
           --test tavis_hardening_policy
           --test tavis_config_load_policy
           --test tavis_omniroute_model_construction
+          --test tavis_knowledge_graph
+          --test tavis_supervisor_policy
           -- --nocapture
       - name: Rust format
         run: cargo fmt --check
