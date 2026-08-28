@@ -2,6 +2,8 @@
 
 use crate::openhuman::platform::health::{verdict, HealthSnapshot};
 
+const TAVIS_CRITICAL_COMPONENTS: &[&str] = &["omniroute"];
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SupervisorPolicy {
     pub max_restarts: u64,
@@ -27,12 +29,27 @@ pub enum SupervisorDecision {
     Lockdown,
 }
 
+fn is_unhealthy(status: &str) -> bool {
+    status != "ok" && status != "starting"
+}
+
 pub fn supervisor_decision(
     snapshot: &HealthSnapshot,
     policy: SupervisorPolicy,
 ) -> SupervisorDecision {
     let health = verdict(snapshot);
-    if health.healthy {
+    let tavis_critical_unhealthy: Vec<&str> = TAVIS_CRITICAL_COMPONENTS
+        .iter()
+        .copied()
+        .filter(|name| {
+            snapshot
+                .components
+                .get(*name)
+                .is_some_and(|component| is_unhealthy(&component.status))
+        })
+        .collect();
+
+    if health.healthy && tavis_critical_unhealthy.is_empty() {
         return if health.degraded {
             SupervisorDecision::Degraded
         } else {
@@ -40,13 +57,16 @@ pub fn supervisor_decision(
         };
     }
 
-    let restart_count = health
+    let native_restarts = health
         .critical_unhealthy
         .iter()
         .filter_map(|name| snapshot.components.get(name))
-        .map(|component| component.restart_count)
-        .max()
-        .unwrap_or(0);
+        .map(|component| component.restart_count);
+    let tavis_restarts = tavis_critical_unhealthy
+        .iter()
+        .filter_map(|name| snapshot.components.get(*name))
+        .map(|component| component.restart_count);
+    let restart_count = native_restarts.chain(tavis_restarts).max().unwrap_or(0);
 
     if restart_count >= policy.max_restarts {
         return SupervisorDecision::Lockdown;
