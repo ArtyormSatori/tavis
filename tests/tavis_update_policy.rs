@@ -31,6 +31,26 @@ fn update_cannot_commit_when_native_health_is_unhealthy() {
 }
 
 #[test]
+fn update_cannot_commit_when_omniroute_is_unhealthy() {
+    let mut snapshot = snapshot("ok");
+    snapshot.components.insert(
+        "omniroute".into(),
+        ComponentHealth {
+            status: "error".into(),
+            updated_at: "now".into(),
+            last_ok: None,
+            last_error: Some("gateway unavailable".into()),
+            restart_count: 1,
+        },
+    );
+
+    assert_eq!(
+        next_update_state(UpdateState::HealthCheck, &snapshot),
+        UpdateState::Rollback
+    );
+}
+
+#[test]
 fn update_commits_only_after_native_health_is_healthy() {
     assert_eq!(
         next_update_state(UpdateState::HealthCheck, &snapshot("ok")),
