@@ -24,7 +24,7 @@
 //! Unknown slugs and missing-creds configurations produce actionable errors.
 
 use crate::openhuman::config::schema::cloud_providers::AuthStyle;
-use crate::openhuman::config::Config;
+use crate::openhuman::config::{Config, TAVIS_OMNIROUTE_PROVIDER_ID};
 use crate::openhuman::inference::provider::auth::AuthStyle as CompatAuthStyle;
 use crate::openhuman::inference::provider::claude_agent_sdk::subprocess::ClaudeAgentSdkProvider;
 use crate::openhuman::inference::provider::openai_codex::{
@@ -369,6 +369,23 @@ pub(crate) fn role_uses_implicit_cloud_fallback(role: &str, config: &Config) -> 
 /// migration 1→2 preserved the URL as a custom provider entry but older
 /// configs did not explicitly set per-workload routes.
 pub fn provider_for_role(role: &str, config: &Config) -> String {
+    // TAVIS production mode is fail-closed: once OmniRoute is the primary cloud,
+    // mutable per-role fields cannot redirect LLM workloads around the gateway.
+    if config.primary_cloud.as_deref() == Some(TAVIS_OMNIROUTE_PROVIDER_ID) {
+        let hint = match role {
+            "chat" | "subconscious" => Some("chat"),
+            "reasoning" | "heartbeat" | "learning" => Some("reasoning"),
+            "agentic" | "burst" => Some("agentic"),
+            "coding" => Some("coding"),
+            "vision" => Some("vision"),
+            "memory" | "summarization" => Some("summarization"),
+            _ => None,
+        };
+        if let Some(hint) = hint {
+            return format!("omniroute:hint:{hint}");
+        }
+    }
+
     let opt = configured_route_for_role(role, config);
     let s = opt.unwrap_or("").trim();
     if s.is_empty() || s == "cloud" {
@@ -841,6 +858,29 @@ pub async fn probe_inference_readiness(role: &str, config: &Config) -> Result<()
     result
 }
 
+fn enforce_tavis_omniroute_explicit_provider(
+    provider: &str,
+    config: &Config,
+) -> anyhow::Result<()> {
+    if config.primary_cloud.as_deref() != Some(TAVIS_OMNIROUTE_PROVIDER_ID) {
+        return Ok(());
+    }
+
+    let provider = provider.trim();
+    if provider.is_empty()
+        || provider == "cloud"
+        || provider == "omniroute"
+        || provider.starts_with("omniroute:")
+    {
+        return Ok(());
+    }
+
+    anyhow::bail!(
+        "TAVIS_OMNIROUTE_ONLY: explicit provider '{}' is not allowed while TAVIS OmniRoute-only mode is active",
+        provider
+    )
+}
+
 /// Build an `Arc<dyn ChatModel>` from an explicit provider string and config.
 ///
 /// The explicit-string counterpart of [`create_chat_model`].
@@ -889,6 +929,7 @@ fn create_chat_model_from_string_with_model_id_inner(
             false
         }
     };
+    enforce_tavis_omniroute_explicit_provider(provider, config)?;
     if !test_override_active {
         let mut resolved = provider.trim().to_string();
         if resolved.is_empty() || resolved == "cloud" {
@@ -1635,6 +1676,7 @@ pub(crate) fn create_turn_chat_model_from_string_with_native_tools_and_route(
             false
         }
     };
+    enforce_tavis_omniroute_explicit_provider(provider_string, config)?;
     let p = provider_string.trim();
     let is_managed = p.is_empty() || p == "cloud" || p == PROVIDER_OPENHUMAN;
     if is_managed && !test_override_active {
@@ -2370,13 +2412,21 @@ fn try_create_cloud_slug_chat_model_from_string_with_native_tools(
         return None;
     }
 
-    // Preserve the `Provider` path's gate for custom/cloud providers.
+    // Preserve the `Provider` path's privacy gate for custom/cloud providers.
     if let Err(e) = enforce_local_only_inference(role, &p) {
         return Some(Err(e));
     }
+
+    // TAVIS is an always-on local system: its loopback OmniRoute gateway must
+    // remain usable before/without an OpenHuman account login. Keep the legacy
+    // session requirement for every other custom/cloud slug.
+    let is_tavis_omniroute =
+        config.primary_cloud.as_deref() == Some(TAVIS_OMNIROUTE_PROVIDER_ID) && slug == "omniroute";
     #[cfg(not(test))]
-    if let Err(e) = verify_session_active(config) {
-        return Some(Err(e));
+    if !is_tavis_omniroute {
+        if let Err(e) = verify_session_active(config) {
+            return Some(Err(e));
+        }
     }
 
     let CloudSlugResolution {

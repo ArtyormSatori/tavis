@@ -297,6 +297,7 @@ impl Config {
                 persisted = false,
                 "Config loaded (pre-login, in-memory only — no dirs or files written)"
             );
+            crate::openhuman::config::apply_tavis_defaults(&mut config);
             return Ok(config);
         }
 
@@ -481,6 +482,7 @@ impl Config {
                     );
                 }
             }
+            crate::openhuman::config::apply_tavis_defaults(&mut config);
             Ok(config)
         } else {
             let mut config = Config {
@@ -508,6 +510,7 @@ impl Config {
                 "Config loaded"
             );
             crate::openhuman::config::migrations::run_pending(&mut config).await;
+            crate::openhuman::config::apply_tavis_defaults(&mut config);
             Ok(config)
         }
     }
@@ -533,6 +536,7 @@ impl Config {
                 ..Default::default()
             };
             config.apply_env_overrides();
+            crate::openhuman::config::apply_tavis_defaults(&mut config);
             return Ok(config);
         }
 
@@ -550,6 +554,7 @@ impl Config {
         // Debug-dump path is read-only; ignore the migration signal (the
         // authoritative `load_or_init` path persists upgraded secrets).
         let _ = decrypt_config_secrets(&mut config, &openhuman_dir)?;
+        crate::openhuman::config::apply_tavis_defaults(&mut config);
         Ok(config)
     }
 
@@ -574,6 +579,7 @@ impl Config {
                 ..Default::default()
             };
             config.apply_env_overrides_from(&ProcessEnvWithoutWorkspace);
+            crate::openhuman::config::apply_tavis_defaults(&mut config);
             return Ok(config);
         }
 
@@ -610,6 +616,7 @@ impl Config {
         }
 
         crate::openhuman::config::migrations::run_pending(&mut config).await;
+        crate::openhuman::config::apply_tavis_defaults(&mut config);
         Ok(config)
     }
 
