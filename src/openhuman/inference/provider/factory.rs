@@ -24,7 +24,7 @@
 //! Unknown slugs and missing-creds configurations produce actionable errors.
 
 use crate::openhuman::config::schema::cloud_providers::AuthStyle;
-use crate::openhuman::config::Config;
+use crate::openhuman::config::{Config, TAVIS_OMNIROUTE_PROVIDER_ID};
 use crate::openhuman::inference::provider::auth::AuthStyle as CompatAuthStyle;
 use crate::openhuman::inference::provider::claude_agent_sdk::subprocess::ClaudeAgentSdkProvider;
 use crate::openhuman::inference::provider::openai_codex::{
@@ -369,6 +369,23 @@ pub(crate) fn role_uses_implicit_cloud_fallback(role: &str, config: &Config) -> 
 /// migration 1→2 preserved the URL as a custom provider entry but older
 /// configs did not explicitly set per-workload routes.
 pub fn provider_for_role(role: &str, config: &Config) -> String {
+    // TAVIS production mode is fail-closed: once OmniRoute is the primary cloud,
+    // mutable per-role fields cannot redirect LLM workloads around the gateway.
+    if config.primary_cloud.as_deref() == Some(TAVIS_OMNIROUTE_PROVIDER_ID) {
+        let hint = match role {
+            "chat" | "subconscious" => Some("chat"),
+            "reasoning" | "heartbeat" | "learning" => Some("reasoning"),
+            "agentic" | "burst" => Some("agentic"),
+            "coding" => Some("coding"),
+            "vision" => Some("vision"),
+            "memory" | "summarization" => Some("summarization"),
+            _ => None,
+        };
+        if let Some(hint) = hint {
+            return format!("omniroute:hint:{hint}");
+        }
+    }
+
     let opt = configured_route_for_role(role, config);
     let s = opt.unwrap_or("").trim();
     if s.is_empty() || s == "cloud" {
