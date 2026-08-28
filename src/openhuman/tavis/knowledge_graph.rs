@@ -25,27 +25,54 @@ pub struct GraphProjection {
     pub edge: GraphEdge,
 }
 
-pub fn project_memory_event(event: &DomainEvent) -> Option<GraphProjection> {
-    let DomainEvent::MemoryStored {
-        key,
-        category,
-        namespace,
-    } = event
-    else {
-        return None;
-    };
-
-    let node_id = format!("memory:{namespace}:{key}");
-    Some(GraphProjection {
+fn project_document(namespace: &str, document_id: &str, relation: &str) -> GraphProjection {
+    let node_id = format!("document:{namespace}:{document_id}");
+    GraphProjection {
         node: GraphNode {
             id: node_id.clone(),
-            kind: category.clone(),
-            source: "openhuman.memory".into(),
+            kind: "document".into(),
+            source: "openhuman.memory.ingestion".into(),
         },
         edge: GraphEdge {
             from: format!("namespace:{namespace}"),
             to: node_id,
-            relation: "contains".into(),
+            relation: relation.into(),
         },
-    })
+    }
+}
+
+pub fn project_memory_event(event: &DomainEvent) -> Option<GraphProjection> {
+    match event {
+        DomainEvent::MemoryStored {
+            key,
+            category,
+            namespace,
+        } => {
+            let node_id = format!("memory:{namespace}:{key}");
+            Some(GraphProjection {
+                node: GraphNode {
+                    id: node_id.clone(),
+                    kind: category.clone(),
+                    source: "openhuman.memory".into(),
+                },
+                edge: GraphEdge {
+                    from: format!("namespace:{namespace}"),
+                    to: node_id,
+                    relation: "contains".into(),
+                },
+            })
+        }
+        DomainEvent::MemoryIngestionStarted {
+            document_id,
+            namespace,
+            ..
+        } => Some(project_document(namespace, document_id, "ingests")),
+        DomainEvent::MemoryIngestionCompleted {
+            document_id,
+            namespace,
+            success,
+            ..
+        } if *success => Some(project_document(namespace, document_id, "ingested")),
+        _ => None,
+    }
 }
