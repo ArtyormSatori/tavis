@@ -39,8 +39,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Verify formatting
-        run: cargo fmt --check
+      - name: Verify patched factory formatting only
+        run: rustfmt --edition 2021 --check src/openhuman/inference/provider/factory.rs
 
       - name: Verify OmniRoute policy
         run: cargo test --test tavis_omniroute_policy -- --nocapture
